@@ -1,0 +1,16 @@
+/.saivage/
+/.saivage-work/
+.env
+.env.*
+!.env.example
+node_modules/
+/dist/
+/build/
+/.cache/
+/coverage/
+/playwright-report/
+/test-results/
+/reference/sqlite/sqlite-src-*.zip
+/reference/sqlite/sqlite-src-*/
+*.log
+*.tsbuildinfo
