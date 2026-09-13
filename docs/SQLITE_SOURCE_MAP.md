@@ -22,9 +22,15 @@ reference/sqlite/sqlite-src-3530400/
 ```
 
 Both paths are development reference material and are ignored by Git. They must
-not enter runtime exports, browser bundles, or package artifacts. There is no
-package manifest/configuration yet, so `.gitignore` establishes the current
-boundary but future packaging must explicitly preserve it.
+not enter runtime exports, browser bundles, or published package artifacts. The
+current `package.json` is a private (`"private": true`) NONFUNCTIONAL Stage 1
+type-checking manifest, with a lockfile and `tsconfig.json`; it does not define a
+publish/build pipeline or by itself prove package contents. The present repository
+boundary is enforced by `.gitignore`: it excludes the SQLite archive and extracted
+reference tree as well as `node_modules`, build/dist, cache, coverage, test-result,
+and TypeScript build-info outputs. Any future publishable package configuration
+must add and validate an explicit artifact allowlist/exclusion policy; current
+private tooling is not a packaging compatibility claim.
 
 ### Reproducible verification and extraction
 
