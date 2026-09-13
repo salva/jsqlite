@@ -166,10 +166,18 @@ usable. It never cascade-finalizes. With no dependents it releases resident byte
 and closes. `closeDeferred()` maps `sqlite3_close_v2`: it immediately marks the
 connection zombie, rejects prepare and all other new connection operations, but
 existing statements remain usable; finalizing the last statement performs deferred
-connection cleanup. Repeating either close or using a fully closed connection is
-misuse (rather than C's null-pointer OK adaptation). If statement cleanup reports
+connection cleanup. There are intentionally no public `closed` flags: zombie
+admission and completed destruction are different states, and every invalid use
+is reported by the operations themselves rather than compressed into a boolean.
+Repeating either close or using a fully closed connection is misuse (rather than
+C's null-pointer OK adaptation). If statement cleanup reports
 an earlier execution error, cleanup still completes; that earlier error is thrown,
-while successful zombie deletion is not a competing error. This follows
+while successful zombie deletion is not a competing error. Across explicit nested
+cleanup, the first operation/execution error remains primary, otherwise a finalize
+error is primary, otherwise a close error is primary. Any later finalize/close
+failure is a secondary diagnostic (attached as `cause`/aggregate information by
+helpers, or handled separately by the caller) and never prevents the remaining
+cleanup attempt. This follows
 `connectionIsBusy`, `sqlite3Close`, and `sqlite3LeaveMutexAndCloseZombie`
 (`src/main.c`) plus reset/finalize cleanup (`src/vdbeapi.c`, `src/vdbeaux.c`).
 
@@ -187,11 +195,23 @@ All library-detected failures are `JSQLiteError` with one `kind`:
 - `cancelled`, `timeout`, `limit`: operation controls, not fabricated SQLite codes.
 - `misuse`: JS API validation, illegal overlap/lifetime/index representation, or
   out-of-range bigint. (A SQLite-origin invalid bind/column index remains sqlite.)
-- `unsupported`: a temporary untranslated in-scope feature **or** a permanent SPEC
-  exclusion. The message identifies which and whether it is temporary/permanent.
+- `unsupported`: behavior is unavailable. The `UnsupportedClassification` value is the stable typed discriminator: `"temporary"` for an untranslated in-scope feature
+  and `"permanent"` for a SPEC exclusion. It is present exactly for this kind, so
+  callers never parse messages to distinguish the two.
 - `internal`: an impossible translated-engine state, never converted to NULL/success.
 
-For non-`sqlite` kinds, `code` and `extendedCode` are null. Errors preserve cleanup:
+The complete permanent set is: mutating SQL/transactions/savepoints/database
+rewriting/WAL checkpointing/vacuum/schema changes; runtime C, native code, WASM,
+Emscripten, `sql.js`, `wa-sqlite`, or an embedded SQLite binary; externally loaded
+extensions and host-registered functions/collations/authorizers/progress handlers/
+application virtual tables; SQLite CLI, shell dot commands, Tcl harness, server,
+network protocol, or `sql.js` API compatibility; and browser-runtime WAL/journal
+recovery or sidecar application. Everything else unavailable inside broad
+read-only scope is `unsupported`/`"temporary"`, never silently reclassified as a
+permanent boundary.
+
+For non-`sqlite` kinds, `code` and `extendedCode` are null. For every kind except
+`unsupported`, `unsupportedClassification` is null. Errors preserve cleanup:
 prepare failure leaks no statement; step failure invalidates its row; reset and
 finalize report prior execution errors only after required cleanup. When cleanup
 also detects an internal failure, the saved execution error is primary and cleanup

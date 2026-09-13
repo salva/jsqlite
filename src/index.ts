@@ -45,7 +45,6 @@ export interface PrepareResult {
 }
 
 export interface Statement {
-  readonly closed: boolean;
   readonly columnCount: number;
   readonly parameterCount: number;
   parameterName(index: number): string | null;
@@ -65,7 +64,6 @@ export interface Statement {
 }
 
 export interface Connection {
-  readonly closed: boolean;
   prepare(sql: string, options?: OperationOptions): PrepareResult;
   close(): void;
   closeDeferred(): void;
@@ -83,11 +81,15 @@ export type ErrorKind =
   | "unsupported"
   | "internal";
 
+export type UnsupportedClassification = "temporary" | "permanent";
+
 export declare class JSQLiteError extends Error {
   readonly kind: ErrorKind;
   /** SQLite primary code when kind is sqlite; otherwise null. */
   readonly code: number | null;
   /** SQLite extended code when kind is sqlite; otherwise null. */
   readonly extendedCode: number | null;
+  /** Present exactly when kind is unsupported; null for every other kind. */
+  readonly unsupportedClassification: UnsupportedClassification | null;
   readonly cause?: unknown;
 }

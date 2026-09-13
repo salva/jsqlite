@@ -1,4 +1,4 @@
-import { open } from "../src/index.js";
+import { JSQLiteError, open } from "../src/index.js";
 import type {
   ColumnMetadata,
   Connection,
@@ -7,6 +7,7 @@ import type {
   SqliteValue,
   Statement,
   StepResult,
+  UnsupportedClassification,
 } from "../src/index.js";
 
 function expectType<T>(_value: T): void {}
@@ -16,6 +17,8 @@ const connection = await open("/db.sqlite", {
   limits: { maxFileBytes: 1024, maxWorkUnits: 50 },
 });
 expectType<Connection>(connection);
+// @ts-expect-error Lifecycle is operation-defined; no ambiguous closed boolean.
+connection.closed;
 const prepared = connection.prepare("select ?1, :name");
 expectType<PrepareResult>(prepared);
 expectType<number>(prepared.tailOffset);
@@ -23,6 +26,8 @@ expectType<string>(prepared.tail);
 
 if (prepared.statement) {
   const statement: Statement = prepared.statement;
+  // @ts-expect-error Finalized state is observed through operation misuse errors.
+  statement.closed;
   statement.bind(1, 7n);
   statement.bind(":name", "Ada");
   expectType<StepResult>(await statement.step());
@@ -34,6 +39,11 @@ if (prepared.statement) {
   expectType<SqliteStorageClass>(statement.columnType(0));
   expectType<ColumnMetadata>(statement.columnMetadata(0));
 }
+
+expectType<UnsupportedClassification>("temporary");
+expectType<UnsupportedClassification>("permanent");
+declare const libraryError: JSQLiteError;
+expectType<UnsupportedClassification | null>(libraryError.unsupportedClassification);
 
 // @ts-expect-error INTEGER is bigint, not a potentially lossy number.
 prepared.statement?.bind(1, true);

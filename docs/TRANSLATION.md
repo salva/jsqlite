@@ -5,9 +5,11 @@
 Status: seed design for project refinement, not approved immutable requirements.
 `docs/SPEC.md` owns owner product semantics and scope. This is the living
 project-owned translation design entrypoint. `docs/PLAN.md` owns sequencing.
-When authored in the appropriate stages, `docs/api.md` will own the singular
-public API and `docs/SQLITE_SOURCE_MAP.md` will be the project-editable progressive
-source/test index. Neither is an existing contract or required placeholder.
+When authored in their appropriate stages, project documents own their named
+surfaces. `docs/api.md` now owns the singular Stage 1 public API and
+`docs/SQLITE_SOURCE_MAP.md` is the project-editable progressive source/test index.
+Stage 1 is complete only as a NONFUNCTIONAL contract stage; there is no runtime
+engine or Stage 2 conformance evidence.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -246,8 +248,10 @@ measurement and tests; declarations are explicitly nonfunctional meanwhile.
 
 ## Bounded Stage 1 design questions (historical basis)
 
-The questions below drove the resolved API above and remain useful evidence notes,
-not open Stage 1 blockers.
+The questions below are retained as the historical evidence checklist that drove
+the resolved Stage 1 API above. They are not open blockers, proposed signatures,
+or an extra architecture/review checkpoint; later source/test evidence may still
+refine the singular contract coherently.
 
 - How will nullable typed text/blob access preserve SQL NULL versus empty TEXT
   and empty BLOB? `sqlite.h.in:5493-5496` maps SQL NULL to null pointers, while

@@ -2,9 +2,11 @@
 
 This is the progressive engineering index for the selected upstream SQLite
 implementation. It is deliberately focused on the first public API tranche; it
-is not a corpus inventory or an approved TypeScript API. Product scope remains in
-[`SPEC.md`](SPEC.md), sequencing in [`PLAN.md`](PLAN.md), and translation rules
-and open design questions in [`TRANSLATION.md`](TRANSLATION.md).
+is not a corpus inventory. The completed NONFUNCTIONAL Stage 1 contract is
+[`api.md`](api.md); product scope remains in [`SPEC.md`](SPEC.md), sequencing in
+[`PLAN.md`](PLAN.md), and translation rules plus the historical Stage 1 evidence
+questions in [`TRANSLATION.md`](TRANSLATION.md). Stage 2 and runtime translation
+remain incomplete.
 
 ## Pinned source and usable development cache
 
@@ -205,10 +207,12 @@ count/name/index (1937/1948/1963).
   Typed access can convert. Metadata distinguishes display name and declared type;
   database/table/origin are null for expressions/constants.
 
-Stage 1 still must settle nullable access without conflating NULL with empty
-TEXT/BLOB, value/error representation, column-type observation after conversion,
-and cleanup/ownership behavior. An immutable initial-type field would be a stated
-adaptation, not native post-conversion behavior.
+Stage 1 settles nullable access, value/error representation, stable initial-type
+observation, and cleanup/ownership behavior in [`api.md`](api.md). In particular,
+NULL is distinct from empty TEXT/BLOB, and immutable initial type is a documented
+adaptation rather than a claim about native post-conversion behavior. These are
+contract choices only; their runtime and upstream assertion evidence remains
+Stage 2/later work.
 
 ## Focused upstream test candidates
 

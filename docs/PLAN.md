@@ -3,8 +3,9 @@
 Status: owner-directed initial sequence; the project Planner owns concrete
 decomposition and evidence-based updates. [SPEC.md](SPEC.md) is the product
 contract. This plan does not authorize expanding its read-only exclusions.
-This is an input-only roadmap; no implementation stage is complete. The root
-Planner directs goals and sequencing, not an exhaustive leaf-task inventory.
+Stage 0 and the **NONFUNCTIONAL contract work of Stage 1 are complete**; Stage 2 and every runtime implementation stage remain incomplete.
+The root Planner directs goals and sequencing, not an exhaustive leaf-task
+inventory.
 
 ## Stage 0: Pin And Orient
 
