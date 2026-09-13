@@ -242,17 +242,31 @@ claim that the corpus was inventoried or that a test tranche is approved.
   `test/capi3c.test` contains the v2-oriented counterpart. UTF-16 and origin
   metadata assertions are build-feature gated upstream.
 
+## Stage 1 public contract decisions
+
+[`api.md`](api.md) is now the singular public contract; `src/index.ts` is
+explicitly nonfunctional type scaffolding. The contract selects full-file bounded
+Fetch acquisition, synchronous prepare/local accessors, asynchronously chunked
+step, copied public blobs, UTF-8 byte tail offsets plus exact suffixes, stable
+initial column types, legacy busy close plus explicit deferred zombie close, and
+distinct SQLite/transport/control/misuse/unsupported/internal errors. Finite
+numeric resource defaults remain deferred until an implementation can measure and
+test them; this is not runtime support.
+
+The Stage 1 test expectations retain the focused upstream candidates already
+listed: `test/close.test` for busy/zombie lifecycle; `test/capi3.test` and
+`test/capi3c.test` for prepare/tail, row and metadata behavior; and `test/bind.test`
+for parameter, reset-retention, numeric, NaN, and encoding assertions.
+
 ## Bounded discrepancies and gaps
 
-No engine or public API exists yet, so the mappings above are orientation, not a
-compatibility claim. In particular, these remain decisions for Stage 1:
-
-1. open/acquisition and synchronous versus asynchronous operation boundaries;
-2. empty/comment-only prepare result and UTF-8 tail representation;
-3. INTEGER/REAL/NULL/blob/text public representation and copied-value ownership;
-4. row lifetime, reset/finalize errors, idempotence, and busy versus zombie close;
-5. SQLite result codes versus JS validation/transport errors; and
-6. explicit temporary translation gaps versus permanent SPEC exclusions.
+No engine exists yet. The Stage 1 API decisions above are contract completion, not
+a compatibility claim. Stage 2 must translate and execute the mapped assertions;
+later stages must implement Fetch, format/storage reading, parser/planner/VDBE,
+SQLite conversions, automatic reprepare, bounded execution, and all specified
+encodings. Numeric default limits need implementation evidence before publication.
+Temporary gaps must throw `unsupported`; permanent exclusions remain only those in
+SPEC.
 
 C-only mutexes, allocators, destructor callbacks, raw pointers, writable-main-file
 paths, and host extension surfaces are adaptation/omission candidates only after

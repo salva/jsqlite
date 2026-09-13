@@ -1,0 +1,13 @@
+{
+  "name": "jsqlite2-stage1-contract",
+  "private": true,
+  "version": "0.0.0-stage1",
+  "type": "module",
+  "description": "NONFUNCTIONAL Stage 1 public API contract and type checks; no database engine is included.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

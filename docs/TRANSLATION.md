@@ -54,8 +54,9 @@ Justify omissions by the actual read-only call paths, not a field's name alone.
 Proposed public/internal default: SQL signed 64-bit INTEGER and
 rowid use `bigint`; REAL uses IEEE-754 `number`.
 An integral-valued REAL is still REAL: never infer storage class with
-`Number.isInteger`. A proposed public value union is a boundary value, not an
-internal Mem; its name and exact shape remain Stage 1 design choices.
+`Number.isInteger`. `SqliteValue = null | bigint | number | string | Uint8Array` is the public
+boundary union selected in Stage 1; REAL remains distinguishable from INTEGER by
+JS type even when integral-valued.
 Keep bounded offsets, page numbers and register indexes as numbers only where
 their range and intermediate arithmetic are exact; document the relevant bound.
 Do not truncate 64-bit masks through JS's 32-bit bitwise operators.
@@ -88,7 +89,10 @@ Distinguish shallow copy, full value copy and move (`sqlite3VdbeMemShallowCopy`,
 graphs as a substitute for ownership. Borrowed internal buffers must remain valid
 until their consumer finishes; copy where source lifetime or mutation requires it.
 Proposed default: copy public bound/returned blobs rather than exposing borrowed
-engine storage; settle the exact ownership contract during Stage 1.
+engine storage. **Stage 1 decision:** `docs/api.md` adopts that default: binding
+copies byte input and each returned BLOB is a fresh caller-owned copy. This avoids
+making page/register borrow validity part of the public surface while preserving
+internal borrowed slices where their owner outlives use.
 
 ### Bytes, text and comparison
 
@@ -212,12 +216,38 @@ converts or the statement steps/resets. SQL NULL and a zero-length BLOB remain d
 both sometimes using null C pointers. Test that distinction and retained-copy
 behavior when this path is translated; no need to clone the schema/page graph.
 
-## Bounded Stage 1 design questions
+### Stage 1 decisions (resolved)
 
-These are questions for the project to resolve while authoring the API, not
-approved signatures, repairs to an existing implementation, or an extra
-architecture/review checkpoint. Record evidence-backed decisions in the future
-API, declarations/examples/test expectations, and this guide as appropriate.
+`docs/api.md` now owns these decisions. They are C-mapped browser adaptations,
+not runtime support claims:
+
+- `open()` asynchronously fetches, validates and retains the complete bounded
+  immutable main file; `prepare` is synchronous and `step` asynchronous/yielding.
+  Connection-local stateful overlap is rejected rather than queued.
+- prepare returns `{statement, tailOffset, tail}`; empty/comment-only input has a
+  null statement, the offset counts UTF-8 bytes, and the suffix is lossless.
+- public values are `null | bigint | number | string | Uint8Array`; blobs are
+  copied, NaN binds NULL, infinities stay REAL, and nullable typed access keeps
+  NULL distinct from empty text/blob.
+- ordered index access and positional metadata preserve duplicate names.
+  `columnType` is a stable initial-storage-class observation, explicitly adapting
+  native undefined post-conversion behavior.
+- reset retains bindings and both reset/finalize clean up before reporting saved
+  errors. Finalize is destructive. Legacy busy `close()` and zombie
+  `closeDeferred()` are both exposed without cascading finalization.
+- SQLite failures retain primary/extended codes; transport, cancellation,
+  timeout, resource limits, JS misuse, temporary/permanent unsupported behavior,
+  and impossible internal states remain distinguishable.
+
+These choices follow `src/sqlite.h.in`, `src/main.c`, `src/prepare.c`,
+`src/vdbeapi.c`, `src/vdbeaux.c`, and `src/vdbemem.c` in the selected pin. Exact
+finite default limit values remain an implementation-stage decision requiring
+measurement and tests; declarations are explicitly nonfunctional meanwhile.
+
+## Bounded Stage 1 design questions (historical basis)
+
+The questions below drove the resolved API above and remain useful evidence notes,
+not open Stage 1 blockers.
 
 - How will nullable typed text/blob access preserve SQL NULL versus empty TEXT
   and empty BLOB? `sqlite.h.in:5493-5496` maps SQL NULL to null pointers, while
