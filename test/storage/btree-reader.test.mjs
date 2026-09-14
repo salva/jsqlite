@@ -128,6 +128,25 @@ test("table and index seek descend only through the selected pages", async (t) =
     assert.equal(cursor.rowid, -9223372036854775808n);
   });
 
+  await t.test("non-leftmost table seek ignores a malformed unrelated subtree", () => {
+    const root = databasePageOffset(image, 2);
+    const firstCell = readU16(image, root + 12);
+    const leftmost = readU32(image, root + firstCell);
+    const database = openBtreeDatabase(corruptPageType(image, leftmost));
+    const cursor = database.tableCursor(2);
+    assert.equal(cursor.seek(9223372036854775807n, "le"), true);
+    assert.equal(cursor.rowid, 9223372036854775807n);
+  });
+
+  await t.test("table seek rejects a selected-path cycle", () => {
+    const changed = image.slice();
+    const root = databasePageOffset(changed, 2);
+    const firstCell = readU16(changed, root + 12);
+    writeU32(changed, root + firstCell, 2);
+    const cursor = openBtreeDatabase(changed).tableCursor(2);
+    assert.throws(() => cursor.seek(-9223372036854775808n, "ge"), /b-tree cycle/);
+  });
+
   await t.test("index minimum ignores a malformed rightmost subtree", () => {
     const root = databasePageOffset(image, 3);
     const rightmost = readU32(image, root + 8);

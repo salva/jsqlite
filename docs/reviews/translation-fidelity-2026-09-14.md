@@ -92,8 +92,9 @@ typecheck, package-boundary, and diff checks pass in
 `work:///cards/card-d-e/processes/proc-c22fb69a467e/stdout.log`.
 
 The retained regression now covers table/index minimum exact GE off-path fault
-isolation, a non-leftmost index descent with an unrelated malformed left subtree,
-selected-path table/index corruption, index selected-path depth and cycle limits,
+isolation, non-leftmost table and index descents with an unrelated malformed
+subtree, selected-path table/index corruption, table/index selected-path cycle
+limits, index selected-path depth limits,
 index exact/inexact LE predecessor placement, explicit below-minimum/above-maximum
 invalid placement, and a comparison-count guard showing seek work remains
 path-local rather than proportional to all 2003 fixture entries. Pre-existing table seek coverage
