@@ -1,11 +1,32 @@
-// Project-specific function-context cleanup invariants. Native registration
-// destructors return void, so secondary-cleanup-error precedence is not a native
-// oracle claim. This executable zero-credit gate remains failing until the shared
-// Mem/function context is translated.
 import assert from "node:assert/strict";
-import fs from "node:fs";
-const source=fs.readFileSync(new URL("../../src/internal/vdbe.ts",import.meta.url),"utf8");
-const required=["FunctionContext","cleanupResult","firstError"];
-const missing=required.filter(x=>!source.includes(x));
-assert.ok(missing.length>0,"remove zero-credit guard only after behavioral cleanup tests replace this structural gate");
-console.log(JSON.stringify({schema:"jsqlite-function-cleanup-ts-gap/1",credit:0,outcome:"unimplemented-temporary",missing}));
+import { FunctionContext } from "../../src/internal/vdbe.ts";
+import { Mem } from "../../src/internal/mem.ts";
+
+function integer(value) { const mem=new Mem(); mem.setInt64(value); return mem; }
+
+{
+  const events=[];
+  const context=new FunctionContext();
+  context.setResult(integer(1n),()=>events.push("cleanup-1"));
+  context.setResult(integer(2n),()=>events.push("cleanup-2"));
+  const result=context.takeResult();
+  assert.equal(result.integerValue(),2n);
+  assert.deepEqual(events,["cleanup-1","cleanup-2"]);
+  result.release();
+}
+{
+  const primary=new Error("primary");
+  const secondary=new Error("secondary cleanup");
+  const context=new FunctionContext();
+  context.setResult(integer(1n),()=>{throw secondary});
+  context.setError(primary);
+  assert.throws(()=>context.takeResult(), error=>error===primary);
+  assert.equal(context.firstError,primary);
+}
+{
+  const secondary=new Error("cleanup only");
+  const context=new FunctionContext();
+  context.setResult(integer(1n),()=>{throw secondary});
+  assert.throws(()=>context.takeResult(), error=>error===secondary);
+}
+console.log(JSON.stringify({schema:"jsqlite-function-cleanup-ts/1",credit:1,outcome:"pass",checks:["replacement-cleanup-order","first-error-identity","cleanup-error"]}));

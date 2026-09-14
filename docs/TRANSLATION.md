@@ -1166,3 +1166,7 @@ The boundary harness distinguishes function-registration teardown from result-`M
 ### Implemented bounded expression/function tranche
 
 The generated Lemon expression reduction is now retained on `ExprNode` and consumed by the resolver/compiler; execution is emitted as a VDBE `Expression` operation over shared `Mem`. The bounded registry implements `typeof`, `length`, `octet_length`, `abs`, `substr`, `nullif`, and lazy `coalesce`, together with the selected literal, remainder/comparison/IS, CAST and simple CASE forms. Arity is rejected during prepare with SQLite-shaped errors. The one selected ORDER BY case uses a bounded materialized table sort. This is only the 40-case tranche: COLLATE/min/max companions, broader arithmetic/boolean/WHERE, replacement, LIKE/GLOB, remaining strings, aggregates/windows/date/math/JSON remain backlog. Source anchors remain SQLite 3.53.4 `expr.c`, `resolve.c`, `vdbe.c`, `func.c`, and `vdbemem.c`.
+
+### Function result cleanup seam
+
+Public TS expression execution now uses a shared `FunctionContext` result owner. Replacing or consuming a result releases it exactly once, cleanup-only failures surface, and a prior evaluation error keeps identity over a later cleanup failure; `test/conformance/run-expression-function-cleanup-ts.mjs` exercises those behaviors. This is the bounded `sqlite3_context`/result-Mem lifetime seam, not a claim that compiler-emitted `Function`/`PureFunc`/`CollSeq` opcodes or public host registration exist.

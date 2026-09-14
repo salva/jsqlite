@@ -53,6 +53,36 @@ interface Program {
   readonly orderByColumn?: number;
 }
 interface ParameterBuilder { maximum: number; readonly names: (string | null)[]; readonly named: Map<string, number> }
+
+/** Shared scalar-result owner, corresponding to sqlite3_context and its result Mem. */
+export class FunctionContext {
+  readonly #result = new Mem();
+  #resultCleanup: (() => void) | null = null;
+  firstError: unknown = null;
+
+  setResult(value: Mem, cleanup: (() => void) | null = null): void {
+    this.cleanupResult();
+    this.#result.moveFrom(value);
+    this.#resultCleanup = cleanup;
+  }
+  setError(error: unknown): void { if (this.firstError === null) this.firstError = error; }
+  cleanupResult(): void {
+    this.#result.release();
+    const cleanup = this.#resultCleanup; this.#resultCleanup = null;
+    if (cleanup !== null) try { cleanup(); } catch (error) { this.setError(error); }
+  }
+  takeResult(): Mem {
+    if (this.firstError !== null) { const error=this.firstError; this.cleanupResult(); throw error; }
+    const result=new Mem(); result.moveFrom(this.#result); this.cleanupResult();
+    if (this.firstError !== null) { const error=this.firstError; result.release(); throw error; }
+    return result;
+  }
+}
+function runFunctionContext(evaluate: () => Mem): Mem {
+  const context=new FunctionContext();
+  try { context.setResult(evaluate()); } catch (error) { context.setError(error); }
+  return context.takeResult();
+}
 const FUNCTION_ARITIES: Readonly<Record<string, readonly number[]>> = Object.freeze({
   typeof: [1], length: [1], octet_length: [1], abs: [1], substr: [2, 3], nullif: [2], coalesce: [],
   min: [], max: [], char: [], hex: [1], replace: [3],
@@ -304,7 +334,7 @@ export class VdbeStatement implements Statement {
           case "Integer": this.#registers[op.p2]!.setInt64(op.p1); break;
           case "Copy": this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!); break;
           case "Variable": this.#registers[op.p2]!.copyFrom(this.#bindings[op.p1 - 1]!); break;
-          case "Expression": this.#registers[op.p2]!.moveFrom(evaluateExpression(op.expression,this.#program.encoding,this.#record?.values.map(raw=>memFromRawRecord(raw,this.#borrow)))); break;
+          case "Expression": this.#registers[op.p2]!.moveFrom(runFunctionContext(() => evaluateExpression(op.expression,this.#program.encoding,this.#record?.values.map(raw=>memFromRawRecord(raw,this.#borrow))))); break;
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;
