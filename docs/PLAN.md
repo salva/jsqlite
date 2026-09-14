@@ -9,9 +9,11 @@ to the exact 38 upstream IDs plus 9 no-credit companions in the machine manifest
 the TS harness invokes the singular public adapter. Historically, the first Stage 3 storage milestone let every mapped case complete
 real Fetch acquisition and stop at `prepare`. The current Stage 3 foundation also
 implements UTF-8 tokenization, generated Lemon parsing/reductions, exact tails and
-empty SQL, limits, and immutable internal schema discovery. Public SELECT
-preparation still stops at the resolver/compiler/VDBE boundary; SQL suffixes remain
-unattempted and receive zero TS credit.
+empty SQL, limits, immutable internal schema discovery, and a compiled VDBE slice.
+Public `prepare()` executes no-FROM integer/parameter projections and bounded
+one-rowid-table projection/integer-equality scans; the canonical first-SELECT
+tranche is promoted at 8/8 TS credit. Broader resolver/planner/VDBE work remains
+unattempted and receives no credit.
 The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 

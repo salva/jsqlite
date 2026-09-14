@@ -85,6 +85,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   readonly #maxRows: number;
   readonly #btreeLimits: { readonly maxBtreeDepth: number; readonly maxOverflowPages: number };
   readonly #statements = new Set<VdbeStatement>();
+  #activeStatement: VdbeStatement | null = null;
   readonly [storageOwner]: ImmutableStorage;
 
   constructor(
@@ -112,7 +113,12 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
     this.#state = "closed";
   }
 
+  #assertOperationIdle(): void {
+    if (this.#activeStatement !== null) failure("misuse", "a statement operation is pending");
+  }
+
   prepare(sql: string, options?: OperationOptions): PrepareResult {
+    this.#assertOperationIdle();
     this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
     try {
@@ -135,9 +141,17 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
             this.#maxRows,
             this.#limits.maxWorkUnits,
           )
-        : compileScalarSelect(parsed.statement, this.#limits.maxWorkUnits);
+        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits);
       let statement!: VdbeStatement;
-      statement = new VdbeStatement(program, () => {
+      statement = new VdbeStatement(program,
+        () => this.#assertOperationIdle(),
+        () => {
+          this.#assertOperationIdle();
+          this.#activeStatement = statement;
+          let released = false;
+          return () => { if (!released) { released = true; this.#activeStatement = null; } };
+        },
+        () => {
         this.#statements.delete(statement);
         if (this.#state === "zombie" && this.#statements.size === 0) {
           const source = this.#source;
@@ -154,6 +168,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   }
 
   close(): void {
+    this.#assertOperationIdle();
     const source = this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
     if (this.#statements.size !== 0) failure("sqlite", "unable to close due to unfinalized statements", { code: SQLITE_BUSY });
@@ -161,6 +176,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   }
 
   closeDeferred(): void {
+    this.#assertOperationIdle();
     const source = this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
     this.#state = "zombie";

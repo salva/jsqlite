@@ -92,7 +92,7 @@ test("long table scan yields and observes cancellation after execution begins", 
   db.close();
 });
 
-test("overflow storage work is charged and permits live cancellation at a page checkpoint", async () => {
+test("overflow storage work is charged and permits live cancellation and timeout at page checkpoints", async () => {
   const limitedDb=await openBytes("storage-p4096");
   const limited=limitedDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
   await assert.rejects(limited.step({maxWorkUnits:11}),isError("limit"));
@@ -106,6 +106,16 @@ test("overflow storage work is charged and permits live cancellation at a page c
   await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="overflow-page");
   assert.throws(()=>s.finalize(),isError("cancelled"));
   db.close();
+
+  const timeoutDb=await openBytes("storage-p4096");
+  const timed=timeoutDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
+  const realNow=Date.now; let ticks=0;
+  Date.now=()=>++ticks;
+  try {
+    await assert.rejects(timed.step({timeoutMs:5}),isError("timeout"));
+    assert.throws(()=>timed.finalize(),isError("timeout"));
+  } finally { Date.now=realNow; }
+  timeoutDb.close();
 });
 
 test("connection admission rejects every overlap while a VM is held at a real host yield", async () => {
