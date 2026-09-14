@@ -96,7 +96,12 @@ test("overflow storage work is charged and permits live cancellation and timeout
   const limitedDb=await openBytes("storage-p4096");
   const limited=limitedDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
   await assert.rejects(limited.step({maxWorkUnits:11}),isError("limit"));
-  assert.throws(()=>limited.finalize(),isError("limit"));
+  assert.throws(()=>limited.reset(),isError("limit"));
+  assert.equal(await limited.step(),"row");
+  assert.equal(limited.columnType(0),"text");
+  assert.ok(limited.columnText(0).length > 4096);
+  assert.equal(await limited.step(),"done");
+  limited.finalize();
   limitedDb.close();
 
   const db=await openBytes("storage-p4096");
@@ -104,7 +109,10 @@ test("overflow storage work is charged and permits live cancellation and timeout
   const controller=new AbortController();
   setTimeout(()=>controller.abort("overflow-page"),0);
   await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="overflow-page");
-  assert.throws(()=>s.finalize(),isError("cancelled"));
+  assert.throws(()=>s.reset(),isError("cancelled"));
+  assert.equal(await s.step(),"row");
+  assert.ok(s.columnText(0).length > 4096);
+  s.finalize();
   db.close();
 
   const timeoutDb=await openBytes("storage-p4096");
@@ -113,7 +121,10 @@ test("overflow storage work is charged and permits live cancellation and timeout
   Date.now=()=>++ticks;
   try {
     await assert.rejects(timed.step({timeoutMs:5}),isError("timeout"));
-    assert.throws(()=>timed.finalize(),isError("timeout"));
+    assert.throws(()=>timed.reset(),isError("timeout"));
+    assert.equal(await timed.step(),"row");
+    assert.ok(timed.columnText(0).length > 4096);
+    timed.finalize();
   } finally { Date.now=realNow; }
   timeoutDb.close();
 });
