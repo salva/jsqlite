@@ -641,3 +641,16 @@ Boundary refinement: result-value destructor observations map to `sqlite3_result
 | `Mem.cast("integer")` | `src/vdbemem.c` `sqlite3VdbeIntValue` / `sqlite3Atoi64` prefix | CAST exponent neighbors in 14-case audit |
 | `evaluateFunction(abs)` | `src/func.c` `absFunc` storage-class switch | TEXT-prefix/class audit |
 | private relational cursors and `SeekGE`/`Next` foundation | `src/vdbe.c` cursor seek/next and sorter/ephemeral lifecycle families | private state/lifecycle tests and relational working-state manifest; foundation only |
+
+### ORDER/LIMIT acceptance contract (zero-credit handoff)
+
+`test/conformance/cases/stage3-order-limit-contract.spec.json` and its pinned
+capture map `resolve.c:resolveOrderGroupBy`/`resolveAsName`, `select.c` sorter-tail
+and limit-register paths, `where.c` ordering decisions, `vdbe.c` sorter/counter/
+coercion opcodes, and `vdbeaux.c` record-key comparison to
+`run-order-limit-contract-ts.mjs`. The public test admits only current one-term
+direct resolution and checks broader forms as typed temporary unsupported except the currently admitted
+multi-term path, whose public pinned-result assertion exposes its wrong secondary-key
+order. These 24 contract cases are outside `stage3-relational-working-state` accounting;
+that denominator remains exactly 1/18 until successful public assertions are
+explicitly promoted. Compounds/subqueries remain structural-gate work.

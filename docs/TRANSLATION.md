@@ -1229,3 +1229,25 @@ The first consuming tranche is now implemented by `src/internal/private-state.ts
 The 14-case no-credit audit now distinguishes the pinned value-conversion owners instead of routing all conversions through CAST NUMERIC. `Mem.numericTypeCopy()` follows `src/vdbe.c:numericType`/`computeNumericType`: it preserves the source register, accepts a numeric prefix, and keeps decimal/exponent spellings REAL. `Mem.cast("integer")` follows `src/vdbemem.c:sqlite3VdbeIntValue` and consumes only the signed decimal prefix. Boolean/CASE uses the shared VDBE boolean primitive and `abs` retains `src/func.c:absFunc` storage-class dispatch. This makes the pinned/public typed audit 14/14 while retaining zero credit pending a separate promotion decision.
 
 The same integration commit carries previously blocked relational foundation work: bounded private sorter/ephemeral state, source-shaped SeekGE/Next state transitions, deterministic accounting, and cleanup/reset coverage. This is infrastructure only, with the current relational manifest still crediting 1 of 18 declared cases; it is not a claim of completed ORDER BY, DISTINCT, LIMIT, compound, aggregate, or window breadth. [[card:card-j]] still owns term resolution and collation/direction/NULL ordering, broader sorter execution, limits/offsets, DISTINCT semantics, compound paths, public promotion, and their native/public manifests.
+
+### ORDER/LIMIT test-first contract (implementation handoff)
+
+The zero-credit capture in `stage3-order-limit-contract.json` is independently
+produced by pinned SQLite 3.53.4 and complements, but does not alter, the relational
+1/18 denominator. Its public TS test separates the already admitted direct
+column/alias/positive-ordinal, one-term sorter path from temporary unsupported
+expression, explicit COLLATE/NULLS, and broader LIMIT forms. Multi-term syntax is
+currently admitted but fails its pinned public result assertion because secondary
+keys are not compared; it must be faithfully lowered or conservatively rejected. Compounds
+and subqueries remain owned by their structural query-production gates.
+
+| Contract behavior | Pinned control/source | Implementation handoff |
+|---|---|---|
+| alias, positive ordinal, expression and multi-term resolution | `resolve.c:resolveAsName`, `resolveOrderGroupBy` | preserve result-list matching before ordinary name resolution; retain every term and its expression identity |
+| ASC/DESC, NULLS FIRST/LAST, BINARY/NOCASE/RTRIM and typed keys | `select.c:pushOntoSorter`, `generateSortTail`; `where.c` ordered-loop decisions; `vdbe.c` sorter opcodes; `vdbeaux.c:sqlite3VdbeRecordCompare*` | construct complete immutable `KeyInfo`; compare NULL/INTEGER/REAL/TEXT/BLOB through shared Mem/record comparison, with rowid only where the fixture explicitly stabilizes a tie |
+| LIMIT/OFFSET zero, negative and coercion failures | `select.c:computeLimitRegisters`; `vdbe.c` `MustBeInt`, `OffsetLimit`, `IfNotZero`, `DecrJumpZero` | evaluate/coerce in VM registers, preserve step-time `SQLITE_MISMATCH`, negative LIMIT as unbounded, negative OFFSET as zero |
+| duplicate output columns and errors | `vdbeapi.c` column metadata; resolver/VDBE error branches | preserve positional metadata and prepare-versus-step error phase |
+
+The capture asserts numeric ties only with an explicit final `rowid` term; it makes
+no promise for otherwise equal ORDER keys. `expressions40` remains regression-only
+and confers no ORDER/LIMIT credit.

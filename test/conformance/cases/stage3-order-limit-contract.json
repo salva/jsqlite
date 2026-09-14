@@ -1,0 +1,3441 @@
+{
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "metadata",
+    "storage-class-order",
+    "direction",
+    "null-placement",
+    "collation",
+    "resolver",
+    "multi-term",
+    "limit-offset",
+    "errors"
+  ],
+  "schema": "jsqlite-relational-working-state/4",
+  "cases": [
+    {
+      "id": "metadata-duplicate-columns",
+      "coverage": [
+        "metadata"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a, a FROM ordered ORDER BY rowid LIMIT 1",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-storage-asc",
+      "coverage": [
+        "storage-class-order",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a ASC, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff0000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-storage-desc",
+      "coverage": [
+        "storage-class-order",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a DESC, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff0000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-nulls-last",
+      "coverage": [
+        "null-placement"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY a ASC NULLS LAST, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-nulls-first-desc",
+      "coverage": [
+        "null-placement",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY a DESC NULLS FIRST, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-declared-nocase",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "b",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "b"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-explicit-binary",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b COLLATE BINARY, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "b",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "b"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-explicit-rtrim",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b COLLATE RTRIM, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "b",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "b"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-alias-duplicate",
+      "coverage": [
+        "resolver"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a AS x, tag AS x FROM ordered ORDER BY x, rowid LIMIT 3",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          },
+          {
+            "name": "x",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-positive-ordinal",
+      "coverage": [
+        "resolver",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY 2 DESC, rowid LIMIT 3",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-expression",
+      "coverage": [
+        "resolver"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a+1, rowid LIMIT 3",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-multi-term",
+      "coverage": [
+        "resolver",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a,b FROM ordered ORDER BY a, b DESC, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": "main",
+            "table": "ordered",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "b"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff0000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "fixture-multi-term-gap",
+      "coverage": [
+        "resolver",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "fixture-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          },
+          {
+            "name": "y",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "22"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "14"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "24"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "15"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "25"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-ordinal-zero-error",
+      "coverage": [
+        "resolver",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM ordered ORDER BY 0",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "failed",
+            "resultCode": 1
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "prepare",
+            "resultCode": 1,
+            "primaryCode": 1,
+            "extendedCode": 1,
+            "message": "1st ORDER BY term out of range - should be between 1 and 1"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "resolver-ordinal-range-error",
+      "coverage": [
+        "resolver",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM ordered ORDER BY 2",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "failed",
+            "resultCode": 1
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "prepare",
+            "resultCode": 1,
+            "primaryCode": 1,
+            "extendedCode": 1,
+            "message": "1st ORDER BY term out of range - should be between 1 and 1"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-zero",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT 0",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-negative",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT -1 OFFSET 2",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "626c6f62"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74776f"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6d696e7573"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "offset-negative",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT 2 OFFSET -3",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "ordered",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-real-integral",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 2.0",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-text-integral",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT '2'",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "contract-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-null-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT NULL",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-fraction-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 1.5",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-text-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 'x'",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-overflow-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 9223372036854775808",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "contract-error-gap",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "accounting": {
+    "upstreamDeclared": 0,
+    "companionsDeclared": 24,
+    "nativeMatched": 24,
+    "tsCreditedCases": 0,
+    "nativeExpectationsSeparateFromTsCredit": true,
+    "countDerivedSuccessForbidden": true,
+    "accountingScope": "zero-credit contract cases; excluded from stage3-relational-working-state 1/18 denominator"
+  }
+}

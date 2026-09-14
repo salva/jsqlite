@@ -1,0 +1,309 @@
+{
+  "schema": "jsqlite-order-limit-contract-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "metadata",
+    "storage-class-order",
+    "direction",
+    "null-placement",
+    "collation",
+    "resolver",
+    "multi-term",
+    "limit-offset",
+    "errors"
+  ],
+  "setups": {
+    "ordered": [
+      "CREATE TABLE ordered(a, b TEXT COLLATE NOCASE, tag TEXT); INSERT INTO ordered VALUES(NULL,'z','null'),(1,'a','integer'),(1.0,'A','real'),('1','b','text'),(x'31','B','blob'),(2,'a ','two'),(-1,'A','minus');"
+    ],
+    "empty": [],
+    "fixture-t1": [
+      "CREATE TABLE t1(x INT,y INT); INSERT INTO t1 VALUES(0,9),(1,8),(2,0),(3,1),(4,2),(5,3),(6,4),(7,5),(8,6),(9,7),(10,8),(11,9),(12,0),(13,1),(14,2),(15,3),(16,4),(17,5),(18,6),(19,7),(20,8),(21,9),(22,0),(23,1),(24,2),(25,3),(26,4),(27,5),(28,6),(29,7),(30,8),(31,9);"
+    ]
+  },
+  "cases": [
+    {
+      "id": "metadata-duplicate-columns",
+      "coverage": [
+        "metadata"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a, a FROM ordered ORDER BY rowid LIMIT 1",
+      "bindings": []
+    },
+    {
+      "id": "order-storage-asc",
+      "coverage": [
+        "storage-class-order",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a ASC, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-storage-desc",
+      "coverage": [
+        "storage-class-order",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a DESC, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-nulls-last",
+      "coverage": [
+        "null-placement"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY a ASC NULLS LAST, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-nulls-first-desc",
+      "coverage": [
+        "null-placement",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY a DESC NULLS FIRST, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-declared-nocase",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-explicit-binary",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b COLLATE BINARY, rowid",
+      "bindings": []
+    },
+    {
+      "id": "order-explicit-rtrim",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,b FROM ordered ORDER BY b COLLATE RTRIM, rowid",
+      "bindings": []
+    },
+    {
+      "id": "resolver-alias-duplicate",
+      "coverage": [
+        "resolver"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a AS x, tag AS x FROM ordered ORDER BY x, rowid LIMIT 3",
+      "bindings": []
+    },
+    {
+      "id": "resolver-positive-ordinal",
+      "coverage": [
+        "resolver",
+        "direction"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY 2 DESC, rowid LIMIT 3",
+      "bindings": []
+    },
+    {
+      "id": "resolver-expression",
+      "coverage": [
+        "resolver"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a FROM ordered ORDER BY a+1, rowid LIMIT 3",
+      "bindings": []
+    },
+    {
+      "id": "resolver-multi-term",
+      "coverage": [
+        "resolver",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,a,b FROM ordered ORDER BY a, b DESC, rowid",
+      "bindings": []
+    },
+    {
+      "id": "fixture-multi-term-gap",
+      "coverage": [
+        "resolver",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "fixture-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12",
+      "bindings": []
+    },
+    {
+      "id": "resolver-ordinal-zero-error",
+      "coverage": [
+        "resolver",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM ordered ORDER BY 0",
+      "bindings": []
+    },
+    {
+      "id": "resolver-ordinal-range-error",
+      "coverage": [
+        "resolver",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM ordered ORDER BY 2",
+      "bindings": []
+    },
+    {
+      "id": "limit-zero",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT 0",
+      "bindings": []
+    },
+    {
+      "id": "limit-negative",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT -1 OFFSET 2",
+      "bindings": []
+    },
+    {
+      "id": "offset-negative",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "ordered",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM ordered ORDER BY rowid LIMIT 2 OFFSET -3",
+      "bindings": []
+    },
+    {
+      "id": "limit-real-integral",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 2.0",
+      "bindings": []
+    },
+    {
+      "id": "limit-text-integral",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT '2'",
+      "bindings": []
+    },
+    {
+      "id": "limit-null-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT NULL",
+      "bindings": []
+    },
+    {
+      "id": "limit-fraction-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 1.5",
+      "bindings": []
+    },
+    {
+      "id": "limit-text-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 'x'",
+      "bindings": []
+    },
+    {
+      "id": "limit-overflow-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 9223372036854775808",
+      "bindings": []
+    }
+  ]
+}
