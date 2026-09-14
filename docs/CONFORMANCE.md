@@ -265,3 +265,7 @@ The four companion groups remain no-credit even where focused implementation tes
 exercise their parameter, value, lifecycle, encoding, metadata, and close behavior.
 
 - The selected Stage 3 expression/core-scalar lane now earns 40/40 TS credit through public prepare/metadata/step/finalize. This does not promote its 12 companions or the ordinary-scalar backlog described in TRANSLATION.
+
+### Expression bounded-execution companion
+
+`npm run test:conformance:expressions:bounded` is a translated-runtime public-path safety companion, not additional upstream case credit. It verifies exact scalar work admission, checkpoint abort/deadline behavior, connection `maxResultBytes` preflight for replacement growth, parameter and column-origin inputs, saved-error identity, cleanup, and post-reset reuse. Native boundary captures remain oracle-only.

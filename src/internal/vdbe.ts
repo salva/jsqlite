@@ -62,6 +62,7 @@ interface Program {
   readonly database?: BtreeDatabase;
   readonly maxRows?: number;
   readonly maxWorkUnits: number;
+  readonly maxResultBytes: number;
   readonly encoding: DatabaseEncoding;
   readonly orderByColumn?: number;
 }
@@ -215,7 +216,7 @@ function compileExpression(expression: SelectNode["result"][number], ops: Op[], 
   return { register, name: expressionName(expression) };
 }
 
-export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000): Program {
+export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
   rejectUnsupportedSelectClauses(select);
   if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
   if (!select.result.length) throw new JSQLiteError("sqlite", "SELECT has no result columns", { code: 1 });
@@ -228,7 +229,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;
   ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length }, { code: "Halt" });
-  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
+  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
 function sqlName(text: string): string {
@@ -249,7 +250,7 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
 }
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
-export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000): Program {
+export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
   rejectUnsupportedSelectClauses(select);
   if (select.from.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from[0]!.text), folded = sqliteAsciiFold(tableName);
@@ -292,14 +293,16 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
   const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
-  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,...(select.hasOrderBy?{orderByColumn:resolve([select.tokens.at(-1)!])}:{}),columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits});
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,...(select.hasOrderBy?{orderByColumn:resolve([select.tokens.at(-1)!])}:{}),columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
 }
 
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;const c=new Mem();c.copyFrom(m);c.applyAffinity("numeric","utf-8");return c.initialStorageClass==="integer"?c.integerValue()!==0n:c.initialStorageClass==="real"?c.realValue()!==0:false}
 const collation=(x:Expression):BuiltinCollation=>x.kind==="mem"&&x.collation?x.collation:x.kind==="collate"?x.collation:x.kind==="column"&&x.collation?x.collation:(x.kind==="unary"||x.kind==="cast")?collation(x.value):"binary";
-function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"binary"|BuiltinCollation="binary"):Mem{
- const out=new Mem();if(name==="min"||name==="max"){if(a.some(x=>x.initialStorageClass==="null"))return out;let best=0;for(let i=1;i<a.length;i++){const cmp=compareMem(a[i]!,a[best]!,coll);if(name==="min"?cmp<=0:cmp>0)best=i}return a[best]!}if(name==="char"){let value="";for(const x of a){let n=Number(x.integerValue());if(n<0||n>0x10ffff)n=0xfffd;value+=String.fromCodePoint(n)}out.setText(new TextEncoder().encode(value),"utf-8");return out}if(name==="hex"){const c=a[0]!;if(c.initialStorageClass==="null"){out.setText(new Uint8Array(),"utf-8");return out}const bytes=c.initialStorageClass==="blob"?c.blobValue():c.initialStorageClass==="text"?new TextEncoder().encode(c.textValue()):new TextEncoder().encode(String(memToPublicInitial(c)));out.setText(new TextEncoder().encode(Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()),"utf-8");return out}if(name==="replace"){if(a.some(x=>x.initialStorageClass==="null"))return out;const source=a[0]!.textValue(),search=a[1]!.textValue().split("\0")[0]!,replacement=a[2]!.textValue();out.setText(new TextEncoder().encode(search?source.split(search).join(replacement):source),"utf-8");return out}if(name==="typeof"){out.setText(new TextEncoder().encode(a[0]!.initialStorageClass),"utf-8");return out}if(name==="nullif"){if(a[0]!.initialStorageClass!=="null"&&a[1]!.initialStorageClass!=="null"&&compareMem(a[0]!,a[1]!,coll)===0)return out;return a[0]!}if(name==="octet_length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?c.textBytes().length:new TextEncoder().encode(String(memToPublicInitial(c))).length));return out}if(name==="length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?[...c.textValue().split("\0")[0]!].length:String(memToPublicInitial(c)).length));return out}if(name==="abs"){const c=a[0]!;if(c.initialStorageClass==="null")return out;c.applyAffinity("numeric",encoding);if(c.initialStorageClass==="text"||c.initialStorageClass==="blob"){out.setDouble(0);return out}if(c.initialStorageClass==="integer"){const n=c.integerValue();if(n===-(1n<<63n))throw new JSQLiteError("sqlite","integer overflow",{code:1});out.setInt64(n<0?-n:n)}else out.setDouble(Math.abs(c.realValue()));return out}if(name==="substr"){if(a.some(x=>x.initialStorageClass==="null"))return out;const text=a[0]!.textValue().split("\0")[0]!,start=Number(a[1]!.integerValue()),len=a[2]?Number(a[2]!.integerValue()):undefined,value=[...text].slice(start>0?start-1:start,len===undefined?undefined:(start>0?start-1:start)+len).join("");out.setText(new TextEncoder().encode(value),"utf-8");return out}return out
+function valueBytes(value:Mem):number{return value.initialStorageClass==="text"?value.textBytes().byteLength:value.initialStorageClass==="blob"?value.blobValue().byteLength:0;}
+interface ScalarControl { charge(units:number):void; check():void; readonly maxResultBytes:number }
+function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"binary"|BuiltinCollation="binary",control?:ScalarControl):Mem{
+ const out=new Mem(),charge=(units:number)=>control?.charge(units),checkSize=(bytes:number)=>{if(control&&bytes>control.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")};if(name==="min"||name==="max"){if(a.some(x=>x.initialStorageClass==="null"))return out;let best=0;for(let i=1;i<a.length;i++){const cmp=compareMem(a[i]!,a[best]!,coll);if(name==="min"?cmp<=0:cmp>0)best=i}return a[best]!}if(name==="char"){let value="";for(const x of a){charge(1);let n=Number(x.integerValue());if(n<0||n>0x10ffff)n=0xfffd;value+=String.fromCodePoint(n)}const bytes=new TextEncoder().encode(value);checkSize(bytes.byteLength);out.setText(bytes,"utf-8");return out}if(name==="hex"){const c=a[0]!;if(c.initialStorageClass==="null"){out.setText(new Uint8Array(),"utf-8");return out}const bytes=c.initialStorageClass==="blob"?c.blobValue():c.initialStorageClass==="text"?c.textBytes():new TextEncoder().encode(String(memToPublicInitial(c)));checkSize(bytes.byteLength*2);charge(Math.ceil(bytes.byteLength/256));out.setText(new TextEncoder().encode(Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()),"utf-8");return out}if(name==="replace"){if(a.some(x=>x.initialStorageClass==="null"))return out;const source=a[0]!.textValue(),search=a[1]!.textValue().split("\0")[0]!,replacement=a[2]!.textValue();let value:string;if(!search)value=source;else{const count=source.split(search).length-1;const estimate=new TextEncoder().encode(source).byteLength+count*(new TextEncoder().encode(replacement).byteLength-new TextEncoder().encode(search).byteLength);checkSize(estimate);charge(Math.ceil(source.length/256)+count);value=source.split(search).join(replacement)}const bytes=new TextEncoder().encode(value);checkSize(bytes.byteLength);out.setText(bytes,"utf-8");return out}if(name==="typeof"){out.setText(new TextEncoder().encode(a[0]!.initialStorageClass),"utf-8");return out}if(name==="nullif"){if(a[0]!.initialStorageClass!=="null"&&a[1]!.initialStorageClass!=="null"&&compareMem(a[0]!,a[1]!,coll)===0)return out;return a[0]!}if(name==="octet_length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?c.textBytes().length:new TextEncoder().encode(String(memToPublicInitial(c))).length));return out}if(name==="length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?[...c.textValue().split("\0")[0]!].length:String(memToPublicInitial(c)).length));return out}if(name==="abs"){const c=a[0]!;if(c.initialStorageClass==="null")return out;c.applyAffinity("numeric",encoding);if(c.initialStorageClass==="text"||c.initialStorageClass==="blob"){out.setDouble(0);return out}if(c.initialStorageClass==="integer"){const n=c.integerValue();if(n===-(1n<<63n))throw new JSQLiteError("sqlite","integer overflow",{code:1});out.setInt64(n<0?-n:n)}else out.setDouble(Math.abs(c.realValue()));return out}if(name==="substr"){if(a.some(x=>x.initialStorageClass==="null"))return out;const text=a[0]!.textValue().split("\0")[0]!,start=Number(a[1]!.integerValue()),len=a[2]?Number(a[2]!.integerValue()):undefined;charge(Math.ceil(text.length/256));const value=[...text].slice(start>0?start-1:start,len===undefined?undefined:(start>0?start-1:start)+len).join(""),bytes=new TextEncoder().encode(value);checkSize(bytes.byteLength);out.setText(bytes,"utf-8");return out}return out
 }
 
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
@@ -377,12 +380,12 @@ export class VdbeStatement implements Statement {
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
           case "Blob": this.#registers[op.p2]!.setBlob(op.p1); break;
           case "Null": this.#registers[op.p2]!.setNull(); break;
-          case "Copy": this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!); break;
+          case "Copy": {const source=this.#registers[op.p1]!;this.#chargeValue(source,options,limit,started);this.#registers[op.p2]!.copyFrom(source);break;}
           case "Goto": this.#pc=op.p2; break;
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {const a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
-          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation)));break;}
+          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}}};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
           case "NotNull": if(this.#registers[op.p1]!.initialStorageClass!=="null"){this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!);this.#pc=op.jump}break;
@@ -430,6 +433,8 @@ export class VdbeStatement implements Statement {
     for (const chunk of chunks) { payload.set(chunk, at); at += chunk.byteLength; }
     this.#record=decodeRecord(payload, this.#program.database!.encoding);
   }
+  async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running";}}}
+  #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);if(bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
   #mapExecutionError(error: unknown): unknown {
     // This is the single lazy execution boundary. Existing public errors retain
     // identity; only known storage provenance is classified here.

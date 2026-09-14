@@ -20,6 +20,8 @@ export interface WorkLimits {
   readonly maxExpressionDepth?: number;
   readonly maxBtreeDepth?: number;
   readonly maxOverflowPages?: number;
+  /** Maximum bytes in one scalar result (SQLite SQLITE_LIMIT_LENGTH-shaped). */
+  readonly maxResultBytes?: number;
 }
 export interface OperationOptions { readonly signal?: AbortSignal; readonly timeoutMs?: number; readonly maxWorkUnits?: number; }
 export interface OpenOptions extends OperationOptions { readonly fetchOptions?: Omit<RequestInit, "signal">; readonly limits?: WorkLimits; }
@@ -76,6 +78,7 @@ interface PrepareLimits {
   readonly maxParserDepth: number;
   readonly maxExpressionDepth: number;
   readonly maxWorkUnits: number;
+  readonly maxResultBytes: number;
 }
 
 class OpenConnection implements Connection, StorageOwnerCarrier {
@@ -140,8 +143,9 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
             btreeFromConnection(this, this.#btreeLimits),
             this.#maxRows,
             this.#limits.maxWorkUnits,
+            this.#limits.maxResultBytes,
           )
-        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits);
+        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes);
       let statement!: VdbeStatement;
       statement = new VdbeStatement(program,
         () => this.#assertOperationIdle(),
@@ -210,6 +214,7 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     maxParserDepth: finiteLimit(options.limits?.maxParserDepth, "limits.maxParserDepth", 2500),
     maxExpressionDepth: finiteLimit(options.limits?.maxExpressionDepth, "limits.maxExpressionDepth", 1000),
     maxWorkUnits: finiteLimit(options.limits?.maxWorkUnits, "limits.maxWorkUnits", 10_000_000),
+    maxResultBytes: finiteLimit(options.limits?.maxResultBytes, "limits.maxResultBytes", 1_000_000_000),
   };
   if (options.signal?.aborted) failure("cancelled", "database acquisition was cancelled", { cause: options.signal.reason });
 

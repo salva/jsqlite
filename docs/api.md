@@ -76,7 +76,7 @@ and body-stream failures are `transport`, not SQLite errors. HTTP success does n
 imply a valid database.
 
 `maxFileBytes` is checked against trustworthy declared length when available and
-while streaming, before retaining excess data. Unsupported reserved bytes,
+while streaming, before retaining excess data. `maxResultBytes` (default 1,000,000,000) bounds each scalar TEXT/BLOB result; see stepping below. Unsupported reserved bytes,
 recovery-requiring snapshots, malformed headers/pages, or unsupported storage
 features fail explicitly as documented under errors. The eventual engine must
 support the SPEC's UTF-8, UTF-16le, and UTF-16be database encodings.
@@ -135,7 +135,7 @@ bounded traversal/recursion loops. Statement operation options may only tighten,
 never relax, connection limits. `maxWorkUnits` is an implementation-defined stable
 unit counter intended as a safety bound, not elapsed time or a compatibility/performance
 promise. In the current SELECT VM, every opcode, every local/overflow payload chunk,
-and record header/serial-type decoding each charge one unit. Overflow payload chunks
+and record header/serial-type decoding each charge one unit. Scalar Function input traversal and result copies charge one unit per started 256-byte chunk; delivered output-growing `hex`, `replace`, `substr`, and `char` additionally charge their deterministic scan/build units. `maxResultBytes` is the connection-wide maximum byte length of one TEXT/BLOB result and cannot be relaxed per operation. Output-growing functions preflight a source-derived exact bound before materialization where possible (`hex` doubles input bytes; `replace` counts matches and replacement delta), then verify encoded output. Exceeding it is `kind: "limit"` with message `string or blob too big`. Overflow payload chunks
 are reconstructed one page at a time with a host yield after each overflow page;
 signal/deadline/work checks bracket those reads while PC and cursor remain on the
 current row. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
