@@ -6,7 +6,8 @@ import { JSQLiteError } from "../index.ts";
 import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord, memToPublicInitial } from "./mem.ts";
 import type { SelectNode } from "./parse.ts";
 import { arithmeticBinary, bitwiseNot, logicalNot } from "./vdbe-primitives.ts";
-import { compareMem, type BuiltinCollation } from "./comparison.ts";
+import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
+import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph } from "./schema.ts";
@@ -19,7 +20,7 @@ type Expression =
  | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";index:number;name:string;collation?:BuiltinCollation}
+ | {kind:"column";index:number;name:string;collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
@@ -35,7 +36,7 @@ type Op =
   | { readonly code: "Null"; readonly p2: number }
   | { readonly code: "Copy"; readonly p1: number; readonly p2: number }
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
-  | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation }
+  | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation; readonly affinity?:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
@@ -46,6 +47,15 @@ type Op =
   | { readonly code: "Subtract"; readonly p1: number; readonly p2: number; readonly p3: number }
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number }
+  | { readonly code: "SorterOpen"; readonly p1:number; readonly keyInfo:KeyInfo }
+  | { readonly code: "SorterInsert"; readonly p1:number; readonly key:number; readonly payload:number; readonly payloadCount:number }
+  | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
+  | { readonly code: "SorterData"; readonly p1:number; readonly p2:number; readonly count:number }
+  | { readonly code: "SorterNext"; readonly p1:number; readonly p2:number }
+  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo }
+  | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
+  | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
+  | { readonly code: "OffsetLimit"; readonly count:bigint; readonly offset:bigint }
   | { readonly code: "Rewind"; readonly p2: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
@@ -64,7 +74,6 @@ interface Program {
   readonly maxWorkUnits: number;
   readonly maxResultBytes: number;
   readonly encoding: DatabaseEncoding;
-  readonly orderByColumn?: number;
 }
 export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
 interface ParameterBuilder { maximum: number; readonly names: (string | null)[]; readonly named: Map<string, number> }
@@ -127,7 +136,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
  if(sig==="expr ::= expr COLLATE ID|STRING"){const name=sqliteAsciiFold(t.at(-1)!.text);if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${t.at(-1)!.text}`,{code:1});return{kind:"collate",value:expressionFromReduction(all[0]!),collation:name};}
  if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join("")};
- if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),args=all.map(expressionFromReduction);if(!(name in FUNCTION_ARITIES))throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});if(name==="coalesce"?args.length<2:name==="min"||name==="max"?args.length<2:name==="char"?false:!FUNCTION_ARITIES[name]!.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});return{kind:"call",name,args}}
+ if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),args=all.map(expressionFromReduction);if(name==="count")throw new JSQLiteError("unsupported","aggregate functions are not implemented",{unsupportedClassification:"temporary"});if(!(name in FUNCTION_ARITIES))throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});if(name==="coalesce"?args.length<2:name==="min"||name==="max"?args.length<2:name==="char"?false:!FUNCTION_ARITIES[name]!.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});return{kind:"call",name,args}}
  if(sig.startsWith("expr ::= CASE")){const vals=all.map(expressionFromReduction),hasOperand=t[1]?.text.toUpperCase()!=="WHEN",hasElse=t.some(x=>x.text.toUpperCase()==="ELSE"),operand=hasOperand?vals.shift()!:null,otherwise=hasElse?vals.pop()!:null,pairs:[Expression,Expression][]=[];while(vals.length)pairs.push([vals.shift()!,vals.shift()!]);return{kind:"case",operand,pairs,otherwise}}
  throw new JSQLiteError("unsupported","SELECT expression is not implemented",{unsupportedClassification:"temporary"})
 }
@@ -141,8 +150,8 @@ function expressionName(expression: SelectNode["result"][number]): string {
 }
 
 
-function rejectUnsupportedSelectClauses(select: SelectNode): void {
-  if (select.hasDistinct || select.hasGroupBy || select.hasHaving || select.hasLimit)
+function rejectUnsupportedSelectClauses(select: SelectNode, relational = false): void {
+  if (select.hasGroupBy || select.hasHaving || (!relational && (select.hasDistinct || select.hasOrderBy || select.hasLimit)))
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
 
@@ -157,7 +166,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="binary") {
     const left=emit(expression.left);
     if(expression.op==="AND"||expression.op==="OR") { const r=allocate(),guard=ops.length;ops.push({code:"ShortCircuit",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:r,jump:0});const right=emit(expression.right);ops.push({code:"Boolean",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:r});(ops[guard] as {jump:number}).jump=ops.length;return r; }
-    const right=emit(expression.right),r=allocate();ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:collation(expression.left)});return r;
+    const right=emit(expression.right),r=allocate(),affinity=expressionAffinity(expression.left)??expressionAffinity(expression.right);ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:collation(expression.left),...(affinity?{affinity}:{})});return r;
   }
   if(expression.kind==="call") {
     if(expression.name==="coalesce") { const r=allocate(),jumps:number[]=[];for(const arg of expression.args){const a=emit(arg);const at=ops.length;ops.push({code:"NotNull",p1:a,p2:r,jump:0});jumps.push(at)}ops.push({code:"Null",p2:r});for(const at of jumps)(ops[at] as {jump:number}).jump=ops.length;return r; }
@@ -251,7 +260,7 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
-  rejectUnsupportedSelectClauses(select);
+  rejectUnsupportedSelectClauses(select, true);
   if (select.from.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from[0]!.text), folded = sqliteAsciiFold(tableName);
   const table = schema.tables.get(folded);
@@ -269,7 +278,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     if (at < 0) throw new JSQLiteError("sqlite", `no such column: ${name}`, { code: 1 });
     return at;
   };
-  const resolveExpression=(expression:SelectNode["result"][number]):Expression=>{const tree=expressionFromReduction(expression.reduction!);const assign=(e:Expression):void=>{if(e.kind==="column"){e.index=resolve([{text:e.name}]);const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;return}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")assign(e.value);else if(e.kind==="binary"){assign(e.left);assign(e.right)}else if(e.kind==="call")e.args.forEach(assign);else if(e.kind==="case"){if(e.operand)assign(e.operand);e.pairs.forEach(x=>{assign(x[0]);assign(x[1])});if(e.otherwise)assign(e.otherwise)}};assign(tree);return tree};
+  const resolveExpression=(expression:SelectNode["result"][number]):Expression=>{const tree=expressionFromReduction(expression.reduction!);const assign=(e:Expression):void=>{if(e.kind==="column"){e.index=resolve([{text:e.name}]);const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")assign(e.value);else if(e.kind==="binary"){assign(e.left);assign(e.right)}else if(e.kind==="call")e.args.forEach(assign);else if(e.kind==="case"){if(e.operand)assign(e.operand);e.pairs.forEach(x=>{assign(x[0]);assign(x[1])});if(e.otherwise)assign(e.otherwise)}};assign(tree);return tree};
   // Resolve functions (including arity failures) before rejecting later planning
   // features, as resolve.c does during SELECT preparation.
   select.result.filter(x=>x.reduction).forEach(resolveExpression);
@@ -280,7 +289,19 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     catch(error){if(!expression.reduction)throw error;projected.push({expression:resolveExpression(expression),name:expressionName(expression)});} }
   }
   let registers = projected.length;
-  const ops: Op[] = [], scan=sqlite3WhereBegin(ops,table.rootPage);
+  const tokens=select.tokens,orderAt=tokens.findIndex(t=>t.text.toUpperCase()==="ORDER"),limitAt=tokens.findIndex(t=>t.text.toUpperCase()==="LIMIT");
+  let orderColumn:number|undefined,descending=false;
+  if(orderAt>=0){const term=tokens[orderAt+2],next=tokens[orderAt+3]?.text.toUpperCase();if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY column is implemented",{unsupportedClassification:"temporary"});orderColumn=resolve([term]);descending=next==="DESC"}
+  let limitCount:bigint|null=null,limitOffset=0n;
+  if(limitAt>=0){const count=tokens[limitAt+1];if(!count||count.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitCount=BigInt(count.text);const sep=tokens[limitAt+2]?.text.toUpperCase();if(sep===","){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitOffset=limitCount;limitCount=BigInt(n.text)}else if(sep==="OFFSET"){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer OFFSET is implemented",{unsupportedClassification:"temporary"});limitOffset=BigInt(n.text)}if(limitOffset<0n)limitOffset=0n}
+  if(select.hasDistinct&&projected.some(x=>x.expression!==undefined))throw new JSQLiteError("unsupported","DISTINCT expressions are not implemented",{unsupportedClassification:"temporary"});
+  const ops: Op[] = [];
+  if(limitCount!==null)ops.push({code:"OffsetLimit",count:limitCount,offset:limitOffset});
+  const sorterCursor=1,distinctCursor=2,keyInfo=orderColumn===undefined?null:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:sqliteAsciiFold(table.columns[orderColumn]!.collation??"binary") as BuiltinCollation,desc:descending}]});
+  ops.push({code:"OpenRead",p1:table.rootPage});
+  if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
+  if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:projected.map(x=>({collation:x.column===undefined?"binary":sqliteAsciiFold(table.columns[x.column]!.collation??"binary") as BuiltinCollation}))})});
+  const rewindIndex=ops.length;ops.push({code:"Rewind",p2:0});const scan:FullScanPlan={rewindIndex,loopStart:ops.length};
   let ifNotIndex: number | undefined;
   if (select.where) {
     if (!select.where.reduction) throw new JSQLiteError("unsupported", "WHERE predicate is not implemented", { unsupportedClassification: "temporary" });
@@ -289,15 +310,20 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   const body=ops.length;
   projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
-  ops.push({code:"ResultRow",p1:1,p2:projected.length});
+  if(select.hasDistinct){const found=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});(ops[found] as {jump:number}).jump=ops.length+(keyInfo?2:1)}
+  if(keyInfo){const key=++registers;ops.push({code:"Column",p1:orderColumn!,p2:key},{code:"SorterInsert",p1:sorterCursor,key,payload:1,payloadCount:projected.length});}
+  else ops.push({code:"ResultRow",p1:1,p2:projected.length});
   const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
+  if(keyInfo){const sortAt=ops.length-1;ops.splice(sortAt,0,{code:"SorterSort",p1:sorterCursor,emptyJump:sortAt+4},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length},{code:"ResultRow",p1:1,p2:projected.length},{code:"SorterNext",p1:sorterCursor,p2:sortAt+1});}
+  if(limitCount!==null) { /* OffsetLimit is emitted before cursor-open jump addresses are fixed. */ }
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
   const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
-  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,...(select.hasOrderBy?{orderByColumn:resolve([select.tokens.at(-1)!])}:{}),columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
 }
 
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;const c=new Mem();c.copyFrom(m);c.applyAffinity("numeric","utf-8");return c.initialStorageClass==="integer"?c.integerValue()!==0n:c.initialStorageClass==="real"?c.realValue()!==0:false}
+const expressionAffinity=(x:Expression):MemAffinity|undefined=>x.kind==="column"?x.affinity:x.kind==="cast"?x.affinity:x.kind==="collate"?expressionAffinity(x.value):undefined;
 const collation=(x:Expression):BuiltinCollation=>x.kind==="mem"&&x.collation?x.collation:x.kind==="collate"?x.collation:x.kind==="column"&&x.collation?x.collation:(x.kind==="unary"||x.kind==="cast")?collation(x.value):"binary";
 function valueBytes(value:Mem):number{return value.initialStorageClass==="text"?value.textBytes().byteLength:value.initialStorageClass==="blob"?value.blobValue().byteLength:0;}
 interface ScalarControl { charge(units:number):void; check():void; readonly maxResultBytes:number }
@@ -331,10 +357,11 @@ export class VdbeStatement implements Statement {
   #rowCount = 0;
   #cursor: TableScanCursor | null = null;
   #record: ReturnType<typeof decodeRecord> | null = null;
+  #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor>();
+  #limitCount: bigint | null = null;
+  #limitOffset = 0n;
   #borrow = new BorrowLifetime();
   #rows = 0;
-  #orderedRecords: ReturnType<typeof decodeRecord>[] | null = null;
-  #orderedAt = -1;
   #work = 0;
   #savedError: unknown = null;
   constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void) {
@@ -369,12 +396,21 @@ export class VdbeStatement implements Statement {
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await new Promise<void>(resolve => setTimeout(resolve, 0)); this.#state = "running"; }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
-          case "OpenRead": if(this.#program.orderByColumn!==undefined){const c=this.#program.database!.tableCursor(op.p1),rows:ReturnType<typeof decodeRecord>[]=[];for(let ok=c.first();ok;ok=c.next())rows.push(decodeRecord(c.payload(),this.#program.encoding));rows.sort((a,b)=>{const ma=memFromRawRecord(a.values[this.#program.orderByColumn!]!,this.#borrow),mb=memFromRawRecord(b.values[this.#program.orderByColumn!]!,this.#borrow);return compareMem(ma,mb,"binary")});this.#orderedRecords=rows}else this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
-          case "Rewind": if(this.#orderedRecords){this.#orderedAt=0;if(!this.#orderedRecords.length)this.#pc=op.p2;else this.#record=this.#orderedRecords[0]!}else if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
+          case "OpenRead": this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
+          case "OffsetLimit": this.#limitCount=op.count<0n?null:op.count;this.#limitOffset=op.offset;break;
+          case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
+          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
+          case "SorterInsert": (this.#privateCursors.get(op.p1) as SorterCursor).insert([this.#registers[op.key]!],this.#registers.slice(op.payload,op.payload+op.payloadCount));break;
+          case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort({checkpoint:async()=>{this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running"}}});if(!cursor.first())this.#pc=op.emptyJump;break;}
+          case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
+          case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;
+          case "Found": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(await cursor.found(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),{checkpoint:async()=>{this.#checkControl(options,limit,started);this.#work++;}}))this.#pc=op.jump;break;}
+          case "IdxInsert": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount));break;
+          case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
           case "Column": { const raw=this.#record!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
-          case "Next": if(this.#orderedRecords){if(++this.#orderedAt<this.#orderedRecords.length){this.#record=this.#orderedRecords[this.#orderedAt]!;this.#pc=op.p2}}else if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;
+          case "Next": if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;
           case "Integer": this.#registers[op.p2]!.setInt64(op.p1); break;
           case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
@@ -384,7 +420,7 @@ export class VdbeStatement implements Statement {
           case "Goto": this.#pc=op.p2; break;
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
-          case "Binary": {const a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
+          case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}}};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
@@ -393,7 +429,7 @@ export class VdbeStatement implements Statement {
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;
-          case "ResultRow": if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";
+          case "ResultRow": if(this.#limitOffset>0n){this.#limitOffset--;break}else if(this.#limitCount===0n){this.#state="done";this.#halt();return "done"}else{if(this.#limitCount!==null)this.#limitCount--;if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";}
           case "Halt": this.#state = "done"; return "done";
         }
       }
@@ -441,7 +477,7 @@ export class VdbeStatement implements Statement {
     if (error instanceof JSQLiteError) return error;
     if (error instanceof BtreeFormatError || error instanceof RecordFormatError)
       return new JSQLiteError("sqlite", error.message, { code: 11, extendedCode: 11, cause: error });
-    if (error instanceof BtreeLimitError)
+    if (error instanceof BtreeLimitError || error instanceof PrivateStateLimitError)
       return new JSQLiteError("limit", error.message, { cause: error });
     return error;
   }
@@ -450,7 +486,7 @@ export class VdbeStatement implements Statement {
     if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) throw new JSQLiteError("timeout", "statement execution timed out");
     if (this.#work >= limit) throw new JSQLiteError("limit", "statement exceeds maxWorkUnits");
   }
-  #halt(): void { this.#invalidateRow(); this.#cursor=null; this.#record=null; this.#orderedRecords=null;this.#orderedAt=-1; this.#borrow.invalidate(); }
+  #halt(): void { this.#invalidateRow(); this.#cursor=null; this.#record=null;for(const cursor of this.#privateCursors.values())cursor.close();this.#privateCursors.clear();this.#limitCount=null;this.#limitOffset=0n; this.#borrow.invalidate(); }
   #assertLive(): void { if (this.#state === "finalized") misuse("statement is finalized"); }
   #assertIdle(): void { this.#assertLive(); if (this.#state === "running" || this.#state === "suspended") misuse("statement operation is pending"); this.#assertConnectionIdle(); }
   #invalidateRow(): void { this.#rowStart = 0; this.#rowCount = 0; }

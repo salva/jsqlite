@@ -1,0 +1,422 @@
+{
+  "schema": "jsqlite-relational-working-state-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "order-direction",
+    "null-order",
+    "collation",
+    "ties",
+    "distinct",
+    "limit-offset",
+    "compound",
+    "compound-resolution-error",
+    "lifecycle",
+    "interruption"
+  ],
+  "setups": {
+    "limit-t1": [
+      "CREATE TABLE t1(x int, y int);\nINSERT INTO t1 VALUES(31,10);\nINSERT INTO t1 VALUES(30,9);\nINSERT INTO t1 VALUES(29,8);\nINSERT INTO t1 VALUES(28,8);\nINSERT INTO t1 VALUES(27,7);\nINSERT INTO t1 VALUES(26,7);\nINSERT INTO t1 VALUES(25,7);\nINSERT INTO t1 VALUES(24,7);\nINSERT INTO t1 VALUES(23,6);\nINSERT INTO t1 VALUES(22,6);\nINSERT INTO t1 VALUES(21,6);\nINSERT INTO t1 VALUES(20,6);\nINSERT INTO t1 VALUES(19,6);\nINSERT INTO t1 VALUES(18,6);\nINSERT INTO t1 VALUES(17,6);\nINSERT INTO t1 VALUES(16,6);\nINSERT INTO t1 VALUES(15,5);\nINSERT INTO t1 VALUES(14,5);\nINSERT INTO t1 VALUES(13,5);\nINSERT INTO t1 VALUES(12,5);\nINSERT INTO t1 VALUES(11,5);\nINSERT INTO t1 VALUES(10,5);\nINSERT INTO t1 VALUES(9,5);\nINSERT INTO t1 VALUES(8,5);\nINSERT INTO t1 VALUES(7,5);\nINSERT INTO t1 VALUES(6,5);\nINSERT INTO t1 VALUES(5,5);\nINSERT INTO t1 VALUES(4,5);\nINSERT INTO t1 VALUES(3,5);\nINSERT INTO t1 VALUES(2,5);\nINSERT INTO t1 VALUES(1,5);\nINSERT INTO t1 VALUES(0,5);\n"
+    ],
+    "select4-t1": [
+      "CREATE TABLE t1(n int, log int);\nINSERT INTO t1 VALUES(1,0);\nINSERT INTO t1 VALUES(2,1);\nINSERT INTO t1 VALUES(3,2);\nINSERT INTO t1 VALUES(4,2);\nINSERT INTO t1 VALUES(5,3);\nINSERT INTO t1 VALUES(6,3);\nINSERT INTO t1 VALUES(7,3);\nINSERT INTO t1 VALUES(8,3);\nINSERT INTO t1 VALUES(9,4);\nINSERT INTO t1 VALUES(10,4);\nINSERT INTO t1 VALUES(11,4);\nINSERT INTO t1 VALUES(12,4);\nINSERT INTO t1 VALUES(13,4);\nINSERT INTO t1 VALUES(14,4);\nINSERT INTO t1 VALUES(15,4);\nINSERT INTO t1 VALUES(16,4);\nINSERT INTO t1 VALUES(17,5);\nINSERT INTO t1 VALUES(18,5);\nINSERT INTO t1 VALUES(19,5);\nINSERT INTO t1 VALUES(20,5);\nINSERT INTO t1 VALUES(21,5);\nINSERT INTO t1 VALUES(22,5);\nINSERT INTO t1 VALUES(23,5);\nINSERT INTO t1 VALUES(24,5);\nINSERT INTO t1 VALUES(25,5);\nINSERT INTO t1 VALUES(26,5);\nINSERT INTO t1 VALUES(27,5);\nINSERT INTO t1 VALUES(28,5);\nINSERT INTO t1 VALUES(29,5);\nINSERT INTO t1 VALUES(30,5);\nINSERT INTO t1 VALUES(31,5);\n"
+    ],
+    "distinct-t3": [
+      "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b)); INSERT INTO t3 VALUES (null,null,1),(null,null,2),(null,3,4),(null,3,5),(6,null,7),(6,null,8);"
+    ],
+    "edge-values": [
+      "CREATE TABLE edge(v, tag TEXT); INSERT INTO edge VALUES(NULL,'n1'),(NULL,'n2'),(1,'i'),(1.0,'r'),('1','t'),(x'31','b'),('a','a1'),('A','a2'),('a ','sp');"
+    ],
+    "empty": [],
+    "big-sort": [
+      "CREATE TABLE big(x); WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20000) INSERT INTO big SELECT x FROM c;"
+    ]
+  },
+  "cases": [
+    {
+      "id": "up-limit-1.2.1",
+      "coverage": [
+        "order-direction",
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x LIMIT 5",
+      "bindings": []
+    },
+    {
+      "id": "up-limit-1.2.3",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.3",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.3"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 5 OFFSET -2",
+      "bindings": []
+    },
+    {
+      "id": "up-limit-1.2.4",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.4",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.4"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 2, -5",
+      "bindings": []
+    },
+    {
+      "id": "up-distinct-3.0",
+      "coverage": [
+        "distinct",
+        "null-order"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/distinct.test",
+        "assertionId": "3.0",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test 3.0"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "(null, null, 1),"
+          }
+        ]
+      },
+      "setup": "distinct-t3",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b",
+      "bindings": []
+    },
+    {
+      "id": "up-select4-1.1c",
+      "coverage": [
+        "compound",
+        "order-direction"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-1.1c",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-1.1c"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 UNION ALL SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": []
+    },
+    {
+      "id": "up-select4-2.1",
+      "coverage": [
+        "compound",
+        "distinct"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-2.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-2.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 UNION SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": []
+    },
+    {
+      "id": "up-select4-3.1.1",
+      "coverage": [
+        "compound"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-3.1.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-3.1.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 EXCEPT SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": []
+    },
+    {
+      "id": "up-select4-10.3",
+      "coverage": [
+        "distinct",
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-10.3",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-10.3"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0",
+      "bindings": []
+    },
+    {
+      "id": "comp-order-nulls-collations-ties",
+      "coverage": [
+        "order-direction",
+        "null-order",
+        "collation",
+        "ties"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Explicit NULL placement, NOCASE and deterministic rowid tie companion; no bounded upstream assertion in selected dependency slice.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,v FROM edge ORDER BY v COLLATE NOCASE DESC NULLS FIRST, rowid",
+      "bindings": []
+    },
+    {
+      "id": "comp-rtrim",
+      "coverage": [
+        "collation"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "RTRIM companion closes required built-in collation edge.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM edge WHERE typeof(v)='text' ORDER BY v COLLATE RTRIM, rowid",
+      "bindings": []
+    },
+    {
+      "id": "comp-distinct-storage",
+      "coverage": [
+        "distinct"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Typed NULL/numeric/text/blob duplicate boundary companion.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT v FROM edge ORDER BY typeof(v), v",
+      "bindings": []
+    },
+    {
+      "id": "comp-limit-negative-zero",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Negative LIMIT and positive OFFSET companion.",
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2",
+      "bindings": []
+    },
+    {
+      "id": "comp-limit-coercion-error",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Step-time datatype mismatch companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 'x'",
+      "bindings": []
+    },
+    {
+      "id": "comp-limit-overflow-error",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Int64 overflow/coercion error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 9223372036854775808",
+      "bindings": []
+    },
+    {
+      "id": "comp-compound-intersect",
+      "coverage": [
+        "compound"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "INTERSECT coverage companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 INTERSECT SELECT 1 UNION ALL SELECT 2",
+      "bindings": []
+    },
+    {
+      "id": "comp-compound-order-name-error",
+      "coverage": [
+        "compound-resolution-error"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Compound ORDER name-resolution prepare error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS a UNION SELECT 2 ORDER BY missing",
+      "bindings": []
+    },
+    {
+      "id": "comp-compound-width-error",
+      "coverage": [
+        "compound-resolution-error"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Compound result-width prepare error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION SELECT 2,3",
+      "bindings": []
+    },
+    {
+      "id": "comp-sort-interrupt-cleanup",
+      "coverage": [
+        "lifecycle",
+        "interruption"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Development-only deterministic progress interruption and cleanup companion.",
+      "setup": "big-sort",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM big ORDER BY -x, x",
+      "bindings": [],
+      "capture": {
+        "progressAbortAfter": 1,
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "reset",
+          "finalize",
+          "close"
+        ],
+        "resourceSnapshots": true
+      }
+    }
+  ]
+}

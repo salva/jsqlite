@@ -1,0 +1,2871 @@
+{
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "order-direction",
+    "null-order",
+    "collation",
+    "ties",
+    "distinct",
+    "limit-offset",
+    "compound",
+    "compound-resolution-error",
+    "lifecycle",
+    "interruption"
+  ],
+  "schema": "jsqlite-relational-working-state/4",
+  "cases": [
+    {
+      "id": "up-limit-1.2.1",
+      "coverage": [
+        "order-direction",
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x LIMIT 5",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-limit-1.2.3",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.3",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.3"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 5 OFFSET -2",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-limit-1.2.4",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/limit.test",
+        "assertionId": "limit-1.2.4",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test limit-1.2.4"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(x int, y int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES([expr {32-$i}],[expr {10-$j}])"
+          }
+        ]
+      },
+      "setup": "limit-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 2, -5",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "17"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "18"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "19"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "21"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "22"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "24"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "25"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "26"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "27"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "28"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "29"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "30"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "31"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-distinct-3.0",
+      "coverage": [
+        "distinct",
+        "null-order"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/distinct.test",
+        "assertionId": "3.0",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test 3.0"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "(null, null, 1),"
+          }
+        ]
+      },
+      "setup": "distinct-t3",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "t3",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "t3",
+            "origin": "b"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-select4-1.1c",
+      "coverage": [
+        "compound",
+        "order-direction"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-1.1c",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-1.1c"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 UNION ALL SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "log",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "log"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-select4-2.1",
+      "coverage": [
+        "compound",
+        "distinct"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-2.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-2.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 UNION SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "log",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "log"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-select4-3.1.1",
+      "coverage": [
+        "compound"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-3.1.1",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-3.1.1"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 EXCEPT SELECT n FROM t1 WHERE log=3 ORDER BY log",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "log",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "log"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-select4-10.3",
+      "coverage": [
+        "distinct",
+        "limit-offset"
+      ],
+      "credit": "upstream",
+      "source": {
+        "file": "test/select4.test",
+        "assertionId": "select4-10.3",
+        "occurrence": 1,
+        "assertionAnchor": {
+          "kind": "literal-id",
+          "text": "do_test select4-10.3"
+        },
+        "setupAnchors": [
+          {
+            "kind": "literal-sql",
+            "text": "CREATE TABLE t1(n int, log int);"
+          },
+          {
+            "kind": "literal-sql",
+            "text": "INSERT INTO t1 VALUES($i,$j)"
+          }
+        ]
+      },
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "log",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "log"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-order-nulls-collations-ties",
+      "coverage": [
+        "order-direction",
+        "null-order",
+        "collation",
+        "ties"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Explicit NULL placement, NOCASE and deterministic rowid tie companion; no bounded upstream assertion in selected dependency slice.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag,v FROM edge ORDER BY v COLLATE NOCASE DESC NULLS FIRST, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "edge",
+            "origin": "tag"
+          },
+          {
+            "name": "v",
+            "declType": null,
+            "database": "main",
+            "table": "edge",
+            "origin": "v"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e31"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e32"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7370"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6131"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6132"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "69"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "72"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff0000000000000"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-rtrim",
+      "coverage": [
+        "collation"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "RTRIM companion closes required built-in collation edge.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT tag FROM edge WHERE typeof(v)='text' ORDER BY v COLLATE RTRIM, rowid",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "tag",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "edge",
+            "origin": "tag"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6132"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6131"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7370"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-distinct-storage",
+      "coverage": [
+        "distinct"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Typed NULL/numeric/text/blob duplicate boundary companion.",
+      "setup": "edge-values",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT DISTINCT v FROM edge ORDER BY typeof(v), v",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "v",
+            "declType": null,
+            "database": "main",
+            "table": "edge",
+            "origin": "v"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6120"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-limit-negative-zero",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Negative LIMIT and positive OFFSET companion.",
+      "setup": "select4-t1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "log",
+            "declType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "log"
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-limit-coercion-error",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Step-time datatype mismatch companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 'x'",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-limit-overflow-error",
+      "coverage": [
+        "limit-offset"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Int64 overflow/coercion error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 LIMIT 9223372036854775808",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 20
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "failed",
+            "resultCode": 20,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 20,
+            "primaryCode": 20,
+            "extendedCode": 20,
+            "message": "datatype mismatch"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-compound-intersect",
+      "coverage": [
+        "compound"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "INTERSECT coverage companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 INTERSECT SELECT 1 UNION ALL SELECT 2",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-compound-order-name-error",
+      "coverage": [
+        "compound-resolution-error"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Compound ORDER name-resolution prepare error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS a UNION SELECT 2 ORDER BY missing",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "failed",
+            "resultCode": 1
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "prepare",
+            "resultCode": 1,
+            "primaryCode": 1,
+            "extendedCode": 1,
+            "message": "1st ORDER BY term does not match any column in the result set"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-compound-width-error",
+      "coverage": [
+        "compound-resolution-error"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Compound result-width prepare error companion.",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION SELECT 2,3",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "failed",
+            "resultCode": 1
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "prepare",
+            "resultCode": 1,
+            "primaryCode": 1,
+            "extendedCode": 1,
+            "message": "SELECTs to the left and right of UNION do not have the same number of result columns"
+          }
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "comp-sort-interrupt-cleanup",
+      "coverage": [
+        "lifecycle",
+        "interruption"
+      ],
+      "credit": "no-credit-companion",
+      "sourceRationale": "Development-only deterministic progress interruption and cleanup companion.",
+      "setup": "big-sort",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x FROM big ORDER BY -x, x",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "reset",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "failed",
+            "resultCode": 9
+          },
+          {
+            "index": 4,
+            "op": "reset",
+            "outcome": "failed",
+            "resultCode": 9,
+            "errorRef": "native-first-error"
+          },
+          {
+            "index": 5,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 6,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "x",
+            "declType": null,
+            "database": "main",
+            "table": "big",
+            "origin": "x"
+          }
+        ],
+        "terminal": {
+          "kind": "error",
+          "partialRows": [],
+          "firstError": {
+            "id": "native-first-error",
+            "operation": "stepAll",
+            "resultCode": 9,
+            "primaryCode": 9,
+            "extendedCode": 9,
+            "message": "interrupted"
+          }
+        },
+        "resources": {
+          "before": {
+            "openCursors": 0,
+            "sorters": 0,
+            "ephemeralSets": 0,
+            "borrowGenerations": 0
+          },
+          "afterCleanup": {
+            "openCursors": 0,
+            "sorters": 0,
+            "ephemeralSets": 0,
+            "borrowGenerations": 0
+          },
+          "accountingScope": "capture-owned handles; engine-private counts inferred as zero only after successful close"
+        }
+      },
+      "ts": {
+        "disposition": "not-applicable-no-credit",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "reset"
+          },
+          {
+            "index": 5,
+            "op": "finalize"
+          },
+          {
+            "index": 6,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "accounting": {
+    "upstreamDeclared": 8,
+    "companionsDeclared": 10,
+    "nativeMatched": 18,
+    "tsCreditedCases": 0,
+    "nativeExpectationsSeparateFromTsCredit": true,
+    "countDerivedSuccessForbidden": true
+  }
+}

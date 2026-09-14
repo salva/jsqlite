@@ -269,3 +269,7 @@ exercise their parameter, value, lifecycle, encoding, metadata, and close behavi
 ### Expression bounded-execution companion
 
 `npm run test:conformance:expressions:bounded` is a translated-runtime public-path safety companion, not additional upstream case credit. It verifies exact scalar work admission, checkpoint abort/deadline behavior, connection `maxResultBytes` preflight for replacement growth, parameter and column-origin inputs, saved-error identity, cleanup, and post-reset reuse. Native boundary captures remain oracle-only.
+
+### Relational working-state pre-implementation gate
+
+`stage3-relational-working-state.json` is a schema-v4, native-captured development gate for ORDER BY, DISTINCT, LIMIT/OFFSET, compounds, and private-state cleanup. Validate it with `python3 test/conformance/relational-working-state-manifest.test.py`; regenerate only with the pinned metadata-enabled native library and `capture-relational-working-state.py`. The validator requires literal upstream IDs/setup anchors, exact source identity, typed ordered values, operation partitions, and phase-correct errors. `run-relational-working-state-ts.mjs` now executes two exact public-API companion assertions through the typed sorter/ephemeral consumers: declared 18, attempted/passed 3, unattempted 15, upstream credit 1, companion coverage 2. Companion cases and native matches never establish upstream compatibility.

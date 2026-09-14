@@ -24,6 +24,7 @@ int main(int argc,char **argv){
   else if(!rc && strcmp(id,"select1-one")==0) rc=exec(db,"CREATE TABLE test1(f1 int, f2 int);INSERT INTO test1 VALUES(11,22);");
   else if(!rc && strcmp(id,"select1-where")==0) rc=exec(db,"CREATE TABLE test1(f1 int, f2 int);INSERT INTO test1 VALUES(11,22),(33,44);");
   else if(!rc && strcmp(id,"expr-func")==0) rc=exec(db,"CREATE TABLE tbl1(t1);INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software');CREATE TABLE t2(a);INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890);");
+  else if(!rc && strcmp(id,"expr-relational")==0) rc=exec(db,"CREATE TABLE t2(a);INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890);CREATE TABLE t1(x INT,y INT);WITH RECURSIVE c(i) AS (VALUES(0) UNION ALL SELECT i+1 FROM c WHERE i<31) INSERT INTO t1 SELECT 31-i,9-(i%10) FROM c;");
   else if(!rc && strcmp(id,"expr-where")==0) rc=exec(db,"CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB);INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL);");
   else if(!rc && strcmp(id,"bind")==0) rc=exec(db,"CREATE TABLE t1(a,b,c);");
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
