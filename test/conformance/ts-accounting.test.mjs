@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { validateCaseData,validateResults } from "./ts-accounting.mjs";
+const c=id=>({id,fixture:"empty",operations:[{key:"openFixture",op:"openFixture",fixture:"empty"}],expected:{disposition:"unimplemented-temporary"}});
+const r=id=>({schema:"jsqlite-ts-result/1",caseId:id,disposition:"unimplemented-temporary",credit:0,attempted:{index:0,key:"openFixture",op:"openFixture"},error:{name:"JSQLiteError",kind:"unsupported",unsupportedClassification:"temporary"},notAttempted:[]});
+assert.doesNotThrow(()=>validateCaseData({schema:"jsqlite-ts-cases/1",cases:[c("a"),c("b")]},["a","b"]));
+for(const bad of [{schema:"jsqlite-ts-cases/1",cases:[c("a"),c("a")]},{schema:"jsqlite-ts-cases/1",cases:[c("a")]},{schema:"bad",cases:[c("a"),c("b")]}]) assert.throws(()=>validateCaseData(bad,["a","b"]));
+assert.doesNotThrow(()=>validateResults([c("a"),c("b")],[r("a"),r("b")]));
+assert.throws(()=>validateResults([c("a"),c("b")],[r("a")]));
+assert.throws(()=>validateResults([c("a")],[{...r("a"),attempted:null}]));
+assert.throws(()=>validateResults([c("a")],[r("a"),r("a")]));
+console.log("TS accounting rejects duplicate, missing, malformed, and unattempted cases");

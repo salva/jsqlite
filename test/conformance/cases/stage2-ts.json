@@ -1,0 +1,1527 @@
+{
+  "schema": "jsqlite-ts-cases/1",
+  "cases": [
+    {
+      "id": "close.test:close-1.1",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.2.1",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.2.2",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.3.1",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.3.2",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.3.3",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.4.1",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.4.2",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.4.3",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "close.test:close-1.4.4",
+      "credit": "upstream",
+      "fixture": "close",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "close"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "closeDeferred",
+          "op": "closeDeferred"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-1.1",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-1.4",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-1.5",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-2.1",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-2.2",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-2.3",
+      "credit": "upstream",
+      "fixture": "empty",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "empty"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.8",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-3.1",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.0",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.1",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.2",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.4.1",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "enc2.test:enc2-1.1",
+      "credit": "upstream",
+      "fixture": "encoding-utf8",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "encoding-utf8"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "enc2.test:enc2-2.1",
+      "credit": "upstream",
+      "fixture": "encoding-utf16le",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "encoding-utf16le"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "enc2.test:enc2-3.1",
+      "credit": "upstream",
+      "fixture": "encoding-utf16be",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "encoding-utf16be"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "readonly.test:readonly-1.2",
+      "credit": "upstream",
+      "fixture": "readonly",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "readonly"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.1",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.2",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.3",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.4",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.5",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.6",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind.test:bind-2.1.7",
+      "credit": "upstream",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.3",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.5",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.8",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.10",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "capi3c.test:capi3c-5.1.12",
+      "credit": "upstream",
+      "fixture": "meta",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "meta"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind-reset-retains",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind-clear-to-null",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind-clear-observation",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "bind-finalize",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "transport:int64-extrema",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "transport:real-specials",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "transport:null-empty-text-empty-blob",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "transport:blob-00ff80",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT $one,$::two,$x(-z-)"
+        },
+        {
+          "key": "bind",
+          "op": "bind",
+          "index": 1,
+          "value": 32
+        },
+        {
+          "key": "step",
+          "op": "step"
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    },
+    {
+      "id": "transport:duplicate-ordered-columns",
+      "credit": "no-credit-companion",
+      "fixture": "bind",
+      "setup": [],
+      "operations": [
+        {
+          "key": "openFixture",
+          "op": "openFixture",
+          "fixture": "bind"
+        },
+        {
+          "key": "prepare",
+          "op": "prepare",
+          "sql": "SELECT a,b,c FROM t1"
+        },
+        {
+          "key": "metadata",
+          "op": "columnMetadata",
+          "column": 0
+        }
+      ],
+      "expected": {
+        "disposition": "unimplemented-temporary",
+        "error": {
+          "name": "JSQLiteError",
+          "kind": "unsupported",
+          "unsupportedClassification": "temporary"
+        }
+      }
+    }
+  ]
+}
