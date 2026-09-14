@@ -50,9 +50,11 @@ convenience only. Do not use previous JSQLite implementation or acceptance claim
 
 ### Translate semantics, not C allocation syntax
 
-Translate upstream structures, algorithms and control flow rather than designing
-a SQLite-like engine. JS objects, arrays and typed byte buffers may replace C
-layouts where meaning is preserved. No general C heap/pointer emulator is required.
+Translate relevant pinned upstream structures, algorithms, and control branches by
+default rather than designing a SQLite-like engine. Ordinary TypeScript objects,
+arrays, typed byte buffers, `BigInt`, async execution, and browser-safe
+representations are adaptations of that work, not exceptions to the translation
+default. No general C heap/pointer emulator is required.
 No native SQLite, C or WASM in the browser runtime; native development oracles
 and fixture producers are separate and may perform fixture-setup writes.
 
@@ -63,6 +65,19 @@ state and temporary records can be necessary. Shared internal objects need not b
 copied simply because public handles have single-owner JS-agent semantics.
 Do not translate irrelevant fields merely to reproduce every upstream struct.
 Justify omissions by the actual read-only call paths, not a field's name alone.
+
+An **ALGORITHM SUBSTITUTION** is exceptional. Record a brief, concrete
+TypeScript/browser/read-only rationale, comparison with the implementing upstream
+routine, preserved observable behavior, and source-based tests in this guide,
+`docs/SQLITE_SOURCE_MAP.md`, or a nearby code note. Technical Planner and Reviewer
+approval is the normal project decision path; it does not create new human
+bureaucracy. Owner approval is required only when a choice changes product scope,
+observable guarantees, or exclusions.
+
+The mutable audit at
+[`reviews/translation-fidelity-2026-09-14.md`](reviews/translation-fidelity-2026-09-14.md)
+records revision-labeled findings and evidence gaps. Verify it against current
+work rather than freezing its baseline predictions into this guide.
 
 ### Numbers and semantic state
 
