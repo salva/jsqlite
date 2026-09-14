@@ -105,7 +105,19 @@ behavior.
 
 ### 6. Expression comparison and boolean lowering/caller contracts
 
-**Current static label: partial/unverified.**
+**Current reproduced label ([[card:card-i-a]] research lane): partial; mixed-NULL,
+right-explicit collation, and conversion-dependent CASE failures reproduced;
+focused column-affinity hypothesis disproved for the selected current path.**
+
+Pinned-oracle/public-TS captures show mixed `IS`/`IS NOT` returns `0,1,0,1`
+natively versus `1,0,1,0` in TS; right explicit NOCASE returns 1 natively versus
+0 in TS, while the left-explicit-BINARY neighbor returns 0 in both. `CASE WHEN
+'12x'` is true natively and false in TS; `'x12'` is false in both. Conversely,
+the selected INTEGER-affinity comparisons `b='1'`, `b='01'`, and `WHERE b=1` now
+match exactly, as does adjacent TEXT-affinity `a=1`; the blanket lost-affinity
+prediction is disproved for this path, not globally. Exact typed evidence is in
+`test/conformance/cases/audit-expression-callers.json`. CASE truth depends on the
+card-f numeric conversion owner and does not invalidate genuine CASE lowering.
 
 Baseline `src/internal/vdbe.ts:109-131,149-169,308-315,387` emitted generic Binary
 operations into a miniature evaluator. Predicted baseline discrepancies:
@@ -126,7 +138,15 @@ Verify the partial correction and repair the owning comparison/boolean semantics
 
 ### 7. Scalar Function opcode with independent JavaScript implementations
 
-**Current static label: unchanged.**
+**Current reproduced label ([[card:card-i-a]] research lane): predicted high-risk
+branches reproduced; no implementation repair.**
+
+Pinned typed captures reproduce all listed substr outcomes (`ab`, `f`, `bc`, BLOB
+`62`), TEXT abs distinctions (REAL 2 and REAL 12), `length(1.0)=3`, and
+`octet_length(1.0)=3/6/6` for UTF-8/UTF-16le/UTF-16be. Current TS produces the
+predicted wrong values or BLOB exception. Abs partly depends on card-f's shared
+`numericType`/Mem owner; this card supplies caller tests without duplicating it.
+See `docs/research/card-i-a-audit-expression-callers.md`.
 
 Baseline `src/internal/vdbe.ts:304-305` has real Function dispatch but simplified
 independent scalar algorithms. Against `src/func.c:356-444`, predictions are:
@@ -191,7 +211,15 @@ replacing the architecture.
 
 ### 8. Distinct numeric coercion owners conflated
 
-**Current static label: unchanged.**
+**Current reproduced label (caller evidence from [[card:card-i-a]]; owner remains
+card-f, activation-gated by card-e): predictions reproduced; not repaired here.**
+
+The pinned oracle promotes both oversized signed decimal literals to REAL while TS
+rejects at prepare. It returns REAL for `typeof('1.0'+0)`/`'1e2'+0` and
+INTEGER-prefix 1/123 for CAST neighbors; TS returns INTEGER/INTEGER and
+100/12300000. Exact IDs are `audit-8-oversized-literal` and
+`audit-8-numeric-neighbor`; CASE-prefix and TEXT-abs are dependent callers. No
+shared conversion or literal owner was changed here.
 
 Baseline `src/internal/vdbe-primitives.ts:15-22` uses a private CAST NUMERIC copy
 for `numericType`, conflating `src/vdbe.c:467-510` with

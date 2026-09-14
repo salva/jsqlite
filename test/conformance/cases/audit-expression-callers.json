@@ -1,0 +1,508 @@
+{
+  "schema": "jsqlite-audit-expression-callers/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "credit": "audit-no-credit",
+  "cases": [
+    {
+      "id": "audit-6-null-is-mixed",
+      "sql": "SELECT NULL IS 'ab',NULL IS NOT 'ab','ab' IS NULL,'ab' IS NOT NULL",
+      "fixture": "empty",
+      "owner": "expression-caller",
+      "native": {
+        "columns": [
+          {
+            "name": "NULL IS 'ab'"
+          },
+          {
+            "name": "NULL IS NOT 'ab'"
+          },
+          {
+            "name": "'ab' IS NULL"
+          },
+          {
+            "name": "'ab' IS NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-6-right-explicit-nocase",
+      "sql": "SELECT 'a'='A' COLLATE NOCASE, 'a' COLLATE BINARY='A' COLLATE NOCASE",
+      "fixture": "empty",
+      "owner": "expression-caller",
+      "native": {
+        "columns": [
+          {
+            "name": "'a'='A' COLLATE NOCASE"
+          },
+          {
+            "name": "'a' COLLATE BINARY='A' COLLATE NOCASE"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-6-column-affinity",
+      "sql": "SELECT b='1',b='01',a=1,typeof(b),typeof(a) FROM t WHERE b=1",
+      "fixture": "expr-where",
+      "setup": [
+        "CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB)",
+        "INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL)"
+      ],
+      "owner": "expression-caller; depends on card-f Mem comparison affinity",
+      "native": {
+        "columns": [
+          {
+            "name": "b='1'"
+          },
+          {
+            "name": "b='01'"
+          },
+          {
+            "name": "a=1"
+          },
+          {
+            "name": "typeof(b)"
+          },
+          {
+            "name": "typeof(a)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-6-case-prefix-truth",
+      "sql": "SELECT CASE WHEN '12x' THEN 'yes' ELSE 'no' END,CASE WHEN 'x12' THEN 'yes' ELSE 'no' END",
+      "fixture": "empty",
+      "owner": "CASE boolean caller; depends on card-f numeric conversion",
+      "native": {
+        "columns": [
+          {
+            "name": "CASE WHEN '12x' THEN 'yes' ELSE 'no' END"
+          },
+          {
+            "name": "CASE WHEN 'x12' THEN 'yes' ELSE 'no' END"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "796573"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e6f"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-substr-zero",
+      "sql": "SELECT substr('abcdef',0,3)",
+      "fixture": "empty",
+      "owner": "scalar substr",
+      "native": {
+        "columns": [
+          {
+            "name": "substr('abcdef',0,3)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6162"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-substr-negative",
+      "sql": "SELECT substr('abcdef',-1,1),substr('abcdef',4,-2)",
+      "fixture": "empty",
+      "owner": "scalar substr",
+      "native": {
+        "columns": [
+          {
+            "name": "substr('abcdef',-1,1)"
+          },
+          {
+            "name": "substr('abcdef',4,-2)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "66"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6263"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-substr-blob",
+      "sql": "SELECT substr(x'616263',2,1),typeof(substr(x'616263',2,1))",
+      "fixture": "empty",
+      "owner": "scalar substr/Mem result class",
+      "native": {
+        "columns": [
+          {
+            "name": "substr(x'616263',2,1)"
+          },
+          {
+            "name": "typeof(substr(x'616263',2,1))"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "blob",
+              "hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-abs-text-prefix",
+      "sql": "SELECT abs('-2'),typeof(abs('-2')),abs('12x'),typeof(abs('12x'))",
+      "fixture": "empty",
+      "owner": "scalar abs; depends on card-f numericType",
+      "native": {
+        "columns": [
+          {
+            "name": "abs('-2')"
+          },
+          {
+            "name": "typeof(abs('-2'))"
+          },
+          {
+            "name": "abs('12x')"
+          },
+          {
+            "name": "typeof(abs('12x'))"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "real",
+              "ieee754be": "4000000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4028000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-length-integral-real",
+      "sql": "SELECT length(1.0),octet_length(1.0)",
+      "fixture": "empty",
+      "owner": "scalar length/octet_length and Mem stringify",
+      "native": {
+        "columns": [
+          {
+            "name": "length(1.0)"
+          },
+          {
+            "name": "octet_length(1.0)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-octet-utf8",
+      "sql": "SELECT octet_length(1.0)",
+      "fixture": "encoding-utf8",
+      "owner": "scalar octet_length encoding",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(1.0)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-octet-utf16le",
+      "sql": "SELECT octet_length(1.0)",
+      "fixture": "encoding-utf16le",
+      "owner": "scalar octet_length encoding",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(1.0)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-7-octet-utf16be",
+      "sql": "SELECT octet_length(1.0)",
+      "fixture": "encoding-utf16be",
+      "owner": "scalar octet_length encoding",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(1.0)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-8-oversized-literal",
+      "sql": "SELECT 9223372036854775808,typeof(9223372036854775808),-9223372036854775809,typeof(-9223372036854775809)",
+      "fixture": "empty",
+      "owner": "card-f literal lowering; caller evidence only",
+      "native": {
+        "columns": [
+          {
+            "name": "9223372036854775808"
+          },
+          {
+            "name": "typeof(9223372036854775808)"
+          },
+          {
+            "name": "-9223372036854775809"
+          },
+          {
+            "name": "typeof(-9223372036854775809)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "real",
+              "ieee754be": "43e0000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "c3e0000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    },
+    {
+      "id": "audit-8-numeric-neighbor",
+      "sql": "SELECT typeof('1.0'+0),'1e2'+0,CAST('1e2' AS INTEGER),CAST('123e+5' AS INTEGER)",
+      "fixture": "empty",
+      "owner": "card-f numericType/CAST; caller evidence only",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof('1.0'+0)"
+          },
+          {
+            "name": "'1e2'+0"
+          },
+          {
+            "name": "CAST('1e2' AS INTEGER)"
+          },
+          {
+            "name": "CAST('123e+5' AS INTEGER)"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4059000000000000"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "123"
+            }
+          ]
+        ]
+      },
+      "ts": {
+        "disposition": "unimplemented-or-mismatch",
+        "credit": false
+      }
+    }
+  ]
+}
