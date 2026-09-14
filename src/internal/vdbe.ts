@@ -16,6 +16,7 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 
 type Expression =
+ | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
  | {kind:"column";index:number;name:string;collation?:BuiltinCollation}
@@ -108,6 +109,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(n.kind!=="reduction"||!(n.signature.startsWith("expr ::=")||n.signature.startsWith("term ::=")))throw new JSQLiteError("unsupported","expression reduction is not implemented",{unsupportedClassification:"temporary"});
  const t=exprLeaves(n), all=descendantExprs(n), sig=n.signature;
  if(sig.startsWith("term ::=")||sig==="expr ::= term"||sig==="expr ::= VARIABLE"){const x=t[0]!;if(x.kind==="integer"){const v=BigInt(x.text);if(v>=(1n<<63n))throw new JSQLiteError("sqlite","integer literal is out of range",{code:1});return{kind:"literal",value:v}}if(x.kind==="float")return{kind:"literal",value:Number(x.text)};if(x.kind==="string")return{kind:"literal",value:decodeString(x.text)};if(x.kind==="blob")return{kind:"literal",value:Uint8Array.from(x.text.slice(2,-1).match(/../g)?.map(y=>parseInt(y,16))??[])};if(x.text.toUpperCase()==="NULL")return{kind:"literal",value:null}}
+ if(sig==="expr ::= VARIABLE")return{kind:"variable",spelling:t[0]!.text};
  if(sig==="expr ::= LP expr RP")return expressionFromReduction(all[0]!);
  if(sig==="expr ::= PLUS|MINUS expr"||sig==="expr ::= BITNOT expr"||sig==="expr ::= NOT expr"){
   // expr.c admits 2^63 only as the operand of unary minus.
@@ -143,8 +145,9 @@ function rejectUnsupportedSelectClauses(select: SelectNode): void {
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
 
-function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number):number {
-  const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate);
+function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number,parameters?:ParameterBuilder):number {
+  const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate,parameters);
+  if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
   if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r});return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
@@ -167,7 +170,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
 
 function compileExpression(expression: SelectNode["result"][number], ops: Op[], allocate: () => number, parameters: ParameterBuilder): { register: number; name: string } {
   const tokens = expression.tokens;
-  if (expression.reduction) { const register=compileExpressionTree(expressionFromReduction(expression.reduction),ops,allocate); return {register,name:expressionName(expression)}; }
+  if (expression.reduction) { const register=compileExpressionTree(expressionFromReduction(expression.reduction),ops,allocate,parameters); return {register,name:expressionName(expression)}; }
   let at = 0;
   const unary: string[] = [];
   while (at < tokens.length && (["+", "-", "~"].includes(tokens[at]!.text) || tokens[at]!.text.toUpperCase() === "NOT")) unary.push(tokens[at++]!.text.toUpperCase());
@@ -300,7 +303,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
 }
 
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
- const out=new Mem();if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);

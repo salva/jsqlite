@@ -22,7 +22,8 @@
     "test:conformance:expressions:companions": "node --experimental-strip-types test/conformance/run-expression-function-companions-ts.mjs",
     "test:conformance:expressions:boundaries": "python3 test/conformance/expression-function-boundaries.test.py",
     "test:conformance:expressions:cleanup-gap": "node test/conformance/run-expression-function-cleanup-ts.mjs",
-    "test:conformance:expressions:opcodes": "node --experimental-strip-types test/conformance/run-expression-opcodes-ts.mjs"
+    "test:conformance:expressions:opcodes": "node --experimental-strip-types test/conformance/run-expression-opcodes-ts.mjs",
+    "test:conformance:expressions:cross-encoding": "node --experimental-strip-types test/conformance/run-expression-cross-encoding-ts.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3"
