@@ -49,9 +49,15 @@ test('ORDER expression, multi-term, explicit collation/NULL placement, and broad
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('captured pinned expectations retain typed storage order and explicit error phase',()=>{
+test('captured pinned expectations retain typed storage order, multi-term order, and explicit error phase',()=>{
  const typed=expectedRows('order-storage-asc').map(row=>row[1]);
  assert.deepEqual(typed,[null,-1n,1n,1,2n,'1',Uint8Array.of(0x31)]);
+ assert.deepEqual(expectedRows('fixture-multi-term-gap'),[
+  [2n,0n],[12n,0n],[22n,0n],
+  [3n,1n],[13n,1n],[23n,1n],
+  [4n,2n],[14n,2n],[24n,2n],
+  [5n,3n],[15n,3n],[25n,3n],
+ ]);
  for(const id of ['limit-null-error','limit-fraction-error','limit-text-error','limit-overflow-error']){
   const terminal=byId.get(id).native.terminal;
   assert.equal(terminal.kind,'error');assert.equal(terminal.firstError.operation,'stepAll');assert.equal(terminal.firstError.primaryCode,20);
