@@ -19,6 +19,7 @@
     "test:conformance:expressions:manifest": "python3 test/conformance/expression-functions-manifest.test.py",
     "test:conformance:expressions:native": "python3 test/conformance/capture-expression-functions.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so > $SAIVAGE_CARD_WORK_ROOT/expression-evidence/recaptured.json && cmp test/conformance/cases/stage3-expression-functions.json $SAIVAGE_CARD_WORK_ROOT/expression-evidence/recaptured.json",
     "test:conformance:expressions:ts": "node --experimental-strip-types test/conformance/run-expression-functions-ts.mjs",
+    "test:conformance:expressions:companions": "node --experimental-strip-types test/conformance/run-expression-function-companions-ts.mjs",
     "test:conformance:expressions:boundaries": "python3 test/conformance/expression-function-boundaries.test.py",
     "test:conformance:expressions:cleanup-gap": "node test/conformance/run-expression-function-cleanup-ts.mjs"
   },

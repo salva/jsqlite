@@ -6,7 +6,7 @@
     "companionsDeclared": 12,
     "nativeExpectationsSeparateFromTsCredit": true,
     "countDerivedSuccessForbidden": true,
-    "tsCredit": 0
+    "tsCredit": 40
   },
   "setup": {
     "empty": [],
@@ -60,17 +60,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -111,17 +107,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -162,17 +154,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -213,17 +201,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -264,17 +248,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -437,17 +417,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -488,17 +464,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -539,17 +511,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -590,17 +558,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -641,17 +605,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -692,17 +652,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -743,17 +699,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -793,17 +745,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -844,17 +792,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -894,17 +838,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -945,17 +885,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -996,17 +932,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1047,17 +979,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1098,17 +1026,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1149,17 +1073,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1200,17 +1120,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1251,17 +1167,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1302,17 +1214,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1353,17 +1261,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1404,17 +1308,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1455,17 +1355,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1505,17 +1401,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1556,17 +1448,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1636,17 +1524,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1686,17 +1570,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1737,17 +1617,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1788,17 +1664,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1868,17 +1740,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -1946,17 +1814,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2026,17 +1890,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2077,17 +1937,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2128,17 +1984,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2179,17 +2031,13 @@
         "finalize"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 4,
+          "op": "finalize"
         },
-        "unattempted": [
-          "metadata",
-          "stepAll",
-          "finalize"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2222,15 +2070,13 @@
         "error"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 2,
+          "op": "error"
         },
-        "unattempted": [
-          "error"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2263,15 +2109,13 @@
         "error"
       ],
       "ts": {
-        "disposition": "unimplemented-temporary",
+        "disposition": "implemented",
         "attempted": {
-          "index": 1,
-          "op": "prepare"
+          "index": 2,
+          "op": "error"
         },
-        "unattempted": [
-          "error"
-        ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     }
   ],

@@ -263,3 +263,5 @@ checks each declared operation and exact typed result independently, producing
 inventory remains unchanged and does not contribute to this tranche's credit.
 The four companion groups remain no-credit even where focused implementation tests
 exercise their parameter, value, lifecycle, encoding, metadata, and close behavior.
+
+- The selected Stage 3 expression/core-scalar lane now earns 40/40 TS credit through public prepare/metadata/step/finalize. This does not promote its 12 companions or the ordinary-scalar backlog described in TRANSLATION.

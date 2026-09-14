@@ -2,12 +2,12 @@
 import json,pathlib,re
 root=pathlib.Path(__file__).resolve().parents[2]; m=json.load(open(root/'test/conformance/cases/stage3-expression-functions.json')); spec=json.load(open(root/'test/conformance/cases/stage3-expression-functions.spec.json')); source=json.load(open(root/'reference/sqlite/manifest.json'))
 assert m['schema']=='jsqlite-expression-functions/1' and m['sourceId']==source['sqliteSourceId']==spec['sourceId']
-assert m['accounting']=={'upstreamDeclared':len(m['cases']),'companionsDeclared':len(m['companions']),'nativeExpectationsSeparateFromTsCredit':True,'countDerivedSuccessForbidden':True,'tsCredit':0}
+assert m['accounting']=={'upstreamDeclared':len(m['cases']),'companionsDeclared':len(m['companions']),'nativeExpectationsSeparateFromTsCredit':True,'countDerivedSuccessForbidden':True,'tsCredit':len(m['cases'])}
 assert len(m['cases'])==len(spec['creditCases']) and len(m['companions'])==len(spec['companions'])
 seen=set()
 for c in m['cases']:
  assert re.fullmatch(r'test/[^:]+:[A-Za-z0-9_.-]+',c['ref']) and c['occurrence']==1 and c['credit']=='upstream' and c['ref'] not in seen;seen.add(c['ref'])
- assert c['ts']['credit'] is False and c['ts']['disposition']=='unimplemented-temporary' and c['ts']['attempted']=={'index':1,'op':'prepare'}
+ assert c['ts']=={'disposition':'implemented','attempted':{'index':len(c['operations'])-1,'op':c['operations'][-1]},'unattempted':[],'credit':True}
  assert ('rows' in c['native']) != ('error' in c['native'])
  test_path=root/'reference/sqlite/sqlite-src-3530400'/c['ref'].split(':')[0]; assertion=c['ref'].split(':',1)[1]
  text=test_path.read_text(); assert test_path.exists()
@@ -21,4 +21,4 @@ for c in m['cases']:
   assert anchor=={'kind':'literal-id','id':assertion} and text.count(assertion)>=1,(c['ref'],'missing assertion')
 for c in m['companions']:
  assert c['credit']=='no-credit-companion' and c['ts']['credit'] is False
-print(json.dumps({'upstreamDeclared':len(m['cases']),'nativeCaptured':len(m['cases']),'tsPassed':0,'tsFailedOrUnimplemented':len(m['cases']),'companionsNoCredit':len(m['companions'])},separators=(',',':')))
+print(json.dumps({'upstreamDeclared':len(m['cases']),'nativeCaptured':len(m['cases']),'tsPassed':len(m['cases']),'tsFailedOrUnimplemented':0,'companionsNoCredit':len(m['companions'])},separators=(',',':')))
