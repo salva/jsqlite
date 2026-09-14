@@ -23,6 +23,21 @@ test('ORDER BY resolves direct result aliases and ordinals before table names',a
  }
 });
 
+test('public relational work budgets stop at exact real sorter and ephemeral boundaries',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ const first=async(sql,maxWorkUnits)=>{statement=db.prepare(sql).statement;try{return await statement.step({maxWorkUnits})}finally{try{statement.finalize()}catch{}statement=undefined}};
+ try{
+  db=await openRelational(bridge);
+  await assert.rejects(first('SELECT x FROM t1 ORDER BY x',981),error=>error instanceof JSQLiteError&&error.kind==='limit'&&error.message==='statement exceeds maxWorkUnits');
+  assert.equal(await first('SELECT x FROM t1 ORDER BY x',982),'row');
+  await assert.rejects(first('SELECT DISTINCT a FROM t2',17),error=>error instanceof JSQLiteError&&error.kind==='limit'&&error.message==='statement exceeds maxWorkUnits');
+  assert.equal(await first('SELECT DISTINCT a FROM t2',18),'row');
+ } finally {
+  try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
 test('relational failure cleanup preserves first error and reset reuses the statement',async()=>{
  const originalInsert=SorterCursor.prototype.insert,originalClose=SorterCursor.prototype.close;
  const firstError=new RangeError('injected sorter insertion failure');
