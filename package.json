@@ -15,7 +15,10 @@
     "test:conformance:native": "python3 test/conformance/runner.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so && python3 test/conformance/mem-native-boundaries.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so && python3 test/conformance/comparison-key-native-boundaries.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so && python3 test/conformance/run-first-select-native.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so",
     "test:conformance:ts": "node --experimental-strip-types test/conformance/run-first-select-ts.mjs",
     "test:package-boundary": "python3 test/package-boundary.test.py",
-    "test:conformance:accounting": "python3 test/conformance/generate-ts-cases.py --check && node test/conformance/ts-accounting.test.mjs && python3 test/conformance/mem-manifest.test.py && python3 test/conformance/comparison-key-manifest.test.py && python3 test/conformance/first-select-manifest.test.py"
+    "test:conformance:accounting": "python3 test/conformance/generate-ts-cases.py --check && node test/conformance/ts-accounting.test.mjs && python3 test/conformance/mem-manifest.test.py && python3 test/conformance/comparison-key-manifest.test.py && python3 test/conformance/first-select-manifest.test.py",
+    "test:conformance:expressions:manifest": "python3 test/conformance/expression-functions-manifest.test.py",
+    "test:conformance:expressions:native": "python3 test/conformance/capture-expression-functions.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so > $SAIVAGE_CARD_WORK_ROOT/expression-evidence/recaptured.json && cmp test/conformance/cases/stage3-expression-functions.json $SAIVAGE_CARD_WORK_ROOT/expression-evidence/recaptured.json",
+    "test:conformance:expressions:ts": "node --experimental-strip-types test/conformance/run-expression-functions-ts.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3"

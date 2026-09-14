@@ -290,3 +290,7 @@ and VDBE behavior including joins, functions, aggregates, windows, subqueries,
 CTEs, ordering/grouping/distinct, views, and general predicates. Internal storage
 or parser tests confer only their stated bounded evidence, not broader SQLite query
 compatibility.
+
+### Tests-first expression/function boundary (not yet implemented)
+
+`test/conformance/cases/stage3-expression-functions.json` records native expectations but awards zero TS credit. When implemented, expression results continue to use the existing five public value classes; ordered/duplicate column names and direct-column origin metadata follow the existing Statement contract. Expression aliases name computed columns, while unaliased names are SQLite's expression text; computed expression origins are null. Resolver/step errors use the existing SQLite-compatible error object and first-error rule. No host function or collation registration API is introduced.

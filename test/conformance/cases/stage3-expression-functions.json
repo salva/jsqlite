@@ -1,0 +1,2541 @@
+{
+  "schema": "jsqlite-expression-functions/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "accounting": {
+    "upstreamDeclared": 40,
+    "companionsDeclared": 7,
+    "nativeExpectationsSeparateFromTsCredit": true,
+    "countDerivedSuccessForbidden": true,
+    "tsCredit": 0
+  },
+  "setup": {
+    "empty": [],
+    "func": [
+      "CREATE TABLE tbl1(t1)",
+      "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+      "CREATE TABLE t2(a)",
+      "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+    ],
+    "where": [
+      "CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB)",
+      "INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL)"
+    ]
+  },
+  "cases": [
+    {
+      "ref": "test/e_expr.test:e_expr-10.1.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(5)",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(5)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-10.1.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(5.1)",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(5.1)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-10.1.3",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof('5.1')",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof('5.1')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "74657874"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-10.1.4",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(X'ABCD')",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(X'ABCD')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-10.1.5",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(NULL)",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(NULL)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-4.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT 'helloworld'='helloworld','helloworld'=='helloworld','helloworld'='12345','helloworld'=='12345','helloworld'=NULL,'helloworld'==NULL,'helloworld'!='helloworld','helloworld'<>'helloworld','helloworld'!='12345','helloworld'<>'12345','helloworld'!=NULL,'helloworld'!=NULL",
+      "native": {
+        "columns": [
+          {
+            "name": "'helloworld'='helloworld'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'=='helloworld'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'='12345'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'=='12345'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'=NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'==NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'!='helloworld'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'<>'helloworld'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'!='12345'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'<>'12345'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'!=NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "'helloworld'!=NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-6.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT 72%5",
+      "native": {
+        "columns": [
+          {
+            "name": "72%5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-6.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT 72%-5",
+      "native": {
+        "columns": [
+          {
+            "name": "72%-5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-6.3",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT -72%-5",
+      "native": {
+        "columns": [
+          {
+            "name": "-72%-5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "-2"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-6.4",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT -72%5",
+      "native": {
+        "columns": [
+          {
+            "name": "-72%5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "-2"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-6.5",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT 72.35%5",
+      "native": {
+        "columns": [
+          {
+            "name": "72.35%5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "real",
+              "ieee754be": "4000000000000000"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-8.1.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT NULL IS NULL",
+      "native": {
+        "columns": [
+          {
+            "name": "NULL IS NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-8.1.5",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT NULL==NULL",
+      "native": {
+        "columns": [
+          {
+            "name": "NULL==NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-8.1.9",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT NULL IS NOT NULL",
+      "native": {
+        "columns": [
+          {
+            "name": "NULL IS NOT NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-8.1.13",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT NULL!=NULL",
+      "native": {
+        "columns": [
+          {
+            "name": "NULL!=NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(x'616263')",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(x'616263')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.4",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(x'616263' AS text))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(x'616263' AS text))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "74657874"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.6",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(x'616263' AS numeric))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(x'616263' AS numeric))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.8",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(x'616263' AS blob))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(x'616263' AS blob))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.10",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(x'616263' AS integer))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(x'616263' AS integer))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.14",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(NULL AS text))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(NULL AS text))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.16",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(NULL AS numeric))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(NULL AS numeric))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.18",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(NULL AS blob))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(NULL AS blob))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/cast.test:cast-1.20",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT typeof(CAST(NULL AS integer))",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(CAST(NULL AS integer))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-22.2.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT CASE 23 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+      "native": {
+        "columns": [
+          {
+            "name": "CASE 23 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-22.3.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' ELSE 'D' END",
+      "native": {
+        "columns": [
+          {
+            "name": "CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' ELSE 'D' END",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "44"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-22.4.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+      "native": {
+        "columns": [
+          {
+            "name": "CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-24.1.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT CASE NULL WHEN 'abc' THEN 'A' WHEN 'def' THEN 'B' ELSE 'C' END",
+      "native": {
+        "columns": [
+          {
+            "name": "CASE NULL WHEN 'abc' THEN 'A' WHEN 'def' THEN 'B' ELSE 'C' END",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "43"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-1.4",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT coalesce(length(a),-1) FROM t2",
+      "native": {
+        "columns": [
+          {
+            "name": "coalesce(length(a),-1)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "-1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "-1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-1.6",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT octet_length(NULL)",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(NULL)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-1.7",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT octet_length(7.5)",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(7.5)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-1.8",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT octet_length(x'30313233')",
+      "native": {
+        "columns": [
+          {
+            "name": "octet_length(x'30313233')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-2.0",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1",
+      "native": {
+        "columns": [
+          {
+            "name": "substr(t1,1,2)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6672"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6973"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7072"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "736f"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7468"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-4.4.1",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT abs(a) FROM t2",
+      "native": {
+        "columns": [
+          {
+            "name": "abs(a)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "345"
+            }
+          ],
+          [
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "67890"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-4.4.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT abs(t1) FROM tbl1",
+      "native": {
+        "columns": [
+          {
+            "name": "abs(t1)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "real",
+              "ieee754be": "0000000000000000"
+            }
+          ],
+          [
+            {
+              "type": "real",
+              "ieee754be": "0000000000000000"
+            }
+          ],
+          [
+            {
+              "type": "real",
+              "ieee754be": "0000000000000000"
+            }
+          ],
+          [
+            {
+              "type": "real",
+              "ieee754be": "0000000000000000"
+            }
+          ],
+          [
+            {
+              "type": "real",
+              "ieee754be": "0000000000000000"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-6.3",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT coalesce(nullif(1,1),'nil')",
+      "native": {
+        "columns": [
+          {
+            "name": "coalesce(nullif(1,1),'nil')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "6e696c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-6.4",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT coalesce(nullif(1,2),'nil')",
+      "native": {
+        "columns": [
+          {
+            "name": "coalesce(nullif(1,2),'nil')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-6.5",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "empty",
+      "sql": "SELECT coalesce(nullif(1,NULL),'nil')",
+      "native": {
+        "columns": [
+          {
+            "name": "coalesce(nullif(1,NULL),'nil')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-1.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT length(a,5) FROM t2",
+      "native": {
+        "error": {
+          "phase": "prepare",
+          "resultCode": 1,
+          "primaryCode": 1,
+          "message": "wrong number of arguments to function length()"
+        }
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "error"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "error"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "test/func.test:func-4.2",
+      "occurrence": 1,
+      "credit": "upstream",
+      "fixture": "func",
+      "sql": "SELECT abs() FROM t2",
+      "native": {
+        "error": {
+          "phase": "prepare",
+          "resultCode": 1,
+          "primaryCode": 1,
+          "message": "wrong number of arguments to function abs()"
+        }
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "error"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "error"
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "companions": [
+    {
+      "ref": "storage-arithmetic-null-overflow",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT typeof(1.5),typeof('x'),typeof(x'00ff'),1+2.5,5/0,5%0,abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          {
+            "name": "typeof(1.5)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof('x')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(x'00ff')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "1+2.5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "5/0",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "5%0",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "abs(-9223372036854775808)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "error": {
+          "phase": "step",
+          "resultCode": 1,
+          "primaryCode": 1,
+          "message": "integer overflow"
+        }
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "error"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "error"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "boolean-short-circuit",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT 0 AND abs(-9223372036854775808),1 OR abs(-9223372036854775808),coalesce(7,abs(-9223372036854775808)),CASE WHEN 1 THEN 9 ELSE abs(-9223372036854775808) END",
+      "native": {
+        "columns": [
+          {
+            "name": "0 AND abs(-9223372036854775808)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "1 OR abs(-9223372036854775808)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "coalesce(7,abs(-9223372036854775808))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "CASE WHEN 1 THEN 9 ELSE abs(-9223372036854775808) END",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "where-expression",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "where",
+      "sql": "SELECT b+10 AS n,typeof(c),CASE WHEN a='ABC' THEN a ELSE 'no' END AS chosen FROM t WHERE (a COLLATE NOCASE='abc' OR b=2) AND b<3",
+      "native": {
+        "columns": [
+          {
+            "name": "n",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(c)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "chosen",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "616263"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e6f"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "collation-minmax-nul",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT min('a' COLLATE NOCASE,'A'),max('a ' COLLATE RTRIM,'a'),min('a',x'61'),length(char(65,0,66)),octet_length(char(65,0,66)),substr(char(65,0,66),1,3),replace(char(65,0,66),char(0),'X')",
+      "native": {
+        "columns": [
+          {
+            "name": "min('a' COLLATE NOCASE,'A')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max('a ' COLLATE RTRIM,'a')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min('a',x'61')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "length(char(65,0,66))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "octet_length(char(65,0,66))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "substr(char(65,0,66),1,3)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "replace(char(65,0,66),char(0),'X')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "41"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6120"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "41"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "410042"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "resolver-errors",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT no_such_function(1)",
+      "native": {
+        "error": {
+          "phase": "prepare",
+          "resultCode": 1,
+          "primaryCode": 1,
+          "message": "no such function: no_such_function"
+        }
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "error"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "error"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "variadic-arity-errors",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT min()",
+      "native": {
+        "error": {
+          "phase": "prepare",
+          "resultCode": 1,
+          "primaryCode": 1,
+          "message": "wrong number of arguments to function min()"
+        }
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "error"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "error"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "output-metadata",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "where",
+      "sql": "SELECT a,a AS a,b+1,typeof(c) AS k FROM t WHERE b=1",
+      "native": {
+        "columns": [
+          {
+            "name": "a",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "t",
+            "origin": "a"
+          },
+          {
+            "name": "a",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "t",
+            "origin": "a"
+          },
+          {
+            "name": "b+1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "k",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "616263"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "616263"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    }
+  ]
+}
