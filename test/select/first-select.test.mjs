@@ -77,6 +77,16 @@ test("step control failures are saved, cleaned by reset/finalize, and connection
   assert.throws(()=>s.finalize(),isError("limit"));
 });
 
+test("long table scan yields and observes cancellation after execution begins", async () => {
+  const db=await openBytes("storage-p4096");
+  const s=db.prepare("SELECT k FROM storage_values WHERE i=999999").statement;
+  const controller=new AbortController();
+  setTimeout(()=>controller.abort("mid-scan"),0);
+  await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="mid-scan");
+  assert.throws(()=>s.finalize(),isError("cancelled"));
+  db.close();
+});
+
 test("live statement close is BUSY, deferred close keeps VM alive, and breadth is explicit", async () => {
   const db=await openBytes("empty"); const s=db.prepare("SELECT 1").statement;
   assert.throws(()=>db.close(), error=>isError("sqlite")(error)&&error.code===5);
