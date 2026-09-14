@@ -59,15 +59,46 @@ enforcement in the read-only engine.
 
 ### 3. B-tree seek algorithm replacement
 
-**Current static label: unchanged.**
+**Current repaired label (working tree over HEAD `303a8746b35df03f233c78a46fa668507bdb794d`): corrected; focused validation passing.**
 
-Baseline `src/internal/btree.ts:232-258,284-290` materializes the complete tree and
-then binary-searches an array. Upstream `sqlite3BtreeTableMoveto` near
-`src/btree.c:5805` and `sqlite3BtreeIndexMoveto` near 6036 search within pages and
-descend. The substitution changes memory and read/fault-touch behavior; whole-file
-Fetch does not require complete decoded-tree materialization. Preserve the genuine
-lazy forward scan and record/payload translations. Correct the seek owner or
-justify this as an exceptional adaptation against the actual product contract.
+The baseline prediction was reproduced on the current implementation, not merely
+carried forward. `BtreeDatabase.tableCursor()` and `indexCursor()` still call
+`readTable()`/`readIndex()` in their constructors, recursively visiting the whole
+tree before `TableCursor.seek()`/`IndexCursor.seek()` binary-searches the resulting
+array. A focused disposable mutation changed the rightmost off-path child page
+(page 141) of the 512-byte multilevel table fixture to type `0xff`. Seeking the
+minimum rowid through the current TS `tableCursor(2)` failed during cursor
+construction with `BtreeFormatError: unexpected b-tree page type`, before seek
+could run (`work:///cards/card-d-e/processes/proc-8e3a81d062d3/stdout.log`). The
+same immutable image, opened through the card-built pinned SQLite 3.53.4 library
+(source ID `bf7c7f...59bcc`), returned rowid `-9223372036854775808` for both an
+exact rowid predicate and the first ordered row; the unrelated rightmost page was
+not fault-touched (`work:///cards/card-d-e/processes/proc-01847f777fb9/stdout.log`).
+
+Pinned `sqlite3BtreeTableMoveto` (`src/btree.c:5805-6034`) compares table integer
+keys on the current page and follows only the selected child; pinned
+`sqlite3BtreeIndexMoveto` (`src/btree.c:6036-6183`) similarly page-searches packed
+index keys and descends, retaining a cursor page stack. The TS substitution also
+charges `maxBtreeDepth` against every branch visited at cursor creation rather than
+the sought path and allocates descriptors proportional to the complete tree.
+Existing movement/seek tests previously proved returned ordering only; they did
+not protect fault-touch or seek work/allocation behavior. The working-tree repair
+now performs page-local table/index descent and the added regression passes for
+both off-path isolation and selected-path corruption. Existing complete
+first/last/next/previous movement remains available through deferred full traversal
+only when that movement is requested; cursor construction and seek no longer do
+O(tree entries) descriptor work. Focused storage/record, deterministic accounting,
+typecheck, package-boundary, and diff checks pass in
+`work:///cards/card-d-e/processes/proc-c22fb69a467e/stdout.log`.
+
+The retained regression now covers table/index minimum exact GE off-path fault
+isolation, a non-leftmost index descent with an unrelated malformed left subtree,
+selected-path table/index corruption, index selected-path depth and cycle limits,
+and index exact/inexact LE predecessor placement. Pre-existing table seek coverage
+exercises exact/inexact GE and LE; pre-existing index seek coverage exercises exact
+and inexact GE. Preserve the existing lazy forward `tableScanCursor`,
+record/overflow translation, shared owner/close invalidation, and borrow-generation
+behavior.
 
 ### 6. Expression comparison and boolean lowering/caller contracts
 

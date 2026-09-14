@@ -202,9 +202,23 @@ immutable byte array. Internal page/record slices are borrows of that owner's re
 invalidates storage reads, cursors, and cursor borrow accessors, while `payload()`
 returns an owned copy that survives close. Checked JS `number` arithmetic is used
 only for page geometry within safe-integer bounds, while rowids remain signed
-`bigint`. The current cursor implementation recursively materializes an ordered
-array of cell descriptors at cursor creation, with `maxBtreeDepth` and active-path
-cycle checks; it does not yet retain an incremental root-to-leaf cursor stack.
+`bigint`. `tableScanCursor` is the preserved lazy forward path. In contrast,
+`tableCursor` and `indexCursor` currently recurse through the complete tree into an
+ordered descriptor array at construction and only then binary-search for seek.
+Current-HEAD reproduction against pinned SQLite 3.53.4 proves this is not a neutral
+read-only adaptation: an invalid rightmost off-path child makes a TS seek for the
+minimum rowid fail before positioning, while pinned `sqlite3BtreeTableMoveto`
+returns the minimum row without touching that page. See audit finding 3 and
+`work:///cards/card-d-e/processes/proc-8e3a81d062d3/stdout.log` versus
+`work:///cards/card-d-e/processes/proc-01847f777fb9/stdout.log`. The working-tree correction translates page-local
+`sqlite3BtreeTableMoveto`/`sqlite3BtreeIndexMoveto` descent for seek and retains
+only the positioned descriptor. Complete first/last/next/previous movement defers
+full ordered traversal until one of those operations is requested, so cursor
+construction and seek no longer fault-touch or allocate descriptors for unrelated
+subtrees. Source-based table/index exact/inexact GE/LE tests, off-path fault
+isolation, selected-path corruption, and seek-time path-depth limits pass. The
+existing lazy forward scan, record/overflow, owner/close, and borrow-generation
+behavior remains covered.
 Overflow traversal detects range errors, truncation, duplicate/cyclic pages and a
 configured page limit. Raw schema text conversion now uses a source-derived TypeScript subset of `utf.c` (`READ_UTF8` and the UTF-16 conversion loops in `sqlite3VdbeMemTranslate`) for UTF-8, UTF-16le, and UTF-16be. It deliberately preserves SQLite's legacy handling (including standalone continuation bytes and accepted overlong values at or above U+0080), surrogate/noncharacter replacement rules, and UTF-16 odd-byte truncation rather than using WHATWG `TextDecoder`. Focused malformed/legacy vectors live in `test/schema/sqlite-utf.test.mjs`. At the public open boundary, shared storage corruption and unsupported
 states map to `JSQLiteError`; the internal b-tree API retains internal format,

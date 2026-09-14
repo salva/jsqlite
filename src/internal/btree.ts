@@ -18,7 +18,7 @@ export class BtreeLimitError extends Error {
 }
 export interface BtreeLimits { readonly maxBtreeDepth?: number; readonly maxOverflowPages?: number; }
 interface Page { number: number; bytes: Uint8Array; type: number; cells: number[]; rightChild: number | null; }
-interface PayloadCell { payloadLength: number; local: Uint8Array; overflowPage: number | null; }
+interface PayloadCell { payloadLength: number; local: Uint8Array; overflowPage: number | null; pageNumber: number; cellOffset: number; }
 interface TableEntry extends PayloadCell { rowid: bigint; }
 interface IndexEntry extends PayloadCell {}
 
@@ -66,11 +66,11 @@ export class BtreeDatabase {
     catch (error) { if (error instanceof StorageClosedError) throw new BtreeCursorStateError(error.message); throw error; }
   }
 
-  tableCursor(root: number): TableCursor { return new TableCursor(this, this.readTable(root)); }
+  tableCursor(root: number): TableCursor { this.assertOpen(); return new TableCursor(this, root); }
   /** Forward-only table scan used by the VDBE. Opening does not recursively
    * materialize the whole tree; first/next resume depth-first traversal. */
   tableScanCursor(root: number): TableScanCursor { return new TableScanCursor(this, this.iterateTable(root, 0, new Set())); }
-  indexCursor(root: number): IndexCursor { return new IndexCursor(this, this.readIndex(root)); }
+  indexCursor(root: number): IndexCursor { this.assertOpen(); return new IndexCursor(this, root); }
 
   pageBytes(pgno: number): Uint8Array {
     this.assertOpen();
@@ -127,7 +127,7 @@ export class BtreeDatabase {
     }
     const overflow = nPayload > local;
     if (at + local + (overflow ? 4 : 0) > this.usableSize) corrupt("cell exceeds usable page");
-    const base = { payloadLength: nPayload, local: page.bytes.subarray(at, at + local), overflowPage: overflow ? be32(page.bytes, at + local) : null };
+    const base = { payloadLength: nPayload, local: page.bytes.subarray(at, at + local), overflowPage: overflow ? be32(page.bytes, at + local) : null, pageNumber: page.number, cellOffset: start };
     if (base.overflowPage !== null && (base.overflowPage < 2 || base.overflowPage > this.pageCount)) corrupt("invalid overflow page");
     return rowid === undefined ? base : { ...base, rowid };
   }
@@ -151,6 +151,58 @@ export class BtreeDatabase {
     visit(root, 0);
     for (let i = 1; i < output.length; i++) if (output[i - 1]!.rowid >= output[i]!.rowid) corrupt("unordered table b-tree");
     return output;
+  }
+  tableSeek(root: number, key: bigint, bias: "ge" | "le"): { entry: TableEntry | null; exact: boolean } {
+    let pgno = root;
+    const path = new Set<number>();
+    for (let depth = 0; ; depth++) {
+      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
+      if (path.has(pgno)) corrupt("b-tree cycle");
+      path.add(pgno);
+      const page = this.page(pgno, [0x05, 0x0d]);
+      if (page.type === 0x0d) {
+        const entries = page.cells.map((offset) => this.#payloadCell(page, offset, true) as TableEntry);
+        let lo = 0, hi = entries.length;
+        while (lo < hi) { const mid = (lo + hi) >>> 1; if (entries[mid]!.rowid < key) lo = mid + 1; else hi = mid; }
+        const exact = lo < entries.length && entries[lo]!.rowid === key;
+        const index = bias === "ge" ? lo : exact ? lo : lo - 1;
+        return { entry: index >= 0 && index < entries.length ? entries[index]! : null, exact };
+      }
+      let child = page.rightChild!;
+      for (const offset of page.cells) {
+        if (offset + 4 > this.usableSize) corrupt("truncated table interior cell");
+        let separator;
+        try { separator = decodeVarint(page.bytes, offset + 4, this.usableSize); }
+        catch { return corrupt("truncated table interior key"); }
+        if (BigInt.asIntN(64, separator.value) >= key) { child = be32(page.bytes, offset); break; }
+      }
+      pgno = child;
+    }
+  }
+  indexSeek(root: number, compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"):
+    { entry: IndexEntry | null; exact: boolean } {
+    const descend = (pgno: number, depth: number, path: Set<number>): { entry: IndexEntry | null; exact: boolean } => {
+      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
+      if (path.has(pgno)) corrupt("b-tree cycle");
+      path.add(pgno);
+      const page = this.page(pgno, [0x02, 0x0a]);
+      const cells = page.cells.map((offset) => this.#payloadCell(page, offset, false));
+      let lo = 0, hi = cells.length;
+      while (lo < hi) { const mid = (lo + hi) >>> 1; if (compareCurrentToTarget(this.payload(cells[mid]!)) < 0) lo = mid + 1; else hi = mid; }
+      if (lo < cells.length && compareCurrentToTarget(this.payload(cells[lo]!)) === 0) return { entry: cells[lo]!, exact: true };
+      if (page.type === 0x0a) {
+        const index = bias === "ge" ? lo : lo - 1;
+        return { entry: index >= 0 && index < cells.length ? cells[index]! : null, exact: false };
+      }
+      const child = lo < cells.length ? be32(page.bytes, page.cells[lo]!) : page.rightChild!;
+      const nested = descend(child, depth + 1, path);
+      path.delete(pgno);
+      if (nested.entry !== null) return nested;
+      if (bias === "ge" && lo < cells.length) return { entry: cells[lo]!, exact: false };
+      if (bias === "le" && lo > 0) return { entry: cells[lo - 1]!, exact: false };
+      return { entry: null, exact: false };
+    };
+    return descend(root, 0, new Set());
   }
   private *iterateTable(pgno: number, depth: number, path: Set<number>): Generator<TableEntry> {
     if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
@@ -232,13 +284,26 @@ export class BtreeDatabase {
 class CursorBase<T extends PayloadCell> {
   protected position = -1; protected generation = 0;
   protected readonly database: BtreeDatabase;
-  protected readonly entries: readonly T[];
-  constructor(database: BtreeDatabase, entries: readonly T[]) { this.database = database; this.entries = entries; }
+  protected entries: readonly T[] = [];
+  #fullyLoaded = false;
+  readonly #loadEntries: () => readonly T[];
+  constructor(database: BtreeDatabase, loadEntries: () => readonly T[]) { this.database = database; this.#loadEntries = loadEntries; }
+  protected ensureEntries(): void {
+    if (this.#fullyLoaded) return;
+    const current = this.position >= 0 ? this.entries[this.position] : undefined;
+    this.entries = this.#loadEntries();
+    this.#fullyLoaded = true;
+    if (current) this.position = this.entries.findIndex((entry) => entry.pageNumber === current.pageNumber
+      && entry.cellOffset === current.cellOffset);
+  }
+  protected setSeekEntry(entry: T | null): void {
+    this.entries = entry === null ? [] : [entry]; this.position = entry === null ? -1 : 0; this.#fullyLoaded = false;
+  }
   get valid(): boolean { this.database.assertOpen(); return this.position >= 0 && this.position < this.entries.length; }
-  first(): boolean { return this.move(this.entries.length ? 0 : -1); }
-  last(): boolean { return this.move(this.entries.length ? this.entries.length - 1 : -1); }
-  next(): boolean { return this.move(this.valid && this.position + 1 < this.entries.length ? this.position + 1 : -1); }
-  previous(): boolean { return this.move(this.valid && this.position > 0 ? this.position - 1 : -1); }
+  first(): boolean { this.ensureEntries(); return this.move(this.entries.length ? 0 : -1); }
+  last(): boolean { this.ensureEntries(); return this.move(this.entries.length ? this.entries.length - 1 : -1); }
+  next(): boolean { this.ensureEntries(); return this.move(this.valid && this.position + 1 < this.entries.length ? this.position + 1 : -1); }
+  previous(): boolean { this.ensureEntries(); return this.move(this.valid && this.position > 0 ? this.position - 1 : -1); }
   protected move(position: number): boolean { this.position = position; this.generation++; return this.valid; }
   protected entry(): T { if (!this.valid) throw new BtreeCursorStateError("cursor is not positioned"); return this.entries[this.position]!; }
   payload(): Uint8Array { return this.database.payload(this.entry()); }
@@ -249,13 +314,14 @@ class CursorBase<T extends PayloadCell> {
   }
 }
 export class TableCursor extends CursorBase<TableEntry> {
+  readonly #root: number;
+  constructor(database: BtreeDatabase, root: number) { super(database, () => database.readTable(root)); this.#root = root; }
   get rowid(): bigint { return this.entry().rowid; }
   seek(key: bigint, bias: "ge" | "le"): boolean {
-    let lo = 0, hi = this.entries.length;
-    while (lo < hi) { const mid = (lo + hi) >>> 1; if (this.entries[mid]!.rowid < key) lo = mid + 1; else hi = mid; }
-    const exact = lo < this.entries.length && this.entries[lo]!.rowid === key;
-    const position = bias === "ge" ? lo : exact ? lo : lo - 1;
-    this.move(position >= 0 && position < this.entries.length ? position : -1); return exact;
+    const result = this.database.tableSeek(this.#root, key, bias);
+    this.setSeekEntry(result.entry);
+    this.generation++;
+    return result.exact;
   }
 }
 export class TableScanCursor {
@@ -282,12 +348,13 @@ export class TableScanCursor {
   }
 }
 export class IndexCursor extends CursorBase<IndexEntry> {
+  readonly #root: number;
+  constructor(database: BtreeDatabase, root: number) { super(database, () => database.readIndex(root)); this.#root = root; }
   seek(compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"): boolean {
-    let lo = 0, hi = this.entries.length;
-    while (lo < hi) { const mid = (lo + hi) >>> 1; if (compareCurrentToTarget(this.database.payload(this.entries[mid]!)) < 0) lo = mid + 1; else hi = mid; }
-    const exact = lo < this.entries.length && compareCurrentToTarget(this.database.payload(this.entries[lo]!)) === 0;
-    const position = bias === "ge" ? lo : exact ? lo : lo - 1;
-    this.move(position >= 0 && position < this.entries.length ? position : -1); return exact;
+    const result = this.database.indexSeek(this.#root, compareCurrentToTarget, bias);
+    this.setSeekEntry(result.entry);
+    this.generation++;
+    return result.exact;
   }
 }
 export function openBtreeDatabase(bytes: Uint8Array, limits: BtreeLimits = {}): BtreeDatabase {

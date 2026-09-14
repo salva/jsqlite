@@ -325,6 +325,30 @@ listed: `test/close.test` for busy/zombie lifecycle; `test/capi3.test` and
 `test/capi3c.test` for prepare/tail, row and metadata behavior; and `test/bind.test`
 for parameter, reset-retention, numeric, NaN, and encoding assertions.
 
+## Current B-tree seek fidelity gap (audit finding 3)
+
+At HEAD `303a8746b35df03f233c78a46fa668507bdb794d`,
+`src/internal/btree.ts` maps page/cell/payload layout and supplies a genuine lazy
+forward `tableScanCursor`, but `tableCursor`/`indexCursor` do **not** yet map pinned
+`src/btree.c:sqlite3BtreeTableMoveto` (5805-6034) or
+`sqlite3BtreeIndexMoveto` (6036-6183). They recursively materialize every table or
+index descriptor through `readTable`/`readIndex`, then binary-search the array.
+This was reproduced as a fidelity gap and is corrected in the current working
+tree. Table/index seek now descends one selected child per interior page and keeps
+only the positioned descriptor; complete bidirectional movement triggers deferred
+full traversal only when requested. The focused mutation of page 141 now proves
+both table and index minimum seeks ignore an unrelated malformed rightmost
+subtree, while a malformed selected child still reports corruption. Existing
+seek tests retain exact/inexact GE/LE placement, and depth-limit coverage is
+charged when seek descends rather than during cursor construction.
+
+The independently loaded pinned SQLite 3.53.4 library with the manifest source ID
+returned the minimum rowid from the same mutated image. Native evidence:
+`work:///cards/card-d-e/processes/proc-01847f777fb9/stdout.log`; repaired focused
+and broader evidence: `work:///cards/card-d-e/processes/proc-c22fb69a467e/stdout.log`.
+The repair preserves `tableScanCursor`, record and overflow behavior, shared
+owner/close invalidation, and movement-invalidated borrows.
+
 ## Bounded discrepancies and gaps
 
 No executing SQL engine exists yet. The Stage 1 API decisions are contract

@@ -41,6 +41,23 @@ function compareTuple(a, b) {
   }
   return 0;
 }
+function readU16(image, offset) {
+  return image[offset] * 256 + image[offset + 1];
+}
+function readU32(image, offset) {
+  return image[offset] * 0x1000000 + image[offset + 1] * 0x10000 + image[offset + 2] * 256 + image[offset + 3];
+}
+function writeU32(image, offset, value) {
+  image[offset] = value >>> 24;
+  image[offset + 1] = value >>> 16;
+  image[offset + 2] = value >>> 8;
+  image[offset + 3] = value;
+}
+function corruptPageType(image, pageNumber) {
+  const changed = image.slice();
+  changed[databasePageOffset(changed, pageNumber)] = 0xff;
+  return changed;
+}
 
 // Source-derived roots from the immutable fixture recipe: storage_values=2,
 // storage_k=3. No sqlite_schema parser or SQL evaluator is involved.
@@ -93,6 +110,100 @@ test("interior and leaf index entries traverse in order in both directions and s
   const reverse = [];
   do reverse.push(indexTuple(cursor.payload(), database.encoding)); while (cursor.previous());
   assert.deepEqual(reverse, [...tuples].reverse());
+});
+
+test("table and index seek descend only through the selected pages", async (t) => {
+  // Pinned sqlite3BtreeTableMoveto/sqlite3BtreeIndexMoveto compare within each
+  // interior page and descend through one child. A malformed off-path page must
+  // not be fault-touched merely to position at the smallest key. The same
+  // storage-p512 mutations were independently observed with SQLite 3.53.4.
+  const image = await bytes();
+
+  await t.test("table minimum ignores a malformed rightmost subtree", () => {
+    const root = databasePageOffset(image, 2);
+    const rightmost = readU32(image, root + 8);
+    const database = openBtreeDatabase(corruptPageType(image, rightmost));
+    const cursor = database.tableCursor(2);
+    assert.equal(cursor.seek(-9223372036854775808n, "ge"), true);
+    assert.equal(cursor.rowid, -9223372036854775808n);
+  });
+
+  await t.test("index minimum ignores a malformed rightmost subtree", () => {
+    const root = databasePageOffset(image, 3);
+    const rightmost = readU32(image, root + 8);
+    const database = openBtreeDatabase(corruptPageType(image, rightmost));
+    const cursor = database.indexCursor(3);
+    const target = ["key-000001", 1n, 1n];
+    assert.equal(cursor.seek((payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge"), true);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), target);
+  });
+
+  await t.test("index exact and inexact LE retain predecessor placement", () => {
+    const database = openBtreeDatabase(image);
+    const cursor = database.indexCursor(3);
+    const seek = (target) => cursor.seek(
+      (payload) => compareTuple(indexTuple(payload, database.encoding), target), "le",
+    );
+    assert.equal(seek(["key-001000", 1000n, 1000n]), true);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), ["key-001000", 1000n, 1000n]);
+    assert.equal(seek(["key-001000x", 0n, 0n]), false);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), ["key-001000", 1000n, 1000n]);
+  });
+
+  await t.test("non-leftmost index seek ignores a malformed unrelated subtree", () => {
+    const root = databasePageOffset(image, 3);
+    const firstCell = readU16(image, root + 12);
+    const leftmost = readU32(image, root + firstCell);
+    const database = openBtreeDatabase(corruptPageType(image, leftmost));
+    const cursor = database.indexCursor(3);
+    const target = ["key-001900", 1900n, 1900n];
+    assert.equal(cursor.seek((payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge"), true);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), target);
+  });
+
+  await t.test("a malformed selected index child still reports corruption", () => {
+    const root = databasePageOffset(image, 3);
+    const firstCell = readU16(image, root + 12);
+    const selectedChild = readU32(image, root + firstCell);
+    const database = openBtreeDatabase(corruptPageType(image, selectedChild));
+    const cursor = database.indexCursor(3);
+    const target = ["key-000001", 1n, 1n];
+    assert.throws(() => cursor.seek(
+      (payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge",
+    ), BtreeFormatError);
+  });
+
+  await t.test("index seek depth is charged on the selected path", () => {
+    const database = openBtreeDatabase(image, { maxBtreeDepth: 1 });
+    const cursor = database.indexCursor(3);
+    const target = ["key-000001", 1n, 1n];
+    assert.throws(() => cursor.seek(
+      (payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge",
+    ), /maxBtreeDepth/);
+  });
+
+  await t.test("index seek rejects a selected-path cycle", () => {
+    const changed = image.slice();
+    const root = databasePageOffset(changed, 3);
+    const firstCell = readU16(changed, root + 12);
+    writeU32(changed, root + firstCell, 3);
+    const database = openBtreeDatabase(changed);
+    const cursor = database.indexCursor(3);
+    const target = ["key-000001", 1n, 1n];
+    assert.throws(() => cursor.seek(
+      (payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge",
+    ), /b-tree cycle/);
+  });
+
+  await t.test("a malformed selected table child still reports corruption", () => {
+    const root = databasePageOffset(image, 2);
+    const firstCell = readU16(image, root + 12);
+    const selectedChild = readU32(image, root + firstCell);
+    assert.throws(() => {
+      const cursor = openBtreeDatabase(corruptPageType(image, selectedChild)).tableCursor(2);
+      cursor.seek(-9223372036854775808n, "ge");
+    }, BtreeFormatError);
+  });
 });
 
 test("real overflow payload is reconstructed and movement invalidates only borrowed views", async () => {
@@ -150,7 +261,8 @@ test("all storage page sizes and database encodings retain table/index boundarie
 
 test("tree depth and malformed cell pointers fail distinctly", async () => {
   const image = await bytes();
-  assert.throws(() => openBtreeDatabase(image, { maxBtreeDepth: 1 }).tableCursor(2), /maxBtreeDepth/);
+  const depthLimited = openBtreeDatabase(image, { maxBtreeDepth: 1 }).tableCursor(2);
+  assert.throws(() => depthLimited.seek(-9223372036854775808n, "ge"), /maxBtreeDepth/);
 
   const corrupt = image.slice();
   const root2 = databasePageOffset(corrupt, 2);
