@@ -16,6 +16,7 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 
 type Expression =
+ | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
  | {kind:"column";index:number;name:string;collation?:BuiltinCollation}
  | {kind:"unary";op:string;value:Expression}
@@ -27,9 +28,20 @@ type Expression =
 
 type Op =
   | { readonly code: "Integer"; readonly p1: bigint; readonly p2: number }
+  | { readonly code: "Real"; readonly p1: number; readonly p2: number }
+  | { readonly code: "String"; readonly p1: string; readonly p2: number }
+  | { readonly code: "Blob"; readonly p1: Uint8Array; readonly p2: number }
+  | { readonly code: "Null"; readonly p2: number }
   | { readonly code: "Copy"; readonly p1: number; readonly p2: number }
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
-  | { readonly code: "Expression"; readonly expression: Expression; readonly p2:number }
+  | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation }
+  | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
+  | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
+  | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
+  | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
+  | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code: "NotNull"; readonly p1:number; readonly p2:number; readonly jump:number }
+  | { readonly code: "Goto"; readonly p2:number }
   | { readonly code: "Subtract"; readonly p1: number; readonly p2: number; readonly p3: number }
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number }
@@ -52,6 +64,7 @@ interface Program {
   readonly encoding: DatabaseEncoding;
   readonly orderByColumn?: number;
 }
+export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
 interface ParameterBuilder { maximum: number; readonly names: (string | null)[]; readonly named: Map<string, number> }
 
 /** Shared scalar-result owner, corresponding to sqlite3_context and its result Mem. */
@@ -130,9 +143,31 @@ function rejectUnsupportedSelectClauses(select: SelectNode): void {
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
 
+function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number):number {
+  const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate);
+  if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
+  if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r});return r; }
+  if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
+  if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
+  if(expression.kind==="unary") { const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
+  if(expression.kind==="binary") {
+    const left=emit(expression.left);
+    if(expression.op==="AND"||expression.op==="OR") { const r=allocate(),guard=ops.length;ops.push({code:"ShortCircuit",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:r,jump:0});const right=emit(expression.right);ops.push({code:"Boolean",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:r});(ops[guard] as {jump:number}).jump=ops.length;return r; }
+    const right=emit(expression.right),r=allocate();ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:collation(expression.left)});return r;
+  }
+  if(expression.kind==="call") {
+    if(expression.name==="coalesce") { const r=allocate(),jumps:number[]=[];for(const arg of expression.args){const a=emit(arg);const at=ops.length;ops.push({code:"NotNull",p1:a,p2:r,jump:0});jumps.push(at)}ops.push({code:"Null",p2:r});for(const at of jumps)(ops[at] as {jump:number}).jump=ops.length;return r; }
+    const args=expression.args.map(emit),r=allocate(),coll=expression.args.map(collation).find((_,i)=>expression.args[i]!.kind==="collate")??"binary";if(coll!=="binary")ops.push({code:"CollSeq",collation:coll});ops.push({code:"Function",name:expression.name,args,p2:r,collation:coll});return r;
+  }
+  if(expression.kind==="mem")throw new JSQLiteError("internal","Mem expressions are execution-only");
+  const result=allocate(),endJumps:number[]=[],base=expression.operand?emit(expression.operand):null;
+  for(const [when,then] of expression.pairs){const w=emit(when),test=base===null?w:(()=>{const r=allocate();ops.push({code:"Binary",op:"=",p1:base,p2:w,p3:r,collation:collation(expression.operand!)});return r})(),skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});const value=emit(then);ops.push({code:"Copy",p1:value,p2:result});endJumps.push(ops.length);ops.push({code:"Goto",p2:0});(ops[skip] as {p2:number}).p2=ops.length;}
+  if(expression.otherwise){const value=emit(expression.otherwise);ops.push({code:"Copy",p1:value,p2:result})}else ops.push({code:"Null",p2:result});for(const at of endJumps)(ops[at] as {p2:number}).p2=ops.length;return result;
+}
+
 function compileExpression(expression: SelectNode["result"][number], ops: Op[], allocate: () => number, parameters: ParameterBuilder): { register: number; name: string } {
   const tokens = expression.tokens;
-  if (expression.reduction) { const register=allocate(); ops.push({code:"Expression",expression:expressionFromReduction(expression.reduction),p2:register}); return {register,name:expressionName(expression)}; }
+  if (expression.reduction) { const register=compileExpressionTree(expressionFromReduction(expression.reduction),ops,allocate); return {register,name:expressionName(expression)}; }
   let at = 0;
   const unary: string[] = [];
   while (at < tokens.length && (["+", "-", "~"].includes(tokens[at]!.text) || tokens[at]!.text.toUpperCase() === "NOT")) unary.push(tokens[at++]!.text.toUpperCase());
@@ -245,12 +280,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   let ifNotIndex: number | undefined;
   if (select.where) {
     if (!select.where.reduction) throw new JSQLiteError("unsupported", "WHERE predicate is not implemented", { unsupportedClassification: "temporary" });
-    const predicate=resolveExpression(select.where), output=++registers;
-    ops.push({code:"Expression",expression:predicate,p2:output});
+    const predicate=resolveExpression(select.where), output=compileExpressionTree(predicate,ops,()=>++registers);
     ifNotIndex=ops.length; ops.push({code:"IfNot",p1:output,p2:0});
   }
   const body=ops.length;
-  projected.forEach((x,i)=>ops.push(x.column===undefined?{code:"Expression",expression:x.expression!,p2:i+1}:{code:"Column",p1:x.column,p2:i+1}));
+  projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
   ops.push({code:"ResultRow",p1:1,p2:projected.length});
   const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
@@ -260,15 +294,19 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
 
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;const c=new Mem();c.copyFrom(m);c.applyAffinity("numeric","utf-8");return c.initialStorageClass==="integer"?c.integerValue()!==0n:c.initialStorageClass==="real"?c.realValue()!==0:false}
-const collation=(x:Expression):BuiltinCollation=>x.kind==="collate"?x.collation:x.kind==="column"&&x.collation?x.collation:(x.kind==="unary"||x.kind==="cast")?collation(x.value):"binary";
+const collation=(x:Expression):BuiltinCollation=>x.kind==="mem"&&x.collation?x.collation:x.kind==="collate"?x.collation:x.kind==="column"&&x.collation?x.collation:(x.kind==="unary"||x.kind==="cast")?collation(x.value):"binary";
+function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"binary"|BuiltinCollation="binary"):Mem{
+ const out=new Mem();if(name==="min"||name==="max"){if(a.some(x=>x.initialStorageClass==="null"))return out;let best=0;for(let i=1;i<a.length;i++){const cmp=compareMem(a[i]!,a[best]!,coll);if(name==="min"?cmp<=0:cmp>0)best=i}return a[best]!}if(name==="char"){let value="";for(const x of a){let n=Number(x.integerValue());if(n<0||n>0x10ffff)n=0xfffd;value+=String.fromCodePoint(n)}out.setText(new TextEncoder().encode(value),"utf-8");return out}if(name==="hex"){const c=a[0]!;if(c.initialStorageClass==="null"){out.setText(new Uint8Array(),"utf-8");return out}const bytes=c.initialStorageClass==="blob"?c.blobValue():c.initialStorageClass==="text"?new TextEncoder().encode(c.textValue()):new TextEncoder().encode(String(memToPublicInitial(c)));out.setText(new TextEncoder().encode(Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()),"utf-8");return out}if(name==="replace"){if(a.some(x=>x.initialStorageClass==="null"))return out;const source=a[0]!.textValue(),search=a[1]!.textValue().split("\0")[0]!,replacement=a[2]!.textValue();out.setText(new TextEncoder().encode(search?source.split(search).join(replacement):source),"utf-8");return out}if(name==="typeof"){out.setText(new TextEncoder().encode(a[0]!.initialStorageClass),"utf-8");return out}if(name==="nullif"){if(a[0]!.initialStorageClass!=="null"&&a[1]!.initialStorageClass!=="null"&&compareMem(a[0]!,a[1]!,coll)===0)return out;return a[0]!}if(name==="octet_length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?c.textBytes().length:new TextEncoder().encode(String(memToPublicInitial(c))).length));return out}if(name==="length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?[...c.textValue().split("\0")[0]!].length:String(memToPublicInitial(c)).length));return out}if(name==="abs"){const c=a[0]!;if(c.initialStorageClass==="null")return out;c.applyAffinity("numeric",encoding);if(c.initialStorageClass==="text"||c.initialStorageClass==="blob"){out.setDouble(0);return out}if(c.initialStorageClass==="integer"){const n=c.integerValue();if(n===-(1n<<63n))throw new JSQLiteError("sqlite","integer overflow",{code:1});out.setInt64(n<0?-n:n)}else out.setDouble(Math.abs(c.realValue()));return out}if(name==="substr"){if(a.some(x=>x.initialStorageClass==="null"))return out;const text=a[0]!.textValue().split("\0")[0]!,start=Number(a[1]!.integerValue()),len=a[2]?Number(a[2]!.integerValue()):undefined,value=[...text].slice(start>0?start-1:start,len===undefined?undefined:(start>0?start-1:start)+len).join("");out.setText(new TextEncoder().encode(value),"utf-8");return out}return out
+}
+
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
- const out=new Mem();if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);
  if(e.kind==="binary"){const a=evaluateExpression(e.left,encoding,columns);if(e.op==="AND"&&truth(a)===false){out.setInt64(0n);return out}if(e.op==="OR"&&truth(a)===true){out.setInt64(1n);return out}const b=evaluateExpression(e.right,encoding,columns);if(e.op==="AND"||e.op==="OR"){const x=truth(a),y=truth(b),v=e.op==="AND"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?out.setNull():out.setInt64(v?1n:0n);return out}if(["+","-","*","/","%"].includes(e.op)){return arithmeticBinary(({"+":"add","-":"subtract","*":"multiply","/":"divide","%":"remainder"} as const)[e.op as "+"],a,b)}const is=e.op==="IS"||e.op==="IS NOT";if(!is&&(a.initialStorageClass==="null"||b.initialStorageClass==="null")){out.setNull();return out}let cmp=0;if(a.initialStorageClass!=="null"&&b.initialStorageClass!=="null")cmp=compareMem(a,b,collation(e.left));let result:boolean;switch(e.op){case "=":case "==":case "IS":result=cmp===0;break;case "!=":case "<>":case "IS NOT":result=cmp!==0;break;case "<":result=cmp<0;break;case "<=":result=cmp<=0;break;case ">":result=cmp>0;break;default:result=cmp>=0}out.setInt64(result?1n:0n);return out}
  if(e.kind==="case"){const base=e.operand?evaluateExpression(e.operand,encoding,columns):null;for(const [w,r] of e.pairs){const test=evaluateExpression(w,encoding,columns);if(base?(base.initialStorageClass!=="null"&&test.initialStorageClass!=="null"&&compareMem(base,test,"binary")===0):truth(test)===true)return evaluateExpression(r,encoding,columns)}return e.otherwise?evaluateExpression(e.otherwise,encoding,columns):out}
- const args=()=>e.args.map(x=>evaluateExpression(x,encoding,columns));if(e.name==="coalesce"){for(const x of e.args){const v=evaluateExpression(x,encoding,columns);if(v.initialStorageClass!=="null")return v}return out}const a=args();if(e.name==="min"||e.name==="max"){if(a.some(x=>x.initialStorageClass==="null"))return out;let best=0;const coll=e.args.map(collation).find((_,i)=>e.args[i]!.kind==="collate")??"binary";for(let i=1;i<a.length;i++){const cmp=compareMem(a[i]!,a[best]!,coll);if(e.name==="min"?cmp<=0:cmp>0)best=i}return a[best]!}if(e.name==="char"){let value="";for(const x of a){let n=Number(x.integerValue());if(n<0||n>0x10ffff)n=0xfffd;value+=String.fromCodePoint(n)}out.setText(new TextEncoder().encode(value),"utf-8");return out}if(e.name==="hex"){const c=a[0]!;if(c.initialStorageClass==="null"){out.setText(new Uint8Array(),"utf-8");return out}const bytes=c.initialStorageClass==="blob"?c.blobValue():c.initialStorageClass==="text"?new TextEncoder().encode(c.textValue()):new TextEncoder().encode(String(memToPublicInitial(c)));out.setText(new TextEncoder().encode(Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()),"utf-8");return out}if(e.name==="replace"){if(a.some(x=>x.initialStorageClass==="null"))return out;const source=a[0]!.textValue(),search=a[1]!.textValue().split("\0")[0]!,replacement=a[2]!.textValue();out.setText(new TextEncoder().encode(search?source.split(search).join(replacement):source),"utf-8");return out}if(e.name==="typeof"){out.setText(new TextEncoder().encode(a[0]!.initialStorageClass),"utf-8");return out}if(e.name==="nullif"){if(a[0]!.initialStorageClass!=="null"&&a[1]!.initialStorageClass!=="null"&&compareMem(a[0]!,a[1]!,"binary")===0)return out;return a[0]!}if(e.name==="octet_length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?c.textBytes().length:new TextEncoder().encode(String(memToPublicInitial(c))).length));return out}if(e.name==="length"){if(a[0]!.initialStorageClass==="null")return out;const c=a[0]!;out.setInt64(BigInt(c.initialStorageClass==="blob"?c.blobValue().length:c.initialStorageClass==="text"?[...c.textValue().split("\0")[0]!].length:String(memToPublicInitial(c)).length));return out}if(e.name==="abs"){const c=a[0]!;if(c.initialStorageClass==="null")return out;c.applyAffinity("numeric",encoding);if(c.initialStorageClass==="text"||c.initialStorageClass==="blob"){out.setDouble(0);return out}if(c.initialStorageClass==="integer"){const n=c.integerValue();if(n===-(1n<<63n))throw new JSQLiteError("sqlite","integer overflow",{code:1});out.setInt64(n<0?-n:n)}else out.setDouble(Math.abs(c.realValue()));return out}if(e.name==="substr"){if(a.some(x=>x.initialStorageClass==="null"))return out;const text=a[0]!.textValue().split("\0")[0]!,start=Number(a[1]!.integerValue()),len=a[2]?Number(a[2]!.integerValue()):undefined,value=[...text].slice(start>0?start-1:start,len===undefined?undefined:(start>0?start-1:start)+len).join("");out.setText(new TextEncoder().encode(value),"utf-8");return out}return out
+ const args=()=>e.args.map(x=>evaluateExpression(x,encoding,columns));if(e.name==="coalesce"){for(const x of e.args){const v=evaluateExpression(x,encoding,columns);if(v.initialStorageClass!=="null")return v}return out}const a=args();return evaluateFunction(e.name,a,encoding,e.args.map(collation).find((_,i)=>e.args[i]!.kind==="collate")??"binary")
 }
 
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
@@ -332,9 +370,20 @@ export class VdbeStatement implements Statement {
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
           case "Next": if(this.#orderedRecords){if(++this.#orderedAt<this.#orderedRecords.length){this.#record=this.#orderedRecords[this.#orderedAt]!;this.#pc=op.p2}}else if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;
           case "Integer": this.#registers[op.p2]!.setInt64(op.p1); break;
+          case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
+          case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
+          case "Blob": this.#registers[op.p2]!.setBlob(op.p1); break;
+          case "Null": this.#registers[op.p2]!.setNull(); break;
           case "Copy": this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!); break;
+          case "Goto": this.#pc=op.p2; break;
+          case "CollSeq": break;
+          case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
+          case "Binary": {const a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
+          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation)));break;}
+          case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
+          case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
+          case "NotNull": if(this.#registers[op.p1]!.initialStorageClass!=="null"){this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!);this.#pc=op.jump}break;
           case "Variable": this.#registers[op.p2]!.copyFrom(this.#bindings[op.p1 - 1]!); break;
-          case "Expression": this.#registers[op.p2]!.moveFrom(runFunctionContext(() => evaluateExpression(op.expression,this.#program.encoding,this.#record?.values.map(raw=>memFromRawRecord(raw,this.#borrow))))); break;
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;

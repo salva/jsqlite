@@ -1170,3 +1170,7 @@ The generated Lemon expression reduction is now retained on `ExprNode` and consu
 ### Function result cleanup seam
 
 Public TS expression execution now uses a shared `FunctionContext` result owner. Replacing or consuming a result releases it exactly once, cleanup-only failures surface, and a prior evaluation error keeps identity over a later cleanup failure; `test/conformance/run-expression-function-cleanup-ts.mjs` exercises those behaviors. This is the bounded `sqlite3_context`/result-Mem lifetime seam, not a claim that compiler-emitted `Function`/`PureFunc`/`CollSeq` opcodes or public host registration exist.
+
+### Source-shaped expression opcode lowering
+
+Resolved generated reductions are now lowered recursively into ordinary program operations rather than one recursive `Expression` operation. The bounded tranche emits literal/column/copy/cast/binary operations, `Function` (with the shared `FunctionContext`), `CollSeq`, and explicit `ShortCircuit`/`Boolean`/`NotNull`/`IfNot`/`Goto` control for AND/OR, coalesce, and CASE. `test/conformance/run-expression-opcodes-ts.mjs` prevents regression to the removed catch-all operation. This is intentionally bounded to accepted scalar expressions; LIKE/GLOB and broader function families remain backlog.
