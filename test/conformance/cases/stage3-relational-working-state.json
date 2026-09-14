@@ -141,35 +141,41 @@
         }
       },
       "ts": {
-        "disposition": "unimplemented-temporary",
-        "attempted": [],
-        "unattempted": [
+        "disposition": "implemented",
+        "attempted": [
           {
             "index": 0,
-            "op": "openFixture"
+            "op": "openFixture",
+            "outcome": "passed"
           },
           {
             "index": 1,
-            "op": "prepare"
+            "op": "prepare",
+            "outcome": "passed"
           },
           {
             "index": 2,
-            "op": "metadata"
+            "op": "metadata",
+            "outcome": "passed"
           },
           {
             "index": 3,
-            "op": "stepAll"
+            "op": "stepAll",
+            "outcome": "passed"
           },
           {
             "index": 4,
-            "op": "finalize"
+            "op": "finalize",
+            "outcome": "passed"
           },
           {
             "index": 5,
-            "op": "close"
+            "op": "close",
+            "outcome": "passed"
           }
         ],
-        "credit": false
+        "unattempted": [],
+        "credit": true
       }
     },
     {
@@ -2864,7 +2870,7 @@
     "upstreamDeclared": 8,
     "companionsDeclared": 10,
     "nativeMatched": 18,
-    "tsCreditedCases": 0,
+    "tsCreditedCases": 1,
     "nativeExpectationsSeparateFromTsCredit": true,
     "countDerivedSuccessForbidden": true
   }

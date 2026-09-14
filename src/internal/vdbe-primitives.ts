@@ -13,13 +13,7 @@ export type LogicalBinaryOp = "and" | "or";
 export type TruthValue = 0 | 1 | 2; // false, true, SQL unknown
 
 function numericCopy(source: Mem): Mem {
-  const value = new Mem();
-  value.copyFrom(source);
-  // numericType() parses byte values without changing the source flags. A
-  // private copy plus the existing source-derived CAST scanner gives the same
-  // numeric classification while preserving the caller's register.
-  value.cast("numeric", "utf-8");
-  return value;
+  return source.numericTypeCopy();
 }
 
 function integerValue(source: Mem): bigint {

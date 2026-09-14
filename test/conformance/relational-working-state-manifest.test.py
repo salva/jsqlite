@@ -21,7 +21,10 @@ class Manifest(unittest.TestCase):
   got={v for c in self.d['cases'] for v in c['coverage']}; self.assertLessEqual(set(self.d['requiredCoverage']),got)
   a=self.d['accounting']; self.assertTrue(a['nativeExpectationsSeparateFromTsCredit']); self.assertTrue(a['countDerivedSuccessForbidden'])
   self.assertEqual(a['upstreamDeclared']+a['companionsDeclared'],len(self.d['cases']))
-  self.assertEqual(a['nativeMatched'],len(self.d['cases'])); self.assertEqual(a['tsCreditedCases'],0)
+  self.assertEqual(a['nativeMatched'],len(self.d['cases']))
+  credited=[c for c in self.d['cases'] if c['ts']['credit']]
+  self.assertEqual([c['id'] for c in credited],['up-limit-1.2.1'])
+  self.assertEqual(a['tsCreditedCases'],len(credited))
  def test_literal_upstream_provenance(self):
   seen=set()
   for c in self.s['cases']:
@@ -48,8 +51,12 @@ class Manifest(unittest.TestCase):
      if v['type']=='integer': self.assertRegex(v['value'],r'^-?\d+$')
      if v['type']=='real': self.assertRegex(v['ieee754be'],r'^[0-9a-f]{16}$')
      if v['type'] in ('text','blob'): self.assertRegex(v['utf8Hex' if v['type']=='text' else 'hex'],r'^(?:[0-9a-f]{2})*$')
- def test_ts_is_uncredited_and_readonly(self):
+ def test_ts_accounting_and_readonly(self):
   for c in self.d['cases']:
-   self.assertFalse(c['ts']['credit']); self.assertFalse(c['ts']['attempted'])
+   ts=c['ts']; attempted=ts['attempted']; unattempted=ts['unattempted']
+   ai=[x['index'] for x in attempted]; ui=[x['index'] for x in unattempted]
+   self.assertEqual(sorted(ai+ui),list(range(len(c['operations']))))
+   self.assertEqual(ts['credit'],c['id']=='up-limit-1.2.1')
+   self.assertEqual(bool(attempted),ts['credit'])
    self.assertTrue(re.match(r'^\s*(SELECT|WITH)\b',c['sql'],re.I),c['id'])
 if __name__=='__main__':unittest.main()

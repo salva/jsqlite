@@ -458,6 +458,16 @@ export class Mem {
       if (realSameAsInt(real, candidate)) { this.#replaceWithNumeric({ kind: "integer", value: candidate }); }
     }
   }
+  /** vdbe.c:numericType/computeNumericType on a private register copy. */
+  numericTypeCopy(): Mem {
+    const value = new Mem();
+    value.copyFrom(this);
+    if (value.#manifest === "null" || value.#numeric !== null) return value;
+    const numeric = value.#numericFromBytes(true, false);
+    if (numeric === null) throw new MemStateError("numeric parser produced no forced value");
+    value.#replaceWithNumeric(numeric);
+    return value;
+  }
   cast(affinity: MemAffinity, encoding: DatabaseEncoding): void {
     if (this.#manifest === "null") return;
     if (affinity === "blob" && this.#bytes?.kind === "blob") return;
@@ -492,8 +502,11 @@ export class Mem {
       if (this.#numeric?.kind === "integer" || this.#numeric?.kind === "int-real") value = this.#numeric.value;
       else if (this.#numeric?.kind === "real") value = realToI64(this.#numeric.value);
       else {
-        const parsed = this.#numericFromBytes(true, false)!;
-        value = parsed.kind === "real" ? realToI64(parsed.value) : parsed.value;
+        // sqlite3VdbeIntValue consumes the signed decimal prefix directly;
+        // CAST INTEGER does not interpret a decimal point or exponent.
+        const state = this.#checkedBytes();
+        const parsed = atoi64Prefix(numericCodeUnits(state.kind === "blob" ? this.blobValue() : state.bytes, state.encoding));
+        value = parsed.rc < 0 ? 0n : parsed.value;
       }
       this.#replaceWithNumeric({ kind: "integer", value }); return;
     }
