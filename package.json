@@ -1,13 +1,17 @@
 {
-  "name": "jsqlite2-stage1-contract",
+  "name": "jsqlite2",
   "private": true,
-  "version": "0.0.0-stage1",
+  "version": "0.0.0-stage3-storage",
   "type": "module",
-  "description": "NONFUNCTIONAL Stage 1 public API contract and type checks; no database engine is included.",
+  "description": "Private Stage 3 bounded Fetch and immutable storage reader; SQL preparation and execution are not implemented.",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "fixtures:generate": "python3 tools/oracle/generate-fixtures.py --manifest reference/sqlite/manifest.json --profile $SAIVAGE_CARD_WORK_ROOT/oracle-build/profile.json --oracle $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/sqlite-oracle --spec-dir test/fixtures/spec --fixture-root test/fixtures",
+    "test:fixtures": "python3 test/oracle/generate-fixtures.test.py && python3 test/oracle/storage-fixtures.test.py && node test/conformance/fixture-server.test.mjs",
+    "test:conformance:native": "python3 test/conformance/runner.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so",
+    "test:conformance:ts": "node --experimental-strip-types test/conformance/run-ts.mjs",
+    "test:package-boundary": "python3 test/package-boundary.test.py",
+    "test:conformance:accounting": "python3 test/conformance/generate-ts-cases.py --check && node test/conformance/ts-accounting.test.mjs"
   },
-  "devDependencies": {
-    "typescript": "5.9.3"
-  }
+  "devDependencies": { "typescript": "5.9.3" }
 }

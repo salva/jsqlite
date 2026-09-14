@@ -1,0 +1,23 @@
+{
+  "schema": "jsqlite-storage-cases/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "creditPolicy": "mixed: upstream entries remain native fixture evidence; local internal TS coverage is recorded only for operations reached by test/storage/btree-reader.test.mjs and grants no public SQL/API credit",
+  "upstream": [
+    {"ref":"test/pagesize.test:pagesize-1.5","fixtures":["storage-p512"],"assertion":"header and readonly PRAGMA page_size are 512"},
+    {"ref":"test/pagesize.test:pagesize-2.$PGSZ.2","fixtures":["storage-p512","storage-p1024","storage-p2048","storage-p4096","storage-p8192"],"assertion":"reopened file reports its selected page size"},
+    {"ref":"test/pagesize.test:pagesize-2.$PGSZ.5","fixtures":["storage-p512","storage-p1024","storage-p2048","storage-p4096","storage-p8192"],"assertion":"integrity_check is ok after population"},
+    {"ref":"test/enc2.test:enc2-1.0.1","fixtures":["storage-p4096"],"assertion":"database encoding is UTF-8"},
+    {"ref":"test/enc2.test:enc2-2.0.1","fixtures":["storage-p4096-utf16le"],"assertion":"database encoding is UTF-16le"},
+    {"ref":"test/enc2.test:enc2-3.0.1","fixtures":["storage-p4096-utf16be"],"assertion":"database encoding is UTF-16be"},
+    {"ref":"test/corrupt.test:corrupt-1.2","fixtures":["storage-p512"],"assertion":"uncorrupted multilevel table/index database passes integrity_check"}
+  ],
+  "localSafetyAdaptations": [
+    {"id":"page-sizes-expanded","fixtures":["storage-p16384","storage-p32768","storage-p65536"],"reason":"SPEC requires every format-3 power-of-two size through 65536; upstream pagesize loop in this pin stops at 8192"},
+    {"id":"reserved-byte-zero","fixtures":["storage-p512","storage-p65536"],"reason":"product baseline admits reserved=0 only"},
+    {"id":"exact-int64-rowids","fixtures":["storage-p512","storage-p65536"],"reason":"JS bigint boundary companion for signed rowid distinction"},
+    {"id":"serial-storage-classes","fixtures":["storage-p4096","storage-p4096-utf16le","storage-p4096-utf16be"],"reason":"record serial-type backlog includes NULL, int widths, REAL, empty/nonempty TEXT and BLOB"},
+    {"id":"multilevel-table-index-overflow","fixtures":["storage-p512","storage-p4096","storage-p65536"],"reason":"2003 table rows, indexed keys and payloads over two/three pages exercise cursor stacks and overflow"},
+    {"id":"malformed-geometry-chain","fixtures":[],"ephemeralMutations":["bad-page-size","reserved-byte","truncated-page","overflow-self-loop"],"reason":"untrusted-input safety cases are generated from a verified fixture and receive no upstream credit"},
+    {"id":"resource-limits","fixtures":["storage-p512"],"status":"partial-ts-pass","operations":["maxBtreeDepth","maxOverflowPages"],"remaining":["maxFileBytes acquisition test is separate","maxWorkUnits awaits execution owner"],"reason":"internal b-tree tests exercise depth and overflow limits; native SQLite has no equivalent public JS limit taxonomy"}
+  ]
+}

@@ -9,6 +9,8 @@ m=json.load(open(a.manifest)); profile=json.load(open(a.profile)); root=pathlib.
 if profile["sourceId"]!=m["sqliteSourceId"] or profile["version"]!=m["version"]: raise SystemExit("profile identity mismatch")
 helper=pathlib.Path(a.oracle).with_name("sqlite-fixture")
 items=[("empty","UTF-8"),("close","UTF-8"),("bind","UTF-8"),("meta","UTF-8"),("encoding-utf8","UTF-8"),("encoding-utf16le","UTF-16le"),("encoding-utf16be","UTF-16be"),("readonly","UTF-8")]
+items += [(f"storage-p{n}", "UTF-8") for n in (512,1024,2048,4096,8192,16384,32768,65536)]
+items += [("storage-p4096-utf16le", "UTF-16le"), ("storage-p4096-utf16be", "UTF-16be")]
 root.mkdir(parents=True,exist_ok=True)
 with tempfile.TemporaryDirectory(prefix="fixture-stage-",dir=root) as td:
  d=pathlib.Path(td); generated=d/"generated"; generated.mkdir(); entries=[]

@@ -7,6 +7,7 @@
     "noEmit": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "exactOptionalPropertyTypes": true,
+    "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true
   },
   "include": ["src/**/*.ts", "examples/**/*.ts", "test-d/**/*.ts"]

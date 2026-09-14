@@ -8,7 +8,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -18,15 +18,22 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "close",
           "op": "closeDeferred"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -38,7 +45,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -48,15 +55,22 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "close",
           "op": "closeDeferred"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -68,7 +82,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -78,15 +92,26 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -98,7 +123,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -108,15 +133,26 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -128,7 +164,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -138,15 +174,31 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "column",
+          "op": "columnText",
+          "column": 0
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -158,7 +210,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -168,15 +220,30 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -188,7 +255,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -198,15 +265,26 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -218,7 +296,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -228,15 +306,30 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "step2",
+          "op": "step"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -248,7 +341,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -258,15 +351,35 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "step2",
+          "op": "step"
+        },
+        {
+          "key": "prepareAfterClose",
+          "op": "prepare",
+          "sql": "SELECT * FROM sqlite_master"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -278,7 +391,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "close"
         },
@@ -288,15 +401,34 @@
           "sql": "SELECT * FROM t1"
         },
         {
-          "key": "closeDeferred",
+          "key": "step1",
+          "op": "step"
+        },
+        {
+          "key": "close",
           "op": "closeDeferred"
+        },
+        {
+          "key": "step2",
+          "op": "step"
+        },
+        {
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -308,25 +440,32 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT name FROM sqlite_master"
         },
         {
-          "key": "step",
-          "op": "step"
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -338,25 +477,32 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT name FROM sqlite_master;SELECT 10"
         },
         {
-          "key": "step",
-          "op": "step"
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -368,25 +514,28 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "sql": "SELECT namex FROM sqlite_master"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -398,25 +547,32 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT name FROM sqlite_master"
         },
         {
-          "key": "step",
-          "op": "step"
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -428,25 +584,32 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT name FROM sqlite_master;SELECT 10"
         },
         {
-          "key": "step",
-          "op": "step"
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -458,25 +621,28 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "empty"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "sql": "SELECT namex FROM sqlite_master"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -488,7 +654,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -498,21 +664,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "index",
+          "op": "parameterIndex",
+          "name": ":hi"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -524,7 +692,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -534,10 +702,31 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "32"
+          }
+        },
+        {
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "-2000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "bigint",
+            "decimal": "2000000000000"
+          }
         },
         {
           "key": "step",
@@ -546,9 +735,16 @@
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -560,7 +756,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -570,16 +766,22 @@
           "sql": "SELECT a,b,c FROM t1"
         },
         {
-          "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "key": "count",
+          "op": "columnCount"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -591,7 +793,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -602,15 +804,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -622,7 +830,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -632,16 +840,22 @@
           "sql": "SELECT a,b,c FROM t1"
         },
         {
-          "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "key": "step",
+          "op": "step"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -653,7 +867,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -663,16 +877,37 @@
           "sql": "SELECT a,b,c FROM t1"
         },
         {
-          "key": "metadata",
-          "op": "columnMetadata",
+          "key": "step",
+          "op": "step"
+        },
+        {
+          "key": "type0",
+          "op": "columnType",
           "column": 0
+        },
+        {
+          "key": "type1",
+          "op": "columnType",
+          "column": 1
+        },
+        {
+          "key": "type2",
+          "op": "columnType",
+          "column": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -684,25 +919,47 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "encoding-utf8"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT a,b,c FROM t1"
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "column",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "column",
+          "column": 1
+        },
+        {
+          "key": "column2",
+          "op": "column",
+          "column": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -714,25 +971,47 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "encoding-utf16le"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT a,b,c FROM t1"
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "column",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "column",
+          "column": 1
+        },
+        {
+          "key": "column2",
+          "op": "column",
+          "column": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -744,25 +1023,47 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "encoding-utf16be"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT a,b,c FROM t1"
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "column",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "column",
+          "column": 1
+        },
+        {
+          "key": "column2",
+          "op": "column",
+          "column": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -774,14 +1075,14 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "readonly"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT a,b FROM t1 ORDER BY a"
         },
         {
           "key": "step",
@@ -790,9 +1091,16 @@
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -804,7 +1112,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -814,21 +1122,22 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "count",
+          "op": "parameterCount"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -840,7 +1149,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -850,21 +1159,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "name",
+          "op": "parameterName",
+          "index": 1
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -876,7 +1187,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -886,21 +1197,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "name",
+          "op": "parameterName",
+          "index": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -912,7 +1225,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -922,21 +1235,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "name",
+          "op": "parameterName",
+          "index": 3
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -948,7 +1263,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -958,21 +1273,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "index",
+          "op": "parameterIndex",
+          "name": "$one"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -984,7 +1301,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -994,21 +1311,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "index",
+          "op": "parameterIndex",
+          "name": "$::two"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1020,7 +1339,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -1030,21 +1349,23 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
-          "op": "bind",
-          "index": 1,
-          "value": 32
-        },
-        {
-          "key": "step",
-          "op": "step"
+          "key": "index",
+          "op": "parameterIndex",
+          "name": "$x(-z-)"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1056,7 +1377,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -1067,15 +1388,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1087,7 +1414,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -1098,15 +1425,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1118,7 +1451,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -1129,15 +1462,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1149,7 +1488,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -1160,15 +1499,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1180,7 +1525,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "meta"
         },
@@ -1191,15 +1536,21 @@
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1211,7 +1562,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -1221,21 +1572,66 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "32"
+          }
         },
         {
-          "key": "step",
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "-2000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "bigint",
+            "decimal": "2000000000000"
+          }
+        },
+        {
+          "key": "step1",
           "op": "step"
+        },
+        {
+          "key": "reset1",
+          "op": "reset"
+        },
+        {
+          "key": "reset2",
+          "op": "reset"
+        },
+        {
+          "key": "step2",
+          "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "columnInteger",
+          "column": 0
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1247,7 +1643,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -1257,21 +1653,57 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "32"
+          }
         },
         {
-          "key": "step",
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "-2000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "bigint",
+            "decimal": "2000000000000"
+          }
+        },
+        {
+          "key": "step1",
           "op": "step"
+        },
+        {
+          "key": "reset1",
+          "op": "reset"
+        },
+        {
+          "key": "clear",
+          "op": "clearBindings"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1283,7 +1715,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -1293,21 +1725,66 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "32"
+          }
         },
         {
-          "key": "step",
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "-2000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "bigint",
+            "decimal": "2000000000000"
+          }
+        },
+        {
+          "key": "step1",
           "op": "step"
+        },
+        {
+          "key": "reset1",
+          "op": "reset"
+        },
+        {
+          "key": "clear",
+          "op": "clearBindings"
+        },
+        {
+          "key": "step2",
+          "op": "step"
+        },
+        {
+          "key": "type0",
+          "op": "columnType",
+          "column": 0
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1319,7 +1796,7 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
@@ -1329,21 +1806,57 @@
           "sql": "SELECT $one,$::two,$x(-z-)"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "32"
+          }
         },
         {
-          "key": "step",
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "-2000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "bigint",
+            "decimal": "2000000000000"
+          }
+        },
+        {
+          "key": "step1",
           "op": "step"
+        },
+        {
+          "key": "reset1",
+          "op": "reset"
+        },
+        {
+          "key": "finalize",
+          "op": "finalize"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1355,31 +1868,60 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT $one,$::two,$x(-z-)"
+          "sql": "SELECT ?,?"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "bigint",
+            "decimal": "-9223372036854775808"
+          }
+        },
+        {
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "bigint",
+            "decimal": "9223372036854775807"
+          }
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "columnInteger",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "columnInteger",
+          "column": 1
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1391,31 +1933,88 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT $one,$::two,$x(-z-)"
+          "sql": "SELECT ?,?,?,?"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "number",
+            "ieee754be": "432ff973cafa8000"
+          }
+        },
+        {
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "number",
+            "ieee754be": "7ff8000000000000"
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "number",
+            "ieee754be": "7ff0000000000000"
+          }
+        },
+        {
+          "key": "bind4",
+          "op": "bind",
+          "index": 4,
+          "value": {
+            "js": "number",
+            "ieee754be": "fff0000000000000"
+          }
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "column",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "column",
+          "column": 1
+        },
+        {
+          "key": "column2",
+          "op": "column",
+          "column": 2
+        },
+        {
+          "key": "column3",
+          "op": "column",
+          "column": 3
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1427,31 +2026,73 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT $one,$::two,$x(-z-)"
+          "sql": "SELECT ?,?,?"
         },
         {
-          "key": "bind",
+          "key": "bind1",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "null"
+          }
+        },
+        {
+          "key": "bind2",
+          "op": "bind",
+          "index": 2,
+          "value": {
+            "js": "string",
+            "value": ""
+          }
+        },
+        {
+          "key": "bind3",
+          "op": "bind",
+          "index": 3,
+          "value": {
+            "js": "uint8array",
+            "hex": ""
+          }
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column0",
+          "op": "column",
+          "column": 0
+        },
+        {
+          "key": "column1",
+          "op": "column",
+          "column": 1
+        },
+        {
+          "key": "column2",
+          "op": "column",
+          "column": 2
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1463,31 +2104,46 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT $one,$::two,$x(-z-)"
+          "sql": "SELECT ?"
         },
         {
           "key": "bind",
           "op": "bind",
           "index": 1,
-          "value": 32
+          "value": {
+            "js": "uint8array",
+            "hex": "00ff80"
+          }
         },
         {
           "key": "step",
           "op": "step"
+        },
+        {
+          "key": "column",
+          "op": "columnBlob",
+          "column": 0
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }
@@ -1499,26 +2155,32 @@
       "setup": [],
       "operations": [
         {
-          "key": "openFixture",
+          "key": "open",
           "op": "openFixture",
           "fixture": "bind"
         },
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT a,b,c FROM t1"
+          "sql": "SELECT 1 AS x,2 AS x"
         },
         {
           "key": "metadata",
-          "op": "columnMetadata",
-          "column": 0
+          "op": "statementMetadata"
         }
       ],
       "expected": {
         "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "key": "prepare",
+          "op": "prepare"
+        },
         "error": {
           "name": "JSQLiteError",
           "kind": "unsupported",
+          "code": null,
+          "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
       }

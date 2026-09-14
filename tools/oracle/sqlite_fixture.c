@@ -13,6 +13,11 @@ int main(int argc,char **argv){
   const char *id=argv[1], *enc=argv[2], *path=argv[3]; sqlite3 *db=0;
   if(sqlite3_open_v2(path,&db,SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE,0)!=SQLITE_OK)return 1;
   int pageSize=4096;
+  if(strncmp(id,"storage-p",9)==0){
+    char *end=0; long n=strtol(id+9,&end,10);
+    if(end==id+9 || n<512 || n>65536) return 2;
+    pageSize=(int)n;
+  }
   char pragma[96]; snprintf(pragma,sizeof pragma,"PRAGMA page_size=%d;PRAGMA encoding='%s';",pageSize,enc);
   int rc=exec(db,pragma);
   if(!rc && strcmp(id,"close")==0) rc=exec(db,"CREATE TABLE t1(x);INSERT INTO t1 VALUES('one'),('two'),('three');");
@@ -20,6 +25,19 @@ int main(int argc,char **argv){
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
   else if(!rc && strncmp(id,"encoding-",9)==0) rc=exec(db,"CREATE TABLE t1(a PRIMARY KEY,b,c);INSERT INTO t1 VALUES('one','I',1);");
   else if(!rc && strcmp(id,"readonly")==0) rc=exec(db,"CREATE TABLE t1(a,b);INSERT INTO t1 VALUES(1,2),(3,4),(5,6);");
+  else if(!rc && strncmp(id,"storage-p",9)==0){
+    char sql[768];
+    snprintf(sql,sizeof sql,
+      "CREATE TABLE storage_values(id INTEGER PRIMARY KEY, k TEXT, i, r, t, b);"
+      "CREATE INDEX storage_k ON storage_values(k,i);"
+      "INSERT INTO storage_values VALUES(-9223372036854775808,'min',-9223372036854775808,1.0,'',x'');"
+      "INSERT INTO storage_values VALUES(9223372036854775807,'max',9223372036854775807,-0.0,'text',x'00FF80');"
+      "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<2000) "
+      "INSERT INTO storage_values SELECT x,printf('key-%%06d',x),x,x+0.5,printf('value-%%06d',x),NULL FROM c;"
+      "INSERT INTO storage_values VALUES(0,'overflow',0,0.0,hex(zeroblob(%d)),zeroblob(%d));",
+      pageSize*2+37,pageSize*3+19);
+    rc=exec(db,sql);
+  }
   else if(!rc && strcmp(id,"empty")!=0) rc=SQLITE_MISUSE;
   if(!rc) rc=exec(db,"PRAGMA journal_mode=DELETE;VACUUM;");
   if(sqlite3_close(db)!=SQLITE_OK) rc=SQLITE_ERROR;
