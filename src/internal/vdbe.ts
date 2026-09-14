@@ -7,7 +7,7 @@ import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord,
 import type { SelectNode } from "./parse.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
-import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor } from "./private-state.ts";
+import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor, type PrivateStateControl } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph } from "./schema.ts";
@@ -422,12 +422,12 @@ export class VdbeStatement implements Statement {
           case "OffsetLimit": this.#limitCount=op.count<0n?null:op.count;this.#limitOffset=op.offset;break;
           case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
           case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
-          case "SorterInsert": (this.#privateCursors.get(op.p1) as SorterCursor).insert([this.#registers[op.key]!],this.#registers.slice(op.payload,op.payload+op.payloadCount));break;
-          case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort({checkpoint:async()=>{this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running"}}});if(!cursor.first())this.#pc=op.emptyJump;break;}
+          case "SorterInsert": await (this.#privateCursors.get(op.p1) as SorterCursor).insert([this.#registers[op.key]!],this.#registers.slice(op.payload,op.payload+op.payloadCount),this.#privateControl(options,limit,started));break;
+          case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;
-          case "Found": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(await cursor.found(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),{checkpoint:async()=>{this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running"}}}))this.#pc=op.jump;break;}
-          case "IdxInsert": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount));break;
+          case "Found": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(await cursor.found(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started)))this.#pc=op.jump;break;}
+          case "IdxInsert": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
           case "Column": { const raw=this.#record!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
@@ -451,19 +451,19 @@ export class VdbeStatement implements Statement {
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;
-          case "ResultRow": if(this.#limitOffset>0n){this.#limitOffset--;break}else if(this.#limitCount===0n){this.#state="done";this.#halt();return "done"}else{if(this.#limitCount!==null)this.#limitCount--;if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";}
-          case "Halt": this.#state = "done"; this.#halt(); return "done";
+          case "ResultRow": if(this.#limitOffset>0n){this.#limitOffset--;break}else if(this.#limitCount===0n){this.#state="done";const cleanup=this.#halt();if(cleanup!==null)throw cleanup;return "done"}else{if(this.#limitCount!==null)this.#limitCount--;if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";}
+          case "Halt": this.#state = "done"; {const cleanup=this.#halt();if(cleanup!==null)throw cleanup;} return "done";
         }
       }
-      this.#state = "done"; this.#halt(); return "done";
+      this.#state = "done"; {const cleanup=this.#halt();if(cleanup!==null)throw cleanup;} return "done";
     } catch (error) {
       const publicError = this.#mapExecutionError(error);
       this.#savedError = publicError; this.#state = "failed"; this.#halt(); throw publicError;
     }
     }).finally(release);
   }
-  reset(): void { this.#assertIdle(); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#rows=0; this.#work=0; this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(error!==null) throw error; }
-  finalize(): void { this.#assertIdle(); if (this.#state === "finalized") misuse("statement is finalized"); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#registers.forEach(value => value.release()); this.#bindings.forEach(value => value.release()); this.#state = "finalized"; this.#onFinalize(); if(error!==null) throw error; }
+  reset(): void { this.#assertIdle(); const primary=this.#savedError; this.#savedError=null; const cleanup=this.#halt(); this.#rows=0; this.#work=0; this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(primary!==null) throw primary; if(cleanup!==null) throw cleanup; }
+  finalize(): void { this.#assertIdle(); if (this.#state === "finalized") misuse("statement is finalized"); const primary=this.#savedError; this.#savedError=null; const cleanup=this.#halt(); this.#registers.forEach(value => value.release()); this.#bindings.forEach(value => value.release()); this.#state = "finalized"; this.#onFinalize(); if(primary!==null) throw primary; if(cleanup!==null) throw cleanup; }
   columnMetadata(index: number): ColumnMetadata { this.#assertColumn(index, false); return Object.freeze({...this.#program.columns[index]!}); }
   columnType(index: number): SqliteStorageClass { return this.#cell(index).initialStorageClass; }
   column(index: number): SqliteValue { return memToPublicInitial(this.#cell(index)); }
@@ -508,7 +508,20 @@ export class VdbeStatement implements Statement {
     if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) throw new JSQLiteError("timeout", "statement execution timed out");
     if (this.#work >= limit) throw new JSQLiteError("limit", "statement exceeds maxWorkUnits");
   }
-  #halt(): void { this.#invalidateRow(); this.#cursor=null; this.#record=null;for(const cursor of this.#privateCursors.values())cursor.close();this.#privateCursors.clear();this.#limitCount=null;this.#limitOffset=0n; this.#borrow.invalidate(); }
+  #privateControl(options:OperationOptions,limit:number,started:number):PrivateStateControl {
+    return {checkpoint:async(units=0)=>{
+      if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
+      for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running"}}
+      this.#checkControl(options,limit,started);
+    }};
+  }
+  #halt(): unknown | null {
+    this.#invalidateRow();this.#cursor=null;this.#record=null;
+    let diagnostic:unknown=null;
+    for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
+    this.#privateCursors.clear();this.#limitCount=null;this.#limitOffset=0n;this.#borrow.invalidate();
+    return diagnostic;
+  }
   #assertLive(): void { if (this.#state === "finalized") misuse("statement is finalized"); }
   #assertIdle(): void { this.#assertLive(); if (this.#state === "running" || this.#state === "suspended") misuse("statement operation is pending"); this.#assertConnectionIdle(); }
   #invalidateRow(): void { this.#rowStart = 0; this.#rowCount = 0; }

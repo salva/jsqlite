@@ -63,7 +63,7 @@ test('relational failure cleanup preserves first error and reset reuses the stat
 
 test('connection admission remains exclusive while relational Found is suspended',async()=>{
  const originalFound=EphemeralIndexCursor.prototype.found,originalSetTimeout=globalThis.setTimeout;
- EphemeralIndexCursor.prototype.found=async function(_key,control){for(let i=0;i<300;i++)await control.checkpoint();return false};
+ EphemeralIndexCursor.prototype.found=async function(_key,control){for(let i=0;i<300;i++)await control.checkpoint(1);return false};
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement,release,reached;
  const suspended=new Promise(resolve=>{reached=resolve});
  globalThis.setTimeout=(callback,delay,...args)=>{if(delay===0&&!release){release=()=>originalSetTimeout(callback,0,...args);reached();return 0}return originalSetTimeout(callback,delay,...args)};
@@ -84,7 +84,7 @@ test('DISTINCT membership work yields so a live abort can be observed',async()=>
  const originalFound=EphemeralIndexCursor.prototype.found;
  EphemeralIndexCursor.prototype.found=async function(_key,control){
   // Model one long linear membership probe without depending on fixture size.
-  for(let i=0;i<300;i++)await control.checkpoint();
+  for(let i=0;i<300;i++)await control.checkpoint(1);
   return false;
  };
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));
@@ -138,6 +138,50 @@ test('relational private cursors close when ordinary execution reaches done',asy
   try{db?.closeDeferred()}catch{}
   SorterCursor.prototype.close=sorterClose;
   EphemeralIndexCursor.prototype.close=ephemeralClose;
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
+test('multi-cursor cleanup retains operation error, closes all cursors, and restores admission',async()=>{
+ const sorterInsert=SorterCursor.prototype.insert,sorterClose=SorterCursor.prototype.close,ephemeralClose=EphemeralIndexCursor.prototype.close;
+ const operation=new Error('operation primary'),sorterCleanup=new Error('sorter cleanup'),ephemeralCleanup=new Error('ephemeral cleanup');
+ let sorterCloses=0,ephemeralCloses=0,failInsert=true,failClose=true;
+ SorterCursor.prototype.insert=function(...args){if(failInsert)throw operation;return sorterInsert.apply(this,args)};
+ SorterCursor.prototype.close=function(){sorterCloses++;sorterClose.call(this);if(failClose)throw sorterCleanup};
+ EphemeralIndexCursor.prototype.close=function(){ephemeralCloses++;ephemeralClose.call(this);if(failClose)throw ephemeralCleanup};
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openRelational(bridge);statement=db.prepare('SELECT DISTINCT x FROM t1 ORDER BY x').statement;
+  await assert.rejects(statement.step(),error=>error===operation);
+  assert.deepEqual([sorterCloses,ephemeralCloses],[1,1],'best-effort halt closes both after operation failure');
+  assert.throws(()=>statement.reset(),error=>error===operation,'saved operation error outranks cleanup diagnostics');
+  failInsert=false;failClose=false;assert.equal(await statement.step(),'row');statement.finalize();statement=undefined;
+  const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
+ } finally {
+  SorterCursor.prototype.insert=sorterInsert;SorterCursor.prototype.close=sorterClose;EphemeralIndexCursor.prototype.close=ephemeralClose;
+  try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
+test('cleanup-only reset/finalize errors are first, exhaustive, and finalize remains final',async()=>{
+ const sorterClose=SorterCursor.prototype.close,ephemeralClose=EphemeralIndexCursor.prototype.close;
+ const sorterCleanup=new Error('sorter cleanup'),ephemeralCleanup=new Error('ephemeral cleanup');let sorterCloses=0,ephemeralCloses=0,failClose=true;
+ SorterCursor.prototype.close=function(){sorterCloses++;sorterClose.call(this);if(failClose)throw sorterCleanup};
+ EphemeralIndexCursor.prototype.close=function(){ephemeralCloses++;ephemeralClose.call(this);if(failClose)throw ephemeralCleanup};
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,resetStatement,finalStatement;
+ try{
+  db=await openRelational(bridge);
+  resetStatement=db.prepare('SELECT DISTINCT x FROM t1 ORDER BY x').statement;assert.equal(await resetStatement.step(),'row');
+  assert.throws(()=>resetStatement.reset(),error=>error===sorterCleanup);assert.deepEqual([sorterCloses,ephemeralCloses],[1,1]);
+  failClose=false;assert.equal(await resetStatement.step(),'row');resetStatement.finalize();resetStatement=undefined;
+  failClose=true;finalStatement=db.prepare('SELECT DISTINCT x FROM t1 ORDER BY x').statement;assert.equal(await finalStatement.step(),'row');
+  assert.throws(()=>finalStatement.finalize(),error=>error===sorterCleanup);assert.deepEqual([sorterCloses,ephemeralCloses],[3,3]);
+  assert.throws(()=>finalStatement.finalize(),error=>error instanceof JSQLiteError&&error.kind==='misuse');finalStatement=undefined;
+  const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
+ } finally {
+  SorterCursor.prototype.close=sorterClose;EphemeralIndexCursor.prototype.close=ephemeralClose;
+  try{resetStatement?.finalize()}catch{}try{finalStatement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
  }
 });

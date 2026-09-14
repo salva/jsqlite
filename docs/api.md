@@ -252,7 +252,12 @@ numeric codes and error kind without parsing messages.
 and tested before runtime support is claimed. The implemented parser uses
 `maxSqlBytes` (16 MiB), `maxParserDepth` (2500), `maxExpressionDepth` (1000), and
 the configured work-unit budget. Callers can tighten them at open;
-operation-level `maxWorkUnits` tightens the connection budget. `maxRows` counts
+operation-level `maxWorkUnits` tightens the connection budget. Private sorter and
+ephemeral-index work charges one unit per inserted record, copied logical byte,
+visited `KeyInfo` comparison term, and merge move, in addition to the enclosing
+VDBE opcode. Cancellation, deadline, and work checks bracket bounded growth and
+run at each comparison/move charge; failed post-growth admission rolls the entry
+back. `maxRows` counts
 `"row"` outcomes across one execution until reset. Limits must cover parser
 recursion, expression depth, page/b-tree/overflow traversal, and query loops as
 required by SPEC. This Stage 1 contract does not falsely select numeric defaults
