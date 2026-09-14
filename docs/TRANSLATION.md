@@ -1079,7 +1079,10 @@ Abort/timeout/global-work checks occur at chunk boundaries and existing bounded
 storage checkpoints; no hard real-time interruption is promised. Overlapping
 connection operations remain misuse per `docs/api.md`.
 
-On execution failure, invalidate the row, retain the first result as primary, and
+On execution failure, a single VDBE boundary preserves an existing public error,
+maps `BtreeFormatError`/`RecordFormatError` to `SQLITE_CORRUPT`, and maps only the
+provenance-bearing `BtreeLimitError` ceilings to `limit` (never an arbitrary
+`RangeError`). It then invalidates the row, retains the first result as primary, and
 halt/close all cursors. Reset performs halt cleanup and register/borrow invalidation
 before returning the saved error, rewinds PC/state, and retains bindings. Repeated
 reset is valid. Clear-bindings replaces every parameter `Mem` with NULL without

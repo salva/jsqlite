@@ -7,8 +7,8 @@ import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord,
 import type { SelectNode } from "./parse.ts";
 import { arithmeticBinary, bitwiseNot, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, type BuiltinCollation } from "./comparison.ts";
-import { decodeRecord } from "./record.ts";
-import type { BtreeDatabase, TableScanCursor } from "./btree.ts";
+import { decodeRecord, RecordFormatError } from "./record.ts";
+import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph } from "./schema.ts";
 import type { DatabaseEncoding } from "./record.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
@@ -244,7 +244,8 @@ export class VdbeStatement implements Statement {
       }
       this.#state = "done"; return "done";
     } catch (error) {
-      this.#savedError = error; this.#state = "failed"; this.#halt(); throw error;
+      const publicError = this.#mapExecutionError(error);
+      this.#savedError = publicError; this.#state = "failed"; this.#halt(); throw publicError;
     }
     }).finally(release);
   }
@@ -276,6 +277,16 @@ export class VdbeStatement implements Statement {
     const payload = new Uint8Array(length); let at = 0;
     for (const chunk of chunks) { payload.set(chunk, at); at += chunk.byteLength; }
     this.#record=decodeRecord(payload, this.#program.database!.encoding);
+  }
+  #mapExecutionError(error: unknown): unknown {
+    // This is the single lazy execution boundary. Existing public errors retain
+    // identity; only known storage provenance is classified here.
+    if (error instanceof JSQLiteError) return error;
+    if (error instanceof BtreeFormatError || error instanceof RecordFormatError)
+      return new JSQLiteError("sqlite", error.message, { code: 11, extendedCode: 11, cause: error });
+    if (error instanceof BtreeLimitError)
+      return new JSQLiteError("limit", error.message, { cause: error });
+    return error;
   }
   #checkControl(options: OperationOptions, limit: number, started: number): void {
     if (options.signal?.aborted) throw new JSQLiteError("cancelled", "statement execution was cancelled", { cause: options.signal.reason });

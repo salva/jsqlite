@@ -8,6 +8,14 @@ export class BtreeFormatError extends Error {
 export class BtreeCursorStateError extends Error {
   constructor(message: string) { super(message); this.name = "BtreeCursorStateError"; }
 }
+/** A configured traversal ceiling, distinct from programmer RangeError and
+ * malformed database input. Public execution maps only this provenance to limit. */
+export class BtreeLimitError extends Error {
+  readonly limit: "maxBtreeDepth" | "maxOverflowPages";
+  constructor(limit: BtreeLimitError["limit"]) {
+    super(`${limit} exceeded`); this.name = "BtreeLimitError"; this.limit = limit;
+  }
+}
 export interface BtreeLimits { readonly maxBtreeDepth?: number; readonly maxOverflowPages?: number; }
 interface Page { number: number; bytes: Uint8Array; type: number; cells: number[]; rightChild: number | null; }
 interface PayloadCell { payloadLength: number; local: Uint8Array; overflowPage: number | null; }
@@ -126,7 +134,7 @@ export class BtreeDatabase {
   readTable(root: number): TableEntry[] {
     const output: TableEntry[] = []; const path = new Set<number>();
     const visit = (pgno: number, depth: number): void => {
-      if (depth >= this.maxBtreeDepth) throw new RangeError("maxBtreeDepth exceeded");
+      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
       if (path.has(pgno)) corrupt("b-tree cycle"); path.add(pgno);
       const page = this.page(pgno, [0x05, 0x0d]);
       if (page.type === 0x0d) {
@@ -145,7 +153,7 @@ export class BtreeDatabase {
     return output;
   }
   private *iterateTable(pgno: number, depth: number, path: Set<number>): Generator<TableEntry> {
-    if (depth >= this.maxBtreeDepth) throw new RangeError("maxBtreeDepth exceeded");
+    if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
     if (path.has(pgno)) corrupt("b-tree cycle"); path.add(pgno);
     try {
       const page = this.page(pgno, [0x05, 0x0d]);
@@ -163,7 +171,7 @@ export class BtreeDatabase {
   readIndex(root: number): IndexEntry[] {
     const output: IndexEntry[] = []; const path = new Set<number>();
     const visit = (pgno: number, depth: number): void => {
-      if (depth >= this.maxBtreeDepth) throw new RangeError("maxBtreeDepth exceeded");
+      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
       if (path.has(pgno)) corrupt("b-tree cycle"); path.add(pgno);
       const page = this.page(pgno, [0x02, 0x0a]);
       if (page.type === 0x0a) {
@@ -185,7 +193,7 @@ export class BtreeDatabase {
     let remaining = cell.payloadLength - cell.local.byteLength;
     while (remaining > 0) {
       if (pgno === null || pgno < 2 || pgno > this.pageCount || seen.has(pgno)) corrupt("invalid or cyclic overflow chain");
-      if (pages.length >= this.maxOverflowPages) throw new RangeError("maxOverflowPages exceeded");
+      if (pages.length >= this.maxOverflowPages) throw new BtreeLimitError("maxOverflowPages");
       pages.push(pgno); seen.add(pgno);
       const page = this.pageBytes(pgno); remaining -= Math.min(remaining, this.usableSize - 4);
       const next = be32(page, 0); pgno = next === 0 ? null : next;
@@ -210,7 +218,7 @@ export class BtreeDatabase {
     let remaining = cell.payloadLength - cell.local.byteLength;
     while (remaining > 0) {
       if (pgno === null || pgno < 2 || pgno > this.pageCount || seen.has(pgno)) corrupt("invalid or cyclic overflow chain");
-      if (seen.size >= this.maxOverflowPages) throw new RangeError("maxOverflowPages exceeded");
+      if (seen.size >= this.maxOverflowPages) throw new BtreeLimitError("maxOverflowPages");
       seen.add(pgno);
       const page = this.pageBytes(pgno), amount = Math.min(remaining, this.usableSize - 4);
       yield page.subarray(4, 4 + amount);

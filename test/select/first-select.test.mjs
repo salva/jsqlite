@@ -4,13 +4,18 @@ import test from "node:test";
 import { JSQLiteError, open } from "../../src/index.ts";
 import { parseSql } from "../../src/internal/parse.ts";
 import { compileScalarSelect, VdbeStatement } from "../../src/internal/vdbe.ts";
+import { openBtreeDatabase } from "../../src/internal/btree.ts";
 
 const generation = JSON.parse(fs.readFileSync(new URL("../fixtures/CURRENT.json", import.meta.url))).generationId;
 const fixture = name => fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/${name}.db`, import.meta.url));
 
 async function openBytes(name, options = {}) {
+  return openDatabaseBytes(fixture(name), name, options);
+}
+
+async function openDatabaseBytes(bytes, name = "custom", options = {}) {
   const original = globalThis.fetch;
-  globalThis.fetch = async () => new Response(fixture(name));
+  globalThis.fetch = async () => new Response(bytes);
   try { return await open(`https://fixture.invalid/${name}`, options); }
   finally { globalThis.fetch = original; }
 }
@@ -127,6 +132,44 @@ test("overflow storage work is charged and permits live cancellation and timeout
     timed.finalize();
   } finally { Date.now=realNow; }
   timeoutDb.close();
+});
+
+test("lazy storage failures cross one public mapping boundary and retain lifecycle semantics", async () => {
+  const assertPublic = (kind, code = null) => error =>
+    error instanceof JSQLiteError && error.kind === kind && error.code === code &&
+    error.extendedCode === code;
+
+  // The fixture is valid, but its large second row requires multiple overflow
+  // pages. Preparation remains lazy and succeeds under a one-page ceiling.
+  const limitedDb=await openBytes("storage-p4096",{limits:{maxOverflowPages:1}});
+  const limited=limitedDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
+  await assert.rejects(limited.step(),assertPublic("limit"));
+  assert.throws(()=>limited.column(0),isError("misuse"));
+  // Promise settlement released connection admission despite the saved failure.
+  const later=limitedDb.prepare("SELECT 7").statement;
+  assert.equal(await later.step(),"row"); later.finalize();
+  assert.throws(()=>limited.reset(),assertPublic("limit"));
+  limited.finalize(); limitedDb.close();
+
+  // Corrupt only the overflow pointer of that same lazy row. Schema loading and
+  // prepare still succeed; page traversal first discovers this during step().
+  const corrupt=fixture("storage-p4096").slice();
+  const probe=openBtreeDatabase(corrupt).tableCursor(2); probe.first(); probe.next();
+  const pages=probe.overflowPages();
+  assert.ok(pages.length>1);
+  // Make the first overflow page point to itself (big-endian page number).
+  const pageSize=4096, at=(pages[0]-1)*pageSize, pg=pages[0];
+  corrupt[at]=(pg>>>24)&255; corrupt[at+1]=(pg>>>16)&255; corrupt[at+2]=(pg>>>8)&255; corrupt[at+3]=pg&255;
+  const corruptDb=await openDatabaseBytes(corrupt,"lazy-corrupt");
+  const broken=corruptDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
+  await assert.rejects(broken.step(),assertPublic("sqlite",11));
+  assert.throws(()=>broken.column(0),isError("misuse"));
+  // Corrupt payload is not needed by a scalar statement, proving admission was released.
+  const scalar=corruptDb.prepare("SELECT 9").statement;
+  assert.equal(await scalar.step(),"row"); scalar.finalize();
+  assert.throws(()=>broken.finalize(),assertPublic("sqlite",11));
+  await assert.rejects(broken.step(),isError("misuse"));
+  corruptDb.close();
 });
 
 test("connection admission rejects every overlap while a VM is held at a real host yield", async () => {

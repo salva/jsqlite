@@ -564,7 +564,10 @@ direct columns, emits its forward full scan through a `sqlite3WhereBegin`/
 `sqlite3WhereEnd`-shaped interface, applies resolved column affinity and built-in
 collation for the admitted integer equality, and consumes the lazy forward
 `TableScanCursor` in `src/internal/btree.ts`; open-read no longer recursively
-materializes every table entry. `src/index.ts` maps the applicable
+materializes every table entry. Lazy VDBE execution has one public mapping boundary:
+b-tree/record format errors map to `SQLITE_CORRUPT`, while only the typed configured
+b-tree depth/overflow ceiling maps to `limit`; unrelated `RangeError` is not
+misclassified. `src/index.ts` maps the applicable
 `main.c:sqlite3Close` BUSY/zombie ownership path and owns serialized connection
 admission; `src/internal/vdbe.ts` retains that owner through promise settlement,
 including its explicit running/suspended yield states. `OP_Column` payload work

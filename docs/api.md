@@ -141,8 +141,11 @@ signal/deadline/work checks bracket those reads while PC and cursor remain on th
 current row. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
 b-tree depth, and overflow-page traversal.
 
-Cancellation, timeout, or limit failure halts the run and rejects the promise with
-the matching typed error. The row is invalidated. The statement remains owned and
+Cancellation, timeout, limit, or corruption failure halts the run and rejects the
+promise with the matching `JSQLiteError`. Lazy b-tree/record format corruption is
+reported as `kind: "sqlite"`, code/extendedCode `SQLITE_CORRUPT` (11); configured
+b-tree depth and overflow-page ceilings are `kind: "limit"`. Unrelated internal
+`RangeError` is not treated as a resource ceiling. The row is invalidated. The statement remains owned and
 must be reset or finalized; `reset()` performs cleanup and then rethrows the saved
 execution error. Since checks occur only at bounded checkpoints, deadlines are not
 hard real-time deadlines. Asynchronous `step` allows same-agent abort delivery;
