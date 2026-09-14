@@ -133,6 +133,9 @@ test("connection admission rejects every overlap while a VM is held at a real ho
   const db=await openBytes("storage-p4096");
   const scan=db.prepare("SELECT k FROM storage_values WHERE i=999999").statement;
   const parameter=db.prepare("SELECT ?").statement;
+  parameter.bind(1,"held sibling row");
+  assert.equal(await parameter.step(),"row");
+  assert.equal(parameter.columnText(0),"held sibling row");
   let releaseYield;
   let reachedYield;
   const yielded=new Promise(resolve=>{ reachedYield=resolve; });
@@ -157,6 +160,13 @@ test("connection admission rejects every overlap while a VM is held at a real ho
       ()=>scan.finalize(),
       ()=>parameter.bind(1,"blocked"),
       ()=>parameter.clearBindings(),
+      ()=>parameter.columnMetadata(0),
+      ()=>parameter.columnType(0),
+      ()=>parameter.column(0),
+      ()=>parameter.columnInteger(0),
+      ()=>parameter.columnReal(0),
+      ()=>parameter.columnText(0),
+      ()=>parameter.columnBlob(0),
       ()=>scan.columnMetadata(0),
       ()=>scan.columnType(0),
       ()=>scan.column(0),
@@ -167,6 +177,7 @@ test("connection admission rejects every overlap while a VM is held at a real ho
     ]) assert.throws(operation,isError("misuse"));
     releaseYield();
     assert.equal(await pending,"done");
+    assert.equal(parameter.columnText(0),"held sibling row");
     scan.finalize(); parameter.finalize(); db.close();
   } finally { globalThis.setTimeout=originalSetTimeout; }
 });
