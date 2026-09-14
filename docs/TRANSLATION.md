@@ -178,9 +178,11 @@ and 0/1 constants, and borrowed encoding-tagged TEXT/BLOB slices. At this
 historical storage-only checkpoint it intentionally did not decode text or
 implement collations/record ordering. Later Stage 3 tranches now provide the
 shared Mem/value and internal comparison/collation/record-key consumers without
-changing that lower-level record decoder's role. The parser/schema tranche also
-consumes these primitives internally; resolver,
-compiler, VDBE construction, and execution remain temporary unsupported. The connection owns one complete
+changing that lower-level record decoder's role. At that historical checkpoint,
+the parser/schema tranche consumed these primitives internally while resolver,
+compiler, VDBE construction, and execution remained temporary unsupported; the
+current bounded first-SELECT compiler/VDBE is documented in its later section.
+The connection owns one complete
 immutable byte array. Internal page/record slices are borrows of that owner's resident bytes; closing
 invalidates storage reads, cursors, and cursor borrow accessors, while `payload()`
 returns an owned copy that survives close. Checked JS `number` arithmetic is used
@@ -919,8 +921,10 @@ the opcode P3 NULL policy. All binary arithmetic/bitwise paths propagate NULL.
 Direct cases and their bounded manifest are in
 `test/value/vdbe-primitives.test.mjs` and
 `test/conformance/cases/stage3-vdbe-primitives.json`. They are internal execution
-evidence only: compiler, VDBE program execution, and public statements remain
-unimplemented-temporary and receive zero public SQL credit.
+evidence only: at that tranche's historical checkpoint, compiler/VDBE program
+execution and public statements remained unimplemented-temporary and received zero
+public SQL credit. The later first-SELECT section documents the currently promoted
+bounded consumer.
 
 ### Mem canonical TEXT cache and encoding repair
 
