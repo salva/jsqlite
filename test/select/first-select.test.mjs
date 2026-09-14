@@ -143,12 +143,13 @@ test("lazy storage failures cross one public mapping boundary and retain lifecyc
   // pages. Preparation remains lazy and succeeds under a one-page ceiling.
   const limitedDb=await openBytes("storage-p4096",{limits:{maxOverflowPages:1}});
   const limited=limitedDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
-  await assert.rejects(limited.step(),assertPublic("limit"));
+  let limitError;
+  await assert.rejects(limited.step(),error=>{ limitError=error; return assertPublic("limit")(error)&&error.cause?.name==="BtreeLimitError"; });
   assert.throws(()=>limited.column(0),isError("misuse"));
   // Promise settlement released connection admission despite the saved failure.
   const later=limitedDb.prepare("SELECT 7").statement;
   assert.equal(await later.step(),"row"); later.finalize();
-  assert.throws(()=>limited.reset(),assertPublic("limit"));
+  assert.throws(()=>limited.reset(),error=>error===limitError);
   limited.finalize(); limitedDb.close();
 
   // Corrupt only the overflow pointer of that same lazy row. Schema loading and
@@ -162,14 +163,44 @@ test("lazy storage failures cross one public mapping boundary and retain lifecyc
   corrupt[at]=(pg>>>24)&255; corrupt[at+1]=(pg>>>16)&255; corrupt[at+2]=(pg>>>8)&255; corrupt[at+3]=pg&255;
   const corruptDb=await openDatabaseBytes(corrupt,"lazy-corrupt");
   const broken=corruptDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
-  await assert.rejects(broken.step(),assertPublic("sqlite",11));
+  let corruptError;
+  await assert.rejects(broken.step(),error=>{ corruptError=error; return assertPublic("sqlite",11)(error)&&error.cause?.name==="BtreeFormatError"; });
   assert.throws(()=>broken.column(0),isError("misuse"));
   // Corrupt payload is not needed by a scalar statement, proving admission was released.
   const scalar=corruptDb.prepare("SELECT 9").statement;
   assert.equal(await scalar.step(),"row"); scalar.finalize();
-  assert.throws(()=>broken.finalize(),assertPublic("sqlite",11));
+  assert.throws(()=>broken.finalize(),error=>error===corruptError);
   await assert.rejects(broken.step(),isError("misuse"));
   corruptDb.close();
+
+  // Corrupt the record header itself while leaving b-tree geometry intact. Find
+  // rowid 0 through the fixture's table b-tree, then make its header size zero.
+  const malformed=fixture("storage-p4096").slice();
+  const u16=at=>(malformed[at]<<8)|malformed[at+1];
+  const u32=at=>(malformed[at]*0x1000000)+(malformed[at+1]<<16)+(malformed[at+2]<<8)+malformed[at+3];
+  const varint=at=>{ let value=0n; for(let n=0;n<9;n++){const byte=malformed[at+n];if(n===8)return {value:(value<<8n)|BigInt(byte),length:9};value=(value<<7n)|BigInt(byte&127);if((byte&128)===0)return {value,length:n+1};} throw new Error("unreachable"); };
+  const findZeroRecord=pageNumber=>{
+    const base=(pageNumber-1)*pageSize, type=malformed[base], count=u16(base+3);
+    if(type===0x05){
+      for(let i=0;i<count;i++){const cell=base+u16(base+12+i*2),found=findZeroRecord(u32(cell));if(found!==null)return found;}
+      return findZeroRecord(u32(base+8));
+    }
+    assert.equal(type,0x0d);
+    for(let i=0;i<count;i++){
+      const cell=base+u16(base+8+i*2), payload=varint(cell), rowid=varint(cell+payload.length);
+      if(BigInt.asIntN(64,rowid.value)===0n)return cell+payload.length+rowid.length;
+    }
+    return null;
+  };
+  const recordAt=findZeroRecord(2); assert.notEqual(recordAt,null); malformed[recordAt]=0;
+  const malformedDb=await openDatabaseBytes(malformed,"lazy-record-corrupt");
+  const malformedStatement=malformedDb.prepare("SELECT t FROM storage_values WHERE i=0").statement;
+  await assert.rejects(malformedStatement.step(),error=>assertPublic("sqlite",11)(error)&&error.cause?.name==="RecordFormatError");
+  assert.throws(()=>malformedStatement.columnText(0),isError("misuse"));
+  assert.throws(()=>malformedStatement.reset(),assertPublic("sqlite",11));
+  const usable=malformedDb.prepare("SELECT 11").statement;
+  assert.equal(await usable.step(),"row"); assert.equal(usable.columnInteger(0),11n);
+  usable.finalize(); malformedStatement.finalize(); malformedDb.close();
 });
 
 test("connection admission rejects every overlap while a VM is held at a real host yield", async () => {
