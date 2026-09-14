@@ -94,7 +94,9 @@ typecheck, package-boundary, and diff checks pass in
 The retained regression now covers table/index minimum exact GE off-path fault
 isolation, a non-leftmost index descent with an unrelated malformed left subtree,
 selected-path table/index corruption, index selected-path depth and cycle limits,
-and index exact/inexact LE predecessor placement. Pre-existing table seek coverage
+index exact/inexact LE predecessor placement, explicit below-minimum/above-maximum
+invalid placement, and a comparison-count guard showing seek work remains
+path-local rather than proportional to all 2003 fixture entries. Pre-existing table seek coverage
 exercises exact/inexact GE and LE; pre-existing index seek coverage exercises exact
 and inexact GE. Preserve the existing lazy forward `tableScanCursor`,
 record/overflow translation, shared owner/close invalidation, and borrow-generation

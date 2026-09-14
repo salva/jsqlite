@@ -150,6 +150,33 @@ test("table and index seek descend only through the selected pages", async (t) =
     assert.deepEqual(indexTuple(cursor.payload(), database.encoding), ["key-001000", 1000n, 1000n]);
   });
 
+  await t.test("index seek comparison work is path-local and boundary placement is stable", () => {
+    const database = openBtreeDatabase(image);
+    const cursor = database.indexCursor(3);
+    let comparisons = 0;
+    const seek = (target, bias) => cursor.seek((payload) => {
+      comparisons++;
+      return compareTuple(indexTuple(payload, database.encoding), target);
+    }, bias);
+
+    assert.equal(seek(["key-001500x", 0n, 0n], "ge"), false);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), ["key-001501", 1501n, 1501n]);
+    // The fixture has 2003 index entries. Page-local binary searches must not
+    // invoke the comparison callback once per entry as full materialization plus
+    // a linear seek would; leave ample room for tree/page geometry changes.
+    assert.ok(comparisons < 100, `expected path-local comparison work, got ${comparisons}`);
+
+    comparisons = 0;
+    assert.equal(seek(["", 0n, 0n], "le"), false);
+    assert.equal(cursor.valid, false);
+    assert.ok(comparisons < 100, `expected path-local lower-bound work, got ${comparisons}`);
+
+    comparisons = 0;
+    assert.equal(seek(["zzzz", 0n, 0n], "ge"), false);
+    assert.equal(cursor.valid, false);
+    assert.ok(comparisons < 100, `expected path-local upper-bound work, got ${comparisons}`);
+  });
+
   await t.test("non-leftmost index seek ignores a malformed unrelated subtree", () => {
     const root = databasePageOffset(image, 3);
     const firstCell = readU16(image, root + 12);
