@@ -1,12 +1,16 @@
 # SQLite source map
 
 This is the progressive engineering index for the selected upstream SQLite
-implementation. It is deliberately focused on the first public API tranche; it
-is not a corpus inventory. The completed NONFUNCTIONAL Stage 1 contract is
+implementation. It is a progressive index, not a corpus inventory. The historical
+NONFUNCTIONAL Stage 1 contract is
 [`api.md`](api.md); product scope remains in [`SPEC.md`](SPEC.md), sequencing in
 [`PLAN.md`](PLAN.md), and translation rules plus the historical Stage 1 evidence
-questions in [`TRANSLATION.md`](TRANSLATION.md). Stage 2 and runtime translation
-remain incomplete.
+questions in [`TRANSLATION.md`](TRANSLATION.md). Stage 2 delivered the bounded
+oracle/fixture harness. Stage 3 currently includes acquisition/storage,
+generated tokenization/parsing and immutable internal schema discovery, plus the
+shared internal Mem/value, scalar arithmetic, built-in collation/comparison, and
+packed/unpacked record-key foundations; resolver, compiler, VDBE execution, and
+broad conformance remain incomplete.
 
 ## Pinned source and usable development cache
 
@@ -23,8 +27,9 @@ reference/sqlite/sqlite-src-3530400/
 
 Both paths are development reference material and are ignored by Git. They must
 not enter runtime exports, browser bundles, or published package artifacts. The
-current `package.json` is a private (`"private": true`) NONFUNCTIONAL Stage 1
-type-checking manifest, with a lockfile and `tsconfig.json`; it does not define a
+current `package.json` is a private (`"private": true`) Stage 3
+storage/parser/schema and internal value/comparison foundation development
+manifest, with a lockfile and `tsconfig.json`; it does not define a
 publish/build pipeline or by itself prove package contents. The present repository
 boundary is enforced by `.gitignore`: it excludes the SQLite archive and extracted
 reference tree as well as `node_modules`, build/dist, cache, coverage, test-result,
@@ -114,6 +119,58 @@ Observed: `VERSION=3.53.4` and `manifest.uuid` equals the pinned check-in (both
 matches true), with 2,208 extracted files (about 112 MiB). Extraction did not
 change archive size or either hash. The manifest already records the initialization
 latest-stable check; no contradictory evidence required another network check.
+
+## Stage 3 comparison/collation/record-key mapping
+
+The tests-first slice is pinned to the same 3.53.4 extraction. Its exact bounded
+manifest is `test/conformance/cases/stage3-comparison-key.json`; the manifest
+validator is executable, while every runtime vector remains temporary and zero
+credit until a Mem-consuming implementation exists.
+
+| Concern | Exact implementation/callers | Initial test mapping |
+|---|---|---|
+| Storage-class and numeric comparison | `src/vdbeaux.c:sqlite3MemCompare`, `sqlite3IntFloatCompare`; `src/vdbe.c` comparison opcodes | `test/affinity2.test:affinity2-300`; `test/types3.test:types3-3.3`; internal int64/REAL boundary |
+| Built-in BINARY/NOCASE/RTRIM | `src/main.c:binCollFunc`, `nocaseCollatingFunc`, `rtrimCollFunc`; encoding conversion in `src/utf.c:sqlite3VdbeMemTranslate` | `test/collate1.test:collate1-1.1`; `test/collate2.test:collate2-1.2`; `test/collateA.test:collateA-1.13`; internal embedded-NUL/non-ASCII/space vectors |
+| Key descriptor and unpacked state | `src/sqliteInt.h:KeyInfo`, `UnpackedRecord` | internal key-field/total-field, sort flags, `default_rc`, `eqSeen`, borrow/release vectors |
+| Packed record unpack/compare | `src/vdbeaux.c:sqlite3VdbeRecordUnpack`, `sqlite3VdbeRecordCompare`, `sqlite3VdbeRecordCompareWithSkip`, serial helpers | `test/index.test:index-4.4`; internal serial/unpack, prefix/default result, malformed and configured-limit vectors |
+| Consumers | `src/vdbe.c:OP_Compare`, index seek/found/no-conflict opcodes; `src/btree.c` and `src/vdbesort.c` KeyInfo/record callers | mapped future index/sorter backlog; no current public SQL credit |
+
+The implementation is `src/internal/comparison.ts`, consuming the existing
+`Mem` through `compareMem`, `compareBuiltinText`, `unpackRecordKey`, and
+`compareRecordKey`. `KeyInfo` terms carry built-in collation plus semantic
+DESC/NULL-order flags; total record fields and compared key fields remain
+distinct. `UnpackedRecordKey` carries current-pin construction state (`record`
+or `seek`), `defaultRc`, mutable `eqSeen`, and releaseable borrow generations;
+legacy prefix-mode labels are absent in 3.53.4. Complete generic unpack may inspect
+a zero/short record, but ordinary comparison rejects fewer than `keyFieldCount`
+values, while seek construction alone admits a nonempty short prefix and rejects
+zero or excess key fields. Comparison reads numeric and byte
+caches without mutating inputs; encoding conversion, when a built-in callback
+requires it, occurs on an owned temporary Mem copy. Packed decoding maps structural
+failures to `ComparisonError("corrupt")` and configured field/byte/work ceilings to
+`"limit"`. `compareRecordKey` uses `record.ts`'s incremental `RawRecordReader` and
+creates one temporary borrowed Mem at a time, matching
+`sqlite3VdbeRecordCompareWithSkip`: it stops at the declared compared-field count
+or a decisive term without validating an unrelated packed-key tail; if equal
+comparison still requires another RHS field, packed-header exhaustion is corrupt
+(and does not set `eqSeen`), whereas intentional short seek RHS exhaustion reaches
+RHS `defaultRc`. This direct native differential applies to a missing next serial
+type. For a declared next serial type with truncated payload, TypeScript retains a
+deliberately stricter untrusted-input corruption guard; the pinned internal
+comparator assumes readable padded/valid b-tree key buffers and the direct probe
+returns `-1` with `errCode=0`, so that case is labeled a local safety companion and
+source-assumption observation, not native parity. Full `unpackRecordKey` still validates the complete record. Host collation registration is excluded by product scope. JS string
+ordering, locale APIs, and Unicode folding are not source-equivalent implementations.
+
+The internal API now exposes a validated immutable `KeyInfo` class: construction
+defensively snapshots/freezes nested terms and collation specs, unpacked keys
+retain the exact descriptor identity, and comparison rejects identity mismatch.
+This enforces the source `UnpackedRecord.pKeyInfo` relationship across later
+consumer handoffs rather than relying on TypeScript `readonly` declarations.
+
+The 8 internal vectors and 5 local safety companions are executable in
+`test/value/comparison.test.mjs`. The 6 mapped SQL assertions remain temporary and
+zero credit because no compiler/VDBE/index consumer reaches this internal layer.
 
 ## Public contract orientation
 
@@ -270,16 +327,188 @@ for parameter, reset-retention, numeric, NaN, and encoding assertions.
 
 ## Bounded discrepancies and gaps
 
-No engine exists yet. The Stage 1 API decisions above are contract completion, not
-a compatibility claim. Stage 2 must translate and execute the mapped assertions;
-later stages must implement Fetch, format/storage reading, parser/planner/VDBE,
-SQLite conversions, automatic reprepare, bounded execution, and all specified
-encodings. Numeric default limits need implementation evidence before publication.
+No executing SQL engine exists yet. The Stage 1 API decisions are contract
+completion, not a compatibility claim. Fetch, format/storage reading, UTF-8 SQL
+tokenization, generated Lemon parsing/reductions, exact tails and bounded internal
+schema discovery now exist. Later slices must implement resolution, compilation,
+planner/VDBE execution, public statement handles and conversions, automatic
+reprepare, and broader conformance. Numeric execution limits need implementation
+evidence before publication.
 Temporary gaps must throw `unsupported`; permanent exclusions remain only those in
 SPEC.
+
+## Internal Mem/value slice ([[card:card-f-a-a]])
+
+The stable consumer surface and invariants are specified in
+[TRANSLATION.md, “Mem consumer surface”](TRANSLATION.md#mem-consumer-surface-decision-for-the-valuesvdbe-slices).
+It is based on the pinned `src/vdbeInt.h:sqlite3_value` and `MEM_*` definitions;
+`src/vdbemem.c:sqlite3VdbeMemStringify`, `sqlite3VdbeMemNumerify`,
+`sqlite3VdbeMemCast`, `sqlite3VdbeMemSetDouble`, `sqlite3VdbeMemSetStr`,
+`sqlite3VdbeMemShallowCopy`, `sqlite3VdbeMemCopy`, `sqlite3VdbeMemMove`, and
+release/grow/encoding paths; `src/util.c:sqlite3AtoF`, `sqlite3Atoi64`, and
+`sqlite3DecOrHexToI64`; and exact `src/vdbe.c` consumers `OP_Copy`, `OP_SCopy`,
+`OP_IntCopy`, `OP_Cast`, `OP_RealAffinity`, comparison affinity, `OP_Column`,
+`OP_Function`, `OP_AggStep`, and `OP_ResultRow`. `src/vdbeapi.c` supplies bind and
+column boundary callers. The TS deviation is explicit ownership/generation tokens
+instead of C allocation/destructor pointers and an opaque semantic state instead
+of exposing numeric C flags.
+
+`src/internal/record.ts:RawRecordValue` is the sole record adapter input and
+`src/index.ts:SqliteValue` is the sole public adapter output/input; neither replaces
+Mem. `src/internal/utf.ts` is reusable only for the source-equivalent decoding it
+actually implements. Mem numeric parsing/string rendering and re-encoding now have an internal bounded port in
+`src/internal/mem.ts` ([[card:card-f-a-c]]): byte-counted UTF-8/UTF-16 scanning follows
+`util.c:sqlite3Atoi64`/`sqlite3AtoF`; `applyAffinity` follows `vdbe.c:applyNumericAffinity`
+and `applyAffinity`; and all five delegated CAST affinities follow
+`vdbemem.c:sqlite3VdbeMemCast`, including int64 saturation, integer/REAL
+classification, numeric prefixes, signed zero (both IEEE zero payloads render
+canonically as `0.0` while a non-forced REAL cache retains the negative-zero sign), infinities, and embedded-NUL caller
+semantics. `vdbemem.c` flag masks are represented explicitly: non-forced
+stringify and encoding changes retain numeric+canonical-TEXT caches; forced
+TEXT/BLOB casts clear numeric forms; NUMERIC/INTEGER/REAL casts and successful
+numeric affinity clear bytes while preserving non-type subtype/from-bind metadata
+per `MemSetTypeFlag`; creation of a new string cache follows
+`sqlite3VdbeMemClearAndResize` and clears that non-type metadata. TypeScript uses `bigint` for the decimal accumulator and `number` only at
+the IEEE-754 result boundary. `test/value/mem-numeric.test.mjs` maps the direct Mem
+surface; SQL-level entries remain zero credit until compiler/VDBE/public statements
+exist. Public binding and returned BLOB policy
+remains copy-in/copy-out. Bound public JS TEXT has a now-explicit adaptation:
+well-formed UTF-16 only (lone surrogates are `misuse`), strict scalar-to-UTF-8
+encoding, then the `vdbeapi.c:bindText` path translates immediately to the
+connection encoding. Embedded NUL is retained under an explicit length;
+supplementary scalars and logical bytes are verified for UTF-8/UTF-16le/UTF-16be.
+Source and translated byte lengths are each limit-checked without counting a
+terminator. This is distinct from SQL-tail mapping and forbids silent WHATWG
+replacement.
+
+The child-ready test specification is `test/conformance/cases/stage3-mem.json`
+(schema `jsqlite-mem-cases/2`). Its executable read-only tranche uses literal
+`cast-1.13`, `cast-1.14`, `cast-1.23`, `cast-1.33`, `cast-1.39`, `cast-1.45`, and
+`cast-1.46`, each with setup, operation, typed expected result, prerequisites, and
+`unimplemented-temporary` disposition. The write-dependent upstream `bind-3.1`,
+`bind-3.2`, `bind-6.1`, and four encoding-branch occurrences of `bind-6.5` are kept
+separately as **native-only provenance** with explicit native fixture/oracle setup
+ownership and no TS bind credit. Their TS int64 adaptation binds the same three
+values to the read-only statement `SELECT ?1, ?2, ?3, typeof(?1), typeof(?2),
+typeof(?3)`; any natively populated immutable table later read by TS is record/
+column evidence, not bind evidence. Four no-credit JS adaptations specify that
+int64 SELECT, NUL/supplementary binding across all encodings, and rejection of lone
+high/low surrogates.
+
+`test/conformance/mem-manifest.test.py` pins the source ID, rejects range/wildcard/
+generated placeholders, checks literal Tcl case occurrence counts (so duplicate/
+gapped names cannot be hidden), enforces zero-credit classifications, and rejects
+mutating SQL or mutation-dependent setup from every executable TS operation.
+Broader cast/affinity/type/bind/column/function families remain only in a separately
+marked non-executable future backlog.
+
+The selected upstream cases intentionally form a small first slice rather than
+claim corpus coverage. In particular pinned `cast.test` duplicates `cast-1.38` and
+has gaps, so no contiguous range is asserted. `bind-6.1` and `bind-6.5` retain only
+their native explicit-length/encoding provenance; public JS companions separately
+test whole-string binding because public `bind()` has no C byte-length argument.
+Native fixture-generation writes are permitted evidence setup, but the browser TS
+runtime never prepares or executes their INSERT/DELETE statements.
+
+The oracle protocol transports decimal int64, exact REAL bits, byte-counted
+text/blob and initial/typed column observations. Internal cache/IntReal, subtype,
+copy/move, generation invalidation, and aggregate-cleanup behavior is now tested
+directly through the implemented `src/internal/mem.ts`; ordinary public SQL cases
+must continue through the existing public adapter. These internal tests do not
+claim public SQL execution credit.
 
 C-only mutexes, allocators, destructor callbacks, raw pointers, writable-main-file
 paths, and host extension surfaces are adaptation/omission candidates only after
 checking their applicable read-only call paths. Required mutable private execution
 state (sorters, ephemeral b-trees, registers, aggregates) is not excluded merely
 because the main database input is immutable.
+
+## Stage 3 tokenizer/parser implementation status ([[card:card-e-b]])
+
+The checked-in `src/generated/parser-tables.ts` and `keyword-table.ts` are deterministically emitted by `tools/parser/generate.mjs` from pinned `src/parse.y` and `tool/mkkeywordhash.c`, with provenance hashes for those inputs, `lemon.c`, `lempar.c`, and `tools/parser-profile.json`. The development generator compiles pinned `lemon.c` in card-scoped disposable storage and emits the actual 600-state/412-rule Lemon action, lookahead, shift/reduce offset, default, token-ID and rule metadata tables; `src/internal/lemon-runtime.ts` is the browser-safe no-eval shift/reduce table consumer. The runtime does not use eval/Function or native code. `src/internal/tokenize.ts` follows `src/tokenize.c:sqlite3GetToken` byte spans for the covered lexical classes. `src/internal/parse.ts` consumes generated production metadata and builds ordered SELECT expression/source/predicate structures and CREATE TABLE/INDEX/VIEW/TRIGGER schema nodes.
+
+Evidence: exact `test/tokenize.test` IDs 1.1–1.12 and 2.1–2.2 are in `test/parser/tokenizer-parser.test.mjs`, alongside UTF-8 tails and lexical companions; deterministic generation is checked by `test/parser/generator.test.mjs`. Configured parser work and stack depth are enforced in the Lemon loop, and expression depth is measured from actual `expr ::= ...` reduction ancestry (including unparenthesized unary/binary trees), rather than approximated by parenthesis count. The Lemon runtime invokes a production-keyed semantic-action callback at reduction time; the bounded `cmd ::= select` and stored CREATE TABLE/INDEX/VIEW/TRIGGER productions attach immutable authored structures to their actual reduction values. This is a progressive parser foundation: semantic actions exist only for the bounded SELECT/schema structure layer. End-to-end Lemon token adaptation (including fallback/window keyword decisions), detailed DDL fields, compounds/CTEs/windows, and full syntax diagnostics remain explicit backlog. Parsed but uncompiled forms produce temporary unsupported at the public compiler boundary rather than syntax errors; there is deliberately no separate literal-SELECT evaluator, so accepted syntax cannot acquire execution semantics outside the future translated compiler/VDBE.
+
+## Immutable schema initialization tranche
+
+`src/internal/schema.ts` now translates the root-page-1 bootstrap path in
+`src/prepare.c:sqlite3InitOne/sqlite3InitCallback` for ordinary tables,
+indexes, and views. It consumes the connection's existing `ImmutableStorage`
+through `BtreeDatabase`, decodes the five `sqlite_schema` fields with
+`record.ts`, converts text with the source-derived `utf.c` subset in `utf.ts`,
+and consumes generated-Lemon reduction structures for stored DDL before publishing
+a close-invalidated, recursively runtime-frozen ordered graph. The row rootpage remains authoritative. `src/build.c` and `src/sqliteInt.h`
+`Table`/`Column`/`Index` inform ordered columns, affinity, default/generated
+expression links, index terms, view Selects, WITHOUT ROWID state and identity
+links. Catalog names are keyed and linked by the shared ASCII-only helper in
+`src/internal/sqlite-case.ts`, derived from `src/util.c:sqlite3StrICmp` and
+`src/global.c:sqlite3UpperToLower`; non-ASCII UTF-8 bytes do not case-fold. Focused fixture/oracle coverage is in
+`test/schema/catalog-init.test.mjs` across UTF-8, UTF-16le and UTF-16be and in
+`test/schema/sqlite-utf.test.mjs` for malformed/legacy conversion behavior.
+
+Current bounded construction supports ordinary column declarations; ordered default-expression indexes; not-null, unique, collation and primary-key column metadata; generated expressions with stored/virtual state; explicit-index uniqueness/origin and per-term collation/sort/null-order metadata; views; and WITHOUT ROWID declared-primary-key storage mapping. Automatic indexes (including their origin), triggers, virtual tables, fuller named/CHECK/foreign-key constraint graphs, and further recognized grammar consumers
+report explicit temporary unsupported errors; malformed row shape/type/text/root/link/DDL reports schema
+corruption. They are backlog, not permanent exclusions, and are never silently
+skipped. The loader does not execute user DDL and does not reopen or copy the
+connection storage owner.
+
+## Stage 3 internal Mem core (implemented)
+
+`src/internal/mem.ts` maps SQLite 3.53.4 `src/vdbeInt.h:228-346` and
+`src/vdbemem.c` `sqlite3VdbeMemSetNull`, `SetInt64`, `SetDouble`, `SetStr`,
+`SetZeroBlob`, `ShallowCopy`, `Copy`, `Move`, `MakeWriteable`, and `Release`.
+`memFromRawRecord` consumes `src/internal/record.ts` decoder output; public adapters
+consume the one `SqliteValue` union from `src/index.ts`. Focused tests are
+`test/value/mem-core.test.mjs`. Explicit borrow generations and strict lone-
+surrogate rejection are labeled TypeScript safety/API adaptations; public BLOBs
+are copied. This mapping covers internal value representation and lifetime; the
+following bounded mapping covers affinity/casts, but neither implies VDBE program
+execution or public SQL support.
+
+Numeric conversion and rendering in the same module map `src/util.c:sqlite3AtoF`
+and `sqlite3Atoi64` plus `src/vdbemem.c:vdbeMemRenderNum` and its default
+17-significant-digit `printf.c`/`sqlite3FpDecode` path, including the private
+`sqlite3Fp2Convert10`/`powerOfTen` integer conversion rather than host decimal
+formatting; precision-sensitive normals, subnormals, exponent boundaries,
+round-trip shortening, and deterministic binary64 differential cases have direct
+regressions. The scanner retains SQLite's value-bounded unsigned mantissa (so
+leading zeroes do not consume significant digits), and REAL text uses SQLite's
+alternate-form generic exponent spelling. Focused regressions, including leading
+zeroes and exponent sign/padding, are in `test/value/mem-numeric.test.mjs`. Both
+IEEE zero payloads are mandatory deterministic native boundaries in
+`test/conformance/cases/stage3-mem.json`, executed by
+`test/conformance/mem-native-boundaries.py`; this is internal conversion evidence
+and grants no public SQL/VDBE execution credit.
+
+## Bounded VDBE arithmetic and truth slice ([[card:card-f-a-d]])
+
+`src/internal/vdbe-primitives.ts` maps pinned `src/vdbe.c` `OP_Add`,
+`OP_Subtract`, `OP_Multiply`, `OP_Divide`, `OP_Remainder`, `OP_BitAnd`, `OP_BitOr`,
+`OP_ShiftLeft`, `OP_ShiftRight`, `OP_BitNot`, `OP_And`, `OP_Or`, `OP_Not`,
+`OP_IsTrue`, `OP_If`, `OP_IfNot`, and the register NULL test used by
+`OP_IsNull`/`OP_NotNull`. Numeric truth follows
+`src/vdbemem.c:sqlite3VdbeBooleanValue`; overflow decisions follow
+`src/util.c:sqlite3AddInt64`, `sqlite3SubInt64`, and `sqlite3MulInt64`. It consumes
+the [[card:card-f-a-c]] `Mem` conversion surface and preserves source registers by
+coercing private copies.
+
+Exact mapped assertions are `test/e_expr.test:e_expr-2.3`, `e_expr-2.4`, and
+`e_expr-6.1` through `e_expr-6.5`. Local no-credit boundaries cover all five
+binary arithmetic operations, overflow promotion, division/remainder zero,
+int64 bit/shift behavior, signed zero/NaN/infinity, NULL propagation, three-valued
+AND/OR, IS TRUE/FALSE, and If/IfNot NULL policy. The machine-readable mapping is
+`test/conformance/cases/stage3-vdbe-primitives.json`; direct execution is
+`test/value/vdbe-primitives.test.mjs`. This does not map comparisons between two
+non-NULL values, collations, compilation, or public SQL execution.
+
+### Canonical cache and encoding correction
+
+Following `record:///review.md?card=card-f-a&v=3`, `Mem.stringify` maps pinned
+`src/vdbemem.c:471-495` (`sqlite3VdbeMemStringify`) including bForce flag clearing,
+and `Mem.changeEncoding` maps `src/vdbemem.c:212-244` plus
+`src/utf.c:242-360` (`sqlite3VdbeMemTranslate`). Direct setters are destructive;
+non-forced stringify preserves numeric+canonical-TEXT; force/cast, reset and
+replacement clear representations according to their callers. Focused executable
+coverage is in `test/value/mem-core.test.mjs`, including copy/shallow/move/reset,
+cache reuse, subtype clearing, three encodings, embedded NUL, legacy UTF-8 and odd
+UTF-16. This is internal primitive evidence and has zero public SQL credit.

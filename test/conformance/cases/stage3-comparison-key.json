@@ -1,0 +1,584 @@
+{
+  "schema": "jsqlite-comparison-key-cases/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "creditPolicy": "Mapped SQL remains unimplemented-temporary and grants zero public SQL compatibility credit. Executable internal vectors and source-contract assertions prove internal behavior and provenance only. local-safety cases never count as upstream credit.",
+  "proposedModule": "src/internal/comparison.ts",
+  "proposedExports": [
+    "compareMem",
+    "compareBuiltinText",
+    "unpackRecordKey",
+    "compareRecordKey"
+  ],
+  "upstreamCases": [
+    {
+      "id": "binary-order-null-and-text",
+      "ref": "test/collate1.test:collate1-1.1",
+      "sql": "SELECT c2 FROM collate1t1 ORDER BY 1;",
+      "expectedTcl": "{{} 0x119 0x2D}",
+      "covers": [
+        "null-first",
+        "binary-byte-order"
+      ],
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "nocase-ascii-order",
+      "ref": "test/collate2.test:collate2-1.2",
+      "sql": "SELECT b FROM collate2t1 WHERE b > 'aa' ORDER BY 1, oid;",
+      "expectedTcl": "{ab aB Ab AB ba bA Ba BA bb bB Bb BB}",
+      "covers": [
+        "nocase-ascii-only",
+        "equal-collation-stable-tiebreak"
+      ],
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "rtrim-right-spaces",
+      "ref": "test/collateA.test:collateA-1.13",
+      "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''",
+      "expectedTcl": "{1 0 0}",
+      "covers": [
+        "rtrim-ascii-space-only",
+        "binary-default"
+      ],
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "affinity-left-operand",
+      "ref": "test/affinity2.test:affinity2-300",
+      "sql": "SELECT rowid, xt==+xi, xt==xi, xt==xb FROM t1 ORDER BY rowid;",
+      "expectedTcl": "{1 1 1 0 2 1 1 1 3 0 1 1}",
+      "covers": [
+        "storage-class",
+        "numeric-text-affinity",
+        "unary-plus-no-affinity"
+      ],
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "cached-text-numeric-compare",
+      "ref": "test/types3.test:types3-3.3",
+      "sql": "SELECT * FROM t1 WHERE NOT x=add_int_type('1');",
+      "expectedTcl": "{}",
+      "covers": [
+        "cached-numeric-and-text",
+        "text-affinity-uses-text"
+      ],
+      "disposition": "unimplemented-temporary",
+      "nativeFixtureExtension": "add_int_type is an upstream test fixture function; it is development-only and must not become host collation/function registration."
+    },
+    {
+      "id": "index-integer-key-lookup",
+      "ref": "test/index.test:index-4.4",
+      "sql": "SELECT power FROM test1 WHERE cnt=6",
+      "expectedTcl": "{64}",
+      "covers": [
+        "packed-index-key",
+        "integer-key-lookup"
+      ],
+      "disposition": "unimplemented-temporary"
+    }
+  ],
+  "internalVectors": [
+    {
+      "id": "storage-class-rank",
+      "operation": "compareMem",
+      "input": [
+        "null",
+        "integer:0",
+        "text:utf8:30",
+        "blob:30"
+      ],
+      "expectedPairSigns": [
+        -1,
+        -1,
+        -1
+      ],
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3MemCompare"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "integer-real-boundary",
+      "operation": "compareMem",
+      "input": [
+        "integer:9007199254740993",
+        "realBits:4340000000000000"
+      ],
+      "expectedSign": 1,
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3MemCompare",
+        "src/vdbeaux.c:sqlite3IntFloatCompare"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "binary-embedded-nul",
+      "operation": "compareBuiltinText",
+      "collation": "binary",
+      "encoding": "utf-8",
+      "leftHex": "610062",
+      "rightHex": "610063",
+      "expectedSign": -1,
+      "sourceAnchors": [
+        "src/main.c:binCollFunc"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "nocase-ascii-not-unicode",
+      "operation": "compareBuiltinText",
+      "collation": "nocase",
+      "encoding": "utf-8",
+      "leftHex": "41c386",
+      "rightHex": "61c3a6",
+      "expectedSign": -1,
+      "sourceAnchors": [
+        "src/main.c:nocaseCollatingFunc"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "rtrim-only-0x20",
+      "operation": "compareBuiltinText",
+      "collation": "rtrim",
+      "encoding": "utf-8",
+      "leftHex": "61c2a0",
+      "rightHex": "61",
+      "expectedSign": 1,
+      "sourceAnchors": [
+        "src/main.c:rtrimCollFunc"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "record-desc-null-last",
+      "operation": "compareRecordKey",
+      "terms": [
+        {
+          "collation": "binary",
+          "desc": true,
+          "nullsLarge": false
+        }
+      ],
+      "left": [
+        "null"
+      ],
+      "right": [
+        "integer:1"
+      ],
+      "expectedSign": 1,
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordCompare",
+        "src/vdbe.c:OP_Compare"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "record-prefix-default-rc-eq-seen",
+      "operation": "compareRecordKey",
+      "terms": [
+        {
+          "collation": "binary",
+          "desc": false,
+          "nullsLarge": false
+        }
+      ],
+      "left": [
+        "integer:7"
+      ],
+      "packedRightFieldCount": 2,
+      "keyFieldCount": 1,
+      "defaultRc": -1,
+      "expected": {
+        "sign": -1,
+        "eqSeen": true
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:UnpackedRecord",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompare"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "unpack-explicit-borrow-lifetime",
+      "operation": "unpackRecordKey",
+      "recordHex": "03090102",
+      "totalFieldCount": 2,
+      "keyFieldCount": 1,
+      "expected": [
+        "integer:1"
+      ],
+      "requires": [
+        "borrow-generation",
+        "explicit-release"
+      ],
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordUnpack",
+        "src/vdbeaux.c:sqlite3VdbeSerialGet"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    }
+  ],
+  "localSafetyCompanions": [
+    {
+      "id": "record-truncated-header",
+      "operation": "unpackRecordKey",
+      "recordHex": "8100",
+      "expectedError": "corrupt",
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "record-field-limit",
+      "operation": "unpackRecordKey",
+      "configuredMaxFields": 1,
+      "recordHex": "0301010102",
+      "expectedError": "limit",
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "expired-text-borrow",
+      "operation": "compareMem",
+      "expectedError": "internal",
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "record-missing-next-serial-after-equal-prefix",
+      "operation": "compareRecordKey",
+      "recordHex": "0209",
+      "expectedError": "corrupt",
+      "expectedEqSeen": false,
+      "runtimeTest": "equal-prefix packed LHS field shortage is corrupt while short seek RHS reaches defaultRc",
+      "nativeObservation": "native-record-short-packed-lhs-corrupt",
+      "rationale": "packed LHS exhaustion is corrupt when another unpacked RHS field remains; prefix intent belongs to the RHS field count",
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "record-declared-serial-truncated-payload",
+      "operation": "compareRecordKey",
+      "recordHex": "030901",
+      "expectedError": "corrupt",
+      "rationale": "deliberately stricter untrusted-input validation; pinned comparator assumes readable padded/valid b-tree key buffers and does not diagnose this synthetic payload truncation",
+      "disposition": "local-safety-no-credit",
+      "expectedEqSeen": false,
+      "runtimeTest": "equal-prefix packed LHS field shortage is corrupt while short seek RHS reaches defaultRc"
+    }
+  ],
+  "futureBacklog": [
+    {
+      "area": "all remaining collate*.test cases, including custom host collations",
+      "executable": false,
+      "note": "Built-ins are in scope; host registration is permanently excluded."
+    },
+    {
+      "area": "remaining types*.test and affinity*.test comparison cases",
+      "executable": false
+    },
+    {
+      "area": "index cursor seek/found/no-conflict and sorter record comparisons",
+      "executable": false
+    },
+    {
+      "area": "all database encodings and malformed serial/header/size permutations",
+      "executable": false
+    }
+  ],
+  "nativeDifferentialBoundaries": [
+    {
+      "id": "native-integer-real-exact-boundary",
+      "operation": "numeric-compare",
+      "integer": "9007199254740993",
+      "real": 9007199254740992,
+      "expectedSign": 1,
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3MemCompare",
+        "src/vdbeaux.c:sqlite3IntFloatCompare"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-binary-embedded-nul",
+      "operation": "text-compare",
+      "collation": "binary",
+      "leftHex": "610062",
+      "rightHex": "610063",
+      "expectedSign": -1,
+      "sourceAnchors": [
+        "src/main.c:binCollFunc"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-nocase-ascii-only",
+      "operation": "text-compare",
+      "collation": "nocase",
+      "leftHex": "41c386",
+      "rightHex": "61c3a6",
+      "expectedSign": -1,
+      "sourceAnchors": [
+        "src/main.c:nocaseCollatingFunc"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-rtrim-space-only",
+      "operation": "text-compare",
+      "collation": "rtrim",
+      "leftHex": "61c2a0",
+      "rightHex": "61",
+      "expectedSign": 1,
+      "sourceAnchors": [
+        "src/main.c:rtrimCollFunc"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-index-integer-key-lookup",
+      "operation": "indexed-lookup",
+      "lookup": "6",
+      "expected": "64",
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordCompare",
+        "src/btree.c:sqlite3BtreeIndexMoveto"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    }
+  ],
+  "executableEvidence": [
+    {
+      "id": "record-production-orientation",
+      "runtimeTest": "production record comparator follows SQLite packed-LHS/unpacked-RHS orientation",
+      "covers": [
+        "packed-lhs",
+        "unpacked-rhs-default-rc",
+        "eq-seen"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    },
+    {
+      "id": "record-incremental-actual-field-limits",
+      "runtimeTest": "incremental limits count compared fields and preserve decisive malformed-tail return",
+      "covers": [
+        "actual-compared-fields",
+        "exact-work-limit",
+        "decisive-malformed-tail-return"
+      ],
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "record-seek-caller-construction",
+      "runtimeTest": "seek caller construction rejects zero fields but permits an intentional nonempty prefix",
+      "covers": [
+        "seek-nfield-positive",
+        "intentional-short-prefix",
+        "generic-zero-field-record"
+      ],
+      "disposition": "local-safety-no-credit"
+    },
+    {
+      "id": "record-keyinfo-immutable-identity-handoff",
+      "runtimeTest": "KeyInfo is defensively immutable and unpacked keys enforce descriptor identity",
+      "covers": [
+        "defensive-deep-copy",
+        "runtime-deep-freeze",
+        "retained-keyinfo-identity",
+        "comparison-mismatch-rejection",
+        "js-mutation-attempts"
+      ],
+      "sourceAnchors": [
+        "src/sqliteInt.h:KeyInfo",
+        "src/sqliteInt.h:UnpackedRecord.pKeyInfo",
+        "src/vdbeaux.c:sqlite3VdbeRecordUnpack",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "executable-internal-no-public-sql-credit"
+    }
+  ],
+  "nativeRecordComparatorBoundaries": [
+    {
+      "id": "native-record-decisive-packed-lhs",
+      "leftHex": "0209",
+      "rightHex": "020102",
+      "sortFlags": 0,
+      "defaultRc": 0,
+      "expected": {
+        "sign": -1,
+        "eqSeen": false
+      },
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-equal-prefix-default-minus-one",
+      "leftHex": "03090107",
+      "rightHex": "0209",
+      "sortFlags": 0,
+      "defaultRc": -1,
+      "expected": {
+        "sign": -1,
+        "eqSeen": true
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:UnpackedRecord",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-equal-prefix-default-zero",
+      "leftHex": "03090107",
+      "rightHex": "0209",
+      "sortFlags": 0,
+      "defaultRc": 0,
+      "expected": {
+        "sign": 0,
+        "eqSeen": true
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:UnpackedRecord",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-equal-prefix-default-plus-one",
+      "leftHex": "03090107",
+      "rightHex": "0209",
+      "sortFlags": 0,
+      "defaultRc": 1,
+      "expected": {
+        "sign": 1,
+        "eqSeen": true
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:UnpackedRecord",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-null-order-asc",
+      "leftHex": "0209",
+      "rightHex": "0200",
+      "sortFlags": 0,
+      "defaultRc": 0,
+      "expected": {
+        "sign": 1,
+        "eqSeen": false
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:KEYINFO_ORDER_DESC",
+        "src/sqliteInt.h:KEYINFO_ORDER_BIGNULL",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-null-order-asc-bignull",
+      "leftHex": "0209",
+      "rightHex": "0200",
+      "sortFlags": 2,
+      "defaultRc": 0,
+      "expected": {
+        "sign": -1,
+        "eqSeen": false
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:KEYINFO_ORDER_DESC",
+        "src/sqliteInt.h:KEYINFO_ORDER_BIGNULL",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-null-order-desc",
+      "leftHex": "0209",
+      "rightHex": "0200",
+      "sortFlags": 1,
+      "defaultRc": 0,
+      "expected": {
+        "sign": -1,
+        "eqSeen": false
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:KEYINFO_ORDER_DESC",
+        "src/sqliteInt.h:KEYINFO_ORDER_BIGNULL",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-null-order-desc-bignull",
+      "leftHex": "0209",
+      "rightHex": "0200",
+      "sortFlags": 3,
+      "defaultRc": 0,
+      "expected": {
+        "sign": 1,
+        "eqSeen": false
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:KEYINFO_ORDER_DESC",
+        "src/sqliteInt.h:KEYINFO_ORDER_BIGNULL",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-short-seek-rhs-default",
+      "leftHex": "030909",
+      "rightHex": "0209",
+      "sortFlags": 0,
+      "defaultRc": -1,
+      "keyFieldCount": 2,
+      "expected": {
+        "sign": -1,
+        "eqSeen": true,
+        "errorCode": 0
+      },
+      "sourceAnchors": [
+        "src/sqliteInt.h:UnpackedRecord",
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-short-packed-lhs-corrupt",
+      "leftHex": "0209",
+      "rightHex": "030909",
+      "sortFlags": 0,
+      "defaultRc": -1,
+      "keyFieldCount": 2,
+      "expected": {
+        "sign": 0,
+        "eqSeen": false,
+        "errorCode": 11
+      },
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "disposition": "native-oracle-no-public-sql-credit"
+    },
+    {
+      "id": "native-record-truncated-payload-source-assumption",
+      "leftHex": "030901",
+      "rightHex": "030909",
+      "sortFlags": 0,
+      "defaultRc": -1,
+      "keyFieldCount": 2,
+      "expected": {
+        "sign": -1,
+        "eqSeen": false,
+        "errorCode": 0
+      },
+      "sourceAnchors": [
+        "src/vdbeaux.c:sqlite3VdbeRecordCompareWithSkip"
+      ],
+      "rationale": "source-assumption observation only, not parity for untrusted truncated input; the pinned comparator assumes readable padded/valid b-tree key buffers",
+      "disposition": "native-source-assumption-observation-no-credit"
+    }
+  ]
+}

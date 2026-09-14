@@ -23,7 +23,7 @@ test("adapter reaches the real public connection before genuine prepare unsuppor
       () => connection.prepare("SELECT 1"),
       error => error instanceof JSQLiteError && error.kind === "unsupported" &&
         error.unsupportedClassification === "temporary" &&
-        error.message === "SQL preparation is not implemented",
+        error.message === "SELECT compilation is not implemented",
     );
   } finally {
     connection?.close();

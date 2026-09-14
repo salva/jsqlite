@@ -1,0 +1,20 @@
+{
+  "schema": "jsqlite-vdbe-primitives-cases/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "creditPolicy": "Direct internal primitive execution is implementation evidence only. SQL assertions remain zero public-SQL credit until compiler/VDBE statement execution reaches this module. Local boundary companions are no-credit.",
+  "upstreamCases": [
+    {"ref":"test/e_expr.test:e_expr-2.3","sql":"SELECT ~10","expected":[{"type":"integer","value":"-11"}],"internal":"bitwiseNot"},
+    {"ref":"test/e_expr.test:e_expr-2.4","sql":"SELECT NOT 10","expected":[{"type":"integer","value":"0"}],"internal":"logicalNot"},
+    {"ref":"test/e_expr.test:e_expr-6.1","sql":"SELECT 72%5","expected":[{"type":"integer","value":"2"}],"internal":"arithmeticBinary"},
+    {"ref":"test/e_expr.test:e_expr-6.2","sql":"SELECT 72%-5","expected":[{"type":"integer","value":"2"}],"internal":"arithmeticBinary"},
+    {"ref":"test/e_expr.test:e_expr-6.3","sql":"SELECT -72%-5","expected":[{"type":"integer","value":"-2"}],"internal":"arithmeticBinary"},
+    {"ref":"test/e_expr.test:e_expr-6.4","sql":"SELECT -72%5","expected":[{"type":"integer","value":"-2"}],"internal":"arithmeticBinary"},
+    {"ref":"test/e_expr.test:e_expr-6.5","sql":"SELECT 72.35%5","expected":[{"type":"real","value":2}],"internal":"arithmeticBinary"}
+  ],
+  "noCreditCompanions": [
+    {"id":"vdbe-arithmetic-boundaries","sourceAnchors":["src/vdbe.c:OP_Add..OP_Remainder","src/util.c:sqlite3AddInt64/sqlite3SubInt64/sqlite3MulInt64"],"covers":["int64 overflow promotion","integer division truncation","zero divisor","NaN-to-NULL","signed zero","infinity"]},
+    {"id":"vdbe-bit-shift-boundaries","sourceAnchors":["src/vdbe.c:OP_BitAnd..OP_BitNot"],"covers":["signed int64 bit operations","negative shifts reverse direction","shift counts at least 64","arithmetic right shift","NULL propagation"]},
+    {"id":"vdbe-three-valued-truth","sourceAnchors":["src/vdbe.c:OP_And/OP_Or/OP_Not/OP_IsTrue/OP_If/OP_IfNot/OP_IsNull","src/vdbemem.c:sqlite3VdbeBooleanValue"],"covers":["false AND NULL","true OR NULL","unknown truth tables","NULL branch policy","numeric text truth"]}
+  ],
+  "publicSqlDisposition": "unimplemented-temporary"
+}

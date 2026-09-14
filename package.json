@@ -1,17 +1,23 @@
 {
   "name": "jsqlite2",
   "private": true,
-  "version": "0.0.0-stage3-storage",
+  "version": "0.0.0-stage3-internal-values-comparison",
   "type": "module",
-  "description": "Private Stage 3 bounded Fetch and immutable storage reader; SQL preparation and execution are not implemented.",
+  "description": "Private Stage 3 storage, parser/schema, and internal Mem/arithmetic/comparison foundation; SQL compilation and execution are not implemented.",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
+    "generate:parser": "node tools/parser/generate.mjs",
+    "check:parser": "node --test test/parser/generator.test.mjs",
+    "test:parser": "node --experimental-strip-types --test test/parser/tokenizer-parser.test.mjs test/parser/generator.test.mjs",
+    "test:oracle": "python3 test/oracle/protocol.test.py && python3 test/oracle/jsonl.test.py && python3 test/oracle/schema-identifier-case.test.py",
     "fixtures:generate": "python3 tools/oracle/generate-fixtures.py --manifest reference/sqlite/manifest.json --profile $SAIVAGE_CARD_WORK_ROOT/oracle-build/profile.json --oracle $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/sqlite-oracle --spec-dir test/fixtures/spec --fixture-root test/fixtures",
     "test:fixtures": "python3 test/oracle/generate-fixtures.test.py && python3 test/oracle/storage-fixtures.test.py && node test/conformance/fixture-server.test.mjs",
-    "test:conformance:native": "python3 test/conformance/runner.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so",
+    "test:conformance:native": "python3 test/conformance/runner.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so && python3 test/conformance/mem-native-boundaries.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so && python3 test/conformance/comparison-key-native-boundaries.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so",
     "test:conformance:ts": "node --experimental-strip-types test/conformance/run-ts.mjs",
     "test:package-boundary": "python3 test/package-boundary.test.py",
-    "test:conformance:accounting": "python3 test/conformance/generate-ts-cases.py --check && node test/conformance/ts-accounting.test.mjs"
+    "test:conformance:accounting": "python3 test/conformance/generate-ts-cases.py --check && node test/conformance/ts-accounting.test.mjs && python3 test/conformance/mem-manifest.test.py && python3 test/conformance/comparison-key-manifest.test.py"
   },
-  "devDependencies": { "typescript": "5.9.3" }
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
 }

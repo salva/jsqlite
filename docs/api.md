@@ -1,10 +1,6 @@
 # Public API contract
 
-Status: **Stage 1 contract, NONFUNCTIONAL**. The declarations in `src/index.ts` are
-type-only scaffolding: this repository does not yet open a database, prepare SQL,
-or execute a statement. Stage 2 will build the oracle/test harness; later stages
-will translate the engine. Examples specify intended usage, not currently runnable
-query demonstrations.
+Status: **Stage 3 parser/internal-schema foundation implemented; SQL execution NONFUNCTIONAL**. `open()` fetches, bounds, validates, and owns an immutable format-3 database. `Connection.prepare()` now performs real UTF-8 tokenization and generated-Lemon parsing, returns exact tails for empty/comment-only SQL, rejects syntax errors, and classifies parsed excluded commands; a parsed SELECT then reports temporary unsupported because resolution, compilation, VDBE execution, and public statement construction do not exist. Internal schema discovery is implemented but is not yet exposed as executable preparation. These capabilities earn no SQL compatibility credit. Examples beyond opening specify intended usage, not currently runnable query demonstrations.
 
 This is the singular public contract. It maps the read-only-relevant SQLite 3.53.4
 C API to browser-safe named ESM declarations while retaining explicit JS boundary
@@ -33,10 +29,27 @@ INTEGER accepts only `-9223372036854775808n..9223372036854775807n`. A value outs
 that interval is JS `misuse`, not `SQLITE_RANGE` (which is used for an invalid bind
 index). REAL and INTEGER stay distinct even when a REAL is integral. Binding NaN
 binds SQL NULL; positive and negative infinity remain REAL, following
-`sqlite3VdbeMemSetDouble` (`src/vdbemem.c`). Strings may contain NUL. Inputs are
-copied when bound. Every returned BLOB is a fresh copy owned by the caller; strings
-and scalar values are JS values. Thus subsequent conversion, step, reset, finalize,
-or close cannot mutate a value already returned to the caller.
+`sqlite3VdbeMemSetDouble` (`src/vdbemem.c`).
+
+Bound JS strings must be well-formed UTF-16: each surrogate must belong to a valid
+pair. A lone high or low surrogate is `misuse` with no SQLite code. This is an
+explicit JS-boundary adaptation, separate from SQL preparation, because the C API
+receives bytes while `SqliteValue` receives a JS string; silently applying
+`TextEncoder` replacement would bind a different value. The binding adapter
+strictly encodes Unicode scalars as UTF-8, including four bytes for a supplementary
+scalar, then follows `src/vdbeapi.c:bindText`/`sqlite3_bind_text`: the Mem value
+enters as copied UTF-8 and is translated immediately to the connection database
+encoding (UTF-8, UTF-16le, or UTF-16be) by the SQLite-derived UTF routines. Embedded
+NUL is ordinary data because the adapter always supplies an explicit byte length;
+it does not terminate the value. Byte limits account for both the complete source
+UTF-8 byte length and the translated logical byte length (excluding any terminator),
+and failure is `limit`. UTF-16 lengths are bytes, not JS code units. This rule is
+tested across all three database encodings; it does not use WHATWG replacement
+semantics.
+
+Inputs are copied when bound. Every returned BLOB is a fresh copy owned by the
+caller; strings and scalar values are JS values. Thus subsequent conversion, step,
+reset, finalize, or close cannot mutate a value already returned to the caller.
 
 ## Opening and residency
 
@@ -104,8 +117,10 @@ returns the original marker (`:x`, `@x`, `$x`, or numbered form) or null;
 `parameterIndex(name)` returns zero if absent. Unbound parameters are NULL.
 `bind(number|string, value)` resolves names exactly and rejects absent names or
 out-of-range indexes. Binding is allowed only before execution or after reset.
-`reset()` rewinds and invalidates the row but retains bindings. `clearBindings()`
-sets every parameter to NULL and does not reset execution.
+`reset()` rewinds and invalidates the row but retains bindings. Repeating reset
+without an intervening step is valid and leaves the statement prepared with the
+same bindings. `clearBindings()` sets every parameter to NULL and does not reset
+execution.
 
 ## Stepping, bounded work, and rows
 
@@ -119,7 +134,7 @@ checks the effective signal, deadline, and work budget between chunks and within
 bounded traversal/recursion loops. Statement operation options may only tighten,
 never relax, connection limits. `maxWorkUnits` is an implementation-defined stable
 unit counter intended as a safety bound, not elapsed time or a compatibility/performance
-promise. Other configured bounds include SQL/file bytes, rows, expression depth,
+promise. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
 b-tree depth, and overflow-page traversal. A future implementation must document
 its exact counters before claiming these controls work.
 
@@ -156,9 +171,12 @@ Statements begin prepared, can move through running/current-row/done, can be res
 for reuse, and end finalized. `finalize()` always invalidates the row, releases
 bindings/resources, and destroys the handle, even when it throws a saved execution
 error. `reset()` likewise completes cleanup before reporting the prior error, but
-keeps the statement and its bindings. Calling either a second time is `misuse`;
-this explicit non-idempotence prevents accidental suppression of meaningful errors.
-Every other operation on a finalized statement is misuse.
+keeps the statement and its bindings. A second reset without another step is
+valid (and has no prior execution error to rethrow); this follows the explicit
+`sqlite3_reset` repeat contract in `src/sqlite.h.in` and `src/vdbeapi.c`.
+Calling `finalize()` a second time is `misuse`; this explicit non-idempotence
+prevents accidental suppression of meaningful errors. Every other operation on a
+finalized statement is misuse.
 
 `close()` maps legacy `sqlite3_close`: if statements remain, it throws a
 `sqlite` error with primary code `SQLITE_BUSY` and leaves the connection open and
@@ -225,7 +243,9 @@ numeric codes and error kind without parsing messages.
 ## Limits and ownership summary
 
 `WorkLimits` defaults are implementation constants that must be finite, documented,
-and tested before runtime support is claimed. Callers can tighten them at open;
+and tested before runtime support is claimed. The implemented parser uses
+`maxSqlBytes` (16 MiB), `maxParserDepth` (2500), `maxExpressionDepth` (1000), and
+the configured work-unit budget. Callers can tighten them at open;
 operation-level `maxWorkUnits` tightens the connection budget. `maxRows` counts
 `"row"` outcomes across one execution until reset. Limits must cover parser
 recursion, expression depth, page/b-tree/overflow traversal, and query loops as
@@ -255,7 +275,9 @@ The pin is SQLite 3.53.4/source ID recorded in
 
 Permanent exclusions remain exactly those in SPEC: writes and transaction control,
 runtime native/C/WASM backends, extension/host callback registration, CLI/server
-surfaces, and sidecar recovery. Temporary gaps are broader today: there is no
-runtime engine, Fetch implementation, parser, storage reader, planner, VDBE, or
-oracle/test harness. Declarations and passing type checks prove contract coherence,
-not SQLite compatibility.
+surfaces, and sidecar recovery. Temporary gaps remain broader today: the internal generated parser and immutable
+schema reader are not yet exposed as SQL preparation, planner, VDBE, or statement
+execution. The runtime includes Fetch acquisition/header residency plus internal
+known-root record and table/index b-tree storage primitives and schema graph; none
+of those are SQL conformance credit. Declarations, type checks, and internal tests
+prove only their stated bounded contracts, not SQLite query compatibility.

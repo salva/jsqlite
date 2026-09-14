@@ -1,0 +1,588 @@
+{
+  "schema": "jsqlite-mem-cases/2",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "creditPolicy": "Every executable upstream/adaptation case is unimplemented-temporary and grants zero TS/public SQL compatibility credit until it passes through the intended read-only adapter. nativeProvenanceCases are native-only evidence and fixture provenance, never TS execution or TS bind credit. futureBacklog is non-executable and grants no credit.",
+  "exactTranche": {
+    "upstreamCases": [
+      {
+        "id": "cast-null-to-text-remains-null",
+        "ref": "test/cast.test:cast-1.13",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT CAST(NULL AS text)"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "public-column-adapter"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-null-to-text-type",
+        "ref": "test/cast.test:cast-1.14",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT typeof(CAST(NULL AS text))"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "typeof"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-integer-to-text",
+        "ref": "test/cast.test:cast-1.23",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT CAST(123 AS text)"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "123"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "canonical-string",
+          "public-column-adapter"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-real-to-text",
+        "ref": "test/cast.test:cast-1.33",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT CAST(123.456 AS text)"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "123.456"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "canonical-string",
+          "public-column-adapter"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-real-to-integer-truncates",
+        "ref": "test/cast.test:cast-1.39",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT CAST(123.456 AS integer)"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "123"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "public-column-adapter"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-text-prefix-to-numeric",
+        "ref": "test/cast.test:cast-1.45",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT CAST('123abc' AS numeric)"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "123"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "numeric-parser",
+          "public-column-adapter"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "cast-text-prefix-numeric-type",
+        "ref": "test/cast.test:cast-1.46",
+        "setup": [],
+        "operation": {
+          "kind": "sql",
+          "sql": "SELECT typeof(CAST('123abc' AS numeric))"
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "mem-cast",
+          "numeric-parser",
+          "typeof"
+        ],
+        "disposition": "unimplemented-temporary"
+      }
+    ],
+    "adaptationCases": [
+      {
+        "id": "public-bind-int64-readonly",
+        "sourceAnchors": [
+          "test/bind.test:bind-3.1",
+          "test/bind.test:bind-3.2",
+          "src/vdbeapi.c:sqlite3_bind_int64"
+        ],
+        "setup": [
+          "Open an immutable fixture database and prepare the read-only statement SELECT ?1, ?2, ?3, typeof(?1), typeof(?2), typeof(?3). No table mutation or generated state is required."
+        ],
+        "operation": {
+          "kind": "public-bind-readonly-select",
+          "sql": "SELECT ?1, ?2, ?3, typeof(?1), typeof(?2), typeof(?3)",
+          "bindings": [
+            {
+              "index": 1,
+              "value": {
+                "type": "integer",
+                "value": "32"
+              }
+            },
+            {
+              "index": 2,
+              "value": {
+                "type": "integer",
+                "value": "-2000000000000"
+              }
+            },
+            {
+              "index": 3,
+              "value": {
+                "type": "integer",
+                "value": "2000000000000"
+              }
+            }
+          ]
+        },
+        "expected": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "32"
+              },
+              {
+                "type": "integer",
+                "value": "-2000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "2000000000000"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ]
+          ]
+        },
+        "prerequisites": [
+          "compiler",
+          "vdbe",
+          "public-bind-adapter",
+          "public-column-adapter",
+          "typeof"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "public-bind-text-nul-and-supplementary-all-encodings",
+        "sourceAnchors": [
+          "src/vdbeapi.c:bindText",
+          "src/vdbeapi.c:sqlite3_bind_text",
+          "src/utf.c:sqlite3VdbeMemTranslate",
+          "test/bind.test:bind-6.4",
+          "test/bind.test:bind-6.5"
+        ],
+        "setup": [
+          "Open one fixture for each database encoding: UTF-8, UTF-16le, UTF-16be; prepare SELECT typeof(?1), hex(?1), length(?1)."
+        ],
+        "operation": {
+          "kind": "public-bind",
+          "value": "A\u0000\ud83d\ude00"
+        },
+        "expected": {
+          "byDatabaseEncoding": {
+            "utf-8": {
+              "type": "text",
+              "hex": "4100F09F9880",
+              "length": "1"
+            },
+            "utf-16le": {
+              "type": "text",
+              "hex": "410000003DD800DE",
+              "length": "1"
+            },
+            "utf-16be": {
+              "type": "text",
+              "hex": "00410000D83DDE00",
+              "length": "1"
+            }
+          }
+        },
+        "prerequisites": [
+          "public-bind-adapter",
+          "compiler",
+          "vdbe",
+          "typeof",
+          "hex",
+          "length",
+          "encoding-conversion"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "public-bind-text-lone-high-surrogate",
+        "sourceAnchors": [
+          "src/utf.c:READ_UTF8",
+          "docs/api.md:Import and values"
+        ],
+        "setup": [
+          "Prepare SELECT ?1."
+        ],
+        "operation": {
+          "kind": "public-bind",
+          "valueUtf16CodeUnits": [
+            55296
+          ]
+        },
+        "expected": {
+          "error": {
+            "kind": "misuse",
+            "code": null,
+            "extendedCode": null
+          }
+        },
+        "prerequisites": [
+          "public-bind-adapter",
+          "strict-js-scalar-encoder"
+        ],
+        "disposition": "unimplemented-temporary"
+      },
+      {
+        "id": "public-bind-text-lone-low-surrogate",
+        "sourceAnchors": [
+          "src/utf.c:READ_UTF8",
+          "docs/api.md:Import and values"
+        ],
+        "setup": [
+          "Prepare SELECT ?1."
+        ],
+        "operation": {
+          "kind": "public-bind",
+          "valueUtf16CodeUnits": [
+            56320
+          ]
+        },
+        "expected": {
+          "error": {
+            "kind": "misuse",
+            "code": null,
+            "extendedCode": null
+          }
+        },
+        "prerequisites": [
+          "public-bind-adapter",
+          "strict-js-scalar-encoder"
+        ],
+        "disposition": "unimplemented-temporary"
+      }
+    ],
+    "nativeProvenanceCases": [
+      {
+        "id": "bind-int64-storage",
+        "ref": "test/bind.test:bind-3.1",
+        "role": "native-source-or-fixture-provenance",
+        "executableTs": false,
+        "disposition": "native-evidence-no-ts-credit",
+        "sourceOperation": "Native Tcl prepares INSERT INTO t1 VALUES(?1,?2,?3), binds 32, -2000000000000, and 2000000000000 as int64, steps it, then observes SELECT rowid, * FROM t1.",
+        "expectedEvidence": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "32"
+              },
+              {
+                "type": "integer",
+                "value": "-2000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "2000000000000"
+              }
+            ]
+          ]
+        },
+        "setupOwner": "native oracle or fixture generator only; never the TypeScript runtime"
+      },
+      {
+        "id": "bind-int64-types",
+        "ref": "test/bind.test:bind-3.2",
+        "role": "native-source-or-fixture-provenance",
+        "executableTs": false,
+        "disposition": "native-evidence-no-ts-credit",
+        "sourceOperation": "Native Tcl reads typeof(a), typeof(b), typeof(c) from the table populated by bind-3.1.",
+        "expectedEvidence": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "integer"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ]
+          ]
+        },
+        "setupOwner": "native oracle or fixture generator only; any later TS table read uses immutable generated fixture bytes and is record/column evidence, not bind evidence"
+      },
+      {
+        "id": "bind-utf8-explicit-lengths",
+        "ref": "test/bind.test:bind-6.1",
+        "role": "native-source-or-fixture-provenance",
+        "executableTs": false,
+        "disposition": "native-evidence-no-ts-credit",
+        "sourceOperation": "Native Tcl sqlite3_bind_text calls use explicit byte lengths 5, 1, and -1 before a native INSERT and SELECT observation.",
+        "expectedEvidence": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "hello"
+              },
+              {
+                "type": "text",
+                "value": "."
+              },
+              {
+                "type": "text",
+                "value": "world"
+              }
+            ]
+          ]
+        },
+        "setupOwner": "native oracle or fixture generator only; public JS bind has no byte-length argument"
+      },
+      {
+        "id": "bind-embedded-nul-physical-bytes",
+        "ref": "test/bind.test:bind-6.5",
+        "role": "native-source-or-fixture-provenance",
+        "executableTs": false,
+        "disposition": "native-evidence-no-ts-credit",
+        "upstreamOccurrences": 4,
+        "sourceOperation": "Four conditional native assertions observe hex(a), hex(b), hex(c) after native bind-6.4 setup for the selected database encoding.",
+        "expectedEvidence": {
+          "byDatabaseEncoding": {
+            "utf-8": [
+              "68656C6C6F00746865726500",
+              "68656C6C6F007468657265",
+              "68656C6C6F"
+            ],
+            "utf-16le": [
+              "680065006C006C006F000000740068006500720065000000",
+              "680065006C006C006F00000074006800650072006500",
+              "680065006C006C006F00"
+            ],
+            "utf-16be": [
+              "00680065006C006C006F0000007400680065007200650000",
+              "00680065006C006C006F000000740068006500720065",
+              "00680065006C006C006F"
+            ]
+          }
+        },
+        "setupOwner": "native oracle or fixture generator only; immutable generated tables may later supply record/column evidence"
+      }
+    ]
+  },
+  "nativeDifferentialBoundaries": [
+    {
+      "id": "mem-real-positive-zero-text",
+      "binary64Bits": "0000000000000000",
+      "expectedText": "0.0",
+      "operation": "bind exact binary64 payload, SELECT CAST(?1 AS TEXT), and observe text",
+      "executableNative": true,
+      "executableTs": false,
+      "disposition": "native-differential-no-public-sql-credit"
+    },
+    {
+      "id": "mem-real-negative-zero-text",
+      "binary64Bits": "8000000000000000",
+      "expectedText": "0.0",
+      "operation": "bind exact binary64 payload, SELECT CAST(?1 AS TEXT), and observe text",
+      "executableNative": true,
+      "executableTs": false,
+      "disposition": "native-differential-no-public-sql-credit"
+    }
+  ],
+  "futureBacklog": [
+    {
+      "source": "test/cast.test",
+      "families": [
+        "remaining cast and affinity cases"
+      ],
+      "executable": false
+    },
+    {
+      "source": "test/affinity2.test and test/affinity3.test",
+      "families": [
+        "stored, view, and join affinity"
+      ],
+      "executable": false
+    },
+    {
+      "source": "test/types.test",
+      "families": [
+        "manifest storage classes and record adapter"
+      ],
+      "executable": false
+    },
+    {
+      "source": "test/bind.test and test/capi3c.test",
+      "families": [
+        "remaining bind, column conversion, and row lifetime"
+      ],
+      "executable": false
+    },
+    {
+      "source": "test/func.test",
+      "families": [
+        "scalar, subtype, aggregate, and nonfinite consumers"
+      ],
+      "executable": false
+    }
+  ],
+  "internalCompanions": [
+    {
+      "id": "mem-simultaneous-numeric-text",
+      "oracleNeed": "semantic-mem-diagnostic",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-int-real-roundtrip",
+      "oracleNeed": "semantic-mem-diagnostic",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-owned-borrowed-static",
+      "oracleNeed": "semantic-mem-diagnostic",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-copy-shallow-move-reset-invalidation",
+      "oracleNeed": "semantic-mem-diagnostic",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-subtype-aggregate-representability",
+      "oracleNeed": "semantic-mem-diagnostic",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-raw-record-nan-to-null",
+      "oracleNeed": "existing-real-bits-plus-internal-adapter-test",
+      "disposition": "unimplemented-temporary"
+    },
+    {
+      "id": "mem-public-blob-copy-survives-mutation",
+      "oracleNeed": "existing-column-observation",
+      "disposition": "unimplemented-temporary"
+    }
+  ]
+}

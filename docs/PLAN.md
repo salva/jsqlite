@@ -3,7 +3,15 @@
 Status: owner-directed initial sequence; the project Planner owns concrete
 decomposition and evidence-based updates. [SPEC.md](SPEC.md) is the product
 contract. This plan does not authorize expanding its read-only exclusions.
-Stage 0 and the **NONFUNCTIONAL contract work of Stage 1 are complete**; Stage 2 and every runtime implementation stage remain incomplete.
+Stage 0, the **NONFUNCTIONAL contract work of Stage 1**, and the bounded Stage 2
+native-oracle/fixture/harness milestone are complete. Stage 2 evidence is limited
+to the exact 38 upstream IDs plus 9 no-credit companions in the machine manifest;
+the TS harness invokes the singular public adapter. Historically, the first Stage 3 storage milestone let every mapped case complete
+real Fetch acquisition and stop at `prepare`. The current Stage 3 foundation also
+implements UTF-8 tokenization, generated Lemon parsing/reductions, exact tails and
+empty SQL, limits, and immutable internal schema discovery. Public SELECT
+preparation still stops at the resolver/compiler/VDBE boundary; SQL suffixes remain
+unattempted and receive zero TS credit.
 The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 

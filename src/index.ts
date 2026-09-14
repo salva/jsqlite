@@ -1,5 +1,8 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
+import { parseSql, SqlParseError } from "./internal/parse.ts";
+
 const SQLITE_CORRUPT = 11;
+const SQLITE_BUSY = 5;
 
 export type SqliteValue = null | bigint | number | string | Uint8Array;
 export type SqliteStorageClass = "null" | "integer" | "real" | "text" | "blob";
@@ -10,6 +13,7 @@ export interface WorkLimits {
   readonly maxRows?: number;
   readonly maxWorkUnits?: number;
   readonly maxSqlBytes?: number;
+  readonly maxParserDepth?: number;
   readonly maxExpressionDepth?: number;
   readonly maxBtreeDepth?: number;
   readonly maxOverflowPages?: number;
@@ -58,24 +62,81 @@ function finiteNonnegative(value: number | undefined, name: string): number | un
   if (!Number.isFinite(value) || value < 0) failure("misuse", `${name} must be finite and nonnegative`);
   return value;
 }
+function finiteLimit(value: number | undefined, name: string, fallback: number): number {
+  const result = finiteNonnegative(value, name) ?? fallback;
+  if (!Number.isSafeInteger(result)) failure("misuse", `${name} must be a safe integer`);
+  return result;
+}
+
+interface PrepareLimits {
+  readonly maxSqlBytes: number;
+  readonly maxParserDepth: number;
+  readonly maxExpressionDepth: number;
+  readonly maxWorkUnits: number;
+}
+
 class OpenConnection implements Connection, StorageOwnerCarrier {
   #source: ImmutableStorage | null;
+  #state: "open" | "zombie" | "closed" = "open";
+  readonly #limits: PrepareLimits;
   readonly [storageOwner]: ImmutableStorage;
-  constructor(source: ImmutableStorage) { this.#source = source; this[storageOwner] = source; }
-  #assertOpen(): ImmutableStorage {
+
+  constructor(source: ImmutableStorage, limits: PrepareLimits) {
+    this.#source = source;
+    this[storageOwner] = source;
+    this.#limits = limits;
+  }
+
+  #assertResident(): ImmutableStorage {
     const source = this.#source;
     if (source === null || source.closed) failure("misuse", "connection is closed");
     return source;
   }
-  prepare(_sql: string, _options?: OperationOptions): PrepareResult {
-    this.#assertOpen();
-    return failure("unsupported", "SQL preparation is not implemented", { unsupportedClassification: "temporary" });
+
+  #finishClose(source: ImmutableStorage): void {
+    source.close();
+    this.#source = null;
+    this.#state = "closed";
   }
+
+  prepare(sql: string, options?: OperationOptions): PrepareResult {
+    this.#assertResident();
+    if (this.#state !== "open") failure("misuse", "connection is closed");
+    try {
+      const operationWork = finiteLimit(options?.maxWorkUnits, "maxWorkUnits", this.#limits.maxWorkUnits);
+      const parsed = parseSql(sql, {
+        ...this.#limits,
+        maxWorkUnits: Math.min(operationWork, this.#limits.maxWorkUnits),
+      });
+      if (parsed.statement === null) {
+        return { statement: null, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
+      }
+      if (parsed.statement.kind !== "select") {
+        failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
+      }
+      // Parsing does not imply compilation. Until the translated compiler/VDBE
+      // exists, fail every SELECT uniformly rather than executing a second,
+      // handwritten literal evaluator outside the generated grammar path.
+      failure("unsupported", "SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
+    } catch (error) {
+      if (error instanceof SqlParseError) return failure("sqlite", error.message, { code: 1 });
+      if (error instanceof RangeError) return failure("limit", error.message);
+      throw error;
+    }
+  }
+
   close(): void {
-    const source = this.#assertOpen();
-    source.close(); this.#source = null;
+    const source = this.#assertResident();
+    if (this.#state !== "open") failure("misuse", "connection is closed");
+    this.#finishClose(source);
   }
-  closeDeferred(): void { this.close(); }
+
+  closeDeferred(): void {
+    const source = this.#assertResident();
+    if (this.#state !== "open") failure("misuse", "connection is closed");
+    this.#state = "zombie";
+    this.#finishClose(source);
+  }
 }
 
 function validateFile(bytes: Uint8Array): ImmutableStorage {
@@ -99,6 +160,12 @@ export async function open(source: string | URL | Request, options: OpenOptions 
   const timeoutMs = finiteNonnegative(options.timeoutMs, "timeoutMs");
   const maxFileBytes = finiteNonnegative(options.limits?.maxFileBytes, "limits.maxFileBytes") ?? 64 * 1024 * 1024;
   if (!Number.isSafeInteger(maxFileBytes)) failure("misuse", "limits.maxFileBytes must be a safe integer");
+  const parserLimits: PrepareLimits = {
+    maxSqlBytes: finiteLimit(options.limits?.maxSqlBytes, "limits.maxSqlBytes", 16 * 1024 * 1024),
+    maxParserDepth: finiteLimit(options.limits?.maxParserDepth, "limits.maxParserDepth", 2500),
+    maxExpressionDepth: finiteLimit(options.limits?.maxExpressionDepth, "limits.maxExpressionDepth", 1000),
+    maxWorkUnits: finiteLimit(options.limits?.maxWorkUnits, "limits.maxWorkUnits", 10_000_000),
+  };
   if (options.signal?.aborted) failure("cancelled", "database acquisition was cancelled", { cause: options.signal.reason });
 
   const controller = new AbortController();
@@ -138,7 +205,7 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     const bytes = new Uint8Array(total);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return new OpenConnection(validateFile(bytes));
+    return new OpenConnection(validateFile(bytes),parserLimits);
   } catch (error) {
     try { await reader?.cancel(); } catch { /* preserve the primary failure */ }
     return mapAcquisitionError(error, timedOut, options.signal);
