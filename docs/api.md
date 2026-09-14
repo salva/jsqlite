@@ -134,9 +134,12 @@ checks the effective signal, deadline, and work budget between chunks and within
 bounded traversal/recursion loops. Statement operation options may only tighten,
 never relax, connection limits. `maxWorkUnits` is an implementation-defined stable
 unit counter intended as a safety bound, not elapsed time or a compatibility/performance
-promise. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
-b-tree depth, and overflow-page traversal. A future implementation must document
-its exact counters before claiming these controls work.
+promise. In the current SELECT VM, every opcode, every local/overflow payload chunk,
+and record header/serial-type decoding each charge one unit. Overflow payload chunks
+are reconstructed one page at a time with a host yield after each overflow page;
+signal/deadline/work checks bracket those reads while PC and cursor remain on the
+current row. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
+b-tree depth, and overflow-page traversal.
 
 Cancellation, timeout, or limit failure halts the run and rejects the promise with
 the matching typed error. The row is invalidated. The statement remains owned and
@@ -275,9 +278,12 @@ The pin is SQLite 3.53.4/source ID recorded in
 
 Permanent exclusions remain exactly those in SPEC: writes and transaction control,
 runtime native/C/WASM backends, extension/host callback registration, CLI/server
-surfaces, and sidecar recovery. Temporary gaps remain broader today: the internal generated parser and immutable
-schema reader are not yet exposed as SQL preparation, planner, VDBE, or statement
-execution. The runtime includes Fetch acquisition/header residency plus internal
-known-root record and table/index b-tree storage primitives and schema graph; none
-of those are SQL conformance credit. Declarations, type checks, and internal tests
-prove only their stated bounded contracts, not SQLite query compatibility.
+surfaces, and sidecar recovery. The runtime now exposes a narrow compiled SQL
+slice: no-FROM integer/unary/parameter projections and one ordinary rowid-table
+projection plus integer-equality filtering. It preserves tails, result metadata,
+connection-encoded bindings, serialized async VM admission, and statement/close
+lifecycle through the public API. Temporary gaps remain broader resolver/planner
+and VDBE behavior including joins, functions, aggregates, windows, subqueries,
+CTEs, ordering/grouping/distinct, views, and general predicates. Internal storage
+or parser tests confer only their stated bounded evidence, not broader SQLite query
+compatibility.

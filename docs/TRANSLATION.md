@@ -18,9 +18,11 @@ bounded immutable internal schema graph; shared Mem/value, scalar arithmetic,
 built-in collation/comparison and packed/unpacked record-key foundations; and a
 first prepared-SELECT compiler/program/VDBE slice. Public `prepare()` compiles
 no-FROM integer/parameter expressions and ordered projection plus integer-equality
-filtering over one ordinary rowid table. Excluded SELECT clauses and broader SQL
-remain typed temporary unsupported; canonical first-SELECT TS credit is not yet
-promoted and the implementation is not a general SQL engine.
+filtering over one ordinary rowid table. Public scalar/table statements now own
+connection-encoding-aware parameter `Mem` cells and use connection-wide operation
+admission across running and suspended VM states. Excluded SELECT clauses and
+broader SQL remain typed temporary unsupported; canonical first-SELECT TS credit
+is promoted at 8/8 and the implementation is not a general SQL engine.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -1059,8 +1061,13 @@ error expose no row. Public TEXT/BLOB values are owned adaptations; no register 
 page borrow escapes.
 
 `step()` executes at most a configured opcode/work quantum before yielding to the
-host. Every opcode charges at least one unit and storage traversal retains its own
-finite page/depth/overflow accounting. Suspension is permitted only at opcode
+host. Every opcode charges one unit. For current table scans, each local/overflow
+payload chunk and record header/serial-type decode also charge one unit; overflow
+reconstruction reads and yields one page at a time, checking abort, deadline and
+the effective statement/connection work bound around each chunk. The cursor and PC
+remain on the current row until reconstruction and decode complete, and cursor
+movement invalidates the associated `Mem` borrow generation. B-tree descent is
+lazy and remains guarded by the independent page/depth accounting. Suspension is permitted only at opcode
 boundaries or an explicitly resumable bounded storage operation, and preserves PC,
 registers, cursor stacks/generations, parameter cells, pending error and result
 state. It resumes rather than re-evaluating an expression or rewinding a scan.

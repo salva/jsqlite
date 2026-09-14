@@ -565,6 +565,17 @@ direct columns, emits its forward full scan through a `sqlite3WhereBegin`/
 collation for the admitted integer equality, and consumes the lazy forward
 `TableScanCursor` in `src/internal/btree.ts`; open-read no longer recursively
 materializes every table entry. `src/index.ts` maps the applicable
-`main.c:sqlite3Close` BUSY/zombie ownership path. This is not an AST interpreter
+`main.c:sqlite3Close` BUSY/zombie ownership path and owns serialized connection
+admission; `src/internal/vdbe.ts` retains that owner through promise settlement,
+including its explicit running/suspended yield states. `OP_Column` payload work
+maps `btree.c` local/overflow payload assembly into one-page incremental chunks:
+each local/overflow chunk and the subsequent record decode is charged to the same
+statement work counter, with host/control checkpoints between overflow pages while
+PC/cursor state remains resumable. Binding follows
+`vdbeapi.c:bindText`/`sqlite3VdbeMemSetStr` by copying public values into `Mem` in
+the database encoding carried by every scalar/table program. Public tests hold a
+scan at the real 256-opcode yield and cover all overlapping operations, reset-only
+rebinding after ROW/DONE/FAILED, and TEXT/BLOB vectors on UTF-8/UTF-16le/UTF-16be.
+This is not an AST interpreter
 or general planner: unsupported plans and expression breadth remain temporary
 unsupported.

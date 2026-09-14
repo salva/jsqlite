@@ -10,6 +10,7 @@ import { compareMem, type BuiltinCollation } from "./comparison.ts";
 import { decodeRecord } from "./record.ts";
 import type { BtreeDatabase, TableScanCursor } from "./btree.ts";
 import type { SchemaGraph } from "./schema.ts";
+import type { DatabaseEncoding } from "./record.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 
 type Op =
@@ -35,6 +36,7 @@ interface Program {
   readonly database?: BtreeDatabase;
   readonly maxRows?: number;
   readonly maxWorkUnits: number;
+  readonly encoding: DatabaseEncoding;
 }
 interface ParameterBuilder { maximum: number; readonly names: (string | null)[]; readonly named: Map<string, number> }
 
@@ -89,7 +91,7 @@ function compileExpression(expression: SelectNode["result"][number], ops: Op[], 
   return { register, name: expression.alias ?? tokens.map(token => token.text).join(" ") };
 }
 
-export function compileScalarSelect(select: SelectNode, maxWorkUnits = 10_000_000): Program {
+export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000): Program {
   rejectUnsupportedSelectClauses(select);
   if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
   if (!select.result.length) throw new JSQLiteError("sqlite", "SELECT has no result columns", { code: 1 });
@@ -102,7 +104,7 @@ export function compileScalarSelect(select: SelectNode, maxWorkUnits = 10_000_00
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;
   ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length }, { code: "Halt" });
-  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
+  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
 function sqlName(text: string): string {
@@ -169,7 +171,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
   const columns=projected.map(x=>{const c=table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c.declaredType,database:"main",table:table.name,origin:c.name});});
-  return Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits});
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits});
 }
 
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
@@ -179,9 +181,11 @@ export class VdbeStatement implements Statement {
   readonly #program: Program;
   readonly #registers: Mem[];
   readonly #onFinalize: () => void;
+  readonly #admit: () => () => void;
+  readonly #assertConnectionIdle: () => void;
   readonly #bindings: Mem[];
   #pc = 0;
-  #state: "prepared" | "row" | "done" | "failed" | "finalized" = "prepared";
+  #state: "prepared" | "running" | "suspended" | "row" | "done" | "failed" | "finalized" = "prepared";
   #rowStart = 0;
   #rowCount = 0;
   #cursor: TableScanCursor | null = null;
@@ -190,8 +194,8 @@ export class VdbeStatement implements Statement {
   #rows = 0;
   #work = 0;
   #savedError: unknown = null;
-  constructor(program: Program, onFinalize: () => void) {
-    this.#program = program; this.#onFinalize = onFinalize;
+  constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void) {
+    this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
     this.#bindings = program.parameters.map(() => new Mem());
   }
@@ -199,31 +203,35 @@ export class VdbeStatement implements Statement {
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
-  bind(indexOrName: number | string, value: SqliteValue): void { this.#assertLive(); if (this.#state === "row") misuse("statement is busy"); const index = typeof indexOrName === "string" ? this.parameterIndex(indexOrName) : indexOrName; if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); let bound: Mem; try { bound = memFromPublic(value, "utf-8"); } catch (error) { throw new JSQLiteError("misuse", (error as Error).message, { cause: error }); } this.#bindings[index - 1]!.moveFrom(bound); }
-  clearBindings(): void { this.#assertLive(); this.#bindings.forEach(value => value.setNull()); }
+  bind(indexOrName: number | string, value: SqliteValue): void { this.#assertIdle(); if (this.#state !== "prepared") misuse("statement must be reset before binding"); const index = typeof indexOrName === "string" ? this.parameterIndex(indexOrName) : indexOrName; if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); let bound: Mem; try { bound = memFromPublic(value, this.#program.encoding); } catch (error) { throw new JSQLiteError("misuse", (error as Error).message, { cause: error }); } this.#bindings[index - 1]!.moveFrom(bound); }
+  clearBindings(): void { this.#assertIdle(); this.#bindings.forEach(value => value.setNull()); }
   async step(options: OperationOptions = {}): Promise<StepResult> {
-    this.#assertLive(); this.#invalidateRow();
+    this.#assertIdle();
     if (this.#state === "failed") throw this.#savedError;
     if (this.#state === "done") return "done";
     const requestedLimit = options.maxWorkUnits ?? this.#program.maxWorkUnits;
     const limit = Math.min(requestedLimit, this.#program.maxWorkUnits);
     if (!Number.isSafeInteger(limit) || limit < 0) misuse("maxWorkUnits must be a finite nonnegative safe integer");
     if (options.timeoutMs !== undefined && (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 0)) misuse("timeoutMs must be finite and nonnegative");
+    const release = this.#admit();
+    this.#state = "running";
+    this.#invalidateRow();
     const started = Date.now();
+    // Start execution in a promise job after synchronously acquiring connection
+    // ownership, and retain that ownership until the returned chain settles.
+    return await Promise.resolve().then(async () => {
     try {
       while (this.#pc < this.#program.ops.length) {
-        if (options.signal?.aborted) throw new JSQLiteError("cancelled", "statement execution was cancelled", { cause: options.signal.reason });
-        if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) throw new JSQLiteError("timeout", "statement execution timed out");
-        if (this.#work >= limit) throw new JSQLiteError("limit", "statement exceeds maxWorkUnits");
-        if (this.#work !== 0 && this.#work % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        this.#checkControl(options, limit, started);
+        if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await new Promise<void>(resolve => setTimeout(resolve, 0)); this.#state = "running"; }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
           case "OpenRead": this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
-          case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else this.#loadRecord(); break;
+          case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
           case "Column": { const raw=this.#record!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (this.#registers[op.p1]!.integerValue()===0n) this.#pc=op.p2; break;
-          case "Next": if (this.#cursor!.next()) { this.#loadRecord(); this.#pc=op.p2; } break;
+          case "Next": if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;
           case "Integer": this.#registers[op.p2]!.setInt64(op.p1); break;
           case "Copy": this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!); break;
           case "Variable": this.#registers[op.p2]!.copyFrom(this.#bindings[op.p1 - 1]!); break;
@@ -238,9 +246,10 @@ export class VdbeStatement implements Statement {
     } catch (error) {
       this.#savedError = error; this.#state = "failed"; this.#halt(); throw error;
     }
+    }).finally(release);
   }
-  reset(): void { this.#assertLive(); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#rows=0; this.#work=0; this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(error!==null) throw error; }
-  finalize(): void { if (this.#state === "finalized") misuse("statement is finalized"); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#registers.forEach(value => value.release()); this.#bindings.forEach(value => value.release()); this.#state = "finalized"; this.#onFinalize(); if(error!==null) throw error; }
+  reset(): void { this.#assertIdle(); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#rows=0; this.#work=0; this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(error!==null) throw error; }
+  finalize(): void { this.#assertIdle(); if (this.#state === "finalized") misuse("statement is finalized"); const error=this.#savedError; this.#savedError=null; this.#halt(); this.#registers.forEach(value => value.release()); this.#bindings.forEach(value => value.release()); this.#state = "finalized"; this.#onFinalize(); if(error!==null) throw error; }
   columnMetadata(index: number): ColumnMetadata { this.#assertColumn(index, false); return Object.freeze({...this.#program.columns[index]!}); }
   columnType(index: number): SqliteStorageClass { return this.#cell(index).initialStorageClass; }
   column(index: number): SqliteValue { return memToPublicInitial(this.#cell(index)); }
@@ -248,10 +257,35 @@ export class VdbeStatement implements Statement {
   columnReal(index: number): number | null { const cell = this.#cell(index); return cell.initialStorageClass === "null" ? null : cell.realValue(); }
   columnText(index: number): string | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const copy = new Mem(); copy.copyFrom(cell); copy.cast("text", "utf-8"); return copy.textValue(); }
   columnBlob(index: number): Uint8Array | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const value = memToPublicInitial(cell); return value instanceof Uint8Array ? value : memFromPublic(String(value), "utf-8").textBytes().slice(); }
-  #loadRecord(): void { this.#borrow.invalidate(); this.#record=decodeRecord(this.#cursor!.payload(), this.#program.database!.encoding); }
+  async #loadRecord(options: OperationOptions, limit: number, started: number): Promise<void> {
+    this.#borrow.invalidate();
+    const chunks: Uint8Array[] = []; let length = 0;
+    for (const chunk of { [Symbol.iterator]: () => this.#cursor!.payloadChunks() }) {
+      this.#checkControl(options, limit, started);
+      this.#work++; chunks.push(chunk); length += chunk.byteLength;
+      // An overflow-page read is a bounded storage work unit and a host
+      // checkpoint. PC and cursor stay on the current row while suspended.
+      if (chunks.length > 1) {
+        this.#state = "suspended";
+        await new Promise<void>(resolve => setTimeout(resolve, 0));
+        this.#state = "running";
+      }
+    }
+    this.#checkControl(options, limit, started);
+    this.#work++; // record header/serial-type decoding
+    const payload = new Uint8Array(length); let at = 0;
+    for (const chunk of chunks) { payload.set(chunk, at); at += chunk.byteLength; }
+    this.#record=decodeRecord(payload, this.#program.database!.encoding);
+  }
+  #checkControl(options: OperationOptions, limit: number, started: number): void {
+    if (options.signal?.aborted) throw new JSQLiteError("cancelled", "statement execution was cancelled", { cause: options.signal.reason });
+    if (options.timeoutMs !== undefined && Date.now() - started >= options.timeoutMs) throw new JSQLiteError("timeout", "statement execution timed out");
+    if (this.#work >= limit) throw new JSQLiteError("limit", "statement exceeds maxWorkUnits");
+  }
   #halt(): void { this.#invalidateRow(); this.#cursor=null; this.#record=null; this.#borrow.invalidate(); }
   #assertLive(): void { if (this.#state === "finalized") misuse("statement is finalized"); }
+  #assertIdle(): void { this.#assertLive(); if (this.#state === "running" || this.#state === "suspended") misuse("statement operation is pending"); this.#assertConnectionIdle(); }
   #invalidateRow(): void { this.#rowStart = 0; this.#rowCount = 0; }
-  #assertColumn(index: number, requireRow: boolean): void { this.#assertLive(); if (!Number.isInteger(index) || index < 0 || index >= this.columnCount) range(); if (requireRow && this.#rowCount === 0) misuse("no current row"); }
+  #assertColumn(index: number, requireRow: boolean): void { this.#assertIdle(); if (!Number.isInteger(index) || index < 0 || index >= this.columnCount) range(); if (requireRow && this.#rowCount === 0) misuse("no current row"); }
   #cell(index: number): Mem { this.#assertColumn(index, true); return this.#registers[this.#rowStart + index]!; }
 }

@@ -202,6 +202,23 @@ export class BtreeDatabase {
     }
     return result;
   }
+  /** Incremental payload reconstruction. Every yielded slice performs at most
+   * one page read, allowing the async VM to charge and yield between pages. */
+  *payloadChunks(cell: PayloadCell): Generator<Uint8Array> {
+    yield cell.local;
+    const seen = new Set<number>(); let pgno = cell.overflowPage;
+    let remaining = cell.payloadLength - cell.local.byteLength;
+    while (remaining > 0) {
+      if (pgno === null || pgno < 2 || pgno > this.pageCount || seen.has(pgno)) corrupt("invalid or cyclic overflow chain");
+      if (seen.size >= this.maxOverflowPages) throw new RangeError("maxOverflowPages exceeded");
+      seen.add(pgno);
+      const page = this.pageBytes(pgno), amount = Math.min(remaining, this.usableSize - 4);
+      yield page.subarray(4, 4 + amount);
+      remaining -= amount;
+      const next = be32(page, 0); pgno = next === 0 ? null : next;
+    }
+    if (pgno !== null) corrupt("overflow chain continues beyond payload");
+  }
 }
 
 class CursorBase<T extends PayloadCell> {
@@ -249,6 +266,7 @@ export class TableScanCursor {
     this.#previousRowid=result.value.rowid; this.#entry=result.value; return true;
   }
   payload(): Uint8Array { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#database.payload(this.#entry); }
+  payloadChunks(): Iterator<Uint8Array> { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#database.payloadChunks(this.#entry); }
   borrowPayload(): { bytes(): Uint8Array } {
     if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned");
     const born=this.#generation, value=this.#database.payload(this.#entry);
