@@ -1,0 +1,331 @@
+{
+  "schema": "jsqlite-expression-function-boundaries/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "credit": "no-credit-native-harness",
+  "encodingMatrix": [
+    {
+      "encoding": "UTF-8",
+      "column": {
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "343130303432433341394630394438343945"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "3431"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "343130303432433341394630394438343945"
+            }
+          ]
+        ]
+      },
+      "parameters": {
+        "utf8": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303432433341394630394438343945"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3431"
+              }
+            ]
+          ]
+        },
+        "utf16le": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303432433341394630394438343945"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3431"
+              }
+            ]
+          ]
+        },
+        "utf16be": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303432433341394630394438343945"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3431"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "column": {
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "343130303030303034323030453930303334443831454444"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "34313030"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "343130303030303034323030453930303334443831454444"
+            }
+          ]
+        ]
+      },
+      "parameters": {
+        "utf8": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303030303034323030453930303334443831454444"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "34313030"
+              }
+            ]
+          ]
+        },
+        "utf16le": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303030303034323030453930303334443831454444"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "34313030"
+              }
+            ]
+          ]
+        },
+        "utf16be": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "343130303030303034323030453930303334443831454444"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "34313030"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "column": {
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "303034313030303030303432303045394438333444443145"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "30303431"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "303034313030303030303432303045394438333444443145"
+            }
+          ]
+        ]
+      },
+      "parameters": {
+        "utf8": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303034313030303030303432303045394438333444443145"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "30303431"
+              }
+            ]
+          ]
+        },
+        "utf16le": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303034313030303030303432303045394438333444443145"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "30303431"
+              }
+            ]
+          ]
+        },
+        "utf16be": {
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303034313030303030303432303045394438333444443145"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "30303431"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "lengthLimit": {
+    "limit": 40,
+    "outcome": {
+      "phase": "step",
+      "resultCode": 18,
+      "primaryCode": 18,
+      "message": "string or blob too big"
+    }
+  },
+  "cancellation": {
+    "phase": "prepare",
+    "resultCode": 9,
+    "primaryCode": 9,
+    "message": "interrupted",
+    "progressCallbacks": 1
+  },
+  "functionCleanup": {
+    "phase": "step",
+    "resultCode": 1,
+    "primaryCode": 1,
+    "message": "primary boom",
+    "eventsBeforeClose": [
+      "call"
+    ],
+    "eventsAfterClose": [
+      "call",
+      "destroy"
+    ]
+  },
+  "notes": {
+    "timeout": "Deadline behavior is represented only by the progress/cancellation boundary; wall-clock timing is intentionally not asserted.",
+    "hostRegistration": "Development oracle only; no product registration API."
+  }
+}

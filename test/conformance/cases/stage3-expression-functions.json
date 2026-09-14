@@ -3,7 +3,7 @@
   "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
   "accounting": {
     "upstreamDeclared": 40,
-    "companionsDeclared": 7,
+    "companionsDeclared": 12,
     "nativeExpectationsSeparateFromTsCredit": true,
     "countDerivedSuccessForbidden": true,
     "tsCredit": 0
@@ -28,6 +28,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(5)",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-10.1.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -74,6 +79,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(5.1)",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-10.1.2"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -120,6 +130,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof('5.1')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-10.1.3"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -166,6 +181,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(X'ABCD')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-10.1.4"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -212,6 +232,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(NULL)",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-10.1.5"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -258,6 +283,16 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT 'helloworld'='helloworld','helloworld'=='helloworld','helloworld'='12345','helloworld'=='12345','helloworld'=NULL,'helloworld'==NULL,'helloworld'!='helloworld','helloworld'<>'helloworld','helloworld'!='12345','helloworld'<>'12345','helloworld'!=NULL,'helloworld'!=NULL",
+      "sourceAssertionAnchor": {
+        "kind": "foreach-expansion",
+        "template": "do_execsql_test e_expr-4.$tn",
+        "bindings": {
+          "tn": "1",
+          "literal": "'helloworld'",
+          "different": "'12345'"
+        }
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -421,6 +456,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT 72%5",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-6.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -467,6 +507,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT 72%-5",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-6.2"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -513,6 +558,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT -72%-5",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-6.3"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -559,6 +609,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT -72%5",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-6.4"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -605,6 +660,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT 72.35%5",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-6.5"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -651,6 +711,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT NULL IS NULL",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-8.1.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -697,6 +762,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT NULL==NULL",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-8.1.5"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -742,6 +812,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT NULL IS NOT NULL",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-8.1.9"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -788,6 +863,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT NULL!=NULL",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-8.1.13"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -833,6 +913,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(x'616263')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.2"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -879,6 +964,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(x'616263' AS text))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.4"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -925,6 +1015,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(x'616263' AS numeric))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.6"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -971,6 +1066,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(x'616263' AS blob))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.8"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1017,6 +1117,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(x'616263' AS integer))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.10"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1063,6 +1168,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(NULL AS text))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.14"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1109,6 +1219,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(NULL AS numeric))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.16"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1155,6 +1270,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(NULL AS blob))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.18"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1201,6 +1321,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT typeof(CAST(NULL AS integer))",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "cast-1.20"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1247,6 +1372,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT CASE 23 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-22.2.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1293,6 +1423,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' ELSE 'D' END",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-22.3.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1339,6 +1474,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-22.4.1"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1384,6 +1524,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT CASE NULL WHEN 'abc' THEN 'A' WHEN 'def' THEN 'B' ELSE 'C' END",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "e_expr-24.1.2"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1430,6 +1575,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT coalesce(length(a),-1) FROM t2",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-1.4"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "columns": [
           {
@@ -1500,6 +1655,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT octet_length(NULL)",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-1.6"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1545,6 +1705,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT octet_length(7.5)",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-1.7"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1591,6 +1756,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT octet_length(x'30313233')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-1.8"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1637,6 +1807,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-2.0"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "columns": [
           {
@@ -1707,6 +1887,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT abs(a) FROM t2",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-4.4.1"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "columns": [
           {
@@ -1775,6 +1965,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT abs(t1) FROM tbl1",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-4.4.2"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "columns": [
           {
@@ -1845,6 +2045,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT coalesce(nullif(1,1),'nil')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-6.3"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1891,6 +2096,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT coalesce(nullif(1,2),'nil')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-6.4"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1937,6 +2147,11 @@
       "credit": "upstream",
       "fixture": "empty",
       "sql": "SELECT coalesce(nullif(1,NULL),'nil')",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-6.5"
+      },
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -1983,6 +2198,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT length(a,5) FROM t2",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-1.2"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "error": {
           "phase": "prepare",
@@ -2014,6 +2239,16 @@
       "credit": "upstream",
       "fixture": "func",
       "sql": "SELECT abs() FROM t2",
+      "sourceAssertionAnchor": {
+        "kind": "literal-id",
+        "id": "func-4.2"
+      },
+      "sourceSetupAnchors": [
+        "CREATE TABLE tbl1(t1)",
+        "INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')",
+        "CREATE TABLE t2(a)",
+        "INSERT INTO t2 VALUES(1),(NULL),(345),(NULL),(67890)"
+      ],
       "native": {
         "error": {
           "phase": "prepare",
@@ -2042,11 +2277,13 @@
   ],
   "companions": [
     {
-      "ref": "storage-arithmetic-null-overflow",
+      "ref": "literal-storage-classes",
       "occurrence": 1,
       "credit": "no-credit-companion",
       "fixture": "empty",
-      "sql": "SELECT typeof(1.5),typeof('x'),typeof(x'00ff'),1+2.5,5/0,5%0,abs(-9223372036854775808)",
+      "sql": "SELECT typeof(1.5),typeof('x'),typeof(x'00ff'),typeof(NULL)",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -2071,7 +2308,95 @@
             "origin": null
           },
           {
+            "name": "typeof(NULL)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "arithmetic-and-null",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT 1+2.5,7-2,3*4,7/2,7%2,5/0,5%0,NULL+1",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
+      "native": {
+        "columns": [
+          {
             "name": "1+2.5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "7-2",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "3*4",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "7/2",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "7%2",
             "declType": null,
             "database": null,
             "table": null,
@@ -2091,6 +2416,79 @@
             "table": null,
             "origin": null
           },
+          {
+            "name": "NULL+1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "real",
+              "ieee754be": "400c000000000000"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "arithmetic-overflow-error",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT abs(-9223372036854775808)",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
+      "native": {
+        "columns": [
           {
             "name": "abs(-9223372036854775808)",
             "declType": null,
@@ -2124,11 +2522,247 @@
       }
     },
     {
+      "ref": "unary-and-comparisons",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT +'x',typeof(+'x'),-2.5,~5,NOT NULL,2<3,2<=2,3>2,3>=3,NULL<3",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
+      "native": {
+        "columns": [
+          {
+            "name": "+'x'",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(+'x')",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "-2.5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "~5",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NOT NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "2<3",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "2<=2",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "3>2",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "3>=3",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NULL<3",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "78"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874"
+            },
+            {
+              "type": "real",
+              "ieee754be": "c004000000000000"
+            },
+            {
+              "type": "integer",
+              "value": "-6"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "boolean-three-valued",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT NULL AND 0,NULL AND 1,NULL OR 0,NULL OR 1,NOT NULL",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
+      "native": {
+        "columns": [
+          {
+            "name": "NULL AND 0",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NULL AND 1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NULL OR 0",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NULL OR 1",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NOT NULL",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
       "ref": "boolean-short-circuit",
       "occurrence": 1,
       "credit": "no-credit-companion",
       "fixture": "empty",
       "sql": "SELECT 0 AND abs(-9223372036854775808),1 OR abs(-9223372036854775808),coalesce(7,abs(-9223372036854775808)),CASE WHEN 1 THEN 9 ELSE abs(-9223372036854775808) END",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -2208,6 +2842,11 @@
       "credit": "no-credit-companion",
       "fixture": "where",
       "sql": "SELECT b+10 AS n,typeof(c),CASE WHEN a='ABC' THEN a ELSE 'no' END AS chosen FROM t WHERE (a COLLATE NOCASE='abc' OR b=2) AND b<3",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [
+        "CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB)",
+        "INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL)"
+      ],
       "native": {
         "columns": [
           {
@@ -2285,11 +2924,13 @@
       }
     },
     {
-      "ref": "collation-minmax-nul",
+      "ref": "minmax-collseq-ties",
       "occurrence": 1,
       "credit": "no-credit-companion",
       "fixture": "empty",
-      "sql": "SELECT min('a' COLLATE NOCASE,'A'),max('a ' COLLATE RTRIM,'a'),min('a',x'61'),length(char(65,0,66)),octet_length(char(65,0,66)),substr(char(65,0,66),1,3),replace(char(65,0,66),char(0),'X')",
+      "sql": "SELECT min('a' COLLATE NOCASE,'A'),max('a ' COLLATE RTRIM,'a'),min('a',x'61'),min(NULL,1),max(NULL,1)",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
       "native": {
         "columns": [
           {
@@ -2314,28 +2955,14 @@
             "origin": null
           },
           {
-            "name": "length(char(65,0,66))",
+            "name": "min(NULL,1)",
             "declType": null,
             "database": null,
             "table": null,
             "origin": null
           },
           {
-            "name": "octet_length(char(65,0,66))",
-            "declType": null,
-            "database": null,
-            "table": null,
-            "origin": null
-          },
-          {
-            "name": "substr(char(65,0,66),1,3)",
-            "declType": null,
-            "database": null,
-            "table": null,
-            "origin": null
-          },
-          {
-            "name": "replace(char(65,0,66),char(0),'X')",
+            "name": "max(NULL,1)",
             "declType": null,
             "database": null,
             "table": null,
@@ -2357,6 +2984,77 @@
               "utf8Hex": "61"
             },
             {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "stepAll",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "ref": "embedded-nul",
+      "occurrence": 1,
+      "credit": "no-credit-companion",
+      "fixture": "empty",
+      "sql": "SELECT length(char(65,0,66)),octet_length(char(65,0,66)),hex(substr(char(65,0,66),1,3)),hex(replace(char(65,0,66),char(0),'X'))",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
+      "native": {
+        "columns": [
+          {
+            "name": "length(char(65,0,66))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "octet_length(char(65,0,66))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "hex(substr(char(65,0,66),1,3))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "hex(replace(char(65,0,66),char(0),'X'))",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
               "type": "integer",
               "value": "1"
             },
@@ -2366,11 +3064,11 @@
             },
             {
               "type": "text",
-              "utf8Hex": "41"
+              "utf8Hex": "3431"
             },
             {
               "type": "text",
-              "utf8Hex": "410042"
+              "utf8Hex": "343130303432"
             }
           ]
         ]
@@ -2402,6 +3100,8 @@
       "credit": "no-credit-companion",
       "fixture": "empty",
       "sql": "SELECT no_such_function(1)",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
       "native": {
         "error": {
           "phase": "prepare",
@@ -2433,6 +3133,8 @@
       "credit": "no-credit-companion",
       "fixture": "empty",
       "sql": "SELECT min()",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [],
       "native": {
         "error": {
           "phase": "prepare",
@@ -2464,6 +3166,11 @@
       "credit": "no-credit-companion",
       "fixture": "where",
       "sql": "SELECT a,a AS a,b+1,typeof(c) AS k FROM t WHERE b=1",
+      "sourceAssertionAnchor": null,
+      "sourceSetupAnchors": [
+        "CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB)",
+        "INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL)"
+      ],
       "native": {
         "columns": [
           {
