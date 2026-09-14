@@ -178,9 +178,15 @@ encoding multiplier from `src/func.c:167-170`. Translate the relevant owning
 function branches and Mem conversion callers rather than preserving independent
 algorithms without an exceptional rationale and source-based evidence.
 
-### 10. Committed ORDER BY shortcut and evolving replacement
+### 10. ORDER BY shortcut replaced; restricted resolver verified
 
-**Current static label: partial/active/unverified.**
+**Revision 2026-09-14 (`85cb87a` plus [[card:card-j-a-c]] correction): fixed for the admitted one-term direct-column slice; broader ORDER remains typed unsupported.**
+
+The eager JavaScript shortcut is absent. `compileTableSelect` now follows pinned `resolve.c:resolveOrderGroupBy` ordering for its admitted identities: positive integer result ordinals and result aliases resolve against the result list before table-column fallback. Public tests reproduce `x AS z ORDER BY z LIMIT 2` as INTEGER `0,1` and `ORDER BY 1 DESC LIMIT 2` as INTEGER `31,30`; out-of-range ordinals retain a SQLite preparation error. The resolved direct column supplies declared collation and direction to immutable `KeyInfo`; typed `SorterCursor` owns copied `Mem` keys/payloads, compares through shared `compareMem`, and uses bounded checkpointed merge rather than JavaScript ordering. Existing native gate/public runner remains 1/18 credited (`up-limit-1.2.1`); these resolver tests are focused source-based regressions, not added conformance credit.
+
+Explicit ORDER-term COLLATE and NULLS syntax, expressions, and multi-term keys remain temporary unsupported rather than being lowered with the wrong identity. Compounds remain unsupported under the owner/root gates. Their future pinned mapping is `select.c:multiSelectByMerge` and coroutine merge control near 3314-3399, not the nonexistent `multiSelectOrderBy` name.
+
+**Superseded baseline/active label:**
 
 Baseline `src/internal/vdbe.ts:296,372-377` used the final SQL token as the ordering
 column and eagerly JavaScript-sorted decoded records with BINARY in `OpenRead`.
@@ -267,9 +273,13 @@ owner with a length-aware typed fixture, not source-language string truncation.
 
 ## Priority C — documentation and evidence precision
 
-### 11. Stale coverage/mapping claims and oracle provenance
+### 11. Coverage/mapping claims and oracle provenance
 
-**Current static label: partial.**
+**Revision 2026-09-14 (`85cb87a` plus [[card:card-j-a-c]] correction): relational claims/mapping reconciled; unversioned fixture provenance caution remains.**
+
+Relational machine accounting is now derived after successful public assertions and consistently records 1 attempted/passed/credited literal upstream assertion of 18; two additional public queries are explicitly uncredited smoke outside that denominator. `docs/api.md`, `docs/TRANSLATION.md`, and `docs/SQLITE_SOURCE_MAP.md` now agree. The obsolete/nonexistent `multiSelectOrderBy` mapping was replaced by pinned `select.c:multiSelectByMerge` and coroutine merge control, while compounds remain unsupported. This does not erase the separate provenance limitation below: fixtures built by unversioned host Python SQLite are setup artifacts, not pinned-oracle proof.
+
+**Superseded baseline label: partial.**
 
 At baseline, `docs/api.md:3` said functions were unsupported despite an
 implementation; `docs/TRANSLATION.md:1168` described the old Expression opcode and

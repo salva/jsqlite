@@ -291,7 +291,26 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   let registers = projected.length;
   const tokens=select.tokens,orderAt=tokens.findIndex(t=>t.text.toUpperCase()==="ORDER"),limitAt=tokens.findIndex(t=>t.text.toUpperCase()==="LIMIT");
   let orderColumn:number|undefined,descending=false;
-  if(orderAt>=0){const term=tokens[orderAt+2],next=tokens[orderAt+3]?.text.toUpperCase();if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY column is implemented",{unsupportedClassification:"temporary"});orderColumn=resolve([term]);descending=next==="DESC"}
+  if(orderAt>=0){
+    const term=tokens[orderAt+2],next=tokens[orderAt+3]?.text.toUpperCase();
+    if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY result or column term is implemented",{unsupportedClassification:"temporary"});
+    // resolve.c resolveOrderGroupBy first maps positive integer result ordinals
+    // and result aliases onto the result ExprList, then resolves other names.
+    // This tranche admits those identities only when they name a direct column;
+    // expression terms remain preserved as typed temporary-unsupported input.
+    let resultIndex=-1;
+    if(term.kind==="integer"){
+      const ordinal=BigInt(term.text);
+      if(ordinal<1n||ordinal>BigInt(projected.length))throw new JSQLiteError("sqlite",`${ordinal}th ORDER BY term out of range - should be between 1 and ${projected.length}`,{code:1});
+      resultIndex=Number(ordinal-1n);
+    }else resultIndex=projected.findIndex(x=>sqliteIdentifierEqual(x.name,sqlName(term.text)));
+    if(resultIndex>=0){
+      const result=projected[resultIndex]!;
+      if(result.column===undefined)throw new JSQLiteError("unsupported","ORDER BY result expressions are not implemented",{unsupportedClassification:"temporary"});
+      orderColumn=result.column;
+    }else orderColumn=resolve([term]);
+    descending=next==="DESC";
+  }
   let limitCount:bigint|null=null,limitOffset=0n;
   if(limitAt>=0){const count=tokens[limitAt+1];if(!count||count.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitCount=BigInt(count.text);const sep=tokens[limitAt+2]?.text.toUpperCase();if(sep===","){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitOffset=limitCount;limitCount=BigInt(n.text)}else if(sep==="OFFSET"){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer OFFSET is implemented",{unsupportedClassification:"temporary"});limitOffset=BigInt(n.text)}if(limitOffset<0n)limitOffset=0n}
   if(select.hasDistinct&&projected.some(x=>x.expression!==undefined))throw new JSQLiteError("unsupported","DISTINCT expressions are not implemented",{unsupportedClassification:"temporary"});

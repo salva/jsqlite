@@ -8,6 +8,21 @@ import {JSQLiteError} from '../../src/index.ts';
 
 async function openRelational(bridge){return openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`))}
 
+test('ORDER BY resolves direct result aliases and ordinals before table names',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ const run=async sql=>{statement=db.prepare(sql).statement;const rows=[];while(await statement.step()==='row')rows.push(statement.columnInteger(0));statement.finalize();statement=undefined;return rows};
+ try{
+  db=await openRelational(bridge);
+  assert.deepEqual(await run('SELECT x AS z FROM t1 ORDER BY z LIMIT 2'),[0n,1n]);
+  assert.deepEqual(await run('SELECT x FROM t1 ORDER BY 1 DESC LIMIT 2'),[31n,30n]);
+  assert.throws(()=>db.prepare('SELECT x FROM t1 ORDER BY 2'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message==='2th ORDER BY term out of range - should be between 1 and 1');
+ } finally {
+  try{statement?.finalize()}catch{}
+  try{db?.closeDeferred()}catch{}
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
 test('relational failure cleanup preserves first error and reset reuses the statement',async()=>{
  const originalInsert=SorterCursor.prototype.insert,originalClose=SorterCursor.prototype.close;
  const firstError=new RangeError('injected sorter insertion failure');
@@ -42,6 +57,25 @@ test('relational failure cleanup preserves first error and reset reuses the stat
   try{db?.closeDeferred()}catch{}
   SorterCursor.prototype.insert=originalInsert;
   SorterCursor.prototype.close=originalClose;
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
+test('connection admission remains exclusive while relational Found is suspended',async()=>{
+ const originalFound=EphemeralIndexCursor.prototype.found,originalSetTimeout=globalThis.setTimeout;
+ EphemeralIndexCursor.prototype.found=async function(_key,control){for(let i=0;i<300;i++)await control.checkpoint();return false};
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement,release,reached;
+ const suspended=new Promise(resolve=>{reached=resolve});
+ globalThis.setTimeout=(callback,delay,...args)=>{if(delay===0&&!release){release=()=>originalSetTimeout(callback,0,...args);reached();return 0}return originalSetTimeout(callback,delay,...args)};
+ try{
+  db=await openRelational(bridge);statement=db.prepare('SELECT DISTINCT a FROM t2').statement;
+  const pending=statement.step();await suspended;
+  assert.throws(()=>db.prepare('SELECT 1'),error=>error instanceof JSQLiteError&&error.kind==='misuse');
+  await assert.rejects(statement.step(),error=>error instanceof JSQLiteError&&error.kind==='misuse');
+  release();assert.equal(await pending,'row');
+ } finally {
+  globalThis.setTimeout=originalSetTimeout;EphemeralIndexCursor.prototype.found=originalFound;
+  try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
  }
 });
