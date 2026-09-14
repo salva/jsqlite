@@ -59,6 +59,9 @@ export class BtreeDatabase {
   }
 
   tableCursor(root: number): TableCursor { return new TableCursor(this, this.readTable(root)); }
+  /** Forward-only table scan used by the VDBE. Opening does not recursively
+   * materialize the whole tree; first/next resume depth-first traversal. */
+  tableScanCursor(root: number): TableScanCursor { return new TableScanCursor(this, this.iterateTable(root, 0, new Set())); }
   indexCursor(root: number): IndexCursor { return new IndexCursor(this, this.readIndex(root)); }
 
   pageBytes(pgno: number): Uint8Array {
@@ -141,6 +144,22 @@ export class BtreeDatabase {
     for (let i = 1; i < output.length; i++) if (output[i - 1]!.rowid >= output[i]!.rowid) corrupt("unordered table b-tree");
     return output;
   }
+  private *iterateTable(pgno: number, depth: number, path: Set<number>): Generator<TableEntry> {
+    if (depth >= this.maxBtreeDepth) throw new RangeError("maxBtreeDepth exceeded");
+    if (path.has(pgno)) corrupt("b-tree cycle"); path.add(pgno);
+    try {
+      const page = this.page(pgno, [0x05, 0x0d]);
+      if (page.type === 0x0d) {
+        for (const offset of page.cells) yield this.#payloadCell(page, offset, true) as TableEntry;
+      } else {
+        for (const offset of page.cells) {
+          if (offset + 4 > this.usableSize) corrupt("truncated table interior cell");
+          yield* this.iterateTable(be32(page.bytes, offset), depth + 1, path);
+        }
+        yield* this.iterateTable(page.rightChild!, depth + 1, path);
+      }
+    } finally { path.delete(pgno); }
+  }
   readIndex(root: number): IndexEntry[] {
     const output: IndexEntry[] = []; const path = new Set<number>();
     const visit = (pgno: number, depth: number): void => {
@@ -212,6 +231,28 @@ export class TableCursor extends CursorBase<TableEntry> {
     const exact = lo < this.entries.length && this.entries[lo]!.rowid === key;
     const position = bias === "ge" ? lo : exact ? lo : lo - 1;
     this.move(position >= 0 && position < this.entries.length ? position : -1); return exact;
+  }
+}
+export class TableScanCursor {
+  readonly #database: BtreeDatabase;
+  readonly #entries: Iterator<TableEntry>;
+  #entry: TableEntry | null = null;
+  #previousRowid: bigint | null = null;
+  #generation = 0;
+  constructor(database: BtreeDatabase, entries: Iterator<TableEntry>) { this.#database=database; this.#entries=entries; }
+  first(): boolean { if (this.#generation !== 0) throw new BtreeCursorStateError("scan cursor already started"); return this.#advance(); }
+  next(): boolean { if (this.#generation === 0) throw new BtreeCursorStateError("scan cursor is not positioned"); return this.#advance(); }
+  #advance(): boolean {
+    this.#database.assertOpen(); const result=this.#entries.next(); this.#generation++;
+    if (result.done) { this.#entry=null; return false; }
+    if (this.#previousRowid !== null && this.#previousRowid >= result.value.rowid) corrupt("unordered table b-tree");
+    this.#previousRowid=result.value.rowid; this.#entry=result.value; return true;
+  }
+  payload(): Uint8Array { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#database.payload(this.#entry); }
+  borrowPayload(): { bytes(): Uint8Array } {
+    if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned");
+    const born=this.#generation, value=this.#database.payload(this.#entry);
+    return {bytes:()=>{this.#database.assertOpen();if(born!==this.#generation)throw new BtreeCursorStateError("borrow invalidated by cursor movement");return value;}};
   }
 }
 export class IndexCursor extends CursorBase<IndexEntry> {

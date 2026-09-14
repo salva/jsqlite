@@ -116,6 +116,48 @@ failure, not acquisition credit. Subsequent parser repairs restored the intended
 post-parse temporary-unsupported compiler boundary. The current accounting remains
 47 attempted sequences, 0/38 upstream SQL passes, and 0/9 companion SQL passes.
 
+## First prepared SELECT tests-first tranche ([[card:card-h-a]])
+
+`test/conformance/cases/stage3-first-select.json` adds a separate, bounded tranche;
+it does not alter or replace the historical Stage 2 denominator of **38 upstream +
+9 no-credit companions = 47 sequences**. Its eight literal upstream assertions are
+`test/e_expr.test:e_expr-2.1` through `e_expr-2.4`,
+`test/select1.test:select1-1.4`, `select1-1.6`, `select1-1.8.1`, and
+`select1-3.3`. The manifest records exact source assertion/setup anchors, SQL,
+typed native expectations, and an explicit operation-by-operation TS disposition.
+The public runner now completes all eight through finalization; none of their
+operations are unattempted. **TS credit is 8/8** for these exact upstream
+first-SELECT cases. `test/conformance/run-first-select-ts.mjs` emits a distinct
+result for each case with every operation's attempted/pass/fail state and an
+explicit zero unattempted summary; validation is identity- and assertion-based,
+not count-derived. The four boundary/encoding companions remain explicitly
+no-credit. Broader SELECT features remain gaps.
+
+Four executable no-credit boundary groups cover (1) sparse/repeated parameter
+numbering, names, binding, reset retention, clear-bindings and finalize; (2)
+UTF-8/UTF-16le/UTF-16be ordered duplicate columns, metadata and typed values; (3)
+int64/REAL/NaN/infinity, NULL, empty/nonempty TEXT/BLOB and copied bind input; and
+(4) empty SQL, exact UTF-8 tail, row validity, legacy BUSY close, deferred close
+and final cleanup. These native/API observations remain distinct from TS
+compatibility credit. In the card's pinned native run all **8/8 upstream
+assertions** and **4/4 no-credit groups** passed; this does not claim engine
+implementation (`work:///cards/card-h-a/processes/proc-62f4a9867827/stdout.log`).
+
+Canonical integration is fail-closed and reproducible from the repository root:
+
+```sh
+npm run test:conformance:accounting
+npm run test:conformance:native
+```
+
+The accounting command includes `first-select-manifest.test.py`, which validates
+source identity, literal assertion/setup anchors, uniqueness, additive counts,
+and attempted/unattempted TS accounting. The native command passes the pinned
+`$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so` to
+`run-first-select-native.py` after the existing native lanes. A missing or
+incompatible shared library fails the command; it is never treated as a skip or a
+count-derived pass.
+
 ## Stage 3: immutable format-3 storage and schema foundation
 
 [`file-format.md`](file-format.md) documents the implemented full-file acquisition,
@@ -209,3 +251,15 @@ tests `changeEncoding` byte lengths and embedded NUL across UTF-8/UTF-16le/be,
 SQLite legacy malformed UTF-8 replacement, odd UTF-16 truncation through UTF-8,
 and odd-byte preservation on direct UTF-16 endian swap. These are source-mapped
 internal tests, not public SQL execution or SQL conformance credit.
+
+
+## First-SELECT implementation and promotion ([[card:card-h-b]], [[card:card-h-c]], [[card:card-h-d]])
+
+All eight exact upstream first-SELECT assertions now execute through the public
+TypeScript compiler/program/VDBE path. `test/conformance/run-first-select-ts.mjs`
+checks each declared operation and exact typed result independently, producing
+8/8 credit with zero failed or unattempted operations. Native remains a distinct
+8/8 oracle lane plus 4/4 no-credit boundary groups; the historical Stage 2 38+9
+inventory remains unchanged and does not contribute to this tranche's credit.
+The four companion groups remain no-credit even where focused implementation tests
+exercise their parameter, value, lifecycle, encoding, metadata, and close behavior.

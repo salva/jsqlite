@@ -11,7 +11,7 @@ async function closeServer(server) {
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }
 
-test("adapter reaches the real public connection before genuine prepare unsupported", async () => {
+test("adapter reaches the real public prepared SELECT path", async () => {
   const bridge = await startFixtureServer(fixtureRoot);
   let connection;
   try {
@@ -19,12 +19,11 @@ test("adapter reaches the real public connection before genuine prepare unsuppor
     connection = await openFixture(request);
     assert.equal(typeof connection.prepare, "function");
     assert.equal(typeof connection.close, "function");
-    assert.throws(
-      () => connection.prepare("SELECT 1"),
-      error => error instanceof JSQLiteError && error.kind === "unsupported" &&
-        error.unsupportedClassification === "temporary" &&
-        error.message === "SELECT compilation is not implemented",
-    );
+    const prepared = connection.prepare("SELECT 1");
+    assert.equal(await prepared.statement.step(), "row");
+    assert.equal(prepared.statement.columnInteger(0), 1n);
+    assert.equal(await prepared.statement.step(), "done");
+    prepared.statement.finalize();
   } finally {
     connection?.close();
     await closeServer(bridge.server);

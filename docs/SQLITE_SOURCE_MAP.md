@@ -512,3 +512,59 @@ replacement clear representations according to their callers. Focused executable
 coverage is in `test/value/mem-core.test.mjs`, including copy/shallow/move/reset,
 cache reuse, subtype clearing, three encodings, embedded NUL, legacy UTF-8 and odd
 UTF-16. This is internal primitive evidence and has zero public SQL credit.
+
+## First prepared SELECT compiler/VM mapping
+
+The architecture and additive zero-credit admission inventory are in
+`docs/TRANSLATION.md#first-prepared-select-vm-architecture-tests-first-proposal`
+and `test/conformance/cases/stage3-first-select.json`.
+
+| Concern | Pinned implementation | Initial evidence |
+|---|---|---|
+| Expansion/resolution | `src/resolve.c:lookupName`, `resolveExprStep`, `resolveSelectStep`; `src/select.c:selectExpander`; `src/sqliteInt.h:NameContext/Expr/Select/SrcList/Parse` | `test/select1.test:select1-1.4..1.8.1`, `select1-3.1..3.7` |
+| SELECT/expression codegen | `src/select.c:sqlite3Select`, `selectInnerLoop`; `src/expr.c:sqlite3ExprCode*` and variable/VList paths | `test/e_expr.test:e_expr-2.1..2.4`, `e_expr-6.1..6.5`; `test/expr.test:expr-11.1..11.14` backlog |
+| Full scan seam | `src/where.c:sqlite3WhereBegin`; `src/wherecode.c:sqlite3WhereCodeOneLoopStart` | single-table projection/filter only; DISTINCT/ORDER/index-count assertions deferred |
+| Make-ready/program ownership | `src/prepare.c:sqlite3LockAndPrepare`; `src/vdbeaux.c:sqlite3VdbeMakeReady`; `src/vdbeInt.h:Vdbe` | prepare/tail and metadata cases already in the immutable Stage 2 38-case set |
+| Step/rows/bindings/cleanup | `src/vdbe.c:sqlite3VdbeExec`; `src/vdbeapi.c:sqlite3_step`, bind/column APIs; `src/vdbeaux.c:sqlite3VdbeReset/Finalize`; `src/main.c:sqlite3Close` | existing `close.test`, `capi3c.test`, and `bind.test` Stage 2 sequences, retained unchanged |
+
+The new manifest preserves literal IDs, source occurrence, exact SQL/setup and
+typed native expectations. Every TS sequence declares its exact currently attempted
+prepare and unattempted suffix. Native expectations and TS credit are separate;
+validation cannot infer success from a count. Cases requiring host Tcl callbacks,
+DISTINCT/ORDER BY, aggregates/functions, joins, writes during assertion, or search
+counters remain visible breadth gaps.
+
+### Specifically consulted neighboring suites and deferrals
+
+* `test/select2.test:select2-1.2` was inspected but deferred: its assertion nests
+  host Tcl-driven queries and requires DISTINCT and ORDER BY, both outside the
+  first scan tranche. It is not silently adapted to a different assertion.
+* `test/where.test:where-1.1.1`, `where-1.2.1` and neighboring early cases were
+  inspected but deferred because expected output combines query rows with
+  `queryplan`/`scan`/`sort` instrumentation and index-planning assertions. The
+  admitted `select1-3.3` gives an exact simple full-scan filter without claiming
+  planner/search-count compatibility.
+* Expression evidence was inspected in both `test/e_expr.test` and
+  `test/expr.test`. Exact scalar unary cases `e_expr-2.1..2.4` are admitted;
+  remainder `e_expr-6.1..6.5` remains internal primitive evidence, and
+  `expr-11.1..11.14` literal/`typeof()` boundaries are deferred until the compiler
+  admits the required literal and function opcodes. `e_expr-8.1.*` comparison
+  breadth remains mapped to the existing comparison foundation but is not grouped
+  into this tranche without per-assertion admission.
+
+### Implemented scalar/parameter and one-table VDBE seam ([[card:card-h-b]], [[card:card-h-c]])
+
+`src/internal/vdbe.ts` maps the bounded no-FROM paths in pinned
+`expr.c:sqlite3ExprCode*` (including `TK_VARIABLE` numbering), `vdbe.c`'s
+`OP_Variable`/scalar/result-row loop, and `vdbeapi.c` parameter metadata, bind,
+clear, step, column, reset and finalize behavior. Compilation emits immutable
+instructions and positive register/parameter slots; runtime copies binding `Mem`
+cells into registers and retains PC/register state. The one-table path resolves
+direct columns, emits its forward full scan through a `sqlite3WhereBegin`/
+`sqlite3WhereEnd`-shaped interface, applies resolved column affinity and built-in
+collation for the admitted integer equality, and consumes the lazy forward
+`TableScanCursor` in `src/internal/btree.ts`; open-read no longer recursively
+materializes every table entry. `src/index.ts` maps the applicable
+`main.c:sqlite3Close` BUSY/zombie ownership path. This is not an AST interpreter
+or general planner: unsupported plans and expression breadth remain temporary
+unsupported.

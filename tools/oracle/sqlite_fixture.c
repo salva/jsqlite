@@ -21,6 +21,8 @@ int main(int argc,char **argv){
   char pragma[96]; snprintf(pragma,sizeof pragma,"PRAGMA page_size=%d;PRAGMA encoding='%s';",pageSize,enc);
   int rc=exec(db,pragma);
   if(!rc && strcmp(id,"close")==0) rc=exec(db,"CREATE TABLE t1(x);INSERT INTO t1 VALUES('one'),('two'),('three');");
+  else if(!rc && strcmp(id,"select1-one")==0) rc=exec(db,"CREATE TABLE test1(f1 int, f2 int);INSERT INTO test1 VALUES(11,22);");
+  else if(!rc && strcmp(id,"select1-where")==0) rc=exec(db,"CREATE TABLE test1(f1 int, f2 int);INSERT INTO test1 VALUES(11,22),(33,44);");
   else if(!rc && strcmp(id,"bind")==0) rc=exec(db,"CREATE TABLE t1(a,b,c);");
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
   else if(!rc && strncmp(id,"encoding-",9)==0) rc=exec(db,"CREATE TABLE t1(a PRIMARY KEY,b,c);INSERT INTO t1 VALUES('one','I',1);");

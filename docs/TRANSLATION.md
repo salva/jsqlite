@@ -14,15 +14,13 @@ assertions plus 9 no-credit companions, and an executable per-case TS harness.
 Stage 3 now implements bounded Fetch acquisition, format-3 validation and immutable
 residency; known-root record/b-tree reading; SQLite-compatible schema text
 conversion; generated-Lemon SQL tokenization/parsing and reduction structures; a
-bounded immutable internal schema graph; and internal shared Mem/value, scalar
-arithmetic, built-in collation/comparison, and packed/unpacked record-key
-foundations. Public `prepare()` therefore performs
-real UTF-8 tokenization and parsing, including exact byte tails and empty SQL, but
-cannot return a statement until resolver/compiler/VDBE work exists. Non-empty
-parsed SELECTs report temporary unsupported at that compiler boundary; excluded
-mutating/schema-changing SQL reports permanent unsupported. This remains no SQL
-engine: execution, public statement handles, and every mapped TS conformance
-assertion have zero credit.
+bounded immutable internal schema graph; shared Mem/value, scalar arithmetic,
+built-in collation/comparison and packed/unpacked record-key foundations; and a
+first prepared-SELECT compiler/program/VDBE slice. Public `prepare()` compiles
+no-FROM integer/parameter expressions and ordered projection plus integer-equality
+filtering over one ordinary rowid table. Excluded SELECT clauses and broader SQL
+remain typed temporary unsupported; canonical first-SELECT TS credit is not yet
+promoted and the implementation is not a general SQL engine.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -942,3 +940,187 @@ UTF-16 when translating through UTF-8, and preserves an odd trailing byte for th
 direct UTF-16 endian-swap path. Translation uses the existing SQLite-derived
 legacy decoder rather than WHATWG behavior. Numeric CAST grammar remains sibling
 work; no public SQL execution is claimed.
+
+## First prepared SELECT VM architecture (tests-first proposal)
+
+Status: reviewable architecture for the first compiler/VM tranche; it does not
+claim an implementation. It is pinned to SQLite 3.53.4 and the source ID in
+`reference/sqlite/manifest.json`. The executable admission inventory is
+`test/conformance/cases/stage3-first-select.json`. It is additive: the historical
+Stage 2 denominator remains exactly 38 upstream assertions plus 9 no-credit
+companions (47 sequences), and this proposal grants no TS SQL credit.
+
+### Closed slice and pass boundary
+
+The admitted implementation slice is deliberately narrower than product scope:
+constant and parameter expressions, and one ordinary rowid table with ordered
+projection, `*` expansion, and a WHERE expression over a full forward scan. The
+compiler must follow the existing mutable Lemon graph; an AST interpreter or a
+second expression-value model is prohibited. `selectExpander`-shaped expansion
+runs before `resolveSelectStep`/`resolveExprStep`-shaped resolution, followed by
+expression/SELECT code generation and make-ready. Missing or ambiguous columns are
+SQLite compile errors. Joins, subqueries/CTEs, compounds, aggregates/windows,
+DISTINCT, ORDER/GROUP, index choice, functions beyond separately admitted
+primitives, views and ephemeral structures remain explicit temporary gaps, not
+permanent exclusions.
+
+`ParseContext` is the single-prepare owner of diagnostics, work/limit accounting,
+last-token/tail state, mutable parse graph, linked `NameContext` frames, and the
+only program builder. Its monotonically assigned cursor and positive register
+numbers are stable identities; register 0 is not a SQL value register. Expansion
+binds each ordered `SrcList` item to a connection-owned `TableNode`, assigns its
+cursor, and replaces each `*` in place with columns in source/schema order.
+Duplicate expressions and names remain separate list items. A `NameContext` frame
+references (does not copy) its `SrcList` and applicable result list, carries the
+aggregate/window permissions and usage counters needed by its caller, and links to
+an `outer` frame. A successful lookup rewrites the `ExprNode` to a column reference
+containing table identity, cursor number, and column index/identity. This mirrors
+`src/resolve.c:lookupName`, `resolveExprStep`, and `resolveSelectStep` and the
+`NameContext` declaration in `src/sqliteInt.h`; it does not flatten correlation
+state into strings.
+
+Persistent schema objects remain connection-owned. Failure destroys the parse
+nodes and builder. Success transfers an immutable program, static literal bytes,
+ordered result descriptors, parameter descriptors, retained SQL/tail map, register
+count, cursor-slot count, and schema identity reference into one statement; no
+mutable parse graph is needed by normal execution. This is the TS make-ready seam
+corresponding to `src/prepare.c:sqlite3LockAndPrepare` and
+`src/vdbeaux.c:sqlite3VdbeMakeReady`. Reprepare is not in the first immutable-file
+slice, but ownership must not preclude replacing those products atomically later.
+
+### Program, registers, cursors and initial opcode vocabulary
+
+The builder owns a dense instruction array with source-shaped P1/P2/P3 operands,
+P4 as a discriminated owned/reference payload, P5 flags, and resolved jump labels.
+Labels cannot escape make-ready. It tracks maximum positive register, cursor-slot
+count and temporary register leases explicitly; release returns a temporary to the
+compiler pool but never changes an already emitted operand. Static P4 text/bytes
+are statement-owned; schema/table/key descriptors retain validated owner identity.
+An instruction may not hold an untyped JS value or closure.
+
+The minimum vocabulary is: initialization/halt, NULL/int64/REAL/string/blob and
+parameter-to-register loads; copy/move forms required by source codegen; admitted
+unary/arithmetic/truth/comparison operations; conditional branches; result-row;
+and a scan seam consisting of open-read, rewind, column, rowid if required, next,
+and close. Exact opcode names may preserve upstream names. The first table path
+must be emitted through a bounded `sqlite3WhereBegin`/
+`sqlite3WhereCodeOneLoopStart`-shaped scan-plan interface whose only admitted plan
+is a forward full table scan. A direct bespoke table loop is rejected because it
+would create a parallel executor. This boundary follows `src/select.c:sqlite3Select`,
+`selectInnerLoop`; `src/expr.c:sqlite3ExprCode*`; and the initial paths in
+`src/where.c`/`src/wherecode.c`.
+
+At runtime the statement owns a fixed register array of existing `Mem` cells,
+fixed typed cursor slots, PC, work counter, result span, saved primary execution
+error and cleanup diagnostics. Cursor slots distinguish main-table from future
+index/sorter/ephemeral kinds even though only main-table is constructible now.
+Opening validates the schema/storage identity; VDBE open-read now constructs a
+lazy forward-only `TableScanCursor`, and rewind/next resume its depth-first page
+iterator rather than recursively materializing all table entries during one opcode.
+Each iterator resume reads at most one root-to-leaf path plus one cell before
+returning, while page/depth and overflow limits remain enforced by the existing
+b-tree layer; column adaptation goes through `memFromRawRecord`. The table compiler
+emits open/rewind/next/halt through the first `sqlite3WhereBegin`/`sqlite3WhereEnd`
+full-scan seam, leaving future plan kinds outside this tranche. All opened cursors
+are closed on halt/reset/finalize and on failed open/step.
+
+### Parameters and result descriptors
+
+Variable discovery occurs while compiling `TK_VARIABLE`, never by rescanning SQL
+at bind time. Preserve exact spellings for `?`, `?NNN`, `:name`, `@name`, and
+SQLite's `$name` forms. Anonymous `?` receives one greater than the current maximum;
+`?NNN` denotes exactly NNN and may create sparse slots; a repeated named spelling
+reuses its first index, while a new name receives one greater than the current
+maximum. Index 0 is invalid. The maximum is the connection's variable-number
+limit (default 32766 in this pin); zero, overflow, and above-limit numbers are
+compile errors. These rules follow `src/expr.c`'s `TK_VARIABLE` path,
+`sqlite3VListAdd`/lookup and the pinned `SQLITE_MAX_VARIABLE_NUMBER` default.
+The statement owns descriptors for all indexes through the maximum (unnamed holes
+included) and one `Mem` binding cell per slot. Unbound/hole cells are NULL;
+public binding remains one-based, exact-name lookup returns 0 when absent, invalid
+indexes are SQLite RANGE, and invalid JS representations are misuse.
+
+Result descriptors are an ordered array, never a name-keyed object. Each captures
+display name and, when a direct resolved column permits it, declared type and
+main/table/origin names; expression metadata is null where SQLite supplies none.
+`OP_ResultRow` publishes a register start/count and captures each cell's initial
+storage class. Duplicate names and repeated columns remain ordinally distinct.
+Metadata derives during compilation from the resolved expression/source identities,
+not by inspecting the first row.
+
+### State, row validity, bounded suspension and cleanup
+
+The internal state machine is `prepared -> running <-> suspended -> row`, then
+`running/suspended/row -> done|failed`; reset returns any non-finalized state to
+`prepared`, and finalize moves once to `finalized`. A step attempt first invalidates
+the prior row. `row` is valid only after that step resolves `"row"` and until the
+next step attempt, reset, finalize, or final connection destruction. DONE and every
+error expose no row. Public TEXT/BLOB values are owned adaptations; no register or
+page borrow escapes.
+
+`step()` executes at most a configured opcode/work quantum before yielding to the
+host. Every opcode charges at least one unit and storage traversal retains its own
+finite page/depth/overflow accounting. Suspension is permitted only at opcode
+boundaries or an explicitly resumable bounded storage operation, and preserves PC,
+registers, cursor stacks/generations, parameter cells, pending error and result
+state. It resumes rather than re-evaluating an expression or rewinding a scan.
+Abort/timeout/global-work checks occur at chunk boundaries and existing bounded
+storage checkpoints; no hard real-time interruption is promised. Overlapping
+connection operations remain misuse per `docs/api.md`.
+
+On execution failure, invalidate the row, retain the first result as primary, and
+halt/close all cursors. Reset performs halt cleanup and register/borrow invalidation
+before returning the saved error, rewinds PC/state, and retains bindings. Repeated
+reset is valid. Clear-bindings replaces every parameter `Mem` with NULL without
+rewinding. Finalize performs reset/halt cleanup, releases bindings, registers,
+program and statement/schema references, becomes unusable, and only then reports
+the saved error. Later cleanup errors are diagnostic and never replace the first
+operation error. Legacy close with a live statement is BUSY and leaves the
+connection usable; deferred close marks it zombie, rejects new work, keeps
+schema/storage alive, and destroys them after the final statement finalizes. This
+tracks `src/vdbe.c:sqlite3VdbeExec`, `src/vdbeapi.c:sqlite3_step`/bind/column,
+`src/vdbeaux.c:sqlite3VdbeReset`/`sqlite3VdbeFinalize`, and
+`src/main.c:sqlite3Close`/zombie cleanup. GC is leak fallback only.
+
+### Alternatives, invariants and effects
+
+Rejected alternatives are an AST interpreter (duplicates compiler semantics),
+object rows keyed by name (lose duplicates/order), SQL rescanning for parameters
+(loses source numbering), promise-per-opcode execution (unbounded overhead), and
+eager cascading close (contradicts busy/zombie behavior). The design adds no
+runtime dependency, native backend, write path, service, deployment change, or
+generic JS coercion. Key review invariants are: one mutable source-shaped graph;
+one Mem value model; immutable statement compilation products; positive stable
+registers and typed cursors; all control paths bounded; one primary error; and no
+credit unless the declared TS operation sequence reaches and satisfies its final
+assertion.
+
+### Review revision: executable boundary baseline
+
+In response to `record:///review.md?card=card-h-a&v=3`, the four no-credit
+companions are no longer coverage inventories. Each now declares concrete SQL or
+empty/tail inputs, setup/database encoding, bindings, ordered operations, typed
+rows/metadata/result codes, and the exact attempted/unattempted TS suffix. The
+native runner executes all four, including sparse `?5` holes and repeated names,
+reset retention/clear/finalize, row invalidation after DONE, UTF-8/UTF-16le/
+UTF-16be setup, int64/REAL/NaN/infinity/NULL/empty TEXT/BLOB and copied nonempty
+BLOB boundaries, exact UTF-8 tail offsets, legacy BUSY close, and deferred zombie
+rejection. These remain native/API expectations or JS-boundary no-credit evidence;
+they do not increase TS compatibility credit. Exact upstream entries additionally
+carry literal assertion and preceding setup anchors, which the validator binds to
+the pinned source before the native declared SQL is run.
+
+### Implemented no-FROM scalar and parameter VM tranche
+
+The first prepared-SELECT design is now implemented for bounded no-FROM integer
+unary and parameter result expressions in `src/internal/vdbe.ts`. Parameter
+numbering is performed once during expression compilation (`?`, sparse `?NNN`,
+and repeated `:`, `@`, `$` names), producing owned descriptors and binding `Mem`
+cells. `OP_Variable`-shaped execution copies those cells into result registers;
+reset retains bindings, clear replaces them with NULL, and public blob binding and
+reading preserve the API's copy boundary. The VM retains PC/registers across its
+bounded async opcode loop and publishes ordered duplicate columns through
+ResultRow. `src/index.ts` now retains live statements for legacy BUSY/deferred
+zombie close. This follows pinned `expr.c`, `vdbe.c`, `vdbeapi.c`, `vdbeaux.c`, and
+`main.c`; table expansion/resolution/scans are intentionally left to
+[[card:card-h-c]] rather than approximated here.

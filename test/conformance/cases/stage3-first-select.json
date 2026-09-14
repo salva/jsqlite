@@ -1,0 +1,825 @@
+{
+  "schema": "jsqlite-first-select-cases/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "accounting": {
+    "additiveTo": "stage2-initial.json:38 upstream + 9 no-credit companions",
+    "nativeExpectationsSeparateFromTsCredit": true,
+    "countDerivedSuccessForbidden": true,
+    "tsCredit": 8
+  },
+  "setup": {
+    "empty": {
+      "owner": "existing immutable empty fixture",
+      "sql": []
+    },
+    "select1-one": {
+      "owner": "native fixture generation only",
+      "sql": [
+        "CREATE TABLE test1(f1 int, f2 int)",
+        "INSERT INTO test1 VALUES(11,22)"
+      ]
+    },
+    "select1-where": {
+      "owner": "native fixture generation only",
+      "sql": [
+        "CREATE TABLE test1(f1 int, f2 int)",
+        "INSERT INTO test1 VALUES(11,22)",
+        "INSERT INTO test1 VALUES(33,44)"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "ref": "test/e_expr.test:e_expr-2.1",
+      "occurrence": 1,
+      "fixture": "empty",
+      "sql": "SELECT -   10",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "-10"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "step",
+        "readRow",
+        "step",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 5,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_execsql_test e_expr-2.1 { SELECT -   10   } {-10}",
+      "sourceSetupAnchors": []
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-2.2",
+      "occurrence": 1,
+      "fixture": "empty",
+      "sql": "SELECT +   10",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "step",
+        "readRow",
+        "step",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 5,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_execsql_test e_expr-2.2 { SELECT +   10   } {10}",
+      "sourceSetupAnchors": []
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-2.3",
+      "occurrence": 1,
+      "fixture": "empty",
+      "sql": "SELECT ~   10",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "-11"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "step",
+        "readRow",
+        "step",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 5,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_execsql_test e_expr-2.3 { SELECT ~   10   } {-11}",
+      "sourceSetupAnchors": []
+    },
+    {
+      "ref": "test/e_expr.test:e_expr-2.4",
+      "occurrence": 1,
+      "fixture": "empty",
+      "sql": "SELECT NOT 10",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "step",
+        "readRow",
+        "step",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 5,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_execsql_test e_expr-2.4 { SELECT NOT 10   } {0}",
+      "sourceSetupAnchors": []
+    },
+    {
+      "ref": "test/select1.test:select1-1.4",
+      "occurrence": 1,
+      "fixture": "select1-one",
+      "sql": "SELECT f1 FROM test1",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            }
+          ]
+        ],
+        "columns": [
+          "f1"
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 4,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_test select1-1.4 {\n  execsql {SELECT f1 FROM test1}\n} {11}",
+      "sourceSetupAnchors": [
+        "execsql {CREATE TABLE test1(f1 int, f2 int)}",
+        "execsql {INSERT INTO test1(f1,f2) VALUES(11,22)}"
+      ]
+    },
+    {
+      "ref": "test/select1.test:select1-1.6",
+      "occurrence": 1,
+      "fixture": "select1-one",
+      "sql": "SELECT f2, f1 FROM test1",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "integer",
+              "value": "11"
+            }
+          ]
+        ],
+        "columns": [
+          "f2",
+          "f1"
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 4,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_test select1-1.6 {\n  execsql {SELECT f2, f1 FROM test1}\n} {22 11}",
+      "sourceSetupAnchors": [
+        "execsql {CREATE TABLE test1(f1 int, f2 int)}",
+        "execsql {INSERT INTO test1(f1,f2) VALUES(11,22)}"
+      ]
+    },
+    {
+      "ref": "test/select1.test:select1-1.8.1",
+      "occurrence": 1,
+      "fixture": "select1-one",
+      "sql": "SELECT *, * FROM test1",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "integer",
+              "value": "22"
+            }
+          ]
+        ],
+        "columns": [
+          "f1",
+          "f2",
+          "f1",
+          "f2"
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 4,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_test select1-1.8.1 {\n  execsql {SELECT *, * FROM test1}\n} {11 22 11 22}",
+      "sourceSetupAnchors": [
+        "execsql {CREATE TABLE test1(f1 int, f2 int)}",
+        "execsql {INSERT INTO test1(f1,f2) VALUES(11,22)}"
+      ]
+    },
+    {
+      "ref": "test/select1.test:select1-3.3",
+      "occurrence": 1,
+      "fixture": "select1-where",
+      "sql": "SELECT f1 FROM test1 WHERE f1=11",
+      "native": {
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            }
+          ]
+        ],
+        "columns": [
+          "f1"
+        ]
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "implemented",
+        "attempted": {
+          "index": 4,
+          "op": "finalize"
+        },
+        "unattempted": [],
+        "credit": true
+      },
+      "sourceAssertionAnchor": "do_test select1-3.3 {\n  set v [catch {execsql {SELECT f1 FROM test1 WHERE f1=11}} msg]\n  lappend v $msg\n} {0 11}",
+      "sourceSetupAnchors": [
+        "execsql {CREATE TABLE test1(f1 int, f2 int)}",
+        "execsql {INSERT INTO test1(f1,f2) VALUES(11,22)}",
+        "INSERT INTO test1 VALUES(33,44);"
+      ]
+    }
+  ],
+  "companions": [
+    {
+      "id": "first-select-parameter-lifecycle",
+      "credit": "no-credit-boundary",
+      "fixture": "empty",
+      "sql": "SELECT ?5 AS x, :named AS x, ?5, :named, ?",
+      "bindings": [
+        {
+          "index": 5,
+          "value": {
+            "type": "integer",
+            "value": "-9223372036854775808"
+          }
+        },
+        {
+          "index": 6,
+          "value": {
+            "type": "real",
+            "ieee754": "432ff973cafa8000"
+          }
+        },
+        {
+          "index": 7,
+          "value": {
+            "type": "blob",
+            "hex": "00ff80"
+          }
+        }
+      ],
+      "expected": {
+        "parameterCount": 7,
+        "parameterNames": [
+          null,
+          null,
+          null,
+          null,
+          "?5",
+          ":named",
+          null
+        ],
+        "parameterIndexes": {
+          "?5": 5,
+          ":named": 6,
+          ":missing": 0
+        },
+        "initialRow": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "boundRow": [
+          {
+            "type": "integer",
+            "value": "-9223372036854775808"
+          },
+          {
+            "type": "real",
+            "ieee754": "432ff973cafa8000"
+          },
+          {
+            "type": "integer",
+            "value": "-9223372036854775808"
+          },
+          {
+            "type": "real",
+            "ieee754": "432ff973cafa8000"
+          },
+          {
+            "type": "blob",
+            "hex": "00ff80"
+          }
+        ],
+        "resetRetainsBindings": true,
+        "clearRow": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "rowDataCountAfterNextStep": 0,
+        "resetRc": 0,
+        "clearBindingsRc": 0,
+        "finalizeRc": 0
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "parameterMetadata",
+        "stepInitial",
+        "readInitialRow",
+        "reset",
+        "bindAll",
+        "stepBound",
+        "readBoundRow",
+        "stepDone",
+        "checkRowInvalid",
+        "reset",
+        "stepRetained",
+        "readRetainedRow",
+        "reset",
+        "clearBindings",
+        "stepCleared",
+        "readClearedRow",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "parameterMetadata",
+          "stepInitial",
+          "readInitialRow",
+          "reset",
+          "bindAll",
+          "stepBound",
+          "readBoundRow",
+          "stepDone",
+          "checkRowInvalid",
+          "reset",
+          "stepRetained",
+          "readRetainedRow",
+          "reset",
+          "clearBindings",
+          "stepCleared",
+          "readClearedRow",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "first-select-all-encodings",
+      "credit": "no-credit-fixture-matrix",
+      "setups": [
+        {
+          "encoding": "UTF-8",
+          "sql": [
+            "CREATE TABLE t1(a TEXT,b BLOB,c INTEGER)",
+            "INSERT INTO t1 VALUES('Ié𝄞',x'00ff80',9223372036854775807)"
+          ]
+        },
+        {
+          "encoding": "UTF-16le",
+          "sql": [
+            "CREATE TABLE t1(a TEXT,b BLOB,c INTEGER)",
+            "INSERT INTO t1 VALUES('Ié𝄞',x'00ff80',9223372036854775807)"
+          ]
+        },
+        {
+          "encoding": "UTF-16be",
+          "sql": [
+            "CREATE TABLE t1(a TEXT,b BLOB,c INTEGER)",
+            "INSERT INTO t1 VALUES('Ié𝄞',x'00ff80',9223372036854775807)"
+          ]
+        }
+      ],
+      "sql": "SELECT a,b,c,a AS a FROM t1",
+      "expected": {
+        "columns": [
+          {
+            "name": "a",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declType": "BLOB",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "c",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "a",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "row": [
+          {
+            "type": "text",
+            "utf8Hex": "49c3a9f09d849e"
+          },
+          {
+            "type": "blob",
+            "hex": "00ff80"
+          },
+          {
+            "type": "integer",
+            "value": "9223372036854775807"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "49c3a9f09d849e"
+          }
+        ]
+      },
+      "operations": [
+        "openEachEncoding",
+        "prepare",
+        "metadata",
+        "step",
+        "readRowAndTypes",
+        "stepDone",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "metadata",
+          "step",
+          "readRowAndTypes",
+          "stepDone",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "first-select-values",
+      "credit": "no-credit-boundary",
+      "fixture": "empty",
+      "sql": "SELECT ?1,?2,?3,?4,?5,?6,?7,?8,?9",
+      "bindings": [
+        {
+          "index": 1,
+          "value": {
+            "type": "integer",
+            "value": "-9223372036854775808"
+          }
+        },
+        {
+          "index": 2,
+          "value": {
+            "type": "integer",
+            "value": "9223372036854775807"
+          }
+        },
+        {
+          "index": 3,
+          "value": {
+            "type": "real",
+            "ieee754": "432ff973cafa8000"
+          }
+        },
+        {
+          "index": 4,
+          "value": {
+            "type": "real",
+            "ieee754": "7ff8000000000000"
+          }
+        },
+        {
+          "index": 5,
+          "value": {
+            "type": "real",
+            "ieee754": "7ff0000000000000"
+          }
+        },
+        {
+          "index": 6,
+          "value": {
+            "type": "null"
+          }
+        },
+        {
+          "index": 7,
+          "value": {
+            "type": "text",
+            "utf8Hex": ""
+          }
+        },
+        {
+          "index": 8,
+          "value": {
+            "type": "blob",
+            "hex": ""
+          }
+        },
+        {
+          "index": 9,
+          "value": {
+            "type": "blob",
+            "hex": "00ff80"
+          }
+        }
+      ],
+      "expected": {
+        "row": [
+          {
+            "type": "integer",
+            "value": "-9223372036854775808"
+          },
+          {
+            "type": "integer",
+            "value": "9223372036854775807"
+          },
+          {
+            "type": "real",
+            "ieee754": "432ff973cafa8000"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754": "7ff0000000000000"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": ""
+          },
+          {
+            "type": "blob",
+            "hex": ""
+          },
+          {
+            "type": "blob",
+            "hex": "00ff80"
+          }
+        ],
+        "blobInputMutationDoesNotChangeBoundValue": true,
+        "blobReadHex": "00ff80"
+      },
+      "operations": [
+        "openFixture",
+        "prepare",
+        "bindAll",
+        "mutateBlobInput",
+        "step",
+        "readRowAndTypes",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepare"
+        },
+        "unattempted": [
+          "bindAll",
+          "mutateBlobInput",
+          "step",
+          "readRowAndTypes",
+          "finalize"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "first-select-tail-empty-close",
+      "credit": "no-credit-api",
+      "fixture": "empty",
+      "inputs": {
+        "empty": " -- only a comment\n",
+        "tail": "SELECT '𝄞';  SELECT 22",
+        "tailUtf8Offset": 14,
+        "tailSuffix": "  SELECT 22"
+      },
+      "expected": {
+        "emptyStatement": false,
+        "emptyTailOffset": 19,
+        "emptyTailSuffix": "",
+        "firstRow": [
+          {
+            "type": "text",
+            "utf8Hex": "f09d849e"
+          }
+        ],
+        "rowDataCountAfterDone": 0,
+        "legacyCloseRc": 5,
+        "stepAfterBusyClose": 101,
+        "deferredCloseRc": 0,
+        "prepareAfterDeferredRc": 21,
+        "finalizeRc": 0
+      },
+      "operations": [
+        "openFixture",
+        "prepareEmpty",
+        "prepareTail",
+        "step",
+        "readRow",
+        "stepDone",
+        "checkRowInvalid",
+        "reset",
+        "legacyCloseBusy",
+        "stepAfterBusyClose",
+        "reset",
+        "closeDeferred",
+        "prepareRejected",
+        "finalize"
+      ],
+      "ts": {
+        "disposition": "unimplemented-temporary",
+        "attempted": {
+          "index": 1,
+          "op": "prepareEmpty"
+        },
+        "unattempted": [
+          "prepareTail",
+          "step",
+          "readRow",
+          "stepDone",
+          "checkRowInvalid",
+          "reset",
+          "legacyCloseBusy",
+          "stepAfterBusyClose",
+          "reset",
+          "closeDeferred",
+          "prepareRejected",
+          "finalize"
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "unattemptedBreadth": [
+    "joins",
+    "subqueries/CTEs",
+    "compound SELECT",
+    "aggregates/windows",
+    "DISTINCT",
+    "ORDER BY/GROUP BY",
+    "index planning",
+    "host callbacks/collations",
+    "writes",
+    "search-count assertions"
+  ]
+}

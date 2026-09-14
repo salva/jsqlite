@@ -1,5 +1,8 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError } from "./internal/parse.ts";
+import { compileScalarSelect, compileTableSelect, VdbeStatement } from "./internal/vdbe.ts";
+import { loadSchemaGraph } from "./internal/schema.ts";
+import { btreeFromConnection } from "./internal/btree.ts";
 
 const SQLITE_CORRUPT = 11;
 const SQLITE_BUSY = 5;
@@ -79,12 +82,22 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   #source: ImmutableStorage | null;
   #state: "open" | "zombie" | "closed" = "open";
   readonly #limits: PrepareLimits;
+  readonly #maxRows: number;
+  readonly #btreeLimits: { readonly maxBtreeDepth: number; readonly maxOverflowPages: number };
+  readonly #statements = new Set<VdbeStatement>();
   readonly [storageOwner]: ImmutableStorage;
 
-  constructor(source: ImmutableStorage, limits: PrepareLimits) {
+  constructor(
+    source: ImmutableStorage,
+    limits: PrepareLimits,
+    maxRows: number,
+    btreeLimits: { readonly maxBtreeDepth: number; readonly maxOverflowPages: number },
+  ) {
     this.#source = source;
     this[storageOwner] = source;
     this.#limits = limits;
+    this.#maxRows = maxRows;
+    this.#btreeLimits = btreeLimits;
   }
 
   #assertResident(): ImmutableStorage {
@@ -114,10 +127,25 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
-      // Parsing does not imply compilation. Until the translated compiler/VDBE
-      // exists, fail every SELECT uniformly rather than executing a second,
-      // handwritten literal evaluator outside the generated grammar path.
-      failure("unsupported", "SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
+      const program = parsed.statement.from.length || parsed.statement.where
+        ? compileTableSelect(
+            parsed.statement,
+            loadSchemaGraph(this),
+            btreeFromConnection(this, this.#btreeLimits),
+            this.#maxRows,
+            this.#limits.maxWorkUnits,
+          )
+        : compileScalarSelect(parsed.statement, this.#limits.maxWorkUnits);
+      let statement!: VdbeStatement;
+      statement = new VdbeStatement(program, () => {
+        this.#statements.delete(statement);
+        if (this.#state === "zombie" && this.#statements.size === 0) {
+          const source = this.#source;
+          if (source !== null) this.#finishClose(source);
+        }
+      });
+      this.#statements.add(statement);
+      return { statement, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
     } catch (error) {
       if (error instanceof SqlParseError) return failure("sqlite", error.message, { code: 1 });
       if (error instanceof RangeError) return failure("limit", error.message);
@@ -128,6 +156,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   close(): void {
     const source = this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
+    if (this.#statements.size !== 0) failure("sqlite", "unable to close due to unfinalized statements", { code: SQLITE_BUSY });
     this.#finishClose(source);
   }
 
@@ -135,7 +164,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
     const source = this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
     this.#state = "zombie";
-    this.#finishClose(source);
+    if (this.#statements.size === 0) this.#finishClose(source);
   }
 }
 
@@ -205,7 +234,7 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     const bytes = new Uint8Array(total);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return new OpenConnection(validateFile(bytes),parserLimits);
+    return new OpenConnection(validateFile(bytes), parserLimits, finiteLimit(options.limits?.maxRows, "limits.maxRows", 1_000_000), { maxBtreeDepth: finiteLimit(options.limits?.maxBtreeDepth, "limits.maxBtreeDepth", 64), maxOverflowPages: finiteLimit(options.limits?.maxOverflowPages, "limits.maxOverflowPages", 1_000_000) });
   } catch (error) {
     try { await reader?.cancel(); } catch { /* preserve the primary failure */ }
     return mapAcquisitionError(error, timedOut, options.signal);
