@@ -34,27 +34,19 @@ test('ORDER/LIMIT admitted public slice preserves duplicate metadata and resolve
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('ORDER expression, explicit collation/NULL placement, and broad LIMIT remain honest unsupported gaps',async()=>{
+test('ORDER expression, multi-term, explicit collation/NULL placement, and broad LIMIT remain honest unsupported gaps',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
   for(const sql of [
    'SELECT x FROM t1 ORDER BY x+1 LIMIT 2',
+   'SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12',
    'SELECT x FROM t1 ORDER BY x COLLATE NOCASE LIMIT 2',
    'SELECT a FROM t2 ORDER BY a NULLS LAST',
   ]) assert.throws(()=>db.prepare(sql),temporary,sql);
   for(const sql of ['SELECT 1 LIMIT 0','SELECT 1 LIMIT -1','SELECT 1 LIMIT 2.0','SELECT 1 LIMIT \'2\'','SELECT 1 LIMIT NULL','SELECT 1 LIMIT 1.5','SELECT 1 LIMIT \'x\''])
    assert.throws(()=>db.prepare(sql),temporary,sql);
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
-});
-
-test('multi-term ORDER compares every term (pinned public gap)',async()=>{
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
- try{
-  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
-  statement=db.prepare('SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12').statement;
-  assert.deepEqual(await rows(statement),expectedRows('fixture-multi-term-gap'));
- }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
 test('captured pinned expectations retain typed storage order and explicit error phase',()=>{

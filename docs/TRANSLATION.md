@@ -1236,9 +1236,9 @@ The zero-credit capture in `stage3-order-limit-contract.json` is independently
 produced by pinned SQLite 3.53.4 and complements, but does not alter, the relational
 1/18 denominator. Its public TS test separates the already admitted direct
 column/alias/positive-ordinal, one-term sorter path from temporary unsupported
-expression, explicit COLLATE/NULLS, and broader LIMIT forms. Multi-term syntax is
-currently admitted but fails its pinned public result assertion because secondary
-keys are not compared; it must be faithfully lowered or conservatively rejected. Compounds
+expression, multi-term, explicit COLLATE/NULLS, and broader LIMIT forms. Multi-term
+syntax is conservatively rejected before execution so secondary keys cannot be
+silently ignored; complete source-shaped lowering remains implementation work. Compounds
 and subqueries remain owned by their structural query-production gates.
 
 | Contract behavior | Pinned control/source | Implementation handoff |

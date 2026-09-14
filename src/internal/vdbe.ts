@@ -293,7 +293,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   let orderColumn:number|undefined,descending=false;
   if(orderAt>=0){
     const term=tokens[orderAt+2],next=tokens[orderAt+3]?.text.toUpperCase();
-    if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY result or column term is implemented",{unsupportedClassification:"temporary"});
+    const afterTerm=next==="ASC"||next==="DESC"?orderAt+4:orderAt+3;
+    // select.c consumes the complete ExprList and constructs one KeyInfo term for
+    // each ORDER expression. Until that lowering exists, reject any remaining
+    // token other than LIMIT instead of silently compiling only the first term.
+    if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT")||(tokens[afterTerm]&&tokens[afterTerm]!.text.toUpperCase()!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY result or column term is implemented",{unsupportedClassification:"temporary"});
     // resolve.c resolveOrderGroupBy first maps positive integer result ordinals
     // and result aliases onto the result ExprList, then resolves other names.
     // This tranche admits those identities only when they name a direct column;

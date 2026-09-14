@@ -649,8 +649,8 @@ capture map `resolve.c:resolveOrderGroupBy`/`resolveAsName`, `select.c` sorter-t
 and limit-register paths, `where.c` ordering decisions, `vdbe.c` sorter/counter/
 coercion opcodes, and `vdbeaux.c` record-key comparison to
 `run-order-limit-contract-ts.mjs`. The public test admits only current one-term
-direct resolution and checks broader forms as typed temporary unsupported except the currently admitted
-multi-term path, whose public pinned-result assertion exposes its wrong secondary-key
-order. These 24 contract cases are outside `stage3-relational-working-state` accounting;
+direct resolution and checks broader forms, including multi-term input, as typed temporary unsupported;
+the compiler rejects them before execution rather than silently ignoring secondary
+keys. These 24 contract cases are outside `stage3-relational-working-state` accounting;
 that denominator remains exactly 1/18 until successful public assertions are
 explicitly promoted. Compounds/subqueries remain structural-gate work.
