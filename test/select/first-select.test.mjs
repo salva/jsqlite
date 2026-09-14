@@ -203,6 +203,29 @@ test("lazy storage failures cross one public mapping boundary and retain lifecyc
   usable.finalize(); malformedStatement.finalize(); malformedDb.close();
 });
 
+test("lazy execution mapper preserves public and arbitrary non-storage errors", async () => {
+  const run = error => {
+    const cursor={first(){throw error;},next(){return false;},payloadChunks(){return [][Symbol.iterator]();}};
+    const program=Object.freeze({
+      ops:Object.freeze([{code:"OpenRead",p1:2},{code:"Rewind",p2:2},{code:"Halt"}]),
+      registers:0, encoding:"utf-8", parameters:Object.freeze([]), columns:Object.freeze([]),
+      database:{tableScanCursor(){return cursor;}}, maxWorkUnits:100,
+    });
+    return new VdbeStatement(program,()=>{},()=>()=>{},()=>{});
+  };
+
+  const publicError=new JSQLiteError("limit","already public");
+  const publicStatement=run(publicError);
+  await assert.rejects(publicStatement.step(),error=>error===publicError);
+  assert.throws(()=>publicStatement.finalize(),error=>error===publicError);
+
+  const rangeError=new RangeError("programmer range failure");
+  const rangeStatement=run(rangeError);
+  await assert.rejects(rangeStatement.step(),error=>error===rangeError);
+  assert.throws(()=>rangeStatement.reset(),error=>error===rangeError);
+  rangeStatement.finalize();
+});
+
 test("connection admission rejects every overlap while a VM is held at a real host yield", async () => {
   const db=await openBytes("storage-p4096");
   const scan=db.prepare("SELECT k FROM storage_values WHERE i=999999").statement;
