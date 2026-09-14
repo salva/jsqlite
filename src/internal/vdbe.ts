@@ -301,7 +301,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     let resultIndex=-1;
     if(term.kind==="integer"){
       const ordinal=BigInt(term.text);
-      if(ordinal<1n||ordinal>BigInt(projected.length))throw new JSQLiteError("sqlite",`${ordinal}th ORDER BY term out of range - should be between 1 and ${projected.length}`,{code:1});
+      if(ordinal<1n||ordinal>BigInt(projected.length))throw new JSQLiteError("sqlite",`1st ORDER BY term out of range - should be between 1 and ${projected.length}`,{code:1});
       resultIndex=Number(ordinal-1n);
     }else resultIndex=projected.findIndex(x=>sqliteIdentifierEqual(x.name,sqlName(term.text)));
     if(resultIndex>=0){

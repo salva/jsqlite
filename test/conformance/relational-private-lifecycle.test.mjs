@@ -15,7 +15,7 @@ test('ORDER BY resolves direct result aliases and ordinals before table names',a
   db=await openRelational(bridge);
   assert.deepEqual(await run('SELECT x AS z FROM t1 ORDER BY z LIMIT 2'),[0n,1n]);
   assert.deepEqual(await run('SELECT x FROM t1 ORDER BY 1 DESC LIMIT 2'),[31n,30n]);
-  assert.throws(()=>db.prepare('SELECT x FROM t1 ORDER BY 2'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message==='2th ORDER BY term out of range - should be between 1 and 1');
+  assert.throws(()=>db.prepare('SELECT x FROM t1 ORDER BY 2'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message==='1st ORDER BY term out of range - should be between 1 and 1');
  } finally {
   try{statement?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
