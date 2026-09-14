@@ -305,27 +305,75 @@
     }
   },
   "cancellation": {
-    "phase": "prepare",
+    "phase": "step",
     "resultCode": 9,
     "primaryCode": 9,
     "message": "interrupted",
     "progressCallbacks": 1
   },
-  "functionCleanup": {
-    "phase": "step",
-    "resultCode": 1,
-    "primaryCode": 1,
-    "message": "primary boom",
-    "eventsBeforeClose": [
-      "call"
-    ],
-    "eventsAfterClose": [
-      "call",
-      "destroy"
-    ]
+  "resultCleanup": {
+    "replacementByError": {
+      "phase": "step",
+      "resultCode": 1,
+      "primaryCode": 1,
+      "message": "primary boom",
+      "eventsAfterFailureFinalize": [
+        "call-error",
+        "result-destroy"
+      ]
+    },
+    "reset": {
+      "before": [
+        "call-error",
+        "result-destroy",
+        "call-value"
+      ],
+      "after": [
+        "call-error",
+        "result-destroy",
+        "call-value",
+        "result-destroy"
+      ]
+    },
+    "finalize": {
+      "before": [
+        "call-error",
+        "result-destroy",
+        "call-value",
+        "result-destroy",
+        "call-value"
+      ],
+      "after": [
+        "call-error",
+        "result-destroy",
+        "call-value",
+        "result-destroy",
+        "call-value",
+        "result-destroy"
+      ]
+    },
+    "registrationClose": {
+      "before": [
+        "call-error",
+        "result-destroy",
+        "call-value",
+        "result-destroy",
+        "call-value",
+        "result-destroy"
+      ],
+      "after": [
+        "call-error",
+        "result-destroy",
+        "call-value",
+        "result-destroy",
+        "call-value",
+        "result-destroy",
+        "registration-destroy"
+      ]
+    }
   },
   "notes": {
     "timeout": "Deadline behavior is represented only by the progress/cancellation boundary; wall-clock timing is intentionally not asserted.",
-    "hostRegistration": "Development oracle only; no product registration API."
+    "hostRegistration": "Development oracle only; no product registration API. Registration teardown is distinct from result-Mem cleanup."
   }
 }

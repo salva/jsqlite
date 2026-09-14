@@ -37,12 +37,24 @@ d=opendb();old=L.sqlite3_limit(d,0,40);limit=run(d,"SELECT replace('aaaaaaaaaa',
 # Progress callback supplies deterministic cancellation/work-boundary evidence.
 d=opendb();calls=C.c_int(0);PROG=C.CFUNCTYPE(C.c_int,P)
 def stop(_):calls.value+=1;return 1
-cb=PROG(stop);L.sqlite3_progress_handler.argtypes=[P,C.c_int,PROG,P];L.sqlite3_progress_handler(d,1,cb,None);cancel=run(d,"WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100000) SELECT sum(x) FROM c");cancel['progressCallbacks']=calls.value;L.sqlite3_close(d)
-# Destructor and first-error evidence from development-only registration.
+sql="WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100000) SELECT sum(x) FROM c";rc,cs=prep(d,sql);assert rc==OK
+cb=PROG(stop);L.sqlite3_progress_handler.argtypes=[P,C.c_int,PROG,P];L.sqlite3_progress_handler(d,1,cb,None);rc=L.sqlite3_step(cs);cancel={'phase':'step','resultCode':rc,'primaryCode':rc&255,'message':L.sqlite3_errmsg(d).decode(),'progressCallbacks':calls.value};L.sqlite3_finalize(cs);L.sqlite3_close(d)
+# Distinguish registration teardown from result-Mem destructor lifecycle.
 d=opendb();events=[];FUNC=C.CFUNCTYPE(None,P,C.c_int,C.POINTER(P));DEST=C.CFUNCTYPE(None,P)
-def boom(ctx,n,args):events.append('call');L.sqlite3_result_error(ctx,b'primary boom',-1)
-def destroy(p):events.append('destroy')
-fcb=FUNC(boom);dcb=DEST(destroy);L.sqlite3_create_function_v2.argtypes=[P,C.c_char_p,C.c_int,C.c_int,P,FUNC,P,P,DEST];assert L.sqlite3_create_function_v2(d,b'evidence_boom',0,1,None,fcb,None,None,dcb)==OK
-ferr=run(d,'SELECT evidence_boom()');ferr['eventsBeforeClose']=events.copy();assert L.sqlite3_close(d)==OK;ferr['eventsAfterClose']=events.copy()
-out={'schema':'jsqlite-expression-function-boundaries/1','sourceId':SOURCE,'credit':'no-credit-native-harness','encodingMatrix':enc,'lengthLimit':{'limit':40,'outcome':limit},'cancellation':cancel,'functionCleanup':ferr,'notes':{'timeout':'Deadline behavior is represented only by the progress/cancellation boundary; wall-clock timing is intentionally not asserted.','hostRegistration':'Development oracle only; no product registration API.'}}
+buffers=[]
+def result(ctx,label):
+ b=C.create_string_buffer(label.encode());buffers.append(b);L.sqlite3_result_text(ctx,C.cast(b,P),-1,result_destroy)
+def rd(p):events.append('result-destroy')
+result_destroy=DEST(rd);L.sqlite3_result_text.argtypes=[P,P,C.c_int,DEST];L.sqlite3_result_text.restype=None
+def boom(ctx,n,args):events.append('call-error');result(ctx,'temporary');L.sqlite3_result_error(ctx,b'primary boom',-1)
+def value(ctx,n,args):events.append('call-value');result(ctx,'value')
+def regdestroy(p):events.append('registration-destroy')
+fboom=FUNC(boom);fvalue=FUNC(value);regd=DEST(regdestroy);L.sqlite3_create_function_v2.argtypes=[P,C.c_char_p,C.c_int,C.c_int,P,FUNC,P,P,DEST]
+assert L.sqlite3_create_function_v2(d,b'evidence_boom',0,1,None,fboom,None,None,regd)==OK
+assert L.sqlite3_create_function_v2(d,b'evidence_value',0,1,None,fvalue,None,None,DEST())==OK
+ferr=run(d,'SELECT evidence_boom()');ferr['eventsAfterFailureFinalize']=events.copy()
+rc,rs=prep(d,'SELECT evidence_value()');assert rc==OK and L.sqlite3_step(rs)==ROW;before=events.copy();assert L.sqlite3_reset(rs)==OK;after_reset=events.copy();assert L.sqlite3_step(rs)==ROW;after_restep=events.copy();assert L.sqlite3_finalize(rs)==OK;after_finalize=events.copy()
+assert L.sqlite3_close(d)==OK;after_close=events.copy()
+cleanup={'replacementByError':ferr,'reset':{'before':before,'after':after_reset},'finalize':{'before':after_restep,'after':after_finalize},'registrationClose':{'before':after_finalize,'after':after_close}}
+out={'schema':'jsqlite-expression-function-boundaries/1','sourceId':SOURCE,'credit':'no-credit-native-harness','encodingMatrix':enc,'lengthLimit':{'limit':40,'outcome':limit},'cancellation':cancel,'resultCleanup':cleanup,'notes':{'timeout':'Deadline behavior is represented only by the progress/cancellation boundary; wall-clock timing is intentionally not asserted.','hostRegistration':'Development oracle only; no product registration API. Registration teardown is distinct from result-Mem cleanup.'}}
 print(json.dumps(out,indent=2,ensure_ascii=False))

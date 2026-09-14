@@ -7,6 +7,9 @@ for e in x['encodingMatrix']:
  assert set(e['parameters'])=={'utf8','utf16le','utf16be'}
  assert all('rows' in v for v in [e['column'],*e['parameters'].values()])
 assert x['lengthLimit']['outcome']['primaryCode']==18
-assert x['cancellation']['primaryCode']==9 and x['cancellation']['progressCallbacks']>=1
-assert x['functionCleanup']['message']=='primary boom' and x['functionCleanup']['eventsBeforeClose']==['call'] and x['functionCleanup']['eventsAfterClose']==['call','destroy']
-print(json.dumps({'encodings':3,'parameterEncodings':3,'limit':18,'cancel':9,'cleanupOnce':True},separators=(',',':')))
+assert x['cancellation']['phase']=='step' and x['cancellation']['primaryCode']==9 and x['cancellation']['progressCallbacks']>=1
+c=x['resultCleanup']; assert c['replacementByError']['message']=='primary boom' and c['replacementByError']['eventsAfterFailureFinalize']==['call-error','result-destroy']
+assert c['reset']['after']==c['reset']['before']+['result-destroy']
+assert c['finalize']['after']==c['finalize']['before']+['result-destroy']
+assert c['registrationClose']['after']==c['registrationClose']['before']+['registration-destroy']
+print(json.dumps({'encodings':3,'parameterEncodings':3,'limit':18,'stepCancel':9,'replacementResetFinalizeCleanup':True,'registrationTeardownSeparate':True},separators=(',',':')))
