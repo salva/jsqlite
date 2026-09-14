@@ -72,6 +72,39 @@ test("PINNED-NATIVE vdbeMemRenderNum renders both IEEE zero payloads canonically
   }
 });
 
+test("PINNED-NATIVE numericType remains distinct from affinity and INTEGER cast", () => {
+  // vdbe.c computeNumericType accepts a numeric prefix and preserves decimal or
+  // exponent inputs as REAL. It computes into a caller-private value here, so
+  // the source Mem must retain its TEXT class and exact encoded bytes.
+  for (const encoding of ["utf-8", "utf-16le", "utf-16be"]) {
+    for (const [input, expected] of [["12x", 12n], ["-2", -2n], ["1.0", 1], ["1e2", 100]]) {
+      const source = text(input, encoding);
+      const before = new Uint8Array(source.textBytes());
+      const numeric = source.numericTypeCopy();
+      assert.equal(memToPublicInitial(numeric), expected, `${encoding} numericType ${input}`);
+      assert.equal(numeric.initialStorageClass, input.includes(".") || input.includes("e") ? "real" : "integer");
+      assert.equal(source.initialStorageClass, "text");
+      assert.deepEqual(source.textBytes(), before);
+    }
+
+    // vdbemem.c sqlite3VdbeIntValue instead consumes only the signed decimal
+    // prefix. These neighbors prevent reconflating CAST with numericType.
+    for (const [input, expected] of [["1e2", 1n], ["123e+5", 123n], ["-123.9", -123n], ["x12", 0n]]) {
+      const value = text(input, encoding);
+      value.cast("integer", encoding);
+      assert.equal(memToPublicInitial(value), expected, `${encoding} INTEGER cast ${input}`);
+    }
+  }
+
+  // Arithmetic is a numericType caller: integral exponent spelling remains a
+  // REAL result instead of NUMERIC affinity's exact-integer storage class.
+  const left = text("1e2");
+  const zero = new Mem(); zero.setInt64(0n);
+  const result = arithmeticBinary("add", left, zero);
+  assert.equal(result.initialStorageClass, "real");
+  assert.equal(memToPublicInitial(result), 100);
+});
+
 test("UPSTREAM vdbemem/vdbe masks preserve caches or clear forms and retain subtype", () => {
   for (const make of [() => { const m=new Mem(); m.setInt64(12n); return m; }, () => { const m=new Mem(); m.setDouble(12.5); return m; }, () => { const m=new Mem(); m.setIntReal(12n); return m; }]) {
     const m=make(); m.setSubtype(7); m.markFromBind(); m.stringify("utf-8",false);
