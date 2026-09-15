@@ -649,15 +649,18 @@ capture map `resolve.c:resolveOrderGroupBy`/`resolveAsName`, `select.c` sorter-t
 and limit-register paths, `where.c` ordering decisions, `vdbe.c` sorter/counter/
 coercion opcodes, and `vdbeaux.c` record-key comparison to
 `run-order-limit-contract-ts.mjs`. The public test admits complete multi-term
-direct-column resolution: every alias/positive-ordinal/table fallback term reaches
-immutable `KeyInfo` with collation, direction, and NULL-order flags and participates
-in typed sorter comparison. The current implementation admits ORDER expressions and explicit COLLATE/NULLS terms; the temporary-unsupported and one-column descriptions above are historical `af6ee17`/foundation handoffs, not current behavior. Historically `3104d7a` exposed acceptance with one-term
+resolution: every alias/positive-ordinal/identical-result-expression/table-expression
+fallback term reaches immutable `KeyInfo` with collation, direction, and NULL-order
+flags and participates in typed sorter comparison. The current implementation admits
+ORDER expressions and explicit COLLATE/NULLS terms; the temporary-unsupported and
+one-column descriptions above are historical `af6ee17`/foundation handoffs, not
+current behavior. Historically `3104d7a` exposed acceptance with one-term
 `KeyInfo` risk, `af6ee17` added the conservative rejection, and `37fd90b` retained
 the pinned expected rows now exercised by the public repair. These 29 contract cases are outside `stage3-relational-working-state` accounting;
 that denominator remains exactly 1/18 until successful public assertions are
-explicitly promoted. The public runner makes exactly 33 statement attempts: 30
-admitted executions/error-phase checks and 3 expected typed structural rejections.
-Those include four distinct public collation attempts (declared NOCASE, explicit
+explicitly promoted. The public runner makes exactly 34 statement attempts: 30
+admitted executions/error-phase checks, 3 expected typed structural rejections,
+and 1 expected SQLite prepare error for an unknown collation. Those include four distinct public collation attempts (declared NOCASE, explicit
 BINARY, RTRIM, and NOCASE embedded-NUL/byte-length); this attempt count is test
 inventory, not relational credit. Compounds/subqueries remain structural-gate work.
 
