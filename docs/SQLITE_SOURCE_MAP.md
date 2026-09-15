@@ -703,5 +703,7 @@ resource/lifecycle rules and test matrix. This design proposes no exceptional
 algorithm substitution: the existing stable bounded TypeScript sorter is the
 browser-safe private-state implementation used by ordered producers, while the
 pinned 3.53.4 coroutine merge and operator transitions are to be translated.
-The accepted `bd33810` parser/schema baseline, `f1dbe61` gate, and current audit
-finding 1 establish ownership and honest rejection only, not runtime conformance.
+The accepted `bd33810` parser/schema baseline, `f1dbe61` foundation, completed
+native-gate commit `e1e6b91` (core 22/22 and boundary 12/12 exact recaptures), and
+current audit finding 1 establish ownership, oracle evidence, and honest rejection
+only—not runtime conformance or TS credit.

@@ -1285,12 +1285,13 @@ fixture parity.
 
 This remains a zero-credit design over the development-only
 `stage3-compound-values` contract: **22 declared / 22 native-matched / 15 public
-TS prepare attempts / 0 TS credits**. The accepted native gate at `f1dbe61` and
-its capture are evidence, not implementation. Current HEAD also confirms the
-revised audit finding 1: generated production ownership and the retained
-`hasCompound`/`hasValues` rejection are sound safety foundations. They are to be
-replaced at their owning reductions with structure, not bypassed by token
-reparsing, a catch-all evaluator, or a second parser.
+TS prepare attempts / 0 TS credits**. The accepted native foundation at `f1dbe61`
+and completed native-gate commit `e1e6b91` (core 22/22 and boundary 12/12 exact
+recaptures) are evidence, not implementation or TS credit. Current HEAD also
+confirms the revised audit finding 1: generated production ownership and the
+retained `hasCompound`/`hasValues` rejection are sound safety foundations. They
+are to be replaced at their owning reductions with structure, not bypassed by
+token reparsing, a catch-all evaluator, or a second parser.
 
 #### Immutable query graph and preparation contract
 
