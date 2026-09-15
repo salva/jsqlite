@@ -153,31 +153,51 @@ export class BtreeDatabase {
     return output;
   }
   tableSeek(root: number, key: bigint, bias: "ge" | "le"): { entry: TableEntry | null; exact: boolean } {
-    let pgno = root;
-    const path = new Set<number>();
-    for (let depth = 0; ; depth++) {
+    const maximum = (pgno: number, depth: number, path: Set<number>): TableEntry => {
       if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
       if (path.has(pgno)) corrupt("b-tree cycle");
       path.add(pgno);
-      const page = this.page(pgno, [0x05, 0x0d]);
-      if (page.type === 0x0d) {
-        const entries = page.cells.map((offset) => this.#payloadCell(page, offset, true) as TableEntry);
-        let lo = 0, hi = entries.length;
-        while (lo < hi) { const mid = (lo + hi) >>> 1; if (entries[mid]!.rowid < key) lo = mid + 1; else hi = mid; }
-        const exact = lo < entries.length && entries[lo]!.rowid === key;
-        const index = bias === "ge" ? lo : exact ? lo : lo - 1;
-        return { entry: index >= 0 && index < entries.length ? entries[index]! : null, exact };
-      }
-      let child = page.rightChild!;
-      for (const offset of page.cells) {
-        if (offset + 4 > this.usableSize) corrupt("truncated table interior cell");
-        let separator;
-        try { separator = decodeVarint(page.bytes, offset + 4, this.usableSize); }
-        catch { return corrupt("truncated table interior key"); }
-        if (BigInt.asIntN(64, separator.value) >= key) { child = be32(page.bytes, offset); break; }
-      }
-      pgno = child;
-    }
+      try {
+        const page = this.page(pgno, [0x05, 0x0d]);
+        if (page.type === 0x0d) {
+          if (page.cells.length === 0) return corrupt("empty table leaf");
+          return this.#payloadCell(page, page.cells.at(-1)!, true) as TableEntry;
+        }
+        return maximum(page.rightChild!, depth + 1, path);
+      } finally { path.delete(pgno); }
+    };
+    const descend = (pgno: number, depth: number, path: Set<number>): { entry: TableEntry | null; exact: boolean } => {
+      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
+      if (path.has(pgno)) corrupt("b-tree cycle");
+      path.add(pgno);
+      try {
+        const page = this.page(pgno, [0x05, 0x0d]);
+        if (page.type === 0x0d) {
+          const entries = page.cells.map((offset) => this.#payloadCell(page, offset, true) as TableEntry);
+          let lo = 0, hi = entries.length;
+          while (lo < hi) { const mid = (lo + hi) >>> 1; if (entries[mid]!.rowid < key) lo = mid + 1; else hi = mid; }
+          const exact = lo < entries.length && entries[lo]!.rowid === key;
+          const index = bias === "ge" ? lo : exact ? lo : lo - 1;
+          return { entry: index >= 0 && index < entries.length ? entries[index]! : null, exact };
+        }
+        let childIndex = page.cells.length;
+        for (let i = 0; i < page.cells.length; i++) {
+          const offset = page.cells[i]!;
+          if (offset + 4 > this.usableSize) corrupt("truncated table interior cell");
+          let separator;
+          try { separator = decodeVarint(page.bytes, offset + 4, this.usableSize); }
+          catch { return corrupt("truncated table interior key"); }
+          if (BigInt.asIntN(64, separator.value) >= key) { childIndex = i; break; }
+        }
+        const child = childIndex < page.cells.length
+          ? be32(page.bytes, page.cells[childIndex]!) : page.rightChild!;
+        const nested = descend(child, depth + 1, path);
+        if (nested.entry !== null || bias === "ge" || childIndex === 0) return nested;
+        const preceding = be32(page.bytes, page.cells[childIndex - 1]!);
+        return { entry: maximum(preceding, depth + 1, path), exact: false };
+      } finally { path.delete(pgno); }
+    };
+    return descend(root, 0, new Set());
   }
   indexSeek(root: number, compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"):
     { entry: IndexEntry | null; exact: boolean } {

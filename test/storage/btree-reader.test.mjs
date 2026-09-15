@@ -53,6 +53,34 @@ function writeU32(image, offset, value) {
   image[offset + 2] = value >>> 8;
   image[offset + 3] = value;
 }
+function sparseMultilevelTable(image) {
+  const changed = image.slice(0, 7 * 512);
+  changed.fill(0, 512);
+  writeU32(changed, 28, 7);
+  const initializePage = (pageNumber, type, cells, rightChild = 0) => {
+    const offset = databasePageOffset(changed, pageNumber);
+    changed[offset] = type;
+    changed[offset + 3] = cells.length >>> 8;
+    changed[offset + 4] = cells.length;
+    let content = 512;
+    for (let i = cells.length - 1; i >= 0; i--) {
+      content -= cells[i].length;
+      changed.set(cells[i], (pageNumber - 1) * 512 + content);
+      changed[offset + (type === 0x05 ? 12 : 8) + i * 2] = content >>> 8;
+      changed[offset + (type === 0x05 ? 12 : 8) + i * 2 + 1] = content;
+    }
+    changed[offset + 5] = content >>> 8;
+    changed[offset + 6] = content;
+    if (type === 0x05) writeU32(changed, offset + 8, rightChild);
+  };
+  initializePage(2, 0x05, [], 3);
+  initializePage(3, 0x05, [Uint8Array.of(0, 0, 0, 4, 10)], 5);
+  initializePage(4, 0x05, [], 6);
+  initializePage(5, 0x05, [], 7);
+  initializePage(6, 0x0d, [Uint8Array.of(0, 10)]);
+  initializePage(7, 0x0d, [Uint8Array.of(0, 20)]);
+  return changed;
+}
 function corruptPageType(image, pageNumber) {
   const changed = image.slice();
   changed[databasePageOffset(changed, pageNumber)] = 0xff;
@@ -110,6 +138,29 @@ test("interior and leaf index entries traverse in order in both directions and s
   const reverse = [];
   do reverse.push(indexTuple(cursor.payload(), database.encoding)); while (cursor.previous());
   assert.deepEqual(reverse, [...tuples].reverse());
+});
+
+test("sparse multi-level table seek crosses a child boundary without materializing the tree", async (t) => {
+  const image = sparseMultilevelTable(await bytes());
+  const expectations = [
+    [10n, "ge", true, 10n], [10n, "le", true, 10n],
+    [15n, "ge", false, 20n], [15n, "le", false, 10n],
+    [20n, "ge", true, 20n], [20n, "le", true, 20n],
+    [9n, "le", false, null], [21n, "ge", false, null],
+  ];
+  for (const [key, bias, exact, rowid] of expectations) {
+    const cursor = openBtreeDatabase(image).tableCursor(2);
+    assert.equal(cursor.seek(key, bias), exact, `${key} ${bias}`);
+    assert.equal(cursor.valid, rowid !== null, `${key} ${bias} validity`);
+    if (rowid !== null) assert.equal(cursor.rowid, rowid, `${key} ${bias} rowid`);
+  }
+
+  await t.test("fallback path still enforces depth and corruption", () => {
+    const limited = openBtreeDatabase(image, { maxBtreeDepth: 2 }).tableCursor(2);
+    assert.throws(() => limited.seek(15n, "le"), /maxBtreeDepth/);
+    const broken = openBtreeDatabase(corruptPageType(image, 6)).tableCursor(2);
+    assert.throws(() => broken.seek(15n, "le"), BtreeFormatError);
+  });
 });
 
 test("table and index seek descend only through the selected pages", async (t) => {

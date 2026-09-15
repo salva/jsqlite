@@ -59,7 +59,19 @@ enforcement in the read-only engine.
 
 ### 3. B-tree seek algorithm replacement
 
-**Current repaired label (working tree over HEAD `303a8746b35df03f233c78a46fa668507bdb794d`): corrected; focused validation passing.**
+**Revision 2026-09-15 ([[card:card-d-e]], integrated descendant of card-owned `97916d472406df267b00e33b07a86639a581e0dd`): corrected including sparse table LE ancestor fallback.**
+
+Review v12 found that the first page-local repair could return an invalid table
+cursor for LE in a gap between adjacent child ranges. The translated seek now
+retains its selected-page ancestry and, when the selected subtree has no local
+predecessor, descends only the preceding subtree's right edge to its maximum,
+matching the applicable `sqlite3BtreeTableMoveto` cursor-stack behavior without
+full materialization. A deterministic source-format, three-level sparse table
+with exact bigint rowids 10 and 20 covers exact and inexact GE/LE at the boundary,
+below/above bounds, fallback depth and corruption. The earlier immutable-fixture
+off-path and cycle controls remain.
+
+**Superseded repaired label (working tree over HEAD `303a8746b35df03f233c78a46fa668507bdb794d`): corrected except sparse table LE fallback.**
 
 The baseline prediction was reproduced on the current implementation, not merely
 carried forward. `BtreeDatabase.tableCursor()` and `indexCursor()` still call

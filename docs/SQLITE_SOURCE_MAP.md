@@ -311,8 +311,9 @@ claim that the corpus was inventoried or that a test tranche is approved.
 
 ## Stage 1 public contract decisions
 
-[`api.md`](api.md) is now the singular public contract; `src/index.ts` is
-explicitly nonfunctional type scaffolding. The contract selects full-file bounded
+[`api.md`](api.md) is the singular public contract. `src/index.ts` now contains
+the implemented bounded runtime accumulated by later stages; that later work is
+not evidence or scope credit for this historical Stage 1 contract section. The contract selects full-file bounded
 Fetch acquisition, synchronous prepare/local accessors, asynchronously chunked
 step, copied public blobs, UTF-8 byte tail offsets plus exact suffixes, stable
 initial column types, legacy busy close plus explicit deferred zombie close, and
@@ -333,8 +334,10 @@ forward `tableScanCursor`, but `tableCursor`/`indexCursor` do **not** yet map pi
 `src/btree.c:sqlite3BtreeTableMoveto` (5805-6034) or
 `sqlite3BtreeIndexMoveto` (6036-6183). They recursively materialize every table or
 index descriptor through `readTable`/`readIndex`, then binary-search the array.
-This was reproduced as a fidelity gap and is corrected in the current working
-tree. Table/index seek now descends one selected child per interior page and keeps
+This was reproduced as a fidelity gap and was first corrected by card-owned commit
+`9ed1c0ca7eab68f18d01c7c57e9feb8a96b0e762` (with evidence follow-ups
+`fd56a284fb8607e352d028459bb877a624a52940` and
+`97916d472406df267b00e33b07a86639a581e0dd`). Table/index seek descends one selected child per interior page and keeps
 only the positioned descriptor; complete bidirectional movement triggers deferred
 full traversal only when requested. The focused mutation of page 141 now proves
 both table and index minimum seeks ignore an unrelated malformed rightmost
@@ -351,11 +354,9 @@ owner/close invalidation, and movement-invalidated borrows.
 
 ## Bounded discrepancies and gaps
 
-No executing SQL engine exists yet. The Stage 1 API decisions are contract
-completion, not a compatibility claim. Fetch, format/storage reading, UTF-8 SQL
-tokenization, generated Lemon parsing/reductions, exact tails and bounded internal
-schema discovery now exist. Later slices must implement resolution, compilation,
-planner/VDBE execution, public statement handles and conversions, automatic
+The current integrated tree includes a later bounded first-SELECT execution slice.
+That descendant work is outside this storage card and is not credited here.
+Broader resolution, compilation, planner/VDBE execution, public statement handles and conversions, automatic
 reprepare, and broader conformance. Numeric execution limits need implementation
 evidence before publication.
 Temporary gaps must throw `unsupported`; permanent exclusions remain only those in

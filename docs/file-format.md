@@ -24,7 +24,9 @@ Because the complete file is resident, Pager/PCache translation is currently a
 checked read-only view over one copied byte array, not asynchronous page I/O, a
 reference-counted cache, or a journaling cache. `ImmutableStorage.read()`/`page()`
 return subarray borrows and reject access after owner close. `BtreeDatabase`
-materializes ordered cell descriptors when opening a cursor; payload assembly is
+retains only the root when opening a cursor. Seek descends selected pages and
+retains one positioned cell descriptor; first/last/next/previous defer complete
+ordered traversal until movement requires it. Payload assembly is
 an owned copy, while its explicit cursor borrow accessor checks both cursor
 movement generation and owner liveness. No `PageRef`, reader reference count,
 parsed-page eviction, or statement-dependent close mechanism is implemented, so
