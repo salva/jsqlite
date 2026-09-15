@@ -51,7 +51,8 @@ test('ORDER expressions, explicit collation/NULL placement, and LIMIT coercion f
    ['SELECT a FROM t2 ORDER BY a DESC NULLS FIRST',[[null],[null],[67890n],[345n],[1n]]],
   ]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
   for(const id of ['limit-real-integral','limit-text-integral']){const c=byId.get(id);statement=db.prepare(c.sql).statement;assert.deepEqual(await rows(statement),expectedRows(id),id);statement.finalize();statement=undefined}
-  for(const [sql,expected] of [['SELECT x FROM t1 ORDER BY x LIMIT 0',[]],['SELECT x FROM t1 ORDER BY x LIMIT -1 OFFSET 2',Array.from({length:30},(_,i)=>[BigInt(i+2)])],['SELECT x FROM t1 ORDER BY x LIMIT 2 OFFSET -3',[[0n],[1n]]]]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
+  for(const [sql,expected] of [['SELECT x FROM t1 ORDER BY x LIMIT 0',[]],['SELECT x FROM t1 ORDER BY x LIMIT -1 OFFSET 2',Array.from({length:30},(_,i)=>[BigInt(i+2)])],['SELECT x FROM t1 ORDER BY x LIMIT 2 OFFSET -3',[[0n],[1n]]],['SELECT DISTINCT a FROM t2 WHERE a IS NOT NULL LIMIT 2',[[1n],[345n]]],['SELECT DISTINCT a FROM t2 WHERE a IS NOT NULL ORDER BY a LIMIT 1 OFFSET 1',[[345n]]]]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
+  for(const [sql,expected] of [['SELECT 1 LIMIT 1 OFFSET 1',[]],['SELECT 1 LIMIT 1 OFFSET -1',[[1n]]]]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
   // select.c:computeLimitRegisters runs before scalar result production. The
   // pinned native case proves LIMIT 0 bypasses this observable overflow. Reset
   // must preserve that branch and finalize must remain clean.

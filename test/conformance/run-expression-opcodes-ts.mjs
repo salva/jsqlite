@@ -18,6 +18,6 @@ assert.ok(opcodes("SELECT coalesce(1,abs(-9223372036854775808))").includes("NotN
 assert.ok(opcodes("SELECT CASE WHEN 1 THEN 2 ELSE abs(-9223372036854775808) END").includes("Goto"));
 console.log(JSON.stringify({schema:"jsqlite-expression-opcodes-ts/1",outcome:"pass",checks:["Function","CollSeq","ShortCircuit","NotNull","Goto","no-Expression"]}));
 const limitNames=opcodes("SELECT 1 LIMIT '2' OFFSET 1");
-for(const name of ["MustBeInt","OffsetLimit","IfNot","ResultRow","DecrJumpZero"]) assert.ok(limitNames.includes(name),`LIMIT opcode ${name}: ${limitNames}`);
+for(const name of ["MustBeInt","OffsetLimit","IfNot","IfPos","ResultRow","DecrJumpZero"]) assert.ok(limitNames.includes(name),`LIMIT opcode ${name}: ${limitNames}`);
 assert.ok(!limitNames.includes("ComputeLimit"),`synthetic LIMIT opcode survived: ${limitNames}`);
 assert.ok(limitNames.indexOf("MustBeInt")<limitNames.indexOf("ResultRow"));

@@ -264,10 +264,12 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   const resultStart = allocate();
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;
+  const offsetSkip=limit?.offset===undefined?undefined:ops.length;
+  if(limit?.offset!==undefined)ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});
   ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length });
   if(limit)ops.push({code:"DecrJumpZero",p1:limit.count,p2:ops.length+1});
   ops.push({ code: "Halt" });
-  if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length-1;
+  if(limit){const halt=ops.length-1;(ops[limit.ifZero] as {p2:number}).p2=halt;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=halt;}
   return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
