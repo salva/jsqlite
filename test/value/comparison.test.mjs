@@ -78,6 +78,8 @@ test("BINARY is bytewise; NOCASE folds ASCII only; RTRIM removes only trailing 0
   assert.equal(compareBuiltinText("nocase", bytes(0x41, 0x62), bytes(0x61, 0x42), "utf-8"), 0);
   assert.equal(compareBuiltinText("rtrim", bytes(0x61, 0x20, 0x20), bytes(0x61), "utf-8"), 0);
   assert.equal(compareBuiltinText("rtrim", bytes(0x61, 0xc2, 0xa0), bytes(0x61), "utf-8"), 1);
+  assert.equal(compareBuiltinText("nocase", new Uint8Array([0x61,0,0x62]), new Uint8Array([0x61,0,0x63]), "utf-8"), 0, "NOCASE stops at NUL for equal byte lengths");
+  assert.equal(compareBuiltinText("nocase", new Uint8Array([0x61,0]), new Uint8Array([0x61,0,0x62]), "utf-8"), -1, "NOCASE uses full byte lengths after NUL prefix tie");
   // NOCASE/RTRIM callbacks are UTF-8 only; UTF-16 values translate first.
   assert.equal(compareBuiltinText("nocase", bytes(0x41, 0), bytes(0x61, 0), "utf-16le"), 0);
   assert.equal(compareBuiltinText("rtrim", bytes(0, 0x61, 0, 0x20), bytes(0, 0x61), "utf-16be"), 0);

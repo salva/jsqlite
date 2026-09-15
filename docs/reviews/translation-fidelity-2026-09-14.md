@@ -263,13 +263,18 @@ semantic owner and its callers rather than creating one universal conversion.
 
 ### 9. NOCASE embedded-NUL comparison
 
-**Current static label: unchanged.**
+**Current revision: corrected and publicly exercised.**
 
-Baseline `src/internal/comparison.ts:103-109` continues after embedded NUL.
-SQLite's `sqlite3StrNICmp` stops there and then applies byte-length tie-breaking:
-equal-length `a\0b` and `a\0c` should compare equal under NOCASE, but the baseline
-differs. Current embedded-NUL coverage is BINARY-only. Protect the shared NOCASE
-owner with a length-aware typed fixture, not source-language string truncation.
+Baseline `src/internal/comparison.ts:103-109` continued after embedded NUL. Pinned
+`src/main.c:nocaseCollatingFunc` calls `sqlite3StrNICmp` for the bounded shorter
+length; `src/util.c:sqlite3_strnicmp` stops at NUL, after which the collation uses
+full byte-length tie-breaking. Shared `nocaseCompare` now preserves this exact
+rule without truncating the stored `Mem`/JS string. Direct comparison tests cover
+equal-length `a\0b`/`a\0c` equality and unequal-length ordering; the public ORDER
+contract makes that equality observable through a distinct secondary key and also
+executes declared NOCASE, explicit BINARY, and RTRIM expectations. Finding 9 is
+closed at the current revision; the historical baseline prediction is retained
+above only as provenance.
 
 ## Priority C — documentation and evidence precision
 

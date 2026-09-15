@@ -80,6 +80,23 @@ test('public ORDER matrix preserves NULL, numeric, TEXT, and BLOB storage classe
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
+test('public ORDER collations distinguish declared NOCASE, explicit BINARY, RTRIM, and NUL length rules',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-where`));
+  const cases=[
+   ['declared NOCASE','public-declared-nocase'],
+   ['explicit BINARY','public-explicit-binary'],
+   ['explicit RTRIM','public-explicit-rtrim'],
+   // main.c:nocaseCollatingFunc/sqlite3StrNICmp stop at NUL, then compare
+   // full byte lengths. Equal-length a\0b/a\0c therefore tie on NOCASE and b
+   // DESC decides their order; the shorter a\0 remains first.
+   ['NOCASE embedded NUL','public-nocase-embedded-nul'],
+  ];
+  for(const [label,id] of cases){const contract=byId.get(id);statement=db.prepare(contract.sql).statement;assert.deepEqual([statement.columnMetadata(0),statement.columnMetadata(1)],[{name:'b',declaredType:'INTEGER',database:'main',table:'t',origin:'b'},label==='declared NOCASE'||label==='explicit BINARY'?{name:'a',declaredType:'TEXT',database:'main',table:'t',origin:'a'}:{name:'k',declaredType:null,database:null,table:null,origin:null}],label);assert.deepEqual(await rows(statement),expectedRows(id),label);statement.finalize();statement=undefined}
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});
+
 test('ORDER result aliases resolve through explicit COLLATE while retaining that collation',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
  try{

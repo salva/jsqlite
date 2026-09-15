@@ -23,6 +23,9 @@
     "empty": [],
     "fixture-t1": [
       "CREATE TABLE t1(x INT,y INT); INSERT INTO t1 VALUES(0,9),(1,8),(2,0),(3,1),(4,2),(5,3),(6,4),(7,5),(8,6),(9,7),(10,8),(11,9),(12,0),(13,1),(14,2),(15,3),(16,4),(17,5),(18,6),(19,7),(20,8),(21,9),(22,0),(23,1),(24,2),(25,3),(26,4),(27,5),(28,6),(29,7),(30,8),(31,9);"
+    ],
+    "public-collation": [
+      "CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB); INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL);"
     ]
   },
   "cases": [
@@ -176,6 +179,54 @@
       "setup": "fixture-t1",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12",
+      "bindings": []
+    },
+    {
+      "id": "public-declared-nocase",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "public-collation",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT b,a FROM t ORDER BY a,b",
+      "bindings": []
+    },
+    {
+      "id": "public-explicit-binary",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "public-collation",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT b,a FROM t ORDER BY a COLLATE BINARY,b",
+      "bindings": []
+    },
+    {
+      "id": "public-explicit-rtrim",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "public-collation",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT b, CASE b WHEN 1 THEN 'a ' WHEN 2 THEN 'a' ELSE 'z' END AS k FROM t ORDER BY k COLLATE RTRIM,b DESC",
+      "bindings": []
+    },
+    {
+      "id": "public-nocase-embedded-nul",
+      "coverage": [
+        "collation",
+        "multi-term"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "public-collation",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT b,CASE b WHEN 1 THEN cast(x'610062' AS TEXT) WHEN 2 THEN cast(x'610063' AS TEXT) ELSE cast(x'6100' AS TEXT) END AS k FROM t ORDER BY k COLLATE NOCASE,b DESC",
       "bindings": []
     },
     {

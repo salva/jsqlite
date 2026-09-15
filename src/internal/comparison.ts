@@ -102,9 +102,13 @@ function byteCompare(left: Uint8Array, right: Uint8Array): -1 | 0 | 1 {
 function asciiFold(byte: number): number { return byte >= 0x41 && byte <= 0x5a ? byte + 0x20 : byte; }
 function nocaseCompare(left: Uint8Array, right: Uint8Array): -1 | 0 | 1 {
   const n = Math.min(left.byteLength, right.byteLength);
+  // main.c:nocaseCollatingFunc delegates the bounded prefix to
+  // sqlite3StrNICmp(), which stops when either byte is NUL, then uses the full
+  // byte lengths only when that prefix compares equal. NUL remains present in
+  // the Mem value; this is collation behavior, not host-string truncation.
   for (let i = 0; i < n; i++) {
     const a = asciiFold(left[i]!); const b = asciiFold(right[i]!);
-    if (a !== b) return a < b ? -1 : 1;
+    if (a !== b || a === 0 || b === 0) return a < b ? -1 : a > b ? 1 : sign(left.byteLength - right.byteLength);
   }
   return sign(left.byteLength - right.byteLength);
 }

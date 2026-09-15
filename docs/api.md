@@ -286,15 +286,22 @@ The pin is SQLite 3.53.4/source ID recorded in
 
 Permanent exclusions remain exactly those in SPEC: writes and transaction control,
 runtime native/C/WASM backends, extension/host callback registration, CLI/server
-surfaces, and sidecar recovery. The runtime now exposes a narrow compiled SQL
-slice: no-FROM integer/unary/parameter projections and one ordinary rowid-table
-projection plus integer-equality filtering. It preserves tails, result metadata,
-connection-encoded bindings, serialized async VM admission, and statement/close
-lifecycle through the public API. Temporary gaps remain broader resolver/planner
-and VDBE behavior including joins, functions, aggregates, windows, subqueries,
-CTEs, ordering/grouping/distinct, views, and general predicates. Internal storage
-or parser tests confer only their stated bounded evidence, not broader SQLite query
-compatibility.
+surfaces, and sidecar recovery. The public read-only SELECT subset currently admits:
+
+- bounded no-FROM scalar expressions and projection/filter over one ordinary rowid table;
+- `ORDER BY` with one or more comma-separated expression terms; each term may use a result alias, positive result ordinal, identical selected expression, or admitted table expression, followed by optional `COLLATE BINARY|NOCASE|RTRIM`, `ASC|DESC`, and `NULLS FIRST|LAST`;
+- the resolved expression/column collation when `COLLATE` is omitted, including declared column collation; all terms participate in typed SQLite storage-class/`Mem` comparison;
+- scalar `LIMIT expr`, `LIMIT expr OFFSET expr`, and `LIMIT offset, limit`. LIMIT/OFFSET are evaluated at first `step()`: INTEGER, integral REAL, and signed base-10 integral TEXT are accepted; other values and int64 overflow are code-20 datatype mismatch. Negative LIMIT is unlimited, negative OFFSET is zero, and LIMIT zero bypasses result/scan work after both LIMIT and OFFSET coercion.
+
+ORDER aliases follow SQLite alias precedence; positive ordinals are 1-based and
+out-of-range ordinals are prepare errors. Equal complete ORDER keys have no public
+deterministic-order guarantee. Compound SELECT, subqueries/CTEs, joins,
+GROUP/HAVING, aggregates/windows, views, indexes, `rowid`, and broader resolver/
+planner grammar remain temporary unsupported (unless separately admitted above).
+The runtime also preserves tails, result metadata, connection-encoded bindings,
+serialized async VM admission, and statement/close lifecycle through the public
+API. Internal storage or parser tests confer only their stated bounded evidence,
+not broader SQLite query compatibility.
 
 ### Tests-first expression/function boundary (not yet implemented)
 
@@ -302,4 +309,4 @@ compatibility.
 
 ### Audit and relational-foundation precision (2026-09-14)
 
-Public expression execution now reproduces the 14-case pinned typed audit, including numeric-prefix boolean/`abs`, REAL arithmetic classification, and INTEGER-cast prefix behavior. The lane remains explicitly zero-credit until conformance promotion. The integrated private relational state, `SeekGE`/`Next`, limits, accounting, and cleanup are foundations rather than a public guarantee of general ORDER BY, DISTINCT, LIMIT, compound, aggregate, or window support; the current relational manifest credits only its explicitly passing 1/18 case.
+Public expression execution now reproduces the 14-case pinned typed audit, including numeric-prefix boolean/`abs`, REAL arithmetic classification, and INTEGER-cast prefix behavior. The lane remains explicitly zero-credit until conformance promotion. Private relational state remains a foundation rather than a promise of general relational SQL; the public guarantee is only the exact ORDER BY/LIMIT/OFFSET subset stated above. General DISTINCT, compound, aggregate, window, join, and unsupported structural forms are not implied. The current relational manifest credits only its explicitly passing 1/18 case.
