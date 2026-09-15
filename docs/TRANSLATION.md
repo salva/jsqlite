@@ -1276,7 +1276,7 @@ accepted at first step; NULL, fractional/non-numeric text, and overflow report
 `SQLITE_MISMATCH` (20). Negative LIMIT means unlimited, negative OFFSET becomes
 zero. Matching `select.c:computeLimitRegisters`'s placement before result production and immediate zero test, scalar lowering emits LIMIT/OFFSET expression and coercion opcodes before deferred result-expression opcodes, while table lowering emits them before scan/sorter setup. The emitted `IfNot` jumps to the program halt target after both LIMIT and OFFSET have been successfully coerced when LIMIT is zero. Thus zero LIMIT skips failing or work-heavy result expressions and all table work, but an invalid OFFSET retains its execution-phase error. The pinned `SELECT abs(-9223372036854775808) LIMIT 0` native/public lifecycle regression distinguishes this ordering. Tests retain execution-phase errors
 and statement cleanup. Compounds and subqueries remain structural unsupported.
-The 25-case capture is a focused contract; its inventory does not alter relational
+The 29-case capture is a focused contract; its inventory does not alter relational
 accounting. Current machine accounting attempts/passes 3/18 and credits 2/18;
 the passing DISTINCT assertion remains no-credit pending exact UNIQUE-autoindex
 fixture parity.

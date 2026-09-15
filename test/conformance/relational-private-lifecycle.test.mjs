@@ -1,11 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
 import {open} from '../../src/index.ts';
 import {EphemeralIndexCursor,SorterCursor} from '../../src/internal/private-state.ts';
 import {JSQLiteError} from '../../src/index.ts';
+import {parseSql} from '../../src/internal/parse.ts';
+import {compileTableSelect,programControlTargets} from '../../src/internal/vdbe.ts';
+import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
+import {btreeFromStorage} from '../../src/internal/btree.ts';
+import {loadSchemaGraph} from '../../src/internal/schema.ts';
 
 async function openRelational(bridge){return openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`))}
 
@@ -65,6 +71,32 @@ test('public positive LIMIT plus OFFSET retains exactly the required candidate w
   statement.reset();assert.equal(await statement.step(),'row');assert.equal(statement.columnInteger(0),1n);statement.finalize();statement=undefined;
   const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+});
+
+test('unordered OFFSET continues the scan after filtering and DISTINCT',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ const run=async sql=>{statement=db.prepare(sql).statement;const rows=[];while(await statement.step()==='row')rows.push(statement.columnInteger(0));return rows};
+ try{
+  db=await openRelational(bridge);
+  assert.deepEqual(await run('SELECT x FROM t1 LIMIT 2 OFFSET 1'),[30n,29n]);
+  statement.reset();assert.deepEqual(await (async()=>{const rows=[];while(await statement.step()==='row')rows.push(statement.columnInteger(0));return rows})(),[30n,29n]);
+  statement.finalize();statement=undefined;
+  assert.deepEqual(await run('SELECT x FROM t1 LIMIT 2 OFFSET -3'),[31n,30n]);statement.finalize();statement=undefined;
+  assert.deepEqual(await run('SELECT DISTINCT a FROM t2 WHERE a IS NOT NULL LIMIT 2 OFFSET 1'),[345n,67890n]);
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+});
+
+test('unordered OFFSET and LIMIT targets name final Next and Halt labels',()=>{
+ const current=JSON.parse(fs.readFileSync('test/fixtures/CURRENT.json','utf8'));
+ const bytes=fs.readFileSync(`test/fixtures/generations/${current.generationId}/generated/expr-relational.db`);
+ const storage=ImmutableStorage.open(bytes),owner={[storageOwner]:storage};
+ try{
+  const parsed=parseSql('SELECT x FROM t1 LIMIT 1 OFFSET 1');assert.equal(parsed.statement?.kind,'select');
+  const program=compileTableSelect(parsed.statement,loadSchemaGraph(owner),btreeFromStorage(storage),100);
+  const targets=programControlTargets(program);
+  assert.equal(targets.find(x=>x.code==='IfPos')?.targetCode,'Next');
+  assert.equal(targets.find(x=>x.code==='DecrJumpZero')?.targetCode,'Halt');
+ }finally{storage.close()}
 });
 
 test('public multi-key sorter enforces entry and byte bounds atomically',async()=>{
