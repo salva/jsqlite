@@ -40,8 +40,10 @@ This adapts `pager.c/h` page acquisition and `pcache.c/h` fetch/release while om
 The internal known-root reader is now implemented in `src/internal/btree.ts` for
 format-3 table/index interior and leaf pages. It validates page type/range, cell
 count and pointer/content bounds, right-child pointers and touched cell extent.
-Tree reads enforce `maxBtreeDepth` and active-path cycle detection. The immutable
-reader materializes ordered cell descriptors when a cursor opens; movement changes
+Tree reads enforce `maxBtreeDepth` and active-path cycle detection. Cursor
+construction retains only the root. Seek visits selected pages and retains one
+positioned descriptor; complete ordered descriptor traversal is deferred until
+first/last/next/previous movement requires it. Movement changes
 an explicit generation, invalidating cursor borrows, while `payload()` returns an
 owned copy. Index interior records occur between their left and following subtree,
 unlike table interior separator keys. Table and caller-supplied index comparators
