@@ -48,7 +48,7 @@ type Op =
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number }
   | { readonly code: "SorterOpen"; readonly p1:number; readonly keyInfo:KeyInfo }
-  | { readonly code: "SorterInsert"; readonly p1:number; readonly key:number; readonly payload:number; readonly payloadCount:number }
+  | { readonly code: "SorterInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payload:number; readonly payloadCount:number }
   | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
   | { readonly code: "SorterData"; readonly p1:number; readonly p2:number; readonly count:number }
   | { readonly code: "SorterNext"; readonly p1:number; readonly p2:number }
@@ -56,6 +56,7 @@ type Op =
   | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "OffsetLimit"; readonly count:bigint; readonly offset:bigint }
+  | { readonly code: "ComputeLimit"; readonly count:number; readonly offset?:number; readonly zeroJump:number }
   | { readonly code: "Rewind"; readonly p2: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
@@ -151,7 +152,9 @@ function expressionName(expression: SelectNode["result"][number]): string {
 
 
 function rejectUnsupportedSelectClauses(select: SelectNode, relational = false): void {
-  if (select.hasGroupBy || select.hasHaving || (!relational && (select.hasDistinct || select.hasOrderBy || select.hasLimit)))
+  if (select.hasCompound || select.hasSubquery)
+    throw new JSQLiteError("unsupported", "compound SELECTs and subqueries are not implemented", { unsupportedClassification: "temporary" });
+  if (select.hasGroupBy || select.hasHaving || (!relational && (select.hasDistinct || select.hasOrderBy)))
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
 
@@ -234,10 +237,13 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   const allocate = () => ++maximum;
   const parameters: ParameterBuilder = { maximum: 0, names: [], named: new Map() };
   const expressions = select.result.map(expression => compileExpression(expression, ops, allocate, parameters));
+  let limitOp: number | undefined;
+  if(select.limit){const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
   const resultStart = allocate();
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;
   ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length }, { code: "Halt" });
+  if(limitOp!==undefined)(ops[limitOp] as {zeroJump:number}).zeroJump=ops.length-1;
   return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
@@ -290,37 +296,43 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   let registers = projected.length;
   const tokens=select.tokens,orderAt=tokens.findIndex(t=>t.text.toUpperCase()==="ORDER"),limitAt=tokens.findIndex(t=>t.text.toUpperCase()==="LIMIT");
-  let orderColumn:number|undefined,descending=false;
+  // resolve.c:resolveOrderGroupBy walks every ExprList item. Preserve that
+  // cardinality here so select.c:pushOntoSorter receives a complete key.
+  const orderTerms:{expression:Expression;resultIndex?:number;descending:boolean;nullsLarge:boolean}[]=[];
   if(orderAt>=0){
-    const term=tokens[orderAt+2],next=tokens[orderAt+3]?.text.toUpperCase();
-    const afterTerm=next==="ASC"||next==="DESC"?orderAt+4:orderAt+3;
-    // select.c consumes the complete ExprList and constructs one KeyInfo term for
-    // each ORDER expression. Until that lowering exists, reject any remaining
-    // token other than LIMIT instead of silently compiling only the first term.
-    if(!term||(next&&next!=="ASC"&&next!=="DESC"&&next!=="LIMIT")||(tokens[afterTerm]&&tokens[afterTerm]!.text.toUpperCase()!=="LIMIT"))throw new JSQLiteError("unsupported","only one resolved ORDER BY result or column term is implemented",{unsupportedClassification:"temporary"});
-    // resolve.c resolveOrderGroupBy first maps positive integer result ordinals
-    // and result aliases onto the result ExprList, then resolves other names.
-    // This tranche admits those identities only when they name a direct column;
-    // expression terms remain preserved as typed temporary-unsupported input.
-    let resultIndex=-1;
-    if(term.kind==="integer"){
-      const ordinal=BigInt(term.text);
-      if(ordinal<1n||ordinal>BigInt(projected.length))throw new JSQLiteError("sqlite",`1st ORDER BY term out of range - should be between 1 and ${projected.length}`,{code:1});
-      resultIndex=Number(ordinal-1n);
-    }else resultIndex=projected.findIndex(x=>sqliteIdentifierEqual(x.name,sqlName(term.text)));
-    if(resultIndex>=0){
-      const result=projected[resultIndex]!;
-      if(result.column===undefined)throw new JSQLiteError("unsupported","ORDER BY result expressions are not implemented",{unsupportedClassification:"temporary"});
-      orderColumn=result.column;
-    }else orderColumn=resolve([term]);
-    descending=next==="DESC";
+    for(let termNumber=0;termNumber<select.orderBy.length;termNumber++){
+      const term=select.orderBy[termNumber]!,leaf=term.expr.tokens;
+      const parsedOrderExpression=expressionFromReduction(term.expr.reduction!);
+      // resolve.c:resolveOrderGroupBy calls sqlite3ExprSkipCollateAndLikely()
+      // before testing aliases and ordinals. resolveAlias() then substitutes
+      // the result expression below the existing TK_COLLATE wrapper.
+      let orderIdentity=parsedOrderExpression;
+      while(orderIdentity.kind==="collate")orderIdentity=orderIdentity.value;
+      let resultIndex=-1;
+      if(orderIdentity.kind==="literal"&&typeof orderIdentity.value==="bigint"){
+        const ordinal=orderIdentity.value;
+        if(ordinal<1n||ordinal>BigInt(projected.length))throw new JSQLiteError("sqlite",`${termNumber+1}${termNumber===0?"st":termNumber===1?"nd":termNumber===2?"rd":"th"} ORDER BY term out of range - should be between 1 and ${projected.length}`,{code:1});
+        resultIndex=Number(ordinal-1n);
+      }else if(orderIdentity.kind==="column"&&!orderIdentity.name.includes("."))resultIndex=projected.findIndex(x=>sqliteIdentifierEqual(x.name,sqlName(orderIdentity.name)));
+      // resolve.c also reuses an identical result expression before ordinary
+      // name resolution. Token identity is sufficient for this generated slice.
+      if(resultIndex<0)resultIndex=select.result.findIndex(x=>x.tokens.map(t=>t.text).join(" ")===leaf.map(t=>t.text).join(" "));
+      let expression:Expression;
+      if(resultIndex>=0){
+        const resultExpression=projected[resultIndex]!.expression??resolveExpression(select.result[resultIndex]!);
+        const substitute=(node:Expression):Expression=>node.kind==="collate"?{...node,value:substitute(node.value)}:resultExpression;
+        expression=substitute(parsedOrderExpression);
+      }else expression=resolveExpression(term.expr);
+      const nullsLarge=term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false;
+      orderTerms.push({expression,...(resultIndex>=0?{resultIndex}:{}),descending:term.descending,nullsLarge});
+    }
   }
-  let limitCount:bigint|null=null,limitOffset=0n;
-  if(limitAt>=0){const count=tokens[limitAt+1];if(!count||count.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitCount=BigInt(count.text);const sep=tokens[limitAt+2]?.text.toUpperCase();if(sep===","){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer LIMIT is implemented",{unsupportedClassification:"temporary"});limitOffset=limitCount;limitCount=BigInt(n.text)}else if(sep==="OFFSET"){const n=tokens[limitAt+3];if(!n||n.kind!=="integer")throw new JSQLiteError("unsupported","only integer OFFSET is implemented",{unsupportedClassification:"temporary"});limitOffset=BigInt(n.text)}if(limitOffset<0n)limitOffset=0n}
+  const hasLimit=select.limit!==null;
   if(select.hasDistinct&&projected.some(x=>x.expression!==undefined))throw new JSQLiteError("unsupported","DISTINCT expressions are not implemented",{unsupportedClassification:"temporary"});
   const ops: Op[] = [];
-  if(limitCount!==null)ops.push({code:"OffsetLimit",count:limitCount,offset:limitOffset});
-  const sorterCursor=1,distinctCursor=2,keyInfo=orderColumn===undefined?null:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:sqliteAsciiFold(table.columns[orderColumn]!.collation??"binary") as BuiltinCollation,desc:descending}]});
+  let limitOp: number | undefined;
+  if(hasLimit){const count=compileExpressionTree(expressionFromReduction(select.limit!.reduction!),ops,()=>++registers),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,()=>++registers):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
+  const sorterCursor=1,distinctCursor=2,keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   ops.push({code:"OpenRead",p1:table.rootPage});
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:projected.map(x=>({collation:x.column===undefined?"binary":sqliteAsciiFold(table.columns[x.column]!.collation??"binary") as BuiltinCollation}))})});
@@ -334,12 +346,12 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const body=ops.length;
   projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
   if(select.hasDistinct){const found=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});(ops[found] as {jump:number}).jump=ops.length+(keyInfo?2:1)}
-  if(keyInfo){const key=++registers;ops.push({code:"Column",p1:orderColumn!,p2:key},{code:"SorterInsert",p1:sorterCursor,key,payload:1,payloadCount:projected.length});}
+  if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length});}
   else ops.push({code:"ResultRow",p1:1,p2:projected.length});
   const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
   if(keyInfo){const sortAt=ops.length-1;ops.splice(sortAt,0,{code:"SorterSort",p1:sorterCursor,emptyJump:sortAt+4},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length},{code:"ResultRow",p1:1,p2:projected.length},{code:"SorterNext",p1:sorterCursor,p2:sortAt+1});}
-  if(limitCount!==null) { /* OffsetLimit is emitted before cursor-open jump addresses are fixed. */ }
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
+  if(limitOp!==undefined){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limitOp] as {zeroJump:number}).zeroJump=halt;}
   const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
   return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
 }
@@ -424,9 +436,10 @@ export class VdbeStatement implements Statement {
         switch (op.code) {
           case "OpenRead": this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
           case "OffsetLimit": this.#limitCount=op.count<0n?null:op.count;this.#limitOffset=op.offset;break;
+          case "ComputeLimit": {const integer=(m:Mem):bigint=>{if(m.initialStorageClass==="integer")return m.integerValue();if(m.initialStorageClass==="real"){const n=m.realValue();if(Number.isInteger(n)&&n>=-9223372036854775808&&n<9223372036854775808)return BigInt(n)}if(m.initialStorageClass==="text"){const text=m.textValue();if(/^[+-]?[0-9]+$/.test(text)){const n=BigInt(text);if(n>=-(1n<<63n)&&n<(1n<<63n))return n}}throw new JSQLiteError("sqlite","datatype mismatch",{code:20});};const count=integer(this.#registers[op.count]!);this.#limitCount=count<0n?null:count;this.#limitOffset=op.offset===undefined?0n:integer(this.#registers[op.offset]!);if(this.#limitOffset<0n)this.#limitOffset=0n;if(count===0n)this.#pc=op.zeroJump;break;}
           case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
           case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
-          case "SorterInsert": await (this.#privateCursors.get(op.p1) as SorterCursor).insert([this.#registers[op.key]!],this.#registers.slice(op.payload,op.payload+op.payloadCount),this.#privateControl(options,limit,started));break;
+          case "SorterInsert": await (this.#privateCursors.get(op.p1) as SorterCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#registers.slice(op.payload,op.payload+op.payloadCount),this.#privateControl(options,limit,started));break;
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;

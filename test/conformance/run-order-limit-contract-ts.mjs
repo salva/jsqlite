@@ -29,23 +29,86 @@ test('ORDER/LIMIT admitted public slice preserves duplicate metadata and resolve
   for(const [sql,expected] of [
    ['SELECT x AS z FROM t1 ORDER BY z LIMIT 2',[[0n],[1n]]],
    ['SELECT x FROM t1 ORDER BY 1 DESC LIMIT 2',[[31n],[30n]]],
+   ['SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12',expectedRows('fixture-multi-term-gap')],
+   // Every resolver identity must survive in its own KeyInfo term. These rows
+   // distinguish the secondary key and catch the historical one-term lowering.
+   ['SELECT x AS a,y AS b FROM t1 ORDER BY y ASC,a DESC LIMIT 4',[[22n,0n],[12n,0n],[2n,0n],[23n,1n]]],
+   ['SELECT x AS a,y AS b FROM t1 ORDER BY 2 ASC,1 DESC LIMIT 4',[[22n,0n],[12n,0n],[2n,0n],[23n,1n]]],
+   ['SELECT x AS y,y AS x FROM t1 ORDER BY x ASC,y DESC LIMIT 4',[[22n,0n],[12n,0n],[2n,0n],[23n,1n]]],
   ]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected);statement.finalize();statement=undefined}
   assert.throws(()=>db.prepare('SELECT x FROM t1 ORDER BY 2'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message==='1st ORDER BY term out of range - should be between 1 and 1');
+  assert.throws(()=>db.prepare('SELECT x,y FROM t1 ORDER BY y,3'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message==='2nd ORDER BY term out of range - should be between 1 and 2');
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('ORDER expression, multi-term, explicit collation/NULL placement, and broad LIMIT remain honest unsupported gaps',async()=>{
+test('ORDER expressions, explicit collation/NULL placement, and LIMIT coercion follow pinned behavior',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  for(const [sql,expected] of [
+   ['SELECT x,y FROM t1 ORDER BY y+1,x LIMIT 4',[[2n,0n],[12n,0n],[22n,0n],[3n,1n]]],
+   ['SELECT a FROM t2 ORDER BY a NULLS LAST',[ [1n],[345n],[67890n],[null],[null] ]],
+   ['SELECT a FROM t2 ORDER BY a DESC NULLS FIRST',[[null],[null],[67890n],[345n],[1n]]],
+  ]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
+  for(const id of ['limit-real-integral','limit-text-integral']){const c=byId.get(id);statement=db.prepare(c.sql).statement;assert.deepEqual(await rows(statement),expectedRows(id),id);statement.finalize();statement=undefined}
+  for(const [sql,expected] of [['SELECT x FROM t1 ORDER BY x LIMIT 0',[]],['SELECT x FROM t1 ORDER BY x LIMIT -1 OFFSET 2',Array.from({length:30},(_,i)=>[BigInt(i+2)])],['SELECT x FROM t1 ORDER BY x LIMIT 2 OFFSET -3',[[0n],[1n]]]]){statement=db.prepare(sql).statement;assert.deepEqual(await rows(statement),expected,sql);statement.finalize();statement=undefined}
+  for(const id of ['limit-null-error','limit-fraction-error','limit-text-error','limit-overflow-error']){const c=byId.get(id);statement=db.prepare(c.sql).statement;await assert.rejects(()=>statement.step(),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.code===20,id);try{statement.finalize()}catch(error){assert.equal(error.code,20)}statement=undefined}
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});
+
+test('public ORDER matrix preserves NULL, numeric, TEXT, and BLOB storage classes',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  const expression="CASE y WHEN 0 THEN NULL WHEN 1 THEN -1 WHEN 2 THEN 1 WHEN 3 THEN 1.0 WHEN 4 THEN '1' ELSE x'31' END";
+  statement=db.prepare(`SELECT x,${expression} AS k FROM t1 ORDER BY k,x`).statement;
+  const actual=await rows(statement);statement.finalize();statement=undefined;
+  const groups=[
+   {kind:'null',xs:[2n,12n,22n]},
+   {kind:'number',xs:[3n,13n,23n,4n,5n,14n,15n,24n,25n]},
+   {kind:'text',xs:[6n,16n,26n]},
+   {kind:'blob',xs:[0n,1n,7n,8n,9n,10n,11n,17n,18n,19n,20n,21n,27n,28n,29n,30n,31n]},
+  ];
+  let at=0;
+  for(const group of groups){const slice=actual.slice(at,at+group.xs.length);assert.deepEqual(slice.map(r=>r[0]),group.xs,group.kind);for(const [,value] of slice){if(group.kind==='null')assert.equal(value,null);else if(group.kind==='number')assert.ok(typeof value==='bigint'||typeof value==='number');else if(group.kind==='text')assert.equal(typeof value,'string');else assert.ok(value instanceof Uint8Array)}at+=slice.length}
+  assert.equal(at,actual.length);
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});
+
+test('ORDER result aliases resolve through explicit COLLATE while retaining that collation',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-where`));
+  // RTRIM makes the two alias values equal, so b ASC is the observable
+  // secondary key. BINARY instead orders 'a' before 'a ' and would reverse
+  // the first two rows. Every asserted complete key is distinct; tie stability
+  // is not part of this check.
+  statement=db.prepare("SELECT b, CASE b WHEN 1 THEN 'a ' WHEN 2 THEN 'a' ELSE 'z' END AS k FROM t ORDER BY k COLLATE RTRIM, b ASC").statement;
+  assert.deepEqual(await rows(statement),[[1n,'a '],[2n,'a'],[3n,'z']]);
+  statement.finalize();statement=undefined;
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});
+
+test('ORDER/LIMIT structural compounds and subqueries remain typed unsupported',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  const observed=[];
   for(const sql of [
-   'SELECT x FROM t1 ORDER BY x+1 LIMIT 2',
-   'SELECT x,y FROM t1 ORDER BY y ASC,x ASC LIMIT 12',
-   'SELECT x FROM t1 ORDER BY x COLLATE NOCASE LIMIT 2',
-   'SELECT a FROM t2 ORDER BY a NULLS LAST',
-  ]) assert.throws(()=>db.prepare(sql),temporary,sql);
-  for(const sql of ['SELECT 1 LIMIT 0','SELECT 1 LIMIT -1','SELECT 1 LIMIT 2.0','SELECT 1 LIMIT \'2\'','SELECT 1 LIMIT NULL','SELECT 1 LIMIT 1.5','SELECT 1 LIMIT \'x\''])
-   assert.throws(()=>db.prepare(sql),temporary,sql);
+   'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',
+   'SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1',
+   'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1',
+  ]){
+   let statement;
+   try{statement=db.prepare(sql).statement;observed.push({sql,outcome:'accepted'})}
+   catch(error){observed.push({sql,outcome:temporary(error)?'temporary-unsupported':String(error)})}
+   finally{try{statement?.finalize()}catch{}}
+  }
+  assert.deepEqual(observed,[
+   {sql:'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',outcome:'temporary-unsupported'},
+   {sql:'SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
+   {sql:'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
+  ]);
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 

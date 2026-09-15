@@ -1222,7 +1222,7 @@ Source decisions for the next implementation tranche follow `select.c` (`Distinc
 
 The literal bounded upstream tranche is deliberately small (`limit.test`, `distinct.test`, `select4.test`); explicit NULL placement, remaining built-in collation/storage-class/error boundaries, and deterministic interruption/resource cleanup are named no-credit companions. This selection tests semantics and lifecycle without treating case counts or native success as TS compatibility.
 
-The first consuming tranche is now implemented by `src/internal/private-state.ts` and typed VDBE routes in `src/internal/vdbe.ts`. `SorterCursor` and `EphemeralIndexCursor` own copied `Mem` cells under immutable `KeyInfo`; the bottom-up stable merge checks work/cancellation/deadline without `Array.sort`. Deterministic private work is one unit per admitted record, each copied logical byte, each visited `KeyInfo` term, and each merge move. Zero-unit control checks immediately bracket bounded growth; a post-growth cancellation/deadline failure rolls back the new owned entry. Entry, key-byte, and aggregate logical-byte ceilings are checked before copying. Halt/reset/finalize attempt every cursor close even after a close diagnostic; an earlier operation error remains authoritative, otherwise the first cleanup diagnostic is reported after reset/finalize state and connection admission are restored. Focused tests exercise exact real-operation charges and injected multi-cursor cleanup failures. The compiler currently lowers one ORDER term resolving a direct result alias, positive result ordinal, or direct table column, with ASC/DESC and the resolved column's declared collation; integer LIMIT/OFFSET; and direct-column DISTINCT. ORDER expressions, explicit ORDER-term COLLATE/NULLS syntax, multi-term keys, generalized schemas, and compounds remain explicitly staged. Public accounting in `run-relational-working-state-ts.mjs` is machine-derived after success: 1 attempted/passed/credited literal upstream assertion of 18 declared, with two additional uncredited smoke demonstrations outside that denominator.
+The first consuming tranche is now implemented by `src/internal/private-state.ts` and typed VDBE routes in `src/internal/vdbe.ts`. `SorterCursor` and `EphemeralIndexCursor` own copied `Mem` cells under immutable `KeyInfo`; the bottom-up stable merge checks work/cancellation/deadline without `Array.sort`. Deterministic private work is one unit per admitted record, each copied logical byte, each visited `KeyInfo` term, and each merge move. Zero-unit control checks immediately bracket bounded growth; a post-growth cancellation/deadline failure rolls back the new owned entry. Entry, key-byte, and aggregate logical-byte ceilings are checked before copying. Halt/reset/finalize attempt every cursor close even after a close diagnostic; an earlier operation error remains authoritative, otherwise the first cleanup diagnostic is reported after reset/finalize state and connection admission are restored. Focused tests exercise exact real-operation charges and injected multi-cursor cleanup failures. The compiler now lowers every ORDER term in the admitted direct-column slice, resolving each term independently as a result alias, positive result ordinal, or table-column fallback. Each resolved term supplies its declared collation, direction, and NULL-order flag to one immutable multi-field `KeyInfo`; `SorterInsert` transfers the complete key register range to shared `compareMem` comparison. Integer LIMIT/OFFSET and direct-column DISTINCT remain admitted.  generalized schemas, and compounds remain explicitly staged. Public accounting in `run-relational-working-state-ts.mjs` remains 1 attempted/passed/credited literal upstream assertion of 18 declared; the ORDER/LIMIT contract is not promoted by this repair.
 
 ### 2026-09-14 audit integration: numeric callers and relational foundation
 
@@ -1235,11 +1235,14 @@ The same integration commit carries previously blocked relational foundation wor
 The zero-credit capture in `stage3-order-limit-contract.json` is independently
 produced by pinned SQLite 3.53.4 and complements, but does not alter, the relational
 1/18 denominator. Its public TS test separates the already admitted direct
-column/alias/positive-ordinal, one-term sorter path from temporary unsupported
-expression, multi-term, explicit COLLATE/NULLS, and broader LIMIT forms. Multi-term
-syntax is conservatively rejected before execution so secondary keys cannot be
-silently ignored; complete source-shaped lowering remains implementation work. Compounds
-and subqueries remain owned by their structural query-production gates.
+column/alias/positive-ordinal direct-column sorter path from temporary unsupported
+expression, explicit COLLATE/NULLS, and broader LIMIT forms. Revision history matters:
+`3104d7a` exposed an accepted multi-term query while the implementation retained only
+one-term `KeyInfo`, and [[card:card-j-b-a]] observed the resulting missing expected
+exception; `af6ee17` therefore temporarily rejected multi-term syntax, while `37fd90b`
+retained its pinned expected rows. The current repair replaces that safety rejection
+with complete admitted-term preservation and multi-field `KeyInfo`/sorter comparison.
+Compounds and subqueries remain owned by their structural query-production gates: generated `multiselect_op`, nested `seltablist ... LP select RP`, and subquery-expression reductions are retained as `SelectNode` flags and rejected as typed temporary unsupported before scalar or table lowering.
 
 | Contract behavior | Pinned control/source | Implementation handoff |
 |---|---|---|
@@ -1251,3 +1254,21 @@ and subqueries remain owned by their structural query-production gates.
 The capture asserts numeric ties only with an explicit final `rowid` term; it makes
 no promise for otherwise equal ORDER keys. `expressions40` remains regression-only
 and confers no ORDER/LIMIT credit.
+
+### ORDER expression and computeLimitRegisters completion ([[card:card-j-b-b]])
+
+The generated parse action now retains each `sortlist` expression, direction, and
+NULL placement plus both `limit_opt` expressions instead of reconstructing these
+productions from flat tokens. `compileTableSelect` follows
+`resolve.c:resolveOrderGroupBy`: after skipping outer COLLATE nodes, alias and positive ordinal matching precede
+identical result-expression reuse and ordinary table expression resolution. Alias or ordinal substitution occurs beneath retained explicit COLLATE wrappers, matching `resolve.c`'s `sqlite3ExprSkipCollateAndLikely`/`resolveAlias` branch. Each
+resolved expression is compiled by the existing expression opcode lowering and
+its collation, DESC, and `KEYINFO_ORDER_BIGNULL` equivalent enter immutable
+`KeyInfo`. `ComputeLimit` follows `select.c:computeLimitRegisters` and
+`vdbe.c:OP_MustBeInt`: exact INTEGER, integral REAL, and base-10 integral TEXT are
+accepted at first step; NULL, fractional/non-numeric text, and overflow report
+`SQLITE_MISMATCH` (20). Negative LIMIT means unlimited, negative OFFSET becomes
+zero. Matching `select.c:computeLimitRegisters`'s immediate zero test, `ComputeLimit` jumps to the program halt target after successful coercion when LIMIT is zero, before scan or sorter setup/population; datatype errors therefore retain their execution phase. Tests retain execution-phase errors
+and statement cleanup. Compounds and subqueries remain structural unsupported.
+The 24-case capture is a focused contract; relational accounting remains 1/18
+until its independent manifest is deliberately promoted.

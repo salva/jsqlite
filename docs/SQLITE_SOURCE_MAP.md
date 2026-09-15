@@ -648,9 +648,16 @@ Boundary refinement: result-value destructor observations map to `sqlite3_result
 capture map `resolve.c:resolveOrderGroupBy`/`resolveAsName`, `select.c` sorter-tail
 and limit-register paths, `where.c` ordering decisions, `vdbe.c` sorter/counter/
 coercion opcodes, and `vdbeaux.c` record-key comparison to
-`run-order-limit-contract-ts.mjs`. The public test admits only current one-term
-direct resolution and checks broader forms, including multi-term input, as typed temporary unsupported;
-the compiler rejects them before execution rather than silently ignoring secondary
-keys. These 24 contract cases are outside `stage3-relational-working-state` accounting;
+`run-order-limit-contract-ts.mjs`. The public test admits complete multi-term
+direct-column resolution: every alias/positive-ordinal/table fallback term reaches
+immutable `KeyInfo` with collation, direction, and NULL-order flags and participates
+in typed sorter comparison. Expression and explicit COLLATE/NULLS forms remain typed
+temporary unsupported. Historically `3104d7a` exposed acceptance with one-term
+`KeyInfo` risk, `af6ee17` added the conservative rejection, and `37fd90b` retained
+the pinned expected rows now exercised by the public repair. These 24 contract cases are outside `stage3-relational-working-state` accounting;
 that denominator remains exactly 1/18 until successful public assertions are
 explicitly promoted. Compounds/subqueries remain structural-gate work.
+
+- `parse.y:orderby_opt/sortlist/limit_opt` -> typed `SelectNode.orderBy/limit/offset`.
+- `resolve.c:resolveOrderGroupBy`, `select.c:pushOntoSorter` -> expression/alias/ordinal/table fallback and complete `KeyInfo` keys in `compileTableSelect`.
+- `select.c:computeLimitRegisters`, `vdbe.c:OP_MustBeInt` -> `ComputeLimit`, including mismatch phase, negative and zero branches.
