@@ -233,12 +233,19 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
   if (!select.result.length) throw new JSQLiteError("sqlite", "SELECT has no result columns", { code: 1 });
   const ops: Op[] = [];
+  const resultOps: Op[] = [];
   let maximum = 0;
   const allocate = () => ++maximum;
   const parameters: ParameterBuilder = { maximum: 0, names: [], named: new Map() };
-  const expressions = select.result.map(expression => compileExpression(expression, ops, allocate, parameters));
+  // Resolve/number result expressions in SQL source order, but retain their
+  // opcodes until after computeLimitRegisters. SQLite computes LIMIT and
+  // OFFSET before entering the result-production path, so LIMIT 0 skips even
+  // failing or work-heavy result expressions while an invalid OFFSET still
+  // fails before that zero-row jump.
+  const expressions = select.result.map(expression => compileExpression(expression, resultOps, allocate, parameters));
   let limitOp: number | undefined;
   if(select.limit){const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
+  ops.push(...resultOps);
   const resultStart = allocate();
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;

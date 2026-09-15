@@ -105,7 +105,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -286,7 +286,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -467,7 +467,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -613,7 +613,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -760,7 +760,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -942,7 +942,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1124,7 +1124,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1306,7 +1306,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1446,7 +1446,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1588,7 +1588,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1728,7 +1728,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -1944,7 +1944,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2176,7 +2176,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2274,7 +2274,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2372,7 +2372,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2475,7 +2475,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2609,7 +2609,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2725,7 +2725,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2835,7 +2835,111 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
+        "attempted": [],
+        "unattempted": [
+          {
+            "index": 0,
+            "op": "openFixture"
+          },
+          {
+            "index": 1,
+            "op": "prepare"
+          },
+          {
+            "index": 2,
+            "op": "metadata"
+          },
+          {
+            "index": 3,
+            "op": "stepAll"
+          },
+          {
+            "index": 4,
+            "op": "finalize"
+          },
+          {
+            "index": 5,
+            "op": "close"
+          }
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "limit-zero-skips-result-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT abs(-9223372036854775808) LIMIT 0",
+      "bindings": [],
+      "operations": [
+        "openFixture",
+        "prepare",
+        "metadata",
+        "stepAll",
+        "finalize",
+        "close"
+      ],
+      "native": {
+        "operationTrace": [
+          {
+            "index": 0,
+            "op": "openFixture",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 1,
+            "op": "prepare",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 2,
+            "op": "metadata",
+            "outcome": "passed"
+          },
+          {
+            "index": 3,
+            "op": "stepAll",
+            "outcome": "passed",
+            "resultCode": 101
+          },
+          {
+            "index": 4,
+            "op": "finalize",
+            "outcome": "passed",
+            "resultCode": 0
+          },
+          {
+            "index": 5,
+            "op": "close",
+            "outcome": "passed",
+            "resultCode": 0
+          }
+        ],
+        "unattempted": [],
+        "columns": [
+          {
+            "name": "abs(-9223372036854775808)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "terminal": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "ts": {
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -2945,7 +3049,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -3058,7 +3162,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -3171,7 +3275,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -3284,7 +3388,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -3397,7 +3501,7 @@
         }
       },
       "ts": {
-        "disposition": "contract-error-gap",
+        "disposition": "unimplemented-temporary",
         "attempted": [],
         "unattempted": [
           {
@@ -3431,11 +3535,10 @@
   ],
   "accounting": {
     "upstreamDeclared": 0,
-    "companionsDeclared": 24,
-    "nativeMatched": 24,
+    "companionsDeclared": 25,
+    "nativeMatched": 25,
     "tsCreditedCases": 0,
     "nativeExpectationsSeparateFromTsCredit": true,
-    "countDerivedSuccessForbidden": true,
-    "accountingScope": "zero-credit contract cases; excluded from stage3-relational-working-state 1/18 denominator"
+    "countDerivedSuccessForbidden": true
   }
 }

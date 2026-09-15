@@ -25,11 +25,11 @@ def main() -> None:
         ], check=True, cwd=ROOT)
         committed = json.loads(CAPTURE.read_text())
         fresh = json.loads(output.read_text())
-    assert len(committed["cases"]) == len(fresh["cases"]) == 24
+    assert len(committed["cases"]) == len(fresh["cases"]) == 25
     for expected, actual in zip(committed["cases"], fresh["cases"], strict=True):
         assert expected["id"] == actual["id"]
         assert expected["native"] == actual["native"], expected["id"]
-    print("fresh pinned ORDER/LIMIT native sections match exactly: 24/24")
+    print("fresh pinned ORDER/LIMIT native sections match exactly: 25/25")
 
 
 if __name__ == "__main__":

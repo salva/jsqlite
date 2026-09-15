@@ -1268,7 +1268,7 @@ its collation, DESC, and `KEYINFO_ORDER_BIGNULL` equivalent enter immutable
 `vdbe.c:OP_MustBeInt`: exact INTEGER, integral REAL, and base-10 integral TEXT are
 accepted at first step; NULL, fractional/non-numeric text, and overflow report
 `SQLITE_MISMATCH` (20). Negative LIMIT means unlimited, negative OFFSET becomes
-zero. Matching `select.c:computeLimitRegisters`'s immediate zero test, `ComputeLimit` jumps to the program halt target after successful coercion when LIMIT is zero, before scan or sorter setup/population; datatype errors therefore retain their execution phase. Tests retain execution-phase errors
+zero. Matching `select.c:computeLimitRegisters`'s placement before result production and immediate zero test, scalar lowering emits LIMIT/OFFSET expression and coercion opcodes before deferred result-expression opcodes, while table lowering emits them before scan/sorter setup. `ComputeLimit` jumps to the program halt target after both LIMIT and OFFSET have been successfully coerced when LIMIT is zero. Thus zero LIMIT skips failing or work-heavy result expressions and all table work, but an invalid OFFSET retains its execution-phase error. The pinned `SELECT abs(-9223372036854775808) LIMIT 0` native/public lifecycle regression distinguishes this ordering. Tests retain execution-phase errors
 and statement cleanup. Compounds and subqueries remain structural unsupported.
-The 24-case capture is a focused contract; relational accounting remains 1/18
+The 25-case capture is a focused contract; relational accounting remains 1/18
 until its independent manifest is deliberately promoted.

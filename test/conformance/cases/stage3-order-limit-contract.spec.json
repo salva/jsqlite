@@ -247,6 +247,18 @@
       "bindings": []
     },
     {
+      "id": "limit-zero-skips-result-error",
+      "coverage": [
+        "limit-offset",
+        "errors"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT abs(-9223372036854775808) LIMIT 0",
+      "bindings": []
+    },
+    {
       "id": "limit-text-integral",
       "coverage": [
         "limit-offset"
