@@ -94,6 +94,7 @@ test('public ORDER collations distinguish declared NOCASE, explicit BINARY, RTRI
    ['NOCASE embedded NUL','public-nocase-embedded-nul'],
   ];
   for(const [label,id] of cases){const contract=byId.get(id);statement=db.prepare(contract.sql).statement;assert.deepEqual([statement.columnMetadata(0),statement.columnMetadata(1)],[{name:'b',declaredType:'INTEGER',database:'main',table:'t',origin:'b'},label==='declared NOCASE'||label==='explicit BINARY'?{name:'a',declaredType:'TEXT',database:'main',table:'t',origin:'a'}:{name:'k',declaredType:null,database:null,table:null,origin:null}],label);assert.deepEqual(await rows(statement),expectedRows(id),label);statement.finalize();statement=undefined}
+  assert.throws(()=>db.prepare('SELECT b,a FROM t ORDER BY a COLLATE missing'),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.code===1&&error.message==='no such collation sequence: missing');
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
