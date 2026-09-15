@@ -684,20 +684,24 @@ by host Python `sqlite3` remain setup fixtures only; assertions about pinned
 behavior are backed by this source-identified native capture, not by the host
 module's unversioned provenance.
 
-## Compound SELECT / multirow VALUES gate (zero-credit, 2026-09-15)
+## Compound SELECT / structured multirow VALUES design (zero-credit, 2026-09-15)
 
-| Project evidence/seam | Pinned SQLite 3.53.4 owner | Current status |
+| Project seam | Pinned SQLite 3.53.4 owner | Required mapping / current status |
 |---|---|---|
-| `stage3-compound-values.spec.json`, captured JSON, manifest test, exact recapture | `reference/sqlite/manifest.json`; assertion behavior produced by pinned public C API | 22 declared, 22 native exact matches, 15 TS prepare attempts, 0 TS credit; external corrected-query-graph gate remains |
-| Generated compound identity | `src/parse.y:621-648`, especially `selectnowith ::= selectnowith multiselect_op oneselect` and operator actions | Accepted syntax retained; `hasCompound` rejects before lowering |
-| Generated VALUES identity | `src/parse.y:670-684` `oneselect ::= values`, `oneselect ::= mvalues`, `values`, `mvalues` actions | Non-consuming `hasValues` marker; no fabricated result graph; typed temporary unsupported |
-| Unordered and VALUES execution | `src/select.c:multiSelect`, `multiSelectValues`, `multiSelectCollSeq`; `SelectDest`/`SRT_*` destinations | Not implemented; requires corrected structural links and branch ownership |
-| Ordered compound execution | `src/select.c:multiSelectByMerge`, including coroutine merge control (`Gosub`/`Yield`/`Return`) | Not implemented; no JS sort/Set substitute |
-| Compound ORDER resolution | `src/resolve.c:resolveCompoundOrderBy` and result-column matching | Native alias/ordinal/output-expression and rejection contracts only |
-| VM and private state | `src/vdbe.c` ephemeral index, record comparison, coroutine and LIMIT opcodes; `src/vdbeaux.c` program labels/registers/KeyInfo; `src/btree.c` cursor/private ephemeral B-tree state | Existing typed sorter/ephemeral primitive is reusable but deliberately unconsumed |
+| Production-owned immutable query graph | `src/parse.y:selectnowith`, `multiselect_op`, `values`, `mvalues`; `Select.pPrior/pNext/op`, `SF_Values/SF_MultiValue` | `src/internal/parse.ts`: dense reciprocal arm links with operator on RHS; structured expression rows; current flags/rejection remain until atomically replaced |
+| Width, names, metadata, affinity | `src/select.c:multiSelect`, `sqlite3ResultSetOfSelect`, `sqlite3SubqueryColumnTypes` | validate width at prepare; public metadata from leftmost arm; future derived-table affinity scans arms without coercing set values |
+| Compound ORDER | `src/resolve.c:resolveCompoundOrderBy`, `sqlite3ResolveOrderGroupBy` | dedicated left-to-right alias/ordinal/output-expression resolver; explicit COLLATE retained; no arbitrary non-output expression |
+| Collation and duplicate equality | `src/select.c:multiSelectCollSeq`, `multiSelectByMergeKeyInfo`, `generateOutputSubroutine`; `src/vdbeaux.c:sqlite3MemCompare`, record compare | immutable order and full-row duplicate `KeyInfo`; NULL-equal, INTEGER/REAL numeric equality, typed TEXT/BLOB distinction; preserve source representative |
+| VALUES and unordered UNION ALL | `src/select.c:multiSelectValues`, `multiSelect`, `selectInnerLoop`, `SelectDest`/`SRT_Output`/`SRT_Coroutine` | one destination-based arm compiler; ordered VALUES rows and sequential UNION ALL; not implemented |
+| Ordered/all set compounds | `src/select.c:multiSelect`, `multiSelectByMerge` and A/B transition table | source-shaped balanced coroutine merge; synthesize/complete ORDER for unordered set operators; reuse typed sorter for ordered producers, no JS Set/sort |
+| VM/private state | `src/vdbe.c` `InitCoroutine/Yield/EndCoroutine/Gosub/Return/Permutation/Compare`, LIMIT and sorter operations; `src/vdbeaux.c` labels/register/KeyInfo; applicable `src/btree.c` private ephemeral paths | add typed opcode/state routes in `src/internal/vdbe.ts`; reuse bounded `private-state.ts`; preserve suspension, counters, ownership and exhaustive cleanup |
+| Evidence | pinned public C API via `stage3-compound-values.spec.json`, captured JSON and exact recapture | 22 declared/22 native exact; 15 valid TS prepare attempts remain temporary unsupported and 0 credit until implementation |
 
-The focused denominator is independent of the older 18-case relational manifest:
-no prior relational pass is counted as compound evidence. Seven native prepare
-errors are expectations but not public TS semantic attempts. The remaining 15
-valid statements must fail public prepare with typed temporary unsupported until
-the structural graph dependency is delivered.
+`docs/TRANSLATION.md#compound-select-and-structured-multirow-values-design-implementation-handoff`
+is the consuming contract, including AST invariants, error timing, LIMIT/OFFSET,
+resource/lifecycle rules and test matrix. This design proposes no exceptional
+algorithm substitution: the existing stable bounded TypeScript sorter is the
+browser-safe private-state implementation used by ordered producers, while the
+pinned 3.53.4 coroutine merge and operator transitions are to be translated.
+The accepted `bd33810` parser/schema baseline, `f1dbe61` gate, and current audit
+finding 1 establish ownership and honest rejection only, not runtime conformance.

@@ -1281,36 +1281,214 @@ accounting. Current machine accounting attempts/passes 3/18 and credits 2/18;
 the passing DISTINCT assertion remains no-credit pending exact UNIQUE-autoindex
 fixture parity.
 
-### Compound SELECT and multirow VALUES evidence gate (implementation blocked)
+### Compound SELECT and structured multirow VALUES design (implementation handoff)
 
-The development-only `stage3-compound-values` gate is a separate 22-case,
-zero-credit contract captured from the manifest-pinned SQLite 3.53.4 source ID.
-`recapture-compound-values.py` freshly runs the shared native capture and requires
-an exact JSON match. The denominator is **22 declared / 22 native-matched / 15
-public TS prepare attempts / 0 TS credits**: seven cases are native prepare-error
-contracts and are deliberately not misreported as TS semantic attempts. Coverage
-includes UNION/UNION ALL/INTERSECT/EXCEPT cardinality and ordering, multirow
-VALUES, leftmost names/metadata/affinity, left-to-right collation, NULL and
-INTEGER/REAL/TEXT/BLOB equality, compound ORDER alias/ordinal/output-expression
-rules, LIMIT/OFFSET scope and coercion, and syntax/width/prepare/step errors.
-Native expectations are evidence, not a compatibility claim.
+This remains a zero-credit design over the development-only
+`stage3-compound-values` contract: **22 declared / 22 native-matched / 15 public
+TS prepare attempts / 0 TS credits**. The accepted native gate at `f1dbe61` and
+its capture are evidence, not implementation. Current HEAD also confirms the
+revised audit finding 1: generated production ownership and the retained
+`hasCompound`/`hasValues` rejection are sound safety foundations. They are to be
+replaced at their owning reductions with structure, not bypassed by token
+reparsing, a catch-all evaluator, or a second parser.
 
-The production identity is the generated `parse.y` graph: `selectnowith ::=
-selectnowith multiselect_op oneselect`, the four `multiselect_op` actions, and
-`oneselect ::= values|mvalues` with `values`/`mvalues` row construction. The
-parser now retains a non-consuming `hasValues` structural marker rather than
-inventing result expressions or reparsing tokens. Both VALUES and compounds stop
-at typed temporary unsupported before expression lowering; the 15-attempt public
-test protects that boundary and confirms a later scalar SELECT remains usable.
-This marker is not compound execution and earns no credit.
+#### Immutable query graph and preparation contract
 
-Future implementation remains gated on the externally corrected structural query
-graph. Once available, the pinned downstream owners are `select.c:multiSelect`,
-`multiSelectValues`, `multiSelectCollSeq`, and `multiSelectByMerge` (including its
-coroutine `Gosub`/`Yield`/`Return` merge control); `resolve.c:resolveCompoundOrderBy`
-for left-to-right alias/ordinal/expression matching; `SelectDest`/`SRT_*` and
-`vdbe.c` ephemeral-index, comparison, coroutine and LIMIT operations;
-`vdbeaux.c` VDBE labels/register/program and KeyInfo ownership; and `btree.c`
-cursor/private ephemeral B-tree state. The existing typed sorter/ephemeral
-primitive is genuinely reusable but is not consumed here. Do not substitute a
-JavaScript Set/sort, AST evaluator, token reparse, or a flattened leftmost SELECT.
+Replace the monolithic `SelectNode` flags with a closed query-production graph.
+Exact type names may follow project style, but these fields and ownership are the
+implementation contract:
+
+```ts
+type CompoundOperator = "union-all" | "union" | "intersect" | "except";
+type SelectArm = {
+  readonly id: number;                 // dense, left-to-right within this query
+  readonly prior: number | null;
+  readonly next: number | null;
+  readonly operatorFromPrior: CompoundOperator | null; // null only at arm 0
+  readonly result: readonly ExprNode[];
+  readonly from: readonly SqlToken[];
+  readonly where: ExprNode | null;
+  readonly distinct: boolean;
+};
+type SelectQuery = {
+  readonly kind: "select-query";
+  readonly arms: readonly SelectArm[]; // root/rightmost is arms.at(-1)
+  readonly orderBy: readonly OrderTermNode[];
+  readonly limit: ExprNode | null;
+  readonly offset: ExprNode | null;
+  readonly origin: "select" | "values";
+  readonly valuesRows: readonly (readonly ExprNode[])[] | null;
+};
+```
+
+Dense link indices are the immutable TypeScript adaptation of `Select.pPrior` and
+`pNext`: they retain both directions and operator-on-RHS ownership without a
+cyclic object graph or a mutable post-parse linking pass. Validate at construction
+that ids and links are reciprocal, arm 0 has no operator, every later arm has one,
+and only the rightmost production owns ORDER BY/LIMIT/OFFSET. Keep each arm's
+own result/from/where/distinct and reduction-backed expressions; never flatten
+arms into one result list. Unsupported per-arm GROUP/HAVING, windows, subqueries,
+CTEs, joins, or other existing exclusions remain represented sufficiently to
+reject the whole query before lowering.
+
+Production-keyed Lemon actions construct this graph as reductions occur:
+`oneselect ::= SELECT ...` creates one arm; `selectnowith ::= selectnowith
+multiselect_op oneselect` appends the RHS arm and its exact operator; `values ::=
+VALUES LP nexprlist RP` creates row zero; both `mvalues` reductions append one
+ordered expression row. The `oneselect ::= mvalues` action marks the equivalent of
+`SF_Values|SF_MultiValue`. Do not infer row boundaries from commas or walk the
+accepted token stream afterwards. Copy/freeze reduction values at their owner,
+then have `cmd ::= select` publish the graph. Preserve SQL-wide parameter identity
+through the existing generated expression reductions.
+
+Structured VALUES is one query with `origin:"values"`, `valuesRows`, and one
+logical arm, rather than fabricated UNION tokens. Validate nonempty rows and equal
+width at prepare. Its result expressions and column names come from row zero;
+all rows retain independent expression nodes and evaluation order. Parenthesized
+VALUES/subquery uses remain excluded with subqueries; standalone VALUES may own
+rightmost ORDER/LIMIT under the grammar and follows the same resolver/control
+path after row production. The special path corresponds to `parse.y:values`/
+`mvalues` and `select.c:multiSelectValues`; it is not subject to the ordinary
+compound-arm limit.
+
+Preparation performs, in order: structural/exclusion validation; VALUES and
+compound width validation; per-arm ordinary name/expression resolution; compound
+ORDER resolution; metadata/KeyInfo construction; then VDBE lowering. Syntax errors
+remain parser-time. Unequal widths, invalid ordinals, unmatched compound ORDER
+terms, unavailable collations, and excluded constructs fail `prepare()` before a
+statement/program is exposed. LIMIT/OFFSET value coercion remains first-`step()`
+work. No valid prefix arm may execute after any prepare failure.
+
+#### Resolution, metadata, affinity, and equality
+
+Port `resolve.c:resolveCompoundOrderBy` as a dedicated resolver over arms from
+left to right. For each still-unmatched ORDER term, skip outer COLLATE/LIKELY,
+accept a positive integer within result width, otherwise try that arm's result
+alias and then structural expression identity after resolving a duplicate in that
+arm's name context. Mark the term with a result-column index on first match and
+continue later arms only for unmatched terms. Preserve an explicit COLLATE wrapper
+when replacing its child with the ordinal. Unlike ordinary SELECT ORDER BY, never
+fall back to an arbitrary table expression: every term must match an output
+column. This produces the native ordinal/range or “ORDER BY term does not match”
+prepare error, including duplicate aliases and expressions.
+
+Public result name, declared type, database/table/origin metadata come from the
+leftmost arm, matching `sqlite3ResultSetOfSelect` and the accepted
+`leftmost-names-origin` capture. Keep resolved metadata per result position,
+separate from runtime `Mem`. Where a compound is consumed as a derived table in a
+future admitted slice, port `sqlite3SubqueryColumnTypes`: scan arms left-to-right
+for affinity, degrade conflicting data-type classes as that routine does, and take
+collation/type provenance from the leftmost expression. Do not apply one arm's
+affinity to set duplicate comparison or coerce emitted public values; each arm
+keeps its manifest INTEGER/REAL/TEXT/BLOB class.
+
+`multiSelectCollSeq` selects, per result position, the first non-null expression
+collation from left to right, then BINARY. Use it for set duplicate `KeyInfo` and,
+unless the ORDER expression has explicit COLLATE, for compound ORDER. Set equality
+compares the complete result row through the existing `Mem`/`KeyInfo` machinery:
+NULL equals NULL; exact INTEGER/REAL numeric equality is shared; TEXT uses the
+selected built-in byte collation; BLOB remains distinct from TEXT; no affinity is
+applied. DESC and NULL placement belong only to merge-order terms, never the
+duplicate key. Preserve the source transition's chosen representative when equal
+rows have different storage classes (the gate's `1 UNION 1.0` returning REAL is a
+required discriminator), rather than normalizing a set key.
+
+#### Lowering, destinations, and control
+
+Introduce one internal `compileQueryToDestination(query, destination, context)`
+seam. Refactor current scalar/table SELECT production to emit through destination
+semantics equivalent to the applicable `selectInnerLoop` branches, at minimum
+`output` and `coroutine`; do not duplicate expression evaluation in a compound
+compiler. A coroutine destination writes its row register range and executes a
+translated `Yield`; output executes `ResultRow`. Register ranges, metadata,
+labels, cursor ids, and immutable `KeyInfo` are allocated by the existing Program
+builder and have one statement owner.
+
+Lower structured VALUES by evaluating rows left-to-right into the same destination
+(`multiSelectValues`/`selectInnerLoop`), honoring the common OFFSET/output/LIMIT
+control. Lower unordered `UNION ALL` by compiling arms left-to-right to the common
+destination, carrying the one global limit/offset register set; an exhausted limit
+jumps over all remaining arms. Preserve branch order and multiplicity.
+
+For every explicit ORDER compound, and for UNION/INTERSECT/EXCEPT without ORDER,
+port `multiSelectByMerge`. The latter synthesizes ordinal 1, then appends every
+missing result ordinal so set equality is total. Recursively/balanced-split the
+left and right arm groups as pinned SQLite does; compile each side to coroutine
+registers; sort each side through the existing typed sorter only where its own
+resolved ORDER production requires it. Build the merge permutation and complete
+order `KeyInfo`, plus a separate full-row duplicate `KeyInfo`. Translate the
+`InitCoroutine`, `Yield`, `EndCoroutine`, `Gosub`, `Return`, `Permutation`, and
+`Compare` program/control branches (or source-shaped typed opcode equivalents)
+and the exact A<B/A=B/A>B/EOF transition table for each operator. In particular:
+UNION ALL emits both ordered streams including ties; UNION emits once; INTERSECT
+emits only equality; EXCEPT emits only left rows absent on the right. The output
+subroutine owns OFFSET, duplicate suppression, result destination, and LIMIT.
+Source representative selection and advancement on equality must be retained.
+
+This design intentionally does **not** use the older materialize-both-sides set
+plan, JS `Set`, `Array.sort`, or a host generator evaluator. The pinned 3.53.4
+`multiSelect` routes all non-ALL operators through `multiSelectByMerge` (inventing
+ORDER when absent), so using the existing bounded stable sorter for individual
+ordered producers and translating the VDBE merge is ordinary adaptation, not an
+algorithm substitution. No exceptional substitution is proposed. The existing
+`EphemeralIndexCursor` remains available to translated destinations but is not a
+reason to replace the pinned compound algorithm.
+
+Call `computeLimitRegisters` once before coroutine initialization. Evaluate and
+`MustBeInt` LIMIT then OFFSET at first step, before arm expressions or private
+state; zero LIMIT skips all arm work only after OFFSET coercion, negative LIMIT is
+unbounded, and negative OFFSET is zero. For UNION ALL, copy limit+positive-offset
+as a production cap into each coroutine while retaining global output counters;
+for set operators do not let an arm-local cap alter duplicate/set membership.
+OFFSET is consumed once at merged output, and LIMIT decrements only for emitted
+rows. Only the rightmost arm may syntactically own these clauses.
+
+#### Async, resources, lifecycle, and verification
+
+Each opcode dispatch, input advance, comparison term, copied logical byte, sorter
+insert/move, and merge advance uses the existing deterministic work/cancellation/
+deadline controls. Growth is preflighted against statement `maxRows`, per-entry
+bytes, aggregate private bytes, register/program/column/compound limits, and
+expression/parser limits. A suspended `step()` retains PC, both coroutine PCs and
+EOF/current-row states, registers, sorter phases/cursors, duplicate previous-row
+state, counters, and the first error; resume never reevaluates a VALUES row or arm.
+Coroutine row registers own/copy `Mem` values across yields—no page/register borrow
+may outlive cursor movement. Result rows retain the existing public copy and
+row-invalidation contract.
+
+Halt, reset, finalize, close, cancellation, deadline, and any arm/runtime error
+unwind both coroutines and every private cursor exactly once. Continue cleanup
+after a diagnostic, preserve the earlier operation error over cleanup errors, and
+restore connection admission. Reset retains bindings and rebuilds execution state;
+finalize destroys graph/program/private state. Compile-time graph/KeyInfo objects
+are immutable and connection/schema-owned references may not outlive close.
+
+Implementation seams are `src/internal/parse.ts` (production actions/types), a
+new resolver/query-graph module or the existing compiler resolver,
+`src/internal/vdbe.ts` (destination lowering and control opcodes),
+`src/internal/private-state.ts` (reuse, not replacement), and
+`src/internal/comparison.ts` (`KeyInfo`/`compareMem`). Focused tests must include:
+
+* parser graph snapshots for all four operators, three-plus arms, reciprocal
+  links, per-arm clauses, structured one/many-row VALUES, and malformed/unequal
+  rows; generated-table determinism and “no token reparse/second parser” guards;
+* all 22 pinned gate cases through public APIs, retaining metadata, INTEGER/REAL,
+  NULL, encoded TEXT, BLOB, exact errors and prepare/step phase; recapture remains
+  exact and zero-credit until implementation promotion;
+* duplicate-neighbor matrices for NULL, int64/REAL boundaries and representative
+  class, embedded-NUL BINARY/NOCASE/RTRIM text, TEXT versus BLOB, and per-column
+  left-to-right collations; mixed operators and duplicate runs across merge sides;
+* ORDER alias/ordinal/expression matches in later arms, duplicate aliases,
+  explicit COLLATE/DESC/NULLS, missing/non-output/out-of-range errors, equal-key
+  ordering without inventing stability, and full-row completion for unordered sets;
+* global LIMIT/OFFSET zero/negative/integral-REAL/TEXT/error timing, early arm
+  exhaustion, zero bypass of failing arm expressions, and no incorrect set pruning;
+* injected yield/cancel/deadline/resource failures in each coroutine and merge
+  phase, exact work charges, reset/rerun with retained bindings, finalize/close,
+  multi-cursor cleanup failures, and first-error precedence.
+
+Remaining risk is concentrated in exact generated semantic action plumbing,
+source equality representative transitions, compound metadata affinity when later
+used as a subquery, and adding coroutine/subroutine VM state without weakening the
+single-running-operation invariant. Resolve those with focused pinned-oracle cases
+before credit; the present design changes no public scope or exclusion.
