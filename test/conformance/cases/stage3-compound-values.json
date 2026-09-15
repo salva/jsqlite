@@ -657,8 +657,9 @@
       "id": "multirow-values-order-limit",
       "coverage": [
         "multirow-values",
-        "order-ordinal",
-        "limit-offset"
+        "scope",
+        "syntax-error",
+        "prepare-error"
       ],
       "credit": "no-credit-contract",
       "setup": "empty",

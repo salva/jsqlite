@@ -21,6 +21,6 @@ class CompoundValuesManifest(unittest.TestCase):
   self.assertEqual(c['leftmost-names-origin']['native']['columns'][0]['name'],'left_name');self.assertEqual(c['leftmost-names-origin']['native']['columns'][0]['declType'],'INTEGER')
   self.assertEqual(len(rows('compound-declared-collation')),1);self.assertEqual(len(rows('null-equality')),1);self.assertEqual(rows('integer-real-equality')[0][0]['type'],'real')
   self.assertEqual([r[0]['type'] for r in rows('integer-text-distinct')],['integer','text']);self.assertEqual([r[0]['type'] for r in rows('text-blob-distinct')],['text','blob'])
-  errors={i:c[i]['native']['terminal']['firstError'] for i in ['order-missing-alias-error','order-nonoutput-expression-error','arm-order-syntax-error','column-count-error','values-column-count-error','values-syntax-error']}
+  errors={i:c[i]['native']['terminal']['firstError'] for i in ['multirow-values-order-limit','order-missing-alias-error','order-nonoutput-expression-error','arm-order-syntax-error','column-count-error','values-column-count-error','values-syntax-error']}
   self.assertTrue(all(e['operation']=='prepare' for e in errors.values()));self.assertEqual(c['limit-type-error']['native']['terminal']['firstError']['operation'],'stepAll')
 if __name__=='__main__':unittest.main()

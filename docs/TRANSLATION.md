@@ -1345,9 +1345,11 @@ Structured VALUES is one query with `origin:"values"`, `valuesRows`, and one
 logical arm, rather than fabricated UNION tokens. Validate nonempty rows and equal
 width at prepare. Its result expressions and column names come from row zero;
 all rows retain independent expression nodes and evaluation order. Parenthesized
-VALUES/subquery uses remain excluded with subqueries; standalone VALUES may own
-rightmost ORDER/LIMIT under the grammar and follows the same resolver/control
-path after row production. The special path corresponds to `parse.y:values`/
+VALUES/subquery uses remain excluded with subqueries. Bare standalone VALUES does
+not admit ORDER BY or LIMIT in SQLite's grammar: the pinned
+`multirow-values-order-limit` case fails at prepare with `near "ORDER": syntax
+error`. Such clauses require a surrounding SELECT/subquery form, which remains
+excluded with subqueries. The special path corresponds to `parse.y:values`/
 `mvalues` and `select.c:multiSelectValues`; it is not subject to the ordinary
 compound-arm limit.
 
@@ -1481,8 +1483,9 @@ new resolver/query-graph module or the existing compiler resolver,
 * ORDER alias/ordinal/expression matches in later arms, duplicate aliases,
   explicit COLLATE/DESC/NULLS, missing/non-output/out-of-range errors, equal-key
   ordering without inventing stability, and full-row completion for unordered sets;
-* global LIMIT/OFFSET zero/negative/integral-REAL/TEXT/error timing, early arm
-  exhaustion, zero bypass of failing arm expressions, and no incorrect set pruning;
+* global compound LIMIT/OFFSET zero/negative/integral-REAL/TEXT/error timing,
+  early arm exhaustion, zero bypass of failing arm expressions, no incorrect set
+  pruning, and bare multirow VALUES rejecting ORDER/LIMIT at prepare;
 * injected yield/cancel/deadline/resource failures in each coroutine and merge
   phase, exact work charges, reset/rerun with retained bindings, finalize/close,
   multi-cursor cleanup failures, and first-error precedence.
