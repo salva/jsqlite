@@ -11,6 +11,9 @@ test("SQLite legacy UTF-8 accepts continuation bytes and overlong values >= U+00
   assert.equal(decodeSqliteText(Uint8Array.of(0xc0, 0x80), "utf-8"), "\ufffd");
   assert.equal(decodeSqliteText(Uint8Array.of(0xed, 0xa0, 0x80), "utf-8"), "\ufffd");
   assert.equal(decodeSqliteText(Uint8Array.of(0xef, 0xbf, 0xbe), "utf-8"), "\ufffd");
+  assert.equal(decodeSqliteText(Uint8Array.of(0xfe, 0x80, 0x80), "utf-8"), "\ufffd");
+  assert.equal(decodeSqliteText(Uint8Array.of(0xff, 0x80, 0x80), "utf-8"), "\ufffd");
+  assert.equal(decodeSqliteText(Uint8Array.of(0xfd, 0x80, 0x80), "utf-8"), "\u1000");
 });
 
 test("SQLite UTF-16 conversion handles endian pairs and its odd-byte rule", () => {

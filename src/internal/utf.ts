@@ -17,12 +17,14 @@ function decodeUtf8(bytes: Uint8Array): string {
     const first = bytes[i++]!;
     let c = first;
     if (first >= 0xc0) {
-      // sqlite3Utf8Trans1[c-0xc0] is equivalent to these initial payloads.
-      if (first < 0xe0) c = first & 0x1f;
-      else if (first < 0xf0) c = first & 0x0f;
-      else if (first < 0xf8) c = first & 0x07;
-      else if (first < 0xfc) c = first & 0x03;
-      else c = first & 0x01;
+      // Exact sqlite3Utf8Trans1[c-0xc0] groups. In particular 0xfe/0xff
+      // start at zero; bit masking incorrectly starts 0xff at one.
+      if (first < 0xe0) c = first - 0xc0;
+      else if (first < 0xf0) c = first - 0xe0;
+      else if (first < 0xf8) c = first - 0xf0;
+      else if (first < 0xfc) c = first - 0xf8;
+      else if (first < 0xfe) c = first - 0xfc;
+      else c = 0;
       while (i < bytes.length && (bytes[i]! & 0xc0) === 0x80) c = c * 64 + (bytes[i++]! & 0x3f);
       if (c < 0x80 || (c & 0xfffff800) === 0xd800 || (c & 0xfffffffe) === 0xfffe) c = 0xfffd;
     }

@@ -37,5 +37,7 @@ for encoding in ("UTF-8", "UTF-16le", "UTF-16be"):
             ("table", "Ä", "Ä"), ("index", "IÄ", "Ä"), ("table", "ä", "ä"), ("index", "iä", "ä")]
         assert lib.sqlite3_stricmp("IÄ".encode(), "iÄ".encode()) == 0
         assert lib.sqlite3_stricmp("Ä".encode(), "ä".encode()) != 0
+        if encoding == "UTF-8":
+            assert execute(db, "SELECT unicode(CAST(x'FF8080' AS TEXT)), unicode(CAST(x'FD8080' AS TEXT))") == [("65533", "4096")]
         assert lib.sqlite3_close(db) == 0
 print("pinned oracle schema identifiers: ASCII folds and non-ASCII case variants remain distinct in UTF-8/16le/16be")

@@ -136,7 +136,10 @@ NUL-termination requirements and embedded NUL behavior are operation-specific.
 `utf.c` `READ_UTF8`, `sqlite3Utf8Read`, `sqlite3Utf8ReadLimited` and
 `sqlite3VdbeMemTranslate` do not all have the same termination/invalid-input rules.
 In particular SQLite accepts some legacy UTF-8 sequences that a WHATWG decoder
-handles differently (`utf.c:145-225`). Do not assume `TextDecoder`, JS string
+handles differently (`utf.c:145-225`). `src/internal/utf.ts` ports the complete
+`sqlite3Utf8Trans1` lead groups, including the zero entries for `0xfe`/`0xff`;
+`FF 80 80` therefore becomes U+FFFD while neighboring legacy `FD 80 80` becomes
+U+1000, as independently captured from the pinned library. Do not assume `TextDecoder`, JS string
 comparison, `localeCompare` or Unicode case folding implements SQLite semantics.
 Use upstream collation/length/conversion routines and focused tests for the slice;
 do not invent behavior where upstream explicitly leaves it undefined. For catalog
@@ -901,7 +904,10 @@ identity links, and close invalidation. Malformed records, encoding, DDL, roots,
 or links are corruption; recognized but not constructed automatic indexes,
 triggers, virtual tables, and further grammar consumers are temporary unsupported.
 Supported generated/default/WITHOUT ROWID state and expression-index links are
-published; detailed WITHOUT ROWID storage-key remapping remains progressive work.
+published; `build.c:2332-2407` implicit NOT NULL is applied to every WITHOUT ROWID
+primary-key column. CHECK and REFERENCES/foreign-key reductions are recognized but
+currently fail temporary unsupported before publication rather than being silently
+flattened. Detailed WITHOUT ROWID storage-key remapping remains progressive work.
 This follows pinned `prepare.c:sqlite3InitOne/sqlite3InitCallback`, `build.c`, and
 `sqliteInt.h` Table/Column/Index; the narrower parser currently limits the graph
 tranche, not product scope.

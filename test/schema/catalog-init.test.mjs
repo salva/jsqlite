@@ -146,3 +146,23 @@ test("index DDL table links use SQLite ASCII identifier comparison", async () =>
     });
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+
+test("WITHOUT ROWID primary keys are implicitly NOT NULL and unconsumed constraints reject", async () => {
+  for (const [ddl, assertion] of [
+    ["CREATE TABLE t(a TEXT PRIMARY KEY) WITHOUT ROWID", schema => assert.equal(schema.tables.get("t")?.columns[0]?.notNull, true)],
+    ["CREATE TABLE t(a TEXT CHECK(length(a)>0))", error => assert.match(error.message, /CHECK\/REFERENCES constraint construction/)],
+    ["CREATE TABLE p(id PRIMARY KEY); CREATE TABLE t(a REFERENCES p(id))", error => assert.match(error.message, /CHECK\/REFERENCES constraint construction/)],
+  ]) {
+    const dir = await mkdtemp(join(tmpdir(), "jsqlite-schema-constraint-"));
+    try {
+      const path = join(dir, "constraint.db");
+      await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
+      await withImage(new Uint8Array(await readFile(path)), "constraint.db", async connection => {
+        if (ddl.includes("CHECK") || ddl.includes("REFERENCES")) {
+          assert.throws(() => loadSchemaGraph(connection), error => error instanceof SchemaUnsupportedError && (assertion(error), true));
+        } else assertion(loadSchemaGraph(connection));
+        connection.close();
+      });
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  }
+});

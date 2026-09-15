@@ -62,7 +62,11 @@ a wrong partial query.
 
 ### 2. Schema graph semantics versus declaration-only extraction
 
-**Current static label: unchanged.**
+**Revision 2026-09-15 ([[card:card-e-h]] current repair): reproduced and corrected at the schema owner.**
+
+Current reproduction showed the predicted WITHOUT ROWID column as `notNull:false`, and generated CHECK/REFERENCES reductions were silently omitted. The loader now applies `build.c:2332-2407` implicit NOT NULL to declared WITHOUT ROWID primary-key columns and rejects recognized CHECK/REFERENCES/table FOREIGN KEY declarations as temporary unsupported before atomic publication. Focused persisted-catalog tests cover all three branches; graph construction remains progressive rather than claiming enforcement semantics.
+
+**Superseded baseline label:**
 
 Baseline `src/internal/schema.ts:200-213` derives `Column.notNull` only from the
 literal declaration. It omits implicit PRIMARY KEY NOT NULL for
@@ -267,7 +271,11 @@ the source mechanisms at their owner, not through SQL spelling patches.
 
 ### 5. UTF-8 lead-byte conversion
 
-**Current static label: unchanged.**
+**Revision 2026-09-15 ([[card:card-e-h]] current repair): reproduced and corrected.**
+
+The current decoder produced U+1000 for `FF 80 80`, confirming the prediction. `src/internal/utf.ts` now ports all `sqlite3Utf8Trans1` groups, including zero for 0xfe/0xff. Focused neighbors protect malformed, replacement, and accepted legacy behavior; a manifest/source-ID-verified pinned-library capture confirms `FF 80 80 -> U+FFFD` and `FD 80 80 -> U+1000`.
+
+**Superseded baseline label:**
 
 Baseline `src/internal/utf.ts:20-26` masks the lead byte rather than fully
 translating `sqlite3Utf8Trans1`. For bytes `FF 80 80`, 0xFF starts at 1 instead of
@@ -339,6 +347,12 @@ definitions. Current dirty API/source-map edits improve relational accounting bu
 do not reconcile all stale claims, including the obsolete compound-order routine
 name. Preserve those autonomous edits and reconcile documents with actual behavior
 as their semantic fixes land.
+
+**Revision 2026-09-15 ([[card:card-e-h]] schema provenance): corrected for current schema/UTF claims.**
+
+The schema tests still use host Python SQLite only to create disposable setup images and no longer treat that generator as pinned proof. `test/oracle/schema-identifier-case.test.py` loads the manifest-pinned library, checks exact `sqlite3_sourceid()`, and independently captures catalog identity in all database encodings plus the UTF lead-byte result. Existing generated storage fixtures retain their catalog/manifest source identity checks.
+
+**Superseded caution:**
 
 The schema/catalog fixture builder uses unversioned host Python SQLite for some
 fixtures. That is useful setup, not proof from the pinned 3.53.4 oracle. Evidence

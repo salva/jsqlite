@@ -471,7 +471,7 @@ links. Catalog names are keyed and linked by the shared ASCII-only helper in
 `test/schema/catalog-init.test.mjs` across UTF-8, UTF-16le and UTF-16be and in
 `test/schema/sqlite-utf.test.mjs` for malformed/legacy conversion behavior.
 
-Current bounded construction supports ordinary column declarations; ordered default-expression indexes; not-null, unique, collation and primary-key column metadata; generated expressions with stored/virtual state; explicit-index uniqueness/origin and per-term collation/sort/null-order metadata; views; and WITHOUT ROWID declared-primary-key storage mapping. Automatic indexes (including their origin), triggers, virtual tables, fuller named/CHECK/foreign-key constraint graphs, and further recognized grammar consumers
+Current bounded construction supports ordinary column declarations; ordered default-expression indexes; not-null (including `build.c`'s implicit NOT NULL for WITHOUT ROWID primary-key columns), unique, collation and primary-key column metadata; generated expressions with stored/virtual state; explicit-index uniqueness/origin and per-term collation/sort/null-order metadata; views; and WITHOUT ROWID declared-primary-key storage mapping. CHECK and REFERENCES/foreign-key declarations are recognized by generated reductions but currently report temporary unsupported rather than publishing a shallow graph. Automatic indexes (including their origin), triggers, virtual tables, fuller named constraint graphs, and further recognized grammar consumers
 report explicit temporary unsupported errors; malformed row shape/type/text/root/link/DDL reports schema
 corruption. They are backlog, not permanent exclusions, and are never silently
 skipped. The loader does not execute user DDL and does not reopen or copy the
@@ -670,3 +670,16 @@ inventory, not relational credit. Compounds/subqueries remain structural-gate wo
 - `resolve.c:resolveOrderGroupBy`, `select.c:pushOntoSorter` -> expression/alias/ordinal/table fallback and complete `KeyInfo` keys in `compileTableSelect`.
 - `vdbeaux.c:sqlite3VdbeRecordCompareWithSkip`/`sqlite3VdbeRecordCompare`, `main.c:nocaseCollatingFunc`, and `util.c:sqlite3_strnicmp` -> shared `compareMem`/`compareBuiltinText`; public declared NOCASE, explicit BINARY/RTRIM, and embedded-NUL byte-length cases prove actual ordering rather than `KeyInfo` labels.
 - `select.c:computeLimitRegisters`, `vdbe.c:OP_MustBeInt` -> `ComputeLimit`, including mismatch phase, negative and zero branches; scalar LIMIT/OFFSET opcodes precede deferred result-expression opcodes, and table LIMIT/OFFSET precedes scan/sorter setup. The pinned/native and public `abs(INT64_MIN) LIMIT 0` case proves the zero jump bypasses result evaluation, while invalid OFFSET coercion remains before that jump.
+
+### Schema UTF lead-byte and fixture provenance correction (2026-09-15)
+
+`src/internal/utf.ts` now maps every lead byte through the exact groups of
+`src/utf.c:sqlite3Utf8Trans1` and `READ_UTF8` (`utf.c:52-60,164-174`), notably the
+zero entries for `0xfe` and `0xff`. `test/schema/sqlite-utf.test.mjs` protects
+`FF 80 80 -> U+FFFD` and neighboring malformed/legacy sequences. The independent
+capture in `test/oracle/schema-identifier-case.test.py` loads the manifest-pinned
+3.53.4 library, verifies `sqlite3_sourceid()`, and captures UTF-8 results as well
+as catalog identity across UTF-8/UTF-16le/UTF-16be. Databases created at test time
+by host Python `sqlite3` remain setup fixtures only; assertions about pinned
+behavior are backed by this source-identified native capture, not by the host
+module's unversioned provenance.
