@@ -150,6 +150,37 @@ test('SELECT DISTINCT preserves prepare errors and statement ownership', async (
   }
 });
 
+test('SELECT DISTINCT keeps compounds and subqueries structurally unsupported', async () => {
+  const bridge = await startFixtureServer(path.resolve('test/fixtures'));
+  let db;
+  try {
+    db = await openFixture(new Request(
+      `http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`,
+    ));
+    for (const sql of [
+      'SELECT DISTINCT a FROM t2 UNION SELECT a FROM t2',
+      'SELECT DISTINCT a FROM (SELECT a FROM t2)',
+    ]) {
+      assert.throws(
+        () => db.prepare(sql),
+        error => error?.kind === 'unsupported'
+          && error.unsupportedClassification === 'temporary'
+          && error.message === 'compound SELECTs and subqueries are not implemented',
+        sql,
+      );
+    }
+
+    const statement = db.prepare('SELECT DISTINCT a FROM t2 LIMIT 1').statement;
+    assert.equal(await statement.step(), 'row', 'structural rejections do not poison later admission');
+    statement.finalize();
+  } finally {
+    try { db?.closeDeferred(); } catch {}
+    await new Promise((resolve, reject) => bridge.server.close(
+      error => error ? reject(error) : resolve(),
+    ));
+  }
+});
+
 test('DISTINCT duplicate jump skips a non-result multi-term ORDER key and SorterInsert', async () => {
   const bridge = await startFixtureServer(path.resolve('test/fixtures'));
   let db;
