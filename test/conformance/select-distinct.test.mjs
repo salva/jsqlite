@@ -165,7 +165,7 @@ test('SELECT DISTINCT keeps compounds and subqueries structurally unsupported', 
         () => db.prepare(sql),
         error => error?.kind === 'unsupported'
           && error.unsupportedClassification === 'temporary'
-          && error.message === 'compound SELECTs and subqueries are not implemented',
+          && error.message === 'compound SELECTs, VALUES, and subqueries are not implemented',
         sql,
       );
     }

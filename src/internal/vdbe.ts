@@ -161,8 +161,8 @@ function expressionName(expression: SelectNode["result"][number]): string {
 
 
 function rejectUnsupportedSelectClauses(select: SelectNode, relational = false): void {
-  if (select.hasCompound || select.hasSubquery)
-    throw new JSQLiteError("unsupported", "compound SELECTs and subqueries are not implemented", { unsupportedClassification: "temporary" });
+  if (select.hasCompound || select.hasValues || select.hasSubquery)
+    throw new JSQLiteError("unsupported", "compound SELECTs, VALUES, and subqueries are not implemented", { unsupportedClassification: "temporary" });
   if (select.hasGroupBy || select.hasHaving || (!relational && (select.hasDistinct || select.hasOrderBy)))
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }

@@ -1280,3 +1280,37 @@ The 29-case capture is a focused contract; its inventory does not alter relation
 accounting. Current machine accounting attempts/passes 3/18 and credits 2/18;
 the passing DISTINCT assertion remains no-credit pending exact UNIQUE-autoindex
 fixture parity.
+
+### Compound SELECT and multirow VALUES evidence gate (implementation blocked)
+
+The development-only `stage3-compound-values` gate is a separate 22-case,
+zero-credit contract captured from the manifest-pinned SQLite 3.53.4 source ID.
+`recapture-compound-values.py` freshly runs the shared native capture and requires
+an exact JSON match. The denominator is **22 declared / 22 native-matched / 15
+public TS prepare attempts / 0 TS credits**: seven cases are native prepare-error
+contracts and are deliberately not misreported as TS semantic attempts. Coverage
+includes UNION/UNION ALL/INTERSECT/EXCEPT cardinality and ordering, multirow
+VALUES, leftmost names/metadata/affinity, left-to-right collation, NULL and
+INTEGER/REAL/TEXT/BLOB equality, compound ORDER alias/ordinal/output-expression
+rules, LIMIT/OFFSET scope and coercion, and syntax/width/prepare/step errors.
+Native expectations are evidence, not a compatibility claim.
+
+The production identity is the generated `parse.y` graph: `selectnowith ::=
+selectnowith multiselect_op oneselect`, the four `multiselect_op` actions, and
+`oneselect ::= values|mvalues` with `values`/`mvalues` row construction. The
+parser now retains a non-consuming `hasValues` structural marker rather than
+inventing result expressions or reparsing tokens. Both VALUES and compounds stop
+at typed temporary unsupported before expression lowering; the 15-attempt public
+test protects that boundary and confirms a later scalar SELECT remains usable.
+This marker is not compound execution and earns no credit.
+
+Future implementation remains gated on the externally corrected structural query
+graph. Once available, the pinned downstream owners are `select.c:multiSelect`,
+`multiSelectValues`, `multiSelectCollSeq`, and `multiSelectByMerge` (including its
+coroutine `Gosub`/`Yield`/`Return` merge control); `resolve.c:resolveCompoundOrderBy`
+for left-to-right alias/ordinal/expression matching; `SelectDest`/`SRT_*` and
+`vdbe.c` ephemeral-index, comparison, coroutine and LIMIT operations;
+`vdbeaux.c` VDBE labels/register/program and KeyInfo ownership; and `btree.c`
+cursor/private ephemeral B-tree state. The existing typed sorter/ephemeral
+primitive is genuinely reusable but is not consumed here. Do not substitute a
+JavaScript Set/sort, AST evaluator, token reparse, or a flattened leftmost SELECT.

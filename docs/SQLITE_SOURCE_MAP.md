@@ -683,3 +683,21 @@ as catalog identity across UTF-8/UTF-16le/UTF-16be. Databases created at test ti
 by host Python `sqlite3` remain setup fixtures only; assertions about pinned
 behavior are backed by this source-identified native capture, not by the host
 module's unversioned provenance.
+
+## Compound SELECT / multirow VALUES gate (zero-credit, 2026-09-15)
+
+| Project evidence/seam | Pinned SQLite 3.53.4 owner | Current status |
+|---|---|---|
+| `stage3-compound-values.spec.json`, captured JSON, manifest test, exact recapture | `reference/sqlite/manifest.json`; assertion behavior produced by pinned public C API | 22 declared, 22 native exact matches, 15 TS prepare attempts, 0 TS credit; external corrected-query-graph gate remains |
+| Generated compound identity | `src/parse.y:621-648`, especially `selectnowith ::= selectnowith multiselect_op oneselect` and operator actions | Accepted syntax retained; `hasCompound` rejects before lowering |
+| Generated VALUES identity | `src/parse.y:670-684` `oneselect ::= values`, `oneselect ::= mvalues`, `values`, `mvalues` actions | Non-consuming `hasValues` marker; no fabricated result graph; typed temporary unsupported |
+| Unordered and VALUES execution | `src/select.c:multiSelect`, `multiSelectValues`, `multiSelectCollSeq`; `SelectDest`/`SRT_*` destinations | Not implemented; requires corrected structural links and branch ownership |
+| Ordered compound execution | `src/select.c:multiSelectByMerge`, including coroutine merge control (`Gosub`/`Yield`/`Return`) | Not implemented; no JS sort/Set substitute |
+| Compound ORDER resolution | `src/resolve.c:resolveCompoundOrderBy` and result-column matching | Native alias/ordinal/output-expression and rejection contracts only |
+| VM and private state | `src/vdbe.c` ephemeral index, record comparison, coroutine and LIMIT opcodes; `src/vdbeaux.c` program labels/registers/KeyInfo; `src/btree.c` cursor/private ephemeral B-tree state | Existing typed sorter/ephemeral primitive is reusable but deliberately unconsumed |
+
+The focused denominator is independent of the older 18-case relational manifest:
+no prior relational pass is counted as compound evidence. Seven native prepare
+errors are expectations but not public TS semantic attempts. The remaining 15
+valid statements must fail public prepare with typed temporary unsupported until
+the structural graph dependency is delivered.

@@ -1,0 +1,545 @@
+{
+  "schema": "jsqlite-compound-values-contract-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "union",
+    "union-all",
+    "intersect",
+    "except",
+    "cardinality",
+    "branch-order",
+    "multirow-values",
+    "metadata",
+    "names",
+    "affinity",
+    "collation",
+    "typed-equality",
+    "null",
+    "integer-real",
+    "text",
+    "blob",
+    "order-alias",
+    "order-ordinal",
+    "order-expression",
+    "order-error",
+    "limit-offset",
+    "limit-coercion",
+    "scope",
+    "column-count-error",
+    "syntax-error",
+    "prepare-error",
+    "step-error"
+  ],
+  "setups": {
+    "empty": [],
+    "metadata": [
+      "CREATE TABLE left_meta(a INTEGER); CREATE TABLE right_meta(b TEXT); INSERT INTO left_meta VALUES(7); INSERT INTO right_meta VALUES('8');"
+    ],
+    "collation": [
+      "CREATE TABLE nocase_values(name TEXT COLLATE NOCASE); CREATE TABLE binary_values(name TEXT COLLATE BINARY); INSERT INTO nocase_values VALUES('a'); INSERT INTO binary_values VALUES('A');"
+    ]
+  },
+  "cases": [
+    {
+      "id": "union-all-cardinality-order",
+      "coverage": [
+        "union-all",
+        "cardinality",
+        "branch-order"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "union-distinct-cardinality",
+      "coverage": [
+        "union",
+        "cardinality",
+        "order-alias"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 2 AS v UNION SELECT 1 UNION SELECT 2 ORDER BY v",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "intersect-cardinality",
+      "coverage": [
+        "intersect",
+        "cardinality",
+        "order-ordinal"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION ALL SELECT 1 INTERSECT SELECT 1 ORDER BY 1",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "except-cardinality",
+      "coverage": [
+        "except",
+        "cardinality",
+        "order-alias"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION SELECT 2 EXCEPT SELECT 1 ORDER BY v",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "multirow-values",
+      "coverage": [
+        "multirow-values",
+        "cardinality",
+        "metadata"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "VALUES (1,'a'),(2,'b'),(3,NULL)",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "multirow-values-order-limit",
+      "coverage": [
+        "multirow-values",
+        "order-ordinal",
+        "limit-offset"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "VALUES(3),(1),(2) ORDER BY 1 LIMIT 1 OFFSET 1",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "leftmost-names-origin",
+      "coverage": [
+        "metadata",
+        "names",
+        "affinity"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "metadata",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a AS left_name FROM left_meta UNION ALL SELECT b AS right_name FROM right_meta",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "compound-declared-collation",
+      "coverage": [
+        "collation",
+        "union",
+        "order-alias"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "collation",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT name FROM nocase_values UNION SELECT name FROM binary_values ORDER BY name",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "null-equality",
+      "coverage": [
+        "typed-equality",
+        "null",
+        "union"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT NULL AS v UNION SELECT NULL",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "integer-real-equality",
+      "coverage": [
+        "typed-equality",
+        "integer-real",
+        "union"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION SELECT 1.0",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "integer-text-distinct",
+      "coverage": [
+        "typed-equality",
+        "text",
+        "union"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION SELECT '1' ORDER BY v",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "text-blob-distinct",
+      "coverage": [
+        "typed-equality",
+        "blob",
+        "union"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT '1' AS v UNION SELECT x'31' ORDER BY v",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "order-output-expression",
+      "coverage": [
+        "order-expression"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 2+1 AS v UNION ALL SELECT 1+1 ORDER BY 2+1",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "order-missing-alias-error",
+      "coverage": [
+        "order-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION SELECT 2 ORDER BY missing",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "order-nonoutput-expression-error",
+      "coverage": [
+        "order-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 AS v UNION SELECT 2 ORDER BY v+0",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "limit-offset-scope",
+      "coverage": [
+        "limit-offset",
+        "scope"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 ORDER BY v LIMIT 1 OFFSET 1",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "limit-integral-real",
+      "coverage": [
+        "limit-coercion"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION ALL SELECT 2 LIMIT 1.0",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "limit-type-error",
+      "coverage": [
+        "limit-coercion",
+        "step-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION ALL SELECT 2 LIMIT 'x'",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "arm-order-syntax-error",
+      "coverage": [
+        "scope",
+        "syntax-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 ORDER BY 1 UNION ALL SELECT 2",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "column-count-error",
+      "coverage": [
+        "column-count-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION SELECT 2,3",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "values-column-count-error",
+      "coverage": [
+        "multirow-values",
+        "column-count-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "VALUES(1),(2,3)",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    },
+    {
+      "id": "values-syntax-error",
+      "coverage": [
+        "multirow-values",
+        "syntax-error",
+        "prepare-error"
+      ],
+      "credit": "no-credit-contract",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "VALUES(1),",
+      "bindings": [],
+      "capture": {
+        "operations": [
+          "openFixture",
+          "prepare",
+          "metadata",
+          "stepAll",
+          "finalize",
+          "close"
+        ]
+      }
+    }
+  ]
+}
