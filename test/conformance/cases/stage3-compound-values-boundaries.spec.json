@@ -1,0 +1,165 @@
+{
+  "schema": "jsqlite-compound-values-boundaries-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "collation-left-to-right",
+    "representative-class",
+    "duplicate-runs",
+    "order-later-arm",
+    "order-collate-desc",
+    "order-range-error",
+    "limit-short-circuit",
+    "limit-set-membership",
+    "limit-negative",
+    "offset-negative",
+    "step-error"
+  ],
+  "setups": {
+    "empty": [],
+    "duplicates": [
+      "CREATE TABLE dl(v); CREATE TABLE dr(v); INSERT INTO dl VALUES(1),(1),(1),(2); INSERT INTO dr VALUES(1),(1),(3);"
+    ]
+  },
+  "cases": [
+    {
+      "id": "collation-right-fallback",
+      "coverage": [
+        "collation-left-to-right"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 'a' AS v UNION SELECT 'A' COLLATE NOCASE ORDER BY v",
+      "bindings": []
+    },
+    {
+      "id": "collation-left-wins-per-column",
+      "coverage": [
+        "collation-left-to-right"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 'a' COLLATE NOCASE AS x,'x' COLLATE BINARY AS y UNION SELECT 'A' COLLATE BINARY,'X' COLLATE NOCASE ORDER BY 1,2",
+      "bindings": []
+    },
+    {
+      "id": "representative-right-integer",
+      "coverage": [
+        "representative-class"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1.0 AS v UNION SELECT 1",
+      "bindings": []
+    },
+    {
+      "id": "intersect-duplicate-runs",
+      "coverage": [
+        "duplicate-runs"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "duplicates",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT v FROM dl INTERSECT SELECT v FROM dr ORDER BY v",
+      "bindings": []
+    },
+    {
+      "id": "except-duplicate-runs",
+      "coverage": [
+        "duplicate-runs"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "duplicates",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT v FROM dl EXCEPT SELECT v FROM dr ORDER BY v",
+      "bindings": []
+    },
+    {
+      "id": "order-later-arm-alias",
+      "coverage": [
+        "order-later-arm"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 2 AS left_name UNION ALL SELECT 1 AS right_name ORDER BY right_name",
+      "bindings": []
+    },
+    {
+      "id": "order-explicit-collate-desc",
+      "coverage": [
+        "order-collate-desc"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 'a' AS v UNION ALL SELECT 'B' ORDER BY v COLLATE NOCASE DESC",
+      "bindings": []
+    },
+    {
+      "id": "order-ordinal-range-error",
+      "coverage": [
+        "order-range-error"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION SELECT 2 ORDER BY 2",
+      "bindings": []
+    },
+    {
+      "id": "union-all-limit-zero-skips-error",
+      "coverage": [
+        "limit-short-circuit",
+        "step-error"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT abs(-9223372036854775808) UNION ALL SELECT 2 LIMIT 0",
+      "bindings": []
+    },
+    {
+      "id": "union-all-limit-one-skips-later-error",
+      "coverage": [
+        "limit-short-circuit",
+        "step-error"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION ALL SELECT abs(-9223372036854775808) LIMIT 1",
+      "bindings": []
+    },
+    {
+      "id": "union-limit-does-not-prune-set-membership",
+      "coverage": [
+        "limit-set-membership",
+        "step-error"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 UNION SELECT abs(-9223372036854775808) LIMIT 1",
+      "bindings": []
+    },
+    {
+      "id": "negative-limit-offset",
+      "coverage": [
+        "limit-negative",
+        "offset-negative"
+      ],
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 2 AS v UNION ALL SELECT 1 LIMIT -1 OFFSET -3",
+      "bindings": []
+    }
+  ]
+}

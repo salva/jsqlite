@@ -1476,7 +1476,10 @@ new resolver/query-graph module or the existing compiler resolver,
   rows; generated-table determinism and “no token reparse/second parser” guards;
 * all 22 pinned gate cases through public APIs, retaining metadata, INTEGER/REAL,
   NULL, encoded TEXT, BLOB, exact errors and prepare/step phase; recapture remains
-  exact and zero-credit until implementation promotion;
+  exact and zero-credit until implementation promotion. The separate 12-case
+  `stage3-compound-values-boundaries` pinned-native companion freezes initial
+  collation/representative/duplicate-run/ORDER/LIMIT discriminators without
+  changing the 22-case denominator or granting TS credit;
 * duplicate-neighbor matrices for NULL, int64/REAL boundaries and representative
   class, embedded-NUL BINARY/NOCASE/RTRIM text, TEXT versus BLOB, and per-column
   left-to-right collations; mixed operators and duplicate runs across merge sides;
