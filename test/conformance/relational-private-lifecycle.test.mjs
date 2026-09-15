@@ -96,6 +96,10 @@ test('unordered OFFSET and LIMIT targets name final Next and Halt labels',()=>{
   const targets=programControlTargets(program);
   assert.equal(targets.find(x=>x.code==='IfPos')?.targetCode,'Next');
   assert.equal(targets.find(x=>x.code==='DecrJumpZero')?.targetCode,'Halt');
+  const ordered=parseSql('SELECT x FROM t1 ORDER BY x LIMIT 1 OFFSET 1');assert.equal(ordered.statement?.kind,'select');
+  const orderedTargets=programControlTargets(compileTableSelect(ordered.statement,loadSchemaGraph(owner),btreeFromStorage(storage),100));
+  assert.equal(orderedTargets.find(x=>x.code==='IfPos')?.targetCode,'SorterNext');
+  assert.equal(orderedTargets.find(x=>x.code==='DecrJumpZero')?.targetCode,'Halt');
  }finally{storage.close()}
 });
 
