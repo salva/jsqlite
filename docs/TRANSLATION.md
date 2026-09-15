@@ -1332,15 +1332,33 @@ arms into one result list. Unsupported per-arm GROUP/HAVING, windows, subqueries
 CTEs, joins, or other existing exclusions remain represented sufficiently to
 reject the whole query before lowering.
 
-Production-keyed Lemon actions construct this graph as reductions occur:
-`oneselect ::= SELECT ...` creates one arm; `selectnowith ::= selectnowith
-multiselect_op oneselect` appends the RHS arm and its exact operator; `values ::=
-VALUES LP nexprlist RP` creates row zero; both `mvalues` reductions append one
-ordered expression row. The `oneselect ::= mvalues` action marks the equivalent of
+Production-keyed Lemon actions construct this graph as reductions occur. This is
+an exact integration requirement, not shorthand for the current end-of-command
+tree walk: extend `productionAction()` so `values`, both `mvalues`, ordinary
+`oneselect`, `selectnowith ::= oneselect`, and `selectnowith ::= selectnowith
+multiselect_op oneselect` each return their own immutable semantic value; parent
+actions consume `child.semantic`. The compound action appends the RHS arm with its
+exact operator, and `select ::= selectnowith` finalizes reciprocal indices before
+`cmd ::= select` publishes that semantic unchanged. Retire
+`topLevelOneSelect()`/`findAll(...multiselect_op...)` as query construction inputs;
+they may not remain an alternate parser over the accepted reduction tree.
+
+This matters at current HEAD: `lemon-runtime.ts` already invokes the callback at
+every reduction and retains `semantic`, but `parse.ts:productionAction()` currently
+authors query semantics only for `cmd ::= select`, then recursively discovers one
+`oneselect` and reduces compound/VALUES identity to booleans. That is the safe
+rejection foundation from audit finding 1, not the required graph. Do not remove
+its rejection until all production semantics and graph validation are consumed by
+the compiler.
+
+Concretely, `oneselect ::= SELECT ...` creates one arm; the compound production
+appends the RHS and its exact operator; `values ::= VALUES LP nexprlist RP` creates
+row zero; both `mvalues` reductions append one ordered expression row. The
+`oneselect ::= mvalues` action records the equivalent of
 `SF_Values|SF_MultiValue`. Do not infer row boundaries from commas or walk the
-accepted token stream afterwards. Copy/freeze reduction values at their owner,
-then have `cmd ::= select` publish the graph. Preserve SQL-wide parameter identity
-through the existing generated expression reductions.
+accepted token stream afterwards. Copy/freeze reduction values at their owner.
+Preserve SQL-wide parameter identity through the existing generated expression
+reductions.
 
 Structured VALUES is one query with `origin:"values"`, `valuesRows`, and one
 logical arm, rather than fabricated UNION tokens. Validate nonempty rows and equal
@@ -1415,18 +1433,35 @@ jumps over all remaining arms. Preserve branch order and multiplicity.
 
 For every explicit ORDER compound, and for UNION/INTERSECT/EXCEPT without ORDER,
 port `multiSelectByMerge`. The latter synthesizes ordinal 1, then appends every
-missing result ordinal so set equality is total. Recursively/balanced-split the
-left and right arm groups as pinned SQLite does; compile each side to coroutine
-registers; sort each side through the existing typed sorter only where its own
-resolved ORDER production requires it. Build the merge permutation and complete
-order `KeyInfo`, plus a separate full-row duplicate `KeyInfo`. Translate the
-`InitCoroutine`, `Yield`, `EndCoroutine`, `Gosub`, `Return`, `Permutation`, and
-`Compare` program/control branches (or source-shaped typed opcode equivalents)
-and the exact A<B/A=B/A>B/EOF transition table for each operator. In particular:
-UNION ALL emits both ordered streams including ties; UNION emits once; INTERSECT
-emits only equality; EXCEPT emits only left rows absent on the right. The output
-subroutine owns OFFSET, duplicate suppression, result destination, and LIMIT.
-Source representative selection and advancement on equality must be retained.
+missing result ordinal so set equality is total. Apply the pinned split rule
+exactly: balanced splitting is only across contiguous same-operator UNION ALL or
+UNION chains when the pinned `SQLITE_BalancedMerge` optimization is enabled;
+chains of three or fewer and EXCEPT/INTERSECT split at the rightmost arm. This is
+not a generic recursively balanced AST rewrite because mixed operators retain
+SQLite's left-to-right grouping. Compile each side to coroutine registers; sort
+each side through the existing typed sorter only where its copied resolved ORDER
+requires it. Build the merge permutation and complete order `KeyInfo`, plus a
+separate full-row duplicate `KeyInfo`. Translate the `InitCoroutine`, `Yield`,
+`EndCoroutine`, `Gosub`, `Return`, `Permutation`, and `Compare` program/control
+branches (or source-shaped typed opcode equivalents) and the exact transition
+matrix:
+
+| state | UNION ALL | UNION | EXCEPT | INTERSECT |
+|---|---|---|---|---|
+| A < B | output A; next A | output A; next A | output A; next A | next A |
+| A = B | output A; next A | next A | next A | output A; next A |
+| A > B | output B; next B | output B; next B | next B | next B |
+| EOF A | drain B | drain B | halt | halt |
+| EOF B | drain A | drain A | drain A | halt |
+
+The output subroutine performs prior-row duplicate suppression for every non-ALL
+operator before destination output and owns OFFSET and LIMIT. In particular,
+UNION ALL emits both ordered streams including ties; UNION emits one
+representative; INTERSECT emits equality matches only; EXCEPT emits left rows
+absent on the right. Preserve source representative selection: on A=B, UNION
+advances A without output and subsequently selects B through the A>B/EOF path,
+while INTERSECT outputs A. Tests must pin these operator-specific storage-class
+choices rather than assuming one normalization rule.
 
 This design intentionally does **not** use the older materialize-both-sides set
 plan, JS `Set`, `Array.sort`, or a host generator evaluator. The pinned 3.53.4
@@ -1475,6 +1510,9 @@ new resolver/query-graph module or the existing compiler resolver,
 * parser graph snapshots for all four operators, three-plus arms, reciprocal
   links, per-arm clauses, structured one/many-row VALUES, and malformed/unequal
   rows; generated-table determinism and “no token reparse/second parser” guards;
+  reduction-callback tests must assert non-undefined semantic values at `values`,
+  both `mvalues`, ordinary `oneselect`, and both `selectnowith` productions, and
+  assert `cmd` publishes its child's graph rather than rediscovering descendants;
 * all 22 pinned gate cases through public APIs, retaining metadata, INTEGER/REAL,
   NULL, encoded TEXT, BLOB, exact errors and prepare/step phase; recapture remains
   exact and zero-credit until implementation promotion. The separate 12-case
