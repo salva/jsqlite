@@ -49,6 +49,21 @@ export class SorterCursor {
     this.#entries.pop();this.#bytes-=bytes;this.#sequence--;releaseEntry(entry);throw error;
    }
   }
+  async insertBounded(key:readonly Mem[],payload:readonly Mem[],capacity:bigint,control:PrivateStateControl):Promise<void>{
+   this.#live();if(capacity<0n)return this.insert(key,payload,control);if(capacity===0n)return;
+   if(BigInt(this.#entries.length)<capacity)return this.insert(key,payload,control);
+   let worst=0;for(let i=1;i<this.#entries.length;i++)if(await compareEntry(this.#entries[worst]!,this.#entries[i]!,this.keyInfo,control)<0)worst=i;
+   const candidate:Entry={key:key as Mem[],payload:payload as Mem[],sequence:this.#sequence,bytes:0};
+   if(await compareEntry(candidate,this.#entries[worst]!,this.keyInfo,control)>=0){await control.checkpoint(1);return}
+   const keyBytes=logicalBytes(key),bytes=keyBytes+logicalBytes(payload),old=this.#entries[worst]!;
+   if(keyBytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("sorter key exceeds byte limit");
+   if(this.#bytes-old.bytes+bytes>this.limits.maxBytes)throw new PrivateStateLimitError("sorter exceeds total byte limit");
+   await control.checkpoint(1+bytes);await control.checkpoint(0);
+   const replacement={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes};
+   this.#entries[worst]=replacement;this.#bytes+=bytes-old.bytes;
+   try{await control.checkpoint(0)}catch(error){this.#entries[worst]=old;this.#bytes+=old.bytes-bytes;this.#sequence--;releaseEntry(replacement);throw error}
+   releaseEntry(old);
+  }
   async sort(control:PrivateStateControl):Promise<void>{
    this.#live();let source=this.#entries.slice(),target=new Array<Entry>(source.length);
    for(let width=1;width<source.length;width*=2)for(let lo=0;lo<source.length;lo+=width*2){

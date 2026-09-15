@@ -66,3 +66,16 @@ test('real private comparisons stop exactly at work, cancel, and deadline bounda
   const sorter=await makeSorter();let units=0;await assert.rejects(sorter.sort({async checkpoint(n=0){units+=n;if(units>1)throw error}}),caught=>caught===error,label);assert.equal(units,2);sorter.close();
  }
 });
+
+test('bounded sorter top-N replaces and discards atomically with cancellation rollback',async()=>{
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ const sorter=new SorterCursor(info,{maxEntries:1,maxKeyBytes:8,maxBytes:16});
+ await sorter.insertBounded([m(5)],[m(50)],1n,noopControl);
+ await sorter.insertBounded([m(6)],[m(60)],1n,noopControl); // discard
+ let calls=0;const cancelled=new Error('replacement cancelled');
+ await assert.rejects(sorter.insertBounded([m(1)],[m(10)],1n,{async checkpoint(){if(++calls===3)throw cancelled}}),error=>error===cancelled);
+ await sorter.sort(noopControl);assert.equal(sorter.first(),true);assert.equal(sorter.data()[0].integerValue(),50n,'rollback retains previous candidate');sorter.close();
+ const offset=new SorterCursor(info,{maxEntries:2,maxKeyBytes:8,maxBytes:32});
+ for(const n of [5,2,4,1])await offset.insertBounded([m(n)],[m(n)],2n,noopControl);
+ await offset.sort(noopControl);const kept=[];for(let ok=offset.first();ok;ok=offset.next())kept.push(offset.data()[0].integerValue());assert.deepEqual(kept,[1n,2n]);offset.close();
+});

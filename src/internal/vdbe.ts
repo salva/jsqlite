@@ -48,15 +48,18 @@ type Op =
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number }
   | { readonly code: "SorterOpen"; readonly p1:number; readonly keyInfo:KeyInfo }
-  | { readonly code: "SorterInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payload:number; readonly payloadCount:number }
+  | { readonly code: "SorterInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payload:number; readonly payloadCount:number; readonly topN?:number }
   | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
   | { readonly code: "SorterData"; readonly p1:number; readonly p2:number; readonly count:number }
   | { readonly code: "SorterNext"; readonly p1:number; readonly p2:number }
   | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo }
   | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
-  | { readonly code: "OffsetLimit"; readonly count:bigint; readonly offset:bigint }
-  | { readonly code: "ComputeLimit"; readonly count:number; readonly offset?:number; readonly zeroJump:number }
+  | { readonly code: "MustBeInt"; readonly p1:number }
+  | { readonly code: "OffsetLimit"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code: "IfNotZero"; readonly p1:number; readonly p2:number }
+  | { readonly code: "IfPos"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code: "DecrJumpZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "Rewind"; readonly p2: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
@@ -228,6 +231,19 @@ function compileExpression(expression: SelectNode["result"][number], ops: Op[], 
   return { register, name: expressionName(expression) };
 }
 
+interface LimitRegisters { count:number; offset?:number; combined:number; capacity:number; ifZero:number }
+function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder):LimitRegisters|undefined {
+ if(!select.limit)return undefined;
+ const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters);
+ ops.push({code:"MustBeInt",p1:count});
+ let offset:number|undefined;
+ if(select.offset){offset=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters);ops.push({code:"MustBeInt",p1:offset});}
+ const combined=allocate();if(offset===undefined){ops.push({code:"Copy",p1:count,p2:combined});}else ops.push({code:"OffsetLimit",p1:count,p2:combined,p3:offset});
+ const capacity=allocate();ops.push({code:"Copy",p1:combined,p2:capacity});
+ const ifZero=ops.length;ops.push({code:"IfNot",p1:count,p2:0});
+ return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
+}
+
 export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
   rejectUnsupportedSelectClauses(select);
   if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
@@ -243,14 +259,15 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   // failing or work-heavy result expressions while an invalid OFFSET still
   // fails before that zero-row jump.
   const expressions = select.result.map(expression => compileExpression(expression, resultOps, allocate, parameters));
-  let limitOp: number | undefined;
-  if(select.limit){const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
+  const limit=computeLimitRegisters(select,ops,allocate,parameters);
   ops.push(...resultOps);
   const resultStart = allocate();
   expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   maximum += expressions.length - 1;
-  ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length }, { code: "Halt" });
-  if(limitOp!==undefined)(ops[limitOp] as {zeroJump:number}).zeroJump=ops.length-1;
+  ops.push({ code: "ResultRow", p1: resultStart, p2: expressions.length });
+  if(limit)ops.push({code:"DecrJumpZero",p1:limit.count,p2:ops.length+1});
+  ops.push({ code: "Halt" });
+  if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length-1;
   return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
@@ -336,8 +353,8 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   const hasLimit=select.limit!==null;
   const ops: Op[] = [];
-  let limitOp: number | undefined;
-  if(hasLimit){const count=compileExpressionTree(expressionFromReduction(select.limit!.reduction!),ops,()=>++registers),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,()=>++registers):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
+  const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
+  const limit=computeLimitRegisters(select,ops,()=>++registers,parameters);
   const sorterCursor=1,distinctCursor=2,keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   ops.push({code:"OpenRead",p1:table.rootPage});
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
@@ -353,14 +370,17 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
   let distinctFound: number | undefined;
   if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
-  if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length});}
+  if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
   else ops.push({code:"ResultRow",p1:1,p2:projected.length});
-  const next=ops.length;
-  if(distinctFound!==undefined)(ops[distinctFound] as {jump:number}).jump=next;
   sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
-  if(keyInfo){const sortAt=ops.length-1;ops.splice(sortAt,0,{code:"SorterSort",p1:sorterCursor,emptyJump:sortAt+4},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length},{code:"ResultRow",p1:1,p2:projected.length},{code:"SorterNext",p1:sorterCursor,p2:sortAt+1});}
-  if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
-  if(limitOp!==undefined){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limitOp] as {zeroJump:number}).zeroJump=halt;}
+  if(keyInfo){const sortAt=ops.length-1,tail:Op[]=[{code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length}];if(limit?.offset!==undefined)tail.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});tail.push({code:"ResultRow",p1:1,p2:projected.length});if(limit)tail.push({code:"DecrJumpZero",p1:limit.count,p2:0});const nextIndex=sortAt+tail.length;tail.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(tail[0] as {emptyJump:number}).emptyJump=nextIndex+1;for(const op of tail){if(op.code==="IfPos") (op as {p2:number}).p2=nextIndex;if(op.code==="DecrJumpZero") (op as {p2:number}).p2=nextIndex+1;}ops.splice(sortAt,0,...tail);}else if(limit){const resultAt=(()=>{for(let i=ops.length-1;i>=0;i--)if(ops[i]!.code==="ResultRow")return i;return -1})();const continuation=resultAt+1;if(limit.offset!==undefined)ops.splice(resultAt,0,{code:"IfPos",p1:limit.offset,p2:continuation+2,p3:1});const adjusted=(()=>{for(let i=ops.length-1;i>=0;i--)if(ops[i]!.code==="ResultRow")return i;return -1})();ops.splice(adjusted+1,0,{code:"DecrJumpZero",p1:limit.count,p2:ops.length+1});}
+  // Patch scan-continuation labels only after the result tail has its final
+  // layout. Duplicate and filtered rows must bypass OFFSET/result/LIMIT work.
+  const scanContinue=ops.findIndex((op,index)=>index>=scan.loopStart&&op.code==="Next");
+  if(scanContinue<0)throw new Error("table scan has no continuation target");
+  if(distinctFound!==undefined)(ops[distinctFound] as {jump:number}).jump=scanContinue;
+  if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=scanContinue;
+  if(limit){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limit.ifZero] as {p2:number}).p2=halt;}
   const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
   return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
 }
@@ -405,8 +425,6 @@ export class VdbeStatement implements Statement {
   #cursor: TableScanCursor | null = null;
   #record: ReturnType<typeof decodeRecord> | null = null;
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor>();
-  #limitCount: bigint | null = null;
-  #limitOffset = 0n;
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -444,11 +462,14 @@ export class VdbeStatement implements Statement {
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
           case "OpenRead": this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
-          case "OffsetLimit": this.#limitCount=op.count<0n?null:op.count;this.#limitOffset=op.offset;break;
-          case "ComputeLimit": {const integer=(m:Mem):bigint=>{if(m.initialStorageClass==="integer")return m.integerValue();if(m.initialStorageClass==="real"){const n=m.realValue();if(Number.isInteger(n)&&n>=-9223372036854775808&&n<9223372036854775808)return BigInt(n)}if(m.initialStorageClass==="text"){const text=m.textValue();if(/^[+-]?[0-9]+$/.test(text)){const n=BigInt(text);if(n>=-(1n<<63n)&&n<(1n<<63n))return n}}throw new JSQLiteError("sqlite","datatype mismatch",{code:20});};const count=integer(this.#registers[op.count]!);this.#limitCount=count<0n?null:count;this.#limitOffset=op.offset===undefined?0n:integer(this.#registers[op.offset]!);if(this.#limitOffset<0n)this.#limitOffset=0n;if(count===0n)this.#pc=op.zeroJump;break;}
+          case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
+          case "OffsetLimit": {const count=this.#registers[op.p1]!.integerValue(),offset=this.#registers[op.p3]!.integerValue();const positive=offset>0n?offset:0n,sum=count+positive;this.#registers[op.p2]!.setInt64(count<=0n||sum>(1n<<63n)-1n?-1n:sum);break;}
+          case "IfNotZero": {const value=this.#registers[op.p1]!.integerValue();if(value!==0n){if(value>0n)this.#registers[op.p1]!.setInt64(value-1n);this.#pc=op.p2;}break;}
+          case "IfPos": {const value=this.#registers[op.p1]!.integerValue();if(value>0n){this.#registers[op.p1]!.setInt64(value-BigInt(op.p3));this.#pc=op.p2;}break;}
+          case "DecrJumpZero": {const value=this.#registers[op.p1]!.integerValue(),next=value>-(1n<<63n)?value-1n:value;this.#registers[op.p1]!.setInt64(next);if(next===0n)this.#pc=op.p2;break;}
           case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
           case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
-          case "SorterInsert": await (this.#privateCursors.get(op.p1) as SorterCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#registers.slice(op.payload,op.payload+op.payloadCount),this.#privateControl(options,limit,started));break;
+          case "SorterInsert": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;
@@ -477,7 +498,7 @@ export class VdbeStatement implements Statement {
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;
-          case "ResultRow": if(this.#limitOffset>0n){this.#limitOffset--;break}else if(this.#limitCount===0n){this.#state="done";const cleanup=this.#halt();if(cleanup!==null)throw cleanup;return "done"}else{if(this.#limitCount!==null)this.#limitCount--;if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";}
+          case "ResultRow": if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";
           case "Halt": this.#state = "done"; {const cleanup=this.#halt();if(cleanup!==null)throw cleanup;} return "done";
         }
       }
@@ -545,7 +566,7 @@ export class VdbeStatement implements Statement {
     this.#invalidateRow();this.#cursor=null;this.#record=null;
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
-    this.#privateCursors.clear();this.#limitCount=null;this.#limitOffset=0n;this.#borrow.invalidate();
+    this.#privateCursors.clear();this.#borrow.invalidate();
     return diagnostic;
   }
   #assertLive(): void { if (this.#state === "finalized") misuse("statement is finalized"); }

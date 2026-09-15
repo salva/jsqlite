@@ -669,7 +669,7 @@ inventory, not relational credit. Compounds/subqueries remain structural-gate wo
 - `parse.y:orderby_opt/sortlist/limit_opt` -> typed `SelectNode.orderBy/limit/offset`.
 - `resolve.c:resolveOrderGroupBy`, `select.c:pushOntoSorter` -> expression/alias/ordinal/table fallback and complete `KeyInfo` keys in `compileTableSelect`.
 - `vdbeaux.c:sqlite3VdbeRecordCompareWithSkip`/`sqlite3VdbeRecordCompare`, `main.c:nocaseCollatingFunc`, and `util.c:sqlite3_strnicmp` -> shared `compareMem`/`compareBuiltinText`; public declared NOCASE, explicit BINARY/RTRIM, and embedded-NUL byte-length cases prove actual ordering rather than `KeyInfo` labels.
-- `select.c:computeLimitRegisters`, `vdbe.c:OP_MustBeInt` -> `ComputeLimit`, including mismatch phase, negative and zero branches; scalar LIMIT/OFFSET opcodes precede deferred result-expression opcodes, and table LIMIT/OFFSET precedes scan/sorter setup. The pinned/native and public `abs(INT64_MIN) LIMIT 0` case proves the zero jump bypasses result evaluation, while invalid OFFSET coercion remains before that jump.
+- `select.c:computeLimitRegisters` and `codeOffset`, `vdbe.c:OP_MustBeInt`, `OP_OffsetLimit`, `OP_IfPos`, `OP_IfNotZero`, and `OP_DecrJumpZero` -> emitted register/opcode control, including mismatch phase, negative and zero branches; scalar LIMIT/OFFSET opcodes precede deferred result-expression opcodes, and table LIMIT/OFFSET precedes scan/sorter setup. The pinned/native and public `abs(INT64_MIN) LIMIT 0` case proves the zero jump bypasses result evaluation, while invalid OFFSET coercion remains before that jump.
 
 ### Schema UTF lead-byte and fixture provenance correction (2026-09-15)
 

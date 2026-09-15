@@ -386,3 +386,8 @@ owner warrants it; there is no fixed quota. Maintain baseline prediction, curren
 reproduction or disproof, owning correction, and exact validation evidence beside
 each finding. Receipt of this audit, a notification, or a runtime upgrade is not
 evidence that any finding is resolved.
+
+
+### 11. LIMIT control/top-N correction (current working revision)
+
+The prior synthetic `ComputeLimit` and host `ResultRow` counters are removed. Admitted scalar/table programs emit register-based `MustBeInt`, `OffsetLimit`, zero-test, `IfPos`, `IfNotZero`, and `DecrJumpZero` control mapped to SQLite 3.53.4 `select.c:computeLimitRegisters`, `codeOffset`, and `pushOntoSorter`, with implementations mapped to `vdbe.c`. Ordered positive LIMIT retains at most LIMIT+OFFSET typed sorter candidates; negative LIMIT remains unbounded. Program-shape and public lifecycle/resource tests protect the correction. Relational accounting remains exactly 2/18; no new upstream case is credited.

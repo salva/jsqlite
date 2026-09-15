@@ -42,6 +42,31 @@ test('public LIMIT zero bypasses multi-key sorter admission under a small work b
 
 async function openRelationalWithLimits(bridge,limits){return open(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`),{limits})}
 
+test('public positive LIMIT bounds sorter candidates instead of generic row capacity',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openRelationalWithLimits(bridge,{maxRows:1,maxResultBytes:64});
+  statement=db.prepare('SELECT x,y FROM t1 ORDER BY y,x LIMIT 1').statement;
+  assert.equal(await statement.step(),'row');
+  assert.deepEqual([statement.columnInteger(0),statement.columnInteger(1)],[2n,0n]);
+  assert.equal(await statement.step(),'done');
+ } finally {
+  try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
+test('public positive LIMIT plus OFFSET retains exactly the required candidate window',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openRelationalWithLimits(bridge,{maxRows:2,maxResultBytes:64});
+  statement=db.prepare('SELECT x FROM t1 ORDER BY x LIMIT 1 OFFSET 1').statement;
+  assert.equal(await statement.step(),'row');assert.equal(statement.columnInteger(0),1n);assert.equal(await statement.step(),'done');
+  statement.reset();assert.equal(await statement.step(),'row');assert.equal(statement.columnInteger(0),1n);statement.finalize();statement=undefined;
+  const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+});
+
 test('public multi-key sorter enforces entry and byte bounds atomically',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
  const expectLimit=async(limits,message)=>{
