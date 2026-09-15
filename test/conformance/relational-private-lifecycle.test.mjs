@@ -60,6 +60,27 @@ test('public multi-key sorter enforces entry and byte bounds atomically',async()
  }
 });
 
+test('public DISTINCT enforces ephemeral entry/key/byte bounds and rolls back failed insertion',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ const runToFailure=async limits=>{
+  db=await open(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`),{limits});
+  statement=db.prepare('SELECT DISTINCT bin FROM distinct_edge').statement;
+  try{while(await statement.step()==='row'){};assert.fail('expected DISTINCT private-state limit')}
+  catch(error){assert.ok(error instanceof JSQLiteError&&error.kind==='limit');return error.message}
+  finally{try{statement.finalize()}catch{}statement=undefined;db.closeDeferred();db=undefined}
+ };
+ try{
+  assert.equal(await runToFailure({maxRows:1}),'ephemeral index exceeds entry limit');
+  assert.equal(await runToFailure({maxResultBytes:0}),'ephemeral key exceeds byte limit');
+  assert.equal(await runToFailure({maxRows:6,maxResultBytes:5}),'ephemeral index exceeds total byte limit');
+  db=await openRelationalWithLimits(bridge,{maxRows:6,maxResultBytes:64});statement=db.prepare('SELECT DISTINCT bin FROM distinct_edge').statement;
+  assert.equal(await statement.step(),'row','failed bounded insertions do not poison later public admission');
+ } finally {
+  try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
 test('public relational work budgets stop at exact real sorter and ephemeral boundaries',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
  const first=async(sql,maxWorkUnits)=>{statement=db.prepare(sql).statement;try{return await statement.step({maxWorkUnits})}finally{try{statement.finalize()}catch{}statement=undefined}};
@@ -204,6 +225,34 @@ test('DISTINCT membership work yields so a live abort can be observed',async()=>
   try{statement?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
   EphemeralIndexCursor.prototype.found=originalFound;
+  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+ }
+});
+
+test('public DISTINCT deadline closes ephemeral state and restores admission',async()=>{
+ const originalFound=EphemeralIndexCursor.prototype.found,originalClose=EphemeralIndexCursor.prototype.close,originalNow=Date.now;
+ let inFound=false,closes=0;
+ EphemeralIndexCursor.prototype.found=async function(key,control){
+  inFound=true;
+  await control.checkpoint(1);
+  return originalFound.call(this,key,control);
+ };
+ EphemeralIndexCursor.prototype.close=function(){closes++;return originalClose.call(this)};
+ Date.now=()=>inFound?100:0;
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ try{
+  db=await openRelational(bridge);statement=db.prepare('SELECT DISTINCT a FROM t2').statement;
+  await assert.rejects(
+   statement.step({timeoutMs:2}),
+   error=>error instanceof JSQLiteError&&error.kind==='timeout'&&error.message==='statement execution timed out',
+  );
+  assert.equal(closes,1,'deadline closes the partially populated ephemeral index once');
+  assert.throws(()=>statement.finalize(),error=>error instanceof JSQLiteError&&error.kind==='timeout');statement=undefined;
+  Date.now=originalNow;
+  const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
+ } finally {
+  Date.now=originalNow;EphemeralIndexCursor.prototype.found=originalFound;EphemeralIndexCursor.prototype.close=originalClose;
+  try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
  }
 });

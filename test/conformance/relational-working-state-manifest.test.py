@@ -23,7 +23,7 @@ class Manifest(unittest.TestCase):
   self.assertEqual(a['upstreamDeclared']+a['companionsDeclared'],len(self.d['cases']))
   self.assertEqual(a['nativeMatched'],len(self.d['cases']))
   credited=[c for c in self.d['cases'] if c['ts']['credit']]
-  self.assertEqual([c['id'] for c in credited],['up-limit-1.2.1'])
+  self.assertEqual([c['id'] for c in credited],['up-limit-1.2.1','up-select4-10.3'])
   self.assertEqual(a['tsCreditedCases'],len(credited))
  def test_literal_upstream_provenance(self):
   seen=set()
@@ -56,7 +56,8 @@ class Manifest(unittest.TestCase):
    ts=c['ts']; attempted=ts['attempted']; unattempted=ts['unattempted']
    ai=[x['index'] for x in attempted]; ui=[x['index'] for x in unattempted]
    self.assertEqual(sorted(ai+ui),list(range(len(c['operations']))))
-   self.assertEqual(ts['credit'],c['id']=='up-limit-1.2.1')
-   self.assertEqual(bool(attempted),ts['credit'])
+   self.assertEqual(ts['credit'],c['id'] in ('up-limit-1.2.1','up-select4-10.3'))
+   self.assertEqual(bool(attempted),c['id'] in ('up-limit-1.2.1','up-distinct-3.0','up-select4-10.3'))
+   if c['id']=='up-distinct-3.0': self.assertIn('automatic-index',ts['creditRationale'])
    self.assertTrue(re.match(r'^\s*(SELECT|WITH)\b',c['sql'],re.I),c['id'])
 if __name__=='__main__':unittest.main()

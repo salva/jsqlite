@@ -23,7 +23,7 @@ class OrderLimitContract(unittest.TestCase):
    self.assertEqual(sorted(x['index'] for x in trace+unattempted),list(range(len(case['operations']))),case['id'])
   relational=json.loads(RELATIONAL.read_text())
   self.assertEqual(len(relational['cases']),18)
-  self.assertEqual(sum(bool(c['ts']['credit']) for c in relational['cases']),1)
+  self.assertEqual(sum(bool(c['ts']['credit']) for c in relational['cases']),2)
 
  def test_typed_native_boundaries_are_retained(self):
   cases={c['id']:c for c in json.loads(CAPTURE.read_text())['cases']}

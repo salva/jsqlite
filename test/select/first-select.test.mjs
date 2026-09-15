@@ -325,7 +325,7 @@ test("live statement close is BUSY, deferred close keeps VM alive, and breadth i
   assert.throws(()=>db.prepare("SELECT 2"),isError("misuse"));
   assert.equal(await s.step(),"row"); s.finalize();
   const db2=await openBytes("empty");
-  for (const sql of ["SELECT count(*)", "SELECT 1 ORDER BY 1", "SELECT DISTINCT 1", "SELECT 1 GROUP BY 1", "SELECT 1 LIMIT 1", "SELECT * FROM missing JOIN other"])
+  for (const sql of ["SELECT count(*)", "SELECT 1 GROUP BY 1", "SELECT * FROM missing JOIN other"])
     assert.throws(()=>db2.prepare(sql), error=>isError("unsupported")(error)&&error.unsupportedClassification==="temporary");
   db2.close();
 });

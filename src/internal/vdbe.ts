@@ -335,14 +335,13 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     }
   }
   const hasLimit=select.limit!==null;
-  if(select.hasDistinct&&projected.some(x=>x.expression!==undefined))throw new JSQLiteError("unsupported","DISTINCT expressions are not implemented",{unsupportedClassification:"temporary"});
   const ops: Op[] = [];
   let limitOp: number | undefined;
   if(hasLimit){const count=compileExpressionTree(expressionFromReduction(select.limit!.reduction!),ops,()=>++registers),offset=select.offset?compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,()=>++registers):undefined;limitOp=ops.length;ops.push({code:"ComputeLimit",count,...(offset===undefined?{}:{offset}),zeroJump:0});}
   const sorterCursor=1,distinctCursor=2,keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   ops.push({code:"OpenRead",p1:table.rootPage});
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
-  if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:projected.map(x=>({collation:x.column===undefined?"binary":sqliteAsciiFold(table.columns[x.column]!.collation??"binary") as BuiltinCollation}))})});
+  if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:projected.map(x=>({collation:x.expression===undefined?sqliteAsciiFold(table.columns[x.column!]!.collation??"binary") as BuiltinCollation:collation(x.expression)}))})});
   const rewindIndex=ops.length;ops.push({code:"Rewind",p2:0});const scan:FullScanPlan={rewindIndex,loopStart:ops.length};
   let ifNotIndex: number | undefined;
   if (select.where) {
@@ -352,10 +351,13 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   const body=ops.length;
   projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
-  if(select.hasDistinct){const found=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});(ops[found] as {jump:number}).jump=ops.length+(keyInfo?2:1)}
+  let distinctFound: number | undefined;
+  if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
   if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length});}
   else ops.push({code:"ResultRow",p1:1,p2:projected.length});
-  const next=ops.length; sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
+  const next=ops.length;
+  if(distinctFound!==undefined)(ops[distinctFound] as {jump:number}).jump=next;
+  sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
   if(keyInfo){const sortAt=ops.length-1;ops.splice(sortAt,0,{code:"SorterSort",p1:sorterCursor,emptyJump:sortAt+4},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length},{code:"ResultRow",p1:1,p2:projected.length},{code:"SorterNext",p1:sorterCursor,p2:sortAt+1});}
   if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=next;
   if(limitOp!==undefined){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limitOp] as {zeroJump:number}).zeroJump=halt;}

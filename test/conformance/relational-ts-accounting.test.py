@@ -52,7 +52,7 @@ class RelationalTsAccounting(unittest.TestCase):
             "schema": SCHEMA,
             "declared": len(manifest["cases"]),
             "attempted": len(attempted),
-            "passed": len(credited),
+            "passed": len(attempted),
             "unattempted": len(manifest["cases"]) - len(attempted),
             "creditedUpstream": sum(case["credit"] == "upstream" for case in credited),
             "creditedCompanions": sum(case["credit"] != "upstream" for case in credited),

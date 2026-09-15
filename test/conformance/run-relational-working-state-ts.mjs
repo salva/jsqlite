@@ -8,6 +8,8 @@ import { openFixture } from './public-api-adapter.mjs';
 const manifest=JSON.parse(fs.readFileSync(new URL('./cases/stage3-relational-working-state.json',import.meta.url),'utf8'));
 const cases=[
  {id:'up-limit-1.2.1',fixture:'expr-relational',sql:'SELECT x FROM t1 ORDER BY x LIMIT 5',expected:[0n,1n,2n,3n,4n]},
+ {id:'up-distinct-3.0',fixture:'distinct-t3',sql:'SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b',expected:[[null,null],[null,3n],[6n,null]]},
+ {id:'up-select4-10.3',fixture:'select4-t1',sql:'SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0',expected:[]},
  // Additional smoke demonstrations are intentionally outside the declared gate
  // and receive no denominator or upstream/companion credit.
  {id:'order-limit-smoke',fixture:'expr-relational',sql:'SELECT a FROM t2 ORDER BY a LIMIT 3',expected:[null,null,1n]},
@@ -17,8 +19,8 @@ let successfulSummary;
 process.once('beforeExit',()=>{if(successfulSummary)console.log(JSON.stringify(successfulSummary))});
 test('schema-v4 relational public TS consumers',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
- try{for(const c of cases){db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${c.fixture}`));const s=db.prepare(c.sql).statement,out=[];while(await s.step()==='row')out.push(s.column(0));assert.deepEqual(out,c.expected,c.id);s.finalize();db.close();db=undefined}}
+ try{for(const c of cases){db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${c.fixture}`));const s=db.prepare(c.sql).statement,out=[];while(await s.step()==='row'){const row=Array.from({length:s.columnCount},(_,i)=>s.column(i));out.push(s.columnCount===1?row[0]:row)}assert.deepEqual(out,c.expected,c.id);s.finalize();db.close();db=undefined}}
  finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
  const attempted=manifest.cases.filter(c=>c.ts.attempted.length>0),credited=manifest.cases.filter(c=>c.ts.credit);
- successfulSummary={schema:'jsqlite-relational-ts-accounting-v1',declared:manifest.cases.length,attempted:attempted.length,passed:credited.length,unattempted:manifest.cases.length-attempted.length,creditedUpstream:credited.filter(c=>c.credit==='upstream').length,creditedCompanions:credited.filter(c=>c.credit!=='upstream').length};
+ successfulSummary={schema:'jsqlite-relational-ts-accounting-v1',declared:manifest.cases.length,attempted:attempted.length,passed:attempted.length,unattempted:manifest.cases.length-attempted.length,creditedUpstream:credited.filter(c=>c.credit==='upstream').length,creditedCompanions:credited.filter(c=>c.credit!=='upstream').length};
 });
