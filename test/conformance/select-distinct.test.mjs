@@ -122,6 +122,34 @@ test('SELECT DISTINCT preserves typed equality, collations, metadata, WHERE, and
   }
 });
 
+test('SELECT DISTINCT preserves prepare errors and statement ownership', async () => {
+  const bridge = await startFixtureServer(path.resolve('test/fixtures'));
+  let db;
+  try {
+    db = await openFixture(new Request(
+      `http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`,
+    ));
+    assert.throws(
+      () => db.prepare('SELECT DISTINCT missing FROM distinct_edge'),
+      error => error?.kind === 'sqlite' && error.code === 1
+        && error.message === 'no such column: missing',
+    );
+    assert.throws(
+      () => db.prepare('SELECT DISTINCT bin COLLATE unknown FROM distinct_edge'),
+      error => error?.kind === 'sqlite' && error.code === 1
+        && error.message === 'no such collation sequence: unknown',
+    );
+    const statement = db.prepare('SELECT DISTINCT bin FROM distinct_edge LIMIT 1').statement;
+    assert.equal(await statement.step(), 'row', 'prepare failures do not poison later admission');
+    statement.finalize();
+  } finally {
+    try { db?.closeDeferred(); } catch {}
+    await new Promise((resolve, reject) => bridge.server.close(
+      error => error ? reject(error) : resolve(),
+    ));
+  }
+});
+
 test('DISTINCT duplicate jump skips a non-result multi-term ORDER key and SorterInsert', async () => {
   const bridge = await startFixtureServer(path.resolve('test/fixtures'));
   let db;
