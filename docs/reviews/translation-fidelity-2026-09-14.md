@@ -32,7 +32,23 @@ legitimate boundaries when they are rejected truthfully.
 
 ### 1. SELECT production identity and semantic structure
 
-**Current static label: unchanged.**
+**Revision 2026-09-15 ([[card:card-e-b]] current repair): reproduced and corrected
+for the bounded parser/compiler contract.**
+
+The generated reduction action now attaches the statement at `cmd ::= select`
+and follows the top-level `select`/`selectnowith`/`oneselect` production chain,
+rather than selecting the last recursively discovered `oneselect`. The outer
+projection for `SELECT 7,(SELECT 8)` is consequently retained as `7` plus the
+subquery expression. Compound and subquery reductions are also retained as
+structural flags, and the public compiler rejects both forms as temporary
+unsupported before lowering; `SELECT 1 UNION ALL SELECT 2` can no longer execute
+only one arm. Focused generated-parser tests cover the retained structures, and a
+public typed-API adversarial test covers both unsupported gates. Independent
+manifest-pinned SQLite 3.53.4 observations return `(7,8)` for the scalar-subquery
+case and rows `1`, `2` for the compound case. This correction does not claim that
+subquery or compound execution has been implemented.
+
+**Superseded baseline label:**
 
 Baseline `src/internal/parse.ts:36-42` recursively finds every `oneselect`
 reduction and selects `.at(-1)`. Predicted consequence: `SELECT 7,(SELECT 8)` may
@@ -221,7 +237,23 @@ compound support for a documentation fix.
 
 ### 4. Tokenization and actual Lemon fallback
 
-**Current static label: unchanged.**
+**Revision 2026-09-15 ([[card:card-e-b]] current repair): reproduced and corrected
+for the identified tokenizer and fallback branches.**
+
+`src/internal/tokenize.ts` now follows the pinned `sqlite3GetToken` branches for
+hexadecimal integers, identifier suffixes that make a numeric token illegal,
+the UTF-8 BOM before generic non-ASCII identifier handling, and the operator
+cross-product (`><` is two tokens). The generated parser artifact now carries
+`yyFallback`, and `src/internal/lemon-runtime.ts` applies it only after the current
+parser state has no action for the original lookahead, matching the control in
+`tool/lempar.c`. There is no REPLACE-spelling patch in the parser. Contextual
+WINDOW/OVER/FILTER token adaptation is also covered through the pinned tokenizer
+decision branches. Deterministic generator/parser tests exercise `0x10`, illegal
+`0x10z`, BOM, valid neighboring operators, rejected `><`, REPLACE-as-function,
+and keyword-context neighbors. These corrections do not imply that every grammar
+semantic action or WINDOW query consumer is implemented.
+
+**Superseded baseline label:**
 
 Baseline `src/internal/tokenize.ts:35-45` misses hexadecimal numeric `0x10` and
 illegal-suffix handling; BOM recognition follows generic byte-`>=128` identifier

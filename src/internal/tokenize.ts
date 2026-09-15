@@ -33,16 +33,21 @@ export function tokenize(bytes: Uint8Array): readonly SqlToken[] {
     if (c === 91) { i++; while(i<bytes.length && bytes[i]!==93)i++; const ok=i<bytes.length; if(ok)i++; push(ok?"id":"illegal",a,i); continue; }
     if ((c===120||c===88) && bytes[i+1]===39) { i+=2; while(i<bytes.length&&hex(bytes[i]!))i++; const ok=bytes[i]===39 && ((i-a)&1)===0; while(i<bytes.length&&bytes[i]!==39)i++; if(bytes[i]===39)i++; push(ok?"blob":"illegal",a,i); continue; }
     if (digit(c) || (c===46 && digit(bytes[i+1]??-1))) {
-      let kind:TokenKind="integer"; if(c===46){kind="float";i++;} while(digit(bytes[i]??-1)||bytes[i]===95)i++;
+      let kind:TokenKind="integer";
+      if(c===48&&(bytes[i+1]===120||bytes[i+1]===88)&&hex(bytes[i+2]??-1)){
+        i+=3;while(hex(bytes[i]??-1)||bytes[i]===95)i++;
+        while(id(bytes[i]??-1)){kind="illegal";i++;}push(kind,a,i);continue;
+      }
+      if(c===46){kind="float";i++;} while(digit(bytes[i]??-1)||bytes[i]===95)i++;
       if(bytes[i]===46){kind="float";i++;while(digit(bytes[i]??-1)||bytes[i]===95)i++;}
       if((bytes[i]===101||bytes[i]===69) && (digit(bytes[i+1]??-1)||((bytes[i+1]===43||bytes[i+1]===45)&&digit(bytes[i+2]??-1)))) { kind="float"; i+=2; while(digit(bytes[i]??-1)||bytes[i]===95)i++; }
       while(id(bytes[i]??-1)){kind="illegal";i++;} push(kind,a,i); continue;
     }
     if (c===63) { i++; while(digit(bytes[i]??-1))i++; push("variable",a,i); continue; }
     if (c===58||c===64||c===36||c===35) { i++; let n=0; while(i<bytes.length){if(id(bytes[i]??-1)){i++;n++;continue;}if(bytes[i]===58&&bytes[i+1]===58){i+=2;continue;}if(n>0&&bytes[i]===40){i++;while(i<bytes.length&&!([32,9,10,12,13,41].includes(bytes[i]!)))i++;if(bytes[i]===41)i++;else{push("illegal",a,i);break;}continue;}break;} if(out.at(-1)?.startByte!==a)push(n?"variable":"illegal",a,i); continue; }
-    if (id(c) && !digit(c)) { i++; while(id(bytes[i]??-1))i++; const text=decode(bytes,a,i); push(keyword(text)?"keyword":"id",a,i); continue; }
     if (c===0xef&&bytes[i+1]===0xbb&&bytes[i+2]===0xbf){i+=3;push("space",a,i);continue;}
-    if (",;()+-*/%=<>.!|&~".includes(String.fromCharCode(c))) { i++; if ((c===60||c===62||c===33||c===61||c===124) && [61,62,60,124].includes(bytes[i]??-1)) i++; push(c===33&&i===a+1?"illegal":"punct",a,i); continue; }
+    if (id(c) && !digit(c)) { i++; while(id(bytes[i]??-1))i++; const text=decode(bytes,a,i); push(keyword(text)?"keyword":"id",a,i); continue; }
+    if (",;()+-*/%=<>.!|&~".includes(String.fromCharCode(c))) { i++; const n=bytes[i]; if(c===60&&(n===61||n===62||n===60))i++;else if(c===62&&(n===61||n===62))i++;else if((c===33||c===61)&&n===61)i++;else if(c===124&&n===124)i++;push(c===33&&i===a+1?"illegal":"punct",a,i); continue; }
     i++; push("illegal",a,i);
   }
   out.push(Object.freeze({kind:"eof",startByte:i,endByte:i,text:""})); return Object.freeze(out);

@@ -53,11 +53,23 @@ export function lemonParse<T = unknown>(
   const shiftAction = (state: number, token: number): number => {
     if (state > t.shiftCount) return state;
     const offset = t.shiftOffset[state]!;
-    const index = offset + token;
-    return offset < t.shiftMin || offset > t.shiftMax || index < 0 ||
-      index >= t.action.length || t.lookahead[index] !== token
-      ? t.defaults[state]!
-      : t.action[index]!;
+    let candidate = token;
+    for (;;) {
+      const index = offset + candidate;
+      if (index >= 0 && index < t.action.length && t.lookahead[index] === candidate) {
+        return t.action[index]!;
+      }
+      const fallback = t.fallback[candidate] ?? 0;
+      if (fallback !== 0) {
+        candidate = fallback;
+        continue;
+      }
+      const wildcardIndex = offset + t.wildcard;
+      return candidate > 0 && wildcardIndex >= 0 && wildcardIndex < t.action.length &&
+          t.lookahead[wildcardIndex] === t.wildcard
+        ? t.action[wildcardIndex]!
+        : t.defaults[state]!;
+    }
   };
   const reduceAction = (state: number, lhs: number): number => {
     if (state > t.reduceCount) return t.defaults[state]!;
