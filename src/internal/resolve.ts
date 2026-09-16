@@ -98,9 +98,11 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    if(!isOrdinal)continue;
    const ordinal=Number(parsed);
    if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} GROUP BY term out of range - should be between 1 and ${output.length}`);}
+   if(hasAggregate(select.result[ordinal-1]!))throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
    continue;
   }
   resolveAgainstSources(expression,sources,select.result);
+  if(hasAggregate(expression))throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
  }
  return Object.freeze({source:select,sources,result:Object.freeze(output)});
 }
