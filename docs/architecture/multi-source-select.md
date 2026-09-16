@@ -106,10 +106,32 @@ name, declared type or null, database/table/origin or null, affinity and resolve
 collation. A direct resolved column preserves its declaration, origin, affinity,
 and default column collation through aliases and qualified references. An
 expression uses SQLite result-name rules and has no origin metadata unless the
-pinned expression metadata path supplies it. For USING/NATURAL `*`, the retained
-left visible column owns descriptor/value selection; RIGHT/FULL processing may
-coalesce values as described below without inventing right-side origin metadata.
-Collation precedence remains explicit COLLATE, resolved column, then BINARY;
+pinned expression metadata path supplies it.
+
+USING/NATURAL is not an unconditional “left column owns the output” rule. NATURAL
+first synthesizes an ordered USING list; thereafter the following matrix applies
+to each effective USING name (and is required for both explicit result references
+and the unqualified terms emitted by bare-star expansion):
+
+| Join family | Unqualified lookup and bare `*` value | Bare `*` descriptor, affinity, collation | Qualified `q.col` / `q.*` |
+|---|---|---|---|
+| INNER / LEFT | left-most matching source column | that direct left column's declared type/origin, affinity, and default collation | always the named source's direct value and direct metadata |
+| RIGHT | right-most matching source column (the RHS item carrying `JT_RIGHT`) | that direct right column's declared type/origin, affinity, and default collation | always the named source's direct value and direct metadata |
+| FULL (`JT_LEFT|JT_RIGHT`) | a resolver-owned `coalesce(leftMatch..., rightMatch)` in source order | expression metadata (null declared type/database/table/origin), deferred affinity resolved from the first/left argument, and expression collation (BINARY absent explicit `COLLATE`) | always the named source's direct value and direct metadata |
+
+This follows `resolve.c:lookupName`: a later USING match is skipped for INNER/LEFT,
+replaces the prior match for RIGHT, or extends `pFJMatch` and becomes `TK_FUNCTION`
+`coalesce` for FULL. It also follows `select.c:selectExpander`: RHS USING columns
+are omitted from bare `*`, but an earlier `JT_LTORJ` column whose name occurs in a
+later USING is emitted as an unqualified identifier so lookup performs the
+RIGHT/FULL choice. Thus `right-using-coalesce-star` has `main.c.k` origin and RHS
+values, while `full-using-coalesced` has coalesced values and all-null origin/type
+metadata. Qualified stars never coalesce or hide their source-specific columns.
+The generated USING equality is a separate `sqlite3ProcessJoin` expression: its
+comparison affinity/collation follows the source expression (`pE1`, including the
+multi-left coalesce branch with deferred affinity) and RHS column under normal
+comparison rules; it must not inherit output-descriptor metadata. General
+collation precedence remains explicit COLLATE, resolved column, then BINARY;
 affinity is applied at comparison callers, not by mutating stored `Mem`.
 
 ## Join processing and predicate ownership

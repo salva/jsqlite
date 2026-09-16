@@ -83,7 +83,12 @@
         "order-distinct-limit"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id FROM l,r WHERE l.k=r.k ORDER BY l.id,r.id"
+      "sql": "SELECT l.id,r.id FROM l,r WHERE l.k=r.k ORDER BY l.id,r.id",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-1.3.1"
+      }
     },
     {
       "id": "cross",
@@ -91,7 +96,16 @@
         "cross"
       ],
       "setup": "names",
-      "sql": "SELECT a.y,b.z FROM a CROSS JOIN b"
+      "sql": "SELECT a.y,b.z FROM a CROSS JOIN b",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/parse.y:joinop(X) ::= JOIN_KW(A) JOIN"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3"
+        ]
+      }
     },
     {
       "id": "inner-on-alias",
@@ -101,7 +115,12 @@
         "qualified"
       ],
       "setup": "utf8",
-      "sql": "SELECT q.id AS left_id, p.w FROM l AS q INNER JOIN r AS p ON q.k=p.k ORDER BY q.id"
+      "sql": "SELECT q.id AS left_id, p.w FROM l AS q INNER JOIN r AS p ON q.k=p.k ORDER BY q.id",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-1.4.6"
+      }
     },
     {
       "id": "left-unmatched",
@@ -110,7 +129,12 @@
         "typed-values"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id"
+      "sql": "SELECT l.id,r.id,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-2.1"
+      }
     },
     {
       "id": "left-where-placement",
@@ -118,7 +142,16 @@
         "left"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k WHERE r.id IS NULL ORDER BY l.id"
+      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k WHERE r.id IS NULL ORDER BY l.id",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/whereexpr.c:exprAnalyze/EP_OuterON"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-2.1"
+        ]
+      }
     },
     {
       "id": "left-on-placement",
@@ -126,7 +159,16 @@
         "left"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k AND r.id>15 ORDER BY l.id"
+      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k AND r.id>15 ORDER BY l.id",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereCodeOneLoopStart/JT_LEFT"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-2.1.1"
+        ]
+      }
     },
     {
       "id": "right-unmatched",
@@ -134,7 +176,16 @@
         "right"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id,r.w FROM l RIGHT JOIN r ON l.k=r.k ORDER BY r.id"
+      "sql": "SELECT l.id,r.id,r.w FROM l RIGHT JOIN r ON l.k=r.k ORDER BY r.id",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereRightJoinLoop"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-2010"
+        ]
+      }
     },
     {
       "id": "full-unmatched",
@@ -142,7 +193,16 @@
         "full"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id FROM l FULL JOIN r ON l.k=r.k ORDER BY coalesce(l.id,999),r.id"
+      "sql": "SELECT l.id,r.id FROM l FULL JOIN r ON l.k=r.k ORDER BY coalesce(l.id,999),r.id",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereRightJoinLoop/JT_LEFT"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-3000"
+        ]
+      }
     },
     {
       "id": "left-empty",
@@ -151,7 +211,16 @@
         "right"
       ],
       "setup": "empty-left",
-      "sql": "SELECT l.k,r.k FROM l RIGHT JOIN r USING(k) ORDER BY r.k"
+      "sql": "SELECT l.k,r.k FROM l RIGHT JOIN r USING(k) ORDER BY r.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereRightJoinLoop"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-18000"
+        ]
+      }
     },
     {
       "id": "right-empty",
@@ -160,7 +229,16 @@
         "left"
       ],
       "setup": "empty-right",
-      "sql": "SELECT l.k,r.k FROM l LEFT JOIN r USING(k) ORDER BY l.k"
+      "sql": "SELECT l.k,r.k FROM l LEFT JOIN r USING(k) ORDER BY l.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereCodeOneLoopStart/JT_LEFT"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-2.1"
+        ]
+      }
     },
     {
       "id": "bare-star-using",
@@ -170,7 +248,12 @@
         "metadata"
       ],
       "setup": "names",
-      "sql": "SELECT * FROM a JOIN b USING(x)"
+      "sql": "SELECT * FROM a JOIN b USING(x)",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-1.4.1"
+      }
     },
     {
       "id": "qualified-star-using",
@@ -180,7 +263,12 @@
         "metadata"
       ],
       "setup": "names",
-      "sql": "SELECT a.*,b.* FROM a JOIN b USING(x)"
+      "sql": "SELECT a.*,b.* FROM a JOIN b USING(x)",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-1.4.7"
+      }
     },
     {
       "id": "natural",
@@ -189,7 +277,12 @@
         "wildcard"
       ],
       "setup": "names",
-      "sql": "SELECT * FROM a NATURAL JOIN b"
+      "sql": "SELECT * FROM a NATURAL JOIN b",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-1.3"
+      }
     },
     {
       "id": "duplicate-names",
@@ -198,7 +291,16 @@
         "qualified"
       ],
       "setup": "names",
-      "sql": "SELECT a.x AS same,b.x AS same,a.y,b.z FROM a JOIN b ON a.x=b.x"
+      "sql": "SELECT a.x AS same,b.x AS same,a.y,b.z FROM a JOIN b ON a.x=b.x",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectExpander"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.6"
+        ]
+      }
     },
     {
       "id": "ambiguous",
@@ -207,7 +309,16 @@
       ],
       "setup": "names",
       "sql": "SELECT x FROM a JOIN b ON a.x=b.x",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/cnt>1"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.5"
+        ]
+      }
     },
     {
       "id": "no-such-column",
@@ -216,7 +327,16 @@
       ],
       "setup": "names",
       "sql": "SELECT a.missing FROM a,b",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/cnt==0"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-3.4.1"
+        ]
+      }
     },
     {
       "id": "alias-hides-table",
@@ -226,7 +346,16 @@
       ],
       "setup": "names",
       "sql": "SELECT a.x FROM a AS q,b",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/zAlias"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.8"
+        ]
+      }
     },
     {
       "id": "bad-star-qualifier",
@@ -235,7 +364,16 @@
       ],
       "setup": "names",
       "sql": "SELECT q.* FROM a,b",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectExpander/tableSeen"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.10"
+        ]
+      }
     },
     {
       "id": "natural-on-error",
@@ -244,7 +382,12 @@
       ],
       "setup": "names",
       "sql": "SELECT * FROM a NATURAL JOIN b ON a.x=b.x",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-3.1"
+      }
     },
     {
       "id": "using-missing-error",
@@ -253,7 +396,12 @@
       ],
       "setup": "names",
       "sql": "SELECT * FROM a JOIN b USING(missing)",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-3.4.1"
+      }
     },
     {
       "id": "typed-metadata",
@@ -262,7 +410,16 @@
         "metadata"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,l.n,l.v,r.z,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id"
+      "sql": "SELECT l.id,l.n,l.v,r.z,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectExpander/ExprList result terms"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-2.1.3"
+        ]
+      }
     },
     {
       "id": "affinity-collation",
@@ -270,7 +427,12 @@
         "affinity-collation"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id,r.id FROM l JOIN r ON l.k=r.k COLLATE NOCASE ORDER BY l.id"
+      "sql": "SELECT l.id,r.id FROM l JOIN r ON l.k=r.k COLLATE NOCASE ORDER BY l.id",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join.test",
+        "assertion": "join-11.6"
+      }
     },
     {
       "id": "distinct-order-limit",
@@ -278,7 +440,16 @@
         "order-distinct-limit"
       ],
       "setup": "utf8",
-      "sql": "SELECT DISTINCT r.z FROM l JOIN r ON l.k=r.k ORDER BY r.z DESC LIMIT 1 OFFSET 1"
+      "sql": "SELECT DISTINCT r.z FROM l JOIN r ON l.k=r.k ORDER BY r.z DESC LIMIT 1 OFFSET 1",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectInnerLoop"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.9"
+        ]
+      }
     },
     {
       "id": "compound-arm",
@@ -286,7 +457,16 @@
         "compound"
       ],
       "setup": "utf8",
-      "sql": "SELECT l.id FROM l JOIN r ON l.k=r.k UNION ALL SELECT 99 ORDER BY 1"
+      "sql": "SELECT l.id FROM l JOIN r ON l.k=r.k UNION ALL SELECT 99 ORDER BY 1",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:multiSelect"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-7010"
+        ]
+      }
     },
     {
       "id": "reset-rebind",
@@ -306,7 +486,16 @@
           "type": "integer",
           "value": "2"
         }
-      ]
+      ],
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/vdbeapi.c:sqlite3_reset"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.1"
+        ]
+      }
     },
     {
       "id": "utf16le-qualified",
@@ -315,7 +504,16 @@
         "qualified"
       ],
       "setup": "utf16le",
-      "sql": "SELECT α.名,β.名 FROM α JOIN β USING(id)"
+      "sql": "SELECT α.名,β.名 FROM α JOIN β USING(id)",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.7"
+        ]
+      }
     },
     {
       "id": "utf16be-star",
@@ -325,7 +523,16 @@
         "using"
       ],
       "setup": "utf16be",
-      "sql": "SELECT * FROM α JOIN β USING(id)"
+      "sql": "SELECT * FROM α JOIN β USING(id)",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectExpander"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.1"
+        ]
+      }
     },
     {
       "id": "where-result-alias",
@@ -333,7 +540,16 @@
         "aliases"
       ],
       "setup": "names",
-      "sql": "SELECT a.x+10 AS q FROM a WHERE q=11"
+      "sql": "SELECT a.x+10 AS q FROM a WHERE q=11",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/NC_UEList"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.9"
+        ]
+      }
     },
     {
       "id": "where-column-before-alias",
@@ -341,7 +557,16 @@
         "aliases"
       ],
       "setup": "names",
-      "sql": "SELECT 99 AS x FROM a WHERE x=1"
+      "sql": "SELECT 99 AS x FROM a WHERE x=1",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/NC_UEList-after-source"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.5"
+        ]
+      }
     },
     {
       "id": "where-duplicate-alias",
@@ -349,7 +574,16 @@
         "aliases"
       ],
       "setup": "names",
-      "sql": "SELECT a.x AS q,a.y AS q FROM a WHERE q=1"
+      "sql": "SELECT a.x AS q,a.y AS q FROM a WHERE q=1",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/resolveAlias"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.3.9"
+        ]
+      }
     },
     {
       "id": "on-result-alias",
@@ -358,7 +592,16 @@
         "inner"
       ],
       "setup": "names",
-      "sql": "SELECT a.x+1 AS q,b.x FROM a JOIN b ON q=b.x+1"
+      "sql": "SELECT a.x+1 AS q,b.x FROM a JOIN b ON q=b.x+1",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:resolveSelectStep/NC_UEList"
+        ],
+        "neighboringAssertions": [
+          "test/join.test#join-1.4.6"
+        ]
+      }
     },
     {
       "id": "on-right-reference-error",
@@ -368,7 +611,16 @@
       ],
       "setup": "right-chain",
       "sql": "SELECT * FROM a LEFT JOIN b ON c.k=b.k JOIN c ON c.k=a.k",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:sqlite3SelectCheckOnClauses"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-12010"
+        ]
+      }
     },
     {
       "id": "right-barrier-three-source",
@@ -376,7 +628,16 @@
         "right"
       ],
       "setup": "right-chain",
-      "sql": "SELECT a.k,a.av,b.k,b.bv,c.k,c.cv FROM a JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k ORDER BY c.k"
+      "sql": "SELECT a.k,a.av,b.k,b.bv,c.k,c.cv FROM a JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k ORDER BY c.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/build.c:sqlite3SrcListShiftJoinType/JT_LTORJ"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-20010"
+        ]
+      }
     },
     {
       "id": "right-table-each-side",
@@ -384,7 +645,16 @@
         "right"
       ],
       "setup": "right-chain",
-      "sql": "SELECT a.k,b.k,c.k,d.k FROM a JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k JOIN d ON c.k=d.k ORDER BY d.k"
+      "sql": "SELECT a.k,b.k,c.k,d.k FROM a JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k JOIN d ON c.k=d.k ORDER BY d.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/where.c:sqlite3WhereBegin/JT_LTORJ"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-22000"
+        ]
+      }
     },
     {
       "id": "right-using-coalesce-star",
@@ -395,7 +665,16 @@
         "metadata"
       ],
       "setup": "right-chain",
-      "sql": "SELECT * FROM a JOIN b USING(k) RIGHT JOIN c USING(k) ORDER BY k"
+      "sql": "SELECT * FROM a JOIN b USING(k) RIGHT JOIN c USING(k) ORDER BY k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:selectExpander/inAnyUsingClause"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-10010"
+        ]
+      }
     },
     {
       "id": "right-using-qualified-stars",
@@ -406,7 +685,16 @@
         "metadata"
       ],
       "setup": "right-chain",
-      "sql": "SELECT a.*,b.*,c.*,k FROM a JOIN b USING(k) RIGHT JOIN c USING(k) ORDER BY c.k"
+      "sql": "SELECT a.*,b.*,c.*,k FROM a JOIN b USING(k) RIGHT JOIN c USING(k) ORDER BY c.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/JT_RIGHT"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-10010"
+        ]
+      }
     },
     {
       "id": "right-natural-chain",
@@ -415,7 +703,12 @@
         "natural"
       ],
       "setup": "right-chain",
-      "sql": "SELECT k,av,bv,cv FROM a JOIN b USING(k) NATURAL RIGHT JOIN c ORDER BY k"
+      "sql": "SELECT k,av,bv,cv FROM a JOIN b USING(k) NATURAL RIGHT JOIN c ORDER BY k",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join8.test",
+        "assertion": "join8-6000"
+      }
     },
     {
       "id": "right-where-unmatched",
@@ -423,7 +716,16 @@
         "right"
       ],
       "setup": "right-chain",
-      "sql": "SELECT b.k,c.k FROM b RIGHT JOIN c ON b.k=c.k WHERE b.k IS NULL ORDER BY c.k"
+      "sql": "SELECT b.k,c.k FROM b RIGHT JOIN c ON b.k=c.k WHERE b.k IS NULL ORDER BY c.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereRightJoinLoop"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-17010"
+        ]
+      }
     },
     {
       "id": "right-on-unmatched",
@@ -431,7 +733,16 @@
         "right"
       ],
       "setup": "right-chain",
-      "sql": "SELECT b.k,c.k FROM b RIGHT JOIN c ON b.k=c.k AND b.bv='no' ORDER BY c.k"
+      "sql": "SELECT b.k,c.k FROM b RIGHT JOIN c ON b.k=c.k AND b.bv='no' ORDER BY c.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/whereexpr.c:exprAnalyze/EP_OuterON"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-17010"
+        ]
+      }
     },
     {
       "id": "full-both-unmatched-downstream",
@@ -439,7 +750,16 @@
         "full"
       ],
       "setup": "right-chain",
-      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c ON coalesce(a.k,b.k)=c.k ORDER BY coalesce(a.k,b.k),c.k"
+      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c ON coalesce(a.k,b.k)=c.k ORDER BY coalesce(a.k,b.k),c.k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/wherecode.c:sqlite3WhereRightJoinLoop/JT_LEFT"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-25010"
+        ]
+      }
     },
     {
       "id": "full-using-coalesced",
@@ -449,7 +769,16 @@
         "wildcard"
       ],
       "setup": "right-chain",
-      "sql": "SELECT k,av,bv FROM a FULL JOIN b USING(k) ORDER BY k"
+      "sql": "SELECT k,av,bv FROM a FULL JOIN b USING(k) ORDER BY k",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/resolve.c:lookupName/pFJMatch"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-3000"
+        ]
+      }
     },
     {
       "id": "full-chain-downstream-inner",
@@ -457,7 +786,12 @@
         "full"
       ],
       "setup": "right-chain",
-      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k JOIN c ON coalesce(a.k,b.k)=c.k ORDER BY c.k"
+      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k JOIN c ON coalesce(a.k,b.k)=c.k ORDER BY c.k",
+      "provenance": {
+        "kind": "translated-upstream-assertion",
+        "file": "test/join8.test",
+        "assertion": "join8-14000"
+      }
     },
     {
       "id": "using-ambiguous-left-error",
@@ -468,7 +802,16 @@
       ],
       "setup": "right-chain",
       "sql": "SELECT * FROM a JOIN b ON a.k=b.k RIGHT JOIN c USING(k)",
-      "expect": "prepare-error"
+      "expect": "prepare-error",
+      "provenance": {
+        "kind": "synthesized-source-branch-discriminator",
+        "sources": [
+          "src/select.c:sqlite3ProcessJoin/JT_LTORJ ambiguity"
+        ],
+        "neighboringAssertions": [
+          "test/join8.test#join8-12010"
+        ]
+      }
     }
   ]
 }

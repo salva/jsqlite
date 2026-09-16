@@ -1811,7 +1811,15 @@ LEFT match/NullRow control. `NC_UEList` alias substitution is available to WHERE
 and tagged ON terms only after real source-column lookup, while a separate
 `sqlite3SelectCheckOnClauses` check rejects outer-ON references to later sources.
 RIGHT/FULL remain atomic prepare gates until their complete retained-order control
-tranche passes. Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
+tranche passes. USING/NATURAL output ownership follows `lookupName`, not a fixed
+left owner: INNER/LEFT unqualified and bare-star terms resolve to the left direct
+column, RIGHT to the right direct column, and FULL to a source-order `coalesce`
+expression with null origin/type metadata, affinity deferred to its first/left
+argument, and expression collation;
+qualified terms and qualified stars always retain their named source's direct
+value, origin, affinity, and collation. `selectExpander` hides RHS USING terms from
+bare `*` but emits the applicable `JT_LTORJ` term unqualified so this resolver
+choice occurs. Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
 and all live private cursors share one execution-wide `PrivateStateByteBudget`.
 
 The 43-case pinned-native gate is
