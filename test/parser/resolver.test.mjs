@@ -45,6 +45,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
  assert.throws(()=>resolve('SELECT abs(a.x) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER may not be used with non-aggregate abs()');
  assert.throws(()=>resolve('SELECT min(a.x,a.x) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER may not be used with non-aggregate min()');
+ assert.throws(()=>resolve('SELECT sum(a.x) FILTER (WHERE count(a.x)) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function count()');
  assert.throws(()=>resolve('SELECT sum(a.x) FILTER (WHERE missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT min() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function min()');
  assert.throws(()=>resolve('SELECT max() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function max()');
