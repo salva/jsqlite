@@ -46,6 +46,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER (),ntile(2) OVER (),lag(a.x) OVER (),lead(a.x,1,0) OVER (),first_value(a.x) OVER (),last_value(a.x) OVER (),nth_value(a.x,1) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT rank(1) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function rank()');
+ assert.throws(()=>resolve('SELECT abs(a.x) OVER (ORDER BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
  assert.throws(()=>resolve('SELECT abs(a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
  assert.throws(()=>resolve('SELECT sum(missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.doesNotThrow(()=>resolve('SELECT char(),char(a.x,65) FROM a'));
