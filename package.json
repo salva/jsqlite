@@ -28,7 +28,9 @@
     "test:conformance:expressions:cleanup-gap": "node test/conformance/run-expression-function-cleanup-ts.mjs",
     "test:conformance:expressions:opcodes": "node --experimental-strip-types test/conformance/run-expression-opcodes-ts.mjs",
     "test:conformance:expressions:cross-encoding": "node --experimental-strip-types test/conformance/run-expression-cross-encoding-ts.mjs",
-    "test:conformance:expressions:bounded": "node --experimental-strip-types test/conformance/run-expression-bounded-ts.mjs"
+    "test:conformance:expressions:bounded": "node --experimental-strip-types test/conformance/run-expression-bounded-ts.mjs",
+    "test:conformance:multisource:manifest": "python3 test/conformance/multisource-select-manifest.test.py",
+    "test:conformance:multisource:native": "python3 test/conformance/capture-multisource-select.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-multisource-select.spec.json --output $SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json && cmp test/conformance/cases/stage3-multisource-select.json $SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json"
   },
   "devDependencies": {
     "typescript": "5.9.3"

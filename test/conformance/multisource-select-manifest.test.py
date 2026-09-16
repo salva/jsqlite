@@ -8,7 +8,7 @@ class MultiSourceManifest(unittest.TestCase):
   s=json.loads(SPEC.read_text()); c=json.loads(CAP.read_text()); m=json.loads(MAN.read_text())
   self.assertEqual(s['source']['version'],m['version']); self.assertEqual(s['source']['sourceId'],m['sqliteSourceId'])
   self.assertEqual(c['source'],s['source']); self.assertEqual(c['requiredCoverage'],s['requiredCoverage'])
-  self.assertEqual(c['accounting'],{'declared':27,'nativeCaptured':27,'tsAttempted':0,'tsCredited':0})
+  self.assertEqual(c['accounting'],{'declared':43,'nativeCaptured':43,'tsAttempted':0,'tsCredited':0})
   self.assertEqual([x['id'] for x in c['cases']],[x['id'] for x in s['cases']])
   covered={v for x in s['cases'] for v in x['coverage']}; self.assertEqual(covered,set(s['requiredCoverage']))
   byid={x['id']:x for x in s['cases']}

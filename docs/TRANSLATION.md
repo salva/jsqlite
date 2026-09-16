@@ -1802,13 +1802,19 @@ cursor and outer/inner flags rather than being flattened into WHERE.
 The first legal planner tranche is streaming source-order nested loops with the
 pinned match-register and NULL-row cursor protocol. This intentionally postpones
 cost/index/reordering choices; it is not a substitute join evaluator and does not
-materialize a Cartesian product. RIGHT is the `selectExpander` source-list rewrite
-to LEFT-shaped control, while FULL adds pinned unmatched-right tracking/control.
-RIGHT/FULL remain atomic prepare gates until their complete rewrite tranche passes.
-Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
+materialize a Cartesian product. `sqlite3SrcListShiftJoinType` retains SQL source
+order and RIGHT/FULL flags while marking every source left of the right-most RIGHT
+join with `JT_LTORJ`; the graph carries this marker. RIGHT uses typed RHS match
+state and a `WhereRightJoin` unmatched scan that nulls applicable left cursors and
+re-enters the preserved interior-loop continuation. FULL combines that path with
+LEFT match/NullRow control. `NC_UEList` alias substitution is available to WHERE
+and tagged ON terms only after real source-column lookup, while a separate
+`sqlite3SelectCheckOnClauses` check rejects outer-ON references to later sources.
+RIGHT/FULL remain atomic prepare gates until their complete retained-order control
+tranche passes. Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
 and all live private cursors share one execution-wide `PrivateStateByteBudget`.
 
-The 27-case pinned-native gate is
+The 43-case pinned-native gate is
 `test/conformance/cases/stage3-multisource-select.{spec.json,json}`, captured by
 `test/conformance/capture-multisource-select.py`. It freezes typed rows, ordered
 metadata, all database encodings, lookup/wildcard/USING/NATURAL errors, every join

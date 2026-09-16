@@ -7,7 +7,8 @@ source-pinned implementation contract, not a claim that joins execute today.
 
 The tranche translates SQLite 3.53.4 multi-source ordinary SELECT production from
 `sqliteInt.h` (`Expr`, `Select`, `SrcList`, `NameContext`), `parse.y` source/join
-reductions, `select.c` (`selectExpander`, `sqlite3ProcessJoin`, RIGHT JOIN rewrite),
+reductions, `build.c:sqlite3SrcListShiftJoinType`, `select.c` (`selectExpander`,
+`sqlite3ProcessJoin`),
 `resolve.c` (`lookupName`, `resolveSelectStep`), `where.c`, `whereexpr.c`,
 `wherecode.c`, and `vdbe.c` cursor/control/`NullRow`. It admits comma, CROSS,
 INNER, LEFT, RIGHT, and FULL joins over ordinary rowid tables, including ON,
@@ -43,6 +44,7 @@ interface SourceItem {
   readonly on: ExprNode | null;
   readonly using: readonly string[] | null;
   readonly joinFromLeft: JoinFlags;         // SQLite jointype belongs to RHS item
+  readonly leftOfRightJoin: boolean;        // immutable JT_LTORJ control marker
   readonly cursorId: number | null;         // assigned once during expansion
   readonly table: TableNode | null;         // bound connection-owned identity
 }
@@ -83,11 +85,21 @@ name`. A qualifier narrows by alias/table and optional database. Search then wal
 outer `NameContext` frames; a matching local frame prevents outer fallback.
 
 Use transient linked `NameContext` frames referencing the resolved `SourceList`
-and applicable result list. Result aliases participate only at source-defined
-callers (ORDER/GROUP/HAVING), never as a general WHERE/ON column shortcut. ON can
-see the sources on its left through its own RHS but not later sources. Every
-resolved column becomes `{cursorId, columnIndex, tableIdentity}`; rowid aliases
-follow `lookupName` and table rules rather than string substitutions.
+and applicable result list. Port the source's `NC_UEList` contract rather than
+inventing SQL-standard-only alias rules: `resolveSelectStep` installs the result
+list on the local context before HAVING and WHERE resolution, and tagged ON terms
+that `sqlite3ProcessJoin` moved into the WHERE tree pass through that same lookup.
+`lookupName` searches real source columns first; only if none match may it
+substitute a matching result alias, with the source's non-aggregate/aggregate,
+row-value, and ambiguity diagnostics. Thus a real column shadows an equal alias,
+WHERE may use an otherwise unmatched alias, and duplicate matching aliases follow
+the pinned lookup diagnostics/selection captured by the gate. ORDER/GROUP/HAVING
+retain their distinct source callers and precedence. Alias substitution does not
+weaken join scope: after resolution, port `sqlite3SelectCheckOnClauses` to reject
+an outer-join ON term whose prerequisite cursor mask includes any source to the
+owning RHS item's right. ON otherwise sees the sources on its left through its RHS.
+Every resolved column becomes `{cursorId, columnIndex, tableIdentity}`; rowid
+aliases follow `lookupName` and table rules rather than string substitutions.
 
 Each expanded result term carries immutable `ResultColumnDescriptor`: SQLite
 name, declared type or null, database/table/origin or null, affinity and resolved
@@ -137,17 +149,35 @@ pinned observable unordered output in the manifest.
 
 ## RIGHT and FULL tranche
 
-Do not create a separate right-join evaluator. Port the `selectExpander` rewrite:
-for a RIGHT join, reverse the source-list prefix through the RHS, swap LEFT/RIGHT
-bits as upstream does, set the translated `JT_LTORJ` marker on intervening items,
-and remap wildcard/USING output through the rewritten graph. Then lower the
-resulting LEFT-shaped control. FULL is LEFT plus RIGHT: retain the first pass and
-match tracking, then emit the source-shaped second pass for unmatched original
-right rows using the same cursor/null-row machinery and upstream
-`WHERE_RIGHT_JOIN`/`JT_LTORJ` barriers. The first runtime card may tranche this as
-(1) comma/CROSS/INNER/LEFT and (2) RIGHT/FULL, but the public gate must reject all
-RIGHT/FULL atomically until rewrite, star/USING value choice, unmatched-row order,
-and cleanup cases pass. Product scope is unchanged.
+Preserve SQL source order. Port `build.c:sqlite3SrcListShiftJoinType`: parser join
+flags shift onto the RHS source item, and every item left of the right-most RIGHT
+join receives immutable `leftOfRightJoin` (`JT_LTORJ`). Retain RIGHT and the
+LEFT|RIGHT combination for FULL; do not reverse sources or swap bits. Expansion,
+USING/NATURAL synthesis, name lookup, loop prerequisite masks, and planning all
+consume this same graph. In particular, the `JT_LTORJ` branch of
+`sqlite3ProcessJoin` selects/coalesces the effective USING value across a
+multi-table left operand rather than assuming its leftmost or nearest table.
+
+Port the `WhereRightJoin` protocol. The normal SQL-order pass records matched RHS
+row identities in a typed ephemeral cursor owned by the RHS loop. Its interior
+joined-row body is emitted once as a subroutine/continuation so normal matches and
+the unmatched-right pass share all downstream joins, WHERE filtering, projection,
+and destinations. At loop end `sqlite3WhereRightJoinLoop`-shaped control nulls all
+applicable cursors to the left of the RIGHT barrier, opens/scans the original RHS
+under `WHERE_RIGHT_JOIN`, skips row identities present in the match state, and
+invokes that interior continuation for each unmatched RHS row. Planner/loop order
+must respect `JT_LTORJ` and RIGHT barriers; the initial source-order planner does
+not make them reorderable. FULL combines the existing LEFT match-register/NullRow
+continuation for unmatched left rows with this unmatched-RHS pass. Match keys/state
+use existing typed ephemeral/private primitives and the singular budget, never a
+JS `Set`.
+
+The first runtime card may tranche admission as (1) comma/CROSS/INNER/LEFT and
+(2) RIGHT/FULL, but every RIGHT/FULL form remains an atomic prepare gate until
+retained-order flags, multi-source USING/coalescing, wildcard value choice,
+barriers, matched-key ownership, nulling, interior continuation, downstream joins,
+and exhaustive cleanup pass. This is a direct translation, not an exceptional
+algorithm substitution, and product scope is unchanged.
 
 ## Existing lowering and compound integration
 
@@ -201,10 +231,15 @@ The manifest/capture pair is:
 The pinned C API capture verifies source identity before setup and records ordered
 columns (including duplicates and origin metadata), typed NULL/INTEGER/REAL/TEXT/
 BLOB cells, exact prepare errors, reset/rebinding executions, and UTF-8/UTF-16le/
-UTF-16be databases. Cases cover aliases and qualification, ambiguity/no-such
-column, `*`/`q.*`, ON/USING/NATURAL visibility and errors, all six join spellings,
-unmatched/empty outer inputs, affinity/collation, ORDER/DISTINCT/LIMIT, and a
-compound arm. Runtime companions must additionally force browser yield, cancel,
+UTF-16be databases. Cases cover aliases and qualification (including WHERE/ON alias substitution,
+real-column precedence, duplicate aliases, and outer-ON right-reference checks),
+ambiguity/no-such column, `*`/`q.*`, ON/USING/NATURAL visibility and errors, all
+six join spellings, unmatched/empty outer inputs, affinity/collation,
+ORDER/DISTINCT/LIMIT, and a compound arm. Retained-order RIGHT/FULL discriminators
+include three/four sources on both sides of the barrier, chained USING/NATURAL,
+coalesced unqualified values, bare/qualified wildcards, ambiguous multi-table-left
+USING, ON-versus-WHERE unmatched-right rows, simultaneous FULL unmatched sides,
+and downstream LEFT/INNER joins. Runtime companions must additionally force browser yield, cancel,
 deadline, exact work exhaustion, each private-state ceiling (including overlapping
 sorter/FULL state), and cleanup/re-execution over adversarial nested loops. Include
 a many-by-many case under a low private-byte limit to prove streaming rather than
@@ -236,3 +271,27 @@ superseded by its 2026-09-16 revisions (22/22 bounded compound gate and one shar
 does not report joins as implemented: multi-source forms remain a current atomic
 compiler gate. Existing relational accounting (3/18 attempted/passed, 2 credited)
 is separate and is not evidence for this join contract.
+
+## Reproducible proposal evidence (revision after component review)
+
+Run from repository root with card work root supplied:
+
+```sh
+sh tools/oracle/build.sh
+python3 test/conformance/capture-multisource-select.py \
+  --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so" \
+  --spec test/conformance/cases/stage3-multisource-select.spec.json \
+  --output "$SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json"
+cmp test/conformance/cases/stage3-multisource-select.json \
+  "$SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json"
+npm run test:conformance:multisource:manifest
+npm run typecheck
+npm run test:parser
+git diff --check
+git status --short
+```
+
+The revision capture contains 43 declared/identity-verified native cases and zero
+TS attempts/credit. The committed status record identifies the exact commit and
+actual command outcomes; these establish reproducibility and cleanliness, not
+runtime semantic support.
