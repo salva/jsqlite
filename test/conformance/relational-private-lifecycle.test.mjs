@@ -111,9 +111,9 @@ test('public multi-key sorter enforces entry and byte bounds atomically',async()
   try{statement.finalize()}catch(error){assert.equal(error.message,message)}statement=undefined;db.close();db=undefined;
  };
  try{
-  await expectLimit({maxRows:1},'sorter exceeds entry limit');
-  await expectLimit({maxResultBytes:20},'sorter exceeds total byte limit');
-  db=await openRelationalWithLimits(bridge,{maxRows:32,maxResultBytes:2048});statement=db.prepare('SELECT x,y FROM t1 ORDER BY y,x').statement;
+  await expectLimit({maxPrivateEntries:1},'sorter exceeds entry limit');
+  await expectLimit({maxPrivateBytes:20},'sorter exceeds total byte limit');
+  db=await openRelationalWithLimits(bridge,{maxRows:32,maxResultBytes:2048,maxPrivateBytes:2048});statement=db.prepare('SELECT x,y FROM t1 ORDER BY y,x').statement;
   assert.equal(await statement.step(),'row','failed bounded attempts must not poison later admission');
  } finally {
   try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
@@ -131,9 +131,9 @@ test('public DISTINCT enforces ephemeral entry/key/byte bounds and rolls back fa
   finally{try{statement.finalize()}catch{}statement=undefined;db.closeDeferred();db=undefined}
  };
  try{
-  assert.equal(await runToFailure({maxRows:1}),'ephemeral index exceeds entry limit');
-  assert.equal(await runToFailure({maxResultBytes:0}),'ephemeral key exceeds byte limit');
-  assert.equal(await runToFailure({maxRows:6,maxResultBytes:5}),'ephemeral index exceeds total byte limit');
+  assert.equal(await runToFailure({maxPrivateEntries:1}),'ephemeral index exceeds entry limit');
+  assert.equal(await runToFailure({maxPrivateKeyBytes:0}),'ephemeral key exceeds byte limit');
+  assert.equal(await runToFailure({maxPrivateBytes:5}),'ephemeral index exceeds total byte limit');
   db=await openRelationalWithLimits(bridge,{maxRows:6,maxResultBytes:64});statement=db.prepare('SELECT DISTINCT bin FROM distinct_edge').statement;
   assert.equal(await statement.step(),'row','failed bounded insertions do not poison later public admission');
  } finally {

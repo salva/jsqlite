@@ -7,7 +7,7 @@ import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord,
 import type { SelectNode } from "./parse.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
-import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor, type PrivateStateControl } from "./private-state.ts";
+import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph } from "./schema.ts";
@@ -75,7 +75,7 @@ type Op =
   | { readonly code: "ResultRow"; readonly p1: number; readonly p2: number }
   | { readonly code: "Halt" };
 export interface ParameterDescriptor { readonly name: string | null }
-interface Program {
+export interface Program {
   readonly ops: readonly Op[];
   readonly registers: number;
   readonly columns: readonly ColumnMetadata[];
@@ -84,6 +84,7 @@ interface Program {
   readonly maxRows?: number;
   readonly maxWorkUnits: number;
   readonly maxResultBytes: number;
+  readonly privateStateLimits: PrivateStateLimits;
   readonly encoding: DatabaseEncoding;
 }
 export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
@@ -93,6 +94,7 @@ export function programControlTargets(program:Program):readonly Readonly<{index:
     return target===undefined?[]:[Object.freeze({index,code:op.code,target,targetCode:program.ops[target]?.code})];
   }));
 }
+export const DEFAULT_PRIVATE_STATE_LIMITS:PrivateStateLimits=Object.freeze({maxEntries:100_000,maxKeyBytes:16*1024*1024,maxBytes:256*1024*1024});
 interface ParameterBuilder { maximum: number; readonly names: (string | null)[]; readonly named: Map<string, number> }
 
 /** Shared scalar-result owner, corresponding to sqlite3_context and its result Mem. */
@@ -257,7 +259,7 @@ function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,pa
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
 }
 
-export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
+export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   rejectUnsupportedSelectClauses(select);
   if(select.hasCompound){
     // select.c:multiSelect's unordered UNION ALL route emits each arm to one
@@ -300,7 +302,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         ops.push({code:"SorterInsert",p1:cursor,keyStart:key,keyCount:resolvedOrder.length,payload:row,payloadCount:width,...(compoundLimit?{topN:compoundLimit.capacity}:{})});
       }
       const output=allocate();maximum+=width-1;const sortAt=ops.length;ops.push({code:"SorterSort",p1:cursor,emptyJump:0},{code:"SorterData",p1:cursor,p2:output,count:width});let skip:number|undefined;if(compoundLimit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:compoundLimit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:output,p2:width});let exhausted:number|undefined;if(compoundLimit){exhausted=ops.length;ops.push({code:"DecrJumpZero",p1:compoundLimit.count,p2:0});}const next=ops.length;ops.push({code:"SorterNext",p1:cursor,p2:sortAt+1});const halt=ops.length;ops.push({code:"Halt"});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(exhausted!==undefined)(ops[exhausted] as {p2:number}).p2=halt;if(compoundLimit)(ops[compoundLimit.ifZero] as {p2:number}).p2=halt;
-      const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
+      const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     if(distinctSet){
       let orderDescending=false,orderNullsLarge=false;
@@ -317,7 +319,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       for(let armIndex=0;armIndex<select.arms.length;armIndex++){const arm=select.arms[armIndex]!,operator=arm.operatorFromPrior,rows=arm.origin==="values"?arm.valuesRows!:[arm.result];for(const expressions of rows){const values=expressions.map(expression=>compileExpression(expression,ops,allocate,parameters));const start=allocate();values.forEach((value,index)=>ops.push({code:"Copy",p1:value.register,p2:start+index}));maximum+=width-1;if(armIndex===0||operator==="union"||operator==="union-all")ops.push({code:"IdxInsert",p1:cursor,keyStart:start,keyCount:width,replace:true});else if(operator==="except")ops.push({code:"SetDelete",p1:cursor,keyStart:start,keyCount:width});else ops.push({code:"IdxInsert",p1:aux,keyStart:start,keyCount:width,replace:true});}if(operator==="intersect")ops.push({code:"SetRetainIntersection",p1:cursor,p2:aux},{code:"ClearEphemeral",p1:aux});}
       const start=allocate();maximum+=width-1;ops.push({code:"EphemeralSort",p1:cursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:cursor,p2:0},{code:"EphemeralData",p1:cursor,p2:start,count:width});
       let skip:number|undefined;if(compoundLimit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:compoundLimit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:start,p2:width});let exhausted:number|undefined;if(compoundLimit){exhausted=ops.length;ops.push({code:"DecrJumpZero",p1:compoundLimit.count,p2:0});}const next=ops.length;ops.push({code:"EphemeralNext",p1:cursor,p2:rewind+1});const halt=ops.length;ops.push({code:"Halt"});(ops[rewind] as {p2:number}).p2=halt;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(exhausted!==undefined)(ops[exhausted] as {p2:number}).p2=halt;if(compoundLimit)(ops[compoundLimit.ifZero] as {p2:number}).p2=halt;
-      const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
+      const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     const limit=compoundLimit,haltJumps:number[]=[];
     for(const arm of select.arms)for(const expressions of arm.origin==="values"?arm.valuesRows!:[arm.result]){
@@ -328,7 +330,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     }
     const halt=ops.length;ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
     const names=select.arms[0]!.result.map(expression=>expressionName(expression));
-    return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
+    return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
   }
   if (select.hasValues) {
     const arm=select.arms[0],rows=arm?.valuesRows;
@@ -342,7 +344,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       ops.push({code:"ResultRow",p1:start,p2:width});
     }
     ops.push({code:"Halt"});
-    return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(rows[0].map((_,index)=>Object.freeze({name:`column${index+1}`,declaredType:null,database:null,table:null,origin:null})))});
+    return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(rows[0].map((_,index)=>Object.freeze({name:`column${index+1}`,declaredType:null,database:null,table:null,origin:null})))});
   }
   if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
   if (!select.result.length) throw new JSQLiteError("sqlite", "SELECT has no result columns", { code: 1 });
@@ -368,7 +370,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   if(limit)ops.push({code:"DecrJumpZero",p1:limit.count,p2:ops.length+1});
   ops.push({ code: "Halt" });
   if(limit){const halt=ops.length-1;(ops[limit.ifZero] as {p2:number}).p2=halt;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=halt;}
-  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
+  return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, privateStateLimits, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
 function sqlName(text: string): string {
@@ -388,7 +390,7 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
   (ops[plan.rewindIndex] as {code:"Rewind";p2:number}).p2=halt;
 }
 
-function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number):Program {
+function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program {
   if(select.arms.some(arm=>arm.from.length!==1||arm.where!==null||arm.result.length!==1||arm.origin!=="select"))throw new JSQLiteError("unsupported","complex compound table arms are not implemented",{unsupportedClassification:"temporary"});
   const resolved=select.arms.map(arm=>{const name=sqlName(arm.from[0]!.text),table=schema.tables.get(sqliteAsciiFold(name));if(!table)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(table.withoutRowid||table.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});const expression=arm.result[0]!,token=expression.tokens;if(token.length!==1)throw new JSQLiteError("unsupported","compound table expression is not implemented",{unsupportedClassification:"temporary"});const columnName=sqlName(token[0]!.text),column=table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,columnName));if(column<0)throw new JSQLiteError("sqlite",`no such column: ${columnName}`,{code:1});return{arm,table,column,expression};});
   const operators=select.arms.slice(1).map(arm=>arm.operatorFromPrior!),lastSetArm=operators.reduce((last,op,index)=>op==="union-all"?last:index+1,-1);
@@ -424,13 +426,13 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   }
   if(orderKeyInfo){const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:1,count:1});const skip=emitResult(),next=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(ops[sortAt] as {emptyJump:number}).emptyJump=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;}
   const halt=ops.length;ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
-  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze([Object.freeze({name:outputName,declaredType:leftColumn.declaredType,database:"main",table:left.table.name,origin:leftColumn.name})]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes});
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze([Object.freeze({name:outputName,declaredType:leftColumn.declaredType,database:"main",table:left.table.name,origin:leftColumn.name})]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
-export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000): Program {
+export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   rejectUnsupportedSelectClauses(select, true);
-  if(select.hasCompound)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes);
+  if(select.hasCompound)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
   if (select.from.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from[0]!.text), folded = sqliteAsciiFold(tableName);
   const table = schema.tables.get(folded);
@@ -531,7 +533,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   if(limit){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limit.ifZero] as {p2:number}).p2=halt;}
   const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
-  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes});
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
 
@@ -616,8 +618,8 @@ export class VdbeStatement implements Statement {
           case "IfNotZero": {const value=this.#registers[op.p1]!.integerValue();if(value!==0n){if(value>0n)this.#registers[op.p1]!.setInt64(value-1n);this.#pc=op.p2;}break;}
           case "IfPos": {const value=this.#registers[op.p1]!.integerValue();if(value>0n){this.#registers[op.p1]!.setInt64(value-BigInt(op.p3));this.#pc=op.p2;}break;}
           case "DecrJumpZero": {const value=this.#registers[op.p1]!.integerValue(),next=value>-(1n<<63n)?value-1n:value;this.#registers[op.p1]!.setInt64(next);if(next===0n)this.#pc=op.p2;break;}
-          case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
-          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,{maxEntries:this.#program.maxRows??100000,maxKeyBytes:this.#program.maxResultBytes,maxBytes:this.#program.maxResultBytes}));break;
+          case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,this.#program.privateStateLimits));break;
+          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits));break;
           case "SorterInsert": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}

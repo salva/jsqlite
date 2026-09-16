@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';import path from 'node:path';import test from 'node:test';import {startFixtureServer} from './fixture-server.mjs';import {openFixture} from './public-api-adapter.mjs';
 import {open,JSQLiteError} from '../../src/index.ts';
 import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
+import {compileScalarSelect,DEFAULT_PRIVATE_STATE_LIMITS} from '../../src/internal/vdbe.ts';
+import {parseSql} from '../../src/internal/parse.ts';
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 async function withDb(fn){const b=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`));await fn(db)}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>b.server.close(e=>e?j(e):r()))}}
 test('unordered scalar UNION ALL preserves arm order/multiplicity and leftmost name',()=>withDb(async db=>{const s=db.prepare('SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2').statement;try{assert.equal(s.columnMetadata(0).name,'v');const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[2n,1n,2n])}finally{s.finalize()}}));
@@ -20,7 +22,7 @@ test('compound private state enforces row and byte bounds and restores admission
  const bridge=await startFixtureServer(root);let db,s;
  const url=new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`),sql='SELECT a FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta';
  try{
-  for(const [limits,message] of [[{maxRows:1,maxResultBytes:64},'ephemeral index exceeds entry limit'],[{maxRows:8,maxResultBytes:0},'ephemeral key exceeds byte limit']]){
+  for(const [limits,message] of [[{maxPrivateEntries:1},'ephemeral index exceeds entry limit'],[{maxPrivateKeyBytes:0},'ephemeral key exceeds byte limit']]){
    db=await open(url.clone(),{limits});s=db.prepare(sql).statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit'&&e.message===message);assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;db.closeDeferred();db=undefined;
   }
   db=await open(url.clone(),{limits:{maxRows:8,maxResultBytes:64}});s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8',7n]);s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
@@ -57,3 +59,15 @@ test('table INTERSECT preserves the left representative across INTEGER/REAL equa
  for(const [sql,expected] of cases){s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected);s.finalize();s=undefined}
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
+
+test('public output limits are independent from finite private compound limits',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;try{
+  const request=()=>new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`);
+  db=await open(request(),{limits:{maxRows:1,maxPrivateEntries:100,maxPrivateKeyBytes:1024,maxPrivateBytes:4096}});s=db.prepare('SELECT a FROM left_meta UNION SELECT a FROM left_meta LIMIT 1').statement;assert.equal(await s.step(),'row');assert.equal(await s.step(),'done');s.finalize();s=undefined;db.close();
+  db=await open(request(),{limits:{maxRows:1,maxPrivateEntries:100,maxPrivateKeyBytes:1024,maxPrivateBytes:4096}});s=db.prepare('SELECT a FROM left_meta UNION ALL SELECT a FROM left_meta ORDER BY 1 LIMIT 1').statement;assert.equal(await s.step(),'row');assert.equal(await s.step(),'done');s.finalize();s=undefined;db.close();
+  for(const [limits,message] of [[{maxPrivateEntries:0},'entry limit'],[{maxPrivateKeyBytes:0},'key exceeds byte limit'],[{maxPrivateBytes:0},'total byte limit']]){db=await open(request(),{limits:{maxRows:100,maxResultBytes:1000,...limits}});s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message.includes(message));assert.throws(()=>s.finalize(),e=>e.kind==='limit');s=undefined;db.close()}
+  db=await open(request(),{limits:{maxRows:0,maxPrivateEntries:100}});s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message.includes('maxRows'));assert.throws(()=>s.finalize(),e=>e.kind==='limit');s=undefined;db.close();
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});
+
+test('Program owns immutable finite private-state defaults',()=>{const parsed=parseSql('SELECT 1 UNION SELECT 2');const program=compileScalarSelect(parsed.statement,'utf-8');assert.strictEqual(program.privateStateLimits,DEFAULT_PRIVATE_STATE_LIMITS);assert.ok(Object.isFrozen(program.privateStateLimits));for(const value of Object.values(program.privateStateLimits))assert.ok(Number.isSafeInteger(value)&&value>=0)});

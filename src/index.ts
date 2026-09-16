@@ -22,6 +22,12 @@ export interface WorkLimits {
   readonly maxOverflowPages?: number;
   /** Maximum bytes in one scalar result (SQLite SQLITE_LIMIT_LENGTH-shaped). */
   readonly maxResultBytes?: number;
+  /** Maximum records retained by one private sorter or ephemeral set. */
+  readonly maxPrivateEntries?: number;
+  /** Maximum logical bytes in one private key. */
+  readonly maxPrivateKeyBytes?: number;
+  /** Maximum aggregate logical bytes retained by one private cursor. */
+  readonly maxPrivateBytes?: number;
 }
 export interface OperationOptions { readonly signal?: AbortSignal; readonly timeoutMs?: number; readonly maxWorkUnits?: number; }
 export interface OpenOptions extends OperationOptions { readonly fetchOptions?: Omit<RequestInit, "signal">; readonly limits?: WorkLimits; }
@@ -79,6 +85,7 @@ interface PrepareLimits {
   readonly maxExpressionDepth: number;
   readonly maxWorkUnits: number;
   readonly maxResultBytes: number;
+  readonly privateStateLimits: Readonly<{ maxEntries: number; maxKeyBytes: number; maxBytes: number }>;
 }
 
 class OpenConnection implements Connection, StorageOwnerCarrier {
@@ -144,8 +151,9 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
             this.#maxRows,
             this.#limits.maxWorkUnits,
             this.#limits.maxResultBytes,
+            this.#limits.privateStateLimits,
           )
-        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes);
+        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits);
       let statement!: VdbeStatement;
       statement = new VdbeStatement(program,
         () => this.#assertOperationIdle(),
@@ -215,6 +223,11 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     maxExpressionDepth: finiteLimit(options.limits?.maxExpressionDepth, "limits.maxExpressionDepth", 1000),
     maxWorkUnits: finiteLimit(options.limits?.maxWorkUnits, "limits.maxWorkUnits", 10_000_000),
     maxResultBytes: finiteLimit(options.limits?.maxResultBytes, "limits.maxResultBytes", 1_000_000_000),
+    privateStateLimits: Object.freeze({
+      maxEntries: finiteLimit(options.limits?.maxPrivateEntries, "limits.maxPrivateEntries", 100_000),
+      maxKeyBytes: finiteLimit(options.limits?.maxPrivateKeyBytes, "limits.maxPrivateKeyBytes", 16 * 1024 * 1024),
+      maxBytes: finiteLimit(options.limits?.maxPrivateBytes, "limits.maxPrivateBytes", 256 * 1024 * 1024),
+    }),
   };
   if (options.signal?.aborted) failure("cancelled", "database acquisition was cancelled", { cause: options.signal.reason });
 

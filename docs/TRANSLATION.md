@@ -1515,11 +1515,9 @@ statement's private entry/byte ceilings and cannot relax them. If a later public
 operation option tightens private ceilings, it may only take the minimum and must
 be fixed for the execution across suspension.
 
-The consuming refactor seam is `src/internal/vdbe.ts`: replace
-`SorterCursor`/`EphemeralIndexCursor` construction using
-`maxEntries: program.maxRows` (and aggregate bytes derived from
-`maxResultBytes`) with `program.privateStateLimits`; retain the separate
-`ResultRow` `maxRows` check. `src/internal/private-state.ts` continues to own
+The consuming refactor is implemented in `src/internal/vdbe.ts`: every
+`SorterCursor`/`EphemeralIndexCursor` receives the immutable
+`program.privateStateLimits` (`100,000` entries, `16 MiB` per key, `256 MiB` aggregate by default), never `program.maxRows` or `maxResultBytes`; the separate `ResultRow` checks retain exclusive ownership of public row/byte limits. `src/internal/private-state.ts` continues to own
 pre-copy entry/key/aggregate-byte checks and rollback after failed post-growth
 control checks. Growth also respects register/program/column/compound and
 expression/parser limits. A suspended `step()` retains PC, both coroutine PCs and
@@ -1708,3 +1706,5 @@ operators, and joins remain atomically gated.
 The direct-column table producer supports the bounded `multiSelect` A/B handoff: a prefix ending in `UNION`, `INTERSECT`, or `EXCEPT` is completed in the typed ephemeral destination before a trailing `UNION ALL` suffix resumes direct row production. This preserves left-to-right set semantics and suffix multiplicity without partial-arm publication. In particular, `INTERSECT` builds right-arm membership separately and filters the existing left ephemeral records, preserving SQLite's left representative across INTEGER/REAL and collation equality rather than replacing it with the matching right record. The adaptation maps pinned `select.c` `multiSelect` destination switching while retaining the existing browser-safe VDBE suspension loop. An `ORDER BY` over this mixed table handoff uses one typed global sorter destination after set-prefix completion, preserving compound-wide alias/ordinal/expression resolution, collation, direction, NULL policy, and LIMIT/OFFSET. This bounded materialized merge is the browser adaptation of `multiSelectByMerge` for the admitted finite direct-column producers. Wider table expressions/rows remain prepare-time gated.
 
 Active public compound lifecycle coverage now forces the VDBE's 256-work-unit browser yield during a ten-arm table `UNION ALL`, proves exclusive connection/statement admission while suspended, cancels at the resumed checkpoint, and verifies reset executes all 320 rows once without restart or duplication. Companion table set-transition tests force deadline and exact work failures, entry/key/total private-state bounds, first-error reset/finalize behavior, cleanup, and later connection admission. These tests exercise the singular public prepared statement path in `test/conformance/compound-union-all.test.mjs`.
+
+Private-limit separation regression (2026-09-16): public-path tests prove duplicate/set and ordered inputs may exceed `maxRows` when delivered output does not, while entry, key-byte, aggregate-private-byte, output-row, and existing scalar output-byte failures remain independently owned. Constructor assertions freeze finite Program defaults. These companion checks do not change the exact compound gate denominator (22 declared/attempted/credited).
