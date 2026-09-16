@@ -43,6 +43,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
+ assert.throws(()=>resolve('SELECT mystery(a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: mystery');
+ assert.throws(()=>resolve('SELECT mystery(missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT sum(sum(a.x)) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
  assert.doesNotThrow(()=>resolve('SELECT abs(sum(a.x)),max(sum(a.x),a.x),sum(abs(a.x)) FROM a'));
  assert.throws(()=>resolve('SELECT abs(a.x) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER may not be used with non-aggregate abs()');
