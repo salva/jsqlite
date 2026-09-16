@@ -32,6 +32,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT main.aa.x FROM a AS aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: main.aa.x');
  assert.equal(resolve('SELECT aa.x FROM a aa').result[0].source.alias,'aa');
  assert.throws(()=>resolve('SELECT a.x FROM a aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.x');
+ assert.throws(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b WHERE z>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: z');
+ assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b WHERE same>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE missing+1'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE rowid>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>resolve('SELECT missing+1 FROM a JOIN b'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
