@@ -14,7 +14,10 @@ class CompoundValuesManifest(unittest.TestCase):
   got={tag for c in self.d['cases'] for tag in c['coverage']};self.assertLessEqual(set(self.d['requiredCoverage']),got)
   for expected,actual in zip(self.s['cases'],self.d['cases'],strict=True):
    projected={k:v for k,v in expected.items() if k!='capture'};self.assertEqual({k:actual[k] for k in projected},projected)
-   self.assertTrue(actual['ts']['credit']);self.assertTrue(actual['ts']['attempted'])
+   self.assertEqual(actual['credit'],'public-exact');self.assertEqual(actual['ts']['disposition'],'public-exact-attempted');self.assertTrue(actual['ts']['credit'])
+   accounted=sorted(actual['ts']['attempted']+actual['ts']['unattempted'],key=lambda x:x['index']);self.assertEqual([(x['index'],x['op']) for x in accounted],list(enumerate(actual['operations'])))
+   prepare_error=actual['native']['terminal'].get('firstError',{}).get('operation')=='prepare';expected=['openFixture','prepare','close'] if prepare_error else actual['operations'];self.assertEqual([x['op'] for x in actual['ts']['attempted']],expected)
+   self.assertEqual([x['op'] for x in actual['ts']['unattempted']],['metadata','stepAll','finalize'] if prepare_error else [])
  def test_native_semantic_boundaries(self):
   c={x['id']:x for x in self.d['cases']}; rows=lambda i:c[i]['native']['terminal'].get('rows',[])
   self.assertEqual(len(rows('union-all-cardinality-order')),3);self.assertEqual(len(rows('union-distinct-cardinality')),2);self.assertEqual(len(rows('intersect-cardinality')),1);self.assertEqual(len(rows('except-cardinality')),1);self.assertEqual(len(rows('multirow-values')),3)

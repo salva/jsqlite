@@ -10,7 +10,7 @@ import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
 import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
-import type { SchemaGraph } from "./schema.ts";
+import type { SchemaGraph, TableNode } from "./schema.ts";
 import type { DatabaseEncoding } from "./record.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
@@ -275,6 +275,13 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       throw new JSQLiteError("unsupported","ordered and mixed set compound SELECTs are not implemented",{unsupportedClassification:"temporary"});
     const width=select.arms[0]?.result.length??0;
     if(!width||select.arms.some(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width)))){const mismatch=select.arms.find(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width))),word=mismatch?.operatorFromPrior==="union-all"?"UNION ALL":mismatch?.operatorFromPrior?.toUpperCase()??"UNION";throw new JSQLiteError("sqlite",`SELECTs to the left and right of ${word} do not have the same number of result columns`,{code:1});}
+    // select.c:multiSelectCollSeq chooses the first non-BINARY (non-null
+    // CollSeq in native terms) result collation scanning arms left-to-right.
+    // Resolve expression metadata once; KeyInfo, not SQL spelling, owns compare.
+    const resultCollations=Array.from({length:width},(_,column)=>{
+      for(const arm of select.arms){const expression=arm.result[column];if(!expression?.reduction)continue;const named=explicitCollation(expressionFromReduction(expression.reduction));if(named)return named;}
+      return "binary" as BuiltinCollation;
+    });
     const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let maximum=0;const allocate=()=>++maximum;
     const compoundLimit=computeLimitRegisters(select,ops,allocate,parameters,true);
     if(orderedAll){
@@ -283,18 +290,18 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       // Preserve resolveCompoundOrderBy's complete key: every term resolves to
       // one result column, and the sorter payload remains the complete row.
       const resolvedOrder=select.orderBy.map((term,termIndex)=>{
-        const tree=expressionFromReduction(term.expr.reduction!);let resultIndex=-1;
-        if(tree.kind==="literal"&&typeof tree.value==="bigint"){
-          if(tree.value<1n||tree.value>BigInt(width))throw new JSQLiteError("sqlite",`${termIndex+1}${termIndex===0?"st":termIndex===1?"nd":termIndex===2?"rd":"th"} ORDER BY term out of range - should be between 1 and ${width}`,{code:1});
-          resultIndex=Number(tree.value-1n);
-        }else if(tree.kind==="column"&&!tree.name.includes(".")){
-          const name=sqlName(tree.name);
+        const tree=expressionFromReduction(term.expr.reduction!),matchTree=tree.kind==="collate"?tree.value:tree;let resultIndex=-1;
+        if(matchTree.kind==="literal"&&typeof matchTree.value==="bigint"){
+          if(matchTree.value<1n||matchTree.value>BigInt(width))throw new JSQLiteError("sqlite",`${termIndex+1}${termIndex===0?"st":termIndex===1?"nd":termIndex===2?"rd":"th"} ORDER BY term out of range - should be between 1 and ${width}`,{code:1});
+          resultIndex=Number(matchTree.value-1n);
+        }else if(matchTree.kind==="column"&&!matchTree.name.includes(".")){
+          const name=sqlName(matchTree.name);
           for(const arm of select.arms){const at=arm.result.findIndex(result=>result.alias!==undefined&&result.alias!==null&&sqliteIdentifierEqual(result.alias,name));if(at>=0){resultIndex=at;break;}}
         }
         if(resultIndex<0){const identity=term.expr.tokens.map(token=>token.text).join(" ");for(const arm of select.arms){const at=arm.result.findIndex(result=>result.tokens.map(token=>token.text).join(" ")===identity);if(at>=0){resultIndex=at;break;}}}
         if(resultIndex<0)throw new JSQLiteError("sqlite",`${termIndex+1}${termIndex===0?"st":termIndex===1?"nd":termIndex===2?"rd":"th"} ORDER BY term does not match any column in the result set`,{code:1});
         const nullsLarge=term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false;
-        return {resultIndex,collation:collation(tree),desc:term.descending,nullsLarge};
+        return {resultIndex,collation:explicitCollation(tree)??resultCollations[resultIndex]!,desc:term.descending,nullsLarge};
       });
       const cursor=1,keyInfo=new KeyInfo({encoding,totalFieldCount:resolvedOrder.length,keyFieldCount:resolvedOrder.length,terms:resolvedOrder.map(term=>({collation:term.collation,desc:term.desc,nullsLarge:term.nullsLarge}))});ops.push({code:"SorterOpen",p1:cursor,keyInfo});
       for(const arm of select.arms)for(const expressions of arm.origin==="values"?arm.valuesRows!:[arm.result]){
@@ -306,20 +313,27 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     if(distinctSet){
-      let orderDescending=false,orderNullsLarge=false;
+      let orderDescending=false,orderNullsLarge=false,orderCollation: BuiltinCollation|undefined;
       if(select.hasOrderBy){
         if(select.orderBy.length!==1||width!==1)throw new JSQLiteError("unsupported","multi-column compound ORDER BY merge is not implemented",{unsupportedClassification:"temporary"});
-        const term=select.orderBy[0]!,tree=expressionFromReduction(term.expr.reduction!);let matches=false;
-        if(tree.kind==="literal"&&typeof tree.value==="bigint"){if(tree.value!==1n)throw new JSQLiteError("sqlite","1st ORDER BY term out of range - should be between 1 and 1",{code:1});matches=true;}
-        else if(tree.kind==="column"&&!tree.name.includes(".")){const name=sqlName(tree.name);matches=select.arms.some(arm=>arm.result.some(result=>result.alias!==undefined&&result.alias!==null&&sqliteIdentifierEqual(result.alias,name)));}
+        const term=select.orderBy[0]!,tree=expressionFromReduction(term.expr.reduction!),matchTree=tree.kind==="collate"?tree.value:tree;let matches=false;
+        if(matchTree.kind==="literal"&&typeof matchTree.value==="bigint"){if(matchTree.value!==1n)throw new JSQLiteError("sqlite","1st ORDER BY term out of range - should be between 1 and 1",{code:1});matches=true;}
+        else if(matchTree.kind==="column"&&!matchTree.name.includes(".")){const name=sqlName(matchTree.name);matches=select.arms.some(arm=>arm.result.some(result=>result.alias!==undefined&&result.alias!==null&&sqliteIdentifierEqual(result.alias,name)));}
         if(!matches){const identity=term.expr.tokens.map(token=>token.text).join(" ");matches=select.arms.some(arm=>arm.result.some(result=>result.tokens.map(token=>token.text).join(" ")===identity));}
         if(!matches)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});
-        orderDescending=term.descending;orderNullsLarge=term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false;
+        orderDescending=term.descending;orderNullsLarge=term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false;orderCollation=explicitCollation(tree);
       }
-      const cursor=1,aux=2,keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:"binary" as const,desc:orderDescending,nullsLarge:orderNullsLarge}))});ops.push({code:"OpenEphemeral",p1:cursor,keyInfo},{code:"OpenEphemeral",p1:aux,keyInfo});
+      // Duplicate identity always uses multiSelectCollSeq. ORDER BY has a
+      // separate KeyInfo: an explicit ORDER COLLATE changes ordering, never set
+      // membership (select.c:multiSelectByMergeKeyInfo versus pKeyDup).
+      const cursor=1,aux=2,keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:width,terms:resultCollations.map(collation=>({collation,desc:false,nullsLarge:false}))});ops.push({code:"OpenEphemeral",p1:cursor,keyInfo},{code:"OpenEphemeral",p1:aux,keyInfo});
       for(let armIndex=0;armIndex<select.arms.length;armIndex++){const arm=select.arms[armIndex]!,operator=arm.operatorFromPrior,rows=arm.origin==="values"?arm.valuesRows!:[arm.result];for(const expressions of rows){const values=expressions.map(expression=>compileExpression(expression,ops,allocate,parameters));const start=allocate();values.forEach((value,index)=>ops.push({code:"Copy",p1:value.register,p2:start+index}));maximum+=width-1;if(armIndex===0||operator==="union"||operator==="union-all")ops.push({code:"IdxInsert",p1:cursor,keyStart:start,keyCount:width,replace:true});else if(operator==="except")ops.push({code:"SetDelete",p1:cursor,keyStart:start,keyCount:width});else ops.push({code:"IdxInsert",p1:aux,keyStart:start,keyCount:width,replace:true});}if(operator==="intersect")ops.push({code:"SetRetainIntersection",p1:cursor,p2:aux},{code:"ClearEphemeral",p1:aux});}
-      const start=allocate();maximum+=width-1;ops.push({code:"EphemeralSort",p1:cursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:cursor,p2:0},{code:"EphemeralData",p1:cursor,p2:start,count:width});
-      let skip:number|undefined;if(compoundLimit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:compoundLimit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:start,p2:width});let exhausted:number|undefined;if(compoundLimit){exhausted=ops.length;ops.push({code:"DecrJumpZero",p1:compoundLimit.count,p2:0});}const next=ops.length;ops.push({code:"EphemeralNext",p1:cursor,p2:rewind+1});const halt=ops.length;ops.push({code:"Halt"});(ops[rewind] as {p2:number}).p2=halt;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(exhausted!==undefined)(ops[exhausted] as {p2:number}).p2=halt;if(compoundLimit)(ops[compoundLimit.ifZero] as {p2:number}).p2=halt;
+      const start=allocate();maximum+=width-1;let sorter:number|undefined;
+      if(select.hasOrderBy){sorter=3;const sortKey=new KeyInfo({encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:orderCollation??resultCollations[0]!,desc:orderDescending,nullsLarge:orderNullsLarge}]});ops.push({code:"SorterOpen",p1:sorter,keyInfo:sortKey});}
+      ops.push({code:"EphemeralSort",p1:cursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:cursor,p2:0},{code:"EphemeralData",p1:cursor,p2:start,count:width});
+      let outputCursor=cursor,outputRewind=rewind,outputData=rewind+1;
+      if(sorter!==undefined){ops.push({code:"SorterInsert",p1:sorter,keyStart:start,keyCount:1,payload:start,payloadCount:width},{code:"EphemeralNext",p1:cursor,p2:rewind+1});const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:start,count:width});(ops[rewind] as {p2:number}).p2=sortAt;outputCursor=sorter;outputRewind=sortAt;outputData=sortAt+1;}
+      let skip:number|undefined;if(compoundLimit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:compoundLimit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:start,p2:width});let exhausted:number|undefined;if(compoundLimit){exhausted=ops.length;ops.push({code:"DecrJumpZero",p1:compoundLimit.count,p2:0});}const next=ops.length;ops.push({code:select.hasOrderBy?"SorterNext":"EphemeralNext",p1:outputCursor,p2:outputData});const halt=ops.length;ops.push({code:"Halt"});if(!select.hasOrderBy)(ops[outputRewind] as {p2:number}).p2=halt;else (ops[outputRewind] as {emptyJump:number}).emptyJump=halt;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(exhausted!==undefined)(ops[exhausted] as {p2:number}).p2=halt;if(compoundLimit)(ops[compoundLimit.ifZero] as {p2:number}).p2=halt;
       const names=select.arms[0]!.result.map(expression=>expressionName(expression));return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     const limit=compoundLimit,haltJumps:number[]=[];

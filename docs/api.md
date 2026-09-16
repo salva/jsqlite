@@ -310,3 +310,15 @@ not broader SQLite query compatibility.
 ### Audit and relational-foundation precision (2026-09-14)
 
 Public expression execution now reproduces the 14-case pinned typed audit, including numeric-prefix boolean/`abs`, REAL arithmetic classification, and INTEGER-cast prefix behavior. The lane remains explicitly zero-credit until conformance promotion. Private relational state remains a foundation rather than a promise of general relational SQL; the public guarantee is only the exact ORDER BY/LIMIT/OFFSET subset stated above. DISTINCT outside that admitted projection surface, compound, aggregate, window, join, and unsupported structural forms are not implied. The current relational manifest attempts/passes 3/18 and credits 2/18; the passing DISTINCT upstream assertion remains no-credit pending exact UNIQUE-autoindex fixture parity.
+
+### Compound result collation and gate accounting
+
+For the admitted scalar/VALUES compound surface, each result column takes the
+first explicit built-in collation found scanning arms left-to-right, otherwise
+BINARY. UNION, INTERSECT, and EXCEPT use that collation for duplicate equality.
+Compound ORDER BY inherits the resolved result collation when COLLATE is omitted;
+an explicit `COLLATE BINARY|NOCASE|RTRIM` overrides ordering only and does not
+alter set membership. The exact compound contract is 22/22 credited public cases.
+Its seven prepare-error cases record only open, prepare, and close as attempted;
+metadata, step, and finalize remain explicitly unattempted because no statement
+exists. Credit requires the runner's actual operation trace to match that record.

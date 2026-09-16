@@ -779,3 +779,22 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
 
 - **Table compound set-to-ALL handoff (2026-09-16):** `src/internal/vdbe.ts::compileSimpleTableCompound` maps pinned `select.c::multiSelect` destination transitions: the set prefix is exhausted into typed ephemeral state, then a trailing `UNION ALL` suffix resumes the result destination. `INTERSECT` populates separate right membership and filters the left ephemeral state, retaining the left storage-class representative as `multiSelect` does. Ordered mixed table handoffs feed the completed typed set prefix and direct suffix through one bounded sorter destination, the admitted direct-column adaptation of `multiSelectByMerge`. Focused public coverage is in `test/conformance/compound-union-all.test.mjs`.
 - **Compound suspension/resources:** `src/internal/vdbe.ts::PreparedStatementImpl.step/#checkControl/#finishPrivate` and `src/internal/private-state.ts::EphemeralIndexCursor` preserve PC/cursors over browser yields and apply cancellation, deadline, work, entry, key and aggregate-byte bounds. Active public tests are in `test/conformance/compound-union-all.test.mjs`.
+
+### Compound collation/accounting completion (2026-09-16)
+
+- `src/select.c:multiSelectCollSeq` -> `src/internal/vdbe.ts:compileScalarSelect`
+  resolves each scalar compound result collation from generated expression
+  structure, first explicit collation left-to-right, then BINARY. The duplicate
+  ephemeral `KeyInfo` remains distinct from ORDER comparison.
+- `src/select.c:multiSelectByMergeKeyInfo` and its separate `pKeyDup` -> compound
+  ORDER inherits the result collation unless ORDER has explicit COLLATE; the
+  explicit override configures a separate bounded sorter and never changes set
+  membership. `src/vdbeaux.c` comparison remains shared through `KeyInfo`/`Mem`.
+- `test/conformance/compound-collation.test.mjs` records pinned/public
+  discriminators for NOCASE, RTRIM, later-arm first collation, ORDER inheritance
+  and override, multi-position equality, and representative/storage class.
+- The core gate is currently 22 native-matched and 22 exact public TS credits.
+  `run-compound-values-ts.mjs` records actual public operations and requires them
+  to equal the manifest partition; prepare errors truthfully leave statement-only
+  operations unattempted. `recapture-compound-values.py` preserves this current
+  accounting on pinned-oracle recapture.

@@ -1720,3 +1720,27 @@ Active public compound lifecycle coverage now forces the VDBE's 256-work-unit br
 Private-limit separation regression (2026-09-16): public-path tests prove duplicate/set and ordered inputs may exceed `maxRows` when delivered output does not, while entry, key-byte, aggregate-private-byte, output-row, and existing scalar output-byte failures remain independently owned. Constructor assertions freeze finite Program defaults. These companion checks do not change the exact compound gate denominator (22 declared/attempted/credited).
 
 Generated SELECT ownership is now reduction-local: `values` and both `mvalues` rules build immutable ordered rows; ordinary/VALUES `oneselect` rules build arm semantics; both `selectnowith` rules append immutable arms/operators; `select` builds the final node and `cmd ::= select` publishes its child semantic. Recursive command-tree discovery and flattened operator words are no longer graph construction inputs. Callback tests require non-undefined semantics throughout this chain. Compound LIMIT lowering emits its zero branch immediately after LIMIT coercion and before OFFSET expression code; single-SELECT retains its separately evidenced post-OFFSET branch. Literal/bound zero, invalid nonzero OFFSET, reset/finalize, and producer bypass are public-path tested.
+
+#### Scalar compound collation and exact-accounting completion (2026-09-16)
+
+Scalar compound lowering now resolves one result collation per output position by
+walking generated arms left-to-right and taking the first expression with an
+explicit BINARY/NOCASE/RTRIM collation, falling back to BINARY. This directly maps
+pinned `select.c:multiSelectCollSeq`; the full-row duplicate `KeyInfo` uses those
+collations for UNION/INTERSECT/EXCEPT equality. Compound ORDER terms without an
+explicit COLLATE inherit the resolved result collation, while an explicit ORDER
+COLLATE owns a separate sorter `KeyInfo` and cannot change duplicate membership,
+matching `multiSelectByMergeKeyInfo` and its separate `pKeyDup`. Finite scalar and
+VALUES producers remain materialized in the bounded TypeScript sorter rather than
+native coroutines: browser-safe finite producers do not need resumable native
+subprograms, while typed comparison, representatives, ordering, limits, async
+publication, and all private bounds remain observable-equivalent. Pinned-native
+and singular-public tests cover leftmost/later-arm NOCASE, RTRIM, per-position
+keys, inherited and overridden ORDER collation, and TEXT/REAL representatives.
+
+The core contract remains 22/22 exact public cases. Accounting now records actual
+operation attempts: all successful/step-error cases attempt the full six-operation
+protocol; seven prepare-error cases attempt open, prepare, and close and retain
+metadata, step, and finalize as unattempted. Runtime traces must equal that
+manifest partition before a passing case receives credit; native expectations and
+TS credit remain independently validated.

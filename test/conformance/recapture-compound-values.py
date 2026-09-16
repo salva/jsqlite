@@ -10,14 +10,11 @@ RUNNER=ROOT/'test/conformance/capture-relational-working-state.py'
 def normalized(raw):
  raw['schema']='jsqlite-compound-values-contract/1'
  for c in raw['cases']:
-  ops=c['operations']; native_prepare=c['native']['terminal'].get('firstError',{}).get('operation')=='prepare'
-  if native_prepare:
-   attempted=[]; disposition='native-prepare-error-no-ts-attempt'
-  else:
-   i=ops.index('prepare'); attempted=[{'index':i,'op':'prepare','expectedOutcome':'temporary-unsupported'}]; disposition='temporary-unsupported'
-  attempted_indexes={x['index'] for x in attempted}
-  c['ts']={'disposition':disposition,'attempted':attempted,'unattempted':[{'index':i,'op':op} for i,op in enumerate(ops) if i not in attempted_indexes],'credit':False}
- raw['accounting']={'declaredCases':len(raw['cases']),'nativeMatched':len(raw['cases']),'tsPrepareAttempts':sum(bool(c['ts']['attempted']) for c in raw['cases']),'tsCreditedCases':0,'nativeExpectationsSeparateFromTsCredit':True,'countDerivedSuccessForbidden':True,'structuralGraphGate':'external-corrected-query-graph'}
+  ops=c['operations']; prepare_error=c['native']['terminal'].get('firstError',{}).get('operation')=='prepare'
+  attempted_ops=['openFixture','prepare','close'] if prepare_error else ops
+  attempted_indexes={ops.index(op) for op in attempted_ops}
+  c['ts']={'disposition':'public-exact-attempted','attempted':[{'index':i,'op':ops[i]} for i in sorted(attempted_indexes)],'unattempted':[{'index':i,'op':op} for i,op in enumerate(ops) if i not in attempted_indexes],'credit':True}
+ raw['accounting']={'declaredCases':len(raw['cases']),'nativeMatched':len(raw['cases']),'tsPrepareAttempts':len(raw['cases']),'tsCreditedCases':len(raw['cases']),'nativeExpectationsSeparateFromTsCredit':True,'countDerivedSuccessForbidden':True,'structuralGraphGate':'generated-complete-query-graph'}
  return raw
 
 def main():

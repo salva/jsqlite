@@ -51,7 +51,7 @@
         "cardinality",
         "branch-order"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2",
@@ -74,7 +74,7 @@
         "cardinality",
         "order-alias"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 2 AS v UNION SELECT 1 UNION SELECT 2 ORDER BY v",
@@ -97,7 +97,7 @@
         "cardinality",
         "order-ordinal"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION ALL SELECT 1 INTERSECT SELECT 1 ORDER BY 1",
@@ -120,7 +120,7 @@
         "cardinality",
         "order-alias"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION SELECT 2 EXCEPT SELECT 1 ORDER BY v",
@@ -143,7 +143,7 @@
         "cardinality",
         "metadata"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "VALUES (1,'a'),(2,'b'),(3,NULL)",
@@ -167,7 +167,7 @@
         "syntax-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "VALUES(3),(1),(2) ORDER BY 1 LIMIT 1 OFFSET 1",
@@ -190,7 +190,7 @@
         "names",
         "affinity"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "metadata",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT a AS left_name FROM left_meta UNION ALL SELECT b AS right_name FROM right_meta",
@@ -213,7 +213,7 @@
         "union",
         "order-alias"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "collation",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT name FROM nocase_values UNION SELECT name FROM binary_values ORDER BY name",
@@ -236,7 +236,7 @@
         "null",
         "union"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT NULL AS v UNION SELECT NULL",
@@ -259,7 +259,7 @@
         "integer-real",
         "union"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION SELECT 1.0",
@@ -282,7 +282,7 @@
         "text",
         "union"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION SELECT '1' ORDER BY v",
@@ -305,7 +305,7 @@
         "blob",
         "union"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT '1' AS v UNION SELECT x'31' ORDER BY v",
@@ -326,7 +326,7 @@
       "coverage": [
         "order-expression"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 2+1 AS v UNION ALL SELECT 1+1 ORDER BY 2+1",
@@ -348,7 +348,7 @@
         "order-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION SELECT 2 ORDER BY missing",
@@ -370,7 +370,7 @@
         "order-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 AS v UNION SELECT 2 ORDER BY v+0",
@@ -392,7 +392,7 @@
         "limit-offset",
         "scope"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 ORDER BY v LIMIT 1 OFFSET 1",
@@ -413,7 +413,7 @@
       "coverage": [
         "limit-coercion"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 UNION ALL SELECT 2 LIMIT 1.0",
@@ -435,7 +435,7 @@
         "limit-coercion",
         "step-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 UNION ALL SELECT 2 LIMIT 'x'",
@@ -458,7 +458,7 @@
         "syntax-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 ORDER BY 1 UNION ALL SELECT 2",
@@ -480,7 +480,7 @@
         "column-count-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "SELECT 1 UNION SELECT 2,3",
@@ -503,7 +503,7 @@
         "column-count-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "VALUES(1),(2,3)",
@@ -526,7 +526,7 @@
         "syntax-error",
         "prepare-error"
       ],
-      "credit": "no-credit-contract",
+      "credit": "public-exact",
       "setup": "empty",
       "databaseEncoding": "UTF-8",
       "sql": "VALUES(1),",
