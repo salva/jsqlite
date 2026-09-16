@@ -47,6 +47,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
  assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS missing PRECEDING) FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS BETWEEN missing PRECEDING AND CURRENT ROW) FROM a'));
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (PARTITION BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT sum(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT lag(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT row_number(1) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function row_number()');

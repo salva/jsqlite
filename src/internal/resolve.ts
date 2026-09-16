@@ -109,6 +109,9 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  const tokens=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):import('./tokenize.ts').SqlToken[]=>node.kind==='terminal'?(node.value?[node.value]:[]):node.children.flatMap(tokens);
  const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
   if(node.kind==='terminal')return;
+  // resolve.c walks only Window.pPartition and Window.pOrderBy here. Frame
+  // boundary expressions are validated later by window lowering, not NameContext.
+  if(node.signature.startsWith('frame_bound'))return;
   if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
    const filterOver=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::='));
    const filter=filterOver?.kind==='reduction'?filterOver.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_clause ::=')):undefined;
