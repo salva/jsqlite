@@ -41,6 +41,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE missing+1'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE rowid>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>resolve('SELECT missing+1 FROM a JOIN b'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT outmissing FROM a JOIN b ON onmissing=1'),e=>e instanceof NameResolutionError&&e.message==='no such column: outmissing');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onmissing=1 WHERE wheremissing=1'),e=>e instanceof NameResolutionError&&e.message==='no such column: wheremissing');
  assert.throws(()=>resolve('SELECT a.x+x FROM a JOIN b'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: x');
  assert.throws(()=>resolve('SELECT same FROM a JOIN b ON 1'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.throws(()=>resolve('SELECT nope FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: nope');
