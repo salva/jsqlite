@@ -110,12 +110,11 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
   if(node.kind==='terminal')return;
   if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
+   node.children.forEach(walk);
    const token=node.children.find(child=>child.kind==='terminal')?.value,count=functionArgumentCount(node);
    if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),valid=name==='count'?count<=1:name==='group_concat'?count===1||count===2:name==='string_agg'?count===2:['avg','sum','total'].includes(name)?count===1:['abs','hex','length','octet_length','typeof','unicode'].includes(name)?count===1:name==='nullif'||name==='replace'?count===2+(name==='replace'?1:0):name==='substr'?count===2||count===3:name==='coalesce'?count>=2:true;if(!valid)throw new NameResolutionError(`wrong number of arguments to function ${identifier(token.text)}()`);const distinct=node.children.some(child=>child.kind==='reduction'&&child.signature==='distinct ::= DISTINCT');if(distinct&&count!==1)throw new NameResolutionError('DISTINCT aggregates must have exactly one argument');}
-  }
-  if(rejectAggregateFunctions&&node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
-   const nested:ExprNode={kind:'tokens',tokens:[],reduction:node};
-   if(hasAggregate(nested)){const token=node.children.find(child=>child.kind==='terminal')?.value;if(token)throw new NameResolutionError(`misuse of aggregate function ${identifier(token.text)}()`);}
+   if(rejectAggregateFunctions&&hasAggregate({kind:'tokens',tokens:[],reduction:node})&&token)throw new NameResolutionError(`misuse of aggregate function ${identifier(token.text)}()`);
+   return;
   }
   if(node.signature.startsWith('expr ::= expr COLLATE ')){node.children.forEach(walk);const collationToken=tokens(node).at(-1);if(collationToken){const name=identifier(collationToken.text);if(!['binary','nocase','rtrim'].some(candidate=>sqliteIdentifierEqual(candidate,name)))throw new NameResolutionError(`no such collation sequence: ${name}`);}return;}
   if(node.signature.startsWith('expr ::= nm DOT nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
