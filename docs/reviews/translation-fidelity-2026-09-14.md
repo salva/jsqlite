@@ -473,9 +473,12 @@ remain in force.
 ### 2026-09-16 revision — multi-source semantic foundation ([[card:card-k-b]])
 
 Current work supersedes the architecture baseline's “TS credit zero” only for the
-single-source semantic foundation: generated reductions now own ordered SrcList,
-resolver tests cover ordinary lookup/star/NATURAL/USING/FULL identity, and public
-single-source prepare/step consumes expansion for alias star, WHERE result aliases,
-and rowid. It does **not** supersede the join-execution finding: multi-source public
+semantic foundation: generated reductions now own ordered SrcList; resolver tests
+cover ordinary lookup/star/NATURAL/USING/FULL identity, declared-column/rowid and
+INTEGER PRIMARY KEY branches, result-alias substitution, and ON outer-owner scope;
+public single-source prepare/step consumes expansion for alias star, WHERE result
+aliases, and rowid. Multi-source preparation now exposes SQLite name/ON-scope
+errors before its execution gate. It does **not** supersede the join-execution
+finding: multi-source public
 SQL remains atomically temporary unsupported and the 47-case gate has not been
 claimed or compared against TypeScript.

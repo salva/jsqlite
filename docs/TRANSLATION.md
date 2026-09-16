@@ -1846,12 +1846,15 @@ and `JT_LTORJ` markers. `src/internal/resolve.ts` is the current bounded port of
 tables/cursor identities, expands stars, synthesizes and validates NATURAL/USING,
 and retains direct versus FULL-coalesce identity with ordered metadata. Ordinary
 qualified/unqualified lookup, ambiguity/missing diagnostics, alias-hidden table
-names, rowid aliases/shadowing, and WHERE `NC_UEList` source-first substitution are
-covered. Single-source public lowering consumes this graph and lowers implicit
+names, declared-column precedence over rowid candidates, exact INTEGER PRIMARY
+KEY rowid substitution with declared origin metadata, FULL merged affinity/collation,
+and WHERE/ON `NC_UEList` source-first substitution are covered. ON expressions
+resolve from their generated reductions, and outer-join owners reject references
+to later sources per `sqlite3SelectCheckOnClauses`. Single-source public lowering consumes this graph and lowers implicit
 rowid through a btree-cursor `Rowid` opcode.
 
 This is not a join support claim. Multi-source public lowering remains an atomic
-temporary prepare rejection; ON/HAVING/GROUP and outer linked contexts, complete
+temporary prepare rejection; HAVING/GROUP and outer linked contexts, complete
 FULL expression lowering, and streaming join cursor control remain pending. The
 focused parser/resolver and public test files are `test/parser/resolver.test.mjs`
 and `test/conformance/source-resolution.test.mjs`.
