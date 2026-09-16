@@ -23,6 +23,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  const shadowSchema={tables:new Map([['a',table('a',[column('rowid','TEXT','text')])]])};
  assert.equal(expandAndResolveSelect(parseSql('SELECT rowid,_rowid_ FROM a').statement,shadowSchema).result[0].columnIndex,0);
  assert.equal(expandAndResolveSelect(parseSql('SELECT rowid,_rowid_ FROM a').statement,shadowSchema).result[1].columnIndex,-1);
+ assert.equal(expandAndResolveSelect(parseSql('SELECT rowid FROM a JOIN b ON 1').statement,{tables:new Map([['a',table('a',[column('v')])],['b',table('b',[column('rowid','TEXT','text')])]])}).result[0].source.table.name,'b');
 });
 test('NATURAL and USING synthesize merged visibility and validate both sides',()=>{
  const natural=resolve('SELECT * FROM a NATURAL JOIN b');

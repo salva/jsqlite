@@ -17,8 +17,11 @@ function integerPrimaryKeyIndex(table:TableNode):number{
 }
 function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved:ResolvedColumnRef;mergedSources:readonly ResolvedColumnRef[]|null}|null{
  const words=expression.tokens.map(t=>t.text);let qualifier:string|null=null,name:string;if(words.length===1)name=identifier(words[0]!);else if(words.length===3&&words[1]==='.') {qualifier=identifier(words[0]!);name=identifier(words[2]!);}else return null;
- const eligible=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.tableName,qualifier!));let found:{source:ResolvedSource;columnIndex:number;name:string}[]=[];
- for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if(!source.table.withoutRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))found.push({source,columnIndex:-1,name});}
+ const eligible=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.tableName,qualifier!));let found:{source:ResolvedSource;columnIndex:number;name:string}[]=[];const rowidCandidates:{source:ResolvedSource;columnIndex:number;name:string}[]=[];
+ for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if(!source.table.withoutRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))rowidCandidates.push({source,columnIndex:-1,name});}
+ // resolve.c:lookupName retains rowid candidates only when no real column
+ // matched anywhere in the current NameContext.
+ if(found.length===0)found=rowidCandidates;
  // lookupName/tableAndColumnIndex: an unqualified USING name denotes one
  // merged column. RIGHT selects the RHS; INNER/LEFT retain the left-most.
  let mergedSources:readonly ResolvedColumnRef[]|null=null;
