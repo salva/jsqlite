@@ -43,6 +43,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
+ assert.throws(()=>resolve('SELECT min() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function min()');
+ assert.throws(()=>resolve('SELECT max() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function max()');
+ assert.doesNotThrow(()=>resolve('SELECT min(a.x,a.x),max(a.x,a.x,a.x) FROM a'));
  assert.throws(()=>resolve('SELECT count(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function count()');
  assert.throws(()=>resolve('SELECT sum() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
  assert.throws(()=>resolve('SELECT sum(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
