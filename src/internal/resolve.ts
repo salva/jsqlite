@@ -35,6 +35,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  const tokens=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):import('./tokenize.ts').SqlToken[]=>node.kind==='terminal'?(node.value?[node.value]:[]):node.children.flatMap(tokens);
  const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
   if(node.kind==='terminal')return;
+  if(node.signature.startsWith('expr ::= nm DOT nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
   if(node.signature.startsWith('expr ::= nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
   if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{direct({kind:'tokens',tokens},sources);}catch(error){const name=identifier(tokens[0]!.text),alias=aliases.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!alias)throw error;resolveAgainstSources(alias,sources,[]);}return;}}
   node.children.forEach(walk);
