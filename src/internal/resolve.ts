@@ -102,7 +102,12 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    continue;
   }
   resolveAgainstSources(expression,sources,select.result);
-  if(hasAggregate(expression))throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
+  let groupHasAggregate=hasAggregate(expression);
+  if(!groupHasAggregate&&expression.tokens.length===1){
+   try{direct(expression,sources);}
+   catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('no such column: ')){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,identifier(expression.tokens[0]!.text)));groupHasAggregate=alias?hasAggregate(alias):false;}}
+  }
+  if(groupHasAggregate)throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
  }
  return Object.freeze({source:select,sources,result:Object.freeze(output)});
 }

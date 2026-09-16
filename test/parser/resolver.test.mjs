@@ -50,6 +50,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 WHERE wbad=1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: wbad');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: onbad');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON 1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: gbad');
+ assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a GROUP BY z'),e=>e instanceof NameResolutionError&&e.message==='aggregate functions are not allowed in the GROUP BY clause');
+ assert.throws(()=>resolve('SELECT abs(sum(a.x)) AS z FROM a GROUP BY z'),e=>e instanceof NameResolutionError&&e.message==='aggregate functions are not allowed in the GROUP BY clause');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY sum(a.x)'),e=>e instanceof NameResolutionError&&e.message==='aggregate functions are not allowed in the GROUP BY clause');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY abs(sum(a.x))'),e=>e instanceof NameResolutionError&&e.message==='aggregate functions are not allowed in the GROUP BY clause');
  assert.throws(()=>resolve('SELECT count(*) FROM a GROUP BY 1'),e=>e instanceof NameResolutionError&&e.message==='aggregate functions are not allowed in the GROUP BY clause');
