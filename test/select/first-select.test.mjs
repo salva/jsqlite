@@ -210,6 +210,7 @@ test("lazy execution mapper preserves public and arbitrary non-storage errors", 
       ops:Object.freeze([{code:"OpenRead",p1:2},{code:"Rewind",p2:2},{code:"Halt"}]),
       registers:0, encoding:"utf-8", parameters:Object.freeze([]), columns:Object.freeze([]),
       database:{tableScanCursor(){return cursor;}}, maxWorkUnits:100,
+      privateStateLimits:Object.freeze({maxEntries:100,maxKeyBytes:1024,maxBytes:4096}),
     });
     return new VdbeStatement(program,()=>{},()=>()=>{},()=>{});
   };

@@ -24,11 +24,16 @@ test("adapter reaches the real public prepared SELECT path", async () => {
     assert.equal(prepared.statement.columnInteger(0), 1n);
     assert.equal(await prepared.statement.step(), "done");
     prepared.statement.finalize();
-    for (const sql of ["SELECT 7,(SELECT 8)", "SELECT 1 UNION ALL SELECT 2"]) {
-      assert.throws(() => connection.prepare(sql), error =>
-        error instanceof JSQLiteError && error.kind === "unsupported" &&
-        error.unsupportedClassification === "temporary");
-    }
+    assert.throws(() => connection.prepare("SELECT 7,(SELECT 8)"), error =>
+      error instanceof JSQLiteError && error.kind === "unsupported" &&
+      error.unsupportedClassification === "temporary");
+    const compound = connection.prepare("SELECT 1 UNION ALL SELECT 2").statement;
+    assert.equal(await compound.step(), "row");
+    assert.equal(compound.columnInteger(0), 1n);
+    assert.equal(await compound.step(), "row");
+    assert.equal(compound.columnInteger(0), 2n);
+    assert.equal(await compound.step(), "done");
+    compound.finalize();
   } finally {
     connection?.close();
     await closeServer(bridge.server);
