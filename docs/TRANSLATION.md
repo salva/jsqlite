@@ -1657,18 +1657,20 @@ INTERSECT/EXCEPT happen before OFFSET/LIMIT. The first bounded ordered-set slice
 resolves one-column ORDER aliases across arms, ordinals, and structurally
 matching output expressions; unknown terms and out-of-range ordinals are SQLite
 prepare errors. Ordering reuses the final ephemeral KeyInfo (DESC/NULL flags),
-not host sorting. Multi-column ordering and ordered UNION ALL remain gated
-pending the full coroutine merge route.
+not host sorting. Multi-column ordered set output remains gated pending the full
+coroutine merge route.
 
-The one-column ordered `UNION ALL` branch now emits every scalar arm into the
-existing typed stable sorter destination and traverses it with the same compound
-ORDER resolver and global LIMIT/OFFSET registers. This preserves duplicates,
-source order among equal keys, and top-N private-state bounding without
-`Array.sort`. It is a browser adaptation of the coroutine merge's observable
-row stream: scalar arms each contain exactly one row, so materializing those
-bounded producers avoids coroutine machinery while retaining KeyInfo ordering,
-async output suspension, work checks, and final semantics. Source-based focused
-tests compare alias/expression ordering, multiplicity, and LIMIT/OFFSET.
+The ordered `UNION ALL` branch now emits every finite scalar/VALUES arm into the
+existing typed stable sorter destination and traverses it with the compound-wide
+LIMIT/OFFSET registers. Its resolver retains every ORDER term and builds a complete
+KeyInfo while the payload retains every result column. This preserves duplicates,
+source order among equal keys, multi-term ordering, and top-N private-state bounding
+without `Array.sort`. It is a browser adaptation of `multiSelectByMerge` for finite
+in-memory producers: materialization avoids coroutine machinery while retaining
+the source resolver/KeyInfo observables, async output suspension, work checks, and
+final semantics. Source-based focused tests compare aliases/ordinals, multi-term
+ordering, multiplicity, metadata, and LIMIT/OFFSET. Table producers remain gated
+for the full coroutine merge route.
 
 Structured VALUES is now also a first-class compound arm producer. Each retained
 `mvalues` row is compiled independently into the selected ALL/sorter/ephemeral
@@ -1701,3 +1703,8 @@ comes from the leftmost result column. Public metadata likewise comes solely
 from the leftmost table/result alias. All tables and columns resolve before the
 program is published. More complex table expressions, WHERE arms, mixed set
 operators, and joins remain atomically gated.
+
+### Compound table producer A/B handoff follow-up (2026-09-16)
+The direct-column table producer supports the bounded `multiSelect` A/B handoff: a prefix ending in `UNION`, `INTERSECT`, or `EXCEPT` is completed in the typed ephemeral destination before a trailing `UNION ALL` suffix resumes direct row production. This preserves left-to-right set semantics and suffix multiplicity without partial-arm publication. The adaptation maps pinned `select.c` `multiSelect` destination switching while retaining the existing browser-safe VDBE suspension loop; wider table expressions/rows remain prepare-time gated.
+
+Active public compound lifecycle coverage now forces the VDBE's 256-work-unit browser yield during a ten-arm table `UNION ALL`, proves exclusive connection/statement admission while suspended, cancels at the resumed checkpoint, and verifies reset executes all 320 rows once without restart or duplication. Companion table set-transition tests force deadline and exact work failures, entry/key/total private-state bounds, first-error reset/finalize behavior, cleanup, and later connection admission. These tests exercise the singular public prepared statement path in `test/conformance/compound-union-all.test.mjs`.

@@ -747,12 +747,12 @@ output. Tests cover aliases, ordinals, matching expressions, non-output errors,
 post-set LIMIT/OFFSET timing, coercion, and first-error behavior. This remains a
 bounded precursor, not a claim of full `multiSelectByMerge`.
 
-`src/internal/vdbe.ts:compileScalarSelect` maps one-column scalar ordered UNION
-ALL to the existing SorterOpen/SorterInsert/SorterSort destination. Unlike
-`select.c:multiSelectByMerge`, these bounded one-row arms need no coroutine;
-KeyInfo comparison, stable equal-key sequence, top-N capacity, and output
-LIMIT/OFFSET preserve observable behavior. Wider/table producers remain mapped
-to future coroutine work rather than this adaptation.
+`src/internal/vdbe.ts:compileScalarSelect` maps finite scalar/VALUES ordered UNION
+ALL arms to the existing SorterOpen/SorterInsert/SorterSort destination. Unlike
+`select.c:multiSelectByMerge`, these bounded producers need no coroutine; the
+complete resolved multi-term KeyInfo, complete-row payload, stable equal-key
+sequence, top-N capacity, and output LIMIT/OFFSET preserve observable behavior.
+Table producers remain mapped to future coroutine work rather than this adaptation.
 
 `src/internal/vdbe.ts:compileScalarSelect` consumes `SelectArm.valuesRows` in all
 compound destinations, mapping `select.c:multiSelectValues` structured rows to
@@ -776,3 +776,6 @@ portion of `select.c:multiSelect`: each resolved arm uses OpenRead/Rewind/Column
 Next and targets either direct output or the shared ephemeral UNION destination.
 Leftmost `ColumnNode` owns metadata and KeyInfo collation, matching select.c's
 leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
+
+- **Table compound set-to-ALL handoff (2026-09-16):** `src/internal/vdbe.ts::compileSimpleTableCompound` maps pinned `select.c::multiSelect` destination transitions: the set prefix is exhausted into typed ephemeral state, then a trailing `UNION ALL` suffix resumes the result destination. Focused public coverage is in `test/conformance/compound-union-all.test.mjs`.
+- **Compound suspension/resources:** `src/internal/vdbe.ts::PreparedStatementImpl.step/#checkControl/#finishPrivate` and `src/internal/private-state.ts::EphemeralIndexCursor` preserve PC/cursors over browser yields and apply cancellation, deadline, work, entry, key and aggregate-byte bounds. Active public tests are in `test/conformance/compound-union-all.test.mjs`.
