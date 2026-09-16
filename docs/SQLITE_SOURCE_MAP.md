@@ -627,11 +627,11 @@ Boundary refinement: result-value destructor observations map to `sqlite3_result
 | `src/expr.c` `sqlite3ExprCodeTarget`/`sqlite3ExprCodeFunction`, `src/vdbe.c` `OP_Function`/`OP_PureFunc`/`OP_CollSeq` and branch operations | `src/internal/vdbe.ts` `compileExpressionTree` and operation switch; `test/conformance/run-expression-opcodes-ts.mjs` | Generated-reduction expressions lower to bounded function, collation, value and lazy-control program operations; catch-all recursive Expression operation removed. |
 | `src/vdbe.c` progress/interrupt loop; `src/func.c` `replaceFunc`/`hexFunc`/`substrFunc`; `src/vdbeapi.c` result-too-big and saved reset/finalize errors | `src/internal/vdbe.ts` scalar control, `maxResultBytes`, Function/copy charging; `src/index.ts` connection limit; `test/conformance/run-expression-bounded-ts.mjs` | Deterministic bounded public scalar execution with resumable input checkpoints, source-shaped output preflight, first-error lifecycle and exact work admission. |
 
-## Relational working-state gate (design/capture; TS unimplemented)
+## Relational working-state gate (historical design/capture checkpoint)
 
 - Oracle/selection: `test/conformance/cases/stage3-relational-working-state.spec.json`, captured manifest `.json`, `capture-relational-working-state.py`, and `relational-working-state-manifest.test.py`; pinned to manifest source ID and built with `SQLITE_ENABLE_COLUMN_METADATA`.
-- ORDER/DISTINCT generation maps to `src/select.c` `DistinctCtx`, `SortCtx`, `selectInnerLoop`, `pushOntoSorter`, and `generateSortTail`; term resolution maps to `src/resolve.c` `resolveOrderGroupBy`/result-list alias and ordinal handling; LIMIT/OFFSET maps to `computeLimitRegisters` and VDBE counter/coercion opcodes. Compounds remain unsupported: their future mapping is `multiSelect` and `multiSelectByMerge` with coroutine merge control near `select.c:3314-3399`, not an invented `multiSelectOrderBy` routine.
-- Runtime private state maps to `src/vdbe.c` sorter/ephemeral/index/compare operations, `src/vdbesort.c`, private ephemeral paths in `src/btree.c`, and record/KeyInfo packing/comparison in `src/vdbeaux.c`. The first implementation is `src/internal/private-state.ts`, consumed by typed `SorterOpen/SorterInsert/SorterSort/SorterData/SorterNext` and `OpenEphemeral/Found/IdxInsert` routes in `src/internal/vdbe.ts`; it is memory-only, stable for equal sorter keys, owns copied `Mem` cells, and has explicit entry/key/total-byte ceilings. Its browser work adaptation charges each record and copied logical byte, visited `KeyInfo` term, and merge move; control checks bracket growth and a failed post-growth check rolls the entry back. Exact charging is covered in `test/value/private-state.test.mjs`; exhaustive multi-cursor cleanup, first-error precedence, reset/finalize, and restored admission are covered in `test/conformance/relational-private-lifecycle.test.mjs`. It originally served one-column ORDER and direct-column DISTINCT only; that is the historical foundation handoff. The current ORDER/LIMIT implementation below consumes the same primitive for complete multi-term expression keys. Compound and generalized consumers remain gaps.
+- At this checkpoint, ORDER/DISTINCT generation was mapped to `src/select.c` `DistinctCtx`, `SortCtx`, `selectInnerLoop`, `pushOntoSorter`, and `generateSortTail`; term resolution to `src/resolve.c` `resolveOrderGroupBy`/result-list alias and ordinal handling; and LIMIT/OFFSET to `computeLimitRegisters` and VDBE counter/coercion opcodes. Compounds were then unsupported. The current bounded compound mapping and its documented materialization substitution are in the completion sections below; `multiSelect` and `multiSelectByMerge` remain the upstream comparison, not an invented `multiSelectOrderBy` routine.
+- Runtime private state maps to `src/vdbe.c` sorter/ephemeral/index/compare operations, `src/vdbesort.c`, private ephemeral paths in `src/btree.c`, and record/KeyInfo packing/comparison in `src/vdbeaux.c`. The first implementation is `src/internal/private-state.ts`, consumed by typed `SorterOpen/SorterInsert/SorterSort/SorterData/SorterNext` and `OpenEphemeral/Found/IdxInsert` routes in `src/internal/vdbe.ts`; it is memory-only, stable for equal sorter keys, owns copied `Mem` cells, and has explicit entry/key/total-byte ceilings. Its browser work adaptation charges each record and copied logical byte, visited `KeyInfo` term, and merge move; control checks bracket growth and a failed post-growth check rolls the entry back. Exact charging is covered in `test/value/private-state.test.mjs`; exhaustive multi-cursor cleanup, first-error precedence, reset/finalize, and restored admission are covered in `test/conformance/relational-private-lifecycle.test.mjs`. It originally served one-column ORDER and direct-column DISTINCT only; that is the historical foundation handoff. The current ORDER/LIMIT implementation below consumes the same primitive for complete multi-term expression keys. At that checkpoint, compound and generalized consumers remained gaps; the compound gap is superseded by the bounded completion mappings below.
 - Literal upstream assertions are selected from `test/limit.test`, `test/distinct.test`, and `test/select4.test`. Edge/lifecycle adaptations are explicit no-credit companions. Native observations are development evidence only and runtime TypeScript must not import native code. The public TS gate now attempts and passes `up-limit-1.2.1`, `up-distinct-3.0`, and `up-select4-10.3`, while crediting only the exact-setup `up-limit-1.2.1` and `up-select4-10.3` (2/18); `up-distinct-3.0` remains no-credit because automatic-index schema loading prevents its upstream `UNIQUE(a,b)` fixture; its additional relational queries remain uncredited smoke demonstrations outside the declared denominator. DISTINCT lowering emits `OpenEphemeral`/`Found`/`IdxInsert` before sorter production and patches the duplicate branch only after the complete variable-length ORDER key and `SorterInsert` route is known.
 
 ### 2026-09-14 audit/relational integration
@@ -664,7 +664,9 @@ fixture can preserve its upstream UNIQUE autoindex setup. The public runner make
 admitted executions/error-phase checks, 3 expected typed structural rejections,
 and 1 expected SQLite prepare error for an unknown collation. Those include four distinct public collation attempts (declared NOCASE, explicit
 BINARY, RTRIM, and NOCASE embedded-NUL/byte-length); this attempt count is test
-inventory, not relational credit. Compounds/subqueries remain structural-gate work.
+inventory, not relational credit. This relational checkpoint originally gated both
+compounds and subqueries; bounded compounds are now implemented as mapped below,
+while subqueries remain gated.
 
 - `parse.y:orderby_opt/sortlist/limit_opt` -> typed `SelectNode.orderBy/limit/offset`.
 - `resolve.c:resolveOrderGroupBy`, `select.c:pushOntoSorter` -> expression/alias/ordinal/table fallback and complete `KeyInfo` keys in `compileTableSelect`.
@@ -697,23 +699,25 @@ module's unversioned provenance.
 | Width, names, metadata, affinity | `src/select.c:multiSelect`, `sqlite3ResultSetOfSelect`, `sqlite3SubqueryColumnTypes` | validate width at prepare; public metadata from leftmost arm; future derived-table affinity scans arms without coercing set values |
 | Compound ORDER | `src/resolve.c:resolveCompoundOrderBy`, `sqlite3ResolveOrderGroupBy` | dedicated left-to-right alias/ordinal/output-expression resolver; explicit COLLATE retained; no arbitrary non-output expression |
 | Collation and duplicate equality | `src/select.c:multiSelectCollSeq`, `multiSelectByMergeKeyInfo`, `generateOutputSubroutine`; `src/vdbeaux.c:sqlite3MemCompare`, record compare | immutable order and full-row duplicate `KeyInfo`; NULL-equal, INTEGER/REAL numeric equality, typed TEXT/BLOB distinction; preserve source representative |
-| VALUES and unordered UNION ALL | `src/parse.y:values`/`mvalues`; `src/select.c:multiSelectValues`, `multiSelect`, `selectInnerLoop`, `SelectDest`/`SRT_Output`/`SRT_Coroutine` | one destination-based arm compiler; VALUES rows retain insertion order and bare VALUES rejects ORDER/LIMIT in the grammar; sequential UNION ALL; not implemented |
+| VALUES and unordered UNION ALL | `src/parse.y:values`/`mvalues`; `src/select.c:multiSelectValues`, `multiSelect`, `selectInnerLoop`, `SelectDest`/`SRT_Output`/`SRT_Coroutine` | Historical requirement: one destination-based arm compiler; VALUES rows retain insertion order and bare VALUES rejects ORDER/LIMIT in the grammar; sequential UNION ALL. This was not implemented at the checkpoint and is now superseded by the completion mappings below. |
 | Ordered/all set compounds | `src/select.c:multiSelect`, `multiSelectByMerge` and A/B transition table | split only contiguous same-op UNION/UNION ALL chains under pinned balanced-merge conditions (not generic AST balancing); exact per-operator A<B/A=B/A>B/EOF control and representative side; synthesize/complete ORDER for unordered sets; reuse typed sorter for producers, no JS Set/sort |
 | Compound LIMIT/OFFSET control | `src/select.c:computeLimitRegisters`, `multiSelectByMerge`; `src/vdbe.c` `MustBeInt`/`IfNot`/`OffsetLimit` | initialize once before coroutines; literal zero jumps immediately and expression/parameter zero jumps after LIMIT coercion, in both cases before OFFSET evaluation and all producer work. Only nonzero LIMIT coerces OFFSET. UNION ALL copies the same `LIMIT+OFFSET` cap to both producers while retaining global counters; set operators receive no membership-changing arm cap. This deliberately differs from the currently admitted single-SELECT adaptation, which still coerces OFFSET before its zero jump |
 | VM/private state and public limits | `src/vdbe.c` `InitCoroutine/Yield/EndCoroutine/Gosub/Return/Permutation/Compare`, LIMIT and sorter operations; `src/vdbeaux.c` labels/register/KeyInfo; applicable `src/btree.c` private ephemeral paths | add typed opcode/state routes in `src/internal/vdbe.ts`; reuse bounded `private-state.ts`; preserve suspension, counters, ownership and exhaustive cleanup. Every private cursor now receives immutable finite `program.privateStateLimits` (defaults: 100,000 entries, 16 MiB key, 256 MiB aggregate), never public `maxRows`/`maxResultBytes`: `maxRows` remains solely the global public `ResultRow` outcome limit, while `ResultRow` also checks the public per-value byte ceiling immediately before publication. Generic `Copy` matches pinned `OP_Copy` by charging/copying without applying that public ceiling, so private-only sorter/ephemeral staging is governed solely by immutable `program.privateStateLimits`; output-growing scalar functions retain their preflight. Work remains operation-tightenable; all failures are `kind:"limit"` |
 | Connection lifetime and admission | `src/main.c:connectionIsBusy`, `sqlite3Close`, `sqlite3LeaveMutexAndCloseZombie`; `src/vdbeapi.c`/`vdbeaux.c` reset/finalize cleanup | busy `close()` leaves every owner intact; validly admitted `closeDeferred()` changes admission only. Existing compound statements and graph/program/KeyInfo/schema/storage dependencies remain usable through step/reset/finalize until last-statement finalization completes zombie destruction. A pending `step()` retains serialized connection admission across suspended host yields, so overlapping `closeDeferred()` synchronously fails with `misuse`, changes no state, and may be retried only after that promise settles; private state unwinds at normal halt/reset/finalize boundaries and first-error precedence is retained |
-| Evidence | pinned public C API via `stage3-compound-values.spec.json`, captured JSON and exact recapture; no-credit focused companions via `stage3-compound-values-boundaries.spec.json` | core gate: 22 declared/22 native exact, 15 valid TS prepare attempts; focused boundary companions: 12 declared/12 native exact, 11 valid TS prepare attempts; both remain 0 credit until implementation |
+| Evidence | pinned public C API via `stage3-compound-values.spec.json`, captured JSON and exact recapture; no-credit focused companions via `stage3-compound-values-boundaries.spec.json` | Historical checkpoint evidence: core 22/22 native exact with 15 valid TS prepare attempts; boundary 12/12 native exact with 11 valid TS prepare attempts; both were then zero-credit. Current core accounting is 22/22 attempted/passed/credited as recorded below. |
 
 `docs/TRANSLATION.md#compound-select-and-structured-multirow-values-design-implementation-handoff`
 is the consuming contract, including AST invariants, error timing, LIMIT/OFFSET,
-resource/lifecycle rules and test matrix. This design proposes no exceptional
-algorithm substitution: the existing stable bounded TypeScript sorter is the
-browser-safe private-state implementation used by ordered producers, while the
-pinned 3.53.4 coroutine merge and operator transitions are to be translated.
+resource/lifecycle rules and test matrix. At this historical checkpoint, the design proposed no exceptional algorithm
+substitution: the bounded TypeScript sorter was to serve ordered producers while
+the pinned 3.53.4 coroutine merge and operator transitions were to be translated.
+The later accepted implementation instead documents a bounded materialization
+substitution, its TypeScript constraint, upstream comparison, preserved observables,
+and source-based tests.
 The accepted `bd33810` parser/schema baseline, `f1dbe61` foundation, completed
 native-gate commit `e1e6b91` (core 22/22 and boundary 12/12 exact recaptures), and
-current audit finding 1 establish ownership, oracle evidence, and honest rejection
-only—not runtime conformance or TS credit.
+audit finding 1 established ownership, oracle evidence, and honest rejection at
+that checkpoint only—not then-current runtime conformance or TS credit.
 
 ### Structured VALUES implementation checkpoint (2026-09-16)
 
@@ -722,15 +726,17 @@ only—not runtime conformance or TS credit.
 `src/internal/vdbe.ts` maps standalone structured rows to the existing expression
 opcode compiler plus `ResultRow`, corresponding to `select.c:multiSelectValues` /
 `selectInnerLoop`. `test/conformance/structured-values.test.mjs` covers public
-multirow typed output, metadata, reset, and atomic width failure. Compound merge
-lowering remains explicitly unsupported and receives no compatibility credit.
+multirow typed output, metadata, reset, and atomic width failure. At this
+chronological checkpoint, compound merge lowering remained explicitly unsupported
+and received no compatibility credit; later completion sections supersede that status.
 
 `src/internal/vdbe.ts:compileScalarSelect` now translates the unordered
 `select.c:multiSelect` `TK_ALL` destination reuse branch for bounded scalar arms,
 including shared LIMIT/OFFSET counters and pre-publication width checking.
 `test/conformance/compound-union-all.test.mjs` covers order/multiplicity,
 leftmost names, global LIMIT/OFFSET, lazy coercion/first-error, and atomic width
-failure. `multiSelectByMerge` is not yet claimed.
+failure. At this checkpoint, `multiSelectByMerge` was not yet claimed; the current
+bounded adaptation is documented below.
 
 `src/internal/private-state.ts:EphemeralIndexCursor.replace/sort` and
 `src/internal/vdbe.ts` now map the unordered `select.c:multiSelect` UNION
@@ -742,22 +748,24 @@ INTEGER/REAL representative selection, and storage-class distinctions.
 `SetDelete`/`SetIntersectInsert`/`SwapEphemeral` VDBE operations translate the
 scalar `multiSelect` SRT_Except and intersection two-ephemeral-set transitions.
 The public focused suite verifies left-associative mixed transitions and exact
-cardinality. Later `UNION ALL` after a set transition is intentionally not yet
-claimed.
+cardinality. At this checkpoint, later `UNION ALL` after a set transition was not
+yet claimed; the set-prefix destination-handoff completion below supersedes that gap.
 
 `src/internal/vdbe.ts:compileScalarSelect` now shares LIMIT/OFFSET registers with
 final ephemeral traversal for set routes and implements the one-result-column
 portion of `resolve.c:resolveCompoundOrderBy` plus KeyInfo-driven ordered set
 output. Tests cover aliases, ordinals, matching expressions, non-output errors,
-post-set LIMIT/OFFSET timing, coercion, and first-error behavior. This remains a
-bounded precursor, not a claim of full `multiSelectByMerge`.
+post-set LIMIT/OFFSET timing, coercion, and first-error behavior. At this checkpoint this remained a bounded precursor, not a claim of full
+`multiSelectByMerge`; the later completion records the accepted bounded substitution.
 
 `src/internal/vdbe.ts:compileScalarSelect` maps finite scalar/VALUES ordered UNION
 ALL arms to the existing SorterOpen/SorterInsert/SorterSort destination. Unlike
 `select.c:multiSelectByMerge`, these bounded producers need no coroutine; the
 complete resolved multi-term KeyInfo, complete-row payload, stable equal-key
 sequence, top-N capacity, and output LIMIT/OFFSET preserve observable behavior.
-Table producers remain mapped to future coroutine work rather than this adaptation.
+At this checkpoint table producers remained mapped to future coroutine work. The
+later admitted direct-column table mapping is documented below; broader producers
+remain excluded.
 
 `src/internal/vdbe.ts:compileScalarSelect` consumes `SelectArm.valuesRows` in all
 compound destinations, mapping `select.c:multiSelectValues` structured rows to

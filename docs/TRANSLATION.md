@@ -1228,7 +1228,7 @@ The Function opcode now supplies an execution-control object analogous to VDBE p
 
 The development-only gate in `test/conformance/cases/stage3-relational-working-state.json` is captured from the exact 3.53.4 source ID by `capture-relational-working-state.py` and validated by `relational-working-state-manifest.test.py`. It preserves typed ordered cells, duplicate column metadata, phase-specific errors, cleanup traces, and separate native-match versus TS-credit accounting. Fixture setup writes occur only in native `:memory:` databases; assertion SQL is read-only. Companion coverage is explicitly no-credit and no relational TS behavior is claimed by this gate.
 
-Source decisions for the next implementation tranche follow `select.c` (`DistinctCtx`, `SortCtx`, `selectInnerLoop`, `pushOntoSorter`, `generateSortTail`, `computeLimitRegisters`, `multiSelect`, and (for future compounds only) `multiSelectByMerge` plus its coroutine merge control near `select.c:3314-3399`), `resolve.c` ORDER/GROUP result-term resolution, `vdbe.c` sorter/ephemeral/comparison/LIMIT opcodes, `vdbesort.c`, `btree.c`, and `vdbeaux.c` record/KeyInfo comparison:
+The historical source decisions for that implementation tranche followed `select.c` (`DistinctCtx`, `SortCtx`, `selectInnerLoop`, `pushOntoSorter`, `generateSortTail`, `computeLimitRegisters`, `multiSelect`, and (for then-future compounds) `multiSelectByMerge` plus its coroutine merge control near `select.c:3314-3399`), `resolve.c` ORDER/GROUP result-term resolution, `vdbe.c` sorter/ephemeral/comparison/LIMIT opcodes, `vdbesort.c`, `btree.c`, and `vdbeaux.c` record/KeyInfo comparison:
 
 - ORDER keys contain resolved terms in order with KeyInfo collation, DESC and NULLS-large flags. Only the ephemeral-b-tree path appends the source `OP_Sequence` discriminator before payload; `SorterOpen` adds no synthetic sequence and preserves stable single-thread equal-key insertion order.
 - DISTINCT and unordered compound sets key the complete result record without sequence/payload. DISTINCT uses NULL-equal comparison and existing Mem/record numeric equality. Compound collations are selected left-to-right by `multiSelectCollSeq`; UNION/INTERSECT/EXCEPT suppress duplicates and UNION ALL preserves multiplicity/branch order absent ORDER BY.
@@ -1238,13 +1238,13 @@ Source decisions for the next implementation tranche follow `select.c` (`Distinc
 
 The literal bounded upstream tranche is deliberately small (`limit.test`, `distinct.test`, `select4.test`); explicit NULL placement, remaining built-in collation/storage-class/error boundaries, and deterministic interruption/resource cleanup are named no-credit companions. This selection tests semantics and lifecycle without treating case counts or native success as TS compatibility.
 
-The first consuming tranche is now implemented by `src/internal/private-state.ts` and typed VDBE routes in `src/internal/vdbe.ts`. `SorterCursor` and `EphemeralIndexCursor` own copied `Mem` cells under immutable `KeyInfo`; the bottom-up stable merge checks work/cancellation/deadline without `Array.sort`. Deterministic private work is one unit per admitted record, each copied logical byte, each visited `KeyInfo` term, and each merge move. Zero-unit control checks immediately bracket bounded growth; a post-growth cancellation/deadline failure rolls back the new owned entry. Entry, key-byte, and aggregate logical-byte ceilings are checked before copying. Halt/reset/finalize attempt every cursor close even after a close diagnostic; an earlier operation error remains authoritative, otherwise the first cleanup diagnostic is reported after reset/finalize state and connection admission are restored. Focused tests exercise exact real-operation charges and injected multi-cursor cleanup failures. The compiler now lowers every ORDER term in the admitted direct-column slice, resolving each term independently as a result alias, positive result ordinal, or table-column fallback. Each resolved term supplies its declared collation, direction, and NULL-order flag to one immutable multi-field `KeyInfo`; `SorterInsert` transfers the complete key register range to shared `compareMem` comparison. Integer LIMIT/OFFSET and direct-column/direct-expression DISTINCT remain admitted. DISTINCT comparison uses the complete projected record and resolved per-term collation; `Found` is patched after variable-length ORDER-key lowering and `SorterInsert`, so duplicate records bypass the whole sorter-production route. Generalized schemas and compounds remain explicitly staged. Public accounting in `run-relational-working-state-ts.mjs` is 3 attempted/passed public assertions of 18 declared, with 2 credited upstream cases: `up-limit-1.2.1` and `up-select4-10.3`. `up-distinct-3.0` passes publicly but remains no-credit because its generated fixture omits upstream `UNIQUE(a,b)` while automatic-index schema loading is unsupported.
+The first consuming tranche is now implemented by `src/internal/private-state.ts` and typed VDBE routes in `src/internal/vdbe.ts`. `SorterCursor` and `EphemeralIndexCursor` own copied `Mem` cells under immutable `KeyInfo`; the bottom-up stable merge checks work/cancellation/deadline without `Array.sort`. Deterministic private work is one unit per admitted record, each copied logical byte, each visited `KeyInfo` term, and each merge move. Zero-unit control checks immediately bracket bounded growth; a post-growth cancellation/deadline failure rolls back the new owned entry. Entry, key-byte, and aggregate logical-byte ceilings are checked before copying. Halt/reset/finalize attempt every cursor close even after a close diagnostic; an earlier operation error remains authoritative, otherwise the first cleanup diagnostic is reported after reset/finalize state and connection admission are restored. Focused tests exercise exact real-operation charges and injected multi-cursor cleanup failures. The compiler now lowers every ORDER term in the admitted direct-column slice, resolving each term independently as a result alias, positive result ordinal, or table-column fallback. Each resolved term supplies its declared collation, direction, and NULL-order flag to one immutable multi-field `KeyInfo`; `SorterInsert` transfers the complete key register range to shared `compareMem` comparison. Integer LIMIT/OFFSET and direct-column/direct-expression DISTINCT remain admitted. DISTINCT comparison uses the complete projected record and resolved per-term collation; `Found` is patched after variable-length ORDER-key lowering and `SorterInsert`, so duplicate records bypass the whole sorter-production route. At that relational checkpoint, generalized schemas and compounds remained explicitly staged; the bounded compound completion below supersedes the latter status. Public accounting in `run-relational-working-state-ts.mjs` is 3 attempted/passed public assertions of 18 declared, with 2 credited upstream cases: `up-limit-1.2.1` and `up-select4-10.3`. `up-distinct-3.0` passes publicly but remains no-credit because its generated fixture omits upstream `UNIQUE(a,b)` while automatic-index schema loading is unsupported.
 
 ### 2026-09-14 audit integration: numeric callers and relational foundation
 
 The 14-case no-credit audit now distinguishes the pinned value-conversion owners instead of routing all conversions through CAST NUMERIC. `Mem.numericTypeCopy()` follows `src/vdbe.c:numericType`/`computeNumericType`: it preserves the source register, accepts a numeric prefix, and keeps decimal/exponent spellings REAL. `Mem.cast("integer")` follows `src/vdbemem.c:sqlite3VdbeIntValue` and consumes only the signed decimal prefix. Boolean/CASE uses the shared VDBE boolean primitive and `abs` retains `src/func.c:absFunc` storage-class dispatch. This makes the pinned/public typed audit 14/14 while retaining zero credit pending a separate promotion decision.
 
-The same integration commit carried the previously blocked relational foundation work: bounded private sorter/ephemeral state, source-shaped SeekGE/Next state transitions, deterministic accounting, and cleanup/reset coverage. That statement is historical: the current public relational manifest attempts/passes 3 of 18 and credits 2 exact-setup cases. `up-distinct-3.0` remains no-credit solely because automatic-index schema loading prevents fixture parity with upstream `UNIQUE(a,b)`. Compounds, aggregates, windows, joins, and generalized consumers remain explicitly staged.
+The same integration commit carried the previously blocked relational foundation work: bounded private sorter/ephemeral state, source-shaped SeekGE/Next state transitions, deterministic accounting, and cleanup/reset coverage. That statement is historical: the current public relational manifest attempts/passes 3 of 18 and credits 2 exact-setup cases. `up-distinct-3.0` remains no-credit solely because automatic-index schema loading prevents fixture parity with upstream `UNIQUE(a,b)`. At that relational-foundation checkpoint, compounds, aggregates, windows, joins, and generalized consumers remained explicitly staged. The bounded compound completion below supersedes the compound status; the other listed gaps remain.
 
 ### ORDER/LIMIT test-first contract (implementation handoff)
 
@@ -1258,7 +1258,7 @@ one-term `KeyInfo`, and [[card:card-j-b-a]] observed the resulting missing expec
 exception; `af6ee17` therefore temporarily rejected multi-term syntax, while `37fd90b`
 retained its pinned expected rows. The current repair replaces that safety rejection
 with complete admitted-term preservation and multi-field `KeyInfo`/sorter comparison.
-Compounds and subqueries remain owned by their structural query-production gates: generated `multiselect_op`, nested `seltablist ... LP select RP`, and subquery-expression reductions are retained as `SelectNode` flags and rejected as typed temporary unsupported before scalar or table lowering.
+At that ORDER/LIMIT checkpoint, compounds and subqueries were still owned by structural query-production gates: generated `multiselect_op`, nested `seltablist ... LP select RP`, and subquery-expression reductions were retained as `SelectNode` flags and rejected as typed temporary unsupported before scalar or table lowering. The compound status is superseded by the completion sections below; subqueries remain gated.
 
 | Contract behavior | Pinned control/source | Implementation handoff |
 |---|---|---|
@@ -1285,7 +1285,8 @@ its collation, DESC, and `KEYINFO_ORDER_BIGNULL` equivalent enter immutable
 accepted at first step; NULL, fractional/non-numeric text, and overflow report
 `SQLITE_MISMATCH` (20). Negative LIMIT means unlimited, negative OFFSET becomes
 zero. Matching `select.c:computeLimitRegisters`'s placement before result production and immediate zero test, scalar lowering emits LIMIT/OFFSET expression and coercion opcodes before deferred result-expression opcodes, while table lowering emits them before scan/sorter setup. The emitted `IfNot` jumps to the program halt target after both LIMIT and OFFSET have been successfully coerced when LIMIT is zero. Thus zero LIMIT skips failing or work-heavy result expressions and all table work, but an invalid OFFSET retains its execution-phase error. The pinned `SELECT abs(-9223372036854775808) LIMIT 0` native/public lifecycle regression distinguishes this ordering. Tests retain execution-phase errors
-and statement cleanup. Compounds and subqueries remain structural unsupported.
+and statement cleanup. At that checkpoint compounds and subqueries remained
+structurally unsupported. The compound status is superseded below; subqueries remain unsupported.
 The 29-case capture is a focused contract; its inventory does not alter relational
 accounting. Current machine accounting attempts/passes 3/18 and credits 2/18;
 the passing DISTINCT assertion remains no-credit pending exact UNIQUE-autoindex
@@ -1297,7 +1298,9 @@ fixture parity.
 > below describe the pre-implementation handoff, not current conformance. The
 > current exact public contract is 22 declared / 22 attempted / 22 passed / 22
 > credited; current implementation and adaptation details are recorded in the
-> later completion sections.
+> later completion sections. Every imperative and present/future implementation
+> statement in this superseded design body records the historical proposal only;
+> it is not current guidance where a later completion section differs.
 
 #### Immutable query graph and preparation contract
 
@@ -1469,12 +1472,15 @@ advances A without output and subsequently selects B through the A>B/EOF path,
 while INTERSECT outputs A. Tests must pin these operator-specific storage-class
 choices rather than assuming one normalization rule.
 
-This design intentionally does **not** use the older materialize-both-sides set
-plan, JS `Set`, `Array.sort`, or a host generator evaluator. The pinned 3.53.4
+This historical design intentionally did **not** propose the older
+materialize-both-sides set plan, JS `Set`, `Array.sort`, or a host generator
+evaluator. The pinned 3.53.4
 `multiSelect` routes all non-ALL operators through `multiSelectByMerge` (inventing
 ORDER when absent), so using the existing bounded stable sorter for individual
 ordered producers and translating the VDBE merge is ordinary adaptation, not an
-algorithm substitution. No exceptional substitution is proposed. The existing
+algorithm substitution. No exceptional substitution was proposed at this
+checkpoint. The later completion instead accepts and documents bounded typed
+materialization (never JS `Set`/`Array.sort`) as an exceptional substitution. The existing
 `EphemeralIndexCursor` remains available to translated destinations but is not a
 reason to replace the pinned compound algorithm.
 
@@ -1488,7 +1494,7 @@ OFFSET, compute `OffsetLimit`, then initialize arms. Negative LIMIT is unbounded
 and negative OFFSET becomes zero. Tests must distinguish literal zero,
 parameter/expression zero, and nonzero LIMIT with invalid OFFSET; do not copy the
 current admitted single-SELECT guarantee that zero LIMIT still coerces OFFSET into
-this future compound contract.
+that then-future compound contract.
 
 For UNION ALL only, copy `LIMIT+OFFSET` (the `iOffset+1` register when OFFSET is
 present, otherwise LIMIT) as an identical cap into both producer coroutines while
@@ -1628,9 +1634,9 @@ expression compiler and `ResultRow` VDBE destination, preserving row/expression
 order, parameter numbering, Mem storage classes, suspension, bounds, reset and
 finalize. Width is validated atomically at prepare. This translates the applicable
 `parse.y:values`/`mvalues`, `select.c:multiSelectValues` and `selectInnerLoop`
-branches without reparsing tokens or adding an evaluator. Compound arms are now
-retained in the same graph, but their merge/destination lowering remains gated as
-temporary unsupported; no prefix arm can execute.
+branches without reparsing tokens or adding an evaluator. Compound arms were then retained in the same graph, but their merge/destination
+lowering remained gated as temporary unsupported; no prefix arm could execute.
+Later completion sections supersede this chronological checkpoint.
 
 The first compound destination branch is now active: scalar, unordered `UNION
 ALL` arms compile in source order to one VDBE output destination with one
@@ -1652,8 +1658,9 @@ left-associative chains whose later transitions remain set operators. `EXCEPT`
 removes matching full keys; `INTERSECT` probes the accumulated left set and
 replaces it with a fresh bounded ephemeral set. An initial `UNION ALL` run is
 collapsed when a following set operator requires set semantics, matching
-`multiSelect`'s recursive destination behavior. A later `UNION ALL` transition
-remains gated until destination multiplicity after a set transition is lowered.
+`multiSelect`'s recursive destination behavior. At this checkpoint a later `UNION ALL` transition remained gated until destination
+multiplicity after a set transition was lowered. The set-prefix handoff completion
+below supersedes that gap.
 
 Compound-wide LIMIT/OFFSET is now also initialized before scalar set-arm work
 and applied only while traversing the final set, so duplicate elimination and
@@ -1661,8 +1668,8 @@ INTERSECT/EXCEPT happen before OFFSET/LIMIT. The first bounded ordered-set slice
 resolves one-column ORDER aliases across arms, ordinals, and structurally
 matching output expressions; unknown terms and out-of-range ordinals are SQLite
 prepare errors. Ordering reuses the final ephemeral KeyInfo (DESC/NULL flags),
-not host sorting. Multi-column ordered set output remains gated pending the full
-coroutine merge route.
+not host sorting. At this checkpoint multi-column ordered set output remained gated;
+the later finite-producer materialization completion supersedes that gap.
 
 The ordered `UNION ALL` branch now emits every finite scalar/VALUES arm into the
 existing typed stable sorter destination and traverses it with the compound-wide
@@ -1673,8 +1680,9 @@ without `Array.sort`. It is a browser adaptation of `multiSelectByMerge` for fin
 in-memory producers: materialization avoids coroutine machinery while retaining
 the source resolver/KeyInfo observables, async output suspension, work checks, and
 final semantics. Source-based focused tests compare aliases/ordinals, multi-term
-ordering, multiplicity, metadata, and LIMIT/OFFSET. Table producers remain gated
-for the full coroutine merge route.
+ordering, multiplicity, metadata, and LIMIT/OFFSET. At this checkpoint table
+producers remained gated. The later direct-column table completion supersedes that
+limited status while broader table producers remain excluded.
 
 Structured VALUES is now also a first-class compound arm producer. Each retained
 `mvalues` row is compiled independently into the selected ALL/sorter/ephemeral
