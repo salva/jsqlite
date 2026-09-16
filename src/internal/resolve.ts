@@ -57,6 +57,14 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  if(select.having)resolveAgainstSources(select.having,sources,select.result);
  if(select.where)resolveAgainstSources(select.where,sources,select.result);
  for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
- for(const expression of select.groupBy)resolveAgainstSources(expression,sources,select.result);
+ for(let i=0;i<select.groupBy.length;i++){
+  const expression=select.groupBy[i]!,text=expression.tokens.map(token=>token.text).join('');
+  if(/^-?\d+$/.test(text)){
+   const ordinal=Number(text);
+   if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} GROUP BY term out of range - should be between 1 and ${output.length}`);}
+   continue;
+  }
+  resolveAgainstSources(expression,sources,select.result);
+ }
  return Object.freeze({source:select,sources,result:Object.freeze(output)});
 }
