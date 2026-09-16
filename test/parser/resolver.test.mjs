@@ -58,6 +58,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT count(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function count()');
  assert.throws(()=>resolve('SELECT sum() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
  assert.throws(()=>resolve('SELECT sum(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
+ assert.doesNotThrow(()=>resolve('SELECT min(DISTINCT a.x,a.x),coalesce(DISTINCT a.x,a.x) FROM a'));
  assert.throws(()=>resolve('SELECT group_concat(DISTINCT a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT aggregates must have exactly one argument');
  assert.throws(()=>resolve('SELECT group_concat(a.x,a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function group_concat()');
  assert.throws(()=>resolve('SELECT a.x FROM a WHERE sum(a.x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
