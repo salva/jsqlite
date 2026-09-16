@@ -1848,7 +1848,11 @@ and retains direct versus FULL-coalesce identity with ordered metadata. Ordinary
 qualified/unqualified lookup, ambiguity/missing diagnostics, alias-hidden table
 names, declared-column precedence over rowid candidates, exact INTEGER PRIMARY
 KEY rowid substitution with declared origin metadata, FULL merged affinity/collation,
-and WHERE/ON `NC_UEList` source-first substitution are covered. ON expressions
+and WHERE/ON `NC_UEList` source-first substitution are covered. Generated result
+and WHERE expression reductions are walked too, so missing/ambiguous leaves in
+computed expressions receive `lookupName` diagnostics before the multi-source
+runtime gate; explicit COLLATE names in direct results and ON are validated.
+ON expressions
 resolve from their generated reductions, and outer-join owners reject references
 to later sources per `sqlite3SelectCheckOnClauses`. Single-source public lowering consumes this graph and lowers implicit
 rowid through a btree-cursor `Rowid` opcode.
