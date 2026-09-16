@@ -13,6 +13,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT missing FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ s=db.prepare('SELECT (a) AS renamed FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'renamed',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT a AS x FROM left_meta WHERE x=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
  s=db.prepare('SELECT a+1 AS a FROM left_meta WHERE a=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),8n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a AS x FROM left_meta WHERE missing=7'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
