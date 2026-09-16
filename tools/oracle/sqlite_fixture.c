@@ -28,6 +28,8 @@ int main(int argc,char **argv){
   else if(!rc && strcmp(id,"expr-where")==0) rc=exec(db,"CREATE TABLE t(a TEXT COLLATE NOCASE,b INTEGER,c BLOB);INSERT INTO t VALUES('abc',1,x'610062'),('XYZ',2,x'78797a'),(NULL,3,NULL);");
   else if(!rc && strcmp(id,"distinct-t3")==0) rc=exec(db,"CREATE TABLE t3(a INTEGER, b INTEGER, c);INSERT INTO t3 VALUES(NULL,NULL,1),(NULL,NULL,2),(NULL,3,4),(NULL,3,5),(6,NULL,7),(6,NULL,8);");
   else if(!rc && strcmp(id,"select4-t1")==0) rc=exec(db,"CREATE TABLE t1(n INT,log INT);WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31) INSERT INTO t1 SELECT i,CASE WHEN i=1 THEN 0 WHEN i=2 THEN 1 WHEN i<5 THEN 2 WHEN i<9 THEN 3 WHEN i<17 THEN 4 ELSE 5 END FROM c;");
+  else if(!rc && strcmp(id,"compound-metadata")==0) rc=exec(db,"CREATE TABLE left_meta(a INTEGER);CREATE TABLE right_meta(b TEXT);INSERT INTO left_meta VALUES(7);INSERT INTO right_meta VALUES('8');");
+  else if(!rc && strcmp(id,"compound-collation")==0) rc=exec(db,"CREATE TABLE nocase_values(name TEXT COLLATE NOCASE);CREATE TABLE binary_values(name TEXT COLLATE BINARY);INSERT INTO nocase_values VALUES('a');INSERT INTO binary_values VALUES('A');");
   else if(!rc && strcmp(id,"bind")==0) rc=exec(db,"CREATE TABLE t1(a,b,c);");
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
   else if(!rc && strncmp(id,"encoding-",9)==0) rc=exec(db,"CREATE TABLE t1(a PRIMARY KEY,b,c);INSERT INTO t1 VALUES('one','I',1);");

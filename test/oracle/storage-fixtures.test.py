@@ -10,7 +10,7 @@ cat=json.loads((gen/"catalog.json").read_text())
 by_id={e["id"]:e for e in cat["semantic"]["fixtures"]}
 manifest=json.loads((ROOT/"reference/sqlite/manifest.json").read_text())
 assert cat["semantic"]["sourceId"]==manifest["sqliteSourceId"]
-assert len(cat["semantic"]["fixtures"])==25
+assert len(cat["semantic"]["fixtures"])==27
 
 lib_path=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/"oracle-build/build/libsqlite3-oracle.so"
 lib=ctypes.CDLL(str(lib_path)); DB=ctypes.c_void_p

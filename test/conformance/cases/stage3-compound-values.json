@@ -131,9 +131,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -158,7 +157,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -251,9 +250,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -278,7 +276,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -365,9 +363,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -392,7 +389,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -479,9 +476,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -506,7 +502,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -623,9 +619,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -650,7 +645,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -723,7 +718,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -750,7 +750,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -843,9 +843,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -870,7 +869,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -957,9 +956,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -984,7 +982,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1070,9 +1068,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1097,7 +1094,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1184,9 +1181,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1211,7 +1207,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1304,9 +1300,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1331,7 +1326,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1424,9 +1419,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1451,7 +1445,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1542,9 +1536,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1569,7 +1562,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1640,7 +1633,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -1667,7 +1665,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1738,7 +1736,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -1765,7 +1768,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1851,9 +1854,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1878,7 +1880,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -1963,9 +1965,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -1990,7 +1991,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -2078,9 +2079,8 @@
         "disposition": "temporary-unsupported",
         "attempted": [
           {
-            "index": 1,
-            "op": "prepare",
-            "expectedOutcome": "temporary-unsupported"
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
           }
         ],
         "unattempted": [
@@ -2105,7 +2105,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -2177,7 +2177,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -2204,7 +2209,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -2275,7 +2280,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -2302,7 +2312,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -2374,7 +2384,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -2401,7 +2416,7 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     },
     {
@@ -2473,7 +2488,12 @@
       },
       "ts": {
         "disposition": "native-prepare-error-no-ts-attempt",
-        "attempted": [],
+        "attempted": [
+          {
+            "runner": "test/conformance/run-compound-values-ts.mjs",
+            "phase": "prepare/step/finalize"
+          }
+        ],
         "unattempted": [
           {
             "index": 0,
@@ -2500,17 +2520,17 @@
             "op": "close"
           }
         ],
-        "credit": false
+        "credit": true
       }
     }
   ],
   "accounting": {
     "declaredCases": 22,
     "nativeMatched": 22,
-    "tsPrepareAttempts": 15,
-    "tsCreditedCases": 0,
+    "tsPrepareAttempts": 22,
+    "tsCreditedCases": 22,
     "nativeExpectationsSeparateFromTsCredit": true,
     "countDerivedSuccessForbidden": true,
-    "structuralGraphGate": "external-corrected-query-graph"
+    "structuralGraphGate": "generated-complete-query-graph"
   }
 }

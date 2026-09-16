@@ -709,3 +709,70 @@ The accepted `bd33810` parser/schema baseline, `f1dbe61` foundation, completed
 native-gate commit `e1e6b91` (core 22/22 and boundary 12/12 exact recaptures), and
 current audit finding 1 establish ownership, oracle evidence, and honest rejection
 only—not runtime conformance or TS credit.
+
+### Structured VALUES implementation checkpoint (2026-09-16)
+
+`src/internal/parse.ts` now maps `parse.y:values`/`mvalues` and compound
+`selectnowith` reductions to immutable rows and reciprocal indexed arm links.
+`src/internal/vdbe.ts` maps standalone structured rows to the existing expression
+opcode compiler plus `ResultRow`, corresponding to `select.c:multiSelectValues` /
+`selectInnerLoop`. `test/conformance/structured-values.test.mjs` covers public
+multirow typed output, metadata, reset, and atomic width failure. Compound merge
+lowering remains explicitly unsupported and receives no compatibility credit.
+
+`src/internal/vdbe.ts:compileScalarSelect` now translates the unordered
+`select.c:multiSelect` `TK_ALL` destination reuse branch for bounded scalar arms,
+including shared LIMIT/OFFSET counters and pre-publication width checking.
+`test/conformance/compound-union-all.test.mjs` covers order/multiplicity,
+leftmost names, global LIMIT/OFFSET, lazy coercion/first-error, and atomic width
+failure. `multiSelectByMerge` is not yet claimed.
+
+`src/internal/private-state.ts:EphemeralIndexCursor.replace/sort` and
+`src/internal/vdbe.ts` now map the unordered `select.c:multiSelect` UNION
+SRT_Union ephemeral b-tree behavior: full-row KeyInfo equality, replacement of
+equal records, and key-order traversal. Focused public tests cover NULL,
+INTEGER/REAL representative selection, and storage-class distinctions.
+
+`src/internal/private-state.ts:EphemeralIndexCursor.remove/clear` and the
+`SetDelete`/`SetIntersectInsert`/`SwapEphemeral` VDBE operations translate the
+scalar `multiSelect` SRT_Except and intersection two-ephemeral-set transitions.
+The public focused suite verifies left-associative mixed transitions and exact
+cardinality. Later `UNION ALL` after a set transition is intentionally not yet
+claimed.
+
+`src/internal/vdbe.ts:compileScalarSelect` now shares LIMIT/OFFSET registers with
+final ephemeral traversal for set routes and implements the one-result-column
+portion of `resolve.c:resolveCompoundOrderBy` plus KeyInfo-driven ordered set
+output. Tests cover aliases, ordinals, matching expressions, non-output errors,
+post-set LIMIT/OFFSET timing, coercion, and first-error behavior. This remains a
+bounded precursor, not a claim of full `multiSelectByMerge`.
+
+`src/internal/vdbe.ts:compileScalarSelect` maps one-column scalar ordered UNION
+ALL to the existing SorterOpen/SorterInsert/SorterSort destination. Unlike
+`select.c:multiSelectByMerge`, these bounded one-row arms need no coroutine;
+KeyInfo comparison, stable equal-key sequence, top-N capacity, and output
+LIMIT/OFFSET preserve observable behavior. Wider/table producers remain mapped
+to future coroutine work rather than this adaptation.
+
+`src/internal/vdbe.ts:compileScalarSelect` consumes `SelectArm.valuesRows` in all
+compound destinations, mapping `select.c:multiSelectValues` structured rows to
+ALL output, sorter, or set insertion. The intersection auxiliary-set swap occurs
+once per arm. Focused tests cover VALUES/SELECT UNION ALL, VALUES duplicate UNION,
+and two multirow VALUES INTERSECT arms.
+
+`src/internal/parse.ts:selectAction` guards the `parse.y` compound arm-local
+ORDER/LIMIT syntax boundary after generated recovery, using arm source ownership
+to reject clauses before the rightmost arm rather than publishing a graph that
+silently omits them. Parser tests assert no partial program can result.
+
+`src/internal/lemon-runtime.ts:errorInput` carries the `parse.y` failure cursor to
+`parseSql`; this maps syntax diagnostics to the parser-selected token/EOF.
+`compileScalarSelect` maps width errors through `SelectArm.operatorFromPrior`,
+and the recovered arm-local ORDER guard emits the corresponding operator name.
+The seven pinned prepare-error cases now match native primary code/message.
+
+`src/internal/vdbe.ts:compileSimpleTableCompound` maps the bounded table-arm
+portion of `select.c:multiSelect`: each resolved arm uses OpenRead/Rewind/Column/
+Next and targets either direct output or the shared ephemeral UNION destination.
+Leftmost `ColumnNode` owns metadata and KeyInfo collation, matching select.c's
+leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.

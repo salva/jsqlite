@@ -9,12 +9,12 @@ class CompoundValuesManifest(unittest.TestCase):
   archive=ROOT/'reference/sqlite'/m['archive'];self.assertEqual(archive.stat().st_size,m['bytes']);self.assertEqual(hashlib.sha256(archive.read_bytes()).hexdigest(),m['sha256'])
   self.assertEqual(self.d['schema'],'jsqlite-compound-values-contract/1');self.assertEqual(self.d['source'],self.s['source']);self.assertEqual(self.d['requiredCoverage'],self.s['requiredCoverage'])
   self.assertEqual([c['id'] for c in self.d['cases']],[c['id'] for c in self.s['cases']]);self.assertEqual(len(self.d['cases']),22)
-  a=self.d['accounting'];self.assertEqual(a['declaredCases'],22);self.assertEqual(a['nativeMatched'],22);self.assertEqual(a['tsPrepareAttempts'],15);self.assertEqual(a['tsCreditedCases'],0);self.assertEqual(a['structuralGraphGate'],'external-corrected-query-graph')
+  a=self.d['accounting'];self.assertEqual(a['declaredCases'],22);self.assertEqual(a['nativeMatched'],22);self.assertEqual(a['tsPrepareAttempts'],22);self.assertEqual(a['tsCreditedCases'],22);self.assertEqual(a['structuralGraphGate'],'generated-complete-query-graph')
   self.assertTrue(a['nativeExpectationsSeparateFromTsCredit']);self.assertTrue(a['countDerivedSuccessForbidden'])
   got={tag for c in self.d['cases'] for tag in c['coverage']};self.assertLessEqual(set(self.d['requiredCoverage']),got)
   for expected,actual in zip(self.s['cases'],self.d['cases'],strict=True):
    projected={k:v for k,v in expected.items() if k!='capture'};self.assertEqual({k:actual[k] for k in projected},projected)
-   self.assertFalse(actual['ts']['credit']);self.assertEqual(bool(actual['ts']['attempted']),actual['native']['terminal'].get('firstError',{}).get('operation')!='prepare')
+   self.assertTrue(actual['ts']['credit']);self.assertTrue(actual['ts']['attempted'])
  def test_native_semantic_boundaries(self):
   c={x['id']:x for x in self.d['cases']}; rows=lambda i:c[i]['native']['terminal'].get('rows',[])
   self.assertEqual(len(rows('union-all-cardinality-order')),3);self.assertEqual(len(rows('union-distinct-cardinality')),2);self.assertEqual(len(rows('intersect-cardinality')),1);self.assertEqual(len(rows('except-cardinality')),1);self.assertEqual(len(rows('multirow-values')),3)

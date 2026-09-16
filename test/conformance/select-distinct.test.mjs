@@ -150,15 +150,17 @@ test('SELECT DISTINCT preserves prepare errors and statement ownership', async (
   }
 });
 
-test('SELECT DISTINCT keeps compounds and subqueries structurally unsupported', async () => {
+test('bounded DISTINCT compounds are admitted while subqueries stay structurally unsupported', async () => {
   const bridge = await startFixtureServer(path.resolve('test/fixtures'));
   let db;
   try {
     db = await openFixture(new Request(
       `http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`,
     ));
+    const compound = db.prepare('SELECT DISTINCT a FROM t2 UNION SELECT a FROM t2').statement;
+    while (await compound.step() === 'row') {}
+    compound.finalize();
     for (const sql of [
-      'SELECT DISTINCT a FROM t2 UNION SELECT a FROM t2',
       'SELECT DISTINCT a FROM (SELECT a FROM t2)',
     ]) {
       assert.throws(

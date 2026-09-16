@@ -16,6 +16,8 @@ export interface LemonTrace<T = unknown> {
   readonly reductions: readonly number[];
   readonly value?: LemonValue<T>;
   readonly terminalAction?: number;
+  /** Zero-based input terminal that selected the terminal error action. */
+  readonly errorInput?: number;
 }
 
 export interface LemonLimits {
@@ -142,7 +144,7 @@ export function lemonParse<T = unknown>(
         ? { accepted: true, reductions }
         : { accepted: true, reductions, value };
     }
-    return { accepted: false, reductions, terminalAction: action };
+    return { accepted: false, reductions, terminalAction: action, errorInput: input };
   }
 }
 

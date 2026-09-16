@@ -1615,3 +1615,89 @@ source equality representative transitions, compound metadata affinity when late
 used as a subquery, and adding coroutine/subroutine VM state without weakening the
 single-running-operation invariant. Resolve those with focused pinned-oracle cases
 before credit; the present design changes no public scope or exclusion.
+
+#### Structured VALUES implementation checkpoint (2026-09-16)
+
+The generated reduction tree now owns immutable `SelectArm` links and structured
+`values`/`mvalues` rows. Standalone VALUES lowers each row through the existing
+expression compiler and `ResultRow` VDBE destination, preserving row/expression
+order, parameter numbering, Mem storage classes, suspension, bounds, reset and
+finalize. Width is validated atomically at prepare. This translates the applicable
+`parse.y:values`/`mvalues`, `select.c:multiSelectValues` and `selectInnerLoop`
+branches without reparsing tokens or adding an evaluator. Compound arms are now
+retained in the same graph, but their merge/destination lowering remains gated as
+temporary unsupported; no prefix arm can execute.
+
+The first compound destination branch is now active: scalar, unordered `UNION
+ALL` arms compile in source order to one VDBE output destination with one
+compound-wide LIMIT/OFFSET register set. Width is checked before program
+publication, LIMIT coercion remains at first step, and LIMIT zero branches around
+all arm expression work. Ordered and duplicate-eliminating operators remain
+prepare-time unsupported pending merge-coroutine lowering.
+
+Unordered scalar `UNION` now uses the typed private ephemeral-index path with a
+full-row no-affinity KeyInfo. Equal insertions replace the retained row (thereby
+preserving SQLite's right-side representative, including INTEGER/REAL equality),
+and the private index performs a bounded stable merge-sort before output. NULL
+compares equal while INTEGER/TEXT and TEXT/BLOB remain distinct. This is the
+`multiSelect` ephemeral b-tree route, not the still-unimplemented ordered
+`multiSelectByMerge` coroutine route.
+
+Scalar `INTERSECT` and `EXCEPT` now extend that same private-set lowering for
+left-associative chains whose later transitions remain set operators. `EXCEPT`
+removes matching full keys; `INTERSECT` probes the accumulated left set and
+replaces it with a fresh bounded ephemeral set. An initial `UNION ALL` run is
+collapsed when a following set operator requires set semantics, matching
+`multiSelect`'s recursive destination behavior. A later `UNION ALL` transition
+remains gated until destination multiplicity after a set transition is lowered.
+
+Compound-wide LIMIT/OFFSET is now also initialized before scalar set-arm work
+and applied only while traversing the final set, so duplicate elimination and
+INTERSECT/EXCEPT happen before OFFSET/LIMIT. The first bounded ordered-set slice
+resolves one-column ORDER aliases across arms, ordinals, and structurally
+matching output expressions; unknown terms and out-of-range ordinals are SQLite
+prepare errors. Ordering reuses the final ephemeral KeyInfo (DESC/NULL flags),
+not host sorting. Multi-column ordering and ordered UNION ALL remain gated
+pending the full coroutine merge route.
+
+The one-column ordered `UNION ALL` branch now emits every scalar arm into the
+existing typed stable sorter destination and traverses it with the same compound
+ORDER resolver and global LIMIT/OFFSET registers. This preserves duplicates,
+source order among equal keys, and top-N private-state bounding without
+`Array.sort`. It is a browser adaptation of the coroutine merge's observable
+row stream: scalar arms each contain exactly one row, so materializing those
+bounded producers avoids coroutine machinery while retaining KeyInfo ordering,
+async output suspension, work checks, and final semantics. Source-based focused
+tests compare alias/expression ordering, multiplicity, and LIMIT/OFFSET.
+
+Structured VALUES is now also a first-class compound arm producer. Each retained
+`mvalues` row is compiled independently into the selected ALL/sorter/ephemeral
+set destination; there is no synthesized UNION graph and no token comma scan.
+Arm width (including every VALUES row) is validated before program publication.
+For INTERSECT, all rows of the right VALUES arm populate the auxiliary set before
+the accumulated set is swapped, preserving arm-level rather than row-level set
+semantics.
+
+A generated-parser recovery boundary now prevents arm-local ORDER/LIMIT tokens
+before a later compound arm from being discarded. The complete arm graph's
+source offsets are compared with accepted ORDER/LIMIT terminals; such tokens
+produce a prepare-time syntax error before lowering. This is not token parsing:
+the operator/arm graph and clause semantics remain generated-reduction owned;
+the check preserves an unimplemented/error-recovered construct for honest
+rejection and prevents partial-arm execution.
+
+Parser failures now retain the Lemon input position that selected the terminal
+error action. `parseSql` reports the offending accepted terminal, or `incomplete
+input` at end-of-input, matching the pinned parser's VALUES ORDER and trailing
+comma diagnostics without rescanning SQL. Compound width diagnostics use the
+actual generated operator link, and recovered arm-local clauses name that link
+in SQLite's clause-placement error.
+
+The two pinned table-arm contracts now lower through a bounded shared compound
+destination. The admitted shape is one direct column from each single-table,
+no-WHERE arm. UNION ALL performs consecutive full scans into one ResultRow
+destination; UNION inserts into one typed ephemeral index whose KeyInfo collation
+comes from the leftmost result column. Public metadata likewise comes solely
+from the leftmost table/result alias. All tables and columns resolve before the
+program is published. More complex table expressions, WHERE arms, mixed set
+operators, and joins remain atomically gated.

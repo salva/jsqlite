@@ -113,7 +113,7 @@ test('ORDER result aliases resolve through explicit COLLATE while retaining that
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('ORDER/LIMIT structural compounds and subqueries remain typed unsupported',async()=>{
+test('ORDER/LIMIT bounded table compounds are admitted while subqueries remain typed unsupported',async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
@@ -129,7 +129,7 @@ test('ORDER/LIMIT structural compounds and subqueries remain typed unsupported',
    finally{try{statement?.finalize()}catch{}}
   }
   assert.deepEqual(observed,[
-   {sql:'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',outcome:'temporary-unsupported'},
+   {sql:'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',outcome:'accepted'},
    {sql:'SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
    {sql:'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
   ]);
