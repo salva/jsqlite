@@ -1848,17 +1848,26 @@ and retains direct versus FULL-coalesce identity with ordered metadata. Ordinary
 qualified/unqualified lookup, ambiguity/missing diagnostics, alias-hidden table
 names, declared-column precedence over rowid candidates, exact INTEGER PRIMARY
 KEY rowid substitution with declared origin metadata, FULL merged affinity/collation,
-and WHERE/ON `NC_UEList` source-first substitution are covered. Generated result
-and WHERE expression reductions are walked too, so missing/ambiguous leaves in
-computed expressions receive `lookupName` diagnostics before the multi-source
-runtime gate; explicit COLLATE names in direct results and ON are validated.
+and WHERE/ON `NC_UEList` source-first substitution are covered. Generated result,
+WHERE, ON, GROUP BY, HAVING, ORDER BY, LIMIT/OFFSET, function-argument, FILTER,
+and OVER reductions are walked too, so missing/ambiguous leaves in computed
+expressions receive `lookupName` diagnostics before the multi-source runtime gate;
+explicit COLLATE names are validated. The bounded `resolveSelectStep` port also
+preserves source-before-result-alias lookup, GROUP/ORDER integer ordinals,
+aggregate placement and nested-aggregate diagnostics, built-in function arity and
+DISTINCT/FILTER ownership, empty LIMIT/OFFSET name contexts, and built-in window
+owner/arity checks. Function arguments resolve before function ownership, while a
+valid owner is established before FILTER/OVER children, matching pinned resolver
+diagnostic ordering. This is semantic preparation, not function, aggregate,
+GROUP/HAVING, ORDER, FILTER, or window execution credit.
 ON expressions
 resolve from their generated reductions, and outer-join owners reject references
 to later sources per `sqlite3SelectCheckOnClauses`. Single-source public lowering consumes this graph and lowers implicit
 rowid through a btree-cursor `Rowid` opcode.
 
 This is not a join support claim. Multi-source public lowering remains an atomic
-temporary prepare rejection; HAVING/GROUP and outer linked contexts, complete
-FULL expression lowering, and streaming join cursor control remain pending. The
+temporary prepare rejection; HAVING/GROUP evaluation and outer linked contexts,
+complete FULL expression lowering, user-defined-function lookup, and streaming
+join cursor control remain pending. The
 focused parser/resolver and public test files are `test/parser/resolver.test.mjs`
 and `test/conformance/source-resolution.test.mjs`.

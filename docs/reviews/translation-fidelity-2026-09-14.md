@@ -477,7 +477,10 @@ semantic foundation: generated reductions now own ordered SrcList; resolver test
 cover ordinary lookup/star/NATURAL/USING/FULL identity, declared-column/rowid and
 INTEGER PRIMARY KEY branches, result-alias substitution, and ON outer-owner scope;
 public single-source prepare/step consumes expansion for alias star, WHERE result
-aliases, and rowid. Multi-source preparation now exposes SQLite name/ON-scope
+aliases, and rowid. Subsequent bounded `resolveSelectStep` work now prepares
+GROUP/HAVING/ORDER/LIMIT, aggregate placement, built-in function/FILTER ownership,
+and built-in window owners through generated reductions, but adds no evaluator
+credit for those forms. Multi-source preparation now exposes SQLite name/ON-scope
 errors before its execution gate. It does **not** supersede the join-execution
 finding: multi-source public
 SQL remains atomically temporary unsupported and the 47-case gate has not been
