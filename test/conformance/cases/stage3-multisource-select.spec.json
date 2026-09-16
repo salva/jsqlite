@@ -110,7 +110,8 @@
         "excerptSha256": "6352b377aac53a5ddc4d7a1b6d7aa0ee1a2155e6802013582efc32026761e11b",
         "branch": "seltablist/joinop comma production",
         "adaptation": "local fixtures add WHERE and ORDER BY",
-        "ownerSymbol": "joinop"
+        "ownerSymbol": "joinop",
+        "branchMarker": "joinop"
       }
     },
     {
@@ -130,7 +131,8 @@
         "excerptSha256": "6352b377aac53a5ddc4d7a1b6d7aa0ee1a2155e6802013582efc32026761e11b",
         "branch": "joinop JOIN_KW production",
         "adaptation": "minimal CROSS spelling discriminator",
-        "ownerSymbol": "joinop"
+        "ownerSymbol": "joinop",
+        "branchMarker": "joinop"
       }
     },
     {
@@ -152,7 +154,8 @@
         "excerptSha256": "4365d8cca607e9d9b83959f5ff4d00241f785f557066e6c2f462cdc150dc0ea2",
         "branch": "sqlite3ProcessJoin inner ON tagging",
         "adaptation": "local aliases isolate ON binding",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "sqlite3ProcessJoin",
+        "branchMarker": "sqlite3ProcessJoin"
       }
     },
     {
@@ -173,7 +176,8 @@
         "excerptSha256": "22804a6b381f56beabb2aa33b3e8acbcb81f24ec40c99a09b183a99ae4b9d353",
         "branch": "iLeftJoin OP_NullRow unmatched LEFT control",
         "adaptation": "ordered unmatched row discriminator",
-        "ownerSymbol": "iLeftJoin"
+        "ownerSymbol": "iLeftJoin",
+        "branchMarker": "iLeftJoin"
       }
     },
     {
@@ -193,7 +197,8 @@
         "excerptSha256": "b1bd2d363e22e6dd715821e36db2fe7a1c5d58e656aa3e41b0045e5f9573c1b4",
         "branch": "EP_OuterON term handling",
         "adaptation": "contrasts post-join WHERE",
-        "ownerSymbol": "EP_OuterON"
+        "ownerSymbol": "EP_OuterON",
+        "branchMarker": "EP_OuterON"
       }
     },
     {
@@ -213,7 +218,8 @@
         "excerptSha256": "b1bd2d363e22e6dd715821e36db2fe7a1c5d58e656aa3e41b0045e5f9573c1b4",
         "branch": "EP_OuterON term handling",
         "adaptation": "contrasts ON match qualification",
-        "ownerSymbol": "EP_OuterON"
+        "ownerSymbol": "EP_OuterON",
+        "branchMarker": "EP_OuterON"
       }
     },
     {
@@ -233,7 +239,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "sqlite3WhereRightJoinLoop unmatched RHS scan",
         "adaptation": "ordered unmatched-right discriminator",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -253,7 +260,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "right-join loop combined with LEFT control",
         "adaptation": "both unmatched directions",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -274,7 +282,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "sqlite3WhereRightJoinLoop empty left input",
         "adaptation": "empty-left RIGHT discriminator",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -295,7 +304,8 @@
         "excerptSha256": "22804a6b381f56beabb2aa33b3e8acbcb81f24ec40c99a09b183a99ae4b9d353",
         "branch": "iLeftJoin OP_NullRow unmatched LEFT control",
         "adaptation": "empty-right LEFT discriminator",
-        "ownerSymbol": "iLeftJoin"
+        "ownerSymbol": "iLeftJoin",
+        "branchMarker": "iLeftJoin"
       }
     },
     {
@@ -317,7 +327,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander USING omission",
         "adaptation": "bare-star visibility",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "pFrom->fg.isUsing",
+        "branchMarker": "pFrom->fg.isUsing"
       }
     },
     {
@@ -339,7 +350,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander qualified star",
         "adaptation": "qualified-source visibility",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "zTName",
+        "branchMarker": "zTName"
       }
     },
     {
@@ -360,7 +372,8 @@
         "excerptSha256": "b49eb78062068927fc3f02c62bcad09047c517a2f2febf4d19448ce2846ef6ef",
         "branch": "sqlite3ProcessJoin NATURAL synthesis",
         "adaptation": "local compact NATURAL fixture",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "JT_NATURAL",
+        "branchMarker": "JT_NATURAL"
       }
     },
     {
@@ -381,7 +394,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander ordered result terms",
         "adaptation": "duplicate result-name preservation",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "pX->zEName",
+        "branchMarker": "pX->zEName"
       }
     },
     {
@@ -402,7 +416,8 @@
         "excerptSha256": "3b02454c68d0d81549ac2e9dfb0f9c29eef69cbcd4b656ca6eeef34decd9c0ca",
         "branch": "lookupName multiple non-USING matches",
         "adaptation": "exact ambiguity diagnostic",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "cnt++",
+        "branchMarker": "cnt++"
       }
     },
     {
@@ -423,7 +438,8 @@
         "excerptSha256": "667ff5df5f28d53269a8417e507f4bfd1d60a517c07e03e04791d6dc4ecb0f6b",
         "branch": "lookupName zero-match diagnostic",
         "adaptation": "qualified missing-column diagnostic",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "no such column",
+        "branchMarker": "no such column"
       }
     },
     {
@@ -445,7 +461,8 @@
         "excerptSha256": "3b02454c68d0d81549ac2e9dfb0f9c29eef69cbcd4b656ca6eeef34decd9c0ca",
         "branch": "lookupName source alias qualification",
         "adaptation": "base name hidden by alias",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "zTab",
+        "branchMarker": "zTab"
       }
     },
     {
@@ -466,7 +483,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander tableSeen error",
         "adaptation": "unknown qualified star",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "tableSeen",
+        "branchMarker": "tableSeen"
       }
     },
     {
@@ -487,7 +505,8 @@
         "excerptSha256": "b49eb78062068927fc3f02c62bcad09047c517a2f2febf4d19448ce2846ef6ef",
         "branch": "NATURAL ON/USING rejection",
         "adaptation": "exact prepare diagnostic",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "JT_NATURAL",
+        "branchMarker": "JT_NATURAL"
       }
     },
     {
@@ -508,7 +527,8 @@
         "excerptSha256": "a7e3a9ac800febccd15b98d5b4cb710566cc26786194d3436c794783ccfe9d5f",
         "branch": "sqlite3ProcessJoin missing USING column",
         "adaptation": "exact prepare diagnostic",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "cannot join using column",
+        "branchMarker": "cannot join using column"
       }
     },
     {
@@ -529,7 +549,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander direct result expressions",
         "adaptation": "typed cells and origin metadata",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "pX->zEName",
+        "branchMarker": "pX->zEName"
       }
     },
     {
@@ -549,7 +570,8 @@
         "excerptSha256": "a7e3a9ac800febccd15b98d5b4cb710566cc26786194d3436c794783ccfe9d5f",
         "branch": "sqlite3ProcessJoin equality expression",
         "adaptation": "explicit COLLATE local discriminator; not left-default ownership",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "TK_EQ",
+        "branchMarker": "TK_EQ"
       }
     },
     {
@@ -563,13 +585,14 @@
         "kind": "synthesized-source-branch-discriminator",
         "file": "src/select.c",
         "lines": [
-          7890,
-          7905
+          1139,
+          1175
         ],
-        "excerptSha256": "6c2bb37b4015aa09dfb1e546752825d649b0667871dbc43d5a4d1fc73d3c7445",
+        "excerptSha256": "1682d1766577edadc4bb55f49a2446c3d0c11aaa61920ad4d9117d7678025e46",
         "branch": "SELECT destination lowering entry",
         "adaptation": "join producer composition",
-        "ownerSymbol": "selectInnerLoop"
+        "ownerSymbol": "selectInnerLoop",
+        "branchMarker": "selectInnerLoop"
       }
     },
     {
@@ -589,7 +612,8 @@
         "excerptSha256": "eba13383b100bd5a14926cdd6f143dfbb864183a2cf7f9eac81fa56e174dc4ba",
         "branch": "multiSelect arm destination",
         "adaptation": "joined compound arm",
-        "ownerSymbol": "multiSelect"
+        "ownerSymbol": "multiSelect",
+        "branchMarker": "multiSelect"
       }
     },
     {
@@ -621,7 +645,8 @@
         "excerptSha256": "05ed237feed3e6146cb84c81711630be10113dc9c078752a2eaa6114911aa7a1",
         "branch": "sqlite3_reset lifecycle",
         "adaptation": "rebind across joined execution",
-        "ownerSymbol": "sqlite3_reset"
+        "ownerSymbol": "sqlite3_reset",
+        "branchMarker": "sqlite3_reset"
       }
     },
     {
@@ -642,7 +667,8 @@
         "excerptSha256": "3b02454c68d0d81549ac2e9dfb0f9c29eef69cbcd4b656ca6eeef34decd9c0ca",
         "branch": "lookupName qualified columns",
         "adaptation": "UTF-16le identifier/value adaptation",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "zTab",
+        "branchMarker": "zTab"
       }
     },
     {
@@ -664,7 +690,8 @@
         "excerptSha256": "62eee9bd2bb7dd2fe1cff932c5ccbaa120af49a7cd63a8e91ffd91edbd9f1bb2",
         "branch": "selectExpander USING star",
         "adaptation": "UTF-16be adaptation",
-        "ownerSymbol": "selectExpander"
+        "ownerSymbol": "pFrom->fg.isUsing",
+        "branchMarker": "pFrom->fg.isUsing"
       }
     },
     {
@@ -684,7 +711,8 @@
         "excerptSha256": "ce320152f4b7cbbd4c15079162e96e60e5fce46ef7751dcbd4a6080bc776405b",
         "branch": "lookupName NC_UEList fallback",
         "adaptation": "WHERE alias substitution",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "NC_UEList",
+        "branchMarker": "NC_UEList"
       }
     },
     {
@@ -704,7 +732,8 @@
         "excerptSha256": "ce320152f4b7cbbd4c15079162e96e60e5fce46ef7751dcbd4a6080bc776405b",
         "branch": "lookupName source-before-NC_UEList",
         "adaptation": "real column precedence",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "NC_UEList",
+        "branchMarker": "NC_UEList"
       }
     },
     {
@@ -724,7 +753,8 @@
         "excerptSha256": "ce320152f4b7cbbd4c15079162e96e60e5fce46ef7751dcbd4a6080bc776405b",
         "branch": "lookupName NC_UEList ambiguity path",
         "adaptation": "duplicate aliases",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "NC_UEList",
+        "branchMarker": "NC_UEList"
       }
     },
     {
@@ -739,13 +769,14 @@
         "kind": "synthesized-source-branch-discriminator",
         "file": "src/resolve.c",
         "lines": [
-          1995,
+          1868,
           2112
         ],
-        "excerptSha256": "db6846121a9ba1eead446425da74cd3e0dbfdd701f18f55b086b828e9e509d14",
+        "excerptSha256": "070f0d3cf4577628ac867a225a2fe6ea777d50e47ab3a507c38b0cba8996abf8",
         "branch": "resolveSelectStep NC_UEList for tagged ON",
         "adaptation": "ON alias substitution",
-        "ownerSymbol": "resolveSelectStep"
+        "ownerSymbol": "resolveSelectStep",
+        "branchMarker": "resolveSelectStep"
       }
     },
     {
@@ -767,7 +798,8 @@
         "excerptSha256": "d3e674b83b6ac47c39c52f5148d9b7d88bbba269df9b061607a83a3c2b1429d9",
         "branch": "sqlite3SelectCheckOnClauses",
         "adaptation": "exact later-source error",
-        "ownerSymbol": "sqlite3SelectCheckOnClauses"
+        "ownerSymbol": "sqlite3SelectCheckOnClauses",
+        "branchMarker": "sqlite3SelectCheckOnClauses"
       }
     },
     {
@@ -787,7 +819,8 @@
         "excerptSha256": "76b87be61bc5f8e2c599a4e9640bef5bc1d5a67ac9a9e12bb511c56ef2f1975d",
         "branch": "sqlite3SrcListShiftJoinType JT_LTORJ",
         "adaptation": "three-source barrier",
-        "ownerSymbol": "sqlite3SrcListShiftJoinType"
+        "ownerSymbol": "sqlite3SrcListShiftJoinType",
+        "branchMarker": "sqlite3SrcListShiftJoinType"
       }
     },
     {
@@ -807,7 +840,8 @@
         "excerptSha256": "76b87be61bc5f8e2c599a4e9640bef5bc1d5a67ac9a9e12bb511c56ef2f1975d",
         "branch": "JT_LTORJ marking before right-most RIGHT",
         "adaptation": "sources on each side",
-        "ownerSymbol": "sqlite3SrcListShiftJoinType"
+        "ownerSymbol": "sqlite3SrcListShiftJoinType",
+        "branchMarker": "sqlite3SrcListShiftJoinType"
       }
     },
     {
@@ -830,7 +864,8 @@
         "excerptSha256": "e6087f488e41e1577d12a28d14ae9b2de161a3adcfb5d2cad7663d83e97e26a9",
         "branch": "inAnyUsingClause and unqualified star term",
         "adaptation": "RIGHT bare-star owner",
-        "ownerSymbol": "inAnyUsingClause"
+        "ownerSymbol": "inAnyUsingClause",
+        "branchMarker": "inAnyUsingClause"
       }
     },
     {
@@ -853,7 +888,8 @@
         "excerptSha256": "3b02454c68d0d81549ac2e9dfb0f9c29eef69cbcd4b656ca6eeef34decd9c0ca",
         "branch": "lookupName JT_RIGHT replacement",
         "adaptation": "qualified versus unqualified owner",
-        "ownerSymbol": "lookupName"
+        "ownerSymbol": "JT_RIGHT",
+        "branchMarker": "JT_RIGHT"
       }
     },
     {
@@ -874,7 +910,8 @@
         "excerptSha256": "58d4b8f795664bcd2a7ebd26cec0373cb48c3a82298249415da2eb94f6f2a9fc",
         "branch": "NATURAL synthesis with JT_LTORJ USING",
         "adaptation": "RIGHT NATURAL chain",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "JT_LTORJ",
+        "branchMarker": "JT_LTORJ"
       }
     },
     {
@@ -894,7 +931,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "unmatched-right continuation then WHERE",
         "adaptation": "WHERE removes/preserves unmatched rows",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -914,7 +952,8 @@
         "excerptSha256": "b1bd2d363e22e6dd715821e36db2fe7a1c5d58e656aa3e41b0045e5f9573c1b4",
         "branch": "EP_OuterON match qualification",
         "adaptation": "ON failure generates unmatched RHS",
-        "ownerSymbol": "EP_OuterON"
+        "ownerSymbol": "EP_OuterON",
+        "branchMarker": "EP_OuterON"
       }
     },
     {
@@ -934,7 +973,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "FULL unmatched continuation",
         "adaptation": "downstream LEFT composition",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -956,7 +996,8 @@
         "excerptSha256": "c6a620b8babb83fb806049d4e1b191f347c223c093125a3b26e2c302ebee3fe4",
         "branch": "extendFJMatch coalesce arguments",
         "adaptation": "FULL unqualified value and metadata",
-        "ownerSymbol": "extendFJMatch"
+        "ownerSymbol": "extendFJMatch",
+        "branchMarker": "extendFJMatch"
       }
     },
     {
@@ -976,7 +1017,8 @@
         "excerptSha256": "0e4ca9c9a7ebbb29e23cb419162818280d49df9b91cd2e8dea708cdafbd9d744",
         "branch": "right-join interior continuation",
         "adaptation": "downstream INNER composition",
-        "ownerSymbol": "sqlite3WhereRightJoinLoop"
+        "ownerSymbol": "sqlite3WhereRightJoinLoop",
+        "branchMarker": "sqlite3WhereRightJoinLoop"
       }
     },
     {
@@ -999,7 +1041,8 @@
         "excerptSha256": "a7e3a9ac800febccd15b98d5b4cb710566cc26786194d3436c794783ccfe9d5f",
         "branch": "JT_LTORJ multi-left USING ambiguity",
         "adaptation": "exact ambiguity diagnostic",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "ambiguous reference",
+        "branchMarker": "ambiguous reference"
       }
     },
     {
@@ -1080,7 +1123,8 @@
         "excerptSha256": "a7e3a9ac800febccd15b98d5b4cb710566cc26786194d3436c794783ccfe9d5f",
         "branch": "USING loop preserves repeated IdList entries",
         "adaptation": "duplicate equality terms are accepted, not diagnosed",
-        "ownerSymbol": "sqlite3ProcessJoin"
+        "ownerSymbol": "pList->nId",
+        "branchMarker": "pList->nId"
       }
     }
   ]

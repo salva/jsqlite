@@ -249,7 +249,7 @@ The manifest/capture pair is:
 * `test/conformance/cases/stage3-multisource-select.json`
 * `test/conformance/capture-multisource-select.py`
 
-Every case carries content-addressed provenance: exact translations hash a bounded pinned test assertion and require the case SQL within it; synthesized discriminators hash a bounded source span, identify its owning routine/control symbol, and state the adaptation. The validator rejects the three previously misclassified local cases as translation claims. The pinned C API capture verifies source identity before setup and records ordered
+Every case carries content-addressed provenance: exact translations hash a bounded pinned test assertion and require the case SQL within it; synthesized discriminators hash a bounded source span, identify owner/control and branch-marker tokens that the validator requires inside that exact hashed excerpt, and state the adaptation. The validator rejects the three previously misclassified local cases as translation claims. The pinned C API capture verifies source identity before setup and records ordered
 columns (including duplicates and origin metadata), typed NULL/INTEGER/REAL/TEXT/
 BLOB cells, exact prepare errors, reset/rebinding executions, and UTF-8/UTF-16le/
 UTF-16be databases. Cases cover aliases and qualification (including WHERE/ON alias substitution,

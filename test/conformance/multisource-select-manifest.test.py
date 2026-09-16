@@ -43,10 +43,11 @@ class MultiSourceManifest(unittest.TestCase):
     normalize=lambda x:' '.join(x.replace(';','').split()).casefold()
     self.assertIn(normalize(case['sql']),normalize(block),case['id'])
    elif kind=='synthesized-source-branch-discriminator':
-    branch=p.get('branch','').strip(); symbol=p.get('ownerSymbol','').strip()
-    self.assertTrue(branch and symbol,case['id'])
-    # Exact content-addressed owner span must contain the declared routine/control symbol.
-    self.assertIn(symbol,(UPSTREAM/p['file']).read_text(),(case['id'],symbol))
+    branch=p.get('branch','').strip(); symbol=p.get('ownerSymbol','').strip(); marker=p.get('branchMarker','').strip()
+    self.assertTrue(branch and symbol and marker,case['id'])
+    # Exact content-addressed owner span must contain both the declared owner/control symbol and branch marker.
+    self.assertIn(symbol,excerpt,(case['id'],symbol))
+    self.assertIn(marker,excerpt,(case['id'],marker))
    else:self.fail(f"{case['id']}: unknown/missing provenance kind {kind!r}")
   self.assertEqual(kinds,{'translated-upstream-assertion','synthesized-source-branch-discriminator'})
  def test_reviewed_provenance_misclassifications_cannot_recur(self):
