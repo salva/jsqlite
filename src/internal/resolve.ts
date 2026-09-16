@@ -9,6 +9,21 @@ export interface ResultColumnDescriptor {readonly name:string;readonly declaredT
 export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly columnIndex:number;readonly name:string}
 export interface ResolvedResult {readonly name:string;readonly expression:ExprNode;readonly source:ResolvedSource|null;readonly columnIndex:number|null;readonly mergedSources:readonly ResolvedColumnRef[]|null;readonly resolution:'direct'|'coalesce'|'expression';readonly descriptor:ResultColumnDescriptor}
 export interface ResolvedSelect {readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[]}
+function groupByInteger(expression:ExprNode):bigint|null{
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):bigint|null=>{
+  if(node.kind!=='reduction')return null;
+  if(node.signature.startsWith('expr ::= LP expr RP')||node.signature.startsWith('expr ::= expr COLLATE ')){
+   const nested=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));return nested?visit(nested):null;
+  }
+  if(node.signature==='expr ::= term'){const term=node.children[0];return term?visit(term):null;}
+  if(node.signature==='term ::= INTEGER'){const token=node.children.find(child=>child.kind==='terminal')?.value;return token?.kind==='integer'?BigInt(token.text):null;}
+  if(node.signature==='expr ::= PLUS|MINUS expr'){
+   const sign=node.children.find(child=>child.kind==='terminal')?.value?.text,nested=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::=')),value=nested?visit(nested):null;return value===null?null:sign==='-'?-value:value;
+  }
+  return null;
+ };
+ return expression.reduction?visit(expression.reduction):null;
+}
 function identifier(text:string):string{if(text[0]==='['&&text.at(-1)===']')return text.slice(1,-1);if((text[0]==='"'||text[0]==='`')&&text.at(-1)===text[0])return text.slice(1,-1).replaceAll(text[0]+text[0],text[0]);return text;}
 function integerPrimaryKeyIndex(table:TableNode):number{
  if(table.withoutRowid||table.primaryKey.length!==1)return -1;
@@ -58,9 +73,9 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  if(select.where)resolveAgainstSources(select.where,sources,select.result);
  for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
  for(let i=0;i<select.groupBy.length;i++){
-  const expression=select.groupBy[i]!,text=expression.tokens.map(token=>token.text).join('');
-  if(/^[+-]?\d+$/.test(text)){
-   const parsed=BigInt(text),isOrdinal=parsed>=-2147483647n&&parsed<=2147483647n;
+  const expression=select.groupBy[i]!,parsed=groupByInteger(expression);
+  if(parsed!==null){
+   const isOrdinal=parsed>=-2147483647n&&parsed<=2147483647n;
    if(!isOrdinal)continue;
    const ordinal=Number(parsed);
    if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} GROUP BY term out of range - should be between 1 and ${output.length}`);}

@@ -46,6 +46,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON 1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: gbad');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY 0'),e=>e instanceof NameResolutionError&&e.message==='1st GROUP BY term out of range - should be between 1 and 1');
  assert.throws(()=>resolve('SELECT a.x,a.x+1 FROM a GROUP BY 3'),e=>e instanceof NameResolutionError&&e.message==='1st GROUP BY term out of range - should be between 1 and 2');
+ assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY (2)'),e=>e instanceof NameResolutionError&&e.message==='1st GROUP BY term out of range - should be between 1 and 1');
+ assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY 2 COLLATE nocase'),e=>e instanceof NameResolutionError&&e.message==='1st GROUP BY term out of range - should be between 1 and 1');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY +2'),e=>e instanceof NameResolutionError&&e.message==='1st GROUP BY term out of range - should be between 1 and 1');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY 2147483648'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY -2147483648'));
