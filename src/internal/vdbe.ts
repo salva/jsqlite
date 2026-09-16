@@ -476,7 +476,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     const assign=(e:Expression):Expression=>{
       if(e.kind==="column"){
         try{e.index=resolve([{text:e.name}]);}
-        catch(error){const alias=allowAlias&&!e.name.includes('.')?select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):undefined;if(alias)return resolveExpression(alias,false);throw error;}
+        catch(error){const aliases=allowAlias&&!e.name.includes('.')?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):[];if(aliases.length>1)throw new JSQLiteError("sqlite",`ambiguous column name: ${e.name}`,{code:1});if(aliases[0])return resolveExpression(aliases[0],false);throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return e;
       }
