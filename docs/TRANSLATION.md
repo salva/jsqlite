@@ -851,6 +851,16 @@ produces `unsupported/temporary`; user mutation/host-extension requirements are
 graph invariants are `internal`. None may be converted into empty schema, NULL, a
 parse error chosen to hide a gap, or successful partial preparation.
 
+The generated parser tables retain every reduction as semantically observable. Pinned
+Lemon normally elides actionless one-symbol nonterminal reductions because its
+generated C has no action to call; `tools/parser/generate.mjs` disables only that
+optimizer in its disposable Lemon copy because TypeScript supplies an external
+per-production callback. Ordinary Lemon compression and SHIFTREDUCE handling stay
+enabled. This ensures ownership productions such as `selectnowith ::= oneselect`
+actually execute instead of merely passing the child's value to a parent. Tests
+require each SELECT/VALUES owner signature, not only semantics on reductions that
+happen to be present.
+
 The first implementation uses finite defaults: `maxSqlBytes = 16 MiB`,
 `maxParserDepth = 2500` (the pinned `SQLITE_MAX_PARSER_DEPTH`), and
 `maxExpressionDepth = 1000` (the pinned `SQLITE_MAX_EXPR_DEPTH`). Token count is
