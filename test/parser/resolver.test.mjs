@@ -30,6 +30,8 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.deepEqual(natural.result.map(x=>x.name),['x','same','y']);
  assert.equal(resolve('SELECT x FROM a JOIN b USING(x)').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT x FROM a RIGHT JOIN b USING(x)').result[0].source.table.name,'b');
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON chosen=b.x'));
+ assert.throws(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON missing=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a LEFT JOIN b ON b.x=c.x JOIN b AS c ON 1'),e=>e instanceof NameResolutionError&&e.message==='ON clause references tables to its right');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON b.x=missing JOIN b AS c ON 1'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  const full=resolve('SELECT x FROM a FULL JOIN b USING(x)').result[0];
