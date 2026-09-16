@@ -52,8 +52,7 @@ interface SourceList { readonly items: readonly SourceItem[]; }
 ```
 
 Exactly one of `on`/`using` may be present; NATURAL with either is a prepare error.
-Repeated USING names and undefined USING columns retain enough location/name data
-for SQLite diagnostics. Do not normalize a join into an evaluator AST, name-keyed
+Repeated USING names and undefined USING columns retain every ordered token with location/name data. Pinned 3.53.4 accepts `USING(x,x)` (it produces repeated equality terms rather than a duplicate-name diagnostic), while an undefined name raises the captured missing-column diagnostic; semantic production must preserve this distinction. Do not normalize a join into an evaluator AST, name-keyed
 map, or Cartesian row array. `SelectNode` retains this list, result expressions,
 WHERE, ORDER/GROUP/HAVING/window fields, compound links and flags even where a
 later gate rejects them.
@@ -250,7 +249,7 @@ The manifest/capture pair is:
 * `test/conformance/cases/stage3-multisource-select.json`
 * `test/conformance/capture-multisource-select.py`
 
-The pinned C API capture verifies source identity before setup and records ordered
+Every case carries content-addressed provenance: exact translations hash a bounded pinned test assertion and require the case SQL within it; synthesized discriminators hash a bounded source span, identify its owning routine/control symbol, and state the adaptation. The validator rejects the three previously misclassified local cases as translation claims. The pinned C API capture verifies source identity before setup and records ordered
 columns (including duplicates and origin metadata), typed NULL/INTEGER/REAL/TEXT/
 BLOB cells, exact prepare errors, reset/rebinding executions, and UTF-8/UTF-16le/
 UTF-16be databases. Cases cover aliases and qualification (including WHERE/ON alias substitution,
@@ -313,7 +312,7 @@ git diff --check
 git status --short
 ```
 
-The revision capture contains 43 declared/identity-verified native cases and zero
+The revision capture contains 47 declared/identity-verified native cases and zero
 TS attempts/credit. The committed status record identifies the exact commit and
 actual command outcomes; these establish reproducibility and cleanliness, not
 runtime semantic support.

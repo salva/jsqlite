@@ -865,7 +865,7 @@ pinned expectations in
 | NULL cursors and composition | `src/vdbe.c:OP_NullRow` and column/cursor opcodes; `src/select.c:selectInnerLoop` destinations | null-row is cursor state read by shared column primitive; feed existing ResultRow, KeyInfo sorter, DISTINCT/set ephemeral and compound destinations |
 | Bounds and lifecycle | `src/vdbe.c`, `src/vdbeapi.c`, applicable ephemeral paths | charge loop/predicate/compare/growth work; suspend complete loop/null/match state; one statement-wide `PrivateStateByteBudget`; exhaustive reset/finalize cleanup and first-error precedence |
 
-The checked-in native capture has 43/43 identity-verified cases. It is oracle
+The checked-in native capture has 47/47 identity-verified cases. It is oracle
 expectation only, not runtime credit. The implementation consumer must add public
 TS accounting plus adversarial cancellation/deadline/work/private-limit and
 streaming proofs before changing `docs/api.md`.

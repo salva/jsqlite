@@ -1822,7 +1822,7 @@ bare `*` but emits the applicable `JT_LTORJ` term unqualified so this resolver
 choice occurs. Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
 and all live private cursors share one execution-wide `PrivateStateByteBudget`.
 
-The 43-case pinned-native gate is
+The 47-case pinned-native gate is
 `test/conformance/cases/stage3-multisource-select.{spec.json,json}`, captured by
 `test/conformance/capture-multisource-select.py`. It freezes typed rows, ordered
 metadata, all database encodings, lookup/wildcard/USING/NATURAL errors, every join
