@@ -1536,16 +1536,24 @@ over cleanup errors, and restore connection admission where the connection remai
 open. Reset retains bindings and rebuilds execution state; finalize destroys the
 statement's graph/program/private state.
 
-Connection lifetime follows the existing public owner boundary precisely.
-A `close()` attempt with any statement returns `SQLITE_BUSY` and leaves the
-connection, statement graph/program/KeyInfo, schema references, and resident
-storage intact and usable. `closeDeferred()` only marks connection admission
-zombie: it rejects new connection operations but does not destroy or invalidate
-existing statements or anything they reference. Those statements remain usable
-for step, row access, reset, and finalize; immutable query graphs, programs,
-`KeyInfo`, schema/storage references, and resident database bytes survive until
-the last statement finalizes and zombie deletion completes. Only that completed
-destruction boundary releases connection-owned schema/storage. Private execution
+Connection lifetime follows the existing public owner and serialized-admission
+boundaries precisely. A `close()` attempt with any statement returns `SQLITE_BUSY`
+and leaves the connection, statement graph/program/KeyInfo, schema references, and
+resident storage intact and usable. `closeDeferred()` only marks connection
+admission zombie when it is validly admitted: it rejects new connection operations
+but does not destroy or invalidate existing statements or anything they reference.
+Those statements remain usable for step, row access, reset, and finalize; immutable
+query graphs, programs, `KeyInfo`, schema/storage references, and resident database
+bytes survive until the last statement finalizes and zombie deletion completes.
+Only that completed destruction boundary releases connection-owned schema/storage.
+
+A pending `step()` retains the one connection operation admission across every
+bounded host yield and suspended VM state. Calling `closeDeferred()` (or any other
+stateful operation) during that pending promise throws synchronous
+`JSQLiteError(kind:"misuse")`; it does not mark the connection zombie, cancel or
+restart the step, mutate coroutine/private state, or release owners. After the
+promise settles to `"row"`, `"done"`, or an error, admission is released and a
+separate `closeDeferred()` call may establish the zombie state. Private execution
 state still unwinds at halt/reset/finalize, a current row follows the existing
 invalidation/copy contract, and deferred deletion never displaces an earlier
 operation/finalize/cleanup error.
@@ -1588,13 +1596,19 @@ new resolver/query-graph module or the existing compiler resolver,
 * injected yield/cancel/deadline/resource failures in each coroutine and merge
   phase, exact work charges, reset/rerun with retained bindings, finalize/close,
   multi-cursor cleanup failures, and first-error precedence;
-* busy `close()` preserving full usability, plus `closeDeferred()` after prepare
-  before first step, while suspended between bounded work chunks, and after a
-  current row. In every zombie case continue step/row access as applicable,
-  reset/rerun and finalize; verify returned public row copies survive their stated
-  lifetime, the last finalize completes deletion exactly once, all private and
-  resident owners are released only then, and an earlier execution/finalize error
-  outranks deferred cleanup diagnostics.
+* busy `close()` preserving full usability, plus successful `closeDeferred()`
+  after prepare before first step and after a current row. Separately, start a
+  chunked `step()`, observe a bounded host yield while its promise remains pending,
+  and require an overlapping `closeDeferred()` to throw synchronous `misuse`
+  without changing admission, VM/coroutine/private state, or row access rules;
+  resume the same pending step and prove it does not restart or duplicate work.
+  Only after that promise settles, call `closeDeferred()` successfully and verify
+  new prepares/connection operations reject while the pre-existing statement
+  remains usable according to its settled row/done/error state for row access,
+  further step, reset/rerun, and finalize. Across valid zombie cases, verify public
+  row copies survive their stated lifetime, last finalize completes deletion
+  exactly once, all private and resident owners release only then, and an earlier
+  execution/finalize error outranks deferred cleanup diagnostics.
 
 Remaining risk is concentrated in exact generated semantic action plumbing,
 source equality representative transitions, compound metadata affinity when later
