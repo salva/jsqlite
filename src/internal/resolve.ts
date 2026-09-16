@@ -24,6 +24,18 @@ function groupByInteger(expression:ExprNode):bigint|null{
  };
  return expression.reduction?visit(expression.reduction):null;
 }
+function hasAggregate(expression:ExprNode):boolean{
+ const aggregates=new Set(['avg','count','group_concat','sum','total','string_agg']);
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>{
+  if(node.kind!=='reduction')return false;
+  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
+   const name=node.children.find(child=>child.kind==='terminal')?.value?.text;
+   if(name&&aggregates.has(sqliteAsciiFold(identifier(name))))return true;
+  }
+  return node.children.some(visit);
+ };
+ return expression.reduction?visit(expression.reduction):false;
+}
 function identifier(text:string):string{if(text[0]==='['&&text.at(-1)===']')return text.slice(1,-1);if((text[0]==='"'||text[0]==='`')&&text.at(-1)===text[0])return text.slice(1,-1).replaceAll(text[0]+text[0],text[0]);return text;}
 function integerPrimaryKeyIndex(table:TableNode):number{
  if(table.withoutRowid||table.primaryKey.length!==1)return -1;
@@ -69,7 +81,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
  const output:ResolvedResult[]=[];
  for(const expression of select.result){const tokens=expression.tokens,star=tokens.length===1&&tokens[0]!.text==='*',qualifiedStar=tokens.length===3&&tokens[1]!.text==='.'&&tokens[2]!.text==='*';if(star||qualifiedStar){const qualifier=qualifiedStar?identifier(tokens[0]!.text):null,selected=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.tableName,qualifier));if(!selected.length)throw new NameResolutionError(`no such table: ${qualifier}`);for(const source of selected)source.table.columns.forEach((column,columnIndex)=>{if(qualifier===null&&source.using?.some(name=>sqliteIdentifierEqual(name,column.name)))return;output.push(result(expression,{source,columnIndex:columnIndex===integerPrimaryKeyIndex(source.table)?-1:columnIndex,name:column.name},column.name));});continue;}const match=direct(expression,sources);if(!match)resolveAgainstSources(expression,sources);const resolved=match?.resolved??null,name=expression.alias??resolved?.name??tokens.map(t=>t.text).join(' ');output.push(result(expression,resolved,name,match?.mergedSources??null));}
- if(select.having)resolveAgainstSources(select.having,sources,select.result);
+ if(select.having){if(!select.groupBy.length&&!select.result.some(hasAggregate)&&!hasAggregate(select.having))throw new NameResolutionError('HAVING clause on a non-aggregate query');resolveAgainstSources(select.having,sources,select.result);}
  if(select.where)resolveAgainstSources(select.where,sources,select.result);
  for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
  for(let i=0;i<select.groupBy.length;i++){
