@@ -41,5 +41,6 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
 });
 
 test('INTEGER PRIMARY KEY resolves to rowid storage while retaining declared metadata',()=>{
- const ipk=column('id','INTEGER','integer');const t=table('ipk',[ipk,column('v','TEXT','text')],[0]);const r=expandAndResolveSelect(parseSql('SELECT id FROM ipk').statement,{tables:new Map([['ipk',t]])}).result[0];assert.equal(r.columnIndex,-1);assert.deepEqual(r.descriptor,{name:'id',declaredType:'INTEGER',database:'main',table:'ipk',origin:'id',affinity:'integer',collation:'BINARY'});
+ const ipk=column('id','INTEGER','integer');const t=table('ipk',[ipk,column('v','TEXT','text')],[0]);const local={tables:new Map([['ipk',t]])};const r=expandAndResolveSelect(parseSql('SELECT id FROM ipk').statement,local).result[0];assert.equal(r.columnIndex,-1);assert.deepEqual(r.descriptor,{name:'id',declaredType:'INTEGER',database:'main',table:'ipk',origin:'id',affinity:'integer',collation:'BINARY'});
+ const aliased=expandAndResolveSelect(parseSql('SELECT id AS renamed FROM ipk').statement,local).result[0];assert.equal(aliased.columnIndex,-1);assert.equal(aliased.descriptor.name,'renamed');assert.equal(aliased.descriptor.origin,'id');assert.equal(aliased.descriptor.declaredType,'INTEGER');
 });
