@@ -117,6 +117,8 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    const ownerToken=ownerChild?.kind==='terminal'?ownerChild.value:undefined;
    const ownerName=ownerToken?sqliteAsciiFold(identifier(ownerToken.text)):'';
    const ownerCount=functionArgumentCount(node);
+   const ownerDistinct=node.children.some(child=>child.kind==='reduction'&&child.signature==='distinct ::= DISTINCT');
+   if(over&&ownerDistinct)throw new NameResolutionError('DISTINCT is not supported for window functions');
    const ownerArityValid=ownerCount!==null?(['row_number','rank','dense_rank','percent_rank','cume_dist'].includes(ownerName)?ownerCount===0:ownerName==='ntile'?ownerCount===1:['lag','lead'].includes(ownerName)?ownerCount>=1&&ownerCount<=3:['first_value','last_value'].includes(ownerName)?ownerCount===1:ownerName==='nth_value'?ownerCount===2:true):true;
    if(filter&&over&&ownerToken&&ownerArityValid&&['row_number','rank','dense_rank','percent_rank','cume_dist','ntile','lag','lead','first_value','last_value','nth_value'].includes(ownerName)){walk(filter);throw new NameResolutionError('FILTER clause may only be used with aggregate window functions');}
    node.children.filter(child=>child!==filterOver).forEach(walk);
