@@ -47,3 +47,13 @@ test('ordered mixed table compound uses one typed global merge with LIMIT',async
  assert.throws(()=>db.prepare('SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY missing'),e=>e.kind==='sqlite'&&e.code===1);
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
+
+test('table INTERSECT preserves the left representative across INTEGER/REAL equality',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/storage-p4096`));
+ const cases=[
+  ['SELECT i AS v FROM storage_values INTERSECT SELECT r FROM storage_values ORDER BY v',[0n,1n]],
+  ['SELECT i AS v FROM storage_values INTERSECT SELECT r FROM storage_values UNION ALL SELECT i FROM storage_values ORDER BY v LIMIT 6',[-9223372036854775808n,0n,0n,1n,1n,2n]],
+ ];
+ for(const [sql,expected] of cases){s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected);s.finalize();s=undefined}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});

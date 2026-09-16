@@ -95,6 +95,13 @@ export class EphemeralIndexCursor {
   async remove(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#entries.splice(i,1);this.#bytes-=entry!.bytes;releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
   }
+  /** Retain this cursor's records whose complete keys occur in `other`.
+   * The cells deliberately remain those owned by this (left) cursor: SQLite
+   * INTERSECT uses the right records only for membership, preserving the left
+   * representative when INTEGER/REAL or collation equality matches. */
+  async retainFoundIn(other:EphemeralIndexCursor,control:PrivateStateControl):Promise<void>{
+   this.#live();for(let i=0;i<this.#entries.length;){const entry=this.#entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#entries.splice(i,1);this.#bytes-=entry.bytes;releaseEntry(entry);if(this.#at>=i)this.#at--}
+  }
   clear():void{this.#live();this.#entries.forEach(releaseEntry);this.#entries=[];this.#bytes=0;this.#at=-1}
   async insert(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();const bytes=logicalBytes(key);
