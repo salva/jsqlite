@@ -20,7 +20,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT x FROM a NOT INDEXED'));
  assert.equal(resolve('SELECT main.a.x FROM main.a').result[0].source.table.name,'a');
  assert.throws(()=>resolve('SELECT x FROM temp.a'),e=>e instanceof NameResolutionError&&e.message==='no such table: temp.a');
- assert.equal(resolve('SELECT a.x COLLATE nocase FROM a').result[0].source.table.name,'a');
+ const collated=resolve('SELECT a.x COLLATE nocase AS c FROM a').result[0];assert.equal(collated.source.table.name,'a');assert.equal(collated.descriptor.collation,'nocase');
  assert.equal(resolve('SELECT (a.x COLLATE nocase) FROM a').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT (a.x) FROM a').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT ((main.a.x)) FROM a').result[0].source.table.name,'a');
