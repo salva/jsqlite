@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {parseSql} from '../../src/internal/parse.ts';
+import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
+const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
+const table=(name,columns)=>Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns:Object.freeze(columns),indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze([]),storageKey:Object.freeze([])});
+const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])]])};
+const resolve=sql=>expandAndResolveSelect(parseSql(sql).statement,schema);
+test('selectExpander preserves ordered duplicate names, wildcard visibility, and direct metadata',()=>{
+ const r=resolve('SELECT *, b.*, a.x AS x, a.rowid FROM a JOIN b USING(x)');
+ assert.deepEqual(r.result.map(x=>x.name),['x','same','y','same','x','y','same','x','rowid']);
+ assert.deepEqual(r.result.map(x=>x.source?.table.name??null),['a','a','b','b','b','b','b','a','a']);
+ assert.deepEqual(r.result[0].descriptor,{name:'x',declaredType:'INTEGER',database:'main',table:'a',origin:'x',affinity:'integer',collation:'BINARY'});
+ assert.equal(r.result[7].descriptor.declaredType,'INTEGER');
+ assert.equal(r.result[8].columnIndex,-1);
+ assert.ok(Object.isFrozen(r)&&Object.isFrozen(r.sources)&&Object.isFrozen(r.result));
+});
+test('lookupName applies aliases, qualification, ambiguity, no-such-column, and rowid shadowing',()=>{
+ assert.equal(resolve('SELECT aa.x FROM a aa').result[0].source.alias,'aa');
+ assert.throws(()=>resolve('SELECT a.x FROM a aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.x');
+ assert.throws(()=>resolve('SELECT same FROM a JOIN b ON 1'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
+ assert.throws(()=>resolve('SELECT nope FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: nope');
+ const shadowSchema={tables:new Map([['a',table('a',[column('rowid','TEXT','text')])]])};
+ assert.equal(expandAndResolveSelect(parseSql('SELECT rowid,_rowid_ FROM a').statement,shadowSchema).result[0].columnIndex,0);
+ assert.equal(expandAndResolveSelect(parseSql('SELECT rowid,_rowid_ FROM a').statement,shadowSchema).result[1].columnIndex,-1);
+});
+test('NATURAL and USING synthesize merged visibility and validate both sides',()=>{
+ const natural=resolve('SELECT * FROM a NATURAL JOIN b');
+ assert.deepEqual(natural.sources[1].using,['x','same']);
+ assert.deepEqual(natural.result.map(x=>x.name),['x','same','y']);
+ assert.equal(resolve('SELECT x FROM a JOIN b USING(x)').result[0].source.table.name,'a');
+ assert.equal(resolve('SELECT x FROM a RIGHT JOIN b USING(x)').result[0].source.table.name,'b');
+ const full=resolve('SELECT x FROM a FULL JOIN b USING(x)').result[0];
+ assert.equal(full.resolution,'coalesce');assert.equal(full.source,null);assert.equal(full.descriptor.origin,null);assert.deepEqual(full.mergedSources.map(x=>x.source.table.name),['a','b']);
+ assert.throws(()=>resolve('SELECT * FROM a JOIN b USING(nope)'),e=>e instanceof NameResolutionError&&e.message==='cannot join using column nope - column not present in both tables');
+ assert.throws(()=>resolve('SELECT * FROM a NATURAL JOIN b USING(x)'),e=>e instanceof NameResolutionError&&e.message==='a NATURAL join may not have an ON or USING clause');
+});

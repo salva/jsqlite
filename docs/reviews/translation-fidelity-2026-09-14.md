@@ -469,3 +469,13 @@ broad regression gate passed **183/183** at integration HEAD `7660b18`; these
 counts support the aggregate-resource correction but do not expand SQL scope or
 compound credit. The original source-identity and unversioned-fixture cautions
 remain in force.
+
+### 2026-09-16 revision — multi-source semantic foundation ([[card:card-k-b]])
+
+Current work supersedes the architecture baseline's “TS credit zero” only for the
+single-source semantic foundation: generated reductions now own ordered SrcList,
+resolver tests cover ordinary lookup/star/NATURAL/USING/FULL identity, and public
+single-source prepare/step consumes expansion for alias star, WHERE result aliases,
+and rowid. It does **not** supersede the join-execution finding: multi-source public
+SQL remains atomically temporary unsupported and the 47-case gate has not been
+claimed or compared against TypeScript.

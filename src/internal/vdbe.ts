@@ -12,6 +12,7 @@ import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph, TableNode } from "./schema.ts";
 import type { DatabaseEncoding } from "./record.ts";
+import { expandAndResolveSelect, NameResolutionError } from "./resolve.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
@@ -69,6 +70,7 @@ type Op =
   | { readonly code: "DecrJumpZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "Rewind"; readonly p2: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number }
+  | { readonly code: "Rowid"; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number }
   | { readonly code: "Next"; readonly p2: number }
@@ -271,7 +273,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     const orderedAll=select.hasOrderBy&&operators.every(op=>op==="union-all");
     const distinctSet=operators.some(op=>op!=="union-all")&&operators.every(op=>op==="union-all"||op==="union"||op==="intersect"||op==="except");
     const lastSetArm=operators.reduce((last,operator,index)=>operator==="union-all"?last:index+1,-1);
-    if((select.hasOrderBy&&!distinctSet&&!orderedAll)||(!distinctSet&&!orderedAll&&operators.some(op=>op!=="union-all"))||select.arms.some(arm=>arm.from.length||arm.where!==null||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving))
+    if((select.hasOrderBy&&!distinctSet&&!orderedAll)||(!distinctSet&&!orderedAll&&operators.some(op=>op!=="union-all"))||select.arms.some(arm=>arm.from.items.length||arm.where!==null||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving))
       throw new JSQLiteError("unsupported","ordered and mixed set compound SELECTs are not implemented",{unsupportedClassification:"temporary"});
     const width=select.arms[0]?.result.length??0;
     if(!width||select.arms.some(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width)))){const mismatch=select.arms.find(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width))),word=mismatch?.operatorFromPrior==="union-all"?"UNION ALL":mismatch?.operatorFromPrior?.toUpperCase()??"UNION";throw new JSQLiteError("sqlite",`SELECTs to the left and right of ${word} do not have the same number of result columns`,{code:1});}
@@ -362,7 +364,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     ops.push({code:"Halt"});
     return Object.freeze({ops:Object.freeze(ops),registers:maximum,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(rows[0].map((_,index)=>Object.freeze({name:`column${index+1}`,declaredType:null,database:null,table:null,origin:null})))});
   }
-  if (select.from.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
+  if (select.from.items.length || select.where !== null) throw new JSQLiteError("unsupported", "table SELECT compilation is not implemented", { unsupportedClassification: "temporary" });
   if (!select.result.length) throw new JSQLiteError("sqlite", "SELECT has no result columns", { code: 1 });
   const ops: Op[] = [];
   const resultOps: Op[] = [];
@@ -407,8 +409,8 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
 }
 
 function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program {
-  if(select.arms.some(arm=>arm.from.length!==1||arm.where!==null||arm.result.length!==1||arm.origin!=="select"))throw new JSQLiteError("unsupported","complex compound table arms are not implemented",{unsupportedClassification:"temporary"});
-  const resolved=select.arms.map(arm=>{const name=sqlName(arm.from[0]!.text),table=schema.tables.get(sqliteAsciiFold(name));if(!table)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(table.withoutRowid||table.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});const expression=arm.result[0]!,token=expression.tokens;if(token.length!==1)throw new JSQLiteError("unsupported","compound table expression is not implemented",{unsupportedClassification:"temporary"});const columnName=sqlName(token[0]!.text),column=table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,columnName));if(column<0)throw new JSQLiteError("sqlite",`no such column: ${columnName}`,{code:1});return{arm,table,column,expression};});
+  if(select.arms.some(arm=>arm.from.items.length!==1||arm.where!==null||arm.result.length!==1||arm.origin!=="select"))throw new JSQLiteError("unsupported","complex compound table arms are not implemented",{unsupportedClassification:"temporary"});
+  const resolved=select.arms.map(arm=>{const name=sqlName(arm.from.items[0]!.tableName),table=schema.tables.get(sqliteAsciiFold(name));if(!table)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(table.withoutRowid||table.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});const expression=arm.result[0]!,token=expression.tokens;if(token.length!==1)throw new JSQLiteError("unsupported","compound table expression is not implemented",{unsupportedClassification:"temporary"});const columnName=sqlName(token[0]!.text),column=table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,columnName));if(column<0)throw new JSQLiteError("sqlite",`no such column: ${columnName}`,{code:1});return{arm,table,column,expression};});
   const operators=select.arms.slice(1).map(arm=>arm.operatorFromPrior!),lastSetArm=operators.reduce((last,op,index)=>op==="union-all"?last:index+1,-1);
   const left=resolved[0]!,leftColumn=left.table.columns[left.column]!,outputName=left.expression.alias??leftColumn.name,leftCollation=sqliteAsciiFold(leftColumn.collation??"binary");
   if(leftCollation!=="binary"&&leftCollation!=="nocase"&&leftCollation!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${leftColumn.collation}`,{code:1});
@@ -449,8 +451,11 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   rejectUnsupportedSelectClauses(select, true);
   if(select.hasCompound)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-  if (select.from.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
-  const tableName = sqlName(select.from[0]!.text), folded = sqliteAsciiFold(tableName);
+  if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
+  let expanded;
+  try { expanded=expandAndResolveSelect(select,schema); }
+  catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  const tableName = sqlName(select.from.items[0]!.tableName), folded = sqliteAsciiFold(tableName);
   const table = schema.tables.get(folded);
   if (!table) {
     if (schema.views.has(folded)) throw new JSQLiteError("unsupported", "views are not implemented", { unsupportedClassification: "temporary" });
@@ -460,19 +465,33 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const resolve = (tokens: readonly { text: string }[]): number => {
     let name: string;
     if (tokens.length === 1) name = sqlName(tokens[0]!.text);
-    else if (tokens.length === 3 && tokens[1]!.text === "." && sqliteIdentifierEqual(sqlName(tokens[0]!.text), table.name)) name = sqlName(tokens[2]!.text);
+    else if (tokens.length === 3 && tokens[1]!.text === "." && sqliteIdentifierEqual(sqlName(tokens[0]!.text), select.from.items[0]!.alias??table.name)) name = sqlName(tokens[2]!.text);
     else throw new JSQLiteError("unsupported", "table expression is not implemented", { unsupportedClassification: "temporary" });
     const at = table.columns.findIndex(c => sqliteIdentifierEqual(c.name, name));
+    if(at<0&&!table.withoutRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))return -1;
     if (at < 0) throw new JSQLiteError("sqlite", `no such column: ${name}`, { code: 1 });
     return at;
   };
-  const resolveExpression=(expression:SelectNode["result"][number]):Expression=>{const tree=expressionFromReduction(expression.reduction!);const assign=(e:Expression):void=>{if(e.kind==="column"){e.index=resolve([{text:e.name}]);const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")assign(e.value);else if(e.kind==="binary"){assign(e.left);assign(e.right)}else if(e.kind==="call")e.args.forEach(assign);else if(e.kind==="case"){if(e.operand)assign(e.operand);e.pairs.forEach(x=>{assign(x[0]);assign(x[1])});if(e.otherwise)assign(e.otherwise)}};assign(tree);return tree};
+  const resolveExpression=(expression:SelectNode["result"][number],allowAlias=true):Expression=>{
+    const assign=(e:Expression):Expression=>{
+      if(e.kind==="column"){
+        try{e.index=resolve([{text:e.name}]);}
+        catch(error){const alias=allowAlias&&!e.name.includes('.')?select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):undefined;if(alias)return resolveExpression(alias,false);throw error;}
+        if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
+        const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return e;
+      }
+      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="call")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
+    };
+    return assign(expressionFromReduction(expression.reduction!));
+  };
   // Resolve functions (including arity failures) before rejecting later planning
   // features, as resolve.c does during SELECT preparation.
-  select.result.filter(x=>x.reduction).forEach(resolveExpression);
-  const projected: { column?: number; expression?:Expression; name: string }[] = [];
-  for (const expression of select.result) {
-    if (expression.tokens.length === 1 && expression.tokens[0]!.text === "*") table.columns.forEach((c, i) => projected.push({ column: i, name: c.name }));
+  select.result.filter(x=>x.reduction&&!expanded.result.some(item=>item.expression===x&&item.columnIndex!==null)).forEach(x=>resolveExpression(x));
+  const projected: { column?: number; rowid?:boolean; expression?:Expression; name: string }[] = [];
+  for (const item of expanded.result) {
+    const expression=item.expression;
+    if(item.resolution==='coalesce')throw new JSQLiteError("unsupported","FULL JOIN merged-column execution is not implemented",{unsupportedClassification:"temporary"});
+    if(item.columnIndex!==null){if(item.columnIndex<0)projected.push({rowid:true,name:item.name});else projected.push({column:item.columnIndex,name:item.name});}
     else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name }); }
     catch(error){if(!expression.reduction)throw error;projected.push({expression:resolveExpression(expression),name:expressionName(expression)});} }
   }
@@ -525,7 +544,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     ifNotIndex=ops.length; ops.push({code:"IfNot",p1:output,p2:0});
   }
   const body=ops.length;
-  projected.forEach((x,i)=>{if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
+  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const source=compileExpressionTree(x.expression!,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
   let distinctFound: number | undefined;
   if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
   if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
@@ -548,7 +567,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     (decrement as {p2:number}).p2=halt;
   }
   if(limit){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limit.ifZero] as {p2:number}).p2=halt;}
-  const columns=projected.map(x=>{const c=x.column===undefined?null:table.columns[x.column]!;return Object.freeze({name:x.name,declaredType:c?.declaredType??null,database:c?"main":null,table:c?table.name:null,origin:c?.name??null});});
+  const columns=expanded.result.map((x,i)=>Object.freeze({name:x.resolution==='expression'?projected[i]!.name:x.descriptor.name,declaredType:x.descriptor.declaredType,database:x.descriptor.database,table:x.descriptor.table,origin:x.descriptor.origin}));
   return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
@@ -673,6 +692,7 @@ export class VdbeStatement implements Statement {
           case "EphemeralNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).next())this.#pc=op.p2;break;
           case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
           case "Column": { const raw=this.#record!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
+          case "Rowid": this.#registers[op.p2]!.setInt64(this.#cursor!.rowid); break;
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
           case "Next": if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;

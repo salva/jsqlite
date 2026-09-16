@@ -143,7 +143,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
-      const program = parsed.statement.from.length || parsed.statement.where
+      const program = parsed.statement.from.items.length || parsed.statement.where
         ? compileTableSelect(
             parsed.statement,
             loadSchemaGraph(this),

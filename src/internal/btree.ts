@@ -359,6 +359,7 @@ export class TableScanCursor {
     if (this.#previousRowid !== null && this.#previousRowid >= result.value.rowid) corrupt("unordered table b-tree");
     this.#previousRowid=result.value.rowid; this.#entry=result.value; return true;
   }
+  get rowid(): bigint { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#entry.rowid; }
   payload(): Uint8Array { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#database.payload(this.#entry); }
   payloadChunks(): Iterator<Uint8Array> { if (!this.#entry) throw new BtreeCursorStateError("cursor is not positioned"); return this.#database.payloadChunks(this.#entry); }
   borrowPayload(): { bytes(): Uint8Array } {

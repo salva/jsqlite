@@ -869,3 +869,12 @@ The checked-in native capture has 47/47 identity-verified cases. It is oracle
 expectation only, not runtime credit. The implementation consumer must add public
 TS accounting plus adversarial cancellation/deadline/work/private-limit and
 streaming proofs before changing `docs/api.md`.
+
+### Multi-source foundation implementation checkpoint (2026-09-16, [[card:card-k-b]])
+
+| Pinned owner | Current TypeScript mapping | Evidence / boundary |
+|---|---|---|
+| `parse.y:stl_prefix/seltablist/joinop/on_using`, `build.c:sqlite3SrcListShiftJoinType` | `src/internal/parse.ts` reduction-owned immutable `SourceList` and shifted RHS flags/ownership | `test/parser/tokenizer-parser.test.mjs` |
+| `select.c:selectExpander/sqlite3ProcessJoin` | `src/internal/resolve.ts` schema/cursor binding, stars, NATURAL synthesis, USING validation/RHS hiding | `test/parser/resolver.test.mjs`; no evaluator claim |
+| `resolve.c:lookupName/resolveAlias` | `src/internal/resolve.ts` direct/merged identity and metadata; `src/internal/vdbe.ts` bounded WHERE alias substitution after source lookup | resolver/public source-resolution tests; linked outer contexts pending |
+| `vdbe.c:OP_Rowid`, table btree cursor rowid | `src/internal/btree.ts:TableScanCursor.rowid`; `src/internal/vdbe.ts:Rowid` | public rowid/_rowid_/oid bigint and metadata assertions |

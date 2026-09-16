@@ -22,3 +22,17 @@ test('generated SELECT reductions own immutable child semantics',()=>{
  for(const n of reductions.filter(n=>n.signature.startsWith('oneselect ::= SELECT ')))assert.notEqual(n.semantic,undefined,n.signature);
  assert.deepEqual(statement.arms.map(a=>[a.origin,a.prior,a.next,a.operatorFromPrior]),[['values',null,1,null],['select',0,null,'union-all']]);assert.deepEqual(statement.arms[0].valuesRows.map(row=>row[0].tokens[0].text),['1','2','3']);assert.ok(Object.isFrozen(statement.arms)&&statement.arms.every(Object.isFrozen));
 });
+test('parse.y SrcList actions preserve ordered immutable source and RHS join ownership',()=>{
+ const select=parseSql('SELECT * FROM a AS aa LEFT JOIN main.b bb USING(x,x), c CROSS JOIN d ON c.z=d.z').statement;
+ assert.equal(select?.kind,'select');
+ assert.deepEqual(select.from.items.map(({databaseName,tableName,alias,using,joinFromLeft})=>({databaseName,tableName,alias,using,joinFromLeft})),[
+  {databaseName:null,tableName:'a',alias:'aa',using:null,joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}},
+  {databaseName:'main',tableName:'b',alias:'bb',using:['x','x'],joinFromLeft:{inner:false,cross:false,natural:false,left:true,right:false,outer:false,error:false}},
+  {databaseName:null,tableName:'c',alias:null,using:null,joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}},
+  {databaseName:null,tableName:'d',alias:null,using:null,joinFromLeft:{inner:false,cross:true,natural:false,left:false,right:false,outer:false,error:false}},
+ ]);
+ assert.deepEqual(select.from.items[3].on.tokens.map(token=>token.text),['c','.','z','=','d','.','z']);
+ assert.ok(Object.isFrozen(select.from)&&Object.isFrozen(select.from.items)&&select.from.items.every(Object.isFrozen));
+ const right=parseSql('SELECT * FROM a RIGHT JOIN b ON 1 FULL JOIN c USING(x)').statement;
+ assert.deepEqual(right.from.items.map(item=>[item.joinFromLeft.left,item.joinFromLeft.right,item.leftOfRightJoin]),[[false,false,true],[false,true,true],[true,true,false]]);
+});

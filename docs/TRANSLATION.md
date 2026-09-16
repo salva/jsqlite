@@ -1836,3 +1836,22 @@ corrected by current compound reduction ownership. Findings 10/11's original
 compound exclusion is superseded by the audit's 2026-09-16 completion revisions
 (22/22 bounded compound gate and shared aggregate private-byte budget). Neither
 revision claims joins; current multi-source compilation remains atomically gated.
+
+### SrcList expansion and NameContext foundation ([[card:card-k-b]], 2026-09-16)
+
+The generated Lemon `stl_prefix`/`seltablist` actions now own an immutable ordered
+`SourceList`; RHS entries retain shifted join flags, ON/USING, aliases/index hints,
+and `JT_LTORJ` markers. `src/internal/resolve.ts` is the current bounded port of
+`selectExpander`, `sqlite3ProcessJoin`, and `lookupName`: it binds ordinary rowid
+tables/cursor identities, expands stars, synthesizes and validates NATURAL/USING,
+and retains direct versus FULL-coalesce identity with ordered metadata. Ordinary
+qualified/unqualified lookup, ambiguity/missing diagnostics, alias-hidden table
+names, rowid aliases/shadowing, and WHERE `NC_UEList` source-first substitution are
+covered. Single-source public lowering consumes this graph and lowers implicit
+rowid through a btree-cursor `Rowid` opcode.
+
+This is not a join support claim. Multi-source public lowering remains an atomic
+temporary prepare rejection; ON/HAVING/GROUP and outer linked contexts, complete
+FULL expression lowering, and streaming join cursor control remain pending. The
+focused parser/resolver and public test files are `test/parser/resolver.test.mjs`
+and `test/conformance/source-resolution.test.mjs`.
