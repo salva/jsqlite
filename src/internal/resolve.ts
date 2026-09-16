@@ -159,8 +159,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   }
   if(groupHasAggregate)throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
  }
- if(select.limit)resolveAgainstSources(select.limit,[]);
- if(select.offset)resolveAgainstSources(select.offset,[]);
+ if(select.limit)resolveAgainstSources(select.limit,[],[],false,true);
+ if(select.offset)resolveAgainstSources(select.offset,[],[],false,true);
  for(let i=0;i<select.orderBy.length;i++){
   const expression=select.orderBy[i]!.expr,parsed=groupByInteger(expression);
   if(parsed!==null&&parsed>=-2147483647n&&parsed<=2147483647n){const ordinal=Number(parsed);if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term out of range - should be between 1 and ${output.length}`);}continue;}
