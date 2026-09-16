@@ -66,6 +66,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a WHERE z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT abs(sum(a.x)) AS z FROM a WHERE z+0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a JOIN b ON z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
+ assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY 2'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term out of range - should be between 1 and 1');
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS z FROM a ORDER BY z'));
  assert.throws(()=>resolve('SELECT a.x FROM a HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT a.x FROM a HAVING count(*)>0'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT min(a.x,b.y) FROM a JOIN b HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
