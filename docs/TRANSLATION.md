@@ -1517,7 +1517,7 @@ be fixed for the execution across suspension.
 
 The consuming refactor is implemented in `src/internal/vdbe.ts`: every
 `SorterCursor`/`EphemeralIndexCursor` receives the immutable
-`program.privateStateLimits` (`100,000` entries, `16 MiB` per key, `256 MiB` aggregate by default), never `program.maxRows` or `maxResultBytes`; the separate `ResultRow` checks retain exclusive ownership of public row/byte limits. `src/internal/private-state.ts` continues to own
+`program.privateStateLimits` (`100,000` entries, `16 MiB` per key, `256 MiB` aggregate by default), never `program.maxRows` or `maxResultBytes`; the separate `ResultRow` checks retain exclusive ownership of public row/byte limits. Generic `Copy` follows pinned `src/vdbe.c:OP_Copy`: it deep-copies and charges deterministic work but does not apply the public result-byte ceiling, because the destination may be a private sorter key/payload or ephemeral record; `ResultRow` checks each value immediately before publication, while output-growing scalar functions keep their source-shaped preflight. A public regression stages oversized losing ORDER rows under generous private limits, returns a small `LIMIT 1` winner, and separately rejects the same oversized value when it is delivered. `src/internal/private-state.ts` continues to own
 pre-copy entry/key/aggregate-byte checks and rollback after failed post-growth
 control checks. Growth also respects register/program/column/compound and
 expression/parser limits. A suspended `step()` retains PC, both coroutine PCs and

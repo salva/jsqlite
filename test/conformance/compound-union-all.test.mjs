@@ -70,4 +70,13 @@ test('public output limits are independent from finite private compound limits',
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
 
+test('public result bytes do not cap private compound sorter staging',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;try{
+  const request=()=>new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/storage-p4096`);
+  const limits={maxRows:1,maxResultBytes:128,maxPrivateEntries:10_000,maxPrivateKeyBytes:1_000_000,maxPrivateBytes:10_000_000};
+  db=await open(request(),{limits});s=db.prepare('SELECT t AS v FROM storage_values UNION ALL SELECT t FROM storage_values ORDER BY v LIMIT 1').statement;assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'');assert.equal(await s.step(),'done');s.finalize();s=undefined;
+  s=db.prepare('SELECT t FROM storage_values WHERE i=0').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message==='string or blob too big');assert.throws(()=>s.finalize(),e=>e.kind==='limit'&&e.message==='string or blob too big');s=undefined;
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});
+
 test('Program owns immutable finite private-state defaults',()=>{const parsed=parseSql('SELECT 1 UNION SELECT 2');const program=compileScalarSelect(parsed.statement,'utf-8');assert.strictEqual(program.privateStateLimits,DEFAULT_PRIVATE_STATE_LIMITS);assert.ok(Object.isFrozen(program.privateStateLimits));for(const value of Object.values(program.privateStateLimits))assert.ok(Number.isSafeInteger(value)&&value>=0)});

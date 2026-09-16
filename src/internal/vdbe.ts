@@ -656,7 +656,7 @@ export class VdbeStatement implements Statement {
           case "Subtract": this.#registers[op.p3]!.moveFrom(arithmeticBinary("subtract", this.#registers[op.p1]!, this.#registers[op.p2]!)); break;
           case "BitNot": this.#registers[op.p2]!.moveFrom(bitwiseNot(this.#registers[op.p1]!)); break;
           case "Not": this.#registers[op.p2]!.moveFrom(logicalNot(this.#registers[op.p1]!)); break;
-          case "ResultRow": if (++this.#rows > (this.#program.maxRows ?? Number.MAX_SAFE_INTEGER)) throw new JSQLiteError("limit", "statement exceeds maxRows"); this.#rowStart = op.p1; this.#rowCount = op.p2; this.#state = "row"; return "row";
+          case "ResultRow": {for(let i=0;i<op.p2;i++)this.#checkResultValue(this.#registers[op.p1+i]!);if(++this.#rows>(this.#program.maxRows??Number.MAX_SAFE_INTEGER))throw new JSQLiteError("limit","statement exceeds maxRows");this.#rowStart=op.p1;this.#rowCount=op.p2;this.#state="row";return "row";}
           case "Halt": this.#state = "done"; {const cleanup=this.#halt();if(cleanup!==null)throw cleanup;} return "done";
         }
       }
@@ -697,7 +697,8 @@ export class VdbeStatement implements Statement {
     this.#record=decodeRecord(payload, this.#program.database!.encoding);
   }
   async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running";}}}
-  #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);if(bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
+  #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
+  #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
   #mapExecutionError(error: unknown): unknown {
     // This is the single lazy execution boundary. Existing public errors retain
     // identity; only known storage provenance is classified here.
