@@ -11,6 +11,8 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n]);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM left_meta INDEXED BY missing_index'),e=>e.kind==='sqlite'&&e.message==='no such index: missing_index');
  s=db.prepare('SELECT a FROM left_meta NOT INDEXED').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
+ s=db.prepare('SELECT main.left_meta.rowid FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:null,database:'main',table:'left_meta',origin:null});assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);s.finalize();s=null;
+ assert.throws(()=>db.prepare('SELECT main.left_meta.a FROM main.left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: main.left_meta.a');
  s=db.prepare('SELECT main.left_meta.a FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'a',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM temp.left_meta'),e=>e.kind==='sqlite'&&e.message==='no such table: temp.left_meta');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: left_meta.a');
