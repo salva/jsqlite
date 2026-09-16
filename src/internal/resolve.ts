@@ -165,6 +165,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   const expression=select.orderBy[i]!.expr,parsed=groupByInteger(expression);
   if(parsed!==null&&parsed>=-2147483647n&&parsed<=2147483647n){const ordinal=Number(parsed);if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term out of range - should be between 1 and ${output.length}`);}continue;}
   resolveAgainstSources(expression,sources,select.result);
+  const aggregate=firstAggregateName(expression);
+  if(aggregate&&!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);
  }
  return Object.freeze({source:select,sources,result:Object.freeze(output)});
 }
