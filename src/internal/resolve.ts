@@ -52,6 +52,14 @@ function firstAggregateName(expression:ExprNode):string|null{
  };
  return expression.reduction?visit(expression.reduction):null;
 }
+function firstWindowName(expression:ExprNode):string|null{
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
+  if(node.kind!=='reduction')return null;
+  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')&&node.children.some(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::= over_clause'))){const token=node.children.find(child=>child.kind==='terminal'&&child.value);return token?.kind==='terminal'&&token.value?identifier(token.value.text):null;}
+  for(const child of node.children){const found=visit(child);if(found)return found;}return null;
+ };
+ return expression.reduction?visit(expression.reduction):null;
+}
 function functionArgumentCount(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number|null{
  if(node.kind!=='reduction'||!node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP'))return null;
  if(node.signature.includes(' STAR RP'))return 1;
@@ -132,7 +140,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total'].includes(name)||(['min','max'].includes(name)&&count===1),argumentsNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));const nested=aggregate&&argumentsNode?firstAggregateName({kind:'tokens',tokens:[],reduction:argumentsNode}):null;if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
    if(over&&token&&rejectWindowFunctions)throw new NameResolutionError(`misuse of window function ${identifier(token.text)}()`);
    if(over&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),window=['row_number','rank','dense_rank','percent_rank','cume_dist','ntile','lag','lead','first_value','last_value','nth_value','avg','count','group_concat','string_agg','sum','total','min','max'].includes(name);if(!window)throw new NameResolutionError(`${identifier(token.text)}() may not be used as a window function`);}
-   if(over)walk(over);
+   if(over)resolveAgainstSources({kind:'tokens',tokens:[],reduction:over},sources,[],false,false,rejectWindowFunctions);
    if(filter)walk(filter);
    if(filter){const nested=firstAggregateName({kind:'tokens',tokens:[],reduction:filter});if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
    if(filter&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total'].includes(name)||(['min','max'].includes(name)&&count===1);if(over&&!aggregate)throw new NameResolutionError('FILTER clause may only be used with aggregate window functions');if(!over&&!aggregate)throw new NameResolutionError(`FILTER may not be used with non-aggregate ${identifier(token.text)}()`);}
@@ -141,7 +149,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
   if(node.signature.startsWith('expr ::= expr COLLATE ')){node.children.forEach(walk);const collationToken=tokens(node).at(-1);if(collationToken){const name=identifier(collationToken.text);if(!['binary','nocase','rtrim'].some(candidate=>sqliteIdentifierEqual(candidate,name)))throw new NameResolutionError(`no such collation sequence: ${name}`);}return;}
   if(node.signature.startsWith('expr ::= nm DOT nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
   if(node.signature.startsWith('expr ::= nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
-  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{direct({kind:'tokens',tokens},sources);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!matches[0])throw error;if(rejectAliasAggregate){const aggregate=firstAggregateName(matches[0]);if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}resolveAgainstSources(matches[0],sources,[],rejectAliasAggregate,rejectAggregateFunctions,rejectWindowFunctions);}return;}}
+  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{direct({kind:'tokens',tokens},sources);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!matches[0])throw error;if(rejectAliasAggregate){const aggregate=firstAggregateName(matches[0]);if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}if(rejectWindowFunctions&&firstWindowName(matches[0]))throw new NameResolutionError(`misuse of aliased window function ${name}`);resolveAgainstSources(matches[0],sources,[],rejectAliasAggregate,rejectAggregateFunctions,rejectWindowFunctions);}return;}}
   node.children.forEach(walk);
  };
  if(expression.reduction)walk(expression.reduction);

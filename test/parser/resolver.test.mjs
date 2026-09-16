@@ -43,6 +43,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
+ assert.throws(()=>resolve('SELECT row_number() OVER () AS r FROM a WHERE r'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function r');
+ assert.throws(()=>resolve('SELECT row_number() OVER () AS r FROM a GROUP BY r'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function r');
+ assert.throws(()=>resolve('SELECT a.x AS y,sum(a.x) OVER (PARTITION BY y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: y');
  assert.throws(()=>resolve('SELECT a.x FROM a WHERE row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
