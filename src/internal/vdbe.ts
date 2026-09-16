@@ -247,15 +247,16 @@ function compileExpression(expression: SelectNode["result"][number], ops: Op[], 
 }
 
 interface LimitRegisters { count:number; offset?:number; combined:number; capacity:number; ifZero:number }
-function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder):LimitRegisters|undefined {
+function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder,compoundZeroBeforeOffset=false):LimitRegisters|undefined {
  if(!select.limit)return undefined;
  const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters);
  ops.push({code:"MustBeInt",p1:count});
+ const earlyZero=compoundZeroBeforeOffset?ops.length:-1;if(compoundZeroBeforeOffset)ops.push({code:"IfNot",p1:count,p2:0});
  let offset:number|undefined;
  if(select.offset){offset=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters);ops.push({code:"MustBeInt",p1:offset});}
  const combined=allocate();if(offset===undefined){ops.push({code:"Copy",p1:count,p2:combined});}else ops.push({code:"OffsetLimit",p1:count,p2:combined,p3:offset});
  const capacity=allocate();ops.push({code:"Copy",p1:combined,p2:capacity});
- const ifZero=ops.length;ops.push({code:"IfNot",p1:count,p2:0});
+ const ifZero=compoundZeroBeforeOffset?earlyZero:ops.length;if(!compoundZeroBeforeOffset)ops.push({code:"IfNot",p1:count,p2:0});
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
 }
 
@@ -275,7 +276,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     const width=select.arms[0]?.result.length??0;
     if(!width||select.arms.some(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width)))){const mismatch=select.arms.find(arm=>arm.result.length!==width||(arm.origin==="values"&&arm.valuesRows!.some(row=>row.length!==width))),word=mismatch?.operatorFromPrior==="union-all"?"UNION ALL":mismatch?.operatorFromPrior?.toUpperCase()??"UNION";throw new JSQLiteError("sqlite",`SELECTs to the left and right of ${word} do not have the same number of result columns`,{code:1});}
     const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let maximum=0;const allocate=()=>++maximum;
-    const compoundLimit=computeLimitRegisters(select,ops,allocate,parameters);
+    const compoundLimit=computeLimitRegisters(select,ops,allocate,parameters,true);
     if(orderedAll){
       // For these finite scalar/VALUES producers, materializing into the existing
       // typed sorter is the documented browser adaptation of multiSelectByMerge.
@@ -409,7 +410,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
     const named=explicitCollation(tree)??leftCollation;if(named!=="binary"&&named!=="nocase"&&named!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${named}`,{code:1});
     return {collation:named as BuiltinCollation,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};
   });
-  const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let registers=Math.max(1,1+orderTerms.length);const limit=computeLimitRegisters(select,ops,()=>++registers,parameters),setCursor=1,auxCursor=2,sorterCursor=3;
+  const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let registers=Math.max(1,1+orderTerms.length);const limit=computeLimitRegisters(select,ops,()=>++registers,parameters,true),setCursor=1,auxCursor=2,sorterCursor=3;
   const setKeyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:leftCollation as BuiltinCollation}]});
   const orderKeyInfo=orderTerms.length?new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms}):null;
   if(orderKeyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:orderKeyInfo});

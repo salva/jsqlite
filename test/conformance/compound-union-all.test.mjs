@@ -80,3 +80,11 @@ test('public result bytes do not cap private compound sorter staging',async()=>{
 });
 
 test('Program owns immutable finite private-state defaults',()=>{const parsed=parseSql('SELECT 1 UNION SELECT 2');const program=compileScalarSelect(parsed.statement,'utf-8');assert.strictEqual(program.privateStateLimits,DEFAULT_PRIVATE_STATE_LIMITS);assert.ok(Object.isFrozen(program.privateStateLimits));for(const value of Object.values(program.privateStateLimits))assert.ok(Number.isSafeInteger(value)&&value>=0)});
+
+test('compound zero LIMIT bypasses OFFSET coercion and producers',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;try{
+  db=await open(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
+  for(const sql of ["SELECT 1 UNION ALL SELECT 2 LIMIT 0 OFFSET 'bad'","SELECT 1 UNION ALL SELECT 2 LIMIT ? OFFSET ?"]){s=db.prepare(sql).statement;if(sql.includes('?')){s.bind(1,0n);s.bind(2,'bad')}assert.equal(await s.step(),'done');s.reset();assert.equal(await s.step(),'done');s.finalize();s=undefined}
+  s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.reset(),e=>e.message==='datatype mismatch');s.finalize();s=undefined;s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.finalize(),e=>e.message==='datatype mismatch');s=undefined;
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});

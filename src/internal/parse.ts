@@ -50,41 +50,25 @@ function ddlColumns(root:LemonValue<SqlToken>):readonly SchemaColumnDeclaration[
  });
  return Object.freeze(entries.sort((a,b)=>a.offset-b.offset).map(entry=>entry.value));
 }
-function topLevelOneSelect(root:LemonValue<SqlToken>):LemonValue<SqlToken>|undefined{let node=find(root,s=>s.startsWith("select ::="));while(node?.kind==="reduction"){if(node.signature.startsWith("oneselect ::= SELECT ")||node.signature==="oneselect ::= values"||node.signature==="oneselect ::= mvalues")return node;const next=direct(node,"selectnowith ::=")??direct(node,"oneselect ::=")??direct(node,"select ::=");if(!next||next===node)return;node=next;}}
 function selectListItems(root:LemonValue<SqlToken>):LemonValue<SqlToken>[] {const out:LemonValue<SqlToken>[]=[];const walk=(node:LemonValue<SqlToken>)=>{if(node.kind==="terminal")return;if(node!==root&&node.signature.startsWith("oneselect ::="))return;if(node.signature==="selcollist ::= sclp scanpt expr scanpt as"||node.signature==="selcollist ::= sclp scanpt STAR"||node.signature==="selcollist ::= sclp scanpt nm DOT STAR")out.push(node);for(const child of node.children)walk(child);};walk(root);return out;}
 function expressionList(node:LemonValue<SqlToken>):readonly ExprNode[]{
  const out:ExprNode[]=[];
  const walk=(n:LemonValue<SqlToken>)=>{if(n.kind!=="reduction")return;for(const c of n.children){if(c.kind!=="reduction")continue;if(c.signature.startsWith("nexprlist ::="))walk(c);else if(c.signature.startsWith("expr ::=")||c.signature.startsWith("term ::="))out.push({kind:"tokens",tokens:leaves(c),reduction:c});}};
  walk(node);return Object.freeze(out);
 }
-function structuredValues(node:LemonValue<SqlToken>):readonly (readonly ExprNode[])[]{
- if(node.kind!=="reduction")throw new SqlParseError("generated VALUES action is incomplete");
- if(node.signature.startsWith("values ::=")){const list=direct(node,"nexprlist ::=");if(!list)throw new SqlParseError("generated VALUES row is missing");return Object.freeze([expressionList(list)]);}
- if(node.signature.startsWith("mvalues ::=")){const prior=node.children.find(c=>c.kind==="reduction"&&(c.signature.startsWith("values ::=")||c.signature.startsWith("mvalues ::=")));const list=[...node.children].reverse().find(c=>c.kind==="reduction"&&c.signature.startsWith("nexprlist ::="));if(!prior||!list)throw new SqlParseError("generated VALUES row is missing");return Object.freeze([...structuredValues(prior),expressionList(list)]);}
- throw new SqlParseError("generated VALUES action is incomplete");
-}
 function armAction(one:LemonValue<SqlToken>,operatorFromPrior:CompoundOperator|null):Omit<SelectArm,"prior"|"next">{
- const valueNode=one.kind==="reduction"&&one.signature==="oneselect ::= values"?direct(one,"values ::="):one.kind==="reduction"&&one.signature==="oneselect ::= mvalues"?direct(one,"mvalues ::="):undefined;
- if(valueNode){const rows=structuredValues(valueNode);return{result:rows[0]!,from:Object.freeze([]),where:null,hasDistinct:false,hasGroupBy:false,hasHaving:false,origin:"values",valuesRows:rows,operatorFromPrior};}
  const from=find(one,s=>s.startsWith("from ::=")),fromList=from?find(from,s=>s.startsWith("seltablist ::=")):undefined,where=find(one,s=>s.startsWith("where_opt ::="));
  const result=selectListItems(one).map(item=>{if(item.kind!=="reduction")throw new SqlParseError("generated result expression is missing");const expr=item.signature.endsWith("expr scanpt as")?item.children[2]:undefined;const tokens=expr?leaves(expr):item.children.slice(2).flatMap(leaves);if(!tokens.length)throw new SqlParseError("generated result expression is missing");const asNode=expr?item.children[4]:undefined,asTokens=leaves(asNode);const alias=asTokens.length?sqlIdentifier(asTokens.at(-1)):undefined;return Object.freeze({kind:"tokens",tokens,...(expr?{reduction:expr}:{}),...(alias!==undefined?{alias}:{})} as ExprNode);}).sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0));
  const present=(prefix:string,empty:string)=>{const node=direct(one,prefix);return node?.kind==="reduction"&&node.signature!==empty;};
  const expr=where?find(where,s=>s.startsWith("expr ::=")):undefined;
  return{result:Object.freeze(result),from:Object.freeze(leaves(fromList)),where:expr?Object.freeze({kind:"tokens",tokens:leaves(expr),reduction:expr} as ExprNode):null,hasDistinct:present("distinct ::=","distinct ::="),hasGroupBy:present("groupby_opt ::=","groupby_opt ::="),hasHaving:present("having_opt ::=","having_opt ::="),origin:"select",valuesRows:null,operatorFromPrior};
 }
-function compoundArms(root:LemonValue<SqlToken>):readonly SelectArm[]{
- const chain=find(root,s=>s.startsWith("selectnowith ::="))??topLevelOneSelect(root);if(!chain)throw new SqlParseError("generated SELECT action is not mapped");
- const pending:Omit<SelectArm,"prior"|"next">[]=[];
- const walk=(n:LemonValue<SqlToken>)=>{if(n.kind!=="reduction")return;if(n.signature==="selectnowith ::= selectnowith multiselect_op oneselect"){walk(n.children[0]!);const opNode=n.children[1]!,words=leaves(opNode).map(t=>t.text.toUpperCase()).join(" ");const op:CompoundOperator=words==="UNION ALL"?"union-all":words==="UNION"?"union":words==="INTERSECT"?"intersect":"except";pending.push(armAction(n.children[2]!,op));return}const one=n.signature.startsWith("oneselect ::=")?n:direct(n,"oneselect ::=");if(one)pending.push(armAction(one,null));};
- walk(chain);return Object.freeze(pending.map((arm,i)=>Object.freeze({...arm,prior:i?i-1:null,next:i+1<pending.length?i+1:null})));
-}
-function selectAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SelectNode{
- const top=topLevelOneSelect(root),allOnes=findAll(root,s=>s.startsWith("oneselect ::="));const one=allOnes.length>1?allOnes.reduce((a,b)=>(leaves(a)[0]?.startByte??0)>(leaves(b)[0]?.startByte??0)?a:b):top;if(!one)throw new SqlParseError("generated SELECT action is not mapped");
- const hasValues=one.kind==="reduction"&&(one.signature==="oneselect ::= values"||one.signature==="oneselect ::= mvalues");
- // parse.y owns VALUES through values/mvalues. Preserve that accepted structural
- // identity without fabricating a result graph; compilation rejects it first.
- if(hasValues){const arms=compoundArms(root);return{kind:"select",result:arms[0]!.result,from:[],where:null,orderBy:[],limit:null,offset:null,hasDistinct:false,hasGroupBy:false,hasHaving:false,hasOrderBy:false,hasLimit:false,hasCompound:findAll(root,s=>s.startsWith("multiselect_op ::=")).length>0,hasValues:true,hasSubquery:false,arms,tokens:all};}
- const arms=compoundArms(root);
+type ArmDraft=Omit<SelectArm,"prior"|"next">;
+type SelectSemantic={readonly arms:readonly ArmDraft[];readonly rightmost:LemonValue<SqlToken>};
+function semanticOf<T>(child:LemonValue<SqlToken>|undefined,owner:string):T {if(child?.kind!=="reduction"||child.semantic===undefined)throw new SqlParseError(`generated ${owner} child semantic is missing`);return child.semantic as T;}
+function linkedArms(drafts:readonly ArmDraft[]):readonly SelectArm[]{return Object.freeze(drafts.map((arm,i)=>Object.freeze({...arm,prior:i?i-1:null,next:i+1<drafts.length?i+1:null})));}
+function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNode{
+ const one=semantic.rightmost,arms=linkedArms(semantic.arms),hasValues=arms.some(arm=>arm.origin==="values");
  // parse.y accepts this only through error recovery. ORDER/LIMIT tokens before a
  // later compound arm are never owned by the rightmost oneselect and must not be
  // silently dropped into a partial-arm program.
@@ -97,7 +81,7 @@ function selectAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SelectN
  const limitNode=find(one,s=>s.startsWith("limit_opt ::=")),limitExprs=limitNode?.kind==="reduction"?limitNode.children.filter(c=>c.kind==="reduction"):[];
  let limit:ExprNode|null=null,offset:ExprNode|null=null;if(limitExprs.length){const comma=leaves(limitNode).some(t=>t.text===",");const first={kind:"tokens",tokens:leaves(limitExprs[0]!),reduction:limitExprs[0]!} as ExprNode,second=limitExprs[1]?{kind:"tokens",tokens:leaves(limitExprs[1]),reduction:limitExprs[1]} as ExprNode:null;if(comma){offset=first;limit=second}else{limit=first;offset=second}}
  const left=arms[0]!;
- return{kind:"select",result:left.result,from:left.from,where:(()=>{const expr=where?find(where,s=>s.startsWith("expr ::=")):undefined;return expr?{kind:"tokens",tokens:leaves(expr),reduction:expr}:null;})(),orderBy:Object.freeze(orderBy),limit,offset,hasDistinct:present("distinct ::=","distinct ::="),hasGroupBy:present("groupby_opt ::=","groupby_opt ::="),hasHaving:present("having_opt ::=","having_opt ::="),hasOrderBy:present("orderby_opt ::=","orderby_opt ::="),hasLimit:present("limit_opt ::=","limit_opt ::="),hasCompound:findAll(root,s=>s.startsWith("multiselect_op ::=")).length>0,hasValues:false,hasSubquery:findAll(root,s=>s==="seltablist ::= stl_prefix LP select RP as on_using"||s==="expr ::= LP select RP"||s==="expr ::= expr in_op LP select RP"||s==="expr ::= EXISTS LP select RP").length>0,arms,tokens:all};
+ return{kind:"select",result:left.result,from:left.from,where:(()=>{const expr=where?find(where,s=>s.startsWith("expr ::=")):undefined;return expr?{kind:"tokens",tokens:leaves(expr),reduction:expr}:null;})(),orderBy:Object.freeze(orderBy),limit,offset,hasDistinct:present("distinct ::=","distinct ::="),hasGroupBy:present("groupby_opt ::=","groupby_opt ::="),hasHaving:present("having_opt ::=","having_opt ::="),hasOrderBy:present("orderby_opt ::=","orderby_opt ::="),hasLimit:present("limit_opt ::=","limit_opt ::="),hasCompound:arms.length>1,hasValues,hasSubquery:findAll(one,s=>s==="seltablist ::= stl_prefix LP select RP as on_using"||s==="expr ::= LP select RP"||s==="expr ::= expr in_op LP select RP"||s==="expr ::= EXISTS LP select RP").length>0,arms,tokens:all};
 }
 function schemaName(node:LemonValue<SqlToken>|undefined):string|null{const token=leaves(node)[0];return token?sqlIdentifier(token):null;}
 function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SchemaDdlNode|undefined{
@@ -109,16 +93,32 @@ function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SchemaDdlN
  const selected=kindWord==="VIEW"?find(ddl,s=>s.startsWith("select ::=")):undefined,tableArgs=kindWord==="TABLE"?find(root,s=>s.startsWith("create_table_args ::= AS select")):undefined,tableSelected=tableArgs?find(tableArgs,s=>s.startsWith("select ::=")):undefined;
  const where=kindWord==="INDEX"?find(ddl,s=>s.startsWith("where_opt ::= WHERE")):undefined,whereExpr=where?find(where,s=>s.startsWith("expr ::=")):undefined;
  const tablePrimary=find(root,s=>s.startsWith("tcons ::= PRIMARY KEY")),primaryKey=tablePrimary?findAll(tablePrimary,s=>s.startsWith("sortlist ::=")).map(x=>direct(x,"expr ::=")).filter((x):x is LemonValue<SqlToken>=>!!x).map(x=>sqlIdentifier(leaves(x)[0])).reverse():[];
- return{kind:`create-${kindWord.toLowerCase()}` as SchemaDdlNode["kind"],name:schemaName(names[0]??find(ddl,s=>s.startsWith("nm ::="))),tokens:all,columns:kindWord==="TABLE"?ddlColumns(root):Object.freeze([]),withoutRowid:options.some(option=>option.kind==="reduction"&&option.signature.startsWith("table_option ::= WITHOUT")&&leaves(option).some(token=>token.text.toUpperCase()==="ROWID")),indexTerms:Object.freeze(indexTerms),tableName:kindWord==="INDEX"?schemaName(names.at(-1)):null,select:selected?selectAction(selected,leaves(selected)):null,indexWhere:whereExpr?{kind:"tokens",tokens:leaves(whereExpr)}:null,tableAsSelect:tableSelected?selectAction(tableSelected,leaves(tableSelected)):null,primaryKey:Object.freeze(primaryKey),indexUnique:kindWord==="INDEX"&&leaves(direct(ddl,"uniqueflag ::=")).some(t=>t.text.toUpperCase()==="UNIQUE"),hasUnsupportedConstraints:kindWord==="TABLE"&&findAll(root,s=>s.startsWith("ccons ::= CHECK")||s.startsWith("ccons ::= REFERENCES")||s.startsWith("tcons ::= CHECK")||s.startsWith("tcons ::= FOREIGN KEY")).length>0};
+ return{kind:`create-${kindWord.toLowerCase()}` as SchemaDdlNode["kind"],name:schemaName(names[0]??find(ddl,s=>s.startsWith("nm ::="))),tokens:all,columns:kindWord==="TABLE"?ddlColumns(root):Object.freeze([]),withoutRowid:options.some(option=>option.kind==="reduction"&&option.signature.startsWith("table_option ::= WITHOUT")&&leaves(option).some(token=>token.text.toUpperCase()==="ROWID")),indexTerms:Object.freeze(indexTerms),tableName:kindWord==="INDEX"?schemaName(names.at(-1)):null,select:selected?semanticOf<SelectNode>(selected,"view select"):null,indexWhere:whereExpr?{kind:"tokens",tokens:leaves(whereExpr)}:null,tableAsSelect:tableSelected?semanticOf<SelectNode>(tableSelected,"table AS select"):null,primaryKey:Object.freeze(primaryKey),indexUnique:kindWord==="INDEX"&&leaves(direct(ddl,"uniqueflag ::=")).some(t=>t.text.toUpperCase()==="UNIQUE"),hasUnsupportedConstraints:kindWord==="TABLE"&&findAll(root,s=>s.startsWith("ccons ::= CHECK")||s.startsWith("ccons ::= REFERENCES")||s.startsWith("tcons ::= CHECK")||s.startsWith("tcons ::= FOREIGN KEY")).length>0};
 }
 function deepFreeze<T>(value:T):T {if(value&&typeof value==="object"&&!Object.isFrozen(value)){for(const child of Object.values(value as object))deepFreeze(child);Object.freeze(value);}return value;}
-function productionAction(signature:string,children:readonly LemonValue<SqlToken>[]):ParsedStatement|undefined{
- // These are the bounded source-production semantic actions for the structures
- // this tranche claims. They execute while Lemon reduces cmd, not in a second
- // parser over accepted tokens.
+function productionAction(signature:string,children:readonly LemonValue<SqlToken>[]):unknown{
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
+ if(signature==="values ::= VALUES LP nexprlist RP"){
+  const list=direct(root,"nexprlist ::=");if(!list)throw new SqlParseError("generated VALUES row is missing");return Object.freeze([expressionList(list)]);
+ }
+ if(signature==="mvalues ::= values COMMA LP nexprlist RP"||signature==="mvalues ::= mvalues COMMA LP nexprlist RP"){
+  const prior=semanticOf<readonly (readonly ExprNode[])[]>(children[0],"mvalues");const list=children[3];if(list?.kind!=="reduction")throw new SqlParseError("generated VALUES row is missing");return Object.freeze([...prior,expressionList(list)]);
+ }
+ if(signature==="oneselect ::= values"||signature==="oneselect ::= mvalues"){
+  const rows=semanticOf<readonly (readonly ExprNode[])[]>(children[0],"oneselect VALUES");const arm:ArmDraft=Object.freeze({result:rows[0]!,from:Object.freeze([]),where:null,hasDistinct:false,hasGroupBy:false,hasHaving:false,origin:"values",valuesRows:rows,operatorFromPrior:null});return Object.freeze({arms:Object.freeze([arm]),rightmost:root} as SelectSemantic);
+ }
+ if(signature.startsWith("oneselect ::= SELECT "))return Object.freeze({arms:Object.freeze([Object.freeze(armAction(root,null))]),rightmost:root} as SelectSemantic);
+ if(signature==="selectnowith ::= oneselect")return semanticOf<SelectSemantic>(children[0],"selectnowith");
+ if(signature==="selectnowith ::= selectnowith multiselect_op oneselect"){
+  const left=semanticOf<SelectSemantic>(children[0],"compound left"),right=semanticOf<SelectSemantic>(children[2],"compound right");
+  const words=leaves(children[1]).map(t=>t.text.toUpperCase()).join(" "),operator:CompoundOperator=words==="UNION ALL"?"union-all":words==="UNION"?"union":words==="INTERSECT"?"intersect":"except";
+  if(right.arms.length!==1)throw new SqlParseError("generated compound right arm is incomplete");const arm=Object.freeze({...right.arms[0]!,operatorFromPrior:operator});return Object.freeze({arms:Object.freeze([...left.arms,arm]),rightmost:right.rightmost} as SelectSemantic);
+ }
+ if(signature==="select ::= selectnowith"||signature==="select ::= WITH wqlist selectnowith"||signature==="select ::= WITH RECURSIVE wqlist selectnowith"){
+  const child=children.at(-1);return deepFreeze(selectAction(semanticOf<SelectSemantic>(child,"select"),leaves(root)));
+ }
+ if(signature.startsWith("cmd ::= select"))return semanticOf<SelectNode>(children[0],"cmd select");
  const tokens=leaves(root);
- if(signature.startsWith("cmd ::= select"))return deepFreeze(selectAction(root,tokens));
  if(signature.startsWith("cmd ::= create_table")||signature.startsWith("cmd ::= createkw uniqueflag INDEX")||signature.startsWith("cmd ::= createkw temp VIEW")||signature.startsWith("cmd ::= createkw trigger_decl")){
   const ddl=ddlAction(root,tokens);if(ddl)return deepFreeze(ddl);
  }

@@ -14,3 +14,10 @@ test('generated CREATE TABLE reductions emit rich column semantics',()=>{const p
 test('generated parser must not be bypassed by recognized shift terminals',()=>{const parsed=parseSql('SELECT 1 << 2');assert.equal(parsed.statement?.kind,'select');assert.equal(parsed.lemon?.accepted,true,'recognized SQLite terminals must pass through generated Lemon tables');});
 test('generated parser enforces configured work, stack, and expression budgets',()=>{assert.throws(()=>parseSql('SELECT 1',{maxWorkUnits:1}),/maxWorkUnits/);assert.throws(()=>parseSql('SELECT 1',{maxParserDepth:1}),/maxParserDepth/);assert.throws(()=>parseSql('SELECT (((1+2)))',{maxExpressionDepth:2}),/maxExpressionDepth/);assert.throws(()=>parseSql('SELECT 1+2+3+4',{maxExpressionDepth:2}),/maxExpressionDepth/);assert.equal(parseSql('SELECT (1+2)',{maxWorkUnits:1000,maxParserDepth:100,maxExpressionDepth:2}).statement?.kind,'select');});
 test('arm-local ORDER recovery cannot publish a partial compound graph',()=>{assert.throws(()=>parseSql('SELECT 1 ORDER BY 1 UNION ALL SELECT 2'),e=>e instanceof SqlParseError&&e.message==='ORDER BY clause should come after UNION ALL not before');});
+
+test('generated SELECT reductions own immutable child semantics',()=>{
+ const {lemon,statement}=parseSql('VALUES(1),(2) UNION ALL SELECT 3');assert.ok(statement&&statement.kind==='select');
+ const reductions=[];const walk=n=>{if(n?.kind==='reduction'){reductions.push(n);for(const c of n.children)walk(c)}};walk(lemon.value);
+ for(const n of reductions.filter(n=>n.signature.startsWith('values ::=')||n.signature.startsWith('mvalues ::=')||n.signature.startsWith('oneselect ::=')||n.signature.startsWith('selectnowith ::=')||n.signature==='select ::= selectnowith'||n.signature==='cmd ::= select'))assert.notEqual(n.semantic,undefined,n.signature);
+ assert.deepEqual(statement.arms.map(a=>[a.origin,a.prior,a.next,a.operatorFromPrior]),[['values',null,1,null],['select',0,null,'union-all']]);assert.ok(Object.isFrozen(statement.arms)&&statement.arms.every(Object.isFrozen));
+});
