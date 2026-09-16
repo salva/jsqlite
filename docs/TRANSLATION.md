@@ -1496,8 +1496,32 @@ syntactically own these clauses.
 
 Each opcode dispatch, input advance, comparison term, copied logical byte, sorter
 insert/move, and merge advance uses the existing deterministic work/cancellation/
-deadline controls. Growth is preflighted against statement `maxRows`, per-entry
-bytes, aggregate private bytes, register/program/column/compound limits, and
+deadline controls. `maxRows` is a public-destination counter only: charge it exactly
+when `ResultRow` returns a `"row"`, globally across one compound execution until
+reset. It must not cap scanned or produced rows, VALUES rows, coroutine yields,
+sorter entries, or ephemeral set keys. In particular, duplicate suppression,
+compound membership, and ordered input work may consume more private entries than
+`maxRows` while legally emitting no more than `maxRows` rows.
+
+Private growth instead uses a separate immutable `PrivateStateLimits` carried by
+the Program/statement: a finite implementation `maxPrivateEntries`, existing
+per-key (`maxKeyBytes`) bound, and finite aggregate `maxPrivateBytes`, plus
+`maxWorkUnits`. Entry, key, and aggregate-byte failures map to `kind:"limit"`
+without pretending to be SQLite result codes. The connection defaults for these
+internal limits must be documented and tested before compound admission; they are
+not aliases for `maxRows` or `maxResultBytes`. The current operation API can only
+tighten `maxWorkUnits`, so that tightening composes independently with the
+statement's private entry/byte ceilings and cannot relax them. If a later public
+operation option tightens private ceilings, it may only take the minimum and must
+be fixed for the execution across suspension.
+
+The consuming refactor seam is `src/internal/vdbe.ts`: replace
+`SorterCursor`/`EphemeralIndexCursor` construction using
+`maxEntries: program.maxRows` (and aggregate bytes derived from
+`maxResultBytes`) with `program.privateStateLimits`; retain the separate
+`ResultRow` `maxRows` check. `src/internal/private-state.ts` continues to own
+pre-copy entry/key/aggregate-byte checks and rollback after failed post-growth
+control checks. Growth also respects register/program/column/compound and
 expression/parser limits. A suspended `step()` retains PC, both coroutine PCs and
 EOF/current-row states, registers, sorter phases/cursors, duplicate previous-row
 state, counters, and the first error; resume never reevaluates a VALUES row or arm.
@@ -1505,12 +1529,26 @@ Coroutine row registers own/copy `Mem` values across yields—no page/register b
 may outlive cursor movement. Result rows retain the existing public copy and
 row-invalidation contract.
 
-Halt, reset, finalize, close, cancellation, deadline, and any arm/runtime error
-unwind both coroutines and every private cursor exactly once. Continue cleanup
-after a diagnostic, preserve the earlier operation error over cleanup errors, and
-restore connection admission. Reset retains bindings and rebuilds execution state;
-finalize destroys graph/program/private state. Compile-time graph/KeyInfo objects
-are immutable and connection/schema-owned references may not outlive close.
+Halt, reset, finalize, completed connection destruction, cancellation, deadline,
+and any arm/runtime error unwind both coroutines and every private cursor exactly
+once. Continue cleanup after a diagnostic, preserve the earlier operation error
+over cleanup errors, and restore connection admission where the connection remains
+open. Reset retains bindings and rebuilds execution state; finalize destroys the
+statement's graph/program/private state.
+
+Connection lifetime follows the existing public owner boundary precisely.
+A `close()` attempt with any statement returns `SQLITE_BUSY` and leaves the
+connection, statement graph/program/KeyInfo, schema references, and resident
+storage intact and usable. `closeDeferred()` only marks connection admission
+zombie: it rejects new connection operations but does not destroy or invalidate
+existing statements or anything they reference. Those statements remain usable
+for step, row access, reset, and finalize; immutable query graphs, programs,
+`KeyInfo`, schema/storage references, and resident database bytes survive until
+the last statement finalizes and zombie deletion completes. Only that completed
+destruction boundary releases connection-owned schema/storage. Private execution
+state still unwinds at halt/reset/finalize, a current row follows the existing
+invalidation/copy contract, and deferred deletion never displaces an earlier
+operation/finalize/cleanup error.
 
 Implementation seams are `src/internal/parse.ts` (production actions/types), a
 new resolver/query-graph module or the existing compiler resolver,
@@ -1539,9 +1577,24 @@ new resolver/query-graph module or the existing compiler resolver,
 * global compound LIMIT/OFFSET zero/negative/integral-REAL/TEXT/error timing,
   early arm exhaustion, zero bypass of failing arm expressions, no incorrect set
   pruning, and bare multirow VALUES rejecting ORDER/LIMIT at prepare;
+* strict separation of public and private limits: duplicate-heavy UNION/DISTINCT
+  where scanned/private entries exceed `maxRows` but deduplicated output does not;
+  ordered LIMIT/OFFSET where sorter input exceeds both `maxRows` and delivered
+  rows; a control where public `ResultRow` output really exceeds `maxRows`; and
+  independent entry, key-byte, aggregate-private-byte, and work failures with
+  `kind:"limit"`. Assert cursor construction receives `privateStateLimits`, never
+  `program.maxRows`/`maxResultBytes`, and that operation `maxWorkUnits` only
+  tightens work;
 * injected yield/cancel/deadline/resource failures in each coroutine and merge
   phase, exact work charges, reset/rerun with retained bindings, finalize/close,
-  multi-cursor cleanup failures, and first-error precedence.
+  multi-cursor cleanup failures, and first-error precedence;
+* busy `close()` preserving full usability, plus `closeDeferred()` after prepare
+  before first step, while suspended between bounded work chunks, and after a
+  current row. In every zombie case continue step/row access as applicable,
+  reset/rerun and finalize; verify returned public row copies survive their stated
+  lifetime, the last finalize completes deletion exactly once, all private and
+  resident owners are released only then, and an earlier execution/finalize error
+  outranks deferred cleanup diagnostics.
 
 Remaining risk is concentrated in exact generated semantic action plumbing,
 source equality representative transitions, compound metadata affinity when later
