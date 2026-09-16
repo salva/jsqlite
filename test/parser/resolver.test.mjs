@@ -38,6 +38,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b WHERE z>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: z');
  assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b WHERE same>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 WHERE wbad=1 GROUP BY gbad HAVING hbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: hbad');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 WHERE wbad=1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: wbad');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: onbad');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON 1 GROUP BY gbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: gbad');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE missing+1'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE rowid>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>resolve('SELECT missing+1 FROM a JOIN b'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
