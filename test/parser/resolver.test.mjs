@@ -18,6 +18,8 @@ test('selectExpander preserves ordered duplicate names, wildcard visibility, and
 test('lookupName applies aliases, qualification, ambiguity, no-such-column, and rowid shadowing',()=>{
  assert.throws(()=>resolve('SELECT x FROM a INDEXED BY nope'),e=>e instanceof NameResolutionError&&e.message==='no such index: nope');
  assert.doesNotThrow(()=>resolve('SELECT x FROM a NOT INDEXED'));
+ assert.equal(resolve('SELECT main.a.rowid FROM main.a').result[0].columnIndex,-1);
+ assert.throws(()=>resolve('SELECT main.a.x FROM main.a AS aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: main.a.x');
  assert.equal(resolve('SELECT main.a.x FROM main.a').result[0].source.table.name,'a');
  assert.throws(()=>resolve('SELECT x FROM temp.a'),e=>e instanceof NameResolutionError&&e.message==='no such table: temp.a');
  const collated=resolve('SELECT a.x COLLATE nocase AS c FROM a').result[0];assert.equal(collated.source.table.name,'a');assert.equal(collated.descriptor.collation,'nocase');
