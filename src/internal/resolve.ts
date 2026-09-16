@@ -52,6 +52,14 @@ function firstAggregateName(expression:ExprNode):string|null{
  };
  return expression.reduction?visit(expression.reduction):null;
 }
+function functionArgumentCount(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number|null{
+ if(node.kind!=='reduction'||!node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP'))return null;
+ if(node.signature.includes(' STAR RP'))return 1;
+ const list=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
+ if(!list)return null;
+ const count=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number=>part.kind==='reduction'&&part.signature==='nexprlist ::= nexprlist COMMA expr'?count(part.children[0]!)+1:part.kind==='reduction'&&part.signature==='nexprlist ::= expr'?1:part.kind==='reduction'?Math.max(0,...part.children.map(count)):0;
+ return count(list);
+}
 function hasAggregate(expression:ExprNode):boolean{
  const aggregates=new Set(['avg','count','group_concat','max','min','sum','total','string_agg']);
  const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>{
@@ -101,6 +109,10 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  const tokens=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):import('./tokenize.ts').SqlToken[]=>node.kind==='terminal'?(node.value?[node.value]:[]):node.children.flatMap(tokens);
  const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
   if(node.kind==='terminal')return;
+  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
+   const token=node.children.find(child=>child.kind==='terminal')?.value,count=functionArgumentCount(node);
+   if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),valid=name==='count'?count<=1:name==='group_concat'?count===1||count===2:name==='string_agg'?count===2:['avg','sum','total'].includes(name)?count===1:true;if(!valid)throw new NameResolutionError(`wrong number of arguments to function ${identifier(token.text)}()`);}
+  }
   if(rejectAggregateFunctions&&node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
    const nested:ExprNode={kind:'tokens',tokens:[],reduction:node};
    if(hasAggregate(nested)){const token=node.children.find(child=>child.kind==='terminal')?.value;if(token)throw new NameResolutionError(`misuse of aggregate function ${identifier(token.text)}()`);}

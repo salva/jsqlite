@@ -40,6 +40,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON 1 GROUP BY z'));
  assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b WHERE same>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
+ assert.throws(()=>resolve('SELECT count(a.x,a.y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function count()');
+ assert.throws(()=>resolve('SELECT sum() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
+ assert.throws(()=>resolve('SELECT sum(a.x,a.y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
+ assert.throws(()=>resolve('SELECT group_concat(a.x,a.y,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function group_concat()');
  assert.throws(()=>resolve('SELECT a.x FROM a WHERE sum(a.x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON count(*)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function count()');
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a WHERE z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
