@@ -40,6 +40,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON 1 GROUP BY z'));
  assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b WHERE same>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
+ assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
  assert.throws(()=>resolve('SELECT count(a.x,a.y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function count()');
  assert.throws(()=>resolve('SELECT sum() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
  assert.throws(()=>resolve('SELECT sum(a.x,a.y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sum()');
