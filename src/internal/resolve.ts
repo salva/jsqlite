@@ -24,6 +24,15 @@ function groupByInteger(expression:ExprNode):bigint|null{
  };
  return expression.reduction?visit(expression.reduction):null;
 }
+function bareName(expression:ExprNode):string|null{
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
+  if(node.kind!=='reduction')return null;
+  if(node.signature.startsWith('expr ::= LP expr RP')){const nested=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));return nested?visit(nested):null;}
+  if(node.signature==='expr ::= ID|INDEXED|JOIN_KW'){const token=node.children.find(child=>child.kind==='terminal')?.value;return token?identifier(token.text):null;}
+  return null;
+ };
+ return expression.reduction?visit(expression.reduction):null;
+}
 function hasAggregate(expression:ExprNode):boolean{
  const aggregates=new Set(['avg','count','group_concat','max','min','sum','total','string_agg']);
  const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>{
@@ -103,9 +112,10 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   }
   resolveAgainstSources(expression,sources,select.result);
   let groupHasAggregate=hasAggregate(expression);
-  if(!groupHasAggregate&&expression.tokens.length===1){
-   try{direct(expression,sources);}
-   catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('no such column: ')){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,identifier(expression.tokens[0]!.text)));groupHasAggregate=alias?hasAggregate(alias):false;}}
+  if(!groupHasAggregate){
+   const name=bareName(expression);
+   if(name)try{direct(expression,sources);}
+   catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('no such column: ')){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));groupHasAggregate=alias?hasAggregate(alias):false;}}
   }
   if(groupHasAggregate)throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
  }
