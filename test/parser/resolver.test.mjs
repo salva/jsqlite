@@ -47,6 +47,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
  assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
+ assert.throws(()=>resolve('SELECT row_number() FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
+ assert.throws(()=>resolve('SELECT lag(a.x) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FILTER (WHERE a.x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER (),ntile(2) OVER (),lag(a.x) OVER (),lead(a.x,1,0) OVER (),first_value(a.x) OVER (),last_value(a.x) OVER (),nth_value(a.x,1) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT rank(1) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function rank()');
  assert.throws(()=>resolve('SELECT abs(a.x) OVER (ORDER BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');

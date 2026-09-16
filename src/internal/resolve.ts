@@ -110,9 +110,10 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
   if(node.kind==='terminal')return;
   if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
-   const filter=node.children.find(child=>child.kind==='reduction'&&child.signature==='filter_over ::= filter_clause');
-   const over=node.children.find(child=>child.kind==='reduction'&&child.signature==='filter_over ::= over_clause');
-   node.children.filter(child=>child!==filter&&child!==over).forEach(walk);
+   const filterOver=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::='));
+   const filter=filterOver?.kind==='reduction'?filterOver.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_clause ::=')):undefined;
+   const over=filterOver?.kind==='reduction'?filterOver.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('over_clause ::=')):undefined;
+   node.children.filter(child=>child!==filterOver).forEach(walk);
    const token=node.children.find(child=>child.kind==='terminal')?.value,count=functionArgumentCount(node);
    if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),star=node.signature.includes(' STAR RP'),valid=name==='count'?count<=1:star?false:name==='group_concat'?count===1||count===2:name==='string_agg'?count===2:['avg','sum','total'].includes(name)?count===1:['min','max'].includes(name)?count>=1:['row_number','rank','dense_rank','percent_rank','cume_dist'].includes(name)?count===0:name==='ntile'?count===1:['lag','lead'].includes(name)?count>=1&&count<=3:['first_value','last_value'].includes(name)?count===1:name==='nth_value'?count===2:['abs','hex','length','octet_length','typeof','unicode'].includes(name)?count===1:name==='nullif'||name==='replace'?count===2+(name==='replace'?1:0):name==='substr'?count===2||count===3:name==='coalesce'?count>=2:true;if(!valid)throw new NameResolutionError(`wrong number of arguments to function ${identifier(token.text)}()`);const distinct=node.children.some(child=>child.kind==='reduction'&&child.signature==='distinct ::= DISTINCT'),aggregate=['avg','count','group_concat','string_agg','sum','total'].includes(name)||(['min','max'].includes(name)&&count===1);if(aggregate&&distinct&&count!==1)throw new NameResolutionError('DISTINCT aggregates must have exactly one argument');}
    if(rejectAggregateFunctions&&!over&&hasAggregate({kind:'tokens',tokens:[],reduction:node})&&token)throw new NameResolutionError(`misuse of aggregate function ${identifier(token.text)}()`);
@@ -123,7 +124,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    if(over)walk(over);
    if(filter)walk(filter);
    if(filter){const nested=firstAggregateName({kind:'tokens',tokens:[],reduction:filter});if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
-   if(filter&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total'].includes(name)||(['min','max'].includes(name)&&count===1);if(!aggregate)throw new NameResolutionError(`FILTER may not be used with non-aggregate ${identifier(token.text)}()`);}
+   if(filter&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total'].includes(name)||(['min','max'].includes(name)&&count===1);if(over&&!aggregate)throw new NameResolutionError('FILTER clause may only be used with aggregate window functions');if(!over&&!aggregate)throw new NameResolutionError(`FILTER may not be used with non-aggregate ${identifier(token.text)}()`);}
    return;
   }
   if(node.signature.startsWith('expr ::= expr COLLATE ')){node.children.forEach(walk);const collationToken=tokens(node).at(-1);if(collationToken){const name=identifier(collationToken.text);if(!['binary','nocase','rtrim'].some(candidate=>sqliteIdentifierEqual(candidate,name)))throw new NameResolutionError(`no such collation sequence: ${name}`);}return;}
