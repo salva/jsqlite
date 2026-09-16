@@ -17,6 +17,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT missing FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ assert.throws(()=>db.prepare('SELECT a COLLATE missing FROM left_meta'),e=>e.kind==='sqlite'&&e.message==='no such collation sequence: missing');
  s=db.prepare('SELECT (a COLLATE nocase) AS collated FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'collated',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT (a) AS renamed FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'renamed',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a AS z,a+1 AS z FROM left_meta WHERE z=7'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: z');
