@@ -19,6 +19,8 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta WHERE z>0'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: z');
  assert.throws(()=>db.prepare('SELECT left_meta.a AS b FROM left_meta JOIN right_meta WHERE b>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
  assert.throws(()=>db.prepare('SELECT left_meta.a AS chosen FROM left_meta JOIN right_meta WHERE chosen>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ assert.throws(()=>db.prepare('SELECT output_missing FROM left_meta JOIN right_meta ON on_missing=1 WHERE where_missing=1'),e=>e.kind==='sqlite'&&e.message==='no such column: output_missing');
+ assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON on_missing=1 WHERE where_missing=1'),e=>e.kind==='sqlite'&&e.message==='no such column: where_missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta WHERE missing+1'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta WHERE rowid>0'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT missing+1 FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
