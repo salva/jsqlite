@@ -38,7 +38,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
   if(node.kind==='terminal')return;
   if(node.signature.startsWith('expr ::= nm DOT nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
   if(node.signature.startsWith('expr ::= nm DOT nm')){direct({kind:'tokens',tokens:tokens(node)},sources);return;}
-  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{direct({kind:'tokens',tokens},sources);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),alias=aliases.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!alias)throw error;resolveAgainstSources(alias,sources,[]);}return;}}
+  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{direct({kind:'tokens',tokens},sources);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(matches.length>1)throw new NameResolutionError(`ambiguous column name: ${name}`);if(!matches[0])throw error;resolveAgainstSources(matches[0],sources,[]);}return;}}
   node.children.forEach(walk);
  };
  if(expression.reduction)walk(expression.reduction);
