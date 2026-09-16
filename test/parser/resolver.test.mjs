@@ -43,6 +43,8 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.deepEqual(natural.result.map(x=>x.name),['x','same','y']);
  assert.equal(resolve('SELECT x FROM a JOIN b USING(x)').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT x FROM a RIGHT JOIN b USING(x)').result[0].source.table.name,'b');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON a.x COLLATE missing=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such collation sequence: missing');
+ assert.doesNotThrow(()=>resolve('SELECT a.x FROM a JOIN b ON a.x COLLATE nocase=b.x'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a JOIN b ON main.a.x=b.x'));
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON temp.a.x=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: temp.a.x');
  assert.throws(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON z=b.x'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: z');
