@@ -16,6 +16,8 @@ test('selectExpander preserves ordered duplicate names, wildcard visibility, and
  assert.ok(Object.isFrozen(r)&&Object.isFrozen(r.sources)&&Object.isFrozen(r.result));
 });
 test('lookupName applies aliases, qualification, ambiguity, no-such-column, and rowid shadowing',()=>{
+ assert.equal(resolve('SELECT (a.x) FROM a').result[0].source.table.name,'a');
+ assert.equal(resolve('SELECT ((main.a.x)) FROM a').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT main.a.x FROM a').result[0].source.table.name,'a');
  assert.throws(()=>resolve('SELECT temp.a.x FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: temp.a.x');
  assert.throws(()=>resolve('SELECT main.aa.x FROM a AS aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: main.aa.x');
