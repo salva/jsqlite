@@ -1472,14 +1472,25 @@ algorithm substitution. No exceptional substitution is proposed. The existing
 `EphemeralIndexCursor` remains available to translated destinations but is not a
 reason to replace the pinned compound algorithm.
 
-Call `computeLimitRegisters` once before coroutine initialization. Evaluate and
-`MustBeInt` LIMIT then OFFSET at first step, before arm expressions or private
-state; zero LIMIT skips all arm work only after OFFSET coercion, negative LIMIT is
-unbounded, and negative OFFSET is zero. For UNION ALL, copy limit+positive-offset
-as a production cap into each coroutine while retaining global output counters;
-for set operators do not let an arm-local cap alter duplicate/set membership.
-OFFSET is consumed once at merged output, and LIMIT decrements only for emitted
-rows. Only the rightmost arm may syntactically own these clauses.
+Call `computeLimitRegisters` once before coroutine initialization, but preserve its
+actual branch order rather than the current single-SELECT adaptation. At first
+step evaluate/coerce LIMIT first. A literal integer zero emits an immediate jump
+to the compound end before OFFSET code; a non-literal LIMIT emits `MustBeInt` and
+`IfNot` before OFFSET code. Therefore zero LIMIT skips OFFSET evaluation as well as
+all producers in the pinned compound path. If LIMIT is nonzero, evaluate/coerce
+OFFSET, compute `OffsetLimit`, then initialize arms. Negative LIMIT is unbounded
+and negative OFFSET becomes zero. Tests must distinguish literal zero,
+parameter/expression zero, and nonzero LIMIT with invalid OFFSET; do not copy the
+current admitted single-SELECT guarantee that zero LIMIT still coerces OFFSET into
+this future compound contract.
+
+For UNION ALL only, copy `LIMIT+OFFSET` (the `iOffset+1` register when OFFSET is
+present, otherwise LIMIT) as an identical cap into both producer coroutines while
+retaining the single global output counters. This is a per-side work bound, not a
+partitioned budget. For set operators do not let an arm-local cap alter duplicate/
+set membership. OFFSET is consumed once in the output subroutine, and LIMIT
+decrements only after a row reaches its destination. Only the rightmost arm may
+syntactically own these clauses.
 
 #### Async, resources, lifecycle, and verification
 
