@@ -40,3 +40,10 @@ test('compound deadline and exact work bound keep first error and cleanup',async
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step({timeoutMs:2}),e=>e.kind==='timeout');assert.throws(()=>s.finalize(),e=>e.kind==='timeout');s=undefined;Date.now=now;const limited=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(limited.step({maxWorkUnits:0}),e=>e.kind==='limit');assert.throws(()=>limited.finalize(),e=>e.kind==='limit');const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
  finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
+
+test('ordered mixed table compound uses one typed global merge with LIMIT',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
+ for(const [sql,expected] of [['SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY v DESC',["8",7n,7n]],['SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY 1 DESC LIMIT 2 OFFSET 1',[7n,7n]]]){s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected);assert.equal(s.columnMetadata(0).name,'v');s.finalize();s=undefined}
+ assert.throws(()=>db.prepare('SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY missing'),e=>e.kind==='sqlite'&&e.code===1);
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});
