@@ -36,6 +36,7 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.equal(resolve('SELECT x FROM a RIGHT JOIN b USING(x)').result[0].source.table.name,'b');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a JOIN b ON main.a.x=b.x'));
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON temp.a.x=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: temp.a.x');
+ assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b ON same=b.x'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON chosen=b.x'));
  assert.throws(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON missing=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a LEFT JOIN b ON b.x=c.x JOIN b AS c ON 1'),e=>e instanceof NameResolutionError&&e.message==='ON clause references tables to its right');
