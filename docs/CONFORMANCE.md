@@ -273,3 +273,16 @@ exercise their parameter, value, lifecycle, encoding, metadata, and close behavi
 ### Relational working-state pre-implementation gate
 
 `stage3-relational-working-state.json` is a schema-v4, native-captured development gate for ORDER BY, DISTINCT, LIMIT/OFFSET, compounds, and private-state cleanup. The TypeScript private-state safety companions additionally assert exact per-record/logical-byte/KeyInfo-term/merge-move charging and exhaustive cleanup-error behavior; these remain no-credit lifecycle evidence. Validate it with `python3 test/conformance/relational-working-state-manifest.test.py`; regenerate only with the pinned metadata-enabled native library and `capture-relational-working-state.py`. The validator requires literal upstream IDs/setup anchors, exact source identity, typed ordered values, operation partitions, and phase-correct errors. `run-relational-working-state-ts.mjs` attempts/passes 3 literal upstream assertions: declared 18, attempted/passed 3, unattempted 15, upstream credit 2, companion credit 0. `up-distinct-3.0` passes but is no-credit pending exact UNIQUE-autoindex fixture parity; credited IDs are `up-limit-1.2.1` and `up-select4-10.3`. Its two additional exact public-API sorter/ephemeral queries are uncredited smoke demonstrations outside the declared denominator. Companion tests and native matches never establish upstream compatibility.
+
+### Aggregate private-byte correction evidence (2026-09-16)
+
+`maxPrivateBytes` is now tested as one execution-wide bound across simultaneous
+sorter and ephemeral cursors, rather than as a separate allowance for each cursor.
+The internal private-state suite covers cross-kind reservation, atomic failed
+reservation/replacement, post-growth rollback, clear, and close. The public
+compound lifecycle suite forces two individually admissible 8-byte INTEGER set
+entries to overlap under a 12-byte limit and requires a `kind:"limit"` failure,
+first-error identity through reset/finalize, deterministic rerun, full cleanup,
+and successful later connection admission. These are no-credit resource/lifecycle
+companions: they do not change the relational 18-case accounting or the compound
+gate's 22 declared/attempted/passed/credited cases.

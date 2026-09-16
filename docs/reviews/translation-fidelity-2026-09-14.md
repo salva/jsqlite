@@ -391,3 +391,36 @@ evidence that any finding is resolved.
 ### 11. LIMIT control/top-N correction (current working revision)
 
 The prior synthetic `ComputeLimit` and host `ResultRow` counters are removed. Admitted scalar/table programs emit register-based `MustBeInt`, `OffsetLimit`, zero-test, `IfPos`, `IfNotZero`, and `DecrJumpZero` control mapped to SQLite 3.53.4 `select.c:computeLimitRegisters`, `codeOffset`, and `pushOntoSorter`, with implementations mapped to `vdbe.c`. Ordered positive LIMIT retains at most LIMIT+OFFSET typed sorter candidates; negative LIMIT remains unbounded. Program-shape and public lifecycle/resource tests protect the correction. Relational accounting remains exactly 2/18; no new upstream case is credited.
+
+### Findings 10/11 current reconciliation (revision 2026-09-16)
+
+The earlier Finding 10 statement that compounds remained unsupported is retained
+above as historical provenance, not current fact. The admitted bounded surface now
+includes scalar and structured-VALUES compounds plus direct-column/no-WHERE table
+arms, including set-prefix to trailing `UNION ALL` handoff, typed duplicate
+semantics, compound collation, global ORDER and LIMIT/OFFSET. Wider table
+expressions, joins, per-arm WHERE, subqueries/CTEs and the other documented forms
+remain explicit prepare-time gaps. For admitted finite producers the TypeScript
+VM uses typed bounded sorter/ephemeral materialization instead of pinned
+`select.c:multiSelectByMerge` coroutine subprograms because it has no native
+resumable subprogram stack. Shared `Mem`/`KeyInfo` comparison, representative
+choice, collation, ordering, multiplicity, global limits, async suspension,
+cancellation and cleanup are preserved and source-based public tests cover them;
+no `Array.sort`, JS `Set`, AST execution, disk spill, or main-file write is used.
+
+Finding 11's prior 3/18 relational snapshot remains the separate relational gate
+provenance, but its claim that compounds are unsupported is superseded. The exact
+compound gate is 22 declared / 22 attempted / 22 passed / 22 credited, with its
+12-case native boundary companion receiving no additional credit. The relational
+working-state accounting remains 18 declared, 3 attempted/passed, 2 credited, 15
+unattempted, and zero companion credit; no number is promoted by the resource fix.
+
+The current resource correction makes documented `maxPrivateBytes` genuinely
+aggregate across all simultaneously live private cursors in one statement
+execution. One VDBE-owned budget covers insertion, atomic replacement, deletion,
+intersection, clear, rollback and close, so compound primary/auxiliary/sorter state
+cannot multiply the advertised cap. Public and primitive regressions cover an
+overlapping-cursor failure, first-error retention, complete cleanup, rerun, and
+later admission. Disk spill remains a browser adaptation omission rather than a
+permanent SQL-scope reduction. The unversioned-fixture provenance caution above
+also remains in force.

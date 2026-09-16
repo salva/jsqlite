@@ -829,3 +829,20 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
 - Current exact gate: 22 declared / 22 attempted / 22 passed / 22 credited. The
   earlier zero-credit, 15-attempt, not-implemented table is explicitly superseded.
   Atomic table-arm and broader SQL exclusions are unchanged.
+
+### Aggregate private-state budget correction (2026-09-16)
+
+- `src/vdbe.c` sorter/ephemeral cursor lifetime and cleanup plus `src/vdbesort.c`,
+  `src/btree.c` private ephemeral paths, and `src/vdbeaux.c` record/KeyInfo
+  accounting -> `src/internal/vdbe.ts:VdbeStatement` owns one
+  `PrivateStateByteBudget`; `src/internal/private-state.ts` shares it across all
+  sorter and ephemeral cursors in that execution.
+- Insert/replacement/removal/intersection/clear/close and failed-growth rollback
+  reserve or release aggregate logical bytes atomically. Thus overlapping compound
+  primary, membership, and output cursors cannot each consume `maxPrivateBytes`.
+- `test/value/private-state.test.mjs` checks cross-kind accounting and rollback;
+  `test/conformance/compound-union-all.test.mjs` checks the limit, saved-error
+  lifecycle, cleanup, rerun, and later admission through the public API.
+- This fixes resource ownership only. The documented finite-producer typed
+  materialization substitute for `select.c:multiSelectByMerge`, its preserved
+  observables, exact 22/22 compound gate, and broader exclusions are unchanged.

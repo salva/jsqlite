@@ -258,7 +258,7 @@ visited `KeyInfo` comparison term, and merge move, in addition to the enclosing
 VDBE opcode. Cancellation, deadline, and work checks bracket bounded growth and
 run at each comparison/move charge; failed post-growth admission rolls the entry
 back. `maxRows` counts
-`"row"` outcomes across one execution until reset, and `maxResultBytes` bounds only public/scalar result values. Private sorter/ephemeral state is independently bounded by `maxPrivateEntries` (default 100,000), `maxPrivateKeyBytes` (default 16 MiB), and `maxPrivateBytes` (default 256 MiB), fixed immutably when a statement Program is prepared. Limits must cover parser
+`"row"` outcomes across one execution until reset, and `maxResultBytes` bounds only public/scalar result values. Private sorter/ephemeral state is independently bounded by `maxPrivateEntries` (default 100,000), `maxPrivateKeyBytes` (default 16 MiB), and `maxPrivateBytes` (default 256 MiB), fixed immutably when a statement Program is prepared. `maxPrivateBytes` is one aggregate execution-wide budget shared by every simultaneously live sorter and ephemeral cursor in that statement; it is not a per-cursor allowance. Reset, failure, and finalize release all reservations before later connection work is admitted. Limits must cover parser
 recursion, expression depth, page/b-tree/overflow traversal, and query loops as
 required by SPEC. This Stage 1 contract does not falsely select numeric defaults
 before measurements and engine consumers exist.

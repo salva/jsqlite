@@ -4,7 +4,7 @@ import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
 import {compileScalarSelect,DEFAULT_PRIVATE_STATE_LIMITS} from '../../src/internal/vdbe.ts';
 import {parseSql} from '../../src/internal/parse.ts';
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
-async function withDb(fn){const b=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`));await fn(db)}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>b.server.close(e=>e?j(e):r()))}}
+async function withDb(fn,limits){const b=await startFixtureServer(root);let db;try{const request=new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`);db=limits?await open(request,{limits}):await openFixture(request);await fn(db)}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>b.server.close(e=>e?j(e):r()))}}
 test('unordered scalar UNION ALL preserves arm order/multiplicity and leftmost name',()=>withDb(async db=>{const s=db.prepare('SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2').statement;try{assert.equal(s.columnMetadata(0).name,'v');const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[2n,1n,2n])}finally{s.finalize()}}));
 test('compound LIMIT/OFFSET is global and coerced at first step',()=>withDb(async db=>{let s=db.prepare('SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 1').statement;try{assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);assert.equal(await s.step(),'done')}finally{s.finalize()}s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 'x'").statement;await assert.rejects(()=>s.step(),e=>e?.kind==='sqlite'&&e?.code===20);assert.throws(()=>s.finalize(),e=>e?.code===20)}));
 test('width mismatch rejects before any arm can execute',()=>withDb(async db=>{assert.throws(()=>db.prepare('SELECT 1 UNION ALL SELECT 2,3'),e=>e?.kind==='sqlite'&&e?.code===1)}));
@@ -88,3 +88,15 @@ test('compound zero LIMIT bypasses OFFSET coercion and producers',async()=>{
   s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.reset(),e=>e.message==='datatype mismatch');s.finalize();s=undefined;s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.finalize(),e=>e.message==='datatype mismatch');s=undefined;
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
+
+test('maxPrivateBytes is aggregate across simultaneous compound cursors and releases on reset',()=>withDb(async db=>{
+ // Each ephemeral cursor contains one 8-byte INTEGER below 12, but the primary
+ // INTERSECT set and its auxiliary are live together and may not total 16.
+ const limited=db.prepare('VALUES(1) INTERSECT VALUES(1)').statement;
+ let first;await assert.rejects(limited.step(),e=>{first=e;return e instanceof JSQLiteError&&e.kind==='limit'&&e.message.includes('total byte limit')});
+ assert.throws(()=>limited.reset(),e=>e===first,'reset preserves the first failure after releasing both cursors');
+ await assert.rejects(limited.step(),e=>e.kind==='limit','rerun deterministically reaches the same aggregate bound');
+ try{limited.finalize()}catch(e){assert.equal(e.kind,'limit')}
+ // Failure/finalize returned the execution budget, so another statement starts clean.
+ const admitted=db.prepare('VALUES(1)').statement;try{assert.equal(await admitted.step(),'row');assert.equal(admitted.column(0),1n)}finally{admitted.finalize()}
+},{maxPrivateBytes:12,maxPrivateKeyBytes:16,maxPrivateEntries:10}));

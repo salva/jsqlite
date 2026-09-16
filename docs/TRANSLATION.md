@@ -1765,3 +1765,25 @@ representatives, global ORDER/LIMIT/OFFSET, async publication and private bounds
 The exact public denominator remains 22 declared/attempted/passed/credited; focused
 source-based companions cover the additional destination transition without
 changing that denominator. Existing table-arm and broader SQL exclusions remain.
+
+#### Aggregate private-byte ownership correction (2026-09-16)
+
+`maxPrivateBytes` is owned by one statement execution, not by each private cursor.
+`VdbeStatement` creates one `PrivateStateByteBudget` and passes it to every
+`SorterCursor` and `EphemeralIndexCursor`; reserve, atomic replacement, deletion,
+intersection filtering, clear, failed post-growth rollback, and close update that
+shared budget. This matters for admitted compounds, where a primary set, an
+INTERSECT membership set, and an ordered-output sorter can overlap. The public
+regression uses two individually admissible 8-byte INTEGER records with a 12-byte
+execution limit and requires the second cursor's insertion to fail, followed by
+complete cleanup, deterministic rerun failure, preserved first error, and later
+connection admission. Entry/key/work limits retain their existing owners.
+
+This correction does not broaden SQL or change the accepted finite-producer
+substitution for pinned `select.c:multiSelectByMerge`: admitted scalar, structured
+VALUES, and direct-column table producers materialize through typed `Mem`/`KeyInfo`
+private cursors because the browser TypeScript VM has no native resumable VDBE
+subprogram stack. Ordering, duplicate representatives, collation, global
+LIMIT/OFFSET, suspension, cancellation and finite aggregate bounds remain covered
+through public source-based tests. Disk spill remains intentionally omitted; wider
+table expressions, joins, per-arm WHERE, and other documented forms remain gated.

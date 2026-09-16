@@ -11,6 +11,15 @@ export interface PrivateStateLimits {
  * bounded growth without adding work. */
 export interface PrivateStateControl { checkpoint(units?: number): Promise<void> }
 export class PrivateStateLimitError extends Error { constructor(message:string){super(message);this.name="PrivateStateLimitError"} }
+/** One execution-owned aggregate budget shared by every private cursor. */
+export class PrivateStateByteBudget {
+  readonly maxBytes:number; #used=0;
+  constructor(maxBytes:number){this.maxBytes=maxBytes}
+  reserve(bytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error("invalid private-state byte reservation");if(this.#used+bytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=bytes}
+  replace(oldBytes:number,newBytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(oldBytes)||!Number.isSafeInteger(newBytes)||oldBytes<0||newBytes<0||oldBytes>this.#used)throw new Error("invalid private-state byte replacement");if(this.#used-oldBytes+newBytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=newBytes-oldBytes}
+  release(bytes:number):void{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#used)throw new Error("invalid private-state byte release");this.#used-=bytes}
+  get usedBytes():number{return this.#used}
+}
 type Entry={key:Mem[];payload:Mem[];sequence:number;bytes:number};
 function cellBytes(value:Mem):number { const kind=value.initialStorageClass;return kind==="text"?value.textBytes().byteLength:kind==="blob"?value.blobValue().byteLength:kind==="integer"||kind==="real"?8:0; }
 function logicalBytes(values:readonly Mem[]):number{return values.reduce((n,value)=>n+cellBytes(value),0)}
@@ -30,23 +39,25 @@ async function compareEntry(a:Entry,b:Entry,keyInfo:KeyInfo,control:PrivateState
  * order; no synthetic sequence participates in key equality. */
 export class SorterCursor {
   readonly kind="sorter" as const; readonly keyInfo:KeyInfo; readonly limits:PrivateStateLimits;
-  #entries:Entry[]=[];#bytes=0;#sequence=0;#at=-1;#closed=false;
-  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits){this.keyInfo=keyInfo;this.limits=limits}
+  #entries:Entry[]=[];#sequence=0;#at=-1;#closed=false;readonly #budget:PrivateStateByteBudget;
+  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
   async insert(key:readonly Mem[],payload:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();const keyBytes=logicalBytes(key),bytes=keyBytes+logicalBytes(payload);
    if(key.length!==this.keyInfo.keyFieldCount)throw new Error("sorter key width does not match KeyInfo");
    if(keyBytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("sorter key exceeds byte limit");
    if(this.#entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("sorter exceeds entry limit");
-   if(this.#bytes+bytes>this.limits.maxBytes)throw new PrivateStateLimitError("sorter exceeds total byte limit");
-   await control.checkpoint(1+bytes); // admitted record plus every logical byte copied
+   this.#budget.reserve(bytes,"sorter exceeds total byte limit");
+   try { await control.checkpoint(1+bytes); // admitted record plus every logical byte copied
    await control.checkpoint(0);      // immediately before bounded growth
-   const entry={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes};
-   this.#entries.push(entry);this.#bytes+=bytes;
+   } catch(error){this.#budget.release(bytes);throw error}
+   let entry:Entry;try { entry={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes}; }
+   catch(error){this.#budget.release(bytes);throw error}
+   this.#entries.push(entry);
    try { await control.checkpoint(0); } // cancellation/deadline immediately after growth
    catch(error){
     // The opcode has not completed. Undo ownership/accounting so reset or a
     // direct caller never observes a partially admitted record.
-    this.#entries.pop();this.#bytes-=bytes;this.#sequence--;releaseEntry(entry);throw error;
+    this.#entries.pop();this.#sequence--;releaseEntry(entry);this.#budget.release(bytes);throw error;
    }
   }
   async insertBounded(key:readonly Mem[],payload:readonly Mem[],capacity:bigint,control:PrivateStateControl):Promise<void>{
@@ -57,11 +68,11 @@ export class SorterCursor {
    if(await compareEntry(candidate,this.#entries[worst]!,this.keyInfo,control)>=0){await control.checkpoint(1);return}
    const keyBytes=logicalBytes(key),bytes=keyBytes+logicalBytes(payload),old=this.#entries[worst]!;
    if(keyBytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("sorter key exceeds byte limit");
-   if(this.#bytes-old.bytes+bytes>this.limits.maxBytes)throw new PrivateStateLimitError("sorter exceeds total byte limit");
-   await control.checkpoint(1+bytes);await control.checkpoint(0);
-   const replacement={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes};
-   this.#entries[worst]=replacement;this.#bytes+=bytes-old.bytes;
-   try{await control.checkpoint(0)}catch(error){this.#entries[worst]=old;this.#bytes+=old.bytes-bytes;this.#sequence--;releaseEntry(replacement);throw error}
+   this.#budget.replace(old.bytes,bytes,"sorter exceeds total byte limit");
+   try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.replace(bytes,old.bytes);throw error}
+   let replacement:Entry;try{replacement={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes}}catch(error){this.#budget.replace(bytes,old.bytes);throw error}
+   this.#entries[worst]=replacement;
+   try{await control.checkpoint(0)}catch(error){this.#entries[worst]=old;this.#sequence--;releaseEntry(replacement);this.#budget.replace(bytes,old.bytes);throw error}
    releaseEntry(old);
   }
   async sort(control:PrivateStateControl):Promise<void>{
@@ -81,7 +92,7 @@ export class SorterCursor {
    this.#entries=source;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#entries.length>0}next():boolean{this.#live();return ++this.#at<this.#entries.length}data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#entries.length)throw new Error("sorter cursor is not positioned");return this.#entries[this.#at]!.payload}
-  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(releaseEntry);this.#entries=[];this.#bytes=0;this.#at=-1}
+  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
   #live():void{if(this.#closed)throw new Error("sorter cursor is closed")}
 }
 
@@ -89,37 +100,38 @@ export class SorterCursor {
  * equality; NULLs compare equal for DISTINCT. */
 export class EphemeralIndexCursor {
   readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;
-  #entries:Entry[]=[];#bytes=0;#closed=false;#at=-1;
-  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits){this.keyInfo=keyInfo;this.limits=limits}
+  #entries:Entry[]=[];#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
+  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
   async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{this.#live();for(const entry of this.#entries)if(await compareEntry(entry,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0)return true;return false}
   async remove(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#entries.splice(i,1);this.#bytes-=entry!.bytes;releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
+   this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#entries.splice(i,1);this.#budget.release(entry!.bytes);releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
   }
   /** Retain this cursor's records whose complete keys occur in `other`.
    * The cells deliberately remain those owned by this (left) cursor: SQLite
    * INTERSECT uses the right records only for membership, preserving the left
    * representative when INTEGER/REAL or collation equality matches. */
   async retainFoundIn(other:EphemeralIndexCursor,control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#entries.length;){const entry=this.#entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#entries.splice(i,1);this.#bytes-=entry.bytes;releaseEntry(entry);if(this.#at>=i)this.#at--}
+   this.#live();for(let i=0;i<this.#entries.length;){const entry=this.#entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#entries.splice(i,1);this.#budget.release(entry.bytes);releaseEntry(entry);if(this.#at>=i)this.#at--}
   }
-  clear():void{this.#live();this.#entries.forEach(releaseEntry);this.#entries=[];this.#bytes=0;this.#at=-1}
+  clear():void{this.#live();this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
   async insert(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();const bytes=logicalBytes(key);
    if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral key exceeds byte limit");
    if(this.#entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("ephemeral index exceeds entry limit");
-   if(this.#bytes+bytes>this.limits.maxBytes)throw new PrivateStateLimitError("ephemeral index exceeds total byte limit");
-   await control.checkpoint(1+bytes);await control.checkpoint(0);
-   const entry={key:copyCells(key),payload:[],sequence:this.#entries.length,bytes};
-   this.#entries.push(entry);this.#bytes+=bytes;
+   this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit");
+   try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.release(bytes);throw error}
+   let entry:Entry;try{entry={key:copyCells(key),payload:[],sequence:this.#entries.length,bytes}}catch(error){this.#budget.release(bytes);throw error}
+   this.#entries.push(entry);
    try { await control.checkpoint(0); }
-   catch(error){this.#entries.pop();this.#bytes-=bytes;releaseEntry(entry);throw error}
+   catch(error){this.#entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}
   }
   /** Replace an equal complete record, preserving SQLite UNION's right-side representative. */
   async replace(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){
-    const bytes=logicalBytes(key),old=this.#entries[i]!;if(bytes>this.limits.maxKeyBytes||this.#bytes-old.bytes+bytes>this.limits.maxBytes)throw new PrivateStateLimitError("ephemeral index exceeds byte limit");
-    await control.checkpoint(1+bytes);await control.checkpoint(0);const replacement={key:copyCells(key),payload:[],sequence:old.sequence,bytes};this.#entries[i]=replacement;this.#bytes+=bytes-old.bytes;
-    try{await control.checkpoint(0)}catch(error){this.#entries[i]=old;this.#bytes+=old.bytes-bytes;releaseEntry(replacement);throw error}releaseEntry(old);return;
+    const bytes=logicalBytes(key),old=this.#entries[i]!;if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral index exceeds byte limit");
+    this.#budget.replace(old.bytes,bytes,"ephemeral index exceeds byte limit");try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.replace(bytes,old.bytes);throw error}
+    let replacement:Entry;try{replacement={key:copyCells(key),payload:[],sequence:old.sequence,bytes}}catch(error){this.#budget.replace(bytes,old.bytes);throw error}this.#entries[i]=replacement;
+    try{await control.checkpoint(0)}catch(error){this.#entries[i]=old;releaseEntry(replacement);this.#budget.replace(bytes,old.bytes);throw error}releaseEntry(old);return;
    }return this.insert(key,control);
   }
   async sort(control:PrivateStateControl):Promise<void>{
@@ -128,6 +140,6 @@ export class EphemeralIndexCursor {
   first():boolean{this.#live();this.#at=0;return this.#entries.length>0}
   next():boolean{this.#live();return ++this.#at<this.#entries.length}
   data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#entries.length)throw new Error("ephemeral cursor is not positioned");return this.#entries[this.#at]!.key}
-  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(releaseEntry);this.#entries=[];this.#bytes=0;this.#at=-1}
+  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
   #live():void{if(this.#closed)throw new Error("ephemeral index cursor is closed")}
 }

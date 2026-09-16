@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem} from '../../src/internal/mem.ts';
-import {EphemeralIndexCursor,PrivateStateLimitError,SorterCursor} from '../../src/internal/private-state.ts';
+import {EphemeralIndexCursor,PrivateStateByteBudget,PrivateStateLimitError,SorterCursor} from '../../src/internal/private-state.ts';
 const m=n=>{const x=new Mem();n===null?x.setNull():x.setInt64(BigInt(n));return x};
 const text=value=>{const x=new Mem();x.setText(new TextEncoder().encode(value),'utf-8');return x};
 const noopControl={async checkpoint(){}};
@@ -78,4 +78,18 @@ test('bounded sorter top-N replaces and discards atomically with cancellation ro
  const offset=new SorterCursor(info,{maxEntries:2,maxKeyBytes:8,maxBytes:32});
  for(const n of [5,2,4,1])await offset.insertBounded([m(n)],[m(n)],2n,noopControl);
  await offset.sort(noopControl);const kept=[];for(let ok=offset.first();ok;ok=offset.next())kept.push(offset.data()[0].integerValue());assert.deepEqual(kept,[1n,2n]);offset.close();
+});
+
+test('one execution byte budget is atomic across simultaneous cursor kinds',async()=>{
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]}),limits={maxEntries:4,maxKeyBytes:16,maxBytes:12},budget=new PrivateStateByteBudget(12);
+ const set=new EphemeralIndexCursor(info,limits,budget),sorter=new SorterCursor(info,limits,budget);
+ await set.insert([m(1)],noopControl); // 8; each cursor remains individually below 12
+ await assert.rejects(sorter.insert([m(2)],[],noopControl),error=>error instanceof PrivateStateLimitError);
+ assert.equal(budget.usedBytes,8,'failed aggregate reservation is atomic');
+ set.clear();assert.equal(budget.usedBytes,0);await sorter.insert([m(2)],[],noopControl);
+ let checks=0;const cancelled=new Error('post-growth');
+ set.clear();sorter.close();assert.equal(budget.usedBytes,0);
+ await assert.rejects(set.insert([m(3)],{async checkpoint(){if(++checks===3)throw cancelled}}),error=>error===cancelled);
+ assert.equal(budget.usedBytes,0,'post-growth rollback releases aggregate reservation');
+ await set.insert([m(4)],noopControl);set.close();assert.equal(budget.usedBytes,0);
 });

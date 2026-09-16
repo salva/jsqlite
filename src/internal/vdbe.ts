@@ -7,7 +7,7 @@ import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord,
 import type { SelectNode } from "./parse.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
-import { EphemeralIndexCursor, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
+import { EphemeralIndexCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph, TableNode } from "./schema.ts";
@@ -612,6 +612,7 @@ export class VdbeStatement implements Statement {
   #cursor: TableScanCursor | null = null;
   #record: ReturnType<typeof decodeRecord> | null = null;
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor>();
+  #privateBytes: PrivateStateByteBudget;
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -620,6 +621,7 @@ export class VdbeStatement implements Statement {
     this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
     this.#bindings = program.parameters.map(() => new Mem());
+    this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
   }
   get columnCount(): number { return this.#program.columns.length; }
   get parameterCount(): number { return this.#program.parameters.length; }
@@ -654,8 +656,8 @@ export class VdbeStatement implements Statement {
           case "IfNotZero": {const value=this.#registers[op.p1]!.integerValue();if(value!==0n){if(value>0n)this.#registers[op.p1]!.setInt64(value-1n);this.#pc=op.p2;}break;}
           case "IfPos": {const value=this.#registers[op.p1]!.integerValue();if(value>0n){this.#registers[op.p1]!.setInt64(value-BigInt(op.p3));this.#pc=op.p2;}break;}
           case "DecrJumpZero": {const value=this.#registers[op.p1]!.integerValue(),next=value>-(1n<<63n)?value-1n:value;this.#registers[op.p1]!.setInt64(next);if(next===0n)this.#pc=op.p2;break;}
-          case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,this.#program.privateStateLimits));break;
-          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits));break;
+          case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
+          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
           case "SorterInsert": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
