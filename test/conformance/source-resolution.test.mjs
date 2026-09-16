@@ -9,6 +9,8 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));s=db.prepare('SELECT l.* FROM left_meta AS l').statement;
  assert.equal(s.columnCount,1);assert.deepEqual(s.columnMetadata(0),{name:'a',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});
  const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n]);s.finalize();s=null;
+ assert.throws(()=>db.prepare('SELECT a FROM left_meta INDEXED BY missing_index'),e=>e.kind==='sqlite'&&e.message==='no such index: missing_index');
+ s=db.prepare('SELECT a FROM left_meta NOT INDEXED').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT main.left_meta.a FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'a',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM temp.left_meta'),e=>e.kind==='sqlite'&&e.message==='no such table: temp.left_meta');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: left_meta.a');
