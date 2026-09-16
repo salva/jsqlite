@@ -41,3 +41,12 @@ test('collation equality preserves operator-specific representative and storage 
   assert.deepEqual(await rows("SELECT 'a' COLLATE nocase UNION SELECT 'A'"),[['A']]);
   assert.deepEqual(await rows('SELECT 1.0 COLLATE nocase INTERSECT SELECT 1'),[[1]]);
 });
+
+test('scalar and structured VALUES set prefixes hand off to trailing UNION ALL',async()=>{
+  assert.deepEqual(await rows("SELECT 1 UNION SELECT 1 UNION ALL SELECT 1"),[[1n],[1n]]);
+  assert.deepEqual(await rows("SELECT 1 UNION SELECT 1.0 UNION ALL SELECT 1.0"),[[1],[1]]);
+  assert.deepEqual(await rows("SELECT 'a' COLLATE nocase UNION SELECT 'A' UNION ALL SELECT 'a'"),[['A'],['a']]);
+  assert.deepEqual(await rows("VALUES(1),(1) UNION VALUES(1) UNION ALL VALUES(1),(2)"),[[1n],[1n],[2n]]);
+  assert.deepEqual(await rows("SELECT 1 UNION SELECT 1 UNION ALL SELECT 2 ORDER BY 1 DESC LIMIT 2 OFFSET 1"),[[1n]]);
+  assert.deepEqual(await rows("VALUES(1),(1) UNION VALUES(1) UNION ALL SELECT 2 UNION ALL SELECT 1 ORDER BY 1 DESC"),[[2n],[1n],[1n]]);
+});

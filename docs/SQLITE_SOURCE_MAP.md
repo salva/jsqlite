@@ -684,7 +684,12 @@ by host Python `sqlite3` remain setup fixtures only; assertions about pinned
 behavior are backed by this source-identified native capture, not by the host
 module's unversioned provenance.
 
-## Compound SELECT / structured multirow VALUES design (zero-credit, 2026-09-15)
+## Compound SELECT / structured multirow VALUES design (superseded checkpoint, 2026-09-15)
+
+> This table is the original design checkpoint, not current status. Its
+> zero-credit/not-implemented cells and 15-attempt evidence are superseded by the
+> later implementation mappings: the current exact public gate is 22 declared /
+> 22 attempted / 22 passed / 22 credited.
 
 | Project seam | Pinned SQLite 3.53.4 owner | Required mapping / current status |
 |---|---|---|
@@ -800,3 +805,19 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
   to equal the manifest partition; prepare errors truthfully leave statement-only
   operations unattempted. `recapture-compound-values.py` preserves this current
   accounting on pinned-oracle recapture.
+
+### Set-prefix destination handoff completion (2026-09-16)
+
+- `src/select.c:multiSelect` set destination transitions ->
+  `src/internal/vdbe.ts:compileScalarSelect`: scalar and structured-VALUES set
+  prefixes use typed ephemeral `KeyInfo`, preserve left-to-right representatives,
+  then drain once into the same destination used by trailing `UNION ALL` arms.
+- Unordered rows use the direct output destination. Ordered admitted finite
+  producers use the existing bounded typed sorter as the browser-safe substitute
+  for `multiSelectByMerge` coroutine subprograms. The TypeScript VM has finite
+  generated producers but no native resumable VDBE subprogram stack; observable
+  ordering, multiplicity, comparison, global LIMIT/OFFSET, suspension and bounds
+  are preserved by focused source-based tests.
+- Current exact gate: 22 declared / 22 attempted / 22 passed / 22 credited. The
+  earlier zero-credit, 15-attempt, not-implemented table is explicitly superseded.
+  Atomic table-arm and broader SQL exclusions are unchanged.

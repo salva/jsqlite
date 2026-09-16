@@ -1291,17 +1291,13 @@ accounting. Current machine accounting attempts/passes 3/18 and credits 2/18;
 the passing DISTINCT assertion remains no-credit pending exact UNIQUE-autoindex
 fixture parity.
 
-### Compound SELECT and structured multirow VALUES design (implementation handoff)
+### Compound SELECT and structured multirow VALUES design (superseded implementation handoff)
 
-This remains a zero-credit design over the development-only
-`stage3-compound-values` contract: **22 declared / 22 native-matched / 15 public
-TS prepare attempts / 0 TS credits**. The accepted native foundation at `f1dbe61`
-and completed native-gate commit `e1e6b91` (core 22/22 and boundary 12/12 exact
-recaptures) are evidence, not implementation or TS credit. Current HEAD also
-confirms the revised audit finding 1: generated production ownership and the
-retained `hasCompound`/`hasValues` rejection are sound safety foundations. They
-are to be replaced at their owning reductions with structure, not bypassed by
-token reparsing, a catch-all evaluator, or a second parser.
+> **Superseded checkpoint (2026-09-15):** the zero-credit and 15-attempt figures
+> below describe the pre-implementation handoff, not current conformance. The
+> current exact public contract is 22 declared / 22 attempted / 22 passed / 22
+> credited; current implementation and adaptation details are recorded in the
+> later completion sections.
 
 #### Immutable query graph and preparation contract
 
@@ -1746,3 +1742,18 @@ protocol; seven prepare-error cases attempt open, prepare, and close and retain
 metadata, step, and finalize as unattempted. Runtime traces must equal that
 manifest partition before a passing case receives credit; native expectations and
 TS credit remain independently validated.
+
+#### Set-prefix to trailing UNION ALL completion (2026-09-16)
+
+Scalar and structured-VALUES compounds now complete every left-to-right set prefix
+in the existing typed ephemeral destination and hand its retained representatives,
+followed by every trailing `UNION ALL` row in source order and multiplicity, to one
+shared output or sorter destination. Unordered output is the direct
+`multiSelect`/`SRT_Output`-shaped route. Ordered finite scalar/VALUES producers use
+the bounded materialized sorter instead of native resumable coroutine subprograms:
+the browser/TypeScript VM has finite generated producers but no native VDBE
+subprogram stack, while the substitution preserves typed comparison, duplicate
+representatives, global ORDER/LIMIT/OFFSET, async publication and private bounds.
+The exact public denominator remains 22 declared/attempted/passed/credited; focused
+source-based companions cover the additional destination transition without
+changing that denominator. Existing table-arm and broader SQL exclusions remain.

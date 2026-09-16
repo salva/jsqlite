@@ -322,3 +322,9 @@ alter set membership. The exact compound contract is 22/22 credited public cases
 Its seven prepare-error cases record only open, prepare, and close as attempted;
 metadata, step, and finalize remain explicitly unattempted because no statement
 exists. Credit requires the runner's actual operation trace to match that record.
+
+Set operators may be followed by trailing `UNION ALL` arms in the admitted
+scalar/structured-VALUES surface. The completed set prefix retains SQLite typed
+representatives, then trailing rows retain source order and multiplicity; compound
+ORDER and global LIMIT/OFFSET apply to the combined result. This does not admit
+previously excluded table-arm expressions, per-arm WHERE, joins, or broader SQL.
