@@ -424,3 +424,48 @@ overlapping-cursor failure, first-error retention, complete cleanup, rerun, and
 later admission. Disk spill remains a browser adaptation omission rather than a
 permanent SQL-scope reduction. The unversioned-fixture provenance caution above
 also remains in force.
+
+### Findings 10/11 current completion update (revision 2026-09-16, integration HEAD `7660b18`)
+
+This revision supersedes only the old findings' current-state predictions; their
+text remains above as provenance. The admitted compound surface is bounded:
+scalar arms, structured multirow `VALUES`, and the established direct-column,
+single-source table-arm subset with no per-arm `WHERE`. It includes all four set
+operators, set-prefix-to-trailing-`UNION ALL`, typed duplicate representatives,
+compound ORDER, and global LIMIT/OFFSET. It does **not** admit table expressions,
+per-arm `WHERE`, joins/multiple sources, subqueries, aggregates, windows, CTEs,
+views, or general coroutine-merge execution; those forms remain atomic typed
+prepare-time exclusions.
+
+For admitted finite scalar/VALUES producers, the comparison point is pinned SQLite
+3.53.4 `select.c:multiSelectByMerge` and its resumable VDBE coroutine subprograms.
+The TypeScript/browser VM has finite generated producers but no native resumable
+subprogram stack, so it exceptionally materializes through the shared typed,
+bounded sorter/ephemeral implementation. This is not a host `Array.sort`, JS
+`Set`, second parser, catch-all evaluator, or disk/main-database path. Shared
+`Mem`/`KeyInfo` comparison preserves storage classes, NULL and INTEGER/REAL
+equality, left-to-right collation and representatives, ordering and multiplicity;
+shared destinations preserve global LIMIT/OFFSET and asynchronous row suspension.
+Work, deadline, cancellation, entry/key/byte/result bounds, first-error cleanup,
+reset, and finalize remain enforced. Parser ownership, opcode/destination,
+collation/representative, set-to-ALL, ORDER/LIMIT, cancellation, lifecycle, and
+resource tests are the source-based evidence for those preserved observables.
+
+Compound conformance is exactly **22 declared / 22 attempted / 22 passed / 22
+credited** through the singular public prepared-statement API. The separate
+12-case pinned-native boundary capture and its focused public companions retain
+provenance but receive no additional credit and do not alter that denominator.
+The earlier relational working-state snapshot—18 declared, 3 attempted/passed,
+2 credited, 15 unattempted—is explicitly historical and separate; it is neither
+current compound accounting nor evidence for compound behavior.
+
+The resource blocker identified after the prior reconciliation is now closed by
+an execution-owned private-byte budget shared by every simultaneously live sorter
+and ephemeral cursor. Admissions, replacement rollback, deletion, intersection,
+clear, close, error unwind, reset, and finalize reserve/release against that one
+budget, preventing multiple compound cursors from multiplying `maxPrivateBytes`.
+The affected aggregate-limit/public/parser/accounting gate passed **73/73** and the
+broad regression gate passed **183/183** at integration HEAD `7660b18`; these
+counts support the aggregate-resource correction but do not expand SQL scope or
+compound credit. The original source-identity and unversioned-fixture cautions
+remain in force.
