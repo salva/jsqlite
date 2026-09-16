@@ -43,6 +43,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT abs(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function abs()');
+ assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
+ assert.throws(()=>resolve('SELECT abs(a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
+ assert.throws(()=>resolve('SELECT sum(missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.doesNotThrow(()=>resolve('SELECT char(),char(a.x,65) FROM a'));
  assert.throws(()=>resolve('SELECT char(missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT mystery(a.x) FILTER (WHERE missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: mystery');
