@@ -62,6 +62,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ORDER BY missing)'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (PARTITION BY a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (RANGE 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x,a.x RANGE 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x RANGE 1 PRECEDING) FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (RANGE CURRENT ROW) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS missing PRECEDING) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS BETWEEN missing PRECEDING AND CURRENT ROW) FROM a'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER (PARTITION BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');

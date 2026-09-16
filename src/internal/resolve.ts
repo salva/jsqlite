@@ -129,6 +129,11 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    const ownerName=ownerToken?sqliteAsciiFold(identifier(ownerToken.text)):'';
    const ownerCount=functionArgumentCount(node);
    const ownerDistinct=node.children.some(child=>child.kind==='reduction'&&child.signature==='distinct ::= DISTINCT');
+   if(over?.kind==='reduction'&&over.signature==='over_clause ::= OVER LP window RP'){
+    const findReduction=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>,prefix:string):import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>|undefined=>part.kind==='reduction'&&part.signature.startsWith(prefix)?part:part.kind==='reduction'?part.children.map(child=>findReduction(child,prefix)).find(Boolean):undefined;
+    const frame=findReduction(over,'frame_opt ::='),range=frame&&tokens(frame).some(item=>item.text.toUpperCase()==='RANGE'),offset=frame&&findReduction(frame,'frame_bound ::= expr PRECEDING|FOLLOWING');
+    if(range&&offset){const sort=findReduction(over,'sortlist ::='),countSort=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number=>part.kind==='reduction'&&part.signature.startsWith('sortlist ::= sortlist COMMA')?countSort(part.children[0]!)+1:1;if(!sort||countSort(sort)!==1)throw new NameResolutionError('RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');}
+   }
    if(over?.kind==='reduction'&&over.signature==='over_clause ::= OVER nm'){const nameToken=tokens(over).at(-1),name=nameToken?identifier(nameToken.text):'';if(!selectWindowNames.some(candidate=>sqliteIdentifierEqual(candidate,name)))throw new NameResolutionError(`no such window: ${name}`);}
    if(over&&ownerDistinct)throw new NameResolutionError('DISTINCT is not supported for window functions');
    const ownerArityValid=ownerCount!==null?(['row_number','rank','dense_rank','percent_rank','cume_dist'].includes(ownerName)?ownerCount===0:ownerName==='ntile'?ownerCount===1:['lag','lead'].includes(ownerName)?ownerCount>=1&&ownerCount<=3:['first_value','last_value'].includes(ownerName)?ownerCount===1:ownerName==='nth_value'?ownerCount===2:true):true;
