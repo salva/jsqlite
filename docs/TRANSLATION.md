@@ -1787,3 +1787,38 @@ subprogram stack. Ordering, duplicate representatives, collation, global
 LIMIT/OFFSET, suspension, cancellation and finite aggregate bounds remain covered
 through public source-based tests. Disk spill remains intentionally omitted; wider
 table expressions, joins, per-arm WHERE, and other documented forms remain gated.
+
+### Multi-source SELECT tests-first architecture ([[card:card-k-a]])
+
+The runtime handoff is [`architecture/multi-source-select.md`](architecture/multi-source-select.md).
+It translates the pinned `SrcList`/`NameContext`/expansion/resolution and
+WHERE-loop/`NullRow` ownership before [[card:card-k]] consumes join code. The
+production graph is an immutable ordered source list built by generated `parse.y`
+reductions; expansion binds schema identities and monotonic cursor IDs, expands
+`*`/qualified `*` with USING/NATURAL visibility, and resolves columns through
+linked name contexts. ON/synthesized USING predicates retain their owning join
+cursor and outer/inner flags rather than being flattened into WHERE.
+
+The first legal planner tranche is streaming source-order nested loops with the
+pinned match-register and NULL-row cursor protocol. This intentionally postpones
+cost/index/reordering choices; it is not a substitute join evaluator and does not
+materialize a Cartesian product. RIGHT is the `selectExpander` source-list rewrite
+to LEFT-shaped control, while FULL adds pinned unmatched-right tracking/control.
+RIGHT/FULL remain atomic prepare gates until their complete rewrite tranche passes.
+Every producer feeds the existing ResultRow/sorter/DISTINCT/compound destinations,
+and all live private cursors share one execution-wide `PrivateStateByteBudget`.
+
+The 27-case pinned-native gate is
+`test/conformance/cases/stage3-multisource-select.{spec.json,json}`, captured by
+`test/conformance/capture-multisource-select.py`. It freezes typed rows, ordered
+metadata, all database encodings, lookup/wildcard/USING/NATURAL errors, every join
+family, outer unmatched/empty behavior, collation/affinity, relational and compound
+composition, and reset/rebinding. Runtime-only cancellation/deadline/work/private
+budget and no-Cartesian-materialization companions remain mandatory. Current TS
+credit is zero: this section changes no public support claim.
+
+Audit reconciliation: Finding 1's original production-identity defect is already
+corrected by current compound reduction ownership. Findings 10/11's original
+compound exclusion is superseded by the audit's 2026-09-16 completion revisions
+(22/22 bounded compound gate and shared aggregate private-byte budget). Neither
+revision claims joins; current multi-source compilation remains atomically gated.

@@ -1,0 +1,1492 @@
+{
+  "schema": "jsqlite-multisource-select/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "comma",
+    "cross",
+    "inner",
+    "left",
+    "right",
+    "full",
+    "aliases",
+    "qualified",
+    "ambiguity",
+    "wildcard",
+    "using",
+    "natural",
+    "outer-empty",
+    "metadata",
+    "typed-values",
+    "encoding",
+    "affinity-collation",
+    "order-distinct-limit",
+    "compound",
+    "reset-rebind"
+  ],
+  "cases": [
+    {
+      "id": "comma-order",
+      "coverage": [
+        "comma",
+        "order-distinct-limit"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l,r WHERE l.k=r.k ORDER BY l.id,r.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "cross",
+      "coverage": [
+        "cross"
+      ],
+      "setup": "names",
+      "sql": "SELECT a.y,b.z FROM a CROSS JOIN b",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "a",
+            "origin": "y"
+          },
+          {
+            "name": "z",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "b",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6179"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "627a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "inner-on-alias",
+      "coverage": [
+        "inner",
+        "aliases",
+        "qualified"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT q.id AS left_id, p.w FROM l AS q INNER JOIN r AS p ON q.k=p.k ORDER BY q.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "left_id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "w",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "r",
+            "origin": "w"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7261"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7262"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "left-unmatched",
+      "coverage": [
+        "left",
+        "typed-values"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          },
+          {
+            "name": "w",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "r",
+            "origin": "w"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7261"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7262"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "left-where-placement",
+      "coverage": [
+        "left"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k WHERE r.id IS NULL ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "left-on-placement",
+      "coverage": [
+        "left"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k AND r.id>15 ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "right-unmatched",
+      "coverage": [
+        "right"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id,r.w FROM l RIGHT JOIN r ON l.k=r.k ORDER BY r.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          },
+          {
+            "name": "w",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "r",
+            "origin": "w"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7261"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7262"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "726e"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "40"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6f6e6c79"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "full-unmatched",
+      "coverage": [
+        "full"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l FULL JOIN r ON l.k=r.k ORDER BY coalesce(l.id,999),r.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "40"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "left-empty",
+      "coverage": [
+        "outer-empty",
+        "right"
+      ],
+      "setup": "empty-left",
+      "sql": "SELECT l.k,r.k FROM l RIGHT JOIN r USING(k) ORDER BY r.k",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "right-empty",
+      "coverage": [
+        "outer-empty",
+        "left"
+      ],
+      "setup": "empty-right",
+      "sql": "SELECT l.k,r.k FROM l LEFT JOIN r USING(k) ORDER BY l.k",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "bare-star-using",
+      "coverage": [
+        "wildcard",
+        "using",
+        "metadata"
+      ],
+      "setup": "names",
+      "sql": "SELECT * FROM a JOIN b USING(x)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "x"
+          },
+          {
+            "name": "y",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "a",
+            "origin": "y"
+          },
+          {
+            "name": "z",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "b",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6179"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "627a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "qualified-star-using",
+      "coverage": [
+        "wildcard",
+        "using",
+        "metadata"
+      ],
+      "setup": "names",
+      "sql": "SELECT a.*,b.* FROM a JOIN b USING(x)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "x"
+          },
+          {
+            "name": "y",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "a",
+            "origin": "y"
+          },
+          {
+            "name": "x",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "x"
+          },
+          {
+            "name": "z",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "b",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6179"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "627a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "natural",
+      "coverage": [
+        "natural",
+        "wildcard"
+      ],
+      "setup": "names",
+      "sql": "SELECT * FROM a NATURAL JOIN b",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "x"
+          },
+          {
+            "name": "y",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "a",
+            "origin": "y"
+          },
+          {
+            "name": "z",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "b",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6179"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "627a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "duplicate-names",
+      "coverage": [
+        "metadata",
+        "qualified"
+      ],
+      "setup": "names",
+      "sql": "SELECT a.x AS same,b.x AS same,a.y,b.z FROM a JOIN b ON a.x=b.x",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "same",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "x"
+          },
+          {
+            "name": "same",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "x"
+          },
+          {
+            "name": "y",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "a",
+            "origin": "y"
+          },
+          {
+            "name": "z",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "b",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6179"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "627a"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "ambiguous",
+      "coverage": [
+        "ambiguity"
+      ],
+      "setup": "names",
+      "sql": "SELECT x FROM a JOIN b ON a.x=b.x",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "ambiguous column name: x"
+        }
+      }
+    },
+    {
+      "id": "no-such-column",
+      "coverage": [
+        "ambiguity"
+      ],
+      "setup": "names",
+      "sql": "SELECT a.missing FROM a,b",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "no such column: a.missing"
+        }
+      }
+    },
+    {
+      "id": "alias-hides-table",
+      "coverage": [
+        "aliases",
+        "qualified"
+      ],
+      "setup": "names",
+      "sql": "SELECT a.x FROM a AS q,b",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "no such column: a.x"
+        }
+      }
+    },
+    {
+      "id": "bad-star-qualifier",
+      "coverage": [
+        "wildcard"
+      ],
+      "setup": "names",
+      "sql": "SELECT q.* FROM a,b",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "no such table: q"
+        }
+      }
+    },
+    {
+      "id": "natural-on-error",
+      "coverage": [
+        "natural"
+      ],
+      "setup": "names",
+      "sql": "SELECT * FROM a NATURAL JOIN b ON a.x=b.x",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "a NATURAL join may not have an ON or USING clause"
+        }
+      }
+    },
+    {
+      "id": "using-missing-error",
+      "coverage": [
+        "using"
+      ],
+      "setup": "names",
+      "sql": "SELECT * FROM a JOIN b USING(missing)",
+      "expect": "prepare-error",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "operation": "prepare",
+          "resultCode": 1,
+          "extendedCode": 1,
+          "message": "cannot join using column missing - column not present in both tables"
+        }
+      }
+    },
+    {
+      "id": "typed-metadata",
+      "coverage": [
+        "typed-values",
+        "metadata"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,l.n,l.v,r.z,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "n",
+            "declType": "REAL",
+            "database": "main",
+            "table": "l",
+            "origin": "n"
+          },
+          {
+            "name": "v",
+            "declType": "BLOB",
+            "database": "main",
+            "table": "l",
+            "origin": "v"
+          },
+          {
+            "name": "z",
+            "declType": null,
+            "database": "main",
+            "table": "r",
+            "origin": "z"
+          },
+          {
+            "name": "w",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "r",
+            "origin": "w"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff8000000000000"
+              },
+              {
+                "type": "blob",
+                "hex": ""
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7261"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "ieee754be": "0000000000000000"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ff0000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7262"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4000000000000000"
+              },
+              {
+                "type": "blob",
+                "hex": "31"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "affinity-collation",
+      "coverage": [
+        "affinity-collation"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l JOIN r ON l.k=r.k COLLATE NOCASE ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "distinct-order-limit",
+      "coverage": [
+        "order-distinct-limit"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT DISTINCT r.z FROM l JOIN r ON l.k=r.k ORDER BY r.z DESC LIMIT 1 OFFSET 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "z",
+            "declType": null,
+            "database": "main",
+            "table": "r",
+            "origin": "z"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        }
+      }
+    },
+    {
+      "id": "compound-arm",
+      "coverage": [
+        "compound"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id FROM l JOIN r ON l.k=r.k UNION ALL SELECT 99 ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "99"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "reset-rebind",
+      "coverage": [
+        "reset-rebind"
+      ],
+      "setup": "utf8",
+      "sql": "SELECT l.id,r.id FROM l JOIN r ON l.k=r.k WHERE l.id>=?1 ORDER BY l.id",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "l",
+            "origin": "id"
+          },
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "r",
+            "origin": "id"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ]
+          ]
+        },
+        "afterResetRebind": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "20"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "utf16le-qualified",
+      "coverage": [
+        "encoding",
+        "qualified"
+      ],
+      "setup": "utf16le",
+      "sql": "SELECT α.名,β.名 FROM α JOIN β USING(id)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "名",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "α",
+            "origin": "名"
+          },
+          {
+            "name": "名",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "β",
+            "origin": "名"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "utf16be-star",
+      "coverage": [
+        "encoding",
+        "wildcard",
+        "using"
+      ],
+      "setup": "utf16be",
+      "sql": "SELECT * FROM α JOIN β USING(id)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "α",
+            "origin": "id"
+          },
+          {
+            "name": "名",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "α",
+            "origin": "名"
+          },
+          {
+            "name": "名",
+            "declType": "TEXT",
+            "database": "main",
+            "table": "β",
+            "origin": "名"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 27,
+    "nativeCaptured": 27,
+    "tsAttempted": 0,
+    "tsCredited": 0
+  }
+}

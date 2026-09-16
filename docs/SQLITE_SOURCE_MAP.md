@@ -846,3 +846,25 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
 - This fixes resource ownership only. The documented finite-producer typed
   materialization substitute for `select.c:multiSelectByMerge`, its preserved
   observables, exact 22/22 compound gate, and broader exclusions are unchanged.
+
+## Multi-source SELECT / join architecture ([[card:card-k-a]])
+
+The detailed consumer contract is
+[`architecture/multi-source-select.md`](architecture/multi-source-select.md), with
+pinned expectations in
+`test/conformance/cases/stage3-multisource-select.{spec.json,json}` and capture in
+`test/conformance/capture-multisource-select.py`.
+
+| Concern | Pinned 3.53.4 owner | TypeScript handoff / evidence |
+|---|---|---|
+| Source production and flags | `src/parse.y:stl_prefix/seltablist/joinop/on_using`; `src/sqliteInt.h:Select/SrcList` | generated reduction-owned immutable ordered `SourceList`; preserve RHS-owned join flags, ON/USING and unsupported payloads; parser graph tests before lowering |
+| Expansion, wildcard and RIGHT rewrite | `src/select.c:selectExpander`, join processing and RIGHT-prefix reversal (`JT_RIGHT`, `JT_LTORJ`) | bind schema/table identity, assign stable statement cursor IDs, expand `*`/`q.*`, hide USING/NATURAL RHS columns only from bare `*`; RIGHT/FULL reject atomically until complete rewrite/control passes |
+| Name lookup and descriptors | `src/resolve.c:lookupName`, `resolveSelectStep`; `src/sqliteInt.h:NameContext` | linked frames and resolved `{cursor,column,table}` identity; preserve alias/qualifier, ambiguity/no-such-column, result-name, origin/type/affinity/collation behavior |
+| Join predicates and loop control | `src/select.c:sqlite3ProcessJoin`; `src/whereexpr.c` outer/inner ON provenance; `src/where.c:sqlite3WhereBegin`; `src/wherecode.c` left/right join match and unmatched paths | retain ON ownership separately from WHERE; streaming source-order nested loops are the initial legal plan; match registers and NULL-row continuation, no Cartesian row array |
+| NULL cursors and composition | `src/vdbe.c:OP_NullRow` and column/cursor opcodes; `src/select.c:selectInnerLoop` destinations | null-row is cursor state read by shared column primitive; feed existing ResultRow, KeyInfo sorter, DISTINCT/set ephemeral and compound destinations |
+| Bounds and lifecycle | `src/vdbe.c`, `src/vdbeapi.c`, applicable ephemeral paths | charge loop/predicate/compare/growth work; suspend complete loop/null/match state; one statement-wide `PrivateStateByteBudget`; exhaustive reset/finalize cleanup and first-error precedence |
+
+The checked-in native capture has 27/27 identity-verified cases. It is oracle
+expectation only, not runtime credit. The implementation consumer must add public
+TS accounting plus adversarial cancellation/deadline/work/private-limit and
+streaming proofs before changing `docs/api.md`.

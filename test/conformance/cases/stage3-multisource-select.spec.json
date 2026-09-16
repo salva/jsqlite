@@ -1,0 +1,56 @@
+{
+  "schema": "jsqlite-multisource-select-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "requiredCoverage": [
+    "comma", "cross", "inner", "left", "right", "full", "aliases",
+    "qualified", "ambiguity", "wildcard", "using", "natural", "outer-empty",
+    "metadata", "typed-values", "encoding", "affinity-collation",
+    "order-distinct-limit", "compound", "reset-rebind"
+  ],
+  "setups": {
+    "utf8": [
+      "CREATE TABLE l(id INTEGER, k TEXT COLLATE NOCASE, v BLOB, n REAL);",
+      "CREATE TABLE r(id INTEGER, k TEXT COLLATE NOCASE, w TEXT, z);",
+      "INSERT INTO l VALUES(1,'a',x'',1.5),(2,'B',x'00ff',-0.0),(3,NULL,NULL,NULL),(9223372036854775807,'solo',x'31',2);",
+      "INSERT INTO r VALUES(10,'A','ra',1),(20,'b','rb',1.0),(30,NULL,'rn',NULL),(40,'right','only',x'');"
+    ],
+    "empty-left": ["CREATE TABLE l(k INTEGER);", "CREATE TABLE r(k INTEGER);", "INSERT INTO r VALUES(1),(2);"],
+    "empty-right": ["CREATE TABLE l(k INTEGER);", "CREATE TABLE r(k INTEGER);", "INSERT INTO l VALUES(1),(2);"],
+    "names": ["CREATE TABLE a(x INTEGER, y TEXT);", "CREATE TABLE b(x INTEGER, z TEXT);", "INSERT INTO a VALUES(1,'ay');", "INSERT INTO b VALUES(1,'bz');"],
+    "utf16le": ["PRAGMA encoding='UTF-16le';", "CREATE TABLE α(id INTEGER, 名 TEXT);", "CREATE TABLE β(id INTEGER, 名 TEXT);", "INSERT INTO α VALUES(1,'é');", "INSERT INTO β VALUES(1,'é');"],
+    "utf16be": ["PRAGMA encoding='UTF-16be';", "CREATE TABLE α(id INTEGER, 名 TEXT);", "CREATE TABLE β(id INTEGER, 名 TEXT);", "INSERT INTO α VALUES(1,'é');", "INSERT INTO β VALUES(1,'é');"]
+  },
+  "cases": [
+    {"id":"comma-order","coverage":["comma","order-distinct-limit"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l,r WHERE l.k=r.k ORDER BY l.id,r.id"},
+    {"id":"cross","coverage":["cross"],"setup":"names","sql":"SELECT a.y,b.z FROM a CROSS JOIN b"},
+    {"id":"inner-on-alias","coverage":["inner","aliases","qualified"],"setup":"utf8","sql":"SELECT q.id AS left_id, p.w FROM l AS q INNER JOIN r AS p ON q.k=p.k ORDER BY q.id"},
+    {"id":"left-unmatched","coverage":["left","typed-values"],"setup":"utf8","sql":"SELECT l.id,r.id,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id"},
+    {"id":"left-where-placement","coverage":["left"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k WHERE r.id IS NULL ORDER BY l.id"},
+    {"id":"left-on-placement","coverage":["left"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l LEFT JOIN r ON l.k=r.k AND r.id>15 ORDER BY l.id"},
+    {"id":"right-unmatched","coverage":["right"],"setup":"utf8","sql":"SELECT l.id,r.id,r.w FROM l RIGHT JOIN r ON l.k=r.k ORDER BY r.id"},
+    {"id":"full-unmatched","coverage":["full"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l FULL JOIN r ON l.k=r.k ORDER BY coalesce(l.id,999),r.id"},
+    {"id":"left-empty","coverage":["outer-empty","right"],"setup":"empty-left","sql":"SELECT l.k,r.k FROM l RIGHT JOIN r USING(k) ORDER BY r.k"},
+    {"id":"right-empty","coverage":["outer-empty","left"],"setup":"empty-right","sql":"SELECT l.k,r.k FROM l LEFT JOIN r USING(k) ORDER BY l.k"},
+    {"id":"bare-star-using","coverage":["wildcard","using","metadata"],"setup":"names","sql":"SELECT * FROM a JOIN b USING(x)"},
+    {"id":"qualified-star-using","coverage":["wildcard","using","metadata"],"setup":"names","sql":"SELECT a.*,b.* FROM a JOIN b USING(x)"},
+    {"id":"natural","coverage":["natural","wildcard"],"setup":"names","sql":"SELECT * FROM a NATURAL JOIN b"},
+    {"id":"duplicate-names","coverage":["metadata","qualified"],"setup":"names","sql":"SELECT a.x AS same,b.x AS same,a.y,b.z FROM a JOIN b ON a.x=b.x"},
+    {"id":"ambiguous","coverage":["ambiguity"],"setup":"names","sql":"SELECT x FROM a JOIN b ON a.x=b.x","expect":"prepare-error"},
+    {"id":"no-such-column","coverage":["ambiguity"],"setup":"names","sql":"SELECT a.missing FROM a,b","expect":"prepare-error"},
+    {"id":"alias-hides-table","coverage":["aliases","qualified"],"setup":"names","sql":"SELECT a.x FROM a AS q,b","expect":"prepare-error"},
+    {"id":"bad-star-qualifier","coverage":["wildcard"],"setup":"names","sql":"SELECT q.* FROM a,b","expect":"prepare-error"},
+    {"id":"natural-on-error","coverage":["natural"],"setup":"names","sql":"SELECT * FROM a NATURAL JOIN b ON a.x=b.x","expect":"prepare-error"},
+    {"id":"using-missing-error","coverage":["using"],"setup":"names","sql":"SELECT * FROM a JOIN b USING(missing)","expect":"prepare-error"},
+    {"id":"typed-metadata","coverage":["typed-values","metadata"],"setup":"utf8","sql":"SELECT l.id,l.n,l.v,r.z,r.w FROM l LEFT JOIN r ON l.k=r.k ORDER BY l.id"},
+    {"id":"affinity-collation","coverage":["affinity-collation"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l JOIN r ON l.k=r.k COLLATE NOCASE ORDER BY l.id"},
+    {"id":"distinct-order-limit","coverage":["order-distinct-limit"],"setup":"utf8","sql":"SELECT DISTINCT r.z FROM l JOIN r ON l.k=r.k ORDER BY r.z DESC LIMIT 1 OFFSET 1"},
+    {"id":"compound-arm","coverage":["compound"],"setup":"utf8","sql":"SELECT l.id FROM l JOIN r ON l.k=r.k UNION ALL SELECT 99 ORDER BY 1"},
+    {"id":"reset-rebind","coverage":["reset-rebind"],"setup":"utf8","sql":"SELECT l.id,r.id FROM l JOIN r ON l.k=r.k WHERE l.id>=?1 ORDER BY l.id","bindings":[{"type":"integer","value":"1"}],"rebind":[{"type":"integer","value":"2"}]},
+    {"id":"utf16le-qualified","coverage":["encoding","qualified"],"setup":"utf16le","sql":"SELECT α.名,β.名 FROM α JOIN β USING(id)"},
+    {"id":"utf16be-star","coverage":["encoding","wildcard","using"],"setup":"utf16be","sql":"SELECT * FROM α JOIN β USING(id)"}
+  ]
+}
