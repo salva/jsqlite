@@ -42,6 +42,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT a.x FROM a HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT a.x FROM a HAVING count(*)>0'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
+ assert.throws(()=>resolve('SELECT min(a.x,b.y) FROM a JOIN b HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
+ assert.throws(()=>resolve('SELECT max(a.x,b.y) FROM a JOIN b HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT min(a.x) FROM a HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(*) FROM a HAVING missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 WHERE wbad=1 GROUP BY gbad HAVING hbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: hbad');

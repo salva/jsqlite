@@ -30,7 +30,14 @@ function hasAggregate(expression:ExprNode):boolean{
   if(node.kind!=='reduction')return false;
   if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){
    const name=node.children.find(child=>child.kind==='terminal')?.value?.text;
-   if(name&&aggregates.has(sqliteAsciiFold(identifier(name))))return true;
+   if(name&&aggregates.has(sqliteAsciiFold(identifier(name)))){
+    if((sqliteIdentifierEqual(name,'min')||sqliteIdentifierEqual(name,'max'))){
+     const exprList=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
+     const count=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number=>part.kind==='reduction'&&part.signature==='nexprlist ::= nexprlist COMMA expr'?count(part.children[0]!)+1:part.kind==='reduction'&&part.signature==='nexprlist ::= expr'?1:part.kind==='reduction'?Math.max(0,...part.children.map(count)):0;
+     if(exprList&&count(exprList)!==1)return false;
+    }
+    return true;
+   }
   }
   return node.children.some(visit);
  };
