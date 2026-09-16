@@ -35,7 +35,7 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.throws(()=>resolve('SELECT a.x FROM a LEFT JOIN b ON b.x=c.x JOIN b AS c ON 1'),e=>e instanceof NameResolutionError&&e.message==='ON clause references tables to its right');
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON b.x=missing JOIN b AS c ON 1'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  const full=resolve('SELECT x FROM a FULL JOIN b USING(x)').result[0];
- assert.equal(full.resolution,'coalesce');assert.equal(full.source,null);assert.equal(full.descriptor.origin,null);assert.deepEqual(full.mergedSources.map(x=>x.source.table.name),['a','b']);
+ assert.equal(full.resolution,'coalesce');assert.equal(full.source,null);assert.deepEqual(full.descriptor,{name:'x',declaredType:null,database:null,table:null,origin:null,affinity:'integer',collation:'BINARY'});assert.deepEqual(full.mergedSources.map(x=>x.source.table.name),['a','b']);
  assert.throws(()=>resolve('SELECT * FROM a JOIN b USING(nope)'),e=>e instanceof NameResolutionError&&e.message==='cannot join using column nope - column not present in both tables');
  assert.throws(()=>resolve('SELECT * FROM a NATURAL JOIN b USING(x)'),e=>e instanceof NameResolutionError&&e.message==='a NATURAL join may not have an ON or USING clause');
 });
