@@ -3,7 +3,7 @@ import test from 'node:test';
 import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
-const table=(name,columns)=>Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns:Object.freeze(columns),indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze([]),storageKey:Object.freeze([])});
+const table=(name,columns,primaryKey=[])=>{columns=Object.freeze(columns);return Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns,indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze(primaryKey.map(i=>columns[i])),storageKey:Object.freeze([])})};
 const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])]])};
 const resolve=sql=>expandAndResolveSelect(parseSql(sql).statement,schema);
 test('selectExpander preserves ordered duplicate names, wildcard visibility, and direct metadata',()=>{
@@ -34,4 +34,8 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.equal(full.resolution,'coalesce');assert.equal(full.source,null);assert.equal(full.descriptor.origin,null);assert.deepEqual(full.mergedSources.map(x=>x.source.table.name),['a','b']);
  assert.throws(()=>resolve('SELECT * FROM a JOIN b USING(nope)'),e=>e instanceof NameResolutionError&&e.message==='cannot join using column nope - column not present in both tables');
  assert.throws(()=>resolve('SELECT * FROM a NATURAL JOIN b USING(x)'),e=>e instanceof NameResolutionError&&e.message==='a NATURAL join may not have an ON or USING clause');
+});
+
+test('INTEGER PRIMARY KEY resolves to rowid storage while retaining declared metadata',()=>{
+ const ipk=column('id','INTEGER','integer');const t=table('ipk',[ipk,column('v','TEXT','text')],[0]);const r=expandAndResolveSelect(parseSql('SELECT id FROM ipk').statement,{tables:new Map([['ipk',t]])}).result[0];assert.equal(r.columnIndex,-1);assert.deepEqual(r.descriptor,{name:'id',declaredType:'INTEGER',database:'main',table:'ipk',origin:'id',affinity:'integer',collation:'BINARY'});
 });
