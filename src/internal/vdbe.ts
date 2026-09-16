@@ -451,10 +451,10 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   rejectUnsupportedSelectClauses(select, true);
   if(select.hasCompound)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-  if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   let expanded;
   try { expanded=expandAndResolveSelect(select,schema); }
   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from.items[0]!.tableName), folded = sqliteAsciiFold(tableName);
   const table = schema.tables.get(folded);
   if (!table) {
