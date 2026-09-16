@@ -23,6 +23,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.equal(resolve('SELECT main.a.x FROM main.a').result[0].source.table.name,'a');
  assert.throws(()=>resolve('SELECT x FROM temp.a'),e=>e instanceof NameResolutionError&&e.message==='no such table: temp.a');
  const collated=resolve('SELECT a.x COLLATE nocase AS c FROM a').result[0];assert.equal(collated.source.table.name,'a');assert.equal(collated.descriptor.collation,'nocase');
+ assert.throws(()=>resolve('SELECT missing COLLATE absent FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b WHERE missing COLLATE absent'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON missing COLLATE absent=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x COLLATE missing FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such collation sequence: missing');
  assert.equal(resolve('SELECT (a.x COLLATE nocase) FROM a').result[0].source.table.name,'a');
  assert.equal(resolve('SELECT (a.x) FROM a').result[0].source.table.name,'a');
