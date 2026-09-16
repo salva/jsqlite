@@ -66,6 +66,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a WHERE z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT abs(sum(a.x)) AS z FROM a WHERE z+0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a JOIN b ON z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
+ assert.throws(()=>resolve('SELECT a.x AS z FROM a LIMIT z'),e=>e instanceof NameResolutionError&&e.message==='no such column: z');
+ assert.throws(()=>resolve('SELECT a.x FROM a LIMIT abs(missing)'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT a.x FROM a LIMIT 1 OFFSET missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY 2'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term out of range - should be between 1 and 1');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS z FROM a ORDER BY z'));
