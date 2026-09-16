@@ -35,7 +35,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT main.aa.x FROM a AS aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: main.aa.x');
  assert.equal(resolve('SELECT aa.x FROM a aa').result[0].source.alias,'aa');
  assert.throws(()=>resolve('SELECT a.x FROM a aa'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.x');
- assert.throws(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b WHERE z>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: z');
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b WHERE z>0'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON z=b.x'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON 1 GROUP BY z'));
  assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b WHERE same>0'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON onbad=1 WHERE wbad=1 GROUP BY gbad HAVING hbad'),e=>e instanceof NameResolutionError&&e.message==='no such column: hbad');
@@ -65,7 +67,6 @@ test('NATURAL and USING synthesize merged visibility and validate both sides',()
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a JOIN b ON a.x COLLATE nocase=b.x'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a JOIN b ON main.a.x=b.x'));
  assert.throws(()=>resolve('SELECT a.x FROM a JOIN b ON temp.a.x=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: temp.a.x');
- assert.throws(()=>resolve('SELECT a.x AS z,a.x+1 AS z FROM a JOIN b ON z=b.x'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: z');
  assert.throws(()=>resolve('SELECT a.x AS same FROM a JOIN b ON same=b.x'),e=>e instanceof NameResolutionError&&e.message==='ambiguous column name: same');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON chosen=b.x'));
  assert.throws(()=>resolve('SELECT a.x AS chosen FROM a JOIN b ON missing=b.x'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');

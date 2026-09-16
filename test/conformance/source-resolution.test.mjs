@@ -16,7 +16,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  s=db.prepare('SELECT main.left_meta.a FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'a',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM temp.left_meta'),e=>e.kind==='sqlite'&&e.message==='no such table: temp.left_meta');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: left_meta.a');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta WHERE z>0'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: z');
+ assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta WHERE z>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
  assert.throws(()=>db.prepare('SELECT left_meta.a AS b FROM left_meta JOIN right_meta WHERE b>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
  assert.throws(()=>db.prepare('SELECT left_meta.a AS chosen FROM left_meta JOIN right_meta WHERE chosen>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON on_bad=1 WHERE where_bad=1 GROUP BY group_bad HAVING having_bad'),e=>e.kind==='sqlite'&&e.message==='no such column: having_bad');
@@ -30,7 +30,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT missing+1 FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a+rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON left_meta.a COLLATE missing=right_meta.b'),e=>e.kind==='sqlite'&&e.message==='no such collation sequence: missing');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta ON z=right_meta.b'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: z');
+ assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta ON z=right_meta.b'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
  assert.throws(()=>db.prepare('SELECT missing FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
@@ -40,7 +40,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT a COLLATE missing FROM left_meta'),e=>e.kind==='sqlite'&&e.message==='no such collation sequence: missing');
  s=db.prepare('SELECT (a COLLATE nocase) AS collated FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'collated',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT (a) AS renamed FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'renamed',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
- assert.throws(()=>db.prepare('SELECT a AS z,a+1 AS z FROM left_meta WHERE z=7'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: z');
+ s=db.prepare('SELECT a AS z,a+1 AS z FROM left_meta WHERE z=7').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1)],[7n,8n]);assert.equal(await s.step(),'done');s.finalize();s=null;
  s=db.prepare('SELECT a AS x FROM left_meta WHERE x=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
  s=db.prepare('SELECT a+1 AS a FROM left_meta WHERE a=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),8n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a AS x FROM left_meta WHERE missing=7'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
