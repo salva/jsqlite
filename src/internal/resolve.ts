@@ -33,6 +33,25 @@ function bareName(expression:ExprNode):string|null{
  };
  return expression.reduction?visit(expression.reduction):null;
 }
+function collatedBareName(expression:ExprNode):string|null{
+ let collated=false;
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
+  if(node.kind!=='reduction')return null;
+  if(node.signature.startsWith('expr ::= LP expr RP')||node.signature.startsWith('expr ::= expr COLLATE ')){if(node.signature.includes('COLLATE'))collated=true;const nested=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));return nested?visit(nested):null;}
+  if(node.signature==='expr ::= ID|INDEXED|JOIN_KW'){const token=node.children.find(child=>child.kind==='terminal')?.value;return token?identifier(token.text):null;}
+  return null;
+ };
+ const name=expression.reduction?visit(expression.reduction):null;return collated?name:null;
+}
+function firstAggregateName(expression:ExprNode):string|null{
+ const aggregates=new Set(['avg','count','group_concat','max','min','sum','total','string_agg']);
+ const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
+  if(node.kind!=='reduction')return null;
+  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){const token=node.children.find(child=>child.kind==='terminal')?.value;if(token&&aggregates.has(sqliteAsciiFold(identifier(token.text))))return identifier(token.text);}
+  for(const child of node.children){const found=visit(child);if(found)return found;}return null;
+ };
+ return expression.reduction?visit(expression.reduction):null;
+}
 function hasAggregate(expression:ExprNode):boolean{
  const aggregates=new Set(['avg','count','group_concat','max','min','sum','total','string_agg']);
  const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>{
@@ -111,6 +130,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    continue;
   }
   resolveAgainstSources(expression,sources,select.result);
+  const collatedAlias=collatedBareName(expression);
+  if(collatedAlias){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,collatedAlias)),aggregate=alias?firstAggregateName(alias):null;if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}
   let groupHasAggregate=hasAggregate(expression);
   if(!groupHasAggregate){
    const name=bareName(expression);
