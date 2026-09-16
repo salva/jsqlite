@@ -81,6 +81,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a WHERE z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT abs(sum(a.x)) AS z FROM a WHERE z+0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.throws(()=>resolve('SELECT sum(a.x) AS z FROM a JOIN b ON z'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
+ assert.throws(()=>resolve('SELECT a.x FROM a LIMIT row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
+ assert.throws(()=>resolve('SELECT a.x FROM a LIMIT sum(1) OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function sum()');
  assert.throws(()=>resolve('SELECT a.x FROM a LIMIT sum(1)'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
  assert.throws(()=>resolve('SELECT a.x FROM a LIMIT count(*)'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function count()');
  assert.throws(()=>resolve('SELECT a.x AS z FROM a LIMIT z'),e=>e instanceof NameResolutionError&&e.message==='no such column: z');
