@@ -1725,7 +1725,9 @@ Generated SELECT ownership is now reduction-local: `values` and both `mvalues` r
 
 Scalar compound lowering now resolves one result collation per output position by
 walking generated arms left-to-right and taking the first expression with an
-explicit BINARY/NOCASE/RTRIM collation, falling back to BINARY. This directly maps
+explicit BINARY/NOCASE/RTRIM collation, including `EP_Collate` propagated from
+admitted function argument lists as pinned `expr.c:sqlite3ExprCollSeq` does, and
+falling back to BINARY. This directly maps
 pinned `select.c:multiSelectCollSeq`; the full-row duplicate `KeyInfo` uses those
 collations for UNION/INTERSECT/EXCEPT equality. Compound ORDER terms without an
 explicit COLLATE inherit the resolved result collation, while an explicit ORDER

@@ -554,9 +554,29 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;return booleanValue(m,0)===1}
 const expressionAffinity=(x:Expression):MemAffinity|undefined=>x.kind==="column"?x.affinity:x.kind==="cast"?x.affinity:x.kind==="collate"?expressionAffinity(x.value):undefined;
-const collation=(x:Expression):BuiltinCollation=>x.kind==="mem"&&x.collation?x.collation:x.kind==="collate"?x.collation:x.kind==="column"&&x.collation?x.collation:(x.kind==="unary"||x.kind==="cast")?collation(x.value):"binary";
+// expr.c:sqlite3ExprCollSeq follows CAST/unary-plus and propagates EP_Collate
+// through expression children (including function argument lists), choosing the
+// first collated child in source order. Keep undefined distinct from BINARY so
+// select.c:multiSelectCollSeq can continue to a later compound arm.
+const expressionCollation=(x:Expression):BuiltinCollation|undefined=>{
+ if(x.kind==="collate")return x.collation;
+ if(x.kind==="mem"||x.kind==="column")return x.collation;
+ if(x.kind==="unary"||x.kind==="cast")return expressionCollation(x.value);
+ if(x.kind==="binary")return expressionCollation(x.left)??expressionCollation(x.right);
+ if(x.kind==="call")return x.args.map(expressionCollation).find((value):value is BuiltinCollation=>value!==undefined);
+ if(x.kind==="case")return (x.operand?expressionCollation(x.operand):undefined)??x.pairs.flatMap(([when,then])=>[when,then]).map(expressionCollation).find((value):value is BuiltinCollation=>value!==undefined)??(x.otherwise?expressionCollation(x.otherwise):undefined);
+ return undefined;
+};
+const collation=(x:Expression):BuiltinCollation=>expressionCollation(x)??"binary";
 // expr.c sqlite3BinaryCompareCollSeq: explicit left, then explicit right, then derived left/right.
-const explicitCollation=(x:Expression):BuiltinCollation|undefined=>x.kind==="collate"?x.collation:(x.kind==="unary"||x.kind==="cast")?explicitCollation(x.value):undefined;
+const explicitCollation=(x:Expression):BuiltinCollation|undefined=>{
+ if(x.kind==="collate")return x.collation;
+ if(x.kind==="unary"||x.kind==="cast")return explicitCollation(x.value);
+ if(x.kind==="binary")return explicitCollation(x.left)??explicitCollation(x.right);
+ if(x.kind==="call")return x.args.map(explicitCollation).find((value):value is BuiltinCollation=>value!==undefined);
+ if(x.kind==="case")return (x.operand?explicitCollation(x.operand):undefined)??x.pairs.flatMap(([when,then])=>[when,then]).map(explicitCollation).find((value):value is BuiltinCollation=>value!==undefined)??(x.otherwise?explicitCollation(x.otherwise):undefined);
+ return undefined;
+};
 const binaryCollation=(left:Expression,right:Expression):BuiltinCollation=>explicitCollation(left)??explicitCollation(right)??collation(left)??collation(right);
 function valueBytes(value:Mem):number{return value.initialStorageClass==="text"?value.textBytes().byteLength:value.initialStorageClass==="blob"?value.blobValue().byteLength:0;}
 interface ScalarControl { charge(units:number):void; check():void; readonly maxResultBytes:number }

@@ -24,6 +24,11 @@ test('scalar set KeyInfo takes the first explicit result collation left-to-right
   assert.deepEqual(await rows("SELECT 'a' UNION SELECT 'A' COLLATE nocase"),[['A']]);
   assert.deepEqual(await rows("SELECT 'a ' COLLATE rtrim UNION SELECT 'a'"),[['a']]);
   assert.deepEqual(await rows("SELECT 'a' COLLATE nocase,1 UNION SELECT 'A',1"),[['A',1n]]);
+  // expr.c:sqlite3ExprCollSeq propagates EP_Collate through admitted function
+  // argument lists; these pinned-oracle cases prevent root-only inspection.
+  assert.deepEqual(await rows("SELECT coalesce('a' COLLATE nocase,'x') UNION SELECT 'A'"),[['A']]);
+  assert.deepEqual(await rows("SELECT nullif('a' COLLATE nocase,'z') UNION SELECT 'A'"),[['A']]);
+  assert.deepEqual(await rows("SELECT min('a' COLLATE nocase,'a') UNION SELECT 'A'"),[['A']]);
 });
 
 test('compound ORDER inherits result collation and explicit COLLATE overrides it',async()=>{

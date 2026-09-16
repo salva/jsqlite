@@ -782,9 +782,11 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
 
 ### Compound collation/accounting completion (2026-09-16)
 
-- `src/select.c:multiSelectCollSeq` -> `src/internal/vdbe.ts:compileScalarSelect`
-  resolves each scalar compound result collation from generated expression
-  structure, first explicit collation left-to-right, then BINARY. The duplicate
+- `src/select.c:multiSelectCollSeq` plus `src/expr.c:sqlite3ExprCollSeq` ->
+  `src/internal/vdbe.ts:compileScalarSelect` resolves each scalar compound result
+  collation from generated expression structure, first explicit collation
+  left-to-right (including propagated COLLATE in admitted function argument
+  lists), then BINARY. The duplicate
   ephemeral `KeyInfo` remains distinct from ORDER comparison.
 - `src/select.c:multiSelectByMergeKeyInfo` and its separate `pKeyDup` -> compound
   ORDER inherits the result collation unless ORDER has explicit COLLATE; the
