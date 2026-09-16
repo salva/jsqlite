@@ -52,6 +52,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a WHERE row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER missing FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such window: missing');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (PARTITION BY a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT row_number() OVER (),sum(a.x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS missing PRECEDING) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ROWS BETWEEN missing PRECEDING AND CURRENT ROW) FROM a'));
