@@ -1065,3 +1065,13 @@ Manifest accounting is 46 native captured, 19 TS attempted/credited. Public
 matrix accounting is 57/57 and companion route/resource accounting is 20/20.
 CTE, recursive CTE, windows, unmatched derived shapes, and unrepresented general
 aggregate-over-derived forms reject before execution.
+
+### Expression-subquery lowering completion ([[card:card-m-f-k]])
+
+| Pinned SQLite 3.53.4 source | TypeScript mapping | Evidence / boundary |
+| --- | --- | --- |
+| `src/expr.c:sqlite3CodeSubselect`, `EP_VarSelect`, `SRT_Mem`, `SRT_Set`; `src/vdbe.c:OP_Once` | `src/internal/resolve.ts` linked nested `NameContext`; `src/internal/vdbe.ts:compileExpressionSubquery`, `Once`, typed ephemeral set, scalar destination and per-row correlated rerun/clear | `subquery-view-foundation.test.mjs`: exact public scalar/EXISTS/IN behavior across all three encodings, retained correlated IN/NOT IN reset/rerun case, and direct uncorrelated Once versus correlated no-Once opcode assertion |
+
+The admitted expression SELECT shapes share the parent program's registers, work
+and private-state budgets. Unsafe width, compound, grouping and unsupported local
+aggregate forms retain atomic prepare-time gates rather than partial execution.

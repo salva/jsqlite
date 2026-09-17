@@ -157,7 +157,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
             this.#limits.maxResultBytes,
             this.#limits.privateStateLimits,
           )
-        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits);
+        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, loadSchemaGraph(this), btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
       let statement!: VdbeStatement;
       statement = new VdbeStatement(program,
         () => this.#assertOperationIdle(),

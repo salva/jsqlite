@@ -103,6 +103,9 @@ export class EphemeralIndexCursor {
   readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;
   #shared:{entries:Entry[];references:number}={entries:[],references:1};#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
   constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
+  get size():number{this.#live();return this.#shared.entries.length}
+  /** sqlite3ExprCodeIN distinguishes empty RHS from RHS NULL on the Mem-owned index. */
+  hasNullKey():boolean{this.#live();return this.#shared.entries.some(entry=>entry.key[0]?.initialStorageClass==="null")}
   async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{this.#live();for(const entry of this.#shared.entries)if(await compareEntry(entry,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0)return true;return false}
   async remove(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();for(let i=0;i<this.#shared.entries.length;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#shared.entries.splice(i,1);this.#budget.release(entry!.bytes);releaseEntry(entry!);if(this.#at>=i)this.#at--;return}

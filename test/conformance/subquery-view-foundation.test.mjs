@@ -4,6 +4,11 @@ import http from 'node:http';
 import path from 'node:path';
 import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
+import {parseSql} from '../../src/internal/parse.ts';
+import {compileTableSelect,programOpcodeNames} from '../../src/internal/vdbe.ts';
+import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
+import {btreeFromStorage} from '../../src/internal/btree.ts';
+import {loadSchemaGraph} from '../../src/internal/schema.ts';
 
 const here=path.dirname(new URL(import.meta.url).pathname);
 const capture=JSON.parse(fs.readFileSync(path.join(here,'cases/stage3-subquery-view.json'),'utf8'));
@@ -15,6 +20,7 @@ const ids=[
   'view-duplicate-inferred','view-explicit-width-error','view-inherited-collation',
   'aggregate30-sum-real-promotion','aggregate30-sum-int64-overflow','aggregate30-total-no-overflow',
   'aggregate30-group-concat-null-separator',
+  'scalar-constant','scalar-first-row','scalar-empty-null','scalar-correlated','exists-correlated','not-exists','in-select','in-null-hit','in-null-miss','in-empty','in-affinity','lexical-shadow','correlated-two-level','error-ambiguous','error-missing','error-width-scalar','error-width-in','reset-rebind-correlated',
 ];
 
 function value(v){
@@ -53,6 +59,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])for(const id of ids)test(`pub
       return;
     }
     statement=target.prepare(expected.sql).statement;
+    if(id==='reset-rebind-correlated')statement.bind(1,1n);
     assert.deepEqual(metadata(statement),expected.native.columns,`${id} metadata`);
     const rows=[];
     if(expected.native.first.kind==='error'){
@@ -62,6 +69,11 @@ for(const encoding of ['utf8','utf16le','utf16be'])for(const id of ids)test(`pub
       while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,index)=>statement.column(index)));
       assert.deepEqual(rows,expected.native.first.rows.map(row=>row.map(value)),`${id} rows`);
     }
+    if(id==='reset-rebind-correlated'){
+      statement.reset();statement.bind(1,3n);const rebound=[];
+      while(await statement.step()==='row')rebound.push(Array.from({length:statement.columnCount},(_,index)=>statement.column(index)));
+      assert.deepEqual(rebound,expected.native.afterResetRebind.rows.map(row=>row.map(value)),`${id} reset/rebind rows`);
+    }
     if(expected.native.finalizeCode===0){statement.finalize();statement=undefined;}
     else{assert.throws(()=>statement.finalize(),error=>error.kind==='sqlite'&&error.code===expected.native.finalizeCode,`${id} finalize code`);statement=undefined;}
   }finally{
@@ -70,4 +82,26 @@ for(const encoding of ['utf8','utf16le','utf16be'])for(const id of ids)test(`pub
     try{db?.closeDeferred()}catch{}
     await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
   }
+});
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} correlated IN and NOT IN rerun per outer row`,async()=>{
+  const server=await serve(encoding);let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+    statement=db.prepare('SELECT a,a IN (SELECT x FROM t2 WHERE x<=t1.a),a NOT IN (SELECT x FROM t2 WHERE x<=t1.a) FROM t1 ORDER BY a').statement;
+    const rows=[];while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1),statement.column(2)]);
+    assert.deepEqual(rows,[[1n,1n,0n],[3n,1n,0n],[5n,0n,1n],[7n,0n,1n]]);
+    statement.reset();const rerun=[];while(await statement.step()==='row')rerun.push([statement.column(0),statement.column(1),statement.column(2)]);
+    assert.deepEqual(rerun,rows,'reset reruns correlated RHS sets');
+  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('expression subquery control uses Once only for uncorrelated plans',()=>{
+  const storage=ImmutableStorage.open(fs.readFileSync(path.join(generated,'subquery-utf8.db'))),owner={[storageOwner]:storage};
+  try{
+    const schema=loadSchemaGraph(owner),database=btreeFromStorage(storage);
+    const opcodes=sql=>{const parsed=parseSql(sql);assert.equal(parsed.statement?.kind,'select');return programOpcodeNames(compileTableSelect(parsed.statement,schema,database,100));};
+    assert.ok(opcodes('SELECT a,a IN (SELECT x FROM t2) FROM t1').includes('Once'),'uncorrelated RHS is built once');
+    assert.ok(!opcodes('SELECT a,a IN (SELECT x FROM t2 WHERE x<=t1.a) FROM t1').includes('Once'),'correlated RHS is rebuilt per outer row');
+  }finally{storage.close();}
 });
