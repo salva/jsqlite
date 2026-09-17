@@ -1014,3 +1014,9 @@ fixtures is admitted; other automatic-index layouts remain gated.
 |---|---|---|
 | `src/func.c` `SumCtx`, `kahanBabuskaNeumaierStep`, `kahanBabuskaNeumaierStepInt64`, `kahanBabuskaNeumaierInit`, `sumStep`, `sumFinalize`, `avgFinalize`, `totalFinalize` | `src/internal/vdbe.ts` `SumCtx`, KBN helpers, `sumStep`, `sumResult`; exact int64 branch plus compensated REAL/error state | `test/conformance/aggregate-sum-context.test.mjs`: public cancellation, large-int split, overflow/REAL transition, final class and overflow diagnostics |
 | `src/sqliteInt.h` `FuncDef`; `src/vdbe.c` `OP_AggStep`/`OP_AggValue`/`OP_AggFinal`; `src/vdbeapi.c` aggregate context/result APIs | `AggregateDefinition`, `AggregateFunctionContext`, `AggregateContext`, registry dispatch; aggregate-capable `Mem` remains state owner | `test/conformance/aggregate-context-opcodes.test.mjs` proves repeated non-destructive `AggValue`; optional `inverse`/`value` slots do not admit windows |
+
+### 2026-09-17 aggregate retained-state correction ([[card:card-l-d]])
+
+| Pinned owner | TypeScript owner | Evidence / boundary |
+|---|---|---|
+| `src/func.c:minmaxStep`, `minMaxValueFinalize`, `groupConcatStep`; `src/vdbe.c:OP_AggStep`, `OP_AggFinal` cleanup | `src/internal/vdbe.ts:extremaDefinition`, `concatDefinition`, `AggregateContext`; shared `PrivateStateByteBudget` | Extrema TEXT/BLOB replacement reserves the positive complete-byte delta before copy, preserves the prior winner on failure, releases shrink deltas after commit, and releases retained bytes through aggregate `Mem` cleanup. Concat growth rolls reservation back if part insertion fails. `aggregate-group-lifecycle.test.mjs` covers extrema initial/replacement/reset/finalize/failure and aggregate-local DISTINCT/ordered queue byte-failure cleanup. Host OOM remains outside the catchable contract; SQL scope/accounting is unchanged. |

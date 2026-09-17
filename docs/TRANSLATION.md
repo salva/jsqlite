@@ -2223,3 +2223,24 @@ and finalization includes the finite correction term. Public differentials cover
 cancellation, large signed integers, overflow followed by REAL, persistent integer
 overflow, and INTEGER/REAL/NULL result classes. This is an algorithm translation,
 not a host summation substitution.
+
+### Aggregate retained-state budget correction ([[card:card-l-d]], 2026-09-17)
+
+The earlier initial-tranche statement that text min/max retained bytes already
+reserved the execution budget was premature and is superseded here. Extrema state
+now tracks the complete retained TEXT/BLOB byte count. A winning value reserves
+only the positive old-to-new delta before copying; a failed copy releases that
+reservation without changing the prior winner; after commit, a smaller replacement
+releases the negative delta and the prior `Mem` exactly once. Finalization, reset,
+step failure, and statement cleanup continue through aggregate-capable `Mem` and
+release the state's tracked bytes from the one execution-wide
+`PrivateStateByteBudget`. Numeric and NULL extrema retain zero logical bytes.
+
+`group_concat` growth likewise commits its part before increasing the tracked byte
+count and rolls back a reservation if host growth throws. Focused public lifecycle
+tests exercise initial/replacement TEXT and BLOB extrema, configured failure,
+reset/rerun/finalize release, later connection admission, and byte-failure cleanup
+of aggregate-local DISTINCT and ordered-input queues. The implementation still
+does not promise catchable host OOM; the rollback protects exceptions observable
+at this seam. This correction changes no SQL admission or aggregate manifest
+credit.
