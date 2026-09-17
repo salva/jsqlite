@@ -359,7 +359,7 @@ scalar composition of aggregate results, aggregate-argument DISTINCT and FILTER,
 and aggregate-local ORDER BY. It also includes the exact tested grouped inner-join
 input, parameter-free ordered aggregate `UNION ALL`, and result ORDER BY,
 LIMIT/OFFSET, and SELECT DISTINCT compositions. Column names and null metadata
-follow the SELECT expressions. The public aggregate matrix passes 28 of 32 native-
+follow the SELECT expressions. The public aggregate matrix passes 30 of 34 native-
 successful cases; the remaining four use FROM subqueries and reject atomically as
 typed temporary unsupported. Windows, unregistered aggregate functions, broader
 join/compound forms, and broader subquery/CTE behavior remain future scope.
