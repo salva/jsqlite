@@ -2201,3 +2201,25 @@ DISTINCT, FILTER, ordered `group_concat`, NOCASE duplicate representatives, and
 ordered aggregates on UTF-8/UTF-16le/UTF-16be fixtures. Four successful native
 cases requiring FROM-subquery execution remain atomically temporary unsupported;
 this modifier milestone does not claim window execution.
+
+### Aggregate definition context and compensated numeric correction ([[card:card-l-b]], 2026-09-17)
+
+The aggregate registry now owns definitions rather than names alone. Each definition
+exposes `step`, optional `inverse`, optional non-destructive `value`, and `final`,
+plus state creation/cleanup. The VDBE constructs an aggregate function context over
+the accumulator `Mem`; the context supplies the database encoding, resolved
+collation, maximum result size, the one execution-owned `PrivateStateByteBudget`,
+and first-error/result facilities. `AggStep`, `AggValue`, and `AggFinal` dispatch
+through this seam. `AggValue` copies a result to a distinct register without
+clearing the accumulator; the slot and callback are present for later work but no
+window execution surface is admitted.
+
+`sum`, `avg`, and `total` translate SQLite 3.53.4 `func.c` `SumCtx`,
+`kahanBabuskaNeumaierStep`, `kahanBabuskaNeumaierStepInt64`, initialization,
+`sumStep`, and the three finalizers. The integer route remains exact int64; overflow
+initializes compensated REAL state while retaining the overflow diagnostic until a
+later non-integer input; large int64 steps split at the pinned 2^52/16384 boundary;
+and finalization includes the finite correction term. Public differentials cover
+cancellation, large signed integers, overflow followed by REAL, persistent integer
+overflow, and INTEGER/REAL/NULL result classes. This is an algorithm translation,
+not a host summation substitution.

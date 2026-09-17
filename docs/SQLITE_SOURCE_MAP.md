@@ -1007,3 +1007,10 @@ fixtures is admitted; other automatic-index layouts remain gated.
 | `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay) | `src/internal/vdbe.ts:compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 28/32 exact public tagged cases; remaining 4 need FROM subqueries |
 | `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order, collation representative, NULL separator, and all-encoding cases; window execution remains excluded |
 | `src/vdbe.c` ephemeral/sorter lifetime | `SorterCursor.clear`, `EphemeralIndexCursor.clear`, shared `PrivateStateByteBudget` | Per-group state is released before the next group; reset/finalize/error retain common cursor cleanup |
+
+### Compensated aggregates and callback context correction ([[card:card-l-b]], 2026-09-17)
+
+| Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
+|---|---|---|
+| `src/func.c` `SumCtx`, `kahanBabuskaNeumaierStep`, `kahanBabuskaNeumaierStepInt64`, `kahanBabuskaNeumaierInit`, `sumStep`, `sumFinalize`, `avgFinalize`, `totalFinalize` | `src/internal/vdbe.ts` `SumCtx`, KBN helpers, `sumStep`, `sumResult`; exact int64 branch plus compensated REAL/error state | `test/conformance/aggregate-sum-context.test.mjs`: public cancellation, large-int split, overflow/REAL transition, final class and overflow diagnostics |
+| `src/sqliteInt.h` `FuncDef`; `src/vdbe.c` `OP_AggStep`/`OP_AggValue`/`OP_AggFinal`; `src/vdbeapi.c` aggregate context/result APIs | `AggregateDefinition`, `AggregateFunctionContext`, `AggregateContext`, registry dispatch; aggregate-capable `Mem` remains state owner | `test/conformance/aggregate-context-opcodes.test.mjs` proves repeated non-destructive `AggValue`; optional `inverse`/`value` slots do not admit windows |

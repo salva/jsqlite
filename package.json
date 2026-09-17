@@ -32,8 +32,8 @@
     "test:conformance:multisource:manifest": "python3 test/conformance/multisource-select-manifest.test.py",
     "test:conformance:multisource:native": "python3 test/conformance/capture-multisource-select.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-multisource-select.spec.json --output $SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json && cmp test/conformance/cases/stage3-multisource-select.json $SAIVAGE_CARD_WORK_ROOT/multisource-recapture.json",
     "test:conformance:aggregate:manifest": "python3 test/conformance/aggregate-group-manifest.test.py",
-    "test:conformance:aggregate:native": "python3 test/conformance/capture-aggregate-group.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-aggregate-group.spec.json --fixture-root test/fixtures --output $SAIVAGE_CARD_WORK_ROOT/aggregate-recapture.json && cmp test/conformance/cases/stage3-aggregate-group.json $SAIVAGE_CARD_WORK_ROOT/aggregate-recapture.json",
-    "test:conformance:aggregate:ts": "node --experimental-strip-types --test test/conformance/run-aggregate-group-ts.mjs"
+    "test:conformance:aggregate:native": "python3 test/conformance/capture-aggregate-group.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-aggregate-group.spec.json --fixture-root test/fixtures --output $SAIVAGE_CARD_WORK_ROOT/aggregate-recapture.json && cmp test/conformance/cases/stage3-aggregate-group.json $SAIVAGE_CARD_WORK_ROOT/aggregate-recapture.json && python3 test/conformance/aggregate-sum-native.py $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so",
+    "test:conformance:aggregate:ts": "node --experimental-strip-types --test test/conformance/run-aggregate-group-ts.mjs test/conformance/aggregate-sum-context.test.mjs test/conformance/aggregate-context-opcodes.test.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3"
