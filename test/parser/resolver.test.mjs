@@ -53,6 +53,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT json(x), jsonb(x), json_array(), json_array(x,x), jsonb_array(x), json_array_length(x), json_array_length(x,x), json_error_position(x), json_patch(x,x), jsonb_patch(x,x), json_pretty(x), json_pretty(x,x), json_quote(x), json_type(x), json_type(x,x), json_valid(x), json_valid(x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT json() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json()');
+ assert.throws(()=>resolve('SELECT json_patch(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_patch()');
  assert.doesNotThrow(()=>resolve('SELECT like(x,x), like(x,x,x), glob(x,x), load_extension(x), load_extension(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT like(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function like()');
  assert.throws(()=>resolve('SELECT glob(x,x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function glob()');
