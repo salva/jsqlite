@@ -4,7 +4,7 @@ import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
 const table=(name,columns,primaryKey=[])=>{columns=Object.freeze(columns);return Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns,indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze(primaryKey.map(i=>columns[i])),storageKey:Object.freeze([])})};
-const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])],['booleans',table('booleans',[column('true'),column('false')])],['quoted',table('quoted',[column('foo'),column('x')])],['ident',table('ident',[column('x"y'),column('x`y'),column('x y'),column('z')])]])};
+const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])],['booleans',table('booleans',[column('true'),column('false')])],['quoted',table('quoted',[column('foo'),column('x')])],['ident',table('ident',[column('x"y'),column('x`y'),column('x y'),column('Ä'),column('É'),column('z')])]])};
 const resolve=sql=>expandAndResolveSelect(parseSql(sql).statement,schema);
 test('selectExpander preserves ordered duplicate names, wildcard visibility, and direct metadata',()=>{
  const r=resolve('SELECT *, b.*, a.x AS x, a.rowid FROM a JOIN b USING(x)');
@@ -332,6 +332,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x+01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+0x10 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
  assert.doesNotThrow(()=>resolve('SELECT ABS(a.x) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x)'));
+ assert.throws(()=>resolve('SELECT i."Ä"+1 FROM ident i UNION ALL SELECT i.z FROM ident i ORDER BY "ä"+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT i."É"+1 FROM ident i UNION ALL SELECT i.z FROM ident i ORDER BY "é"+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT i."x""y"+1 FROM ident i UNION ALL SELECT i.z FROM ident i ORDER BY [x"y]+1'));
  assert.doesNotThrow(()=>resolve('SELECT i.`x``y`+1 FROM ident i UNION ALL SELECT i.z FROM ident i ORDER BY "x`y"+1'));
  assert.doesNotThrow(()=>resolve('SELECT i.[x y]+1 FROM ident i UNION ALL SELECT i.z FROM ident i ORDER BY `X Y`+1'));
