@@ -29,6 +29,7 @@ type Expression =
  | {kind:"cast";value:Expression;affinity:MemAffinity}
  | {kind:"call";name:string;args:Expression[]}
  | {kind:"aggregate";name:string;args:Expression[];collation:BuiltinCollation;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[]}
+ | {kind:"scalar-subquery";select:SelectNode}
  | {kind:"register";index:number}
  | {kind:"case";operand:Expression|null;pairs:[Expression,Expression][];otherwise:Expression|null};
 
@@ -165,6 +166,11 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(sig.startsWith("term ::=")||sig==="expr ::= term"||sig==="expr ::= VARIABLE"){const x=t[0]!;if(x.kind==="integer"){const v=BigInt(x.text);return{kind:"literal",value:v<(1n<<63n)?v:Number(x.text)}}if(x.kind==="float")return{kind:"literal",value:Number(x.text)};if(x.kind==="string")return{kind:"literal",value:decodeString(x.text)};if(x.kind==="blob")return{kind:"literal",value:Uint8Array.from(x.text.slice(2,-1).match(/../g)?.map(y=>parseInt(y,16))??[])};if(x.text.toUpperCase()==="NULL")return{kind:"literal",value:null}}
  if(sig==="expr ::= VARIABLE")return{kind:"variable",spelling:t[0]!.text};
  if(sig==="expr ::= LP expr RP")return expressionFromReduction(all[0]!);
+ if(sig==="expr ::= LP select RP"){
+  const nested=directReduction(n,"select ::=")?.semantic;
+  if(!nested||typeof nested!=="object"||!("kind" in nested)||nested.kind!=="select")throw new JSQLiteError("internal","generated scalar subquery lost its Select");
+  return{kind:"scalar-subquery",select:nested as SelectNode};
+ }
  if(sig==="expr ::= PLUS|MINUS expr"||sig==="expr ::= BITNOT expr"||sig==="expr ::= NOT expr"){
   // expr.c admits 2^63 only as the operand of unary minus.
   if(t[0]!.text==="-"&&all[0]?.kind==="reduction"){const leaf=exprLeaves(all[0]);if(leaf.length===1&&leaf[0]!.kind==="integer"&&leaf[0]!.text==="9223372036854775808")return{kind:"literal",value:-(1n<<63n)}}
@@ -174,7 +180,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
   // Select the operator from the reduction itself, not from flattened leaves:
   // a child comparison may otherwise be mistaken for the outer AND/OR.
   const directWords=n.children.flatMap(child=>child.kind==="terminal"&&child.value?[child.value.text.toUpperCase()]:[]);
-  const op=sig.includes(" IS NOT ")?"IS NOT":directWords[0];
+  const op=sig.includes(" IS NOT ")?"IS NOT":directWords[0]??t.find(token=>["+","-","*","/","%","=","==","!=","<>","<",">","<=",">=","IS","AND","OR"].includes(token.text.toUpperCase()))?.text.toUpperCase();
   if(op&&["+","-","*","/","%","=","==","!=","<>","<",">","<=",">=","IS","IS NOT","AND","OR"].includes(op))return{kind:"binary",op,left:expressionFromReduction(all[0]!),right:expressionFromReduction(all[1]!)}
  }
  if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
@@ -226,8 +232,6 @@ function expressionName(expression: SelectNode["result"][number]): string {
 
 
 function rejectUnsupportedSelectClauses(select: SelectNode, relational = false): void {
-  if (select.hasSubquery)
-    throw new JSQLiteError("unsupported", "compound SELECTs, VALUES, and subqueries are not implemented", { unsupportedClassification: "temporary" });
   if (select.hasGroupBy || select.hasHaving || (!relational && (select.hasDistinct || (select.hasOrderBy && !select.hasCompound))))
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
@@ -237,7 +241,22 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="register") { const r=allocate();ops.push({code:"Copy",p1:expression.index,p2:r});return r; }
   if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
-  if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});return r; }
+  if(expression.kind==="scalar-subquery") {
+    // expr.c:sqlite3CodeSubselect initializes SRT_Mem to NULL and replaces it
+    // from only the first row. This initial route admits the finite no-FROM
+    // producer; all source/correlation shapes remain atomic prepare failures.
+    const select=expression.select;
+    if(select.result.length!==1)throw new JSQLiteError("sqlite",`sub-select returns ${select.result.length} columns - expected 1`,{code:1});
+    if(select.from.items.length||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.hasOrderBy||select.hasCompound||select.hasValues||select.offset||select.hasLimit)
+      throw new JSQLiteError("unsupported","this scalar subquery shape is not implemented",{unsupportedClassification:"temporary"});
+    const result=allocate();ops.push({code:"Null",p2:result});
+    const item=select.result[0]!;
+    if(!item.reduction)throw new JSQLiteError("internal","generated scalar subquery result lost its expression");
+    const value=emit(expressionFromReduction(item.reduction));
+    ops.push({code:"Copy",p1:value,p2:result});
+    return result;
+  }
+  if(expression.kind==="column") { const r=allocate();if(expression.index<0)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
@@ -582,9 +601,63 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze([Object.freeze({name:outputName,declaredType:leftColumn.declaredType,database:"main",table:left.table.name,origin:leftColumn.name})]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
+/** select.c SRT_EphemTab materialization for the bounded two-source route used
+ * when flattenSubquery rejects an ORDER/LIMIT derived source. The inner SELECT is
+ * compiled by the ordinary owner, then its ResultRow destination is redirected
+ * into the shared typed ephemeral cursor; no host rows or nested Statement exist. */
+function compileMaterializedDerived(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined {
+ const derived=select.from.derived;if(!derived||derived.index!==1||select.from.items.length!==2||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.result.length!==2||select.orderBy.length!==2||select.limit||select.offset)return undefined;
+ const outerItem=select.from.items[0]!,outer=schema.tables.get(sqliteAsciiFold(sqlName(outerItem.tableName)));if(!outer)return undefined;
+ const inner=compileTableSelect(derived.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(inner.parameters.length)return undefined;
+ const ordinalOrder=select.orderBy.every((term,index)=>term.expr.tokens.length===1&&term.expr.tokens[0]!.text===String(index+1)&&!term.descending&&term.nulls===null);if(!ordinalOrder)return undefined;
+ const direct=(expression:SelectNode['result'][number])=>expression.tokens.length===3&&expression.tokens[1]!.text==='.'?{owner:sqlName(expression.tokens[0]!.text),name:sqlName(expression.tokens[2]!.text)}:null,left=direct(select.result[0]!),right=direct(select.result[1]!);if(!left||!right||!sqliteIdentifierEqual(left.owner,outerItem.alias??outer.name)||!sqliteIdentifierEqual(right.owner,derived.alias??'(subquery)'))return undefined;
+ const outerColumn=outer.columns.findIndex(column=>sqliteIdentifierEqual(column.name,left.name)),innerColumn=inner.columns.findIndex(column=>sqliteIdentifierEqual(column.name,right.name));if(outerColumn<0||innerColumn<0)return undefined;const outerRowid=outer.primaryKey.length===1&&outer.columns[outerColumn]!.primaryKeyPosition!==null&&outer.columns[outerColumn]!.declaredType?.toUpperCase()==='INTEGER';
+ const ephemeral=20,keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:inner.columns.length,keyFieldCount:inner.columns.length,terms:inner.columns.map(()=>({collation:'binary'}))}),ops:Op[]=[{code:'OpenEphemeral',p1:ephemeral,keyInfo}],endJumps:number[]=[];
+ for(const original of inner.ops){let op:Op=original;if('p2' in op&&['Goto','Rewind','IfNot','Next','DecrJumpZero','IfNotZero','IfPos','SorterNext'].includes(op.code))op={...op,p2:op.p2+1} as Op;if('jump' in op&&typeof op.jump==='number')op={...op,jump:op.jump+1} as Op;if(op.code==='ResultRow')ops.push({code:'IdxInsert',p1:ephemeral,keyStart:op.p1,keyCount:op.p2});else if(op.code==='Halt'){endJumps.push(ops.length);ops.push({code:'Goto',p2:0});}else ops.push(op);}
+ const producerEnd=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=producerEnd;
+ const derivedBase=inner.registers+1,output=derivedBase+inner.columns.length,outerCursor=0;ops.push({code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const outerRewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const outerBody=ops.length,innerRewind=ops.length;ops.push({code:'EphemeralRewind',p1:ephemeral,p2:0},{code:'EphemeralData',p1:ephemeral,p2:derivedBase,count:inner.columns.length},outerRowid?{code:'Rowid',p1:outerCursor,p2:output}:{code:'Column',p1:outerColumn,p2:output,p3:outerCursor},{code:'Copy',p1:derivedBase+innerColumn,p2:output+1},{code:'ResultRow',p1:output,p2:2});const innerNext=ops.length;ops.push({code:'EphemeralNext',p1:ephemeral,p2:innerRewind+1},{code:'Next',p1:outerCursor,p2:outerBody});const halt=ops.length;ops.push({code:'Halt'});(ops[outerRewind] as {p2:number}).p2=halt;(ops[innerRewind] as {p2:number}).p2=innerNext+1;
+ const columns=Object.freeze([Object.freeze({name:select.result[0]!.alias??outer.columns[outerColumn]!.name,declaredType:outer.columns[outerColumn]!.declaredType,database:'main',table:outer.name,origin:outer.columns[outerColumn]!.name}),inner.columns[innerColumn]!]);return Object.freeze({ops:Object.freeze(ops),registers:output+1,encoding:database.encoding,columns,parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+}
+
+/**
+ * select.c:sqlite3ColumnsFromExprList() makes transient view/subquery columns
+ * unique without mutating the stored Select. Identifier comparison uses the
+ * same ASCII fold as schema lookup. A colliding trailing ":<digits>" suffix is
+ * replaced rather than accumulated.
+ */
+function uniqueTransientColumnNames(names:readonly string[]):readonly string[]{
+  const used=new Set<string>(),result:string[]=[];
+  for(const original of names){
+    let name=original,counter=0;
+    while(used.has(sqliteAsciiFold(name))){
+      const base=name.replace(/:\d+$/,"");
+      name=`${base}:${++counter}`;
+    }
+    used.add(sqliteAsciiFold(name));result.push(name);
+  }
+  return Object.freeze(result);
+}
+
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
+  const materialized=compileMaterializedDerived(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(materialized)return materialized;
   if(select.hasCompound){rejectUnsupportedSelectClauses(select, true);return compileJoinedUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);}
+  // select.c:selectExpander turns an immutable schema view into its stored
+  // generated Select. This first flattenable tranche never reparses schema SQL.
+  if(select.from.items.length===1){
+    const source=select.from.items[0]!,view=schema.views.get(sqliteAsciiFold(sqlName(source.tableName)));
+    if(view){
+      const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
+      const inner=view.select;
+      if(!bareStar||source.alias!==null||source.databaseName!==null||source.on!==null||source.using!==null||select.where!==null||select.hasDistinct||select.hasGroupBy||select.hasHaving||inner.hasCompound||inner.hasDistinct||inner.hasGroupBy||inner.hasHaving||inner.hasOrderBy||inner.hasLimit||inner.from.items.length!==1)
+        throw new JSQLiteError("unsupported","this view shape is not implemented",{unsupportedClassification:"temporary"});
+      if(view.columns.length&&view.columns.length!==inner.result.length)throw new JSQLiteError("sqlite",`expected ${view.columns.length} columns for '${view.name}' but got ${inner.result.length}`,{code:1});
+      const names=uniqueTransientColumnNames(view.columns.length?view.columns:inner.result.map((expression,index)=>expression.alias??(expression.tokens.length===1?sqlName(expression.tokens[0]!.text):`column${index+1}`)));
+      const result=Object.freeze(inner.result.map((expression,index)=>Object.freeze({...expression,...(names[index]===undefined?{}:{alias:names[index]})})));
+      const expandedView:SelectNode=Object.freeze({...inner,result,orderBy:select.orderBy,limit:select.limit,offset:select.offset,hasOrderBy:select.hasOrderBy,hasLimit:select.hasLimit,tokens:select.tokens});
+      return compileTableSelect(expandedView,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    }
+  }
   let expanded;
   try { expanded=expandAndResolveSelect(select,schema); }
   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
@@ -604,6 +677,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     else if (tokens.length === 3 && tokens[1]!.text === "." && sqliteIdentifierEqual(sqlName(tokens[0]!.text), select.from.items[0]!.alias??table.name)) name = sqlName(tokens[2]!.text);
     else throw new JSQLiteError("unsupported", "table expression is not implemented", { unsupportedClassification: "temporary" });
     const at = table.columns.findIndex(c => sqliteIdentifierEqual(c.name, name));
+    if(at>=0&&table.primaryKey.length===1&&table.columns[at]!.primaryKeyPosition!==null&&table.columns[at]!.declaredType?.toUpperCase()==="INTEGER")return -1;
     if(at<0&&!table.withoutRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))return -1;
     if (at < 0) throw new JSQLiteError("sqlite", `no such column: ${name}`, { code: 1 });
     return at;
@@ -656,7 +730,20 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       if(resultIndex<0)resultIndex=select.result.findIndex(x=>x.tokens.map(t=>t.text).join(" ")===leaf.map(t=>t.text).join(" "));
       let expression:Expression;
       if(resultIndex>=0){
-        const resultExpression=projected[resultIndex]!.expression??resolveExpression(select.result[resultIndex]!);
+        const projection=projected[resultIndex]!;
+        let resultExpression=projection.expression;
+        // resolveOrderGroupBy() substitutes the expanded result Expr, not the
+        // syntactic '*' that produced it. In particular, ORDER BY on a column
+        // expanded from a derived-table '*' has no matching Select.result node.
+        if(!resultExpression){
+          const index=projection.rowid?-1:projection.column!;
+          if(index<0)resultExpression={kind:"column",index,name:projection.name,affinity:"integer",collation:"binary"};
+          else {
+            const column=table.columns[index]!,collationName=sqliteAsciiFold(column.collation??"binary");
+            if(collationName!=="binary"&&collationName!=="nocase"&&collationName!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${column.collation}`,{code:1});
+            resultExpression={kind:"column",index,name:projection.name,affinity:affinityOf(column.declaredType??""),collation:collationName};
+          }
+        }
         const substitute=(node:Expression):Expression=>node.kind==="collate"?{...node,value:substitute(node.value)}:resultExpression;
         expression=substitute(parsedOrderExpression);
       }else expression=resolveExpression(term.expr);
@@ -719,7 +806,7 @@ function sameExpression(a:Expression,b:Expression):boolean {
   case "cast": return a.affinity===(b as typeof a).affinity&&sameExpression(a.value,(b as typeof a).value);
   case "call": case "aggregate": {const x=b as typeof a;return a.name===x.name&&a.args.length===x.args.length&&a.args.every((arg,i)=>sameExpression(arg,x.args[i]!));}
   case "case": {const x=b as typeof a;return (a.operand===null?x.operand===null:x.operand!==null&&sameExpression(a.operand,x.operand))&&a.pairs.length===x.pairs.length&&a.pairs.every((pair,i)=>sameExpression(pair[0],x.pairs[i]![0])&&sameExpression(pair[1],x.pairs[i]![1]))&&(a.otherwise===null?x.otherwise===null:x.otherwise!==null&&sameExpression(a.otherwise,x.otherwise));}
-  case "mem": case "register": return false;
+  case "mem": case "register": case "scalar-subquery": return false;
  }
 }
 function reductionHas(select:SelectNode,part:string):boolean {const visit=(node:LemonValue<SqlToken>):boolean=>node.kind==="reduction"&&(node.signature.toLowerCase().includes(part.toLowerCase())||node.children.some(visit));const roots=[...select.result,...select.groupBy,...select.orderBy.map(x=>x.expr),...(select.having?[select.having]:[])];return roots.some(x=>x.reduction!==undefined&&visit(x.reduction));}
@@ -836,7 +923,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
 }
 
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
- const out=new Mem();if(e.kind==="register"||e.kind==="aggregate")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);

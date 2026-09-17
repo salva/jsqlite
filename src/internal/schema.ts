@@ -64,6 +64,7 @@ export interface ViewNode {
   readonly sql: string;
   readonly selectSql: string;
   readonly select: SelectNode;
+  readonly columns: readonly string[];
 }
 export type SchemaObject = TableNode | IndexNode | ViewNode;
 
@@ -255,7 +256,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       const ddl = parseDdl(item.sql, "create-view", item.name);
       if (!ddl.select) malformed(`view ${item.name} has no SELECT`);
       const selectSql = ddl.select.tokens.map(token => token.text).join(" ");
-      const view: ViewNode = { kind: "view", name: item.name, tableName: item.tableName, rootPage: 0, sql: item.sql, selectSql, select: ddl.select };
+      const view: ViewNode = { kind: "view", name: item.name, tableName: item.tableName, rootPage: 0, sql: item.sql, selectSql, select: ddl.select, columns: ddl.viewColumns };
       views.set(folded, Object.freeze(view));
     } else if (item.type === "trigger") {
       throw new SchemaUnsupportedError(`trigger construction is not implemented: ${item.name}`);
