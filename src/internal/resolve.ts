@@ -157,6 +157,8 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    if(over&&token&&rejectWindowFunctions)throw new NameResolutionError(`misuse of window function ${identifier(token.text)}()`);
    if(over&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),window=['row_number','rank','dense_rank','percent_rank','cume_dist','ntile','lag','lead','first_value','last_value','nth_value','avg','count','group_concat','string_agg','sum','total','min','max','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name);if(!window)throw new NameResolutionError(`${identifier(token.text)}() may not be used as a window function`);}
    if(over)resolveAgainstSources({kind:'tokens',tokens:[],reduction:over},sources,[],false,false,rejectWindowFunctions,selectWindowNames,windowDefinitions);
+   const argumentsNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
+   if(argumentsNode&&firstWindowName({kind:'tokens',tokens:[],reduction:argumentsNode}))throw new NameResolutionError(`misuse of window function ${firstWindowName({kind:'tokens',tokens:[],reduction:argumentsNode})}()`);
    if(filter&&firstWindowName({kind:'tokens',tokens:[],reduction:filter}))throw new NameResolutionError(`misuse of window function ${firstWindowName({kind:'tokens',tokens:[],reduction:filter})}()`);
    if(filter)walk(filter);
    if(filter){const nested=firstAggregateName({kind:'tokens',tokens:[],reduction:filter});if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
