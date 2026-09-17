@@ -1,6 +1,6 @@
 # Public API contract
 
-Status: **Stage 3 first prepared-SELECT plus bounded relational and compound/VALUES working-state slices implemented; broader SQL remains unsupported**. `open()` fetches, bounds, validates, and owns an immutable format-3 database. `Connection.prepare()` performs UTF-8 tokenization and generated-Lemon parsing, preserves exact tails/empty SQL, and compiles bounded no-FROM expressions plus projection/filter over one ordinary rowid table into the shared-Mem VDBE. The admitted relational slice accepts one or more `ORDER BY` expression terms. Each term resolves by SQLite precedence as result alias, positive result ordinal, identical selected expression, then an admitted table expression, with optional explicit `COLLATE BINARY|NOCASE|RTRIM`, `ASC|DESC`, and `NULLS FIRST|LAST`; otherwise the resolved expression/column collation applies. `LIMIT`/`OFFSET` expressions accept INTEGER, integral REAL, and signed base-10 integral TEXT at first `step()` and follow the zero/negative/error timing specified below. Complete immutable multi-field `KeyInfo` keys run through typed bounded sorter comparison. SELECT DISTINCT is admitted for the same single-table direct-column/direct-expression projection surface; it compares complete projected records through typed ephemeral `KeyInfo` state, with NULL-equal and INTEGER/REAL-equal semantics and resolved BINARY/NOCASE/RTRIM collations. The bounded compound surface admits standalone structured one- and multirow `VALUES`; scalar `UNION ALL`, `UNION`, `INTERSECT`, and `EXCEPT`; multi-term compound `ORDER BY` for admitted finite scalar/VALUES rows (including multi-column results) and one-result-column direct-table arms; and compound-wide `LIMIT`/`OFFSET`. A table-arm subset admits one direct column from each single ordinary rowid table without `WHERE`: all four set operators and left-to-right mixed chains are supported, `UNION ALL` preserves scan order/multiplicity when unordered, set operators use typed NULL-equal and INTEGER/REAL-equal comparison under the leftmost column's declared collation, and metadata comes from the leftmost column. Ordered admitted table chains use one bounded global sorter after set transitions. Unsupported compound shapes reject during prepare before any arm executes. Ordinary rowid-table comma, CROSS, and INNER joins are admitted with ON/WHERE, aliases, USING/NATURAL visibility, expression projection, DISTINCT/ORDER/LIMIT, and the bounded one-column joined-left-arm `UNION ALL ... ORDER BY 1` composition. They stream source-order cursor loops; they do not materialize a blanket Cartesian product. LEFT and one RIGHT/FULL barrier are admitted as specified by the current boundary below; repeated RIGHT/FULL barriers, GROUP/HAVING, subqueries/CTEs, views, indexes, and the other exclusions below remain temporary unsupported. Canonical first-SELECT TS conformance remains 8/8; the compound/VALUES contract is 22/22 exact public TS passes (15 native-valid executions and seven native prepare-error cases); relational schema-v4 accounting is 2/18 (`up-limit-1.2.1`, `up-select4-10.3`); `up-distinct-3.0` passes publicly but is no-credit because its fixture cannot yet preserve the upstream UNIQUE autoindex setup.
+Status: **Stage 3 first prepared-SELECT plus bounded relational and compound/VALUES working-state slices implemented; broader SQL remains unsupported**. `open()` fetches, bounds, validates, and owns an immutable format-3 database. `Connection.prepare()` performs UTF-8 tokenization and generated-Lemon parsing, preserves exact tails/empty SQL, and compiles bounded no-FROM expressions plus projection/filter over one ordinary rowid table into the shared-Mem VDBE. The admitted relational slice accepts one or more `ORDER BY` expression terms. Each term resolves by SQLite precedence as result alias, positive result ordinal, identical selected expression, then an admitted table expression, with optional explicit `COLLATE BINARY|NOCASE|RTRIM`, `ASC|DESC`, and `NULLS FIRST|LAST`; otherwise the resolved expression/column collation applies. `LIMIT`/`OFFSET` expressions accept INTEGER, integral REAL, and signed base-10 integral TEXT at first `step()` and follow the zero/negative/error timing specified below. Complete immutable multi-field `KeyInfo` keys run through typed bounded sorter comparison. SELECT DISTINCT is admitted for the same single-table direct-column/direct-expression projection surface; it compares complete projected records through typed ephemeral `KeyInfo` state, with NULL-equal and INTEGER/REAL-equal semantics and resolved BINARY/NOCASE/RTRIM collations. The bounded compound surface admits standalone structured one- and multirow `VALUES`; scalar `UNION ALL`, `UNION`, `INTERSECT`, and `EXCEPT`; multi-term compound `ORDER BY` for admitted finite scalar/VALUES rows (including multi-column results) and one-result-column direct-table arms; and compound-wide `LIMIT`/`OFFSET`. A table-arm subset admits one direct column from each single ordinary rowid table without `WHERE`: all four set operators and left-to-right mixed chains are supported, `UNION ALL` preserves scan order/multiplicity when unordered, set operators use typed NULL-equal and INTEGER/REAL-equal comparison under the leftmost column's declared collation, and metadata comes from the leftmost column. Ordered admitted table chains use one bounded global sorter after set transitions. Unsupported compound shapes reject during prepare before any arm executes. Ordinary rowid-table comma, CROSS, and INNER joins are admitted with ON/WHERE, aliases, USING/NATURAL visibility, expression projection, DISTINCT/ORDER/LIMIT, and the bounded one-column joined-left-arm `UNION ALL ... ORDER BY 1` composition. They stream source-order cursor loops; they do not materialize a blanket Cartesian product. LEFT and one RIGHT/FULL barrier are admitted as specified by the current boundary below; repeated RIGHT/FULL barriers, subqueries/CTEs, views, indexes, and the other exclusions below remain temporary unsupported. The aggregate tranche admits grouped and non-grouped `count`, `sum`, `total`, `avg`, unary `min`/`max`, and `group_concat`, including HAVING and the modifiers and bounded compositions stated below. Canonical first-SELECT TS conformance remains 8/8; the compound/VALUES contract is 22/22 exact public TS passes (15 native-valid executions and seven native prepare-error cases); relational schema-v4 accounting is 2/18 (`up-limit-1.2.1`, `up-select4-10.3`); `up-distinct-3.0` passes publicly but is no-credit because its fixture cannot yet preserve the upstream UNIQUE autoindex setup.
 
 This is the singular public contract. It maps the read-only-relevant SQLite 3.53.4
 C API to browser-safe named ESM declarations while retaining explicit JS boundary
@@ -295,8 +295,8 @@ surfaces, and sidecar recovery. The public read-only SELECT subset currently adm
 
 ORDER aliases follow SQLite alias precedence; positive ordinals are 1-based and
 out-of-range ordinals are prepare errors. Equal complete ORDER keys have no public
-deterministic-order guarantee. Compound forms outside the bounded scalar and direct-column table-arm surfaces, subqueries/CTEs,
-GROUP/HAVING, aggregates/windows, views, indexes, and broader resolver/planner
+deterministic-order guarantee. Compound forms outside the bounded scalar and direct-column table-arm surfaces, FROM
+subqueries/CTEs, windows, views, indexes, unregistered functions, and broader resolver/planner
 grammar remain temporary unsupported (unless separately admitted above). Ordinary
 rowid-table comma/CROSS/INNER and LEFT joins are admitted: LEFT preserves
 ON/USING/NATURAL match ownership, emits one cursor-shaped NULL extension for an
@@ -307,13 +307,13 @@ serialized async VM admission, and statement/close lifecycle through the public
 API. Internal storage or parser tests confer only their stated bounded evidence,
 not broader SQLite query compatibility.
 
-### Tests-first expression/function boundary (not yet implemented)
+### Historical tests-first expression/function boundary (superseded)
 
 `test/conformance/cases/stage3-expression-functions.json` records native expectations but awards zero TS credit. When implemented, expression results continue to use the existing five public value classes; ordered/duplicate column names and direct-column origin metadata follow the existing Statement contract. Expression aliases name computed columns, while unaliased names are SQLite's expression text; computed expression origins are null. Resolver/step errors use the existing SQLite-compatible error object and first-error rule. No host function or collation registration API is introduced.
 
-### Audit and relational-foundation precision (2026-09-14)
+### Historical audit and relational-foundation precision (2026-09-14; superseded)
 
-Public expression execution now reproduces the 14-case pinned typed audit, including numeric-prefix boolean/`abs`, REAL arithmetic classification, and INTEGER-cast prefix behavior. The lane remains explicitly zero-credit until conformance promotion. Private relational state remains a foundation rather than a promise of general relational SQL; the public guarantee is only the exact ORDER BY/LIMIT/OFFSET subset stated above. DISTINCT outside that admitted projection surface, compound, aggregate, window, join, and unsupported structural forms are not implied. The current relational manifest attempts/passes 3/18 and credits 2/18; the passing DISTINCT upstream assertion remains no-credit pending exact UNIQUE-autoindex fixture parity.
+At that checkpoint public expression execution reproduced the 14-case pinned typed audit, including numeric-prefix boolean/`abs`, REAL arithmetic classification, and INTEGER-cast prefix behavior. The lane was explicitly zero-credit until conformance promotion. Private relational state was a foundation rather than a promise of general relational SQL; the public guarantee was only the then-current ORDER BY/LIMIT/OFFSET subset. DISTINCT outside that admitted projection surface, compound, aggregate, window, join, and unsupported structural forms were not implied. The relational manifest then attempted/passed 3/18 and credited 2/18; the passing DISTINCT upstream assertion remained no-credit pending exact UNIQUE-autoindex fixture parity. Later sections and the opening status own the current boundary.
 
 ### Compound result collation and gate accounting
 
@@ -353,11 +353,16 @@ Earlier statements that all RIGHT/FULL joins were unsupported, that non-terminal
 ### Aggregate SELECT tranche
 
 `prepare()` currently admits core `count`, `sum`, `total`, `avg`, unary `min` and
-`max`, and `group_concat` in a non-grouped SELECT over no FROM or one ordinary
-rowid table, with optional WHERE and scalar composition of aggregate results.
-Column names and null metadata follow the SELECT expressions. GROUP BY, HAVING,
-aggregate DISTINCT/FILTER/ORDER BY, subqueries, compounds, joins, windows, and
-unregistered aggregate functions remain typed temporary unsupported at prepare.
+`max`, and `group_concat` in grouped and non-grouped SELECTs over no FROM or
+ordinary rowid-table input. The admitted surface includes WHERE, GROUP BY, HAVING,
+scalar composition of aggregate results, aggregate-argument DISTINCT and FILTER,
+and aggregate-local ORDER BY. It also includes the exact tested grouped inner-join
+input, parameter-free ordered aggregate `UNION ALL`, and result ORDER BY,
+LIMIT/OFFSET, and SELECT DISTINCT compositions. Column names and null metadata
+follow the SELECT expressions. The public aggregate matrix passes 28 of 32 native-
+successful cases; the remaining four use FROM subqueries and reject atomically as
+typed temporary unsupported. Windows, unregistered aggregate functions, broader
+join/compound forms, and broader subquery/CTE behavior remain future scope.
 
 ### Bounded grouped SELECT DISTINCT
 
@@ -368,5 +373,6 @@ compare equal for duplicate removal. Its ephemeral index and all grouping/result
 sorters share the connection's per-statement private-state limits. The usual
 `step()` cancellation, timeout, and work-unit options apply; failure is retained
 by `reset()`/`finalize()` while a later execution after reset may proceed.
-Aggregate-argument DISTINCT, FILTER, and aggregate-local ORDER BY remain temporary
-prepare-time unsupported forms.
+Aggregate-argument DISTINCT, FILTER, and aggregate-local ORDER BY use the same
+execution-wide private-state budget and cleanup rules. This does not admit window
+execution or aggregate syntax outside the bounded tranche above.

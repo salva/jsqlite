@@ -206,16 +206,14 @@ invalidates storage reads, cursors, and cursor borrow accessors, while `payload(
 returns an owned copy that survives close. Checked JS `number` arithmetic is used
 only for page geometry within safe-integer bounds, while rowids remain signed
 `bigint`. `tableScanCursor` is the preserved lazy forward path. In contrast,
-`tableCursor` and `indexCursor` currently recurse through the complete tree into an
-ordered descriptor array at construction and only then binary-search for seek.
-Current-HEAD reproduction against pinned SQLite 3.53.4 proves this is not a neutral
-read-only adaptation: an invalid rightmost off-path child makes a TS seek for the
-minimum rowid fail before positioning, while pinned `sqlite3BtreeTableMoveto`
-returns the minimum row without touching that page. See audit finding 3 and
-`work:///cards/card-d-e/processes/proc-8e3a81d062d3/stdout.log` versus
-`work:///cards/card-d-e/processes/proc-01847f777fb9/stdout.log`. The working-tree correction translates page-local
-`sqlite3BtreeTableMoveto`/`sqlite3BtreeIndexMoveto` descent for seek and retains
-only the positioned descriptor. Complete first/last/next/previous movement defers
+A superseded implementation of `tableCursor` and `indexCursor` recursively built a
+complete ordered descriptor array before seek; pinned comparison showed that it
+incorrectly fault-touched an invalid rightmost off-path child. See audit finding 3
+and `work:///cards/card-d-e/processes/proc-8e3a81d062d3/stdout.log` versus
+`work:///cards/card-d-e/processes/proc-01847f777fb9/stdout.log`. The committed
+implementation translates page-local `sqlite3BtreeTableMoveto`/
+`sqlite3BtreeIndexMoveto` descent for seek and retains only the positioned
+descriptor. Complete first/last/next/previous movement defers
 full ordered traversal until one of those operations is requested, so cursor
 construction and seek no longer fault-touch or allocate descriptors for unrelated
 subtrees. Source-based table/index exact/inexact GE/LE tests, off-path fault
