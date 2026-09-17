@@ -53,6 +53,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT json_array_insert(x), json_array_insert(x,x,x), jsonb_array_insert(x,x,x), json_parse(x) FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT json_extract(x), json_extract(x,x), jsonb_extract(x,x), json_insert(x), json_insert(x,x,x), jsonb_insert(x,x,x), json_object(), json_object(x,x), jsonb_object(x,x), json_remove(x), json_remove(x,x), jsonb_remove(x,x), json_replace(x), json_replace(x,x,x), jsonb_replace(x,x,x), json_set(x), json_set(x,x,x), jsonb_set(x,x,x) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT json(x), jsonb(x), json_array(), json_array(x,x), jsonb_array(x), json_array_length(x), json_array_length(x,x), json_error_position(x), json_patch(x,x), jsonb_patch(x,x), json_pretty(x), json_pretty(x,x), json_quote(x), json_type(x), json_type(x,x), json_valid(x), json_valid(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT json() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json()');
  assert.throws(()=>resolve('SELECT json_patch(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_patch()');
