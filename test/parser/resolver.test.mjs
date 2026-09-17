@@ -53,6 +53,11 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER missing FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such window: missing');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (missing ORDER BY a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such window: missing');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (w ORDER BY a.x) FROM a WINDOW w AS (ORDER BY a.x)'),e=>e instanceof NameResolutionError&&e.message==='cannot override ORDER BY clause of window: w');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (w PARTITION BY a.x) FROM a WINDOW w AS (PARTITION BY a.x)'),e=>e instanceof NameResolutionError&&e.message==='cannot override PARTITION clause of window: w');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (w ROWS CURRENT ROW) FROM a WINDOW w AS (ROWS CURRENT ROW)'),e=>e instanceof NameResolutionError&&e.message==='cannot override frame specification of window: w');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (w ORDER BY a.x) FROM a WINDOW w AS (PARTITION BY a.x)'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (RANGE 1 PRECEDING)'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ORDER BY a.x,a.x RANGE 1 PRECEDING)'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ORDER BY a.x RANGE 1 PRECEDING)'));
