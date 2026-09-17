@@ -2245,3 +2245,112 @@ of aggregate-local DISTINCT and ordered-input queues. The implementation still
 does not promise catchable host OOM; the rollback protects exceptions observable
 at this seam. This correction changes no SQL admission or aggregate manifest
 credit.
+
+## Subquery and immutable-view architecture gate ([[card:card-m-a]], 2026-09-17)
+
+This section is a **tests-first decision handoff**, not runtime credit.  Its pinned
+identity is SQLite 3.53.4, source id
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+The immutable native artifact is
+`test/conformance/cases/stage3-subquery-view.json`; all 39 cases are native
+captures and public Fetch-backed TypeScript attempted/credited counts remain
+0/0.  The spec's `upstream` names are assertion provenance: a name denotes the
+canonical test-prefix plus assertion label in the pinned Tcl file (for example,
+`with1-2.1` is `test/with1.test` assertion `2.1`).  The project SQL is deliberately
+a bounded adaptation to project fixtures unless it is byte-identical; provenance
+is not a claim that the SQL text was copied.  The four `stage3-aggregate-group:`
+references point to immutable case IDs in that project oracle rather than Tcl.
+
+### Chosen production graph and ownership
+
+1. **Expand, then resolve.** Generated Lemon `Select`/`SourceList` nodes remain the
+   semantic input.  A source entry gains an owned derived `Select`; an immutable
+   view loads its stored SELECT and explicit column list into that same shape.
+   The existing expansion pass derives a transient table/result-column graph,
+   following pinned `select.c:selectExpander` and
+   `build.c:sqlite3ViewGetColumnNames`. It must preserve alias, duplicate-name
+   disambiguation, declared affinity/collation and database/table/origin identity
+   separately. It does not copy view rows or mutate schema.
+2. **Lexical resolution is structural.** Each nested SELECT receives a linked
+   `NameContext`; `resolve.c:lookupName`-shaped lookup searches the innermost
+   source first and follows `pNext`. Multiple matches in one level are ambiguous;
+   only no match advances outward. An outer hit increments the relevant reference
+   count and marks the source/expression correlated. Token scans and guessed
+   qualifier strings are forbidden. Width checks (one column for scalar and
+   scalar-LHS IN) and missing/ambiguous names fail prepare before a Program is
+   published.
+3. **Flattening is an optimization, never the semantic implementation.** Port
+   `select.c:flattenSubquery` only after its numbered restrictions are represented:
+   no aggregate derived SELECT; no derived DISTINCT; a FROM is required; LIMIT,
+   OFFSET, dual ORDER, aggregate-parent, compound-parent and outer WHERE/DISTINCT
+   interactions (8/9/11/13--16/19/21); UNION-ALL-only compound restrictions and
+   equal affinity (17/18/20); recursive/materialized CTE (22/28); windows (25);
+   and LEFT/RIGHT/FULL placement rules (3/26/27). If any fact is unavailable,
+   choose the non-flattened route rather than weakening a restriction. Rewriting
+   substitutes source columns into result/WHERE/GROUP/HAVING/ORDER expressions
+   while retaining joins, collations and outer-join provenance.
+4. **Non-flattened FROM sources stay VDBE producers.** Follow
+   `sqlite3Select` and `fromClauseTermCanBeCoroutine`: eligible single-use sources
+   compile to `InitCoroutine`/`Yield`/`EndCoroutine` with result registers; sources
+   requiring rewind/multiple access, or not eligible for coroutine, compile into
+   the existing typed ephemeral cursor. Materialization is a subprogram entered
+   by `Gosub` and terminated by `Return`; uncorrelated sources receive `Once`, while
+   correlated sources refill for the applicable outer row. Both routes compile
+   through existing SELECT destinations and the join/GROUP/ORDER/compound graph.
+   They do not evaluate an AST or collect host rows.
+5. **Expression subqueries follow `expr.c:sqlite3CodeSubselect`.** Scalar SELECT
+   initializes its destination register to NULL, imposes the equivalent of
+   `LIMIT 1`, and overwrites it with the first row's first `Mem`; extra rows are
+   ignored. EXISTS initializes integer 0 and sets integer 1 on the first row.
+   An uncorrelated expression may be guarded by `Once`; a correlated expression
+   is entered for each applicable outer row. IN/NOT IN uses an
+   `EphemeralIndexCursor` and immutable `KeyInfo`, applying SQLite comparison
+   affinity and resolved collation. Lowering retains distinct states for RHS
+   empty, exact match, no match/no NULL, and no match/RHS NULL so NULL LHS,
+   NOT IN inversion and three-valued results match the pinned artifact. A JS
+   `Set`, array membership, or host equality is not equivalent and is forbidden.
+6. **Registers and lifetime.** Every nested producer receives non-overlapping
+   contiguous result registers, one coroutine/return register and, where needed,
+   an `Once` flag plus ephemeral cursor id. `Gosub` writes its return pc;
+   `Return` consumes that register; `Yield` atomically exchanges pc with the
+   coroutine register; `EndCoroutine` transfers to the saved caller continuation.
+   This is the pinned `vdbe.c` control model adapted only from C arrays/gotos to
+   the existing TypeScript opcode array and integer register file. Suspension
+   preserves pc, all registers, cursors and `Mem` values without replay.
+
+### Invariants, bounds, and atomic gates
+
+* The statement has one `PrivateStateByteBudget` (public default 256 MiB), shared
+  by derived materializations, IN sets, sorters, aggregates and retained `Mem`.
+  Existing per-cursor defaults (100,000 entries and 16 MiB key) and result-byte
+  limit continue to apply. Every inner and outer opcode spends from the same
+  execution work counter (default 10,000,000) and checks signal/deadline at the
+  existing step boundary. No nested statement receives a fresh budget.
+* Parsing keeps the public `maxParserDepth` 2500 and `maxExpressionDepth` 1000.
+  Expansion/resolution/lowering must charge every nested SELECT edge against the
+  same expression-depth ceiling; overflow is a prepare-time limit error with no
+  published Program. Tests must exercise configured tiny values rather than rely
+  on the defaults.
+* Reset retains bindings but clears pc, row exposure, coroutine/return/Once
+  registers and every nested private cursor; rebind then reruns from pc 0.
+  Finalize, close/deferred-close, cancellation, deadline and runtime errors release
+  each nested owner exactly once, preserve the first error, invalidate exposed
+  rows, and restore connection admission.
+* CTE, recursive CTE and window execution are separate gates. Their three native
+  cases prove only oracle capture. Until an owning card admits a whole shape, each
+  must reject atomically during prepare and contributes zero TS credit. The same
+  rule applies to a flatten/materialize/coroutine shape whose required join,
+  aggregate, compound or metadata behavior cannot be represented.
+
+### Alternatives rejected and implementation sequence
+
+An AST interpreter, JS generator, recursive `Statement`, host arrays/Map/Set, and
+WASM/native delegation would split the production graph, budgets and suspension
+semantics and are rejected. Always materializing would preserve many rows but
+would diverge from the pinned coroutine/correlation control and resource timing;
+always flattening is unsound under the numbered restrictions. The implementation
+sequence is therefore: (A) immutable view/derived expansion and linked resolution;
+(B) scalar/EXISTS and IN VDBE destinations; (C) non-flattened coroutine and
+materialization; (D) only then bounded flattening. Each tranche must turn selected
+manifest cases from explicit unsupported to exact public Fetch evidence and add
+nesting/work/private-byte/lifecycle companions without changing the denominator.

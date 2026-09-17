@@ -5,7 +5,7 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json"
   },
-  "fixtureGeneration": "g-88a5ac73e417de7fb7eddad79134d3dbfa74ae2e5c2b430b495187e173b01412",
+  "fixtureGeneration": "g-6ef80a803e9a0d72df6f3a7783465c87e34870f6301553a399d1da58c3bcf74f",
   "requiredCoverage": [
     "empty",
     "types",

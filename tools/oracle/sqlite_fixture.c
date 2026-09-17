@@ -30,6 +30,13 @@ int main(int argc,char **argv){
   else if(!rc && strcmp(id,"select4-t1")==0) rc=exec(db,"CREATE TABLE t1(n INT,log INT);WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31) INSERT INTO t1 SELECT i,CASE WHEN i=1 THEN 0 WHEN i=2 THEN 1 WHEN i<5 THEN 2 WHEN i<9 THEN 3 WHEN i<17 THEN 4 ELSE 5 END FROM c;");
   else if(!rc && strcmp(id,"compound-metadata")==0) rc=exec(db,"CREATE TABLE left_meta(a INTEGER);CREATE TABLE right_meta(b TEXT);INSERT INTO left_meta VALUES(7);INSERT INTO right_meta VALUES('8');");
   else if(!rc && strcmp(id,"compound-collation")==0) rc=exec(db,"CREATE TABLE nocase_values(name TEXT COLLATE NOCASE);CREATE TABLE binary_values(name TEXT COLLATE BINARY);INSERT INTO nocase_values VALUES('a');INSERT INTO binary_values VALUES('A');");
+  else if(!rc && strncmp(id,"subquery-",9)==0) rc=exec(db,
+    "CREATE TABLE t1(a INTEGER PRIMARY KEY,b INTEGER,c TEXT COLLATE NOCASE);"
+    "INSERT INTO t1 VALUES(1,2,'Alpha'),(3,4,'alpha'),(5,6,NULL),(7,8,'z');"
+    "CREATE TABLE t2(x INTEGER,y,z TEXT COLLATE RTRIM);"
+    "INSERT INTO t2 VALUES(1,11,'q'),(1,12,'q '),(3,33,NULL),(9,NULL,'n');"
+    "CREATE VIEW v1(vb,vc) AS SELECT b,c FROM t1 WHERE a<7;"
+    "CREATE VIEW v_nested AS SELECT vb,vc FROM v1 WHERE vb>2;");
   else if(!rc && strcmp(id,"bind")==0) rc=exec(db,"CREATE TABLE t1(a,b,c);");
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
   else if(!rc && strncmp(id,"encoding-",9)==0) rc=exec(db,"CREATE TABLE t1(a PRIMARY KEY,b,c);INSERT INTO t1 VALUES('one','I',1);");

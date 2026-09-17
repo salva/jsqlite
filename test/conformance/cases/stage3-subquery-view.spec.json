@@ -1,0 +1,61 @@
+{
+  "schema": "jsqlite-subquery-view-contract-spec/1",
+  "source": {"version":"3.53.4","sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc","manifest":"reference/sqlite/manifest.json"},
+  "fixtureGeneration": "CURRENT",
+  "disposition": "native-captured; TypeScript public Fetch execution unattempted and zero credit",
+  "requiredCoverage": ["derived-from","views","scalar","exists","in-null-empty","correlation","scope-errors","metadata-affinity-collation","encodings","join-group-order-compound","aggregate30-of-34","atomic-future-gates","lifecycle-resources"],
+  "runtimeCompanions": [
+    "bounded select/expression nesting fails at prepare without publishing a Program",
+    "work/deadline/cancellation are checked while inner and outer VDBE programs run and after resume do not restart either producer",
+    "all materialized/coroutine/IN-set/sorter/aggregate retained state shares one execution PrivateStateByteBudget and is released exactly once",
+    "reset retains bindings and clears coroutine/Once/return registers and private state; rebind reruns from pc=0",
+    "finalize after suspension or error and connection close/deferred-close preserve first error, invalidate rows, and restore admission"
+  ],
+  "cases": [
+    {"id":"derived-basic","upstream":["select6-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,b FROM (SELECT a,b FROM t1 WHERE a<6) ORDER BY a"},
+    {"id":"derived-nested","upstream":["select6-8.5"],"fixture":"subquery-utf8","sql":"SELECT * FROM (SELECT * FROM (SELECT a,b FROM t1 WHERE a<7) WHERE b>2) ORDER BY a"},
+    {"id":"derived-limit-materialized","upstream":["select6-9.1"],"fixture":"subquery-utf8","sql":"SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 2) s ORDER BY 1,2"},
+    {"id":"derived-join","upstream":["select6-8.2"],"fixture":"subquery-utf8","sql":"SELECT s.a,s.b,t.y FROM (SELECT a,b FROM t1) s JOIN t2 t ON t.x=s.a ORDER BY 1,3"},
+    {"id":"derived-group-order","upstream":["select7-3.1"],"fixture":"subquery-utf8","sql":"SELECT c,count(*),sum(y) FROM (SELECT c,y FROM t1 JOIN t2 ON x=a) GROUP BY c ORDER BY c"},
+    {"id":"derived-compound","upstream":["select4-6.1"],"fixture":"subquery-utf8","sql":"SELECT a FROM (SELECT a FROM t1 WHERE a<4 UNION ALL SELECT x FROM t2 WHERE x>3) ORDER BY 1"},
+
+    {"id":"view-basic","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v1 ORDER BY vb"},
+    {"id":"view-nested","upstream":["select7-2.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v_nested ORDER BY vb"},
+    {"id":"view-correlated","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=v1.vb-1) ORDER BY vb"},
+    {"id":"view-metadata","upstream":["select1-6.9.8"],"fixture":"subquery-utf8","sql":"SELECT vb AS n,vc FROM v1 ORDER BY vb LIMIT 1"},
+
+    {"id":"scalar-constant","upstream":["subquery-2.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT 10)"},
+    {"id":"scalar-first-row","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT y FROM t2 ORDER BY y)"},
+    {"id":"scalar-empty-null","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT typeof((SELECT y FROM t2 WHERE 0)),(SELECT y FROM t2 WHERE 0)"},
+    {"id":"scalar-correlated","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,(SELECT y FROM t2 WHERE x=t1.a ORDER BY y DESC) FROM t1 ORDER BY a"},
+    {"id":"exists-correlated","upstream":["subquery-1.3"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a"},
+    {"id":"not-exists","upstream":["subquery-1.4"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a"},
+    {"id":"in-select","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE a IN (SELECT x FROM t2) ORDER BY a"},
+    {"id":"in-null-hit","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT 1 IN (SELECT x FROM t2),9 IN (SELECT x FROM t2)"},
+    {"id":"in-null-miss","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT 4 IN (SELECT y FROM t2),4 NOT IN (SELECT y FROM t2),typeof(4 IN (SELECT y FROM t2))"},
+    {"id":"in-empty","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT NULL IN (SELECT y FROM t2 WHERE 0),NULL NOT IN (SELECT y FROM t2 WHERE 0)"},
+    {"id":"in-affinity","upstream":["subquery-2.5.2"],"fixture":"subquery-utf8","sql":"SELECT '1' IN (SELECT a FROM t1),1.0 IN (SELECT a FROM t1)"},
+
+    {"id":"lexical-shadow","upstream":["subquery-1.5"],"fixture":"subquery-utf8","sql":"SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o ORDER BY o.a"},
+    {"id":"correlated-two-level","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o ORDER BY o.a"},
+    {"id":"error-ambiguous","upstream":["select6-8.2"],"fixture":"subquery-utf8","sql":"SELECT (SELECT a) FROM t1 x JOIN t1 y","expectedPrepareError":true},
+    {"id":"error-missing","upstream":["in-2.11"],"fixture":"subquery-utf8","sql":"SELECT (SELECT missing FROM t2) FROM t1","expectedPrepareError":true},
+    {"id":"error-width-scalar","upstream":["select7-5.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT x,y FROM t2)","expectedPrepareError":true},
+    {"id":"error-width-in","upstream":["select7-5.1"],"fixture":"subquery-utf8","sql":"SELECT 1 IN (SELECT x,y FROM t2)","expectedPrepareError":true},
+
+    {"id":"metadata-affinity-collation","upstream":["subquery-2.5.2","select1-6.9.8"],"fixture":"subquery-utf8","sql":"SELECT s.c,typeof(s.a),s.a FROM (SELECT c,a FROM t1) s ORDER BY s.c COLLATE NOCASE,s.a"},
+    {"id":"encoding-utf8","upstream":["subquery-1.10.2"],"fixture":"subquery-utf8","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
+    {"id":"encoding-utf16le","upstream":["subquery-1.10.2"],"fixture":"subquery-utf16le","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
+    {"id":"encoding-utf16be","upstream":["subquery-1.10.2"],"fixture":"subquery-utf16be","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
+
+    {"id":"aggregate30-sum-real-promotion","upstream":["stage3-aggregate-group:sum-real-promotion"],"fixture":"empty","sql":"SELECT typeof(sum(v)),sum(v),avg(v),total(v) FROM (SELECT 1 AS v UNION ALL SELECT 2.5 UNION ALL SELECT NULL)"},
+    {"id":"aggregate30-sum-int64-overflow","upstream":["stage3-aggregate-group:sum-int64-overflow"],"fixture":"empty","sql":"SELECT sum(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)"},
+    {"id":"aggregate30-total-no-overflow","upstream":["stage3-aggregate-group:total-no-overflow"],"fixture":"empty","sql":"SELECT total(v),avg(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)"},
+    {"id":"aggregate30-group-concat-null-separator","upstream":["stage3-aggregate-group:group-concat-null-separator"],"fixture":"empty","sql":"SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)"},
+
+    {"id":"gate-cte-nonrecursive","upstream":["with1-1.1"],"fixture":"subquery-utf8","sql":"WITH q AS (SELECT a FROM t1) SELECT * FROM q ORDER BY a","atomicGate":"cte"},
+    {"id":"gate-cte-recursive","upstream":["with1-5.1"],"fixture":"subquery-utf8","sql":"WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT * FROM q","atomicGate":"recursive-cte"},
+    {"id":"gate-window","upstream":["window1-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,row_number() OVER (ORDER BY a) FROM t1","atomicGate":"window"},
+    {"id":"reset-rebind-correlated","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1) FROM t1 WHERE a>?1 ORDER BY a","bindings":[{"type":"integer","value":"1"}],"rebind":[{"type":"integer","value":"4"}]}
+  ]
+}

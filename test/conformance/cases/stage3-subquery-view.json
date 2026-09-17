@@ -1,0 +1,2107 @@
+{
+  "schema": "jsqlite-subquery-view-contract/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "fixtureGeneration": "g-6ef80a803e9a0d72df6f3a7783465c87e34870f6301553a399d1da58c3bcf74f",
+  "requiredCoverage": [
+    "derived-from",
+    "views",
+    "scalar",
+    "exists",
+    "in-null-empty",
+    "correlation",
+    "scope-errors",
+    "metadata-affinity-collation",
+    "encodings",
+    "join-group-order-compound",
+    "aggregate30-of-34",
+    "atomic-future-gates",
+    "lifecycle-resources"
+  ],
+  "disposition": "native-captured; TypeScript public Fetch execution unattempted and zero credit",
+  "runtimeCompanions": [
+    "bounded select/expression nesting fails at prepare without publishing a Program",
+    "work/deadline/cancellation are checked while inner and outer VDBE programs run and after resume do not restart either producer",
+    "all materialized/coroutine/IN-set/sorter/aggregate retained state shares one execution PrivateStateByteBudget and is released exactly once",
+    "reset retains bindings and clears coroutine/Once/return registers and private state; rebind reruns from pc=0",
+    "finalize after suspension or error and connection close/deferred-close preserve first error, invalidate rows, and restore admission"
+  ],
+  "cases": [
+    {
+      "id": "derived-basic",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a,b FROM (SELECT a,b FROM t1 WHERE a<6) ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "derived-nested",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT * FROM (SELECT * FROM (SELECT a,b FROM t1 WHERE a<7) WHERE b>2) ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "derived-limit-materialized",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 2) s ORDER BY 1,2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "derived-join",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT s.a,s.b,t.y FROM (SELECT a,b FROM t1) s JOIN t2 t ON t.x=s.a ORDER BY 1,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "y",
+            "declaredType": null,
+            "database": "main",
+            "table": "t2",
+            "origin": "y"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "33"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "derived-group-order",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT c,count(*),sum(y) FROM (SELECT c,y FROM t1 JOIN t2 ON x=a) GROUP BY c ORDER BY c",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "c",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "56"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "derived-compound",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM (SELECT a FROM t1 WHERE a<4 UNION ALL SELECT x FROM t2 WHERE x>3) ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t2",
+            "origin": "x"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "view-basic",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT * FROM v1 ORDER BY vb",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "vb",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "vc",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "view-nested",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT * FROM v_nested ORDER BY vb",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "vb",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "vc",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "view-correlated",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT * FROM v1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=v1.vb-1) ORDER BY vb",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "vb",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "vc",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "view-metadata",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT vb AS n,vc FROM v1 ORDER BY vb LIMIT 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "n",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          },
+          {
+            "name": "vc",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "scalar-constant",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT (SELECT 10)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "(SELECT 10)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "scalar-first-row",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT (SELECT y FROM t2 ORDER BY y)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "(SELECT y FROM t2 ORDER BY y)",
+            "declaredType": null,
+            "database": "main",
+            "table": "t2",
+            "origin": "y"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "scalar-empty-null",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT typeof((SELECT y FROM t2 WHERE 0)),(SELECT y FROM t2 WHERE 0)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof((SELECT y FROM t2 WHERE 0))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "(SELECT y FROM t2 WHERE 0)",
+            "declaredType": null,
+            "database": "main",
+            "table": "t2",
+            "origin": "y"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "scalar-correlated",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a,(SELECT y FROM t2 WHERE x=t1.a ORDER BY y DESC) FROM t1 ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "(SELECT y FROM t2 WHERE x=t1.a ORDER BY y DESC)",
+            "declaredType": null,
+            "database": "main",
+            "table": "t2",
+            "origin": "y"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "33"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "exists-correlated",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM t1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "not-exists",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "in-select",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a FROM t1 WHERE a IN (SELECT x FROM t2) ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "in-null-hit",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 IN (SELECT x FROM t2),9 IN (SELECT x FROM t2)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "1 IN (SELECT x FROM t2)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "9 IN (SELECT x FROM t2)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "in-null-miss",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 4 IN (SELECT y FROM t2),4 NOT IN (SELECT y FROM t2),typeof(4 IN (SELECT y FROM t2))",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "4 IN (SELECT y FROM t2)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "4 NOT IN (SELECT y FROM t2)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(4 IN (SELECT y FROM t2))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6e756c6c"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "in-empty",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT NULL IN (SELECT y FROM t2 WHERE 0),NULL NOT IN (SELECT y FROM t2 WHERE 0)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "NULL IN (SELECT y FROM t2 WHERE 0)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "NULL NOT IN (SELECT y FROM t2 WHERE 0)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "in-affinity",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT '1' IN (SELECT a FROM t1),1.0 IN (SELECT a FROM t1)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "'1' IN (SELECT a FROM t1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "1.0 IN (SELECT a FROM t1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "lexical-shadow",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o ORDER BY o.a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "(SELECT count(*) FROM t1 WHERE a=o.a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "correlated-two-level",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o ORDER BY o.a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "error-ambiguous",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT (SELECT a) FROM t1 x JOIN t1 y",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "ambiguous column name: a"
+        }
+      }
+    },
+    {
+      "id": "error-missing",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT (SELECT missing FROM t2) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "no such column: missing"
+        }
+      }
+    },
+    {
+      "id": "error-width-scalar",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT (SELECT x,y FROM t2)",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "sub-select returns 2 columns - expected 1"
+        }
+      }
+    },
+    {
+      "id": "error-width-in",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT 1 IN (SELECT x,y FROM t2)",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "sub-select returns 2 columns - expected 1"
+        }
+      }
+    },
+    {
+      "id": "metadata-affinity-collation",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT s.c,typeof(s.a),s.a FROM (SELECT c,a FROM t1) s ORDER BY s.c COLLATE NOCASE,s.a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "c",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "typeof(s.a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf8",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "c",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf16le",
+      "fixture": "subquery-utf16le",
+      "fixtureSha256": "98ab794a22a6e2b7c1b5adefeaedd95b845a02088910a8017ff3d454ea91fd8d",
+      "databaseEncoding": "UTF-16le",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "c",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf16be",
+      "fixture": "subquery-utf16be",
+      "fixtureSha256": "4e14770bba62acc0ceacfb9bebd8e9c1dc8aea077237f724de88136089f9ec9a",
+      "databaseEncoding": "UTF-16be",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "c",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t1",
+            "origin": "c"
+          },
+          {
+            "name": "b",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "b"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7a"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "aggregate30-sum-real-promotion",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT typeof(sum(v)),sum(v),avg(v),total(v) FROM (SELECT 1 AS v UNION ALL SELECT 2.5 UNION ALL SELECT NULL)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(sum(v))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "400c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ffc000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "400c000000000000"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "aggregate30-sum-int64-overflow",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT sum(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "sum(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "error",
+          "partialRows": [],
+          "error": {
+            "phase": "step",
+            "code": 1,
+            "extendedCode": 1,
+            "message": "integer overflow"
+          }
+        },
+        "finalizeCode": 1
+      }
+    },
+    {
+      "id": "aggregate30-total-no-overflow",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT total(v),avg(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "total(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "real",
+                "ieee754be": "43e0000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "43d0000000000000"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "aggregate30-group-concat-null-separator",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "group_concat(v,NULL ORDER BY n)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6162"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "gate-cte-nonrecursive",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH q AS (SELECT a FROM t1) SELECT * FROM q ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "gate-cte-recursive",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT * FROM q",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "gate-window",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a,row_number() OVER (ORDER BY a) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "row_number() OVER (ORDER BY a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "reset-rebind-correlated",
+      "fixture": "subquery-utf8",
+      "fixtureSha256": "6aee7457ee9aa4d1a55e84874db5cfd12250129549caf474a4a035c0d7e4431b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a,(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1) FROM t1 WHERE a>?1 ORDER BY a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          },
+          {
+            "name": "(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "33"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "resetCode": 0,
+        "afterResetRebind": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 39,
+    "nativeCaptured": 39,
+    "tsAttempted": 0,
+    "tsCredited": 0
+  }
+}

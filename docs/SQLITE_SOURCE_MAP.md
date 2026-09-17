@@ -1020,3 +1020,20 @@ fixtures is admitted; other automatic-index layouts remain gated.
 | Pinned owner | TypeScript owner | Evidence / boundary |
 |---|---|---|
 | `src/func.c:minmaxStep`, `minMaxValueFinalize`, `groupConcatStep`; `src/vdbe.c:OP_AggStep`, `OP_AggFinal` cleanup | `src/internal/vdbe.ts:extremaDefinition`, `concatDefinition`, `AggregateContext`; shared `PrivateStateByteBudget` | Extrema TEXT/BLOB replacement reserves the positive complete-byte delta before copy, preserves the prior winner on failure, releases shrink deltas after commit, and releases retained bytes through aggregate `Mem` cleanup. Concat growth rolls reservation back if part insertion fails. `aggregate-group-lifecycle.test.mjs` covers extrema initial/replacement/reset/finalize/failure and aggregate-local DISTINCT/ordered queue byte-failure cleanup. Host OOM remains outside the catchable contract; SQL scope/accounting is unchanged. |
+
+## Subquery/view pre-implementation contract ([[card:card-m-a]], 2026-09-17)
+
+| Pinned SQLite 3.53.4 owner | Planned existing-project owner | Contract / evidence |
+|---|---|---|
+| `src/select.c:selectExpander`, `flattenSubquery`, `fromClauseTermCanBeCoroutine`, `sqlite3Select` | generated `Select`/`SourceList`, `src/internal/schema.ts`, `src/internal/resolve.ts`, `src/internal/vdbe.ts` | Expand immutable view/derived SELECT, linked resolve, guarded flatten, otherwise coroutine or typed materialization. `stage3-subquery-view.{spec,json}` derived/view/composition cases; no TS credit yet. |
+| `src/resolve.c:lookupName`, linked `NameContext.pNext`/`nRef` | `src/internal/resolve.ts` linked contexts and source identity | Innermost-level lookup, ambiguity before outer traversal, structural correlation, width/missing errors at prepare. Scope/error cases in the immutable artifact. |
+| `src/build.c:viewGetColumnNames` / `sqlite3ViewGetColumnNames` | `src/internal/schema.ts` plus expansion-owned transient columns | Explicit/inferred view names, affinity/collation and origin metadata; schema remains immutable. View and metadata cases are native-only. |
+| `src/expr.c:sqlite3CodeSubselect`, `sqlite3FindInIndex` callers | `src/internal/vdbe.ts` scalar/EXISTS destinations; `EphemeralIndexCursor`, `KeyInfo`, `Mem` | First-row scalar/empty NULL, EXISTS integer, correlated rerun, Once for uncorrelated, and four-state IN/NOT IN NULL/empty behavior. No JS collection equality. |
+| `src/vdbe.c:OP_Gosub`, `OP_Return`, `OP_InitCoroutine`, `OP_Yield`, `OP_EndCoroutine`, `OP_Once` | existing opcode array/register file and `VdbeStatement` | Non-overlapping result/return registers; pc exchange survives suspension; reset/finalize/close clear nested state once. Planned mapping, not implemented. |
+| `test/subquery.test`, `in.test`, `select1.test`, `select4.test`, `select6.test`, `select7.test`, `with1.test`, `window1.test` | `test/conformance/cases/stage3-subquery-view.spec.json`, capture script and immutable JSON | 39/39 native captured, TS attempted/credited 0/0. Upstream labels are exact canonical assertion identifiers; SQL is a documented bounded fixture adaptation. Four aggregate 30/34 blockers are included. CTE/recursive/window are atomic future gates. |
+
+All nested retained state shares the existing execution-wide
+`PrivateStateByteBudget`; all nested opcodes share work/cancel/deadline state.
+Defaults remain expression depth 1000, parser depth 2500, work 10,000,000,
+private bytes 256 MiB, 100,000 entries and 16 MiB/key. Configured-small boundary
+and cleanup tests are required before any runtime credit.
