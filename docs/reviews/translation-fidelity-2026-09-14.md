@@ -499,3 +499,22 @@ UTF-16le, and UTF-16be fixtures. Existing parser 27/27, compound 22/22,
 expressions 40/40, and first-SELECT 8/8 gates remain exact. This correction adds
 no join credit and does not pull in downstream joins, GROUP/HAVING,
 frame/window/aggregate execution, or general/user-defined functions.
+
+
+### 2026-09-17 revision — comma/CROSS/INNER execution ([[card:card-k-c]])
+
+This revision supersedes only the preceding semantic-foundation statement that all
+multi-source public SQL is gated. Ordinary rowid-table comma, CROSS, and INNER
+joins now execute as cursor-indexed source-order nested loops with source-owned ON
+and USING/NATURAL predicates, innermost WHERE, shared expression/destination
+lowering, and no eager Cartesian row materialization. The joined compound-arm gap
+is closed through the existing global sorter destination. Cursor maps, private
+state, reset/finalize, suspension, and first-error cleanup remain statement-owned.
+
+Denominators are intentionally not conflated: the immutable native oracle is still
+**47 declared/47 captured** (including unsupported outer joins); the admitted
+pinned/public matrix is **8/8** and the focused INNER runtime suite is **27/27**.
+LEFT/RIGHT/FULL unmatched control is still temporary unsupported, so this is not a
+47/47 TypeScript-runtime or general join-compatibility claim. The existing
+expressions **40/40**, first-SELECT **8/8**, and compound **22/22** labels are
+unchanged.

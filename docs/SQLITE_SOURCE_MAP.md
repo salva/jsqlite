@@ -886,3 +886,22 @@ including UTF-16le qualified lookup and UTF-16be USING-star cases. Public
 names and NULL/empty TEXT/int64/REAL values. These checks grant no join execution
 credit; joins, GROUP/HAVING, frames/windows/aggregates, and general functions are
 owned by downstream implementation cards.
+
+
+### Comma/CROSS/INNER execution mapping ([[card:card-k-c]], 2026-09-17)
+
+- `src/where.c:sqlite3WhereBegin` and `src/wherecode.c` loop emission ->
+  `src/internal/vdbe.ts:compileInnerTableSelect`: stable resolver cursor IDs drive
+  source-order nested `OpenRead`/`Rewind`/`Next`; source-owned ON and synthesized
+  USING/NATURAL terms branch to that source's continuation, while WHERE branches
+  from the complete joined row. No Cartesian row collection or host evaluator.
+- `src/select.c:selectInnerLoop` destinations -> the existing Mem expression,
+  DISTINCT ephemeral, KeyInfo sorter, LIMIT, and ResultRow lowering.
+  `compileJoinedUnionAll` embeds the same relational producer, relocates its VDBE
+  control addresses, and redirects output into the compound ORDER destination.
+- `src/vdbe.c` cursor opcodes -> cursor-keyed scan/decoded-record state in
+  `VdbeStatement`; reset, finalize, halt, and first-error cleanup close all state.
+  Sorter/ephemeral owners retain the one execution-wide private-byte budget.
+- Evidence denominators remain distinct: native artifact **47/47 captured**; admitted
+  pinned/public matrix **8/8**; focused INNER runtime suite **27/27**. LEFT/RIGHT/FULL
+  execution is not mapped as complete and remains a prepare-time gate.

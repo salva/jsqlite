@@ -11,14 +11,14 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n]);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM left_meta INDEXED BY missing_index'),e=>e.kind==='sqlite'&&e.message==='no such index: missing_index');
  s=db.prepare('SELECT a FROM left_meta NOT INDEXED').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
- s=db.prepare('SELECT main.left_meta.rowid FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:null,database:'main',table:'left_meta',origin:null});assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);s.finalize();s=null;
+ s=db.prepare('SELECT main.left_meta.rowid FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'rowid'});assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT main.left_meta.a FROM main.left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: main.left_meta.a');
  s=db.prepare('SELECT main.left_meta.a FROM main.left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'a',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM temp.left_meta'),e=>e.kind==='sqlite'&&e.message==='no such table: temp.left_meta');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta AS l'),e=>e.kind==='sqlite'&&e.message==='no such column: left_meta.a');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta WHERE z>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS b FROM left_meta JOIN right_meta WHERE b>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS chosen FROM left_meta JOIN right_meta WHERE chosen>0'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ s=db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta WHERE z>0').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1)],[7n,8n]);assert.equal(await s.step(),'done');s.finalize();s=null;
+ s=db.prepare('SELECT left_meta.a AS b FROM left_meta JOIN right_meta WHERE b>0').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
+ s=db.prepare('SELECT left_meta.a AS chosen FROM left_meta JOIN right_meta WHERE chosen>0').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a FROM left_meta GROUP BY 0'),e=>e.kind==='sqlite'&&e.message==='1st GROUP BY term out of range - should be between 1 and 1');
  assert.throws(()=>db.prepare('SELECT a,a+1 FROM left_meta GROUP BY +3'),e=>e.kind==='sqlite'&&e.message==='1st GROUP BY term out of range - should be between 1 and 2');
  assert.throws(()=>db.prepare('SELECT a FROM left_meta GROUP BY 1'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
@@ -34,10 +34,10 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT missing+1 FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a+rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON left_meta.a COLLATE missing=right_meta.b'),e=>e.kind==='sqlite'&&e.message==='no such collation sequence: missing');
- assert.throws(()=>db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta ON z=right_meta.b'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ s=db.prepare('SELECT left_meta.a AS z,left_meta.a+1 AS z FROM left_meta JOIN right_meta ON z=right_meta.b').statement;assert.equal(await s.step(),'done');s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT missing FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT rowid FROM left_meta JOIN right_meta'),e=>e.kind==='sqlite'&&e.message==='ambiguous column name: rowid');
- assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta'),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ s=db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT missing COLLATE absent FROM left_meta'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta WHERE missing COLLATE absent'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON missing COLLATE absent=right_meta.b'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
@@ -48,7 +48,7 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  s=db.prepare('SELECT a AS x FROM left_meta WHERE x=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;
  s=db.prepare('SELECT a+1 AS a FROM left_meta WHERE a=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),8n);s.finalize();s=null;
  assert.throws(()=>db.prepare('SELECT a AS x FROM left_meta WHERE missing=7'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
- s=db.prepare('SELECT rowid, _rowid_, oid FROM left_meta').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1),s.column(2)],[1n,1n,1n]);assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:null,database:'main',table:'left_meta',origin:null});s.finalize();s=null;
+ s=db.prepare('SELECT rowid, _rowid_, oid FROM left_meta').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1),s.column(2)],[1n,1n,1n]);assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'rowid'});s.finalize();s=null;
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
 
@@ -68,4 +68,19 @@ test('public resolver metadata and typed values remain exact across database enc
    }finally{try{s?.finalize()}catch{}try{db.closeDeferred()}catch{}}
   }
  }finally{await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});
+
+test('public INNER join preserves computed projection through ORDER BY alias and LIMIT',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
+  s=db.prepare('SELECT left_meta.a+1 AS x,length(right_meta.b) AS n FROM left_meta JOIN right_meta ON left_meta.a=7 ORDER BY x LIMIT 1').statement;
+  assert.equal(s.columnCount,2);
+  assert.deepEqual(s.columnMetadata(0),{name:'x',declaredType:null,database:null,table:null,origin:null});
+  assert.deepEqual(s.columnMetadata(1),{name:'n',declaredType:null,database:null,table:null,origin:null});
+  assert.equal(await s.step(),'row');
+  assert.deepEqual([s.columnType(0),s.columnType(1)],['integer','integer']);
+  assert.deepEqual([s.column(0),s.column(1)],[8n,1n]);
+  assert.equal(await s.step(),'done');
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });

@@ -21,7 +21,7 @@ type Expression =
  | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";index:number;name:string;collation?:BuiltinCollation;affinity?:MemAffinity}
+ | {kind:"column";index:number;name:string;cursor?:number;collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
@@ -47,7 +47,7 @@ type Op =
   | { readonly code: "Goto"; readonly p2:number }
   | { readonly code: "Subtract"; readonly p1: number; readonly p2: number; readonly p3: number }
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
-  | { readonly code: "OpenRead"; readonly p1: number }
+  | { readonly code: "OpenRead"; readonly p1: number; readonly p2?: number }
   | { readonly code: "SorterOpen"; readonly p1:number; readonly keyInfo:KeyInfo }
   | { readonly code: "SorterInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payload:number; readonly payloadCount:number; readonly topN?:number }
   | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
@@ -68,12 +68,12 @@ type Op =
   | { readonly code: "IfNotZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfPos"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "DecrJumpZero"; readonly p1:number; readonly p2:number }
-  | { readonly code: "Rewind"; readonly p2: number }
-  | { readonly code: "Column"; readonly p1: number; readonly p2: number }
-  | { readonly code: "Rowid"; readonly p2: number }
+  | { readonly code: "Rewind"; readonly p1?: number; readonly p2: number }
+  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number }
+  | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number }
-  | { readonly code: "Next"; readonly p2: number }
+  | { readonly code: "Next"; readonly p1?: number; readonly p2: number }
   | { readonly code: "ResultRow"; readonly p1: number; readonly p2: number }
   | { readonly code: "Halt" };
 export interface ParameterDescriptor { readonly name: string | null }
@@ -182,7 +182,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate,parameters);
   if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
-  if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r});return r; }
+  if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
@@ -391,6 +391,33 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   return Object.freeze({ ops: Object.freeze(ops), registers: maximum, maxWorkUnits, maxResultBytes, privateStateLimits, encoding, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))), columns: Object.freeze(expressions.map(expression => Object.freeze({ name: expression.name, declaredType: null, database: null, table: null, origin: null }))) });
 }
 
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program {
+  if(expanded.sources.some((source,index)=>index>0&&(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer||source.joinFromLeft.error)))throw new JSQLiteError("unsupported","outer and non-inner joins are not implemented",{unsupportedClassification:"temporary"});
+  for(const source of expanded.sources)if(source.table.withoutRowid||source.table.columns.some(column=>column.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});
+  const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let registers=expanded.result.length;const allocate=()=>++registers;
+  const resolveTree=(tree:Expression):Expression=>{const visit=(node:Expression):Expression=>{
+    if(node.kind==="column") {const parts=node.name.split('.').map(sqlName),name=parts.at(-1)!;const candidates=expanded.sources.flatMap(source=>{if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,source.alias??source.table.name))return [];const index=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));if(index>=0)return[{source,index}];if(!source.table.withoutRowid&&['rowid','_rowid_','oid'].some(alias=>sqliteIdentifierEqual(alias,name))&&!source.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))return[{source,index:-1}];return[];});if(candidates.length===0&&parts.length===1){const alias=select.result.find(result=>result.alias&&sqliteIdentifierEqual(result.alias,name));if(alias?.reduction)return visit(expressionFromReduction(alias.reduction));}if(candidates.length!==1)throw new JSQLiteError("internal",`resolved join column lost identity: ${node.name}`);const {source,index}=candidates[0]!;node.cursor=source.cursorId;node.index=index;if(index<0){node.affinity='integer';node.collation='binary';return node;}const column=source.table.columns[index]!,c=sqliteAsciiFold(column.collation??'binary');if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${column.collation}`,{code:1});node.collation=c;node.affinity=affinityOf(column.declaredType??'');return node;}
+    if(node.kind==="unary"||node.kind==="cast"||node.kind==="collate")node.value=visit(node.value);else if(node.kind==="binary"){node.left=visit(node.left);node.right=visit(node.right);}else if(node.kind==="call")node.args=node.args.map(visit);else if(node.kind==="case"){if(node.operand)node.operand=visit(node.operand);node.pairs=node.pairs.map(([a,b])=>[visit(a),visit(b)]);if(node.otherwise)node.otherwise=visit(node.otherwise);}return node;};return visit(tree);};
+  const limit=computeLimitRegisters(select,ops,allocate,parameters);
+  const orderTerms=select.orderBy.map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!),identity=tree;while(identity.kind==='collate')identity=identity.value;let resultIndex=-1;if(identity.kind==='literal'&&typeof identity.value==='bigint'){if(identity.value<1n||identity.value>BigInt(expanded.result.length)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${expanded.result.length}`,{code:1});}resultIndex=Number(identity.value-1n);}else if(identity.kind==='column'&&!identity.name.includes('.'))resultIndex=expanded.result.findIndex(result=>sqliteIdentifierEqual(result.name,sqlName(identity.name)));return{tree:resultIndex<0?resolveTree(tree):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};});
+  const sorterCursor=expanded.sources.length,distinctCursor=sorterCursor+1;
+  if(orderTerms.length)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:term.resultIndex>=0?sqliteAsciiFold(expanded.result[term.resultIndex]!.descriptor.collation) as BuiltinCollation:collation(term.tree),desc:term.descending,nullsLarge:term.nullsLarge}))})});
+  if(select.hasDistinct)ops.push({code:'OpenEphemeral',p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:expanded.result.length,keyFieldCount:expanded.result.length,terms:expanded.result.map(result=>({collation:sqliteAsciiFold(result.descriptor.collation) as BuiltinCollation}))})});
+  const compilePredicate=(expression:SelectNode['where'])=>{if(!expression?.reduction)return undefined;const value=compileExpressionTree(resolveTree(expressionFromReduction(expression.reduction)),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});return at;};
+  expanded.sources.forEach(source=>ops.push({code:'OpenRead',p1:source.table.rootPage,p2:source.cursorId}));const rewinds:number[]=[],starts:number[]=[],jumps:{at:number;level:number}[]=[];
+  for(let level=0;level<expanded.sources.length;level++){const source=expanded.sources[level]!;rewinds.push(ops.length);ops.push({code:'Rewind',p1:source.cursorId,p2:0});starts.push(ops.length);const on=compilePredicate(source.on);if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}}
+  const where=compilePredicate(select.where);if(where!==undefined)jumps.push({at:where,level:expanded.sources.length-1});expanded.result.forEach((result,index)=>{if(result.resolution==='coalesce')throw new JSQLiteError("unsupported","FULL JOIN merged-column execution is not implemented",{unsupportedClassification:"temporary"});if(result.source&&result.columnIndex!==null){if(result.columnIndex<0)ops.push({code:'Rowid',p1:result.source.cursorId,p2:index+1});else ops.push({code:'Column',p1:result.columnIndex,p2:index+1,p3:result.source.cursorId});}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction)),ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:index+1});}});
+  let distinctAt:number|undefined;if(select.hasDistinct){distinctAt=ops.length;ops.push({code:'Found',p1:distinctCursor,keyStart:1,keyCount:expanded.result.length,jump:0},{code:'IdxInsert',p1:distinctCursor,keyStart:1,keyCount:expanded.result.length});}
+  if(orderTerms.length){const keyStart=allocate();registers+=orderTerms.length-1;orderTerms.forEach((term,index)=>{if(term.resultIndex>=0)ops.push({code:'Copy',p1:term.resultIndex+1,p2:keyStart+index});else{const value=compileExpressionTree(term.tree,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:keyStart+index});}});ops.push({code:'SorterInsert',p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:expanded.result.length,...(limit?{topN:limit.capacity}:{})});}
+  else {let offsetAt:number|undefined;if(limit?.offset!==undefined){offsetAt=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}ops.push({code:'ResultRow',p1:1,p2:expanded.result.length});if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});if(offsetAt!==undefined)jumps.push({at:offsetAt,level:expanded.sources.length-1});}
+  const nextAt:number[]=[];for(let level=expanded.sources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:'Next',p1:expanded.sources[level]!.cursorId,p2:starts[level]!});}const scanEnd=ops.length;
+  if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=nextAt.at(-1)!;for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=nextAt[jump.level]!;
+  let halt:number;
+  if(orderTerms.length){const sortAt=ops.length;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:1,count:expanded.result.length});let offsetAt:number|undefined;if(limit?.offset!==undefined){offsetAt=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}ops.push({code:'ResultRow',p1:1,p2:expanded.result.length});const limitAt=limit?ops.length:undefined;if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});const next=ops.length;ops.push({code:'SorterNext',p1:sorterCursor,p2:sortAt+1});halt=ops.length;ops.push({code:'Halt'});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(offsetAt!==undefined)(ops[offsetAt] as {p2:number}).p2=next;if(limitAt!==undefined)(ops[limitAt] as {p2:number}).p2=halt;}else {halt=ops.length;ops.push({code:'Halt'});for(const op of ops)if(op.code==='DecrJumpZero'&&op.p2===0)(op as {p2:number}).p2=halt;}
+  for(let level=0;level<rewinds.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?scanEnd:nextAt[level-1]!;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;
+  const columns=expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+}
+
 function sqlName(text: string): string {
   if (text[0] === "[" && text.at(-1) === "]") return text.slice(1, -1);
   if ((text[0] === '"' || text[0] === "`") && text.at(-1) === text[0]) return text.slice(1, -1).replaceAll(text[0] + text[0], text[0]);
@@ -406,6 +433,22 @@ function sqlite3WhereBegin(ops: Op[], rootPage: number): FullScanPlan {
 function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): void {
   const halt=ops.length+1; ops.push({code:"Next",p2:continueAt},{code:"Halt"});
   (ops[plan.rewindIndex] as {code:"Rewind";p2:number}).p2=halt;
+}
+
+function compileJoinedUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined {
+  const first=select.arms[0];if(!first||first.from.items.length<2||first.result.length!==1||select.arms.slice(1).some(arm=>arm.operatorFromPrior!=="union-all"||arm.from.items.length!==0||arm.where!==null||arm.result.length!==1)||select.orderBy.length!==1||select.limit||select.offset)return undefined;
+  let identity=expressionFromReduction(select.orderBy[0]!.expr.reduction!);while(identity.kind==="collate")identity=identity.value;if(identity.kind!=="literal"||identity.value!==1n)return undefined;
+  const leftSelect:SelectNode={...select,result:first.result,from:first.from,where:first.where,hasDistinct:first.hasDistinct,hasGroupBy:first.hasGroupBy,hasHaving:first.hasHaving,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,arms:Object.freeze([first])};
+  let expanded:ReturnType<typeof expandAndResolveSelect>;try{expanded=expandAndResolveSelect(leftSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  const producer=compileInnerTableSelect(leftSelect,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits),ops:Op[]=[],sorterCursor=Math.max(...expanded.sources.map(source=>source.cursorId))+3,descriptor=expanded.result[0]!.descriptor,coll=sqliteAsciiFold(descriptor.collation) as BuiltinCollation,term=select.orderBy[0]!;
+  ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:coll,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}]})});
+  const producerEnd:number[]=[];
+  for(const original of producer.ops){let op:Op=original;if("p2" in op&&["Goto","Rewind","IfNot","Next","DecrJumpZero","IfNotZero","IfPos"].includes(op.code))op={...op,p2:op.p2+1} as Op;if("jump" in op&&typeof op.jump==="number")op={...op,jump:op.jump+1} as Op;if(op.code==="ResultRow")ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:op.p1,keyCount:1,payload:op.p1,payloadCount:1});else if(op.code==="Halt"){producerEnd.push(ops.length);ops.push({code:"Goto",p2:0});}else ops.push(op);}
+  for(const at of producerEnd)(ops[at] as {p2:number}).p2=ops.length;
+  let registers=producer.registers;const allocate=()=>++registers,parameters:ParameterBuilder={maximum:producer.parameters.length,names:producer.parameters.map(parameter=>parameter.name),named:new Map(producer.parameters.flatMap((parameter,index)=>parameter.name?[[parameter.name,index+1] as const]:[]))};
+  for(const arm of select.arms.slice(1)){const value=compileExpressionTree(expressionFromReduction(arm.result[0]!.reduction!),ops,allocate,parameters);ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:value,keyCount:1,payload:value,payloadCount:1});}
+  const output=allocate(),sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:output,count:1},{code:"ResultRow",p1:output,p2:1},{code:"SorterNext",p1:sorterCursor,p2:sortAt+1});const halt=ops.length;ops.push({code:"Halt"});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;
+  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:producer.columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
 function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program {
@@ -449,11 +492,12 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
-  if(select.hasCompound){rejectUnsupportedSelectClauses(select, true);return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);}
+  if(select.hasCompound){rejectUnsupportedSelectClauses(select, true);return compileJoinedUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);}
   let expanded;
   try { expanded=expandAndResolveSelect(select,schema); }
   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
   rejectUnsupportedSelectClauses(select, true);
+  if (select.from.items.length > 1) return compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
   if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from.items[0]!.tableName), folded = sqliteAsciiFold(tableName);
   const table = schema.tables.get(folded);
@@ -628,8 +672,9 @@ export class VdbeStatement implements Statement {
   #state: "prepared" | "running" | "suspended" | "row" | "done" | "failed" | "finalized" = "prepared";
   #rowStart = 0;
   #rowCount = 0;
-  #cursor: TableScanCursor | null = null;
-  #record: ReturnType<typeof decodeRecord> | null = null;
+  #cursors = new Map<number, TableScanCursor>();
+  #cursorRoots = new Map<number, number>();
+  #records = new Map<number, ReturnType<typeof decodeRecord>>();
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor>();
   #privateBytes: PrivateStateByteBudget;
   #borrow = new BorrowLifetime();
@@ -669,7 +714,7 @@ export class VdbeStatement implements Statement {
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await new Promise<void>(resolve => setTimeout(resolve, 0)); this.#state = "running"; }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
-          case "OpenRead": this.#cursor = this.#program.database!.tableScanCursor(op.p1); break;
+          case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
           case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
           case "OffsetLimit": {const count=this.#registers[op.p1]!.integerValue(),offset=this.#registers[op.p3]!.integerValue();const positive=offset>0n?offset:0n,sum=count+positive;this.#registers[op.p2]!.setInt64(count<=0n||sum>(1n<<63n)-1n?-1n:sum);break;}
           case "IfNotZero": {const value=this.#registers[op.p1]!.integerValue();if(value!==0n){if(value>0n)this.#registers[op.p1]!.setInt64(value-1n);this.#pc=op.p2;}break;}
@@ -690,12 +735,12 @@ export class VdbeStatement implements Statement {
           case "EphemeralRewind": if(!(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).first())this.#pc=op.p2;break;
           case "EphemeralData": {const values=(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "EphemeralNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).next())this.#pc=op.p2;break;
-          case "Rewind": if (!this.#cursor!.first()) this.#pc = op.p2; else await this.#loadRecord(options, limit, started); break;
-          case "Column": { const raw=this.#record!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
-          case "Rowid": this.#registers[op.p2]!.setInt64(this.#cursor!.rowid); break;
+          case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
+          case "Column": { const raw=this.#records.get(op.p3??0)!.values[op.p1] ?? {storageClass:"null" as const}; this.#registers[op.p2]!.moveFrom(memFromRawRecord(raw, this.#borrow)); break; }
+          case "Rowid": this.#registers[op.p2]!.setInt64(this.#cursors.get(op.p1??0)!.rowid); break;
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
-          case "Next": if (this.#cursor!.next()) { await this.#loadRecord(options, limit, started); this.#pc=op.p2; } break;
+          case "Next": {const cursor=op.p1??0;if (this.#cursors.get(cursor)!.next()) { await this.#loadRecord(cursor,options, limit, started); this.#pc=op.p2; } break;}
           case "Integer": this.#registers[op.p2]!.setInt64(op.p1); break;
           case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
@@ -734,10 +779,10 @@ export class VdbeStatement implements Statement {
   columnReal(index: number): number | null { const cell = this.#cell(index); return cell.initialStorageClass === "null" ? null : cell.realValue(); }
   columnText(index: number): string | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const copy = new Mem(); copy.copyFrom(cell); copy.cast("text", "utf-8"); return copy.textValue(); }
   columnBlob(index: number): Uint8Array | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const value = memToPublicInitial(cell); return value instanceof Uint8Array ? value : memFromPublic(String(value), "utf-8").textBytes().slice(); }
-  async #loadRecord(options: OperationOptions, limit: number, started: number): Promise<void> {
+  async #loadRecord(cursorId:number,options: OperationOptions, limit: number, started: number): Promise<void> {
     this.#borrow.invalidate();
     const chunks: Uint8Array[] = []; let length = 0;
-    for (const chunk of { [Symbol.iterator]: () => this.#cursor!.payloadChunks() }) {
+    for (const chunk of { [Symbol.iterator]: () => this.#cursors.get(cursorId)!.payloadChunks() }) {
       this.#checkControl(options, limit, started);
       this.#work++; chunks.push(chunk); length += chunk.byteLength;
       // An overflow-page read is a bounded storage work unit and a host
@@ -752,7 +797,7 @@ export class VdbeStatement implements Statement {
     this.#work++; // record header/serial-type decoding
     const payload = new Uint8Array(length); let at = 0;
     for (const chunk of chunks) { payload.set(chunk, at); at += chunk.byteLength; }
-    this.#record=decodeRecord(payload, this.#program.database!.encoding);
+    this.#records.set(cursorId,decodeRecord(payload, this.#program.database!.encoding));
   }
   async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running";}}}
   #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
@@ -780,7 +825,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursor=null;this.#record=null;
+    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();this.#borrow.invalidate();

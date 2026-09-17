@@ -316,3 +316,16 @@ The revision capture contains 47 declared/identity-verified native cases and zer
 TS attempts/credit. The committed status record identifies the exact commit and
 actual command outcomes; these establish reproducibility and cleanliness, not
 runtime semantic support.
+
+## Implemented INNER tranche (2026-09-17)
+
+The first runtime tranche now implements comma, CROSS, and INNER joins over
+ordinary rowid tables as source-order cursor loops. Resolver-assigned cursor IDs
+are operands of the shared read/rewind/column/rowid/next opcodes. Each ON and
+synthesized USING/NATURAL predicate branches at its owning source level; WHERE,
+projection, DISTINCT, ORDER, and LIMIT consume the complete joined row. The
+joined one-column `UNION ALL ... ORDER BY 1` case redirects this producer into the
+existing compound sorter. This is streaming VDBE control, not a host evaluator or
+eager Cartesian row array. LEFT/RIGHT/FULL remain atomic prepare gates pending
+the unmatched-row protocol specified above. The native artifact remains 47/47
+captured; admitted public evidence is 8/8 pinned and 27/27 focused runtime cases.

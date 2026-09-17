@@ -1828,8 +1828,7 @@ The 47-case pinned-native gate is
 metadata, all database encodings, lookup/wildcard/USING/NATURAL errors, every join
 family, outer unmatched/empty behavior, collation/affinity, relational and compound
 composition, and reset/rebinding. Runtime-only cancellation/deadline/work/private
-budget and no-Cartesian-materialization companions remain mandatory. Current TS
-credit is zero: this section changes no public support claim.
+budget and no-Cartesian-materialization companions remain mandatory. The historical tests-first baseline assigned zero TS credit. The 2026-09-17 INNER-runtime revision below supersedes that statement only for admitted comma/CROSS/INNER forms; the 47-case artifact remains the unchanged total oracle denominator and outer-join cases remain gated.
 
 Audit reconciliation: Finding 1's original production-identity defect is already
 corrected by current compound reduction ownership. Findings 10/11's original
@@ -1891,3 +1890,23 @@ expression lowering, and streaming join cursor control are downstream work and
 are not completion criteria for this foundation. The
 focused parser/resolver and public test files are `test/parser/resolver.test.mjs`
 and `test/conformance/source-resolution.test.mjs`.
+
+
+### Comma/CROSS/INNER runtime revision ([[card:card-k-c]], 2026-09-17)
+
+Ordinary rowid-table comma, CROSS, and INNER sources now lower to cursor-indexed
+`OpenRead`/`Rewind`/`Column`/`Rowid`/`Next` opcodes and source-order nested loops.
+ON and synthesized USING/NATURAL equality run at their owning source level; WHERE
+runs at the innermost joined-row point. Projection, DISTINCT, ORDER BY, and LIMIT
+reuse shared Mem, KeyInfo sorter, ephemeral, and result destinations. The admitted
+joined `UNION ALL` arm is likewise a producer redirected into the existing global
+compound sorter; this is destination adaptation, not eager Cartesian materialization.
+RIGHT/FULL/LEFT unmatched-row control remains atomically unsupported.
+
+The immutable native artifact remains exactly **47 declared/47 captured** cases; it
+is not re-labelled as wholesale runtime credit. The admitted pinned/public matrix
+is **8/8**, including the joined compound arm, and the focused multi-source runtime
+suite is **27/27**. Source-based companions cover two/three sources, empty inputs,
+USING/NATURAL visibility, affinity/collation, all encodings, reset/rebind, scan
+order, bounded suspension, cancellation/deadline/work failure, private-state
+budgets, cleanup, and streaming with zero private-state budget.

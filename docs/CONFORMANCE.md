@@ -266,13 +266,14 @@ exercise their parameter, value, lifecycle, encoding, metadata, and close behavi
 
 - The selected Stage 3 expression/core-scalar lane now earns 40/40 TS credit through public prepare/metadata/step/finalize. This does not promote its 12 companions or the ordinary-scalar backlog described in TRANSLATION.
 
-The multi-source semantic-foundation lane remains **0 runtime credit**: its pinned
-47-case SQLite 3.53.4 capture is oracle expectation, including UTF-16le/UTF-16be
-resolver/star branches, while valid joins still reject atomically in TypeScript.
-Focused public source-resolution tests cover only safely lowerable scalar and
-single-source forms, including duplicate names and NULL/empty TEXT/int64/REAL in
-UTF-8, UTF-16le, and UTF-16be databases. Join evaluation, GROUP/HAVING,
-frame/window/aggregate execution, and general functions remain downstream.
+The historical multi-source semantic-foundation lane had **0 runtime credit**.
+The 2026-09-17 bounded runtime tranche now passes the admitted pinned/public matrix
+**8/8** and focused comma/CROSS/INNER suite **27/27**. The source artifact remains
+exactly **47/47 captured** and is not claimed as 47 runtime passes: LEFT/RIGHT/FULL
+unmatched execution remains atomically gated. Public companions cover two/three
+sources, USING/NATURAL projection, all encodings, reset/rebind, scan order,
+cancel/deadline/work/resource cleanup, and the joined compound arm. GROUP/HAVING,
+outer joins, frame/window/aggregate execution, and general functions remain downstream.
 
 ### Expression bounded-execution companion
 
