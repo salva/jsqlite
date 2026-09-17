@@ -2404,3 +2404,36 @@ hashed bounded Tcl assertion content (or a hash of the exact referenced project
 aggregate case), an adaptation classification/rationale, and a pinned
 implementing-source hash plus branch markers. The validator recomputes all hashes;
 label existence alone no longer passes.
+
+### Revision delivery evidence
+
+Delivery commit: `9d40efa037d2c803869ecf0585fa8f26e9fb7f6a` (on top of initial
+`841a322b3a55777749fca0ee686419823e3eff94`). Artifact SHA-256 values:
+`stage3-subquery-view.spec.json` `62d009775694a149acdccc0528265a4766a745ddbf53f731f9c01ab0ad855492`;
+native JSON `c98ee1aa64d4a7f16265747ef292f8b714944899318ef86aa33f877ced992d43`;
+companion spec `36bab6b076b04f030058e644e8f4ab9d38c0bf9265cafc0d4d9665155803896d`;
+fixture catalog `69463bf15fae9a469af1f833ef7ea13a6a2335f2a5dac416211e4efa65ac5f17`.
+
+Exact validation sequence (all passed after correcting an interim stale expected
+fixture-count assertion):
+
+```sh
+python3 -m py_compile test/conformance/capture-subquery-view.py test/conformance/subquery-view-manifest.test.py
+python3 test/conformance/capture-subquery-view.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so" --spec test/conformance/cases/stage3-subquery-view.spec.json --fixture-root test/fixtures --output "$SAIVAGE_CARD_WORK_ROOT/subquery-view-recapture-v2.json"
+cmp test/conformance/cases/stage3-subquery-view.json "$SAIVAGE_CARD_WORK_ROOT/subquery-view-recapture-v2.json"
+npm run typecheck
+npm run test:parser
+npm run test:fixtures
+npm run test:conformance:accounting
+npm run test:conformance:aggregate:manifest
+npm run test:conformance:aggregate:native
+npm run test:conformance:subquery-view:manifest
+npm run test:package-boundary
+git diff --check
+git status --porcelain
+```
+
+The first command through `test:parser` passed in the first sequence; fixture
+validation then exposed the stale count. After correction, `test:fixtures`
+through `git diff --check` passed, and post-commit `git status --porcelain` was
+empty. These are architecture/oracle reproducibility checks, not runtime support.
