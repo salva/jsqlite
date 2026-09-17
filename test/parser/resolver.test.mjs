@@ -53,6 +53,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT sqlite_offset(x) FROM a'));
+ assert.throws(()=>resolve('SELECT sqlite_offset() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_offset()');
  assert.doesNotThrow(()=>resolve('SELECT median(x), percentile(x,x), percentile_cont(x,x), percentile_disc(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT median(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function median()');
  assert.throws(()=>resolve('SELECT percentile(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function percentile()');
