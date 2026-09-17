@@ -42,6 +42,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT ltrim(x), ltrim(x,x), rtrim(x), trim(x,x), instr(x,x), printf(x), format(x,x), unhex(x), unhex(x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT trim() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function trim()');
+ assert.throws(()=>resolve('SELECT instr(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function instr()');
  assert.doesNotThrow(()=>resolve('SELECT quote(x), zeroblob(x), randomblob(x), random(), sqlite_version(), changes(), total_changes(), last_insert_rowid() FROM a'));
  assert.throws(()=>resolve('SELECT random(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function random()');
  assert.throws(()=>resolve('SELECT quote() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function quote()');
