@@ -168,6 +168,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FILTER (WHERE a.x) FROM a HAVING 1'));
  assert.doesNotThrow(()=>resolve('SELECT json_group_array(a.x) FILTER (WHERE a.x) FROM a HAVING 1'));
  assert.doesNotThrow(()=>resolve('SELECT percentile(a.x,50) FILTER (WHERE a.x) FROM a HAVING 1'));
+ assert.throws(()=>resolve('SELECT json_group_array(DISTINCT x,x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
+ assert.throws(()=>resolve('SELECT percentile(DISTINCT x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
+ assert.throws(()=>resolve('SELECT sum(sum(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
+ assert.throws(()=>resolve('SELECT json_group_array(median(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
  assert.throws(()=>resolve('SELECT sum(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT json_group_array(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT percentile(a.x,50) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
