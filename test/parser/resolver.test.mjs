@@ -53,6 +53,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT like(x,x), like(x,x,x), glob(x,x), load_extension(x), load_extension(x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT like(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function like()');
+ assert.throws(()=>resolve('SELECT glob(x,x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function glob()');
+ assert.throws(()=>resolve('SELECT load_extension() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function load_extension()');
  assert.doesNotThrow(()=>resolve('SELECT date(), date(x,x), time(x), datetime(x), julianday(x), unixepoch(x), strftime(x), strftime(x,x), timediff(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT timediff(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function timediff()');
  assert.doesNotThrow(()=>resolve('SELECT iif(x,1), iif(x,1,0), iif(x,1,x,2,0), if(x,1,0) FROM a'));
