@@ -2252,7 +2252,7 @@ This section is a **tests-first decision handoff**, not runtime credit.  Its pin
 identity is SQLite 3.53.4, source id
 `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
 The immutable native artifact is
-`test/conformance/cases/stage3-subquery-view.json`; all 39 cases are native
+`test/conformance/cases/stage3-subquery-view.json`; all 46 cases are native
 captures and public Fetch-backed TypeScript attempted/credited counts remain
 0/0.  The spec's `upstream` names are assertion provenance: a name denotes the
 canonical test-prefix plus assertion label in the pinned Tcl file (for example,
