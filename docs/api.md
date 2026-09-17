@@ -295,10 +295,13 @@ surfaces, and sidecar recovery. The public read-only SELECT subset currently adm
 
 ORDER aliases follow SQLite alias precedence; positive ordinals are 1-based and
 out-of-range ordinals are prepare errors. Equal complete ORDER keys have no public
-deterministic-order guarantee. Compound forms outside the bounded scalar and direct-column table-arm surfaces, subqueries/CTEs, joins,
-GROUP/HAVING, aggregates/windows, views, indexes, `rowid`, and broader resolver/
-planner grammar remain temporary unsupported (unless separately admitted above).
-The runtime also preserves tails, result metadata, connection-encoded bindings,
+deterministic-order guarantee. Compound forms outside the bounded scalar and direct-column table-arm surfaces, subqueries/CTEs,
+GROUP/HAVING, aggregates/windows, views, indexes, and broader resolver/planner
+grammar remain temporary unsupported (unless separately admitted above). Ordinary
+rowid-table comma/CROSS/INNER and LEFT joins are admitted: LEFT preserves
+ON/USING/NATURAL match ownership, emits one cursor-shaped NULL extension for an
+unmatched left row, and applies WHERE afterward. RIGHT/FULL remain temporary
+unsupported. The runtime also preserves tails, result metadata, connection-encoded bindings,
 serialized async VM admission, and statement/close lifecycle through the public
 API. Internal storage or parser tests confer only their stated bounded evidence,
 not broader SQLite query compatibility.

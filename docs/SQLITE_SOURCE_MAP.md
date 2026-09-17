@@ -905,3 +905,26 @@ owned by downstream implementation cards.
 - Evidence denominators remain distinct: native artifact **47/47 captured**; admitted
   pinned/public matrix **8/8**; focused INNER runtime suite **27/27**. LEFT/RIGHT/FULL
   execution is not mapped as complete and remains a prepare-time gate.
+
+### LEFT JOIN / NullRow initial execution mapping ([[card:card-k-d]], 2026-09-17)
+
+- `src/where.c` `iLeftJoin`/`OP_IfPos` unmatched control ->
+  `src/internal/vdbe.ts:compileInnerTableSelect` per-RHS match registers and one
+  empty/depleted-RHS fallback through the normal joined-row body.
+- `src/vdbe.c:OP_NullRow` plus `OP_Column`/`OP_Rowid` -> `NullRow` clears the
+  cursor's decoded-record state; shared Column/Rowid owners consequently return
+  Mem NULL without a fabricated host row. ON/USING runs before the match marker;
+  WHERE remains at the innermost body after NULL extension.
+- `test/conformance/multisource-left.test.mjs` compares the pinned 3.53.4
+  unmatched, ON-placement, and WHERE-placement cases through the public API.
+  This focused repair does not claim the complete 47-case outer-join gate.
+
+#### LEFT completed bounded evidence ([[card:card-k-d]])
+
+- `src/where.c` `iLeftJoin`, `OP_IfPos`, `OP_NullRow` -> per-left-level match
+  register and exactly-once unmatched branch in `compileInnerTableSelect`.
+- `src/vdbe.c` `OP_NullRow`, `OP_Column`, `OP_Rowid` -> cursor-owned absent record
+  and shared Mem NULL reads in `VdbeStatement`.
+- `test/conformance/multisource-left.test.mjs` -> pinned/public capture cases and
+  bounded all-encoding, value, composition, destination, restart, and failure-path
+  checks. RIGHT/FULL mappings are intentionally not claimed.

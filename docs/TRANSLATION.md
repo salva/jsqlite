@@ -1910,3 +1910,27 @@ suite is **27/27**. Source-based companions cover two/three sources, empty input
 USING/NATURAL visibility, affinity/collation, all encodings, reset/rebind, scan
 order, bounded suspension, cancellation/deadline/work failure, private-state
 budgets, cleanup, and streaming with zero private-state budget.
+
+### LEFT JOIN NullRow repair ([[card:card-k-d]], 2026-09-17)
+
+The first LEFT tranche now follows pinned `where.c` `iLeftJoin` control: each RHS
+loop owns a match register set only after its ON/USING/NATURAL predicate succeeds;
+a depleted or initially empty RHS enters one `NullRow` transition and resumes at
+the joined-row body. `src/internal/vdbe.ts` owns `NullRow` as cursor state, so
+`Column` and `Rowid` read NULL from that source shape and the ordinary innermost
+WHERE path runs afterward. No host NULL-row object or Cartesian materialization is
+introduced. Focused pinned/public evidence covers matched, unmatched, duplicate,
+ON placement and post-join WHERE placement; broader LEFT composition and lifecycle
+coverage remains to be completed before changing the 47-case denominator.
+
+#### LEFT bounded tranche completion ([[card:card-k-d]])
+
+The public LEFT gate now covers the four LEFT-bearing cases in the immutable
+47-case capture plus source-based companions for duplicate matches, false/NULL ON,
+post-extension WHERE, empty RHS, USING/NATURAL wildcard and metadata ownership,
+aliases, NOCASE affinity/collation, exact Mem classes, UTF-8/16le/16be, three-source
+LEFT with LEFT/INNER/CROSS association, ORDER/DISTINCT/LIMIT, reset/rebind, and
+cancel/deadline/work/row/private-state cleanup before and after matched/NullRow
+transitions. This preserves the complete native **47/47 captured** denominator but
+credits only LEFT execution; RIGHT/FULL remain gated. `where.c` `iLeftJoin` and
+`OP_NullRow` control and `vdbe.c` cursor NULL state remain the translated owners.

@@ -518,3 +518,14 @@ LEFT/RIGHT/FULL unmatched control is still temporary unsupported, so this is not
 47/47 TypeScript-runtime or general join-compatibility claim. The existing
 expressions **40/40**, first-SELECT **8/8**, and compound **22/22** labels are
 unchanged.
+
+### 2026-09-17 revision — LEFT JOIN / NullRow ([[card:card-k-d]])
+
+The earlier revision's statement that LEFT execution remained gated is superseded.
+LEFT now uses source-owned match registers and cursor-owned NullRow state; ON,
+USING, and NATURAL determine matching before the marker, while WHERE remains after
+NULL extension. The bounded public suite covers the four LEFT-bearing immutable
+capture cases and focused all-encoding/value/metadata/composition/destination and
+lifecycle branches. The immutable capture remains **47/47 native captured**; this
+is not 47/47 TypeScript credit because RIGHT and FULL remain temporary unsupported.
+The prior INNER denominators remain unchanged.
