@@ -2073,3 +2073,42 @@ sum overflow, REAL transition, collation comparison, and concatenation. The exac
 admitted surface currently excludes GROUP BY/HAVING, DISTINCT/FILTER/aggregate
 ORDER BY, subqueries/compounds/joins, and window forms atomically at prepare. This
 is deliberately a narrow first aggregate route, not general aggregate support.
+
+### GROUP admission ownership correction ([[card:card-l-c]], 2026-09-17)
+
+Aggregate routing and the bounded grouped path now classify calls from generated
+expression reductions rather than scanning SQL token spelling. Group/result/ORDER
+compatibility likewise compares generated expression structure (including
+qualification and COLLATE wrappers), and source-column/result-alias collisions are
+kept atomic temporary unsupported until `resolve.c` source-first alias identity is
+carried end-to-end. This follows pinned `resolve.c:resolveExprStep` and
+`resolveOrderGroupBy`: spelling does not make a scalar identifier an aggregate,
+and copied/lowercased token text is not expression identity. Public adversarial
+checks cover aggregate-looking aliases/scalar expressions, qualified keys,
+COLLATE-wrapped keys, and the alias-collision rejection. The exact manifest gate
+remains 32 attempted, 11 credited, 21 typed temporary unsupported; this correction
+is architectural, not expanded compatibility credit. HAVING alias completion and
+remaining composition are still open.
+
+### HAVING finalization repair ([[card:card-l-c]], 2026-09-17)
+
+The bounded grouped path now lowers HAVING through the same generated expression
+and AggInfo register owners as the result list. Result aliases are substituted only
+when no source column owns the name (the pinned `resolve.c:lookupName/resolveAlias`
+precedence), aggregate calls share accumulator lowering, and the predicate is
+emitted after `AggFinal` but before projection/`ResultRow`, matching
+`select.c:finalizeAggFunctions` and the HAVING branch. A public focused check proves
+`sum(x) AS s ... HAVING s>40` filters finalized groups exactly. The immutable
+manifest count remains 11/32 because its `having-alias` case also requires a
+multi-term aggregate-result ORDER destination not yet admitted; this is a precise
+producer repair, not false whole-case credit.
+
+### Group collation promotion ([[card:card-l-c]], 2026-09-17)
+
+The bounded grouping producer now admits the pinned `collation-group` case. GROUP
+comparison continues through group `KeyInfo`/shared `compareMem` with the resolved
+column's NOCASE collation; an ORDER term that explicitly wraps the same generated
+GROUP expression with COLLATE is recognized structurally without erasing that
+wrapper or comparing reconstructed SQL. Tagged native rows and direct-column
+metadata match. Exact aggregate manifest accounting is now 12/32 credited and
+20 atomic temporary unsupported.

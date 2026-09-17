@@ -970,3 +970,13 @@ Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `W
 | `src/internal/vdbe.ts` aggregate resolution, AggInfo-like entries, `AggStep`/`AggFinal` | `src/resolve.c` function classification; `src/select.c` aggregate analysis/lowering; `src/vdbe.c` `OP_AggStep`/`OP_AggFinal`; `src/vdbeapi.c` aggregate context | Translated for one-table/no-FROM, optional-WHERE, non-grouped aggregates. Shared Mem/VDBE expression path; no host reductions. |
 | `aggregateStep`/`aggregateFinal` | `src/func.c` `sumStep`, `sumFinalize`, `totalFinalize`, `avgFinalize`, `countStep`, `minmaxStep`, `groupConcatStep` and finalizers | Core empty/NULL, int64/REAL, collation, and text behavior covered by tagged public oracle cases. |
 | Aggregate state budgeting/cleanup | `src/vdbemem.c` aggregate Mem release; `src/vdbe.c` halt/reset/finalize | Aggregate retained bytes use execution-owned `PrivateStateByteBudget`; Mem cleanup is exercised by public reset/finalize. |
+
+### GROUP expression-identity correction (2026-09-17)
+
+| TypeScript owner | Pinned SQLite owner | Current evidence/boundary |
+|---|---|---|
+| `src/internal/vdbe.ts:selectHasAggregate`, `simpleGroupShape`, generated `Expression` comparison | `src/resolve.c:resolveExprStep`, `resolveOrderGroupBy`; `src/select.c:sqlite3Select` | Aggregate calls and GROUP/result/ORDER identity are derived from generated expression reductions, not token-name regexes or joined spellings. Public adversarial tests cover aliases, scalar wrappers, qualification, COLLATE, and atomic alias-collision rejection. Manifest accounting remains 11/32 credited. |
+
+| Grouped HAVING lowering | `src/resolve.c:lookupName/resolveAlias`; `src/select.c:finalizeAggFunctions` and HAVING branch | `src/internal/vdbe.ts` substitutes result aliases only absent a source-column owner, lowers HAVING aggregates into shared accumulator registers, and emits `IfNot` after `AggFinal`; focused public alias filtering passes, while manifest credit waits for its dependent aggregate-result ORDER destination. |
+
+| GROUP collation and wrapped ORDER identity | `src/select.c` GROUP sorter `KeyInfo`; `src/expr.c:sqlite3ExprCollSeq`; `src/vdbeaux.c:sqlite3MemCompare` | Group keys retain resolved NOCASE/BINARY/RTRIM in shared `KeyInfo`; generated `ORDER BY group-expression COLLATE ...` identity is admitted without token reconstruction. Pinned `collation-group` public rows/metadata are credited; aggregate gate is 12/32. |
