@@ -53,6 +53,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT ceil(x), ceiling(x), floor(x), trunc(x), ln(x), log(x), log(x,x), log10(x), log2(x), exp(x), pow(x,x), power(x,x), mod(x,x), acos(x), asin(x), atan(x), atan2(x,x), cos(x), sin(x), tan(x), cosh(x), sinh(x), tanh(x), acosh(x), asinh(x), atanh(x), sqrt(x), radians(x), degrees(x), pi() FROM a'));
+ assert.throws(()=>resolve('SELECT pi(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function pi()');
+ assert.throws(()=>resolve('SELECT pow(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function pow()');
  assert.doesNotThrow(()=>resolve('SELECT sqlite_compileoption_used(x), sqlite_compileoption_get(x), sign(x) FROM a'));
  assert.throws(()=>resolve('SELECT sign() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sign()');
  assert.throws(()=>resolve('SELECT sqlite_compileoption_get() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_compileoption_get()');
