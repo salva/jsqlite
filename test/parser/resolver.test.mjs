@@ -165,6 +165,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT mystery(missing) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT mystery(a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: mystery');
  assert.throws(()=>resolve('SELECT mystery(missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FILTER (WHERE a.x) FROM a HAVING 1'));
+ assert.doesNotThrow(()=>resolve('SELECT json_group_array(a.x) FILTER (WHERE a.x) FROM a HAVING 1'));
+ assert.doesNotThrow(()=>resolve('SELECT percentile(a.x,50) FILTER (WHERE a.x) FROM a HAVING 1'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT json_group_array(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT percentile(a.x,50) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');

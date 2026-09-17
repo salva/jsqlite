@@ -78,7 +78,7 @@ function hasAggregate(expression:ExprNode):boolean{
     // resolve.c does not classify the aggregate-function owner of a window
     // expression as an ordinary aggregate. Its arguments can still contain one.
     const filterOver=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::='));
-    if(filterOver?.kind==='reduction'&&filterOver.signature!=='filter_over ::=')return node.children.filter(child=>child!==filterOver).some(visit);
+    if(filterOver?.kind==='reduction'&&filterOver.children.some(child=>child.kind==='reduction'&&child.signature.startsWith('over_clause ::=')))return node.children.filter(child=>child!==filterOver).some(visit);
     if((sqliteIdentifierEqual(name,'min')||sqliteIdentifierEqual(name,'max'))){
      const exprList=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
      const count=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number=>part.kind==='reduction'&&part.signature==='nexprlist ::= nexprlist COMMA expr'?count(part.children[0]!)+1:part.kind==='reduction'&&part.signature==='nexprlist ::= expr'?1:part.kind==='reduction'?Math.max(0,...part.children.map(count)):0;
