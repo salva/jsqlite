@@ -2145,3 +2145,14 @@ later physical field. Aggregate stepping still consumes only sorter payload
 registers, and all cursors/sorters share the execution byte budget. Outer/NATURAL/
 USING joins remain atomic temporary unsupported here. Pinned `join-group-valid`
 passes exactly; aggregate accounting is 18/32.
+
+### Aggregate UNION ALL result destination ([[card:card-l-c]], 2026-09-17)
+
+A bounded aggregate `UNION ALL ... ORDER BY 1` route now compiles every arm with
+the same aggregate producer and redirects each arm's `ResultRow` to one shared
+result `SorterCursor`. Arm control branches are relocated, terminal Halt becomes
+a continuation, and the sorter drains once after all arms. The compound remains
+one Program and one `PrivateStateByteBudget`; no arm materializes host rows.
+Other aggregate compound operators, parameters, LIMIT/OFFSET, and non-ordinal or
+multi-term ORDER remain atomic temporary unsupported. Pinned
+`compound-composition` passes; accounting is 19/32.
