@@ -159,6 +159,11 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT sum(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT lag(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
+ assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
+ assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE median(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
+ assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT percentile(x,missing) FILTER (WHERE x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT median(x) FILTER (WHERE x) OVER (), percentile(x,50) FILTER (WHERE x) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT row_number(1) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function row_number()');
  assert.throws(()=>resolve('SELECT lag() FILTER (WHERE missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function lag()');
  assert.throws(()=>resolve('SELECT lag(missing) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
