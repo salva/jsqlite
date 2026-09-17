@@ -668,17 +668,24 @@ function andViewPredicates(left:SelectNode["where"],right:SelectNode["where"]):S
 }
 function flattenImmutableView(select:SelectNode,view:ViewNode):SelectNode{
   const source=select.from.items[0]!,inner=view.select;
-  if(source.alias!==null||source.databaseName!==null||source.on!==null||source.using!==null||select.hasDistinct||select.hasGroupBy||select.hasHaving||inner.hasCompound||inner.hasDistinct||inner.hasGroupBy||inner.hasHaving||inner.hasOrderBy||inner.hasLimit||inner.from.items.length!==1)
+  if(source.alias!==null||source.databaseName!==null||source.on!==null||source.using!==null||inner.hasCompound||inner.hasDistinct||inner.hasGroupBy||inner.hasHaving||inner.hasOrderBy||inner.hasLimit||inner.from.items.length!==1)
     throw new JSQLiteError("unsupported","this view shape is not implemented",{unsupportedClassification:"temporary"});
   if(view.columns.length&&view.columns.length!==inner.result.length)throw new JSQLiteError("sqlite",`expected ${view.columns.length} columns for '${view.name}' but got ${inner.result.length}`,{code:1});
   const names=uniqueTransientColumnNames(view.columns.length?view.columns:inner.result.map((expression,index)=>expression.alias??(expression.tokens.length===1?sqlName(expression.tokens[0]!.text):`column${index+1}`)));
   const exposed=inner.result.map((expression,index)=>Object.freeze({...expression,alias:names[index]!}));
-  const columns=new Map(exposed.map((_,index)=>[sqliteAsciiFold(names[index]!),inner.result[index]!]));
+  // build.c:sqlite3ViewGetColumnNames and select.c:selectExpander keep the
+  // view-visible column name distinct from the underlying origin metadata.
+  // Substitute the transient exposed expression (whose alias is the view
+  // column name), not the stored inner expression, so a direct projection of
+  // `vc` remains named `vc` while resolution still traces its origin to `c`.
+  const columns=new Map(exposed.map((expression,index)=>[sqliteAsciiFold(names[index]!),expression]));
   const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
   const result=bareStar?exposed:select.result.map(expression=>substituteViewExpression(expression,columns));
   const where=andViewPredicates(inner.where,select.where?substituteViewExpression(select.where,columns):null);
+  const groupBy=select.groupBy.map(expression=>substituteViewExpression(expression,columns));
+  const having=select.having?substituteViewExpression(select.having,columns):null;
   const orderBy=select.orderBy.map(term=>Object.freeze({...term,expr:substituteViewExpression(term.expr,columns)}));
-  return Object.freeze({...inner,result:Object.freeze(result),where,orderBy:Object.freeze(orderBy),limit:select.limit,offset:select.offset,hasOrderBy:orderBy.length>0,hasLimit:select.hasLimit,tokens:select.tokens});
+  return Object.freeze({...inner,result:Object.freeze(result),where,groupBy:Object.freeze(groupBy),having,orderBy:Object.freeze(orderBy),limit:select.limit,offset:select.offset,hasDistinct:select.hasDistinct,hasGroupBy:groupBy.length>0,hasHaving:having!==null,hasOrderBy:orderBy.length>0,hasLimit:select.hasLimit,hasSubquery:inner.hasSubquery,tokens:select.tokens});
 }
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
@@ -881,6 +888,14 @@ export function aggregateShapeSupported(select:SelectNode):boolean{return simple
 /** select.c:sqlite3Select aggregate-without-GROUP tranche. AggInfo entries own
  * accumulator registers; ordinary expression lowering consumes AggFinal values. */
 export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS):Program {
+ // select.c:selectExpander runs before resolveSelectStep/aggregate lowering.
+ // Flatten the same bounded immutable-view shape used by ordinary SELECT so
+ // view column names, origin/type/affinity and inherited collation reach the
+ // grouping KeyInfo without mutating the schema-owned Select.
+ if(!select.hasCompound&&select.from.items.length===1){
+  const source=select.from.items[0]!,view=schema.views.get(sqliteAsciiFold(sqlName(source.tableName)));
+  if(view)return compileAggregateSelect(flattenImmutableView(select,view),schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+ }
  if(select.hasCompound){
   const unionAll=select.arms.slice(1).every(arm=>arm.operatorFromPrior==="union-all"),order=select.orderBy[0];
   if(!unionAll||select.orderBy.length!==1||select.limit||select.offset||select.hasDistinct)throw new JSQLiteError("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
