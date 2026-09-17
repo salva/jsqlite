@@ -319,6 +319,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT DISTINCT FROM 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x == 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x = 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x <> 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x+1_0 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+10'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x+0x1_0 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x+000 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+0'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+0x10 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
  assert.doesNotThrow(()=>resolve('SELECT ABS(a.x) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x)'));
