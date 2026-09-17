@@ -332,6 +332,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x+01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+0x10 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
  assert.doesNotThrow(()=>resolve('SELECT ABS(a.x) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x)'));
+ assert.throws(()=>resolve('SELECT a.x+:p FROM a UNION ALL SELECT a.x FROM a ORDER BY x+:P'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT a.x+$p::x(y) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+$p::x(y)'));
+ assert.throws(()=>resolve('SELECT a.x+$p::x(y) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+$p::X(y)'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT a.x+?01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+?1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve("SELECT x'AB' FROM a UNION ALL SELECT a.x FROM a ORDER BY X'AB'"),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve("SELECT x'AB' FROM a UNION ALL SELECT a.x FROM a ORDER BY x'ab'"),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve("SELECT x'ab' FROM a UNION ALL SELECT a.x FROM a ORDER BY X'ab'"),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
