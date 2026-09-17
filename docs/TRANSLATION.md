@@ -2122,3 +2122,15 @@ both complete tagged row sets with the pinned capture. Existing VDBE reset clean
 releases sorter and aggregate state before replay, so no separate grouping state or
 budget is retained. Exact aggregate accounting is 13/32 credited and 19 atomic
 temporary unsupported.
+
+### Finalized-group ORDER/LIMIT destination ([[card:card-l-c]], 2026-09-17)
+
+Finalized, HAVING-passing group rows may now feed a second private `SorterCursor`
+when ORDER BY resolves structurally to result expressions or aliases. Its `KeyInfo`
+carries direction, NULL placement, and result collation; payloads are projected
+rows. The ordinary LIMIT/OFFSET register program and top-N capacity apply at this
+output destination, while the first sorter remains the GROUP boundary producer.
+Both sorters debit the execution's single `PrivateStateByteBudget`. This promotes
+pinned `having-aggregate`, `having-alias`, `order-limit-groups`, and
+`metadata-aggregate`, including exact rows and metadata. Accounting is 17/32 with
+15 atomic temporary unsupported.
