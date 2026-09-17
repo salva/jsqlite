@@ -149,6 +149,11 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  const quotedColumn=resolve('SELECT "foo" FROM quoted');
  assert.equal(quotedColumn.result[0].source.table.name,'quoted');
  assert.throws(()=>resolve('SELECT a."foo" FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.foo');
+ assert.throws(()=>resolve('SELECT ? FROM a UNION ALL SELECT x FROM a ORDER BY ?'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT ?1 FROM a UNION ALL SELECT x FROM a ORDER BY ?1'));
+ assert.throws(()=>resolve('SELECT ?1 FROM a UNION ALL SELECT x FROM a ORDER BY ?2'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT :p FROM a UNION ALL SELECT x FROM a ORDER BY :p'));
+ assert.throws(()=>resolve('SELECT :p FROM a UNION ALL SELECT x FROM a ORDER BY @p'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT ?, ?1, :p, @p, $p FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT 123, 0x10, current_date, CURRENT_TIME, current_timestamp FROM a'));
  assert.doesNotThrow(()=>resolve("SELECT 1.0, 1e0, NULL, x'AB' FROM a"));
