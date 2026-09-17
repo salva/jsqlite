@@ -986,3 +986,16 @@ Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `W
 | Finalized GROUP result destination | `src/select.c:sqlite3Select` aggregate finalization/HAVING and `selectInnerLoop`; sorter ORDER/LIMIT branches | `src/internal/vdbe.ts` sends finalized projected groups to a shared-budget result sorter with resolved result indexes, direction/collation/NULL flags, top-N and output OFFSET/LIMIT. Pinned HAVING ORDER/LIMIT and metadata cases pass; gate 17/32. |
 | Grouped inner-join input | `src/select.c:sqlite3Select` aggregate GROUP sorter fed inside `sqlite3WhereBegin`/`sqlite3WhereEnd` loop | `src/internal/vdbe.ts` emits cursor-qualified nested loops and ON/WHERE branches into GROUP sorter insertion; columns carry distinct physical and flattened payload indexes. `join-group-valid` exact oracle case passes. |
 | Aggregate UNION ALL destination | `src/select.c:multiSelect` UNION ALL arm destinations and ORDER BY sorter | `src/internal/vdbe.ts` compiles aggregate arm programs, relocates their branches, redirects ResultRow to one shared sorter, then drains it. Bounded to parameter-free UNION ALL ordered by first output. |
+
+## Grouped result DISTINCT and lifecycle ([[card:card-l-c]], 2026-09-17)
+
+| Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
+|---|---|---|
+| `src/select.c` aggregate output / `SRT_DistFifo`-style distinct destination | `compileAggregateSelect()` in `src/internal/vdbe.ts`: finalized projection, `Found`, `IdxInsert`, then result sorter/output | `test/conformance/aggregate-group-lifecycle.test.mjs`; SELECT-level DISTINCT only |
+| `src/vdbe.c` ephemeral/sorter cleanup and abort paths | `VdbeStatement` plus `SorterCursor` / `EphemeralIndexCursor` and one `PrivateStateByteBudget` | cancellation, deadline, work/private limits, reset/finalize, first-error and admission tests |
+| `src/resolve.c` source name before GROUP result alias fallback | aggregate `resolve()` then guarded `aliasExpression()` | immutable `alias-group-resolution`, aggregate gate 20/32 |
+| `src/build.c:sqlite3CreateIndex` implicit PRIMARY KEY index construction during schema initialization | `src/internal/schema.ts:loadSchemaGraph` bounded NULL-SQL index branch | Reconstructs only `sqlite_autoindex_<table>_1` for one non-INTEGER rowid-table PRIMARY KEY from parsed declaration plus validated root page; schema tests execute UTF-8/16le/16be. Composite, UNIQUE, WITHOUT ROWID, later ordinal and other implicit layouts remain atomic temporary gates. |
+
+Aggregate-local DISTINCT/FILTER/ORDER remains [[card:card-l-d]] scope. All three database encodings execute the grouped result-DISTINCT companion.
+Only the source-shaped single-column PRIMARY KEY autoindex needed by those pinned
+fixtures is admitted; other automatic-index layouts remain gated.

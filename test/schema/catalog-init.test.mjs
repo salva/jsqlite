@@ -27,6 +27,16 @@ async function withFixture(name, body) {
   await withImage(image, name, body);
 }
 
+test("single-column rowid-table PRIMARY KEY autoindexes load in every encoding", async () => {
+  for (const name of ["encoding-utf8.db", "encoding-utf16le.db", "encoding-utf16be.db"]) {
+    await withFixture(name, async connection => {
+      const schema=loadSchemaGraph(connection),table=schema.tables.get("t1"),index=schema.indexes.get("sqlite_autoindex_t1_1");
+      assert.ok(table&&index);assert.equal(index.table,table);assert.equal(index.sql,null);assert.equal(index.unique,true);assert.equal(index.origin,"primary-key");
+      assert.deepEqual(index.terms.map(term=>term.column?.name),["a"]);assert.equal(table.indexes[0],index);connection.close();
+    });
+  }
+});
+
 // Root pages and declaration order are oracle-confirmed from sqlite_schema for
 // these immutable fixtures. The consumer must reuse the connection-owned storage.
 test("sqlite_schema initialization reconstructs ordered table/index metadata in every encoding", async () => {

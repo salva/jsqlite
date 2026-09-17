@@ -143,7 +143,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
-      const aggregate = selectHasAggregate(parsed.statement);
+      const aggregate = selectHasAggregate(parsed.statement)||parsed.statement.hasGroupBy||parsed.statement.hasHaving;
       if(aggregate&&!parsed.statement.hasCompound&&!aggregateShapeSupported(parsed.statement)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const program = aggregate
         ? compileAggregateSelect(parsed.statement, loadSchemaGraph(this), btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)

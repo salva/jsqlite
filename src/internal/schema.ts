@@ -54,7 +54,7 @@ export interface IndexNode {
   readonly table: TableNode;
   readonly terms: readonly IndexTerm[];
   readonly unique: boolean;
-  readonly origin: "create";
+  readonly origin: "create" | "primary-key";
 }
 export interface ViewNode {
   readonly kind: "view";
@@ -221,7 +221,23 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       const table = tables.get(sqliteAsciiFold(item.tableName));
       if (!table) malformed(`index ${item.name} refers to unknown table ${item.tableName}`);
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
-      if (item.sql === null) throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
+      if (item.sql === null) {
+        // build.c:sqlite3CreateIndex constructs a persistent automatic index for
+        // a non-rowid PRIMARY KEY. Keep the bounded, unambiguous single-column
+        // form needed by the pinned encoding fixtures; other implicit layouts
+        // remain an atomic schema gate rather than being guessed.
+        const expected = `sqlite_autoindex_${table.name}_1`;
+        const primary = table.primaryKey;
+        const rowidAlias = primary.length === 1 && primary[0]!.declaredType?.toUpperCase() === "INTEGER";
+        if (table.withoutRowid || item.name !== expected || primary.length !== 1 || rowidAlias || table.columns.some(column => column.unique)) {
+          throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
+        }
+        const column = primary[0]!;
+        const term: IndexTerm = Object.freeze({ column, expression: null, expressionSql: null, descending: false, collation: column.collation, nulls: null });
+        const index: IndexNode = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms: Object.freeze([term]), unique: true, origin: "primary-key" };
+        table.indexes.push(index); indexes.set(folded, Object.freeze(index));
+        continue;
+      }
       const ddl = parseDdl(item.sql, "create-index", item.name);
       if (ddl.indexWhere) throw new SchemaUnsupportedError(`partial index construction is not implemented: ${item.name}`);
       if (ddl.tableName === null || !sqliteIdentifierEqual(ddl.tableName, item.tableName)) malformed(`index ${item.name} has mismatched table name`);

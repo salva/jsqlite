@@ -2156,3 +2156,28 @@ one Program and one `PrivateStateByteBudget`; no arm materializes host rows.
 Other aggregate compound operators, parameters, LIMIT/OFFSET, and non-ordinal or
 multi-term ORDER remain atomic temporary unsupported. Pinned
 `compound-composition` passes; accounting is 19/32.
+
+### Grouped result DISTINCT and aggregate lifecycle ([[card:card-l-c]], 2026-09-17)
+
+For the admitted grouped producer, SELECT-level `DISTINCT` now uses the existing
+VDBE destination protocol after aggregate finalization, HAVING, and projection:
+one `EphemeralIndexCursor` receives the complete projected `Mem` tuple under an
+immutable all-result `KeyInfo`; `Found` skips duplicates and `IdxInsert` retains
+the first representative before the existing result ORDER/LIMIT destination.
+This follows `select.c`'s distinct result destination and does not implement
+aggregate-local DISTINCT, FILTER, or ORDER BY (those remain atomically temporary
+and belong to [[card:card-l-d]]). It introduces no host grouping, `Map`/`Set`, or
+second evaluator. The GROUP sorter, result DISTINCT cursor, and optional result
+sorter all reserve against the statement's single `PrivateStateByteBudget`.
+
+Public source-based tests cover NULL collapse, numeric projection, NOCASE
+collation, ordering, reset after a yielded row and after completion, finite entry,
+key-byte, total-private-byte and work limits, suspension with live cancellation,
+deadline injection, exactly-once private-cursor cleanup, first-error retention
+when cleanup also fails, finalize/reset reporting, and restored connection
+admission. The three existing encoding fixtures now execute this path in UTF-8, UTF-16le,
+and UTF-16be. Their single-column non-rowid PRIMARY KEY autoindex is reconstructed
+from the table declaration and sqlite_schema root page; broader implicit index
+layouts retain the atomic temporary schema gate. Exact aggregate manifest
+accounting is **20/32** credited and **12** typed temporary unsupported; grouped
+result DISTINCT is a focused companion outside that frozen denominator.

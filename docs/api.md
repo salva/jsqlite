@@ -358,3 +358,15 @@ rowid table, with optional WHERE and scalar composition of aggregate results.
 Column names and null metadata follow the SELECT expressions. GROUP BY, HAVING,
 aggregate DISTINCT/FILTER/ORDER BY, subqueries, compounds, joins, windows, and
 unregistered aggregate functions remain typed temporary unsupported at prepare.
+
+### Bounded grouped SELECT DISTINCT
+
+Within the documented admitted GROUP BY/HAVING aggregate surface, SELECT-level
+`DISTINCT` is applied to finalized projected rows before result ORDER BY and
+LIMIT/OFFSET. Equality uses SQLite storage classes and expression collation; NULLs
+compare equal for duplicate removal. Its ephemeral index and all grouping/result
+sorters share the connection's per-statement private-state limits. The usual
+`step()` cancellation, timeout, and work-unit options apply; failure is retained
+by `reset()`/`finalize()` while a later execution after reset may proceed.
+Aggregate-argument DISTINCT, FILTER, and aggregate-local ORDER BY remain temporary
+prepare-time unsupported forms.

@@ -311,3 +311,26 @@ Public typed execution now credits all 15 bounded RIGHT/FULL-adjacent stage-3 ma
 ### Repeated-barrier correction (2026-09-17, current)
 
 The 15-case promotion above remains the complete pinned **single-barrier** denominator; it is not evidence for repeated RIGHT/FULL barriers. Repeated RIGHT, repeated FULL, and mixed RIGHT/FULL statements are now public prepare-time atomic failures. Focused tests cover representative downstream and WHERE shapes and prove no partially lowered execution is returned. Per-barrier execution remains an explicit next tranche.
+
+## Aggregate GROUP/HAVING bounded runtime evidence ([[card:card-l-c]])
+
+The immutable pinned-native denominator is
+`test/conformance/cases/stage3-aggregate-group.json`. The current public runner
+attempts 32 card-applicable cases and credits **20/32** exact typed-row/metadata or
+expected-diagnostic comparisons; **12/32** remain atomic typed temporary prepare
+errors. This is bounded credit, not aggregate-surface or SQLite compatibility.
+`SELECT`-level DISTINCT over admitted grouped output is additional focused public
+companion evidence outside that frozen denominator.
+
+`test/conformance/aggregate-group-lifecycle.test.mjs` exercises that companion and
+the grouped producer through the public API: typed duplicate removal including
+NULL and NOCASE, result ordering, UTF-8/UTF-16le/UTF-16be execution, reset after a
+yielded row and after completion, cancellation during cooperative suspension,
+deadline and exact work failures, shared entry/key-byte/total-private-byte limits,
+exactly-once private cursor cleanup, reset/finalize first-error retention, and
+restored connection admission. `test/schema/catalog-init.test.mjs` separately
+proves the bounded schema prerequisite used by the encoding fixtures: a NULL-SQL
+`sqlite_autoindex_<table>_1` is reconstructed only for an unambiguous
+single-column, non-INTEGER PRIMARY KEY on a rowid table. Composite, UNIQUE,
+WITHOUT ROWID, later-ordinal, and other implicit-index shapes remain temporary
+schema gates; this does not expand aggregate scope.
