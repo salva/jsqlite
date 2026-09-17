@@ -149,6 +149,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  const quotedColumn=resolve('SELECT "foo" FROM quoted');
  assert.equal(quotedColumn.result[0].source.table.name,'quoted');
  assert.throws(()=>resolve('SELECT a."foo" FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.foo');
+ assert.doesNotThrow(()=>resolve('SELECT 123, 0x10, current_date, CURRENT_TIME, current_timestamp FROM a'));
  assert.doesNotThrow(()=>resolve("SELECT 1.0, 1e0, NULL, x'AB' FROM a"));
  assert.throws(()=>resolve("SELECT x'AB' FROM a UNION ALL SELECT x FROM a ORDER BY x'ab'"),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT 1.0 FROM a UNION ALL SELECT x FROM a ORDER BY 1.00'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
