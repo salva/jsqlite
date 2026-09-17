@@ -197,9 +197,9 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    if(hasAggregate(select.result[ordinal-1]!))throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
    continue;
   }
-  resolveAgainstSources(expression,sources,select.result,bareName(expression)===null,false,true,select.windowNames,select.windowDefinitions);
+  resolveAgainstSources(expression,sources,select.result,bareName(expression)===null&&collatedBareName(expression)===null,false,true,select.windowNames,select.windowDefinitions);
   const collatedAlias=collatedBareName(expression);
-  if(collatedAlias){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,collatedAlias)),aggregate=alias?firstAggregateName(alias):null;if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}
+  if(collatedAlias){const alias=select.result.find(item=>item.alias&&sqliteIdentifierEqual(item.alias,collatedAlias));if(alias&&firstWindowName(alias))throw new NameResolutionError(`misuse of aliased window function ${collatedAlias}`);const aggregate=alias?firstAggregateName(alias):null;if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}
   let groupHasAggregate=hasAggregate(expression);
   if(!groupHasAggregate){
    const name=bareName(expression);
