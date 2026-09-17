@@ -319,6 +319,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT DISTINCT FROM 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x == 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x = 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x <> 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'));
+ assert.throws(()=>resolve('SELECT a.x+(-9223372036854775808) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+-09223372036854775808'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT a.x+(-9223372036854775808) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+-9223372036854775808'));
+ assert.throws(()=>resolve('SELECT a.x+(-9223372036854775809) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+-09223372036854775809'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT a.x+(-1_0) FROM a UNION ALL SELECT a.x FROM a ORDER BY x+-10'));
  assert.throws(()=>resolve('SELECT a.x+9223372036854775808 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+09223372036854775808'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x+18446744073709551616 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+18446744073709551616'));
  assert.throws(()=>resolve('SELECT a.x+0x8000000000000000 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+9223372036854775808'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
