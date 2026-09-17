@@ -55,6 +55,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
  assert.doesNotThrow(()=>resolve('SELECT sqlite_offset(x) FROM a'));
  assert.throws(()=>resolve('SELECT sqlite_offset() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_offset()');
+ assert.doesNotThrow(()=>resolve('SELECT median(x) OVER (), percentile(x,x) OVER (), percentile_cont(x,x) OVER (), percentile_disc(x,x) OVER (), json_group_array(x) OVER (), jsonb_group_array(x) OVER (), json_group_object(x,x) OVER (), jsonb_group_object(x,x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT median(x), percentile(x,x), percentile_cont(x,x), percentile_disc(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT median(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function median()');
  assert.throws(()=>resolve('SELECT percentile(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function percentile()');
@@ -148,6 +149,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT row_number() FILTER (WHERE missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT row_number() FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
  assert.throws(()=>resolve('SELECT lag(a.x) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND CURRENT ROW) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FILTER (WHERE a.x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER (),ntile(2) OVER (),lag(a.x) OVER (),lead(a.x,1,0) OVER (),first_value(a.x) OVER (),last_value(a.x) OVER (),nth_value(a.x,1) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT rank(1) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function rank()');
