@@ -1,6 +1,6 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
-import { parseSql, SqlParseError } from "./internal/parse.ts";
-import { compileScalarSelect, compileTableSelect, VdbeStatement } from "./internal/vdbe.ts";
+import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
+import { aggregateShapeSupported, compileAggregateSelect, compileScalarSelect, compileTableSelect, VdbeStatement } from "./internal/vdbe.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 
@@ -143,7 +143,11 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
-      const program = parsed.statement.from.items.length || parsed.statement.where
+      const aggregate = parsed.statement.tokens.some(token => /^(avg|count|group_concat|string_agg|sum|total|min|max)$/i.test(token.text));
+      if(aggregate&&!aggregateShapeSupported(parsed.statement)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+      const program = aggregate
+        ? compileAggregateSelect(parsed.statement, loadSchemaGraph(this), btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
+        : parsed.statement.from.items.length || parsed.statement.where
         ? compileTableSelect(
             parsed.statement,
             loadSchemaGraph(this),
@@ -173,6 +177,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       this.#statements.add(statement);
       return { statement, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
     } catch (error) {
+      if (error instanceof SqlUnsupportedError) return failure("unsupported", error.message, { unsupportedClassification: "temporary" });
       if (error instanceof SqlParseError) return failure("sqlite", error.message, { code: 1 });
       if (error instanceof RangeError) return failure("limit", error.message);
       throw error;

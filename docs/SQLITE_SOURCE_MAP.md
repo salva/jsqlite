@@ -952,3 +952,21 @@ owned by downstream implementation cards.
 ## Repeated RIGHT/FULL barrier boundary (2026-09-17, current)
 
 Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `WhereLevel`. `compileInnerTableSelect` currently has one match cursor/key/unmatched pass; therefore >1 barrier is atomically prepare-gated rather than partially translated. `multisource-right-full.test.mjs` covers repeated RIGHT, repeated FULL, mixed barriers, downstream join, and WHERE gate shapes. This corrects the scope of the earlier 15-case mapping.
+
+## Aggregate/GROUP/HAVING pre-implementation gate (SQLite 3.53.4)
+
+| Concern | Pinned implementation/test evidence | Project evidence/status |
+|---|---|---|
+| classification/resolution | `src/sqliteInt.h` `Expr`/`Select`/`AggInfo`; `src/resolve.c:resolveExprStep`, aggregate depth and `NC_AllowAgg`/`NC_HasAgg` | Frozen architecture in `docs/TRANSLATION.md`; runtime not implemented |
+| analysis/lowering/lifecycle | `src/select.c:analyzeAggregate`, `resetAccumulator`, `updateAccumulator`, `finalizeAggFunctions`, GROUP/HAVING branches; `src/expr.c` `TK_AGG_FUNCTION`; `src/vdbe.c` `OP_AggStep`/`OP_AggInverse`/`OP_AggValue`/`OP_AggFinal` | Planned AggInfo owner, statement-owned Mem/context, shared execution-wide `PrivateStateByteBudget`; no algorithm substitution |
+| built-ins | `src/func.c:countStep`, `sumStep`, `sumFinalize`, `avgFinalize`, `totalFinalize`, `minmaxStep`, `groupConcatStep`/`Inverse`/`Value`/`Finalize` | count/sum/avg/total/min/max/group_concat admitted; later-window-compatible callback seam |
+| source tests | `test/aggfunc.test`, `groupby.test`, `select1.test`, `filter1.test`, `distinctagg.test`, `minmax.test` (exact pinned tree) | Bounded public/native matrix derives empty/type/overflow/group/HAVING/alias/bare-minmax/DISTINCT/FILTER/order/collation/composition/error cases; it is not a claim that all upstream assertions are translated |
+| executable evidence | manifest + immutable fixture catalog hashes | `stage3-aggregate-group.spec.json` -> `capture-aggregate-group.py` -> `stage3-aggregate-group.json`; `aggregate-group-manifest.test.py` passes; `run-aggregate-group-ts.mjs` is an intentionally red public gate: 37 native, 33 eventual public-success cases, 0 TS credit, currently stops at `numeric-types` because `sum` is misreported as “no such function” rather than typed temporary unsupported |
+
+### Aggregate contexts and first non-grouped route
+
+| TypeScript owner | Pinned SQLite 3.53.4 source | Status/evidence |
+|---|---|---|
+| `src/internal/vdbe.ts` aggregate resolution, AggInfo-like entries, `AggStep`/`AggFinal` | `src/resolve.c` function classification; `src/select.c` aggregate analysis/lowering; `src/vdbe.c` `OP_AggStep`/`OP_AggFinal`; `src/vdbeapi.c` aggregate context | Translated for one-table/no-FROM, optional-WHERE, non-grouped aggregates. Shared Mem/VDBE expression path; no host reductions. |
+| `aggregateStep`/`aggregateFinal` | `src/func.c` `sumStep`, `sumFinalize`, `totalFinalize`, `avgFinalize`, `countStep`, `minmaxStep`, `groupConcatStep` and finalizers | Core empty/NULL, int64/REAL, collation, and text behavior covered by tagged public oracle cases. |
+| Aggregate state budgeting/cleanup | `src/vdbemem.c` aggregate Mem release; `src/vdbe.c` halt/reset/finalize | Aggregate retained bytes use execution-owned `PrivateStateByteBudget`; Mem cleanup is exercised by public reset/finalize. |

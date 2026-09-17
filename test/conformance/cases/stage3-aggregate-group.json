@@ -1,0 +1,2957 @@
+{
+  "schema": "jsqlite-aggregate-group-contract/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "fixtureGeneration": "g-88a5ac73e417de7fb7eddad79134d3dbfa74ae2e5c2b430b495187e173b01412",
+  "requiredCoverage": [
+    "empty",
+    "types",
+    "overflow",
+    "group",
+    "having",
+    "resolver",
+    "affinity-collation",
+    "bare-minmax",
+    "distinct-filter-order",
+    "composition",
+    "encoding",
+    "reset-metadata",
+    "errors-lifecycle"
+  ],
+  "cases": [
+    {
+      "id": "empty-count",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*), count(1), sum(1), avg(1), total(1), min(1), max(1) WHERE 0",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(1)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "real",
+                "ieee754be": "0000000000000000"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "empty-table-group",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,count(*),sum(x) FROM t1 WHERE 0 GROUP BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "empty-table-no-group",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*),sum(x),avg(x),total(x),group_concat(x) FROM t1 WHERE 0",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "real",
+                "ieee754be": "0000000000000000"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "count-null-star",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*),count(a),count(DISTINCT a) FROM t2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(DISTINCT a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "numeric-types",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT typeof(sum(x)),sum(x),typeof(avg(x)),avg(x),typeof(total(x)),total(x),min(x),max(x) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(sum(x))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(avg(x))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(total(x))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "696e7465676572"
+              },
+              {
+                "type": "integer",
+                "value": "496"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "402f000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "407f000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "sum-real-promotion",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT typeof(sum(v)),sum(v),avg(v),total(v) FROM (SELECT 1 AS v UNION ALL SELECT 2.5 UNION ALL SELECT NULL)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(sum(v))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "400c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "3ffc000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "400c000000000000"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "sum-int64-overflow",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT sum(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "sum(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "error",
+          "partialRows": [],
+          "error": {
+            "phase": "step",
+            "code": 1,
+            "extendedCode": 1,
+            "message": "integer overflow"
+          }
+        },
+        "finalizeCode": 1
+      }
+    },
+    {
+      "id": "total-no-overflow",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT total(v),avg(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "total(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(v)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "real",
+                "ieee754be": "43e0000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "43d0000000000000"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "group-basic",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,count(*),sum(x),avg(x),min(x),max(x) FROM t1 GROUP BY y ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "avg(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "36"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4028000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "22"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "39"
+              },
+              {
+                "type": "real",
+                "ieee754be": "402a000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "42"
+              },
+              {
+                "type": "real",
+                "ieee754be": "402c000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "24"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "45"
+              },
+              {
+                "type": "real",
+                "ieee754be": "402e000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "25"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "48"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4030000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "26"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "51"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4031000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "27"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "54"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4032000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "28"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "57"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4033000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "29"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "60"
+              },
+              {
+                "type": "real",
+                "ieee754be": "402e000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "64"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4030000000000000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "group-expression",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x%3 AS g,count(*),sum(y) FROM t1 GROUP BY x%3 ORDER BY g",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "g",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              },
+              {
+                "type": "integer",
+                "value": "53"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              },
+              {
+                "type": "integer",
+                "value": "54"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "integer",
+                "value": "45"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "having-aggregate",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,count(*) AS n,sum(x) AS s FROM t1 GROUP BY y HAVING count(*)>3 ORDER BY s DESC LIMIT 3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "n",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "s",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "64"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "60"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "having-alias",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,sum(x) AS s FROM t1 GROUP BY y HAVING s>40 ORDER BY s,y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "s",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "42"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "45"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "48"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "51"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "54"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "57"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "60"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "64"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "having-no-group",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*) AS n FROM t1 HAVING n>0",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "n",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "32"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "alias-group-resolution",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT x%2 AS y,count(*) FROM t1 GROUP BY y ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "bare-column",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,count(*),x FROM t1 GROUP BY y ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "x",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "22"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "24"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "25"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "26"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "27"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "28"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "29"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "bare-min",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,min(x),x FROM t1 GROUP BY y ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "min(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "x",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "bare-max",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,max(x),x FROM t1 GROUP BY y ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "max(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "x",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "22"
+              },
+              {
+                "type": "integer",
+                "value": "22"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "24"
+              },
+              {
+                "type": "integer",
+                "value": "24"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "25"
+              },
+              {
+                "type": "integer",
+                "value": "25"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "26"
+              },
+              {
+                "type": "integer",
+                "value": "26"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "27"
+              },
+              {
+                "type": "integer",
+                "value": "27"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "28"
+              },
+              {
+                "type": "integer",
+                "value": "28"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "29"
+              },
+              {
+                "type": "integer",
+                "value": "29"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              },
+              {
+                "type": "integer",
+                "value": "30"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "31"
+              },
+              {
+                "type": "integer",
+                "value": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "distinct-aggregate",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(DISTINCT y),sum(DISTINCT y),group_concat(DISTINCT y) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(DISTINCT y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(DISTINCT y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(DISTINCT y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "integer",
+                "value": "45"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "392c382c372c362c352c342c332c322c312c30"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "filter-aggregate",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*) FILTER (WHERE x%2=0),sum(x) FILTER (WHERE y<3),count(DISTINCT y) FILTER (WHERE x<20) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*) FILTER (WHERE x%2=0)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(x) FILTER (WHERE y<3)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(DISTINCT y) FILTER (WHERE x<20)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              },
+              {
+                "type": "integer",
+                "value": "117"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "ordered-group-concat",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(x ORDER BY x DESC),group_concat(x,'|' ORDER BY y,x) FROM t1 WHERE x<6",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "group_concat(x ORDER BY x DESC)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(x,'|' ORDER BY y,x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "352c342c332c322c312c30"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "327c337c347c357c307c31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "group-concat-null-separator",
+      "fixture": "empty",
+      "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "group_concat(v,NULL ORDER BY n)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "6162"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "collation-group",
+      "fixture": "expr-where",
+      "fixtureSha256": "0c6ccc58e6ffba5a10d0e83831ad9afb5325dada776f5bccbea64da88e4dbd35",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a,count(*),min(b),max(b) FROM t GROUP BY a ORDER BY a COLLATE NOCASE",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "t",
+            "origin": "a"
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616263"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "58595a"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "collation-distinct",
+      "fixture": "expr-where",
+      "fixtureSha256": "0c6ccc58e6ffba5a10d0e83831ad9afb5325dada776f5bccbea64da88e4dbd35",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(DISTINCT a),min(a),max(a),group_concat(DISTINCT a) FROM t",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(DISTINCT a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(DISTINCT a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "616263"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "58595a"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6162632c58595a"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "join-group",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a.a%3,count(*),sum(b.y) FROM t1 AS a JOIN t1 AS b ON b.x=a.x WHERE a.x<8 GROUP BY a.a%3",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "no such column: a.a"
+        }
+      }
+    },
+    {
+      "id": "join-group-valid",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT a.x%3,count(*),sum(b.y) FROM t1 AS a JOIN t1 AS b ON b.x=a.x WHERE a.x<8 GROUP BY a.x%3 ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a.x%3",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "sum(b.y)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "scalar-composition",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT abs(sum(x)),coalesce(min(NULL),max(y)),typeof(avg(x)) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "abs(sum(x))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "coalesce(min(NULL),max(y))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(avg(x))",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "496"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "compound-composition",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*) AS n FROM t1 WHERE x<3 UNION ALL SELECT count(*) FROM t1 WHERE x>29 ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "n",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "order-limit-groups",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,sum(x) AS s FROM t1 GROUP BY y ORDER BY s DESC,y LIMIT 2 OFFSET 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "s",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "60"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "57"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf8",
+      "fixture": "encoding-utf8",
+      "fixtureSha256": "66ff4cab504f06fa3bbbfd2785c712362fb9c11e10e825e4bb40f84393e8ee6b",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT typeof(a),count(*),min(b),max(b),group_concat(c ORDER BY a) FROM t1 GROUP BY typeof(a) ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(c ORDER BY a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf16le",
+      "fixture": "encoding-utf16le",
+      "fixtureSha256": "38ae98d12c3bb6e5273879b2fbc1268c1a90d91179412172e26a4884d063b3f8",
+      "databaseEncoding": "UTF-16le",
+      "sql": "SELECT typeof(a),count(*),min(b),max(b),group_concat(c ORDER BY a) FROM t1 GROUP BY typeof(a) ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(c ORDER BY a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "encoding-utf16be",
+      "fixture": "encoding-utf16be",
+      "fixtureSha256": "8ac45acefa4c170906ad80acec4b95ff5056b035859d683fd7cfbb05a37b8bdf",
+      "databaseEncoding": "UTF-16be",
+      "sql": "SELECT typeof(a),count(*),min(b),max(b),group_concat(c ORDER BY a) FROM t1 GROUP BY typeof(a) ORDER BY 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "typeof(a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "min(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "max(b)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "group_concat(c ORDER BY a)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "74657874"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "49"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "reset-rebind",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y,count(*) AS n FROM t1 GROUP BY y HAVING n>?1 ORDER BY y",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "y",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "n",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        "resetCode": 0,
+        "afterResetRebind": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "metadata-aggregate",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT y AS bucket,count(*) AS n,sum(x) AS total FROM t1 GROUP BY y ORDER BY y LIMIT 1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "bucket",
+            "declaredType": "INT",
+            "database": "main",
+            "table": "t1",
+            "origin": "y"
+          },
+          {
+            "name": "n",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "total",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "36"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "nested-aggregate-error",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT sum(count(*)) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "misuse of aggregate function count()"
+        }
+      }
+    },
+    {
+      "id": "aggregate-in-where-error",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT count(*) FROM t1 WHERE sum(x)>0",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "misuse of aggregate: sum()"
+        }
+      }
+    },
+    {
+      "id": "filter-nonaggregate-error",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT abs(x) FILTER (WHERE x>0) FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "FILTER may not be used with non-aggregate abs()"
+        }
+      }
+    },
+    {
+      "id": "distinct-multiarg-error",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(DISTINCT x,'|') FROM t1",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "DISTINCT aggregates must have exactly one argument"
+        }
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 37,
+    "nativeCaptured": 37,
+    "tsAttempted": 0,
+    "tsCredited": 0
+  }
+}

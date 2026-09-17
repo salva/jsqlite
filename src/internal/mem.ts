@@ -361,6 +361,8 @@ export class Mem {
       terminated: options.terminated ?? false, ownership, ...(token === undefined ? {} : { token }), zeroTail };
   }
   setAggregate(state: MemAggregateState): void { this.#drop(); this.#manifest = "aggregate"; this.#aggregate = state; }
+  /** sqlite3_aggregate_context owner. Aggregate opcodes are the only callers. */
+  aggregateState(): MemAggregateState | null { return this.#manifest === "aggregate" ? this.#aggregate : null; }
   setSubtype(subtype: number | null): void {
     if (subtype !== null && (!Number.isInteger(subtype) || subtype < 0 || subtype > 255)) throw new MemError("invalid-state", "subtype must be one byte");
     if (this.#manifest === "null" || this.#manifest === "aggregate") throw new MemError("invalid-state", "subtype requires an ordinary non-NULL value");

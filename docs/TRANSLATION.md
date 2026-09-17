@@ -1965,3 +1965,111 @@ The architecture-manifest denominator for this stage is the 15 RIGHT/FULL-adjace
 ### 2026-09-17 repeated-barrier correction (current)
 
 The earlier current-sounding statements that all RIGHT/FULL forms were gated, and the later 15-case completion revision, are historical checkpoints superseded by this section. Ordinary rowid-table SELECTs with **one** RIGHT or FULL barrier are supported across terminal/downstream continuation and the documented 15-case pinned denominator. A SELECT containing more than one RIGHT/FULL barrier is now rejected atomically at prepare with temporary unsupported classification. Pinned `wherecode.c:sqlite3WhereRightJoinLoop` owns one `WhereRightJoin` per applicable `WhereLevel`; the current compiler owns one matcher/unmatched pass, so accepting repeated barriers would partially lower them. Per-barrier state is the explicit next tranche. This boundary was required by immutable review `record:///review.md?card=card-k&v=3`.
+
+## Aggregate, GROUP BY, and HAVING tests-first contract (Stage 3 research gate)
+
+This is a pre-implementation contract pinned to SQLite 3.53.4. The executable
+37-case native capture is `test/conformance/cases/stage3-aggregate-group.json`;
+its spec, validator, capture tool, and public red gate sit beside it. Native
+capture is evidence, not TS credit (`37 nativeCaptured`, `33 public-success cases
+declared for eventual attempt`, `0 tsCredited`). The current red gate accepts only
+typed temporary unsupported; it intentionally stops at the first aggregate that is
+misreported as an ordinary SQLite error (currently `numeric-types` reports
+`no such function: sum` after four truthful temporary rejections). The matrix uses the
+current immutable Fetch generation, including its UTF-8/UTF-16le/UTF-16be
+fixtures, and preserves INTEGER decimal, REAL IEEE-754 bits, NULL, TEXT/BLOB
+bytes, column metadata, prepare/step errors, reset/rebind, and finalize codes.
+
+### Source-derived ownership and lowering
+
+* `sqliteInt.h` `Expr`, `Select`, and `AggInfo` and `resolve.c:resolveExprStep`
+  own classification. Resolution tracks aggregate depth and `NC_AllowAgg` /
+  `NC_HasAgg`; aggregate calls are not scalar calls selected by spelling.
+  Aggregate prohibition, nesting, aliases, GROUP/HAVING visibility, and outer
+  depth must therefore be settled in resolver state before code generation.
+* A per-SELECT `AggInfo`-like immutable compiler product owns aggregate columns,
+  functions, arguments, FILTER, DISTINCT/ordered-input descriptors, and
+  accumulator register identities. `select.c:sqlite3Select`,
+  `analyzeAggregate`, `resetAccumulator`, `updateAccumulator`, and
+  `finalizeAggFunctions`, plus `expr.c`'s `TK_AGG_FUNCTION` lowering, are the
+  algorithm baseline. GROUP input is compared with shared Mem/KeyInfo collation;
+  group change finalizes the old accumulator before reset and first-row state.
+  No-GROUP aggregate SELECT creates exactly one group even with zero input;
+  GROUP BY over zero input creates none. HAVING executes after finalize and before
+  result ORDER/DISTINCT/LIMIT. Bare columns are group-row values; the built-in
+  single min()/max() row-selection rule is source behavior, not a generic
+  first-row shortcut.
+* Runtime accumulator ownership belongs to the statement execution, not the AST,
+  connection, or public row. Each accumulator is a Mem aggregate state and a
+  function context. `vdbe.c` `OP_AggStep`/`OP_AggInverse`/`OP_AggValue`/
+  `OP_AggFinal` and `func.c` count/sum/avg/total/minmax/group-concat callbacks are
+  the lifecycle baseline. The internal definition seam is later-window-compatible:
+  `step(context,args)`, optional `inverse(context,args)`, `value(context,out)`,
+  and `final(context,out)`. Initial GROUP execution invokes step/final only;
+  value/inverse are present but not fabricated. Context exposes shared Mem
+  arguments/result, SQLite error/code, collation, encoding, subtype/aux flags,
+  and one aggregate-private slot with exactly-once cleanup.
+* All sorter keys, DISTINCT sets, ordered-aggregate queues, group snapshots,
+  aggregate contexts, and growable `group_concat` bytes reserve from the one
+  execution-wide `PrivateStateByteBudget` already used by relational private
+  state. Reservation is atomic: compute checked complete deltas, reserve before
+  mutation, and roll back newly reserved bytes and owned Mem/context state on
+  failure. There is no aggregate-local reset of the shared ceiling. Group change,
+  reset, finalize, step error, cancellation, and statement destruction release
+  exactly once; suspended execution retains charges. Host OOM remains outside the
+  promised catchable surface, while configured exhaustion is `limit`.
+
+### Admitted first implementation and gates
+
+The first admitted surface is one SELECT level over the currently supported
+no-FROM/single-table/multi-source/compound inputs: GROUP BY and HAVING; built-in
+`count(*)`, `count(X)`, `sum`, `avg`, `total`, `min`, `max`, and `group_concat`;
+DISTINCT and FILTER; aggregate-local ORDER BY for `group_concat`; aliases,
+collations, bare columns/minmax, result ORDER/LIMIT, reset/rebind, and existing
+metadata. Window syntax, user-defined functions, subqueries, recursive CTEs, and
+unmapped aggregate-local ORDER BY uses remain temporary unsupported. This is a
+bounded implementation sequence, not permission to silently reject a matrix case:
+
+1. resolver/classification and immutable AggInfo, with prepare-time errors;
+2. accumulator Mem/context and no-GROUP reset/step/final/error cleanup;
+3. GROUP sorter/change detection, HAVING, bare-column/minmax behavior;
+4. FILTER, per-aggregate DISTINCT, and ordered aggregate input;
+5. compositions, all fixture encodings, reset/rebind, metadata, budget/cancel/
+   finalize fault tests; then promote each public case explicitly.
+
+Every temporary feature gate must be atomic: reject during prepare before a
+statement/program is published. Runtime `limit`, overflow, cancellation, or
+function errors retain their actual step phase, invalidate any pending row, and
+leave reset/finalize cleanup deterministic. No internal/native companion earns TS
+credit. The public runner deliberately fails if an aggregate unexpectedly prepares
+until it also compares full tagged native output; this prevents accidental parser
+acceptance from becoming compatibility credit.
+
+### Storage-history reconciliation
+
+The earlier "historical storage-only checkpoint" paragraph in this guide remains
+history, not a current capability claim. Current committed code has shared Mem,
+collation/comparison, scalar functions, compiler/VDBE, relational private state,
+and multi-source execution. Aggregate state was only a staged Mem slot and current
+aggregate SQL remained temporary unsupported when this gate was authored. This
+research does not alter storage.
+
+### Initial aggregate execution tranche (Stage 3)
+
+The working tree now translates the non-grouped aggregate route for one ordinary
+rowid table (or no FROM), with optional WHERE, and scalar composition around the
+result. `src/internal/vdbe.ts` resolves aggregate class/arity separately from
+scalar functions, builds AggInfo-like accumulator entries, and emits source-shaped
+`AggStep`/`AggFinal` operations into the shared expression/VDBE path. Accumulator
+ownership uses the existing aggregate-capable `Mem`; reset, finalize, replacement,
+and failure therefore run cleanup once. Text/min/max retained bytes reserve the
+execution's one `PrivateStateByteBudget`. Step/input work and cancellation/deadline
+checks remain in the VDBE loop, and the existing saved-error cleanup precedence is
+unchanged.
+
+Core `count`, `sum`, `total`, `avg`, `min`, `max`, and `group_concat` follow the
+pinned `src/func.c` step/final routines for NULL and empty-input results, integer
+sum overflow, REAL transition, collation comparison, and concatenation. The exact
+admitted surface currently excludes GROUP BY/HAVING, DISTINCT/FILTER/aggregate
+ORDER BY, subqueries/compounds/joins, and window forms atomically at prepare. This
+is deliberately a narrow first aggregate route, not general aggregate support.

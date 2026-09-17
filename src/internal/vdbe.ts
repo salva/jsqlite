@@ -27,6 +27,8 @@ type Expression =
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
  | {kind:"cast";value:Expression;affinity:MemAffinity}
  | {kind:"call";name:string;args:Expression[]}
+ | {kind:"aggregate";name:string;args:Expression[];collation:BuiltinCollation}
+ | {kind:"register";index:number}
  | {kind:"case";operand:Expression|null;pairs:[Expression,Expression][];otherwise:Expression|null};
 
 type Op =
@@ -40,6 +42,8 @@ type Op =
   | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation; readonly affinity?:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
+  | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
+  | { readonly code: "AggFinal" | "AggValue"; readonly name:string; readonly p1:number }
   | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
   | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
   | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
@@ -129,6 +133,9 @@ function runFunctionContext(evaluate: () => Mem): Mem {
   try { context.setResult(evaluate()); } catch (error) { context.setError(error); }
   return context.takeResult();
 }
+const AGGREGATE_ARITIES: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  avg: [1], count: [0, 1], group_concat: [1, 2], string_agg: [2], sum: [1], total: [1], min: [1], max: [1],
+});
 const FUNCTION_ARITIES: Readonly<Record<string, readonly number[]>> = Object.freeze({
   typeof: [1], length: [1], octet_length: [1], abs: [1], substr: [2, 3], nullif: [2], coalesce: [],
   min: [], max: [], char: [], hex: [1], replace: [3],
@@ -158,9 +165,23 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
  if(sig==="expr ::= expr COLLATE ID|STRING"){const name=sqliteAsciiFold(t.at(-1)!.text);if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${t.at(-1)!.text}`,{code:1});return{kind:"collate",value:expressionFromReduction(all[0]!),collation:name};}
  if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join("")};
- if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),args=all.map(expressionFromReduction);if(name==="count")throw new JSQLiteError("unsupported","aggregate functions are not implemented",{unsupportedClassification:"temporary"});if(!(name in FUNCTION_ARITIES))throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});if(name==="coalesce"?args.length<2:name==="min"||name==="max"?args.length<2:name==="char"?false:!FUNCTION_ARITIES[name]!.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});return{kind:"call",name,args}}
+ if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),args=sig.includes(" LP STAR RP")?[]:all.map(expressionFromReduction);if(name in AGGREGATE_ARITIES){const arities=AGGREGATE_ARITIES[name]!;if(!arities.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});if((name!=="min"&&name!=="max")||args.length===1)return{kind:"aggregate",name,args,collation:args[0]?collation(args[0]):"binary"};}if(!(name in FUNCTION_ARITIES))throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});if(name==="coalesce"?args.length<2:name==="min"||name==="max"?args.length<2:name==="char"?false:!FUNCTION_ARITIES[name]!.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});return{kind:"call",name,args}}
  if(sig.startsWith("expr ::= CASE")){const vals=all.map(expressionFromReduction),hasOperand=t[1]?.text.toUpperCase()!=="WHEN",hasElse=t.some(x=>x.text.toUpperCase()==="ELSE"),operand=hasOperand?vals.shift()!:null,otherwise=hasElse?vals.pop()!:null,pairs:[Expression,Expression][]=[];while(vals.length)pairs.push([vals.shift()!,vals.shift()!]);return{kind:"case",operand,pairs,otherwise}}
  throw new JSQLiteError("unsupported","SELECT expression is not implemented",{unsupportedClassification:"temporary"})
+}
+
+export function rejectUnimplementedAggregateSelect(select:SelectNode):void{
+ const aggregateNames=new Set(Object.keys(AGGREGATE_ARITIES));
+ const visit=(node:LemonValue<SqlToken>):boolean=>{
+  if(node.kind!=="reduction")return false;
+  if(node.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){
+   const token=exprLeaves(node)[0];
+   if(token){const name=sqliteAsciiFold(token.text),count=descendantExprs(node).length;if(aggregateNames.has(name)&&(!['min','max'].includes(name)||count===1))return true;}
+  }
+  return node.children.some(visit);
+ };
+ const expressions=[...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])];
+ if(expressions.some(expression=>expression.reduction?visit(expression.reduction):false))throw new JSQLiteError("unsupported","aggregate functions are not implemented",{unsupportedClassification:"temporary"});
 }
 
 function expressionName(expression: SelectNode["result"][number]): string {
@@ -181,6 +202,7 @@ function rejectUnsupportedSelectClauses(select: SelectNode, relational = false):
 
 function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number,parameters?:ParameterBuilder):number {
   const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate,parameters);
+  if(expression.kind==="register") { const r=allocate();ops.push({code:"Copy",p1:expression.index,p2:r});return r; }
   if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
   if(expression.kind==="column") { const r=allocate();ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});return r; }
@@ -196,7 +218,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     if(expression.name==="coalesce") { const r=allocate(),jumps:number[]=[];for(const arg of expression.args){const a=emit(arg);const at=ops.length;ops.push({code:"NotNull",p1:a,p2:r,jump:0});jumps.push(at)}ops.push({code:"Null",p2:r});for(const at of jumps)(ops[at] as {jump:number}).jump=ops.length;return r; }
     const args=expression.args.map(emit),r=allocate(),coll=expression.args.map(collation).find((_,i)=>expression.args[i]!.kind==="collate")??"binary";if(coll!=="binary")ops.push({code:"CollSeq",collation:coll});ops.push({code:"Function",name:expression.name,args,p2:r,collation:coll});return r;
   }
-  if(expression.kind==="mem")throw new JSQLiteError("internal","Mem expressions are execution-only");
+  if(expression.kind==="mem"||expression.kind==="aggregate")throw new JSQLiteError("internal","execution-only expression reached scalar lowering");
   const result=allocate(),endJumps:number[]=[],base=expression.operand?emit(expression.operand):null;
   for(const [when,then] of expression.pairs){const w=emit(when),test=base===null?w:(()=>{const r=allocate();ops.push({code:"Binary",op:"=",p1:base,p2:w,p3:r,collation:collation(expression.operand!)});return r})(),skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});const value=emit(then);ops.push({code:"Copy",p1:value,p2:result});endJumps.push(ops.length);ops.push({code:"Goto",p2:0});(ops[skip] as {p2:number}).p2=ops.length;}
   if(expression.otherwise){const value=emit(expression.otherwise);ops.push({code:"Copy",p1:value,p2:result})}else ops.push({code:"Null",p2:result});for(const at of endJumps)(ops[at] as {p2:number}).p2=ops.length;return result;
@@ -562,7 +584,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return e;
       }
-      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="call")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
+      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
     };
     return assign(expressionFromReduction(expression.reduction!));
   };
@@ -653,6 +675,27 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze([]),table,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
+export function aggregateShapeSupported(select:SelectNode):boolean{return !(select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset||select.hasSubquery||select.from.items.length>1||select.tokens.some(t=>t.text.toUpperCase()==="FILTER"||t.text.toUpperCase()==="DISTINCT"||t.text.toUpperCase()==="ORDER"));}
+
+/** select.c:sqlite3Select aggregate-without-GROUP tranche. AggInfo entries own
+ * accumulator registers; ordinary expression lowering consumes AggFinal values. */
+export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS):Program {
+ if(!aggregateShapeSupported(select))throw new JSQLiteError("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+ let table:TableNode|undefined;
+ if(select.from.items.length){const name=sqlName(select.from.items[0]!.tableName),found=schema.tables.get(sqliteAsciiFold(name));if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.withoutRowid||found.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});table=found;}
+ const resolve=(e:Expression):Expression=>{if(e.kind==="column"){if(!table)throw new JSQLiteError("sqlite",`no such column: ${e.name}`,{code:1});const name=sqlName(e.name.includes(".")?e.name.split(".").at(-1)!:e.name),at=table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at<0)throw new JSQLiteError("sqlite",`no such column: ${name}`,{code:1});e.index=at;e.affinity=affinityOf(table.columns[at]!.declaredType??"");const c=sqliteAsciiFold(table.columns[at]!.collation??"binary");if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${c}`,{code:1});e.collation=c;return e}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=resolve(e.value);else if(e.kind==="binary"){e.left=resolve(e.left);e.right=resolve(e.right)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(resolve);else if(e.kind==="case"){if(e.operand)e.operand=resolve(e.operand);e.pairs=e.pairs.map(([a,b])=>[resolve(a),resolve(b)]);if(e.otherwise)e.otherwise=resolve(e.otherwise)}return e};
+ const trees=select.result.map(x=>resolve(expressionFromReduction(x.reduction!))),where=select.where?resolve(expressionFromReduction(select.where.reduction!)):null;
+ const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let registers=select.result.length,allocate=()=>++registers;
+ type Entry={name:string,args:Expression[];collation:BuiltinCollation;register:number};const entries:Entry[]=[];
+ const lower=(e:Expression,inside=false):Expression=>{if(e.kind==="aggregate"){if(inside)throw new JSQLiteError("sqlite","misuse of aggregate function",{code:1});const register=allocate();entries.push({name:e.name,args:e.args,collation:e.collation,register});return{kind:"register",index:register}}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=lower(e.value,inside);else if(e.kind==="binary"){e.left=lower(e.left,inside);e.right=lower(e.right,inside)}else if(e.kind==="call")e.args=e.args.map(x=>lower(x,inside));else if(e.kind==="case"){if(e.operand)e.operand=lower(e.operand,inside);e.pairs=e.pairs.map(([a,b])=>[lower(a,inside),lower(b,inside)]);if(e.otherwise)e.otherwise=lower(e.otherwise,inside)}return e};
+ const outputs=trees.map(x=>lower(x));
+ const emitSteps=()=>{for(const entry of entries){const args=entry.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));ops.push({code:"AggStep",name:entry.name,args,p2:entry.register,collation:entry.collation});}};
+ let rewind=-1,body=0,skip=-1;
+ if(table){ops.push({code:"OpenRead",p1:table.rootPage});rewind=ops.length;ops.push({code:"Rewind",p2:0});body=ops.length;if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();const next=ops.length;ops.push({code:"Next",p2:body});if(skip>=0)(ops[skip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;}else {if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;}
+ for(const entry of entries)ops.push({code:"AggFinal",name:entry.name,p1:entry.register});outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:index+1})});ops.push({code:"ResultRow",p1:1,p2:outputs.length},{code:"Halt"});
+ const columns=select.result.map(expression=>Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null}));return Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
+}
+
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;return booleanValue(m,0)===1}
 const expressionAffinity=(x:Expression):MemAffinity|undefined=>x.kind==="column"?x.affinity:x.kind==="cast"?x.affinity:x.kind==="collate"?expressionAffinity(x.value):undefined;
@@ -665,7 +708,7 @@ const expressionCollation=(x:Expression):BuiltinCollation|undefined=>{
  if(x.kind==="mem"||x.kind==="column")return x.collation;
  if(x.kind==="unary"||x.kind==="cast")return expressionCollation(x.value);
  if(x.kind==="binary")return expressionCollation(x.left)??expressionCollation(x.right);
- if(x.kind==="call")return x.args.map(expressionCollation).find((value):value is BuiltinCollation=>value!==undefined);
+ if(x.kind==="call"||x.kind==="aggregate")return x.args.map(expressionCollation).find((value):value is BuiltinCollation=>value!==undefined);
  if(x.kind==="case")return (x.operand?expressionCollation(x.operand):undefined)??x.pairs.flatMap(([when,then])=>[when,then]).map(expressionCollation).find((value):value is BuiltinCollation=>value!==undefined)??(x.otherwise?expressionCollation(x.otherwise):undefined);
  return undefined;
 };
@@ -675,7 +718,7 @@ const explicitCollation=(x:Expression):BuiltinCollation|undefined=>{
  if(x.kind==="collate")return x.collation;
  if(x.kind==="unary"||x.kind==="cast")return explicitCollation(x.value);
  if(x.kind==="binary")return explicitCollation(x.left)??explicitCollation(x.right);
- if(x.kind==="call")return x.args.map(explicitCollation).find((value):value is BuiltinCollation=>value!==undefined);
+ if(x.kind==="call"||x.kind==="aggregate")return x.args.map(explicitCollation).find((value):value is BuiltinCollation=>value!==undefined);
  if(x.kind==="case")return (x.operand?explicitCollation(x.operand):undefined)??x.pairs.flatMap(([when,then])=>[when,then]).map(explicitCollation).find((value):value is BuiltinCollation=>value!==undefined)??(x.otherwise?explicitCollation(x.otherwise):undefined);
  return undefined;
 };
@@ -687,7 +730,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
 }
 
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
- const out=new Mem();if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="register"||e.kind==="aggregate")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);
@@ -695,6 +738,16 @@ function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:read
  if(e.kind==="case"){const base=e.operand?evaluateExpression(e.operand,encoding,columns):null;for(const [w,r] of e.pairs){const test=evaluateExpression(w,encoding,columns);if(base?(base.initialStorageClass!=="null"&&test.initialStorageClass!=="null"&&compareMem(base,test,"binary")===0):truth(test)===true)return evaluateExpression(r,encoding,columns)}return e.otherwise?evaluateExpression(e.otherwise,encoding,columns):out}
  const args=()=>e.args.map(x=>evaluateExpression(x,encoding,columns));if(e.name==="coalesce"){for(const x of e.args){const v=evaluateExpression(x,encoding,columns);if(v.initialStorageClass!=="null")return v}return out}const a=args();return evaluateFunction(e.name,a,encoding,e.args.map(collation).find((_,i)=>e.args[i]!.kind==="collate")??"binary")
 }
+
+interface AggregateAccumulator {name:string;count:bigint;integer:bigint;approx:number;isApprox:boolean;overflow:boolean;bytes:number;budget:PrivateStateByteBudget;seen:boolean;best:Mem|null;text:string[];separator:string}
+function aggregateStep(cell:Mem,name:string,args:readonly Mem[],coll: BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget):void{
+ let state=cell.aggregateState()?.context as AggregateAccumulator|undefined;if(!state){state={name,count:0n,integer:0n,approx:0,isApprox:false,overflow:false,bytes:0,budget,seen:false,best:null,text:[],separator:","};cell.setAggregate({definition:name,context:state,cleanup:()=>{state!.best?.release();state!.budget.release(state!.bytes)}})}
+ const value=args[0];if(name==="count"){if(!value||value.initialStorageClass!=="null")state.count++;return}if(!value||value.initialStorageClass==="null")return;
+ if(name==="min"||name==="max"){if(!state.best||(name==="min"?compareMem(value,state.best,coll)<0:compareMem(value,state.best,coll)>0)){state.best?.release();state.best=new Mem();state.best.copyFrom(value)}state.seen=true;return}
+ if(name==="group_concat"||name==="string_agg"){const separator=args[1]?.initialStorageClass==="null"?"":args[1]?.textValue()??",";const text=value.textValue();const bytes=new TextEncoder().encode((state.text.length?separator:"")+text).byteLength+state.text.reduce((n,x)=>n+new TextEncoder().encode(x).byteLength,0);if(bytes>maxResultBytes)throw new JSQLiteError("limit","string or blob too big");const delta=bytes-state.bytes;state.budget.reserve(delta,"aggregate state exceeds total byte limit");state.bytes=bytes;if(state.text.length)state.text.push(separator);state.text.push(text);state.seen=true;return}
+ const numeric=value.numericTypeCopy();if(numeric.initialStorageClass!=="integer"){state.approx+=(state.isApprox?0:(state.seen?Number(state.integer):0))+numeric.realValue();state.integer=0n;state.isApprox=true;state.overflow=false;state.seen=true;state.count++;return}const n=numeric.integerValue();if(state.isApprox){state.approx+=Number(n)}else{const sum=state.integer+n;if(sum<-(1n<<63n)||sum>(1n<<63n)-1n)state.overflow=true;else state.integer=sum}state.count++;state.seen=true;
+}
+function aggregateFinal(cell:Mem,name:string,encoding:DatabaseEncoding):void{const state=cell.aggregateState()?.context as AggregateAccumulator|undefined,out=new Mem();if(name==="count")out.setInt64(state?.count??0n);else if(name==="total")out.setDouble(state?(state.isApprox?state.approx:Number(state.integer)):0);else if(name==="avg"){if(state?.count)out.setDouble((state.isApprox?state.approx:Number(state.integer))/Number(state.count))}else if(name==="sum"){if(state?.seen){if(state.overflow&&!state.isApprox)throw new JSQLiteError("sqlite","integer overflow",{code:1});if(state.isApprox)out.setDouble(state.approx);else out.setInt64(state.integer)}}else if(name==="min"||name==="max"){if(state?.best)out.copyFrom(state.best)}else if(state?.seen)out.setText(new TextEncoder().encode(state.text.join("")),"utf-8");cell.setNull();cell.moveFrom(out)}
 
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
 function range(): never { throw new JSQLiteError("sqlite", "column or parameter index out of range", { code: 25 }); }
@@ -790,6 +843,8 @@ export class VdbeStatement implements Statement {
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
+          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.maxResultBytes,this.#privateBytes);break;}
+          case "AggFinal": case "AggValue": aggregateFinal(this.#registers[op.p1]!,op.name,this.#program.encoding);break;
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}}};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}

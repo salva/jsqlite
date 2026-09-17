@@ -349,3 +349,12 @@ USING/NATURAL wildcard forms fail prepare with `unsupportedClassification:
 ### Current RIGHT/FULL boundary correction (2026-09-17)
 
 Earlier statements that all RIGHT/FULL joins were unsupported, that non-terminal joins were unsupported, or that the 15-case promotion implied arbitrary chains are superseded. One RIGHT or FULL barrier is supported, including downstream ordinary joins. More than one RIGHT/FULL barrier in the same SELECT fails atomically during `prepare()` with temporary unsupported message `multiple RIGHT/FULL JOIN barriers are not implemented`; no rows can execute. This is the per-`WhereLevel` next tranche identified by `record:///review.md?card=card-k&v=3`.
+
+### Aggregate SELECT tranche
+
+`prepare()` currently admits core `count`, `sum`, `total`, `avg`, unary `min` and
+`max`, and `group_concat` in a non-grouped SELECT over no FROM or one ordinary
+rowid table, with optional WHERE and scalar composition of aggregate results.
+Column names and null metadata follow the SELECT expressions. GROUP BY, HAVING,
+aggregate DISTINCT/FILTER/ORDER BY, subqueries, compounds, joins, windows, and
+unregistered aggregate functions remain typed temporary unsupported at prepare.
