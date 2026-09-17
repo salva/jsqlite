@@ -22,7 +22,7 @@
     "lifecycle-resources",
     "native-route-discriminators"
   ],
-  "disposition": "native-captured; TypeScript public Fetch execution unattempted and zero credit",
+  "disposition": "native-captured; allocated FROM-derived/view tranche credits 19 public cases; scalar/EXISTS/IN and other cases remain uncredited",
   "runtimeCompanions": [
     "bounded select/expression nesting fails at prepare without publishing a Program",
     "work/deadline/cancellation are checked while inner and outer VDBE programs run and after resume do not restart either producer",
@@ -2626,7 +2626,7 @@
   "accounting": {
     "declared": 46,
     "nativeCaptured": 46,
-    "tsAttempted": 0,
-    "tsCredited": 0
+    "tsAttempted": 19,
+    "tsCredited": 19
   }
 }

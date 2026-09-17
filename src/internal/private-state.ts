@@ -101,46 +101,50 @@ export class SorterCursor {
  * equality; NULLs compare equal for DISTINCT. */
 export class EphemeralIndexCursor {
   readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;
-  #entries:Entry[]=[];#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
+  #shared:{entries:Entry[];references:number}={entries:[],references:1};#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
   constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
-  async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{this.#live();for(const entry of this.#entries)if(await compareEntry(entry,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0)return true;return false}
+  async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{this.#live();for(const entry of this.#shared.entries)if(await compareEntry(entry,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0)return true;return false}
   async remove(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#entries.splice(i,1);this.#budget.release(entry!.bytes);releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
+   this.#live();for(let i=0;i<this.#shared.entries.length;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#shared.entries.splice(i,1);this.#budget.release(entry!.bytes);releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
   }
   /** Retain this cursor's records whose complete keys occur in `other`.
    * The cells deliberately remain those owned by this (left) cursor: SQLite
    * INTERSECT uses the right records only for membership, preserving the left
    * representative when INTEGER/REAL or collation equality matches. */
   async retainFoundIn(other:EphemeralIndexCursor,control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#entries.length;){const entry=this.#entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#entries.splice(i,1);this.#budget.release(entry.bytes);releaseEntry(entry);if(this.#at>=i)this.#at--}
+   this.#live();for(let i=0;i<this.#shared.entries.length;){const entry=this.#shared.entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#shared.entries.splice(i,1);this.#budget.release(entry.bytes);releaseEntry(entry);if(this.#at>=i)this.#at--}
   }
-  clear():void{this.#live();this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
+  clear():void{this.#live();this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[];this.#at=-1}
   async insert(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();const bytes=logicalBytes(key);
    if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral key exceeds byte limit");
-   if(this.#entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("ephemeral index exceeds entry limit");
+   if(this.#shared.entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("ephemeral index exceeds entry limit");
    this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit");
    try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.release(bytes);throw error}
-   let entry:Entry;try{entry={key:copyCells(key),payload:[],sequence:this.#entries.length,bytes}}catch(error){this.#budget.release(bytes);throw error}
-   this.#entries.push(entry);
+   let entry:Entry;try{entry={key:copyCells(key),payload:[],sequence:this.#shared.entries.length,bytes}}catch(error){this.#budget.release(bytes);throw error}
+   this.#shared.entries.push(entry);
    try { await control.checkpoint(0); }
-   catch(error){this.#entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}
+   catch(error){this.#shared.entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}
   }
   /** Replace an equal complete record, preserving SQLite UNION's right-side representative. */
   async replace(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#entries.length;i++)if(await compareEntry(this.#entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){
-    const bytes=logicalBytes(key),old=this.#entries[i]!;if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral index exceeds byte limit");
+   this.#live();for(let i=0;i<this.#shared.entries.length;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){
+    const bytes=logicalBytes(key),old=this.#shared.entries[i]!;if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral index exceeds byte limit");
     this.#budget.replace(old.bytes,bytes,"ephemeral index exceeds byte limit");try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.replace(bytes,old.bytes);throw error}
-    let replacement:Entry;try{replacement={key:copyCells(key),payload:[],sequence:old.sequence,bytes}}catch(error){this.#budget.replace(bytes,old.bytes);throw error}this.#entries[i]=replacement;
-    try{await control.checkpoint(0)}catch(error){this.#entries[i]=old;releaseEntry(replacement);this.#budget.replace(bytes,old.bytes);throw error}releaseEntry(old);return;
+    let replacement:Entry;try{replacement={key:copyCells(key),payload:[],sequence:old.sequence,bytes}}catch(error){this.#budget.replace(bytes,old.bytes);throw error}this.#shared.entries[i]=replacement;
+    try{await control.checkpoint(0)}catch(error){this.#shared.entries[i]=old;releaseEntry(replacement);this.#budget.replace(bytes,old.bytes);throw error}releaseEntry(old);return;
    }return this.insert(key,control);
   }
   async sort(control:PrivateStateControl):Promise<void>{
-   this.#live();let source=this.#entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#entries=source;this.#at=-1;
+   this.#live();let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
   }
-  first():boolean{this.#live();this.#at=0;return this.#entries.length>0}
-  next():boolean{this.#live();return ++this.#at<this.#entries.length}
-  data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#entries.length)throw new Error("ephemeral cursor is not positioned");return this.#entries[this.#at]!.key}
-  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
+  first():boolean{this.#live();this.#at=0;return this.#shared.entries.length>0}
+  next():boolean{this.#live();return ++this.#at<this.#shared.entries.length}
+  data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return this.#shared.entries[this.#at]!.key}
+  /** vdbe.c OP_OpenDup creates an independently positioned cursor over the
+   * same ephemeral b-tree. The duplicate borrows records; its position is not
+   * shared with the owner. */
+  duplicate():EphemeralIndexCursor{this.#live();const copy=new EphemeralIndexCursor(this.keyInfo,this.limits,this.#budget);copy.#shared=this.#shared;copy.#shared.references++;return copy}
+  close():void{if(this.#closed)return;this.#closed=true;if(--this.#shared.references===0){this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[]}this.#at=-1}
   #live():void{if(this.#closed)throw new Error("ephemeral index cursor is closed")}
 }

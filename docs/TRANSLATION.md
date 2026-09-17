@@ -2495,3 +2495,34 @@ native captures, 15 literal SQL cases prepared by the pinned library, and 0
 TypeScript credit. This native prepare check remains architecture/oracle evidence;
 the TypeScript runtime remains unsupported and Fetch-backed accounting remains
 0 attempted / 0 credited.
+
+### Allocated FROM-derived/view promotion ([[card:card-m-f-g]], 2026-09-17)
+
+The pinned 3.53.4 `select.c` routes `flattenSubquery`,
+`fromClauseTermCanBeCoroutine`, and tags 0482/0484/0486/0488 remain the route
+authority. The public tranche now credits 19 allocated cases (57 encoding-specific
+executions): 15 derived/persisted-view cases and the four aggregate 30/34 blockers.
+They execute in one VDBE Program through bounded flattening, coroutine,
+statement-owned materialization/OpenDup, or bounded `UNION ALL` destinations;
+there are no host rows, native fallback, or nested public statements.
+
+The bounded compound-derived aggregate destination is a browser/TypeScript
+adaptation of `select.c:multiSelect` destination redirection: child `ResultRow`
+opcodes feed ordinary outer aggregate/sorter opcodes in the same Program. This
+avoids an unavailable native ephemeral b-tree object while preserving arm order,
+SQLite value classes, shared work/private-state accounting, cancellation, and
+first-error cleanup. Exact public oracle tests cover the four allocated forms,
+including overflow timing and REAL bits, and a differential private-byte test
+proves aggregate-local sorter overlap.
+
+This is deliberately not general subquery support. General scalar subqueries,
+`EXISTS`, and `IN` remain owned by their separate tranche; only the allocated
+persisted-view correlated `EXISTS` composition is admitted here. CTE, recursive
+CTE, window, and unmatched unsafe derived shapes reject atomically. Compound and
+aggregate-over-derived admission remains limited to represented `UNION ALL`
+forms; unsupported general forms must not publish a partial Program.
+
+Accounting: `stage3-subquery-view.json` is 46 native captures, 19 attempted and
+19 credited allocated cases. `subquery-view-foundation.test.mjs` is 57/57;
+`from-subquery-routes.test.mjs` is 20/20; aggregate public accounting is now
+34/34 native-success cases (with five pinned prepare-error comparisons separate).

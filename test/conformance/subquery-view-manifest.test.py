@@ -6,7 +6,7 @@ args=argparse.ArgumentParser(); args.add_argument('--library',required=True,help
 spec=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view.spec.json')); out=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view.json')); comp=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view-companions.spec.json')); manifest=json.load(open(ROOT/'reference/sqlite/manifest.json'))
 assert spec['source']['version']==manifest['version']=='3.53.4' and spec['source']['sourceId']==manifest['sqliteSourceId']
 assert out['source']==spec['source'] and out['disposition']==spec['disposition']; n=len(spec['cases']); assert n==len(out['cases'])==46 and len({c['id'] for c in spec['cases']})==n
-assert out['accounting']=={'declared':n,'nativeCaptured':n,'tsAttempted':0,'tsCredited':0} and 'zero credit' in spec['disposition']
+assert out['accounting']=={'declared':n,'nativeCaptured':n,'tsAttempted':19,'tsCredited':19} and 'allocated FROM-derived/view tranche credits 19' in spec['disposition']
 current=json.load(open(ROOT/'test/fixtures/CURRENT.json')); assert out['fixtureGeneration']==current['generationId']; cat=json.load(open(ROOT/'test/fixtures/generations'/out['fixtureGeneration']/'catalog.json')); fixtures={f['id']:f for f in cat['semantic']['fixtures']}; by_id={c['id']:c for c in out['cases']}
 for c in spec['cases']:
  o=by_id[c['id']]; f=fixtures[c['fixture']]; path=ROOT/'test/fixtures/generations'/out['fixtureGeneration']/f['path']; assert o['fixtureSha256']==f['sha256']==sha(path.read_bytes())
@@ -27,7 +27,7 @@ assert {c['atomicGate'] for c in spec['cases'] if c.get('atomicGate')}=={'cte','
 assert len([c for c in spec['cases'] if c['id'].startswith('aggregate30-')])==4
 assert comp['accounting']=={'declared':15,'tsAttempted':0,'tsCredited':0} and len(comp['cases'])==15 and len({c['id'] for c in comp['cases']})==15 and 'zero credit' in comp['disposition']
 required={'nesting-prepare-atomic','coroutine-suspend-resume','coroutine-cancel-inner','coroutine-deadline-inner','coroutine-work-inner','materialized-private-growth','in-set-private-growth','overlap-private-budget','reset-before-first-step','reset-after-suspension','rebind-correlated','finalize-suspended','first-error-cleanup','deferred-close-suspended','error-restores-admission'}; assert {c['id'] for c in comp['cases']}==required
-print(f'subquery/view manifest: {n} native captures, 15 executable future companions, 0 TypeScript credit; hashed provenance valid')
+print(f'subquery/view manifest: {n} native captures, 19 allocated TypeScript credits, 15 frozen companion specifications; hashed provenance valid')
 
 # Closed companion schema: exact case objects are hashed so operations,
 # expectations, limits and route-specific observations cannot degrade to prose.

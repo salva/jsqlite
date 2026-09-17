@@ -6,7 +6,7 @@
     "manifest": "reference/sqlite/manifest.json"
   },
   "fixtureGeneration": "CURRENT",
-  "disposition": "native-captured; TypeScript public Fetch execution unattempted and zero credit",
+  "disposition": "native-captured; allocated FROM-derived/view tranche credits 19 public cases; scalar/EXISTS/IN and other cases remain uncredited",
   "requiredCoverage": [
     "derived-from",
     "views",

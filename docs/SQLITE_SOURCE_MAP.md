@@ -1050,3 +1050,18 @@ discriminators, expanded view schema/collation cases, 15 executable future
 lifecycle/resource companions, and hashed assertion/source provenance live in
 `stage3-subquery-view*.spec.json`; the validator enforces them. TS credit remains
 0/0.
+
+### Allocated FROM-derived/view runtime promotion ([[card:card-m-f-g]])
+
+| Pinned SQLite 3.53.4 source | TypeScript mapping | Evidence / boundary |
+| --- | --- | --- |
+| `src/select.c:flattenSubquery`, `substSelect`, `selectExpander` | `src/internal/parse.ts`, `resolve.ts`, `vdbe.ts` guarded derived/view expansion, predicate substitution, metadata preservation | 15 allocated derived/view IDs × 3 encodings; exact rows and five metadata fields |
+| `src/select.c:fromClauseTermCanBeCoroutine`, tags 0482/0484 | `compileDerivedProducer`, VDBE `InitCoroutine`/`Yield`/`EndCoroutine` | opcode route tests plus suspension/reset, work, cancellation and deadline evidence |
+| `src/select.c` tags 0486/0488; `src/vdbe.c:OP_Once`, `OP_Gosub`, `OP_Return`, `OP_OpenDup` | one statement-owned ephemeral fill and independent duplicate cursor | repeated immutable-view route and deferred-close/cleanup tests |
+| `src/select.c:multiSelect` result destinations; aggregate `updateAccumulator`/ordered replay | bounded compound-derived result redirection into shared aggregate/sorter opcodes | four aggregate blockers exact in three encodings; overflow finalize code and aggregate-local sorter shared-byte differential |
+| `src/resolve.c:lookupName` nested `NameContext` | linked nested SELECT/allocated persisted-view `EXISTS` resolution | allocated `view-correlated` only; no general scalar/EXISTS/IN claim |
+
+Manifest accounting is 46 native captured, 19 TS attempted/credited. Public
+matrix accounting is 57/57 and companion route/resource accounting is 20/20.
+CTE, recursive CTE, windows, unmatched derived shapes, and unrepresented general
+aggregate-over-derived forms reject before execution.

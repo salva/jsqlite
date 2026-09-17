@@ -72,26 +72,40 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
  // select.c:flattenSubquery case 1. Admit only a deliberately small safe
  // single-source projection. Retaining the generated Select semantic avoids
  // reparsing SQL; every other shape continues to reject atomically.
- const nested=find(node,s=>s.startsWith("select ::="));
+ // Search only this SrcItem. The recursive stl_prefix carries earlier items;
+ // traversing it associates an earlier derived SELECT with the current table.
+ const ownSelect=(n:LemonValue<SqlToken>):LemonValue<SqlToken>|undefined=>{
+  if(n.kind==="terminal")return;
+  if(n!==node&&n.signature.startsWith("stl_prefix ::="))return;
+  if(n.signature.startsWith("select ::="))return n;
+  for(const child of n.children){const found=ownSelect(child);if(found)return found;}
+ };
+ const nested=ownSelect(node);
  if(nested){
   const select=nested.kind==="reduction"?nested.semantic as SelectNode|undefined:undefined;
   const ownAs=direct(node,"as ::="),aliases=leaves(ownAs);
   const projected=select?.result.map(expr=>expr.alias??(expr.tokens.length===1&&["id","keyword"].includes(expr.tokens[0]!.kind)?sqlIdentifier(expr.tokens[0]):null));
-  const safe=!!select&&aliases.length===0&&select.arms.length===1&&select.from.items.length===1&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null);
+  // flattenSubquery restrictions represented by this parser permit a simple
+  // projection over one or more ordinary FROM terms.  Do not require a single
+  // inner term: that incorrectly rejects the pinned aggregate-over-derived-join
+  // route even though flattening only splices the inner SrcList into the parent.
+  const directProjection=!!select&&select.result.every(expr=>expr.tokens.length===1&&["id","keyword"].includes(expr.tokens[0]!.kind));
+  const safe=!!select&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(!aliases.length||select.from.items.length===1&&directProjection);
   if(!safe){
    // parse.y's SrcItem owns the generated Select when flattenSubquery is
    // ineligible. Preserve it for sqlite3Select's materialization destination.
    const prefix=direct(node,"stl_prefix ::="),priorNode=prefix?direct(prefix,"seltablist ::="):undefined;
-   if(!select||!priorNode)throw new SqlUnsupportedError("this FROM subquery shape is not implemented");
-   const prior=sourceList(priorNode),alias=aliases.length?sqlIdentifier(aliases.at(-1)):null,name=alias??"(subquery)",preceding=direct(prefix!,"joinop ::=");
-   const item:SourceItem=Object.freeze({databaseName:null,tableName:name,alias,indexedBy:null,notIndexed:false,on:null,using:null,joinFromLeft:joinFlags(preceding),leftOfRightJoin:false,cursorId:null,table:null});
+   if(!select)throw new SqlUnsupportedError("this FROM subquery shape is not implemented");
+   const prior=priorNode?sourceList(priorNode):frozenSource([],[]),alias=aliases.length?sqlIdentifier(aliases.at(-1)):null,name=alias??"(subquery)",preceding=direct(prefix!,"joinop ::="),onUsing=direct(node,"on_using ::="),onExpr=onUsing?direct(onUsing,"expr ::="):undefined,idlist=onUsing?direct(onUsing,"idlist ::="):undefined,using=idlist?Object.freeze(leaves(idlist).filter(t=>t.text!==",").map(sqlIdentifier)):null;
+   const item:SourceItem=Object.freeze({databaseName:null,tableName:name,alias,indexedBy:null,notIndexed:false,on:onExpr?Object.freeze({kind:"tokens",tokens:Object.freeze(leaves(onExpr)),reduction:onExpr} as ExprNode):null,using,joinFromLeft:joinFlags(preceding),leftOfRightJoin:false,cursorId:null,table:null});
    const items=Object.freeze([...prior.items,item]);
    return frozenSource(items,leaves(node),undefined,Object.freeze({index:items.length-1,select,alias}));
   }
-  return frozenSource(select.from.items,leaves(node),Object.freeze({select}));
+  const flattenedItems=aliases.length===1?select.from.items.map((item,index)=>index===0?Object.freeze({...item,alias:sqlIdentifier(aliases[0])}):item):select.from.items;
+  return frozenSource(flattenedItems,leaves(node),Object.freeze({select}));
  }
  const items:SourceItem[]=[];
- const append=(list:LemonValue<SqlToken>):void=>{const prefix=direct(list,"stl_prefix ::=");if(prefix?.kind==="reduction"&&prefix.signature!=="stl_prefix ::="){const prior=direct(prefix,"seltablist ::=");if(prior)append(prior);}const reductions=list.kind==="reduction"?list.children.filter((c):c is LemonValue<SqlToken>&{kind:"reduction"}=>c.kind==="reduction"):[];const names=reductions.filter(c=>c.signature.startsWith("nm ::="));if(!names.length)throw new SqlParseError("generated FROM source name is missing");const first=sqlIdentifier(leaves(names[0])[0]),dbnm=reductions.find(c=>c.signature.startsWith("dbnm ::=")),dbToken=leaves(dbnm).find(t=>t.text!=="."),as=reductions.find(c=>c.signature.startsWith("as ::=")),asToken=leaves(as).find(t=>t.text.toUpperCase()!=="AS"),indexed=reductions.find(c=>c.signature.startsWith("indexed_by ::=")),indexedTokens=leaves(indexed),notIndexed=indexedTokens.some(t=>t.text.toUpperCase()==="NOT"),onUsing=reductions.find(c=>c.signature.startsWith("on_using ::=")),onExpr=onUsing?direct(onUsing,"expr ::="):undefined,idlist=onUsing?direct(onUsing,"idlist ::="):undefined,preceding=prefix?direct(prefix,"joinop ::="):undefined;const using=idlist?Object.freeze(leaves(idlist).filter(t=>t.text!==",").map(sqlIdentifier)):null;items.push(Object.freeze({databaseName:dbToken?first:null,tableName:dbToken?sqlIdentifier(dbToken):first,alias:asToken?sqlIdentifier(asToken):null,indexedBy:indexedTokens.length&&!notIndexed?sqlIdentifier(indexedTokens.at(-1)):null,notIndexed,on:onExpr?Object.freeze({kind:"tokens",tokens:Object.freeze(leaves(onExpr)),reduction:onExpr} as ExprNode):null,using,joinFromLeft:items.length?joinFlags(preceding):noJoin,leftOfRightJoin:false,cursorId:null,table:null}));};append(node);const rightmost=items.reduce((n,item,i)=>item.joinFromLeft.right?i:n,-1),shifted=rightmost<0?items:items.map((item,i)=>i<rightmost?Object.freeze({...item,leftOfRightJoin:true}):item);return frozenSource(shifted,leaves(node));
+ const append=(list:LemonValue<SqlToken>):void=>{const prefix=direct(list,"stl_prefix ::=");if(prefix?.kind==="reduction"&&prefix.signature!=="stl_prefix ::="){const prior=direct(prefix,"seltablist ::=");if(prior)items.push(...sourceList(prior).items);}const reductions=list.kind==="reduction"?list.children.filter((c):c is LemonValue<SqlToken>&{kind:"reduction"}=>c.kind==="reduction"):[];const names=reductions.filter(c=>c.signature.startsWith("nm ::="));if(!names.length)throw new SqlParseError("generated FROM source name is missing");const first=sqlIdentifier(leaves(names[0])[0]),dbnm=reductions.find(c=>c.signature.startsWith("dbnm ::=")),dbToken=leaves(dbnm).find(t=>t.text!=="."),as=reductions.find(c=>c.signature.startsWith("as ::=")),asToken=leaves(as).find(t=>t.text.toUpperCase()!=="AS"),indexed=reductions.find(c=>c.signature.startsWith("indexed_by ::=")),indexedTokens=leaves(indexed),notIndexed=indexedTokens.some(t=>t.text.toUpperCase()==="NOT"),onUsing=reductions.find(c=>c.signature.startsWith("on_using ::=")),onExpr=onUsing?direct(onUsing,"expr ::="):undefined,idlist=onUsing?direct(onUsing,"idlist ::="):undefined,preceding=prefix?direct(prefix,"joinop ::="):undefined;const using=idlist?Object.freeze(leaves(idlist).filter(t=>t.text!==",").map(sqlIdentifier)):null;items.push(Object.freeze({databaseName:dbToken?first:null,tableName:dbToken?sqlIdentifier(dbToken):first,alias:asToken?sqlIdentifier(asToken):null,indexedBy:indexedTokens.length&&!notIndexed?sqlIdentifier(indexedTokens.at(-1)):null,notIndexed,on:onExpr?Object.freeze({kind:"tokens",tokens:Object.freeze(leaves(onExpr)),reduction:onExpr} as ExprNode):null,using,joinFromLeft:items.length?joinFlags(preceding):noJoin,leftOfRightJoin:false,cursorId:null,table:null}));};append(node);const rightmost=items.reduce((n,item,i)=>item.joinFromLeft.right?i:n,-1),shifted=rightmost<0?items:items.map((item,i)=>i<rightmost?Object.freeze({...item,leftOfRightJoin:true}):item);return frozenSource(shifted,leaves(node));
 }
 function armAction(one:LemonValue<SqlToken>,operatorFromPrior:CompoundOperator|null):Omit<SelectArm,"prior"|"next">{
  const from=direct(one,"from ::="),fromList=from?find(from,s=>s.startsWith("seltablist ::=")):undefined,where=direct(one,"where_opt ::=");
@@ -104,6 +118,14 @@ type ArmDraft=Omit<SelectArm,"prior"|"next">;
 type SelectSemantic={readonly arms:readonly ArmDraft[];readonly rightmost:LemonValue<SqlToken>};
 function semanticOf<T>(child:LemonValue<SqlToken>|undefined,owner:string):T {if(child?.kind!=="reduction"||child.semantic===undefined)throw new SqlParseError(`generated ${owner} child semantic is missing`);return child.semantic as T;}
 function linkedArms(drafts:readonly ArmDraft[]):readonly SelectArm[]{return Object.freeze(drafts.map((arm,i)=>Object.freeze({...arm,prior:i?i-1:null,next:i+1<drafts.length?i+1:null})));}
+/** select.c:flattenSubquery moves the inner WHERE into the parent with AND. */
+function andFlattenedPredicates(inner:ExprNode|null,outer:ExprNode|null):ExprNode|null{
+ if(!inner)return outer;if(!outer)return inner;
+ if(!inner.reduction||!outer.reduction)throw new SqlParseError("generated flattened predicate lost its reduction");
+ const at=inner.tokens.at(-1)?.endByte??0,and:SqlToken=Object.freeze({kind:"keyword",text:"AND",startByte:at,endByte:at});
+ const reduction:LemonValue<SqlToken>=Object.freeze({kind:"reduction",rule:-1,signature:"expr ::= expr AND expr",children:Object.freeze([inner.reduction,Object.freeze({kind:"terminal",tokenId:tokenIds.AND,value:and}),outer.reduction])});
+ return Object.freeze({kind:"tokens",tokens:Object.freeze([...inner.tokens,and,...outer.tokens]),reduction});
+}
 function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNode{
  const one=semantic.rightmost,arms=linkedArms(semantic.arms),hasValues=arms.some(arm=>arm.origin==="values");
  // parse.y accepts this only through error recovery. ORDER/LIMIT tokens before a
@@ -122,12 +144,9 @@ function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNod
  const left=arms[0]!;
  const outerWhere:(ExprNode|null)=(()=>{const expr=where?find(where,s=>s.startsWith("expr ::=")):undefined;return expr?{kind:"tokens",tokens:leaves(expr),reduction:expr}:null;})();
  const flattened=left.from.flattenedDerived;
- // This is the source-shaped flattenSubquery subset admitted above. The inner
- // WHERE becomes the parent WHERE only when there is no parent predicate; the
- // latter combination is deliberately left unsupported until the AND splice is
- // translated from flattenSubquery.
- if(flattened&&outerWhere)throw new SqlUnsupportedError("combined outer and FROM-subquery WHERE is not implemented");
- const effectiveFrom=flattened?flattened.select.from:left.from,effectiveWhere=flattened?flattened.select.where:outerWhere;
+ // flattenSubquery case 1 splices the inner SrcList and combines predicates;
+ // preserving both reductions keeps ordinary expression lowering as the owner.
+ const effectiveFrom=flattened?flattened.select.from:left.from,effectiveWhere=flattened?andFlattenedPredicates(flattened.select.where,outerWhere):outerWhere;
  // flattenSubquery substitutes the subquery result expressions for a parent
  // wildcard. Keeping the underlying table wildcard would expose source order
  // instead of the derived table's ordered projection (for example c,b).

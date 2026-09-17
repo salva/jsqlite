@@ -224,7 +224,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
   if(node.kind==='terminal')return;
   // A generated scalar SELECT owns a new NameContext. Never resolve its leaves
   // in the parent frame (resolveSelectStep descends with pNext instead).
-  if(node.signature==='expr ::= LP select RP'){
+  if(node.signature==='expr ::= LP select RP'||node.signature==='expr ::= EXISTS LP select RP'){
    const selectReduction=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('select ::='));
    const nested=selectReduction?.semantic;
    if(nested&&typeof nested==='object'&&'kind' in nested&&nested.kind==='select')resolveNested?.(nested as SelectNode);
