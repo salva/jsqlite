@@ -150,6 +150,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.equal(quotedColumn.result[0].source.table.name,'quoted');
  assert.throws(()=>resolve('SELECT a."foo" FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.foo');
  assert.doesNotThrow(()=>resolve('SELECT TRUE, false FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT \'foo\' FROM a UNION ALL SELECT x FROM a ORDER BY "foo"'));
+ assert.doesNotThrow(()=>resolve('SELECT "foo" FROM a UNION ALL SELECT x FROM a ORDER BY \'foo\''));
+ assert.doesNotThrow(()=>resolve('SELECT +"foo" FROM a UNION ALL SELECT x FROM a ORDER BY +\'foo\''));
  assert.doesNotThrow(()=>resolve('SELECT a.x IS TRUE FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS TRUE'));
  assert.throws(()=>resolve('SELECT a.x IS TRUE FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS 1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  const booleanColumns=resolve('SELECT TRUE, false FROM booleans');
