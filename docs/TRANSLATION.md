@@ -2134,3 +2134,14 @@ Both sorters debit the execution's single `PrivateStateByteBudget`. This promote
 pinned `having-aggregate`, `having-alias`, `order-limit-groups`, and
 `metadata-aggregate`, including exact rows and metadata. Accounting is 17/32 with
 15 atomic temporary unsupported.
+
+### Grouped inner-join producer ([[card:card-l-c]], 2026-09-17)
+
+The bounded grouped path now drives GROUP sorter insertion from a cursor-qualified
+nested-loop inner/cross-join producer with ON then WHERE filtering. Resolved
+columns retain separate physical `(cursor,column)` identity and flattened sorter
+payload identity; conflating those identities previously addressed `b.x` as a
+later physical field. Aggregate stepping still consumes only sorter payload
+registers, and all cursors/sorters share the execution byte budget. Outer/NATURAL/
+USING joins remain atomic temporary unsupported here. Pinned `join-group-valid`
+passes exactly; aggregate accounting is 18/32.
