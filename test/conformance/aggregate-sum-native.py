@@ -12,7 +12,7 @@ QUERIES=[
 EXPECTED=[[{'type':'text','utf8Hex':'7265616c'},{'type':'real','ieee754be':'3ff0000000000000'},{'type':'real','ieee754be':'3fd5555555555555'},{'type':'real','ieee754be':'3ff0000000000000'}],[{'type':'text','utf8Hex':'7265616c'},{'type':'real','ieee754be':'43e0000000000000'},{'type':'real','ieee754be':'43c5555555555555'},{'type':'real','ieee754be':'43e0000000000000'}],[{'type':'real','ieee754be':'3ff0000000000000'},{'type':'real','ieee754be':'3fd5555555555555'},{'type':'real','ieee754be':'3ff0000000000000'}]]
 def main():
  d=load(sys.argv[1]);assert d.sqlite3_sourceid().decode()==SOURCE_ID
- root=pathlib.Path('test/fixtures/generations/g-6ef80a803e9a0d72df6f3a7783465c87e34870f6301553a399d1da58c3bcf74f/generated/expr-relational.db');db=P();assert d.sqlite3_open_v2(str(root).encode(),C.byref(db),1,None)==OK
+ root=pathlib.Path('test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/expr-relational.db');db=P();assert d.sqlite3_open_v2(str(root).encode(),C.byref(db),1,None)==OK
  try:
   for index,q in enumerate(QUERIES):
    s=P();tail=C.c_char_p();raw=q.encode();assert d.sqlite3_prepare_v2(db,raw,len(raw),C.byref(s),C.byref(tail))==OK

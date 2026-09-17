@@ -1037,3 +1037,15 @@ All nested retained state shares the existing execution-wide
 Defaults remain expression depth 1000, parser depth 2500, work 10,000,000,
 private bytes 256 MiB, 100,000 entries and 16 MiB/key. Configured-small boundary
 and cleanup tests are required before any runtime credit.
+
+### Subquery/view review revision ([[card:card-m-a]])
+
+`docs/TRANSLATION.md` now maps every
+`fromClauseTermCanBeCoroutine` condition (1a--c, 2a--b, 3--5) to retained source
+order/join/CTE/flag/view-identity facts, with unknown facts conservatively selecting
+non-coroutine. It also maps `tag-select-0482` coroutine, 0484 reusable CTE, 0486
+self-joined view `OpenDup`, and 0488 correlated/Once materialization. Native plan
+discriminators, expanded view schema/collation cases, 15 executable future
+lifecycle/resource companions, and hashed assertion/source provenance live in
+`stage3-subquery-view*.spec.json`; the validator enforces them. TS credit remains
+0/0.

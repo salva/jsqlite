@@ -2354,3 +2354,53 @@ sequence is therefore: (A) immutable view/derived expansion and linked resolutio
 materialization; (D) only then bounded flattening. Each tranche must turn selected
 manifest cases from explicit unsupported to exact public Fetch evidence and add
 nesting/work/private-byte/lifecycle companions without changing the denominator.
+
+### Revision: exact FROM-subquery route decision and tests-first companions
+
+This revision addresses `record:///review.md?card=card-m-a&v=3`. The earlier
+phrase “eligible single-use source” is superseded by this direct translation of
+pinned `select.c:fromClauseTermCanBeCoroutine` (conditions 1--5) and the adjacent
+`tag-select-0482`--`0488` dispatch:
+
+| Pinned condition/branch | Required retained TypeScript fact | Decision |
+|---|---|---|
+| 1a only FROM term | `SourceList.length`, index | coroutine |
+| 1b leftmost and next term has `JT_CROSS` | ordered source entries and generated join flags | coroutine |
+| 1c leftmost subquery; no `OUTER`/`CROSS` barrier from it leftward; no earlier subquery; not `SF_UpdateFrom` | source order, each join type/isSubquery, SELECT flags | coroutine. The read-only public surface cannot produce UPDATE-FROM, but the flag remains a required false fact rather than being dropped. |
+| 2a CTE `M10d_Yes`; 2b CTE use count >=2 unless `M10d_No` | CTE materialization mode and use count | not coroutine; CTE remains atomically gated until these facts exist |
+| 3 first source is left operand of RIGHT JOIN (`JT_LTORJ`) | first-source join flags | not coroutine |
+| 4 coroutine optimization disabled | compile optimization flags | not coroutine; current public API has no toggle, so the retained default is enabled |
+| 5 `isSelfJoinView` finds a later same expanded view/alias identity | immutable schema-view identity, expanded SELECT identity, alias and nested-FROM traversal | not coroutine |
+
+The procedure evaluates 2--5 before condition 1. Missing/unknown facts always
+return **not coroutine**. The surrounding dispatch is then exact: an already
+filled source is skipped; true eligibility emits 0482; a previously materialized
+CTE emits 0484 (`Gosub`, `OpenDup`); `isSelfJoinView` finding a prior compatible
+entry emits 0486 (invoke prior fill if present, then `OpenDup`); all others emit
+0488 materialization. In 0488, uncorrelated sources get `Once`, correlated sources
+do not, and only an uncorrelated CTE publishes reusable fill/return/cursor facts.
+Ordinary repeated immutable views use 0486 only after flatten restrictions and
+identity checks leave an eligible prior materialization; otherwise each retained
+source follows the ordinary decision. `route-coroutine-plan` and
+`route-self-view-plan` freeze native EXPLAIN QUERY PLAN discriminators so a
+row-equivalent always-materialize implementation cannot satisfy this gate.
+
+`test/conformance/cases/stage3-subquery-view-companions.spec.json` replaces the
+five non-executable prose companions as the normative future public-test
+contract. Its 15 atomic IDs define SQL, configured-small limit/injection,
+operation order, and exact typed/error/cleanup observations for nesting,
+coroutine suspension, cancellation/deadline/work inside the inner producer,
+materialization and IN growth, overlapping aggregate/sorter/subquery bytes,
+reset before/after yield, rebind, finalize, first-error cleanup, deferred close,
+and restored admission. They remain unattempted 0/0 until implemented through
+Fetch. Injection-only observations use the project's existing test seams and are
+not public API promises.
+
+View evidence now distinguishes explicit (`v1`) and inferred (`v_inferred`)
+columns, duplicate inferred `b`/`b:1`, lazy explicit-list width failure (`v_bad`),
+and inherited NOCASE grouping through `v_collate` with no outer COLLATE override.
+Captured column metadata and errors are normative. Every oracle case now carries
+hashed bounded Tcl assertion content (or a hash of the exact referenced project
+aggregate case), an adaptation classification/rationale, and a pinned
+implementing-source hash plus branch markers. The validator recomputes all hashes;
+label existence alone no longer passes.

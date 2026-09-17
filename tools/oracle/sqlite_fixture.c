@@ -36,7 +36,12 @@ int main(int argc,char **argv){
     "CREATE TABLE t2(x INTEGER,y,z TEXT COLLATE RTRIM);"
     "INSERT INTO t2 VALUES(1,11,'q'),(1,12,'q '),(3,33,NULL),(9,NULL,'n');"
     "CREATE VIEW v1(vb,vc) AS SELECT b,c FROM t1 WHERE a<7;"
-    "CREATE VIEW v_nested AS SELECT vb,vc FROM v1 WHERE vb>2;");
+    "CREATE VIEW v_nested AS SELECT vb,vc FROM v1 WHERE vb>2;"
+    "CREATE VIEW v_inferred AS SELECT b,c FROM t1;"
+    "CREATE VIEW v_dup AS SELECT b,b FROM t1;"
+    "CREATE VIEW v_bad(only_one) AS SELECT b,c FROM t1;"
+    "CREATE VIEW v_collate AS SELECT c,b FROM t1;"
+    "CREATE VIEW v_limited AS SELECT a,b FROM t1 ORDER BY a LIMIT 3;");
   else if(!rc && strcmp(id,"bind")==0) rc=exec(db,"CREATE TABLE t1(a,b,c);");
   else if(!rc && strcmp(id,"meta")==0) rc=exec(db,"CREATE TABLE t1(a VARINT,b BLOB,c VARCHAR(16));INSERT INTO t1 VALUES(1,2,3),('one','two',NULL),(1.2,1.3,1.4);");
   else if(!rc && strncmp(id,"encoding-",9)==0) rc=exec(db,"CREATE TABLE t1(a PRIMARY KEY,b,c);INSERT INTO t1 VALUES('one','I',1);");

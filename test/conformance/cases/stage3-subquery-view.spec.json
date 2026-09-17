@@ -1,9 +1,28 @@
 {
   "schema": "jsqlite-subquery-view-contract-spec/1",
-  "source": {"version":"3.53.4","sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc","manifest":"reference/sqlite/manifest.json"},
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
   "fixtureGeneration": "CURRENT",
   "disposition": "native-captured; TypeScript public Fetch execution unattempted and zero credit",
-  "requiredCoverage": ["derived-from","views","scalar","exists","in-null-empty","correlation","scope-errors","metadata-affinity-collation","encodings","join-group-order-compound","aggregate30-of-34","atomic-future-gates","lifecycle-resources"],
+  "requiredCoverage": [
+    "derived-from",
+    "views",
+    "scalar",
+    "exists",
+    "in-null-empty",
+    "correlation",
+    "scope-errors",
+    "metadata-affinity-collation",
+    "encodings",
+    "join-group-order-compound",
+    "aggregate30-of-34",
+    "atomic-future-gates",
+    "lifecycle-resources",
+    "native-route-discriminators"
+  ],
   "runtimeCompanions": [
     "bounded select/expression nesting fails at prepare without publishing a Program",
     "work/deadline/cancellation are checked while inner and outer VDBE programs run and after resume do not restart either producer",
@@ -12,50 +31,1549 @@
     "finalize after suspension or error and connection close/deferred-close preserve first error, invalidate rows, and restore admission"
   ],
   "cases": [
-    {"id":"derived-basic","upstream":["select6-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,b FROM (SELECT a,b FROM t1 WHERE a<6) ORDER BY a"},
-    {"id":"derived-nested","upstream":["select6-8.5"],"fixture":"subquery-utf8","sql":"SELECT * FROM (SELECT * FROM (SELECT a,b FROM t1 WHERE a<7) WHERE b>2) ORDER BY a"},
-    {"id":"derived-limit-materialized","upstream":["select6-9.1"],"fixture":"subquery-utf8","sql":"SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 2) s ORDER BY 1,2"},
-    {"id":"derived-join","upstream":["select6-8.2"],"fixture":"subquery-utf8","sql":"SELECT s.a,s.b,t.y FROM (SELECT a,b FROM t1) s JOIN t2 t ON t.x=s.a ORDER BY 1,3"},
-    {"id":"derived-group-order","upstream":["select7-3.1"],"fixture":"subquery-utf8","sql":"SELECT c,count(*),sum(y) FROM (SELECT c,y FROM t1 JOIN t2 ON x=a) GROUP BY c ORDER BY c"},
-    {"id":"derived-compound","upstream":["select4-6.1"],"fixture":"subquery-utf8","sql":"SELECT a FROM (SELECT a FROM t1 WHERE a<4 UNION ALL SELECT x FROM t2 WHERE x>3) ORDER BY 1"},
-
-    {"id":"view-basic","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v1 ORDER BY vb"},
-    {"id":"view-nested","upstream":["select7-2.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v_nested ORDER BY vb"},
-    {"id":"view-correlated","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT * FROM v1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=v1.vb-1) ORDER BY vb"},
-    {"id":"view-metadata","upstream":["select1-6.9.8"],"fixture":"subquery-utf8","sql":"SELECT vb AS n,vc FROM v1 ORDER BY vb LIMIT 1"},
-
-    {"id":"scalar-constant","upstream":["subquery-2.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT 10)"},
-    {"id":"scalar-first-row","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT y FROM t2 ORDER BY y)"},
-    {"id":"scalar-empty-null","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT typeof((SELECT y FROM t2 WHERE 0)),(SELECT y FROM t2 WHERE 0)"},
-    {"id":"scalar-correlated","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,(SELECT y FROM t2 WHERE x=t1.a ORDER BY y DESC) FROM t1 ORDER BY a"},
-    {"id":"exists-correlated","upstream":["subquery-1.3"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a"},
-    {"id":"not-exists","upstream":["subquery-1.4"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a"},
-    {"id":"in-select","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT a FROM t1 WHERE a IN (SELECT x FROM t2) ORDER BY a"},
-    {"id":"in-null-hit","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT 1 IN (SELECT x FROM t2),9 IN (SELECT x FROM t2)"},
-    {"id":"in-null-miss","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT 4 IN (SELECT y FROM t2),4 NOT IN (SELECT y FROM t2),typeof(4 IN (SELECT y FROM t2))"},
-    {"id":"in-empty","upstream":["in-3.1"],"fixture":"subquery-utf8","sql":"SELECT NULL IN (SELECT y FROM t2 WHERE 0),NULL NOT IN (SELECT y FROM t2 WHERE 0)"},
-    {"id":"in-affinity","upstream":["subquery-2.5.2"],"fixture":"subquery-utf8","sql":"SELECT '1' IN (SELECT a FROM t1),1.0 IN (SELECT a FROM t1)"},
-
-    {"id":"lexical-shadow","upstream":["subquery-1.5"],"fixture":"subquery-utf8","sql":"SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o ORDER BY o.a"},
-    {"id":"correlated-two-level","upstream":["subquery-3.1"],"fixture":"subquery-utf8","sql":"SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o ORDER BY o.a"},
-    {"id":"error-ambiguous","upstream":["select6-8.2"],"fixture":"subquery-utf8","sql":"SELECT (SELECT a) FROM t1 x JOIN t1 y","expectedPrepareError":true},
-    {"id":"error-missing","upstream":["in-2.11"],"fixture":"subquery-utf8","sql":"SELECT (SELECT missing FROM t2) FROM t1","expectedPrepareError":true},
-    {"id":"error-width-scalar","upstream":["select7-5.1"],"fixture":"subquery-utf8","sql":"SELECT (SELECT x,y FROM t2)","expectedPrepareError":true},
-    {"id":"error-width-in","upstream":["select7-5.1"],"fixture":"subquery-utf8","sql":"SELECT 1 IN (SELECT x,y FROM t2)","expectedPrepareError":true},
-
-    {"id":"metadata-affinity-collation","upstream":["subquery-2.5.2","select1-6.9.8"],"fixture":"subquery-utf8","sql":"SELECT s.c,typeof(s.a),s.a FROM (SELECT c,a FROM t1) s ORDER BY s.c COLLATE NOCASE,s.a"},
-    {"id":"encoding-utf8","upstream":["subquery-1.10.2"],"fixture":"subquery-utf8","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
-    {"id":"encoding-utf16le","upstream":["subquery-1.10.2"],"fixture":"subquery-utf16le","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
-    {"id":"encoding-utf16be","upstream":["subquery-1.10.2"],"fixture":"subquery-utf16be","sql":"SELECT * FROM (SELECT c,b FROM t1) ORDER BY b"},
-
-    {"id":"aggregate30-sum-real-promotion","upstream":["stage3-aggregate-group:sum-real-promotion"],"fixture":"empty","sql":"SELECT typeof(sum(v)),sum(v),avg(v),total(v) FROM (SELECT 1 AS v UNION ALL SELECT 2.5 UNION ALL SELECT NULL)"},
-    {"id":"aggregate30-sum-int64-overflow","upstream":["stage3-aggregate-group:sum-int64-overflow"],"fixture":"empty","sql":"SELECT sum(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)"},
-    {"id":"aggregate30-total-no-overflow","upstream":["stage3-aggregate-group:total-no-overflow"],"fixture":"empty","sql":"SELECT total(v),avg(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)"},
-    {"id":"aggregate30-group-concat-null-separator","upstream":["stage3-aggregate-group:group-concat-null-separator"],"fixture":"empty","sql":"SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)"},
-
-    {"id":"gate-cte-nonrecursive","upstream":["with1-1.1"],"fixture":"subquery-utf8","sql":"WITH q AS (SELECT a FROM t1) SELECT * FROM q ORDER BY a","atomicGate":"cte"},
-    {"id":"gate-cte-recursive","upstream":["with1-5.1"],"fixture":"subquery-utf8","sql":"WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT * FROM q","atomicGate":"recursive-cte"},
-    {"id":"gate-window","upstream":["window1-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,row_number() OVER (ORDER BY a) FROM t1","atomicGate":"window"},
-    {"id":"reset-rebind-correlated","upstream":["subquery-1.1"],"fixture":"subquery-utf8","sql":"SELECT a,(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1) FROM t1 WHERE a>?1 ORDER BY a","bindings":[{"type":"integer","value":"1"}],"rebind":[{"type":"integer","value":"4"}]}
+    {
+      "id": "derived-basic",
+      "upstream": [
+        "select6-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a,b FROM (SELECT a,b FROM t1 WHERE a<6) ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "1.1",
+            "startLine": 54,
+            "sha256": "9d6d2f13d78552af435bc78f3ab2a8d51374c1a76cd968090c26321d4f4ef397"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "derived-nested",
+      "upstream": [
+        "select6-8.5"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM (SELECT * FROM (SELECT a,b FROM t1 WHERE a<7) WHERE b>2) ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "8.5",
+            "startLine": 430,
+            "sha256": "003a7f18e9e2cf56c606b4a4236079376ea59687a00287468f3135d6b7991a70"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "derived-limit-materialized",
+      "upstream": [
+        "select6-9.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 2) s ORDER BY 1,2",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "9.1",
+            "startLine": 457,
+            "sha256": "597bb8bcd71ab90a39dd415a5cadfb9d1eb55ccc150080a80b8a4e8334b54540"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "derived-join",
+      "upstream": [
+        "select6-8.2"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT s.a,s.b,t.y FROM (SELECT a,b FROM t1) s JOIN t2 t ON t.x=s.a ORDER BY 1,3",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "8.2",
+            "startLine": 402,
+            "sha256": "c68e1cf4b480bf3b7fb8b4c945b9fda20cd2a505e0580d80e14332e9db593955"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "derived-group-order",
+      "upstream": [
+        "select7-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT c,count(*),sum(y) FROM (SELECT c,y FROM t1 JOIN t2 ON x=a) GROUP BY c ORDER BY c",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "3.1",
+            "startLine": 69,
+            "sha256": "8d6be9a17763c6235bbe9cea15efc8a856053f990ca12faf8fa95fc3f35bfbc3"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "derived-compound",
+      "upstream": [
+        "select4-6.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a FROM (SELECT a FROM t1 WHERE a<4 UNION ALL SELECT x FROM t2 WHERE x>3) ORDER BY 1",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select4.test",
+            "assertion": "6.1",
+            "startLine": 421,
+            "sha256": "266017c2752f26099cd816eb17517008108c1ed0bd7be97ae2942b94b68d0de9"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-basic",
+      "upstream": [
+        "subquery-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v1 ORDER BY vb",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "3.1",
+            "startLine": 261,
+            "sha256": "567a7a456dd4e6a6bc3d1466c6b3bd12f3ffd65348e351438ce747cd00e873be"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-nested",
+      "upstream": [
+        "select7-2.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v_nested ORDER BY vb",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "2.1",
+            "startLine": 42,
+            "sha256": "2db25e4dd06021ac6a204fc93f338328bede58a72f291fc75f3147b20a129072"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-correlated",
+      "upstream": [
+        "subquery-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=v1.vb-1) ORDER BY vb",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "3.1",
+            "startLine": 261,
+            "sha256": "567a7a456dd4e6a6bc3d1466c6b3bd12f3ffd65348e351438ce747cd00e873be"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-metadata",
+      "upstream": [
+        "select1-6.9.8"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT vb AS n,vc FROM v1 ORDER BY vb LIMIT 1",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select1.test",
+            "assertion": "6.9.8",
+            "startLine": 551,
+            "sha256": "e9e427a6f5811f26eaadf0bf777df1f2c45db1375e8afe61f100d9dd8575883c"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "route-coroutine-plan",
+      "upstream": [
+        "select6-9.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "EXPLAIN QUERY PLAN SELECT s.a,t.y FROM t2 t JOIN (SELECT a FROM t1 ORDER BY a LIMIT 2) s ON s.a=t.x ORDER BY 1,2",
+      "architectureOnly": "native plan discriminator: CO-ROUTINE s",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "9.1",
+            "startLine": 457,
+            "sha256": "597bb8bcd71ab90a39dd415a5cadfb9d1eb55ccc150080a80b8a4e8334b54540"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "route-self-view-plan",
+      "upstream": [
+        "select7-2.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "EXPLAIN QUERY PLAN SELECT x.a,y.a FROM v_limited x JOIN v_limited y ON x.a=y.a ORDER BY 1",
+      "architectureOnly": "native plan discriminator: first producer CO-ROUTINE and self-joined reuse/materialization branch",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "2.1",
+            "startLine": 42,
+            "sha256": "2db25e4dd06021ac6a204fc93f338328bede58a72f291fc75f3147b20a129072"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-explicit-columns",
+      "upstream": [
+        "subquery-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v1 ORDER BY vb LIMIT 1",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "3.1",
+            "startLine": 261,
+            "sha256": "567a7a456dd4e6a6bc3d1466c6b3bd12f3ffd65348e351438ce747cd00e873be"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-inferred-columns",
+      "upstream": [
+        "select7-2.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v_inferred ORDER BY b LIMIT 1",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "2.1",
+            "startLine": 42,
+            "sha256": "2db25e4dd06021ac6a204fc93f338328bede58a72f291fc75f3147b20a129072"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-duplicate-inferred",
+      "upstream": [
+        "select7-2.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v_dup ORDER BY b LIMIT 1",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "2.1",
+            "startLine": 42,
+            "sha256": "2db25e4dd06021ac6a204fc93f338328bede58a72f291fc75f3147b20a129072"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-explicit-width-error",
+      "upstream": [
+        "select7-5.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM v_bad",
+      "expectedPrepareError": true,
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "5.1",
+            "startLine": 112,
+            "sha256": "0c9a33919c3fe2e86b133f79326640dd54a3e3b289ada2daa06d19157666130b"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "view-inherited-collation",
+      "upstream": [
+        "subquery-2.5.2"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT c,count(*),sum(b) FROM v_collate GROUP BY c ORDER BY c",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "2.5.2",
+            "startLine": 221,
+            "sha256": "1018b216ea1845303d6111ec122365ca6e19c0b27b2e10df241b5545792681ad"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scalar-constant",
+      "upstream": [
+        "subquery-2.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT (SELECT 10)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "2.1",
+            "startLine": 158,
+            "sha256": "34c3e9dfe6c12a038290c5780d3e72ece33e3e7e84ad5ff64a557ec8b2450f8d"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scalar-first-row",
+      "upstream": [
+        "subquery-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT (SELECT y FROM t2 ORDER BY y)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.1",
+            "startLine": 22,
+            "sha256": "65f70c7805667f64e7686f4c8f998cb30110d77aa30b59ea6c221dba0f2805c7"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scalar-empty-null",
+      "upstream": [
+        "subquery-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT typeof((SELECT y FROM t2 WHERE 0)),(SELECT y FROM t2 WHERE 0)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.1",
+            "startLine": 22,
+            "sha256": "65f70c7805667f64e7686f4c8f998cb30110d77aa30b59ea6c221dba0f2805c7"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "scalar-correlated",
+      "upstream": [
+        "subquery-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a,(SELECT y FROM t2 WHERE x=t1.a ORDER BY y DESC) FROM t1 ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.1",
+            "startLine": 22,
+            "sha256": "65f70c7805667f64e7686f4c8f998cb30110d77aa30b59ea6c221dba0f2805c7"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "exists-correlated",
+      "upstream": [
+        "subquery-1.3"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a FROM t1 WHERE EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.3",
+            "startLine": 48,
+            "sha256": "24a81f5094dbe9a6a0ca39f725921a7d2edbe6f7042cd45de1c24bad812934a0"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "not-exists",
+      "upstream": [
+        "subquery-1.4"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE x=t1.a) ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.4",
+            "startLine": 54,
+            "sha256": "21d386bf4e0720c749b44d4dc8ea8c6ce032a83336bc7121ef489ea2f3de2ca7"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "in-select",
+      "upstream": [
+        "in-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a FROM t1 WHERE a IN (SELECT x FROM t2) ORDER BY a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/in.test",
+            "assertion": "3.1",
+            "startLine": 105,
+            "sha256": "59488bf3dd1d6aaaeb115727abf9131277c63d8ae95d4d77bf53afc315c8fe83"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "in-null-hit",
+      "upstream": [
+        "in-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT 1 IN (SELECT x FROM t2),9 IN (SELECT x FROM t2)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/in.test",
+            "assertion": "3.1",
+            "startLine": 105,
+            "sha256": "59488bf3dd1d6aaaeb115727abf9131277c63d8ae95d4d77bf53afc315c8fe83"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "in-null-miss",
+      "upstream": [
+        "in-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT 4 IN (SELECT y FROM t2),4 NOT IN (SELECT y FROM t2),typeof(4 IN (SELECT y FROM t2))",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/in.test",
+            "assertion": "3.1",
+            "startLine": 105,
+            "sha256": "59488bf3dd1d6aaaeb115727abf9131277c63d8ae95d4d77bf53afc315c8fe83"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "in-empty",
+      "upstream": [
+        "in-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT NULL IN (SELECT y FROM t2 WHERE 0),NULL NOT IN (SELECT y FROM t2 WHERE 0)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/in.test",
+            "assertion": "3.1",
+            "startLine": 105,
+            "sha256": "59488bf3dd1d6aaaeb115727abf9131277c63d8ae95d4d77bf53afc315c8fe83"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "in-affinity",
+      "upstream": [
+        "subquery-2.5.2"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT '1' IN (SELECT a FROM t1),1.0 IN (SELECT a FROM t1)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "2.5.2",
+            "startLine": 221,
+            "sha256": "1018b216ea1845303d6111ec122365ca6e19c0b27b2e10df241b5545792681ad"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lexical-shadow",
+      "upstream": [
+        "subquery-1.5"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o ORDER BY o.a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.5",
+            "startLine": 62,
+            "sha256": "a67184bfdf814df6dc7f135aba92076ca84f2d123105e7222f4a186e84aca322"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "correlated-two-level",
+      "upstream": [
+        "subquery-3.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o ORDER BY o.a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "3.1",
+            "startLine": 261,
+            "sha256": "567a7a456dd4e6a6bc3d1466c6b3bd12f3ffd65348e351438ce747cd00e873be"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "error-ambiguous",
+      "upstream": [
+        "select6-8.2"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT (SELECT a) FROM t1 x JOIN t1 y",
+      "expectedPrepareError": true,
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select6.test",
+            "assertion": "8.2",
+            "startLine": 402,
+            "sha256": "c68e1cf4b480bf3b7fb8b4c945b9fda20cd2a505e0580d80e14332e9db593955"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "error-missing",
+      "upstream": [
+        "in-2.11"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT (SELECT missing FROM t2) FROM t1",
+      "expectedPrepareError": true,
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/in.test",
+            "assertion": "2.11",
+            "startLine": 98,
+            "sha256": "c9cbdd5807af72b36acb1a66c765b1f5143941002578cfe4e14b5c0c7df52bf1"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "error-width-scalar",
+      "upstream": [
+        "select7-5.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT (SELECT x,y FROM t2)",
+      "expectedPrepareError": true,
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "5.1",
+            "startLine": 112,
+            "sha256": "0c9a33919c3fe2e86b133f79326640dd54a3e3b289ada2daa06d19157666130b"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "error-width-in",
+      "upstream": [
+        "select7-5.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT 1 IN (SELECT x,y FROM t2)",
+      "expectedPrepareError": true,
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select7.test",
+            "assertion": "5.1",
+            "startLine": 112,
+            "sha256": "0c9a33919c3fe2e86b133f79326640dd54a3e3b289ada2daa06d19157666130b"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "metadata-affinity-collation",
+      "upstream": [
+        "subquery-2.5.2",
+        "select1-6.9.8"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT s.c,typeof(s.a),s.a FROM (SELECT c,a FROM t1) s ORDER BY s.c COLLATE NOCASE,s.a",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "2.5.2",
+            "startLine": 221,
+            "sha256": "1018b216ea1845303d6111ec122365ca6e19c0b27b2e10df241b5545792681ad"
+          },
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/select1.test",
+            "assertion": "6.9.8",
+            "startLine": 551,
+            "sha256": "e9e427a6f5811f26eaadf0bf777df1f2c45db1375e8afe61f100d9dd8575883c"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "encoding-utf8",
+      "upstream": [
+        "subquery-1.10.2"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.10.2",
+            "startLine": 104,
+            "sha256": "7ff6742fcf507361f3e89b84c76a2678a1e382cba4501406c99453e7cf133eb6"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "encoding-utf16le",
+      "upstream": [
+        "subquery-1.10.2"
+      ],
+      "fixture": "subquery-utf16le",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.10.2",
+            "startLine": 104,
+            "sha256": "7ff6742fcf507361f3e89b84c76a2678a1e382cba4501406c99453e7cf133eb6"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "encoding-utf16be",
+      "upstream": [
+        "subquery-1.10.2"
+      ],
+      "fixture": "subquery-utf16be",
+      "sql": "SELECT * FROM (SELECT c,b FROM t1) ORDER BY b",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.10.2",
+            "startLine": 104,
+            "sha256": "7ff6742fcf507361f3e89b84c76a2678a1e382cba4501406c99453e7cf133eb6"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aggregate30-sum-real-promotion",
+      "upstream": [
+        "stage3-aggregate-group:sum-real-promotion"
+      ],
+      "fixture": "empty",
+      "sql": "SELECT typeof(sum(v)),sum(v),avg(v),total(v) FROM (SELECT 1 AS v UNION ALL SELECT 2.5 UNION ALL SELECT NULL)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "project-case",
+            "path": "test/conformance/cases/stage3-aggregate-group.json",
+            "caseId": "sum-real-promotion",
+            "sha256": "f6863f9591aa617aec2c053d84d2dafece5c7eaa2e2ccfd2f3b25bc16a88a65a"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aggregate30-sum-int64-overflow",
+      "upstream": [
+        "stage3-aggregate-group:sum-int64-overflow"
+      ],
+      "fixture": "empty",
+      "sql": "SELECT sum(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "project-case",
+            "path": "test/conformance/cases/stage3-aggregate-group.json",
+            "caseId": "sum-int64-overflow",
+            "sha256": "0e73884e825954844d61f27a95608d16d52ceca5da71136b14940cf54aeaf446"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aggregate30-total-no-overflow",
+      "upstream": [
+        "stage3-aggregate-group:total-no-overflow"
+      ],
+      "fixture": "empty",
+      "sql": "SELECT total(v),avg(v) FROM (SELECT 9223372036854775807 AS v UNION ALL SELECT 1)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "project-case",
+            "path": "test/conformance/cases/stage3-aggregate-group.json",
+            "caseId": "total-no-overflow",
+            "sha256": "43d176a8cc0dbc66cca4b7f8388a9a922107d18fc6d3b6884a5c2a200bf635a4"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "aggregate30-group-concat-null-separator",
+      "upstream": [
+        "stage3-aggregate-group:group-concat-null-separator"
+      ],
+      "fixture": "empty",
+      "sql": "SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "project-case",
+            "path": "test/conformance/cases/stage3-aggregate-group.json",
+            "caseId": "group-concat-null-separator",
+            "sha256": "55ad9cd45eecbd36c6a851f31e5706b950f41ed9873e682eec5062ea087b8c37"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gate-cte-nonrecursive",
+      "upstream": [
+        "with1-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "WITH q AS (SELECT a FROM t1) SELECT * FROM q ORDER BY a",
+      "atomicGate": "cte",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/with1.test",
+            "assertion": "1.1",
+            "startLine": 28,
+            "sha256": "0224aa8cf310ba7eb545f7113a6bbdb2200f3348e442c1830538fb6f552a4752"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gate-cte-recursive",
+      "upstream": [
+        "with1-5.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT * FROM q",
+      "atomicGate": "recursive-cte",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/with1.test",
+            "assertion": "5.1",
+            "startLine": 147,
+            "sha256": "151abb9fe4985b319ae82cdcb357b87db8b73c105ff9166633ad850ff5f29917"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gate-window",
+      "upstream": [
+        "window1-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a,row_number() OVER (ORDER BY a) FROM t1",
+      "atomicGate": "window",
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/window1.test",
+            "assertion": "1.1",
+            "startLine": 29,
+            "sha256": "733a292978c17f0b745303384e3c876d173d311d7b6a46cab6fb1176db37f35c"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    },
+    {
+      "id": "reset-rebind-correlated",
+      "upstream": [
+        "subquery-1.1"
+      ],
+      "fixture": "subquery-utf8",
+      "sql": "SELECT a,(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1) FROM t1 WHERE a>?1 ORDER BY a",
+      "bindings": [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ],
+      "rebind": [
+        {
+          "type": "integer",
+          "value": "4"
+        }
+      ],
+      "provenance": {
+        "classification": "adapted-discriminator",
+        "rationale": "Project fixture adaptation isolates the named SQLite behavior while preserving tagged rows, metadata, errors and encoding.",
+        "evidence": [
+          {
+            "kind": "adapted-discriminator",
+            "path": "reference/sqlite/sqlite-src-3530400/test/subquery.test",
+            "assertion": "1.1",
+            "startLine": 22,
+            "sha256": "65f70c7805667f64e7686f4c8f998cb30110d77aa30b59ea6c221dba0f2805c7"
+          }
+        ],
+        "implementingSource": {
+          "path": "reference/sqlite/sqlite-src-3530400/src/select.c",
+          "sha256": "bdf052a30146b56afe82c5fc1affcf6a01b6417bc72ec8608139d75d910e3408",
+          "markers": [
+            "flattenSubquery",
+            "fromClauseTermCanBeCoroutine",
+            "tag-select-0482",
+            "tag-select-0484",
+            "tag-select-0486",
+            "tag-select-0488"
+          ]
+        }
+      }
+    }
   ]
 }

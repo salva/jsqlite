@@ -1,0 +1,23 @@
+{
+  "schema":"jsqlite-subquery-view-companions/1",
+  "disposition":"future public Fetch-backed TypeScript companions; unattempted and zero credit",
+  "defaults":{"maxExpressionDepth":1000,"maxWorkUnits":10000000,"maxPrivateBytes":268435456},
+  "cases":[
+    {"id":"nesting-prepare-atomic","route":"prepare","sqlTemplate":"SELECT (SELECT ... depth 4 ...)","limits":{"maxExpressionDepth":3},"operations":["prepare"],"expect":{"errorKind":"limit","phase":"prepare","statementPublished":false}},
+    {"id":"coroutine-suspend-resume","route":"coroutine","sql":"SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3) ORDER BY a","operations":["prepare","step=row","await-host-turn","step=row","step=row","step=done"],"expect":{"rows":[["integer:1"],["integer:3"],["integer:5"]],"producerRestartCount":0}},
+    {"id":"coroutine-cancel-inner","route":"coroutine","sql":"SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","operations":["prepare","arm-signal-before-inner-resume","step"],"expect":{"errorKind":"cancelled","firstErrorPreserved":true,"rowInvalid":true}},
+    {"id":"coroutine-deadline-inner","route":"coroutine","sql":"SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","operations":["prepare","inject-expired-deadline-before-inner-resume","step"],"expect":{"errorKind":"timeout","firstErrorPreserved":true,"rowInvalid":true}},
+    {"id":"coroutine-work-inner","route":"coroutine","sql":"SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","limits":{"maxWorkUnits":6},"operations":["prepare","step-until-error"],"expect":{"errorKind":"limit","counterOwner":"single execution","rowInvalid":true}},
+    {"id":"materialized-private-growth","route":"materialize","sql":"SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 3) s ORDER BY 1,2","limits":{"maxPrivateBytes":31},"operations":["prepare","step-until-error"],"expect":{"errorKind":"limit","phase":"step","privateOwnersReleased":true}},
+    {"id":"in-set-private-growth","route":"in-set","sql":"SELECT a FROM t1 WHERE a IN (SELECT y FROM t2)","limits":{"maxPrivateBytes":7},"operations":["prepare","step-until-error"],"expect":{"errorKind":"limit","phase":"step","privateOwnersReleased":true}},
+    {"id":"overlap-private-budget","route":"materialize+group+order+in-set","sql":"SELECT c,count(*) FROM (SELECT * FROM t1 WHERE a IN (SELECT x FROM t2)) GROUP BY c ORDER BY c","limits":{"maxPrivateBytes":63},"operations":["prepare","step-until-error"],"expect":{"errorKind":"limit","budgetInstances":1,"privateOwnersReleased":true}},
+    {"id":"reset-before-first-step","route":"coroutine","sql":"SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)","operations":["prepare","reset","step=row","step=row","step=done"],"expect":{"rows":[["integer:1"],["integer:3"]],"bindingsRetained":true}},
+    {"id":"reset-after-suspension","route":"coroutine","sql":"SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)","operations":["prepare","step=row","reset","step=row","step=row","step=done"],"expect":{"rowsAfterReset":[["integer:1"],["integer:3"]],"coroutineRestartPc":0,"privateOwnersReleasedBeforeRerun":true}},
+    {"id":"rebind-correlated","route":"correlated-scalar","sql":"SELECT a,(SELECT max(y) FROM t2 WHERE x=t1.a AND y>?1) FROM t1 WHERE a>?1 ORDER BY a","operations":["bind integer:1","run","reset","bind integer:4","run"],"expect":{"nativeCase":"reset-rebind-correlated","bindingsAppliedPerRun":true}},
+    {"id":"finalize-suspended","route":"coroutine","sql":"SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","operations":["prepare","step=row","finalize","finalize"],"expect":{"secondFinalize":"misuse-or-idempotent-public-contract","privateOwnersReleasedExactlyOnce":true,"rowInvalid":true,"connectionAdmissionRestored":true}},
+    {"id":"first-error-cleanup","route":"materialize","sql":"SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","operations":["prepare","inject-inner-limit","inject-cleanup-failure","step"],"expect":{"errorKind":"limit","cleanupErrorDoesNotReplaceFirst":true,"privateOwnersReleasedExactlyOnce":true}},
+    {"id":"deferred-close-suspended","route":"coroutine","sql":"SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)","operations":["prepare","step=row","closeDeferred","finalize"],"expect":{"closeCompletesAfterFinalize":true,"privateOwnersReleasedExactlyOnce":true,"rowInvalid":true}},
+    {"id":"error-restores-admission","route":"in-set","sql":"SELECT a FROM t1 WHERE a IN (SELECT y FROM t2)","limits":{"maxPrivateBytes":7},"operations":["prepare","step=limit-error","finalize","prepare SELECT 1","step=row"],"expect":{"laterRow":["integer:1"],"connectionAdmissionRestored":true}}
+  ],
+  "accounting":{"declared":15,"tsAttempted":0,"tsCredited":0}
+}
