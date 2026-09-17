@@ -160,6 +160,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT lag(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT median(json_group_array(x) OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function json_group_array()');
+ assert.throws(()=>resolve('SELECT median(x) OVER (ORDER BY rank() OVER ()) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function rank()');
+ assert.throws(()=>resolve('SELECT median(x) OVER (PARTITION BY row_number() OVER ()) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE median(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
