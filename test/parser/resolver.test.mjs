@@ -147,6 +147,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY z.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT likely() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function likely()');
  assert.throws(()=>resolve('SELECT likely(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function likely()');
+ assert.doesNotThrow(()=>resolve('SELECT likelihood(a.x,5e-1) FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT likelihood(a.x,((.5))) FROM a'));
+ assert.throws(()=>resolve('SELECT likelihood(a.x,5.) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
+ assert.throws(()=>resolve('SELECT likelihood(a.x,+0.5) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
  assert.throws(()=>resolve('SELECT likelihood(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
  assert.throws(()=>resolve('SELECT likelihood(a.x,-0.1) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
  assert.throws(()=>resolve('SELECT likelihood(a.x,1.1) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
