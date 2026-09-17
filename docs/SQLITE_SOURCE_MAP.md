@@ -937,6 +937,7 @@ owned by downstream implementation cards.
   `src/internal/vdbe.ts:compileInnerTableSelect`; state uses the shared
   `PrivateStateByteBudget` and reset/finalize cleanup.
 - `resolve.c:lookupName` FULL `pFJMatch` -> result lowering reads merged source
+- `resolve.c:lookupName` / linked `NameContext.pNext` maps to transient `NameContext` frames in `src/internal/resolve.ts`. Generated nested `Select` nodes are resolved structurally, ambiguity terminates at the first matching level, outer hits set per-select correlation, and one statement-wide monotonic cursor allocation prevents sibling/deep nested collisions. Focused resolver coverage includes lexical shadowing, two-level outward lookup, ambiguity/missing/width errors, and sibling cursor identity; public singular-Fetch coverage promotes those exact prepare errors across all three encodings.
   columns in source order with `NotNull`; qualified columns retain direct metadata.
 - `test/conformance/multisource-right-full.test.mjs` credits 7/13 immutable
   RIGHT/FULL-bearing cases plus reset/rebind and cancel/deadline/work/private-limit

@@ -5,8 +5,20 @@ import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
 const table=(name,columns,primaryKey=[])=>{columns=Object.freeze(columns);return Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns,indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze(primaryKey.map(i=>columns[i])),storageKey:Object.freeze([])})};
-const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])],['booleans',table('booleans',[column('true'),column('false')])],['quoted',table('quoted',[column('foo'),column('x')])],['ident',table('ident',[column('x"y'),column('x`y'),column('x y'),column('Ä'),column('É'),column('z')])]])};
+const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])],['t1',table('t1',[column('a','INTEGER','integer'),column('b','INTEGER','integer')])],['t2',table('t2',[column('x','INTEGER','integer'),column('y','INTEGER','integer')])],['booleans',table('booleans',[column('true'),column('false')])],['quoted',table('quoted',[column('foo'),column('x')])],['ident',table('ident',[column('x"y'),column('x`y'),column('x y'),column('Ä'),column('É'),column('z')])]])};
 const resolve=sql=>expandAndResolveSelect(parseSql(sql).statement,schema);
+test('linked NameContext preserves shadowing, ambiguity, correlation depth, and unique cursors',()=>{
+ const lexical=resolve('SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o');
+ assert.equal(lexical.correlated,false);assert.equal(lexical.nested.length,1);assert.equal(lexical.nested[0].correlated,true);assert.deepEqual(lexical.nested[0].sources.map(source=>source.cursorId),[1]);
+ const deep=resolve('SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o');
+ assert.equal(deep.nested[0].correlated,false);assert.equal(deep.nested[0].nested[0].correlated,true);assert.deepEqual(deep.nested[0].nested[0].sources.map(source=>source.cursorId),[1]);
+ const siblings=resolve('SELECT (SELECT x FROM t2),(SELECT y FROM t2) FROM t1');
+ assert.deepEqual(siblings.nested.flatMap(item=>item.sources.map(source=>source.cursorId)),[1,2]);
+ assert.throws(()=>resolve('SELECT (SELECT a) FROM t1 x JOIN t1 y'),error=>error instanceof NameResolutionError&&error.message==='ambiguous column name: a');
+ assert.throws(()=>resolve('SELECT (SELECT missing FROM t2) FROM t1'),error=>error instanceof NameResolutionError&&error.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT (SELECT x,y FROM t2)'),error=>error instanceof NameResolutionError&&error.message==='sub-select returns 2 columns - expected 1');
+});
+
 test('selectExpander preserves ordered duplicate names, wildcard visibility, and direct metadata',()=>{
  const r=resolve('SELECT *, b.*, a.x AS x, a.rowid FROM a JOIN b USING(x)');
  assert.deepEqual(r.result.map(x=>x.name),['x','same','y','same','x','y','same','x','rowid']);
