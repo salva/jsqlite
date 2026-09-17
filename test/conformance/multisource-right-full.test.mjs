@@ -37,3 +37,14 @@ test('RIGHT/FULL preserve encoding, diagnostics, and cancellation after match tr
   const s=db.prepare('SELECT a.k,c.k FROM a RIGHT JOIN c ON a.k=c.k').statement;assert.equal(await s.step(),'row');const controller=new AbortController();controller.abort();await assert.rejects(s.step({signal:controller.signal}),error=>error.kind==='cancelled');assert.throws(()=>s.finalize(),error=>error.kind==='cancelled');
  });
 });
+
+
+test('repeated RIGHT/FULL barriers are atomic until per-WhereLevel ownership lands',async()=>withDb('right-chain',async db=>{
+ const sqls=[
+  'SELECT * FROM a RIGHT JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k',
+  'SELECT * FROM a FULL JOIN b ON a.k=b.k FULL JOIN c ON b.k=c.k',
+  'SELECT * FROM a RIGHT JOIN b ON a.k=b.k FULL JOIN c ON b.k=c.k JOIN d ON c.k=d.k',
+  'SELECT * FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k WHERE a.k IS NULL',
+ ];
+ for(const sql of sqls)assert.throws(()=>db.prepare(sql),error=>error.kind==='unsupported'&&error.unsupportedClassification==='temporary'&&error.message==='multiple RIGHT/FULL JOIN barriers are not implemented',sql);
+}));

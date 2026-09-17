@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0-stage3-first-select",
   "type": "module",
-  "description": "Private Stage 3 source-translated foundation with bounded scalar and one-table prepared SELECT execution; broader SQL remains unsupported.",
+  "description": "Private Stage 3 source-translated foundation with bounded prepared SELECT execution, including documented multi-source joins; broader SQL remains unsupported.",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "generate:parser": "node tools/parser/generate.mjs",

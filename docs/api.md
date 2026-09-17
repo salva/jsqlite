@@ -344,3 +344,7 @@ USING/NATURAL wildcard forms fail prepare with `unsupportedClassification:
 ### RIGHT/FULL joins (2026-09-17 revision)
 
 `prepare()` supports the bounded ordinary-table RIGHT/FULL matrix documented in `docs/CONFORMANCE.md`, including downstream joins and USING/NATURAL wildcard metadata. Statements retain normal typed values, reset/rebind behavior, asynchronous cancellation/deadline/work limits, and shared private-state limits. Existing feature gates (including unsupported aggregate/subquery and unsupported storage shapes) remain explicit prepare errors.
+
+### Current RIGHT/FULL boundary correction (2026-09-17)
+
+Earlier statements that all RIGHT/FULL joins were unsupported, that non-terminal joins were unsupported, or that the 15-case promotion implied arbitrary chains are superseded. One RIGHT or FULL barrier is supported, including downstream ordinary joins. More than one RIGHT/FULL barrier in the same SELECT fails atomically during `prepare()` with temporary unsupported message `multiple RIGHT/FULL JOIN barriers are not implemented`; no rows can execute. This is the per-`WhereLevel` next tranche identified by `record:///review.md?card=card-k&v=3`.

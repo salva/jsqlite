@@ -948,3 +948,7 @@ owned by downstream implementation cards.
 - `src/internal/resolve.ts` → `select.c:sqlite3ProcessJoin`, `resolve.c:lookupName`: RIGHT/FULL USING/NATURAL merged owner and ambiguous-left USING diagnostic.
 - `src/internal/vdbe.ts` → `wherecode.c:sqlite3WhereRightJoinLoop`, `where.c:sqlite3WhereEnd`: RHS rowid match set, left NullRow, original RHS unmatched scan, and shared downstream continuation. Forward target finalization before copying is the TS opcode-array equivalent of native label resolution.
 - `test/conformance/multisource-right-full.test.mjs` → all 15 RIGHT/FULL-adjacent pinned stage-3 manifest cases plus encoding and lifecycle/resource probes.
+
+## Repeated RIGHT/FULL barrier boundary (2026-09-17, current)
+
+Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `WhereLevel`. `compileInnerTableSelect` currently has one match cursor/key/unmatched pass; therefore >1 barrier is atomically prepare-gated rather than partially translated. `multisource-right-full.test.mjs` covers repeated RIGHT, repeated FULL, mixed barriers, downstream join, and WHERE gate shapes. This corrects the scope of the earlier 15-case mapping.

@@ -329,3 +329,7 @@ existing compound sorter. This is streaming VDBE control, not a host evaluator o
 eager Cartesian row array. LEFT/RIGHT/FULL remain atomic prepare gates pending
 the unmatched-row protocol specified above. The native artifact remains 47/47
 captured; admitted public evidence is 8/8 pinned and 27/27 focused runtime cases.
+
+## Current implementation correction (2026-09-17)
+
+The prior statement that LEFT/RIGHT/FULL all remain gated is historical and superseded. LEFT and a single RIGHT/FULL barrier are implemented, including a downstream continuation. Repeated RIGHT/FULL barriers require one `WhereRightJoin`-like state owner per barrier; until that architecture lands they are atomically rejected at prepare. See immutable review `record:///review.md?card=card-k&v=3`.

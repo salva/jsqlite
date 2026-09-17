@@ -544,3 +544,7 @@ The immutable native denominator remains 47/47 captured.
 ## Current revision 2026-09-17 — RIGHT/FULL manifest denominator
 
 The prior 7/13 execution label is superseded. Current public tests promote all 13 successful RIGHT/FULL-bearing stage-3 cases and both adjacent pinned resolution-error cases (15/15 bounded denominator). The implementation now includes non-terminal shared continuation and RIGHT USING/NATURAL merged ownership. Evidence remains scoped: it does not close unrelated aggregate/subquery or storage-shape findings.
+
+## Current revision 2026-09-17 — repeated RIGHT/FULL barrier correction
+
+The prior 15/15 label is retained only as the single-barrier manifest denominator and is superseded as a claim about arbitrary chains. Immutable project review `record:///review.md?card=card-k&v=3` found that one matcher silently admitted later barriers. Production now atomically rejects >1 RIGHT/FULL barrier at prepare. Fidelity gap remains explicit: upstream owns per-`WhereLevel` `WhereRightJoin`; implementing that cardinality is the next tranche.

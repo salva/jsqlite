@@ -307,3 +307,7 @@ report the 47/47 native capture as TypeScript runtime credit.
 ### RIGHT/FULL manifest promotion (2026-09-17)
 
 Public typed execution now credits all 15 bounded RIGHT/FULL-adjacent stage-3 manifest cases: 13 successful result/metadata cases and two pinned prepare diagnostics. Coverage includes terminal and downstream barriers, both unmatched sides, USING/NATURAL and wildcard ownership, WHERE/ON placement, and FULL downstream composition. UTF-16le/be smoke probes supplement the UTF-8 captured matrix. This is not a claim for neighboring aggregate, subquery, generated-column, or WITHOUT ROWID SQL, which retains its documented gates.
+
+### Repeated-barrier correction (2026-09-17, current)
+
+The 15-case promotion above remains the complete pinned **single-barrier** denominator; it is not evidence for repeated RIGHT/FULL barriers. Repeated RIGHT, repeated FULL, and mixed RIGHT/FULL statements are now public prepare-time atomic failures. Focused tests cover representative downstream and WHERE shapes and prove no partially lowered execution is returned. Per-barrier execution remains an explicit next tranche.

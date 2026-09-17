@@ -394,7 +394,11 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
 
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program {
   if(expanded.sources.some((source,index)=>index>0&&source.joinFromLeft.error))throw new JSQLiteError("unsupported","invalid joins are not implemented",{unsupportedClassification:"temporary"});
-  const rightLevel=expanded.sources.findIndex((source,index)=>index>0&&source.joinFromLeft.right);
+  const rightLevels=expanded.sources.flatMap((source,index)=>index>0&&source.joinFromLeft.right?[index]:[]),rightLevel=rightLevels[0]??-1;
+  // Pinned wherecode.c owns a WhereRightJoin per barrier. Until this compiler
+  // carries that cardinality, reject repeated barriers atomically rather than
+  // silently lowering only the first one.
+  if(rightLevels.length>1)throw new JSQLiteError("unsupported","multiple RIGHT/FULL JOIN barriers are not implemented",{unsupportedClassification:"temporary"});
   for(const source of expanded.sources)if(source.table.withoutRowid||source.table.columns.some(column=>column.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});
   const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let registers=expanded.result.length;const allocate=()=>++registers;
   const resolveTree=(tree:Expression):Expression=>{const visit=(node:Expression):Expression=>{
