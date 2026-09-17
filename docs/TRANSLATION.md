@@ -2112,3 +2112,13 @@ GROUP expression with COLLATE is recognized structurally without erasing that
 wrapper or comparing reconstructed SQL. Tagged native rows and direct-column
 metadata match. Exact aggregate manifest accounting is now 12/32 credited and
 20 atomic temporary unsupported.
+
+### Grouped HAVING reset/rebind promotion ([[card:card-l-c]], 2026-09-17)
+
+The prepare-time exclusion for variables in grouped HAVING is removed now that
+HAVING uses ordinary generated `Variable` lowering after finalization. Public
+execution binds `?1=3`, exhausts the statement, resets, rebinds `?1=2`, and compares
+both complete tagged row sets with the pinned capture. Existing VDBE reset cleanup
+releases sorter and aggregate state before replay, so no separate grouping state or
+budget is retained. Exact aggregate accounting is 13/32 credited and 19 atomic
+temporary unsupported.

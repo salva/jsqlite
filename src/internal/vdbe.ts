@@ -709,7 +709,7 @@ function sameExpression(a:Expression,b:Expression):boolean {
 }
 function reductionHas(select:SelectNode,part:string):boolean {const visit=(node:LemonValue<SqlToken>):boolean=>node.kind==="reduction"&&(node.signature.toLowerCase().includes(part.toLowerCase())||node.children.some(visit));const roots=[...select.result,...select.groupBy,...select.orderBy.map(x=>x.expr),...(select.having?[select.having]:[])];return roots.some(x=>x.reduction!==undefined&&visit(x.reduction));}
 function simpleGroupShape(select:SelectNode):boolean {
- if(!select.hasGroupBy||(select.hasHaving&&select.having!.tokens.some(token=>token.kind==="variable"))||select.limit||select.offset||select.hasDistinct||select.hasCompound||select.hasSubquery||select.from.items.length!==1||reductionHas(select,"filter_clause")||reductionHas(select,"filter_clause ::= FILTER")||reductionHas(select,"over_clause ::= OVER")||reductionHas(select,"ORDER BY sortlist")||reductionHas(select,"distinct ::= DISTINCT"))return false;
+ if(!select.hasGroupBy||select.limit||select.offset||select.hasDistinct||select.hasCompound||select.hasSubquery||select.from.items.length!==1||reductionHas(select,"filter_clause")||reductionHas(select,"filter_clause ::= FILTER")||reductionHas(select,"over_clause ::= OVER")||reductionHas(select,"ORDER BY sortlist")||reductionHas(select,"distinct ::= DISTINCT"))return false;
  try {
   const groups=select.groupBy.map(x=>expressionFromReduction(x.reduction!));
   const results=select.result.map(x=>expressionFromReduction(x.reduction!));
