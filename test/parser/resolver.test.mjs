@@ -319,6 +319,11 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT DISTINCT FROM 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x == 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x = 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x <> 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'));
+ assert.doesNotThrow(()=>resolve("SELECT a.x NOT LIKE 'a' FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x LIKE 'a'"));
+ assert.doesNotThrow(()=>resolve("SELECT a.x NOT LIKE 'a' ESCAPE '!' FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x LIKE 'a' ESCAPE '!'"));
+ assert.doesNotThrow(()=>resolve("SELECT a.x NOT GLOB 'a' FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x GLOB 'a'"));
+ assert.doesNotThrow(()=>resolve('SELECT a.x NOT BETWEEN 1 AND 2 FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x BETWEEN 1 AND 2'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x NOT IN (1,2) FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x IN (1,2)'));
  assert.throws(()=>resolve("SELECT a.x LIKE 'a' FROM a UNION ALL SELECT a.x FROM a ORDER BY x GLOB 'a'"),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve("SELECT a.x LIKE 'a' FROM a UNION ALL SELECT a.x FROM a ORDER BY x LIKE 'a'"));
  assert.doesNotThrow(()=>resolve("SELECT a.x LIKE 'a' ESCAPE '!' FROM a UNION ALL SELECT a.x FROM a ORDER BY x LIKE 'a' ESCAPE '!'"));
