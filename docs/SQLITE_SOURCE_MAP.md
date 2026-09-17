@@ -847,7 +847,7 @@ leftmost affinity/name rules and multiSelectCollSeq's left-to-right choice.
   materialization substitute for `select.c:multiSelectByMerge`, its preserved
   observables, exact 22/22 compound gate, and broader exclusions are unchanged.
 
-## Multi-source SELECT / join architecture ([[card:card-k-a]])
+## Historical multi-source SELECT / join architecture handoff ([[card:card-k-a]]; implementation status revised below)
 
 The detailed consumer contract is
 [`architecture/multi-source-select.md`](architecture/multi-source-select.md), with
@@ -906,7 +906,7 @@ owned by downstream implementation cards.
   pinned/public matrix **8/8**; focused INNER runtime suite **27/27**. LEFT/RIGHT/FULL
   execution is not mapped as complete and remains a prepare-time gate.
 
-### LEFT JOIN / NullRow initial execution mapping ([[card:card-k-d]], 2026-09-17)
+### Historical LEFT JOIN / NullRow initial execution mapping ([[card:card-k-d]], 2026-09-17)
 
 - `src/where.c` `iLeftJoin`/`OP_IfPos` unmatched control ->
   `src/internal/vdbe.ts:compileInnerTableSelect` per-RHS match registers and one
@@ -919,7 +919,7 @@ owned by downstream implementation cards.
   unmatched, ON-placement, and WHERE-placement cases through the public API.
   This focused repair does not claim the complete 47-case outer-join gate.
 
-#### LEFT completed bounded evidence ([[card:card-k-d]])
+#### Historical LEFT completed bounded evidence ([[card:card-k-d]]; RIGHT/FULL status superseded below)
 
 - `src/where.c` `iLeftJoin`, `OP_IfPos`, `OP_NullRow` -> per-left-level match
   register and exactly-once unmatched branch in `compileInnerTableSelect`.
@@ -929,7 +929,7 @@ owned by downstream implementation cards.
   bounded all-encoding, value, composition, destination, restart, and failure-path
   checks. RIGHT/FULL mappings are intentionally not claimed.
 
-### RIGHT/FULL bounded execution mapping ([[card:card-k-e]], 2026-09-17)
+### Historical RIGHT/FULL bounded execution mapping ([[card:card-k-e]], 2026-09-17; scope corrected below)
 
 - `wherecode.c:sqlite3WhereRightJoinLoop`, `WhereRightJoin` -> terminal-barrier RHS
   rowid match tracking in `EphemeralIndexCursor`, original-RHS rescan, left cursor
@@ -943,7 +943,7 @@ owned by downstream implementation cards.
   companions. Non-terminal downstream continuations and multi-left merged
   USING/NATURAL wildcard values remain explicit atomic gates, not claimed mappings.
 
-## 2026-09-17 RIGHT/FULL completion revision
+## Historical 2026-09-17 RIGHT/FULL completion revision (scope corrected below)
 
 - `src/internal/resolve.ts` → `select.c:sqlite3ProcessJoin`, `resolve.c:lookupName`: RIGHT/FULL USING/NATURAL merged owner and ambiguous-left USING diagnostic.
 - `src/internal/vdbe.ts` → `wherecode.c:sqlite3WhereRightJoinLoop`, `where.c:sqlite3WhereEnd`: RHS rowid match set, left NullRow, original RHS unmatched scan, and shared downstream continuation. Forward target finalization before copying is the TS opcode-array equivalent of native label resolution.

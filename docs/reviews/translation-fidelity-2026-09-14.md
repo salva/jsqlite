@@ -530,7 +530,7 @@ lifecycle branches. The immutable capture remains **47/47 native captured**; thi
 is not 47/47 TypeScript credit because RIGHT and FULL remain temporary unsupported.
 The prior INNER denominators remain unchanged.
 
-### 2026-09-17 revision — bounded RIGHT/FULL execution ([[card:card-k-e]])
+### Historical 2026-09-17 revision — bounded RIGHT/FULL execution ([[card:card-k-e]]; superseded below)
 
 The prior blanket RIGHT/FULL rejection is superseded for terminal barriers. Current
 public execution records RHS rowids in budgeted typed ephemeral state, performs the
@@ -541,7 +541,7 @@ full completion label: six cases involving a downstream source after the barrier
 multi-left USING/NATURAL wildcard merged values remain atomic temporary unsupported.
 The immutable native denominator remains 47/47 captured.
 
-## Current revision 2026-09-17 — RIGHT/FULL manifest denominator
+## Historical 2026-09-17 RIGHT/FULL manifest denominator (scope corrected below)
 
 The prior 7/13 execution label is superseded. Current public tests promote all 13 successful RIGHT/FULL-bearing stage-3 cases and both adjacent pinned resolution-error cases (15/15 bounded denominator). The implementation now includes non-terminal shared continuation and RIGHT USING/NATURAL merged ownership. Evidence remains scoped: it does not close unrelated aggregate/subquery or storage-shape findings.
 

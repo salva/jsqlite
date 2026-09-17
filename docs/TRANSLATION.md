@@ -1788,7 +1788,7 @@ LIMIT/OFFSET, suspension, cancellation and finite aggregate bounds remain covere
 through public source-based tests. Disk spill remains intentionally omitted; wider
 table expressions, joins, per-arm WHERE, and other documented forms remain gated.
 
-### Multi-source SELECT tests-first architecture ([[card:card-k-a]])
+### Historical multi-source SELECT tests-first architecture ([[card:card-k-a]]; implementation state superseded below)
 
 The runtime handoff is [`architecture/multi-source-select.md`](architecture/multi-source-select.md).
 It translates the pinned `SrcList`/`NameContext`/expansion/resolution and
@@ -1892,7 +1892,7 @@ focused parser/resolver and public test files are `test/parser/resolver.test.mjs
 and `test/conformance/source-resolution.test.mjs`.
 
 
-### Comma/CROSS/INNER runtime revision ([[card:card-k-c]], 2026-09-17)
+### Historical Comma/CROSS/INNER runtime revision ([[card:card-k-c]], 2026-09-17; outer-join status superseded below)
 
 Ordinary rowid-table comma, CROSS, and INNER sources now lower to cursor-indexed
 `OpenRead`/`Rewind`/`Column`/`Rowid`/`Next` opcodes and source-order nested loops.
@@ -1923,7 +1923,7 @@ introduced. Focused pinned/public evidence covers matched, unmatched, duplicate,
 ON placement and post-join WHERE placement; broader LEFT composition and lifecycle
 coverage remains to be completed before changing the 47-case denominator.
 
-#### LEFT bounded tranche completion ([[card:card-k-d]])
+#### Historical LEFT bounded tranche completion ([[card:card-k-d]]; RIGHT/FULL status superseded below)
 
 The public LEFT gate now covers the four LEFT-bearing cases in the immutable
 47-case capture plus source-based companions for duplicate matches, false/NULL ON,
@@ -1935,7 +1935,7 @@ transitions. This preserves the complete native **47/47 captured** denominator b
 credits only LEFT execution; RIGHT/FULL remain gated. `where.c` `iLeftJoin` and
 `OP_NullRow` control and `vdbe.c` cursor NULL state remain the translated owners.
 
-### RIGHT/FULL bounded runtime revision ([[card:card-k-e]], 2026-09-17)
+### Historical RIGHT/FULL bounded runtime revision ([[card:card-k-e]], 2026-09-17; denominator superseded below)
 
 Terminal RIGHT barriers now translate the pinned `WhereRightJoin` protocol without
 source reversal. Successful ON/USING matches insert the original RHS rowid into an
@@ -1958,7 +1958,7 @@ because the current expanded result's merged identity does not yet supply the
 `sqlite3ProcessJoin` effective multi-left value during unmatched output. Those six
 immutable cases are the exact next tranche; no full-card compatibility claim is made.
 
-### 2026-09-17 RIGHT/FULL completion revision
+### Historical 2026-09-17 RIGHT/FULL completion revision (scope corrected below)
 
 The architecture-manifest denominator for this stage is the 15 RIGHT/FULL-adjacent cases in `stage3-multisource-select.json` (13 successful RIGHT/FULL executions and two join-resolution errors). All are now promoted through the public typed API. `resolve.ts` follows `select.c:sqlite3ProcessJoin` ownership for RIGHT USING/NATURAL names: an unqualified/star merged name takes the right-side owner, including qualified-star substitutions, while FULL emits the merged coalesce expression. Ambiguous multi-left USING is rejected during join processing. `vdbe.ts` follows `wherecode.c:sqlite3WhereRightJoinLoop`: one budgeted ephemeral rowid matcher, original-RHS rescan, left-of-barrier NullRow, and a relocated shared continuation for downstream joins. Resolving forward exits before relocation is a TypeScript array-construction adaptation only; it preserves the upstream VDBE target graph and prevents address-zero restart. Tests cover the manifest matrix, UTF-8/16le/16be, reset/rebind, cancellation after match output, deadline/work/private failures, and cleanup. Neighboring unsupported SQL remains governed by existing aggregate/subquery/generated/without-rowid gates; this revision does not broaden those features.
 

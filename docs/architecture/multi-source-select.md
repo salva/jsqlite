@@ -200,7 +200,7 @@ barriers, matched-key ownership, nulling, interior continuation, downstream join
 and exhaustive cleanup pass. This is a direct translation, not an exceptional
 algorithm substitution, and product scope is unchanged.
 
-## Existing lowering and compound integration
+## Historical design handoff: existing lowering and compound integration
 
 A resolved single SELECT is a producer with the same output-register/descriptor
 contract already consumed by ResultRow, sorter, DISTINCT ephemeral index, and
@@ -317,7 +317,7 @@ TS attempts/credit. The committed status record identifies the exact commit and
 actual command outcomes; these establish reproducibility and cleanliness, not
 runtime semantic support.
 
-## Implemented INNER tranche (2026-09-17)
+## Historical implemented INNER tranche (2026-09-17; outer-join status superseded below)
 
 The first runtime tranche now implements comma, CROSS, and INNER joins over
 ordinary rowid tables as source-order cursor loops. Resolver-assigned cursor IDs
