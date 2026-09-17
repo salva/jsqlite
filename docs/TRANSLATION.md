@@ -2405,9 +2405,11 @@ aggregate case), an adaptation classification/rationale, and a pinned
 implementing-source hash plus branch markers. The validator recomputes all hashes;
 label existence alone no longer passes.
 
-### Revision delivery evidence
+### Historical revision delivery evidence (superseded)
 
-Delivery commit: `9d40efa037d2c803869ecf0585fa8f26e9fb7f6a` (on top of initial
+The following records the first review revision; its companion hash and validation
+are historical and are superseded by **Latest closed-contract delivery evidence**
+below. First-review delivery commit: `9d40efa037d2c803869ecf0585fa8f26e9fb7f6a` (on top of initial
 `841a322b3a55777749fca0ee686419823e3eff94`). Artifact SHA-256 values:
 `stage3-subquery-view.spec.json` `62d009775694a149acdccc0528265a4766a745ddbf53f731f9c01ab0ad855492`;
 native JSON `c98ee1aa64d4a7f16265747ef292f8b714944899318ef86aa33f877ced992d43`;
@@ -2437,3 +2439,28 @@ The first command through `test:parser` passed in the first sequence; fixture
 validation then exposed the stale count. After correction, `test:fixtures`
 through `git diff --check` passed, and post-commit `git status --porcelain` was
 empty. These are architecture/oracle reproducibility checks, not runtime support.
+
+### Latest closed-contract delivery evidence
+
+The current normative companion artifact is the version delivered by commit
+`689c6f27a3044e429420c3bdfb2da05d94a6019a`; its SHA-256 is
+`dab7d59e9393d3cb345d79663b7cee34a2d47f13339a93e7033995fa2d02c257`.
+This supersedes the historical companion checksum above. The latest focused
+validation ran the following exact sequence with `set -e`; all commands passed:
+
+```sh
+python3 -m py_compile test/conformance/subquery-view-manifest.test.py
+npm run typecheck
+npm run test:parser
+npm run test:conformance:subquery-view:manifest
+git diff --check
+! grep -Eq '39/39|all 39|39 cases are native' docs/TRANSLATION.md docs/SQLITE_SOURCE_MAP.md
+sha256sum test/conformance/cases/stage3-subquery-view-companions.spec.json
+```
+
+The validator result was 46 native captures, 15 literal prepare-valid closed
+companions, and 0 TypeScript credit; typecheck and all 27 parser tests passed.
+A separate attempt to feed these future cases through the current TypeScript
+parser failed at its intentional `subqueries in FROM are not implemented` gate.
+That failure is current unsupported behavior, not a waived validation and not
+Fetch-backed evidence. No public TypeScript case was attempted or credited.
