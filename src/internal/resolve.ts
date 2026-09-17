@@ -55,7 +55,7 @@ function firstAggregateName(expression:ExprNode):string|null{
 function firstWindowName(expression:ExprNode):string|null{
  const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
   if(node.kind!=='reduction')return null;
-  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')&&node.children.some(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::= over_clause'))){const token=node.children.find(child=>child.kind==='terminal'&&child.value);return token?.kind==='terminal'&&token.value?identifier(token.value.text):null;}
+  if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')&&node.children.some(child=>child.kind==='reduction'&&child.signature.startsWith('filter_over ::=')&&child.children.some(part=>part.kind==='reduction'&&part.signature.startsWith('over_clause ::=')))){const token=node.children.find(child=>child.kind==='terminal'&&child.value);return token?.kind==='terminal'&&token.value?identifier(token.value.text):null;}
   for(const child of node.children){const found=visit(child);if(found)return found;}return null;
  };
  return expression.reduction?visit(expression.reduction):null;

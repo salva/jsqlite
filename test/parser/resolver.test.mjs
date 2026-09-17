@@ -56,6 +56,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT sqlite_offset(x) FROM a'));
  assert.throws(()=>resolve('SELECT sqlite_offset() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_offset()');
  assert.throws(()=>resolve('SELECT json_group_array(x) FILTER (WHERE x) OVER () FROM a WHERE json_group_array(x) FILTER (WHERE x) OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function json_group_array()');
+ assert.throws(()=>resolve('SELECT json_group_array(x) FILTER (WHERE x) OVER () AS j FROM a GROUP BY j'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function j');
  assert.throws(()=>resolve('SELECT percentile(x,50) OVER () AS p FROM a GROUP BY +p'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: percentile()');
  assert.throws(()=>resolve('SELECT percentile(x,50) OVER () AS p FROM a GROUP BY +p COLLATE binary'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function p');
  assert.throws(()=>resolve('SELECT percentile(x,50) OVER () AS p FROM a GROUP BY (p) COLLATE binary'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function p');
