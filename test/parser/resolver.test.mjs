@@ -42,6 +42,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT subtype(x), round(x), round(x,x), concat(), concat(x,x), concat_ws(x), concat_ws(x,x), ifnull(x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT round() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function round()');
+ assert.throws(()=>resolve('SELECT concat_ws() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function concat_ws()');
+ assert.throws(()=>resolve('SELECT ifnull(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function ifnull()');
  assert.doesNotThrow(()=>resolve('SELECT ltrim(x), ltrim(x,x), rtrim(x), trim(x,x), instr(x,x), printf(x), format(x,x), unhex(x), unhex(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT trim() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function trim()');
  assert.throws(()=>resolve('SELECT instr(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function instr()');
