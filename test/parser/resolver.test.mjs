@@ -269,6 +269,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.equal(booleanColumns.result[0].source.table.name,'booleans');
  assert.equal(booleanColumns.result[1].source.table.name,'booleans');
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x NOTNULL'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x NOT NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x NOTNULL'));
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x ISNULL'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+01'));
  assert.throws(()=>resolve('SELECT a.x+1.0 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1.00'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
@@ -300,6 +301,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY a.x COLLATE nocase'));
  assert.doesNotThrow(()=>resolve('SELECT a.x AS y FROM a UNION ALL SELECT a.x FROM a ORDER BY y COLLATE nocase'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY (a.x+1)'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x NOT NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x NOTNULL'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x IS NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x ISNULL'));
+ assert.doesNotThrow(()=>resolve('SELECT ~a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY ~x'));
+ assert.doesNotThrow(()=>resolve('SELECT NOT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT x'));
  assert.doesNotThrow(()=>resolve('SELECT (a.x)+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT CAST(a.x AS TEXT) FROM a UNION ALL SELECT a.x FROM a ORDER BY CAST(x AS TEXT)'));
  assert.doesNotThrow(()=>resolve('SELECT CASE WHEN a.x THEN a.x+1 ELSE 0 END FROM a UNION ALL SELECT a.x FROM a ORDER BY CASE WHEN x THEN x+1 ELSE 0 END'));
