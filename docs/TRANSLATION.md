@@ -2464,3 +2464,34 @@ A separate attempt to feed these future cases through the current TypeScript
 parser failed at its intentional `subqueries in FROM are not implemented` gate.
 That failure is current unsupported behavior, not a waived validation and not
 Fetch-backed evidence. No public TypeScript case was attempted or credited.
+
+### Pinned companion-prepare integration revision
+
+System review `record:///review.md?card=card-m-a&v=15` supersedes the prior
+host-Python prepare-validation wording. The authoritative companion validator no
+longer imports Python's environment-linked `sqlite3`. It requires `--library`,
+loads that shared library via `ctypes`, and rejects it unless
+`sqlite3_libversion()` and `sqlite3_sourceid()` exactly equal manifest-pinned
+3.53.4 / `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+It opens the immutable fixture read-only and prepares `EXPLAIN <case SQL>` for all
+15 companions through that verified library, finalizing each statement and
+closing the database. There is no authoritative host SQLite fallback or smoke
+check.
+
+The one clean-environment package entrypoint is:
+
+```sh
+npm run test:conformance:subquery-view:manifest
+```
+
+It expands to:
+
+```sh
+python3 test/conformance/subquery-view-manifest.test.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"
+```
+
+The command passed and printed the exact pinned version/source ID, 46 frozen
+native captures, 15 literal SQL cases prepared by the pinned library, and 0
+TypeScript credit. This native prepare check remains architecture/oracle evidence;
+the TypeScript runtime remains unsupported and Fetch-backed accounting remains
+0 attempted / 0 credited.

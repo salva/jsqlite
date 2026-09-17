@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate the frozen native-only subquery/view architecture gate."""
-import json,pathlib,re,hashlib
+import argparse,ctypes as C,json,pathlib,re,hashlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]; sha=lambda b:hashlib.sha256(b).hexdigest()
+args=argparse.ArgumentParser(); args.add_argument('--library',required=True,help='pinned SQLite oracle shared library'); cli=args.parse_args()
 spec=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view.spec.json')); out=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view.json')); comp=json.load(open(ROOT/'test/conformance/cases/stage3-subquery-view-companions.spec.json')); manifest=json.load(open(ROOT/'reference/sqlite/manifest.json'))
 assert spec['source']['version']==manifest['version']=='3.53.4' and spec['source']['sourceId']==manifest['sqliteSourceId']
 assert out['source']==spec['source'] and out['disposition']==spec['disposition']; n=len(spec['cases']); assert n==len(out['cases'])==46 and len({c['id'] for c in spec['cases']})==n
@@ -56,12 +57,23 @@ for c in comp['cases']:
  assert '...' not in encoded and '-or-' not in encoded
  assert sha(encoded.encode())==companion_hashes[c['id']],c['id']
 assert next(c for c in comp['cases'] if c['id']=='finalize-suspended')['expect']['secondFinalize']=='misuse'
-# All declared SQL is literal and accepted for prepare by SQLite. This is a
-# syntax/schema check only: unsupported TS runtime routes must remain 0/0.
-import sqlite3
+# All declared SQL is literal and accepted for prepare by the pinned oracle.
+# This is a syntax/schema check only: unsupported TS routes remain 0/0.
 fixture=ROOT/'test/fixtures/generations'/current['generationId']/fixtures['subquery-utf8']['path']
-con=sqlite3.connect(fixture)
-for c in comp['cases']:
- sql=c['sql']; con.execute('EXPLAIN '+sql, {'1':None} if '?1' in sql else ()).fetchall()
-con.close()
-print('closed companion schema: literal prepare-valid SQL and exact operations/expectations valid')
+lib=C.CDLL(cli.library); P=C.c_void_p
+lib.sqlite3_libversion.restype=lib.sqlite3_sourceid.restype=C.c_char_p
+lib.sqlite3_open_v2.argtypes=[C.c_char_p,C.POINTER(P),C.c_int,C.c_char_p]
+lib.sqlite3_prepare_v2.argtypes=[P,C.c_char_p,C.c_int,C.POINTER(P),C.POINTER(C.c_char_p)]
+lib.sqlite3_errmsg.restype=C.c_char_p
+identity=(lib.sqlite3_libversion().decode(),lib.sqlite3_sourceid().decode())
+assert identity==(manifest['version'],manifest['sqliteSourceId']),identity
+db=P(); assert lib.sqlite3_open_v2(str(fixture).encode(),C.byref(db),1,None)==0
+try:
+ for c in comp['cases']:
+  stmt=P(); tail=C.c_char_p(); raw=('EXPLAIN '+c['sql']).encode()
+  rc=lib.sqlite3_prepare_v2(db,raw,len(raw),C.byref(stmt),C.byref(tail))
+  try: assert rc==0,(c['id'],rc,lib.sqlite3_errmsg(db).decode())
+  finally:
+   if stmt: assert lib.sqlite3_finalize(stmt)==0
+finally: assert lib.sqlite3_close(db)==0
+print(f'closed companion schema: pinned {identity[0]} ({identity[1]}) prepared 15 literal SQL cases; exact operations/expectations valid')
