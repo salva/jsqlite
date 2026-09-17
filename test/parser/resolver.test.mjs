@@ -42,6 +42,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT sqlite_source_id(), sqlite_log(x,x), unistr(x), unistr_quote(x), substring(x,x), substring(x,x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
+ assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
+ assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
  assert.doesNotThrow(()=>resolve('SELECT subtype(x), round(x), round(x,x), concat(), concat(x,x), concat_ws(x), concat_ws(x,x), ifnull(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT round() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function round()');
  assert.throws(()=>resolve('SELECT concat_ws() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function concat_ws()');
