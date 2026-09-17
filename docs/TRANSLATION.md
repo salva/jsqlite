@@ -1865,6 +1865,16 @@ resolve from their generated reductions, and outer-join owners reject references
 to later sources per `sqlite3SelectCheckOnClauses`. Single-source public lowering consumes this graph and lowers implicit
 rowid through a btree-cursor `Rowid` opcode.
 
+The bounded compound-ORDER expression matcher follows pinned
+`resolveCompoundOrderBy`/`sqlite3ExprCompare` structure rather than reconstructed
+SQL. Resolved identifier leaves compare with SQLite identifier rules across
+unquoted, double-quoted, bracketed, and backtick forms (including TRUE/FALSE when
+they resolved as real columns); literal TRUE/FALSE tokens, BLOB spellings, named
+and numbered variable spellings, and CAST type spans retain their separately
+pinned token distinctions. Integer leaves compare by value only through signed
+int64, including numeric underscores; overflow spellings remain distinct. Focused
+oracle/regression coverage lives in `test/parser/resolver.test.mjs`.
+
 This is not a join support claim. Multi-source public lowering remains an atomic
 temporary prepare rejection; HAVING/GROUP evaluation and outer linked contexts,
 complete FULL expression lowering, user-defined-function lookup, and streaming

@@ -332,6 +332,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x+01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+0x10 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
  assert.doesNotThrow(()=>resolve('SELECT ABS(a.x) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x)'));
+ assert.doesNotThrow(()=>resolve('SELECT b."true" FROM booleans b UNION ALL SELECT b.false FROM booleans b ORDER BY true'));
+ assert.doesNotThrow(()=>resolve('SELECT b.[TRUE] FROM booleans b UNION ALL SELECT b.false FROM booleans b ORDER BY `true`'));
  assert.doesNotThrow(()=>resolve('SELECT a."x"+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY [x]+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.[x]+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY `x`+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.X+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
