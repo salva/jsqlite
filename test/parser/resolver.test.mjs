@@ -140,6 +140,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY sum(a.x)'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FROM a ORDER BY sum(a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY a.x ORDER BY sum(a.x)'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x!=1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x<>1'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x==1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x=1'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x IS NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x ISNULL'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+01'));
  assert.throws(()=>resolve('SELECT a.x+1.0 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1.00'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1'));
@@ -147,6 +150,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY z.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT likely() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function likely()');
  assert.throws(()=>resolve('SELECT likely(a.x,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function likely()');
+ assert.doesNotThrow(()=>resolve('SELECT likelihood(a.x,1e-999) FROM a'));
+ assert.throws(()=>resolve('SELECT likelihood(a.x,1e999) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
  assert.doesNotThrow(()=>resolve('SELECT likelihood(a.x,5e-1) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT likelihood(a.x,((.5))) FROM a'));
  assert.throws(()=>resolve('SELECT likelihood(a.x,5.) FROM a'),e=>e instanceof NameResolutionError&&e.message==='second argument to likelihood() must be a constant between 0.0 and 1.0');
