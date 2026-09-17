@@ -142,6 +142,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY a.x ORDER BY sum(a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT a.x!=1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x<>1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x==1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x=1'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x NOTNULL'));
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x ISNULL'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+01'));
  assert.throws(()=>resolve('SELECT a.x+1.0 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1.00'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
