@@ -42,6 +42,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x AS chosen FROM a JOIN b WHERE chosen>0'));
  assert.throws(()=>resolve('SELECT abs(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT count(missing,a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.doesNotThrow(()=>resolve('SELECT quote(x), zeroblob(x), randomblob(x), random(), sqlite_version(), changes(), total_changes(), last_insert_rowid() FROM a'));
+ assert.throws(()=>resolve('SELECT random(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function random()');
+ assert.throws(()=>resolve('SELECT quote() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function quote()');
  assert.doesNotThrow(()=>resolve('SELECT lower(x), upper(x) FROM a'));
  assert.throws(()=>resolve('SELECT lower() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function lower()');
  assert.throws(()=>resolve('SELECT upper(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function upper()');
