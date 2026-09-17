@@ -140,6 +140,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY sum(a.x)'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FROM a ORDER BY sum(a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY a.x ORDER BY sum(a.x)'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+01'));
+ assert.throws(()=>resolve('SELECT a.x+1.0 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1.00'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY main.a.x+1'));
  assert.throws(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY z.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
