@@ -119,12 +119,12 @@ export class EphemeralIndexCursor {
   }
   clear():void{this.#live();this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[];this.#at=-1}
   async insert(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();const bytes=logicalBytes(key);
-   if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral key exceeds byte limit");
-   if(this.#shared.entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("ephemeral index exceeds entry limit");
-   this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit");
-   try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.release(bytes);throw error}
-   let entry:Entry;try{entry={key:copyCells(key),payload:[],sequence:this.#shared.entries.length,bytes}}catch(error){this.#budget.release(bytes);throw error}
+   this.#live();const owned=copyCells(key),bytes=logicalBytes(owned);
+   if(bytes>this.limits.maxKeyBytes){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral key exceeds byte limit")}
+   if(this.#shared.entries.length>=this.limits.maxEntries){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral index exceeds entry limit")}
+   try{this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit")}catch(error){owned.forEach(value=>value.release());throw error}
+   try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){owned.forEach(value=>value.release());this.#budget.release(bytes);throw error}
+   const entry:Entry={key:owned,payload:[],sequence:this.#shared.entries.length,bytes};
    this.#shared.entries.push(entry);
    try { await control.checkpoint(0); }
    catch(error){this.#shared.entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}

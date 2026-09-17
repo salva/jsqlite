@@ -3017,7 +3017,7 @@
   "accounting": {
     "declared": 39,
     "nativeCaptured": 39,
-    "tsAttempted": 0,
-    "tsCredited": 0
+    "tsAttempted": 34,
+    "tsCredited": 34
   }
 }

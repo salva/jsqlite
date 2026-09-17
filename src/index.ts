@@ -133,9 +133,15 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
     if (this.#state !== "open") failure("misuse", "connection is closed");
     try {
       const operationWork = finiteLimit(options?.maxWorkUnits, "maxWorkUnits", this.#limits.maxWorkUnits);
+      // Connection maxWorkUnits is the statement execution budget. Keep parse
+      // admission independently bounded when that execution budget is tiny;
+      // an explicit prepare-operation budget still controls parser work.
+      const parserWork = options?.maxWorkUnits === undefined
+        ? Math.max(1_024, this.#limits.maxWorkUnits)
+        : Math.min(operationWork, this.#limits.maxWorkUnits);
       const parsed = parseSql(sql, {
         ...this.#limits,
-        maxWorkUnits: Math.min(operationWork, this.#limits.maxWorkUnits),
+        maxWorkUnits: parserWork,
       });
       if (parsed.statement === null) {
         return { statement: null, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };

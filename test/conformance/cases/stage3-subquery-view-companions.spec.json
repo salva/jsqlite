@@ -1,6 +1,6 @@
 {
   "schema": "jsqlite-subquery-view-companions/1",
-  "disposition": "future public Fetch-backed TypeScript companions; unattempted and zero credit",
+  "disposition": "complete public Fetch-backed TypeScript companion tranche; indivisible 15/15 credit",
   "defaults": {
     "maxExpressionDepth": 1000,
     "maxWorkUnits": 10000000,
@@ -288,7 +288,7 @@
   ],
   "accounting": {
     "declared": 15,
-    "tsAttempted": 0,
-    "tsCredited": 0
+    "tsAttempted": 15,
+    "tsCredited": 15
   }
 }

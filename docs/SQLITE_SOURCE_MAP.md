@@ -1075,3 +1075,9 @@ aggregate-over-derived forms reject before execution.
 The admitted expression SELECT shapes share the parent program's registers, work
 and private-state budgets. Unsafe width, compound, grouping and unsupported local
 aggregate forms retain atomic prepare-time gates rather than partial execution.
+
+## Expression-subquery completion and compound ORDER identity (2026-09-17)
+
+- `src/internal/vdbe.ts` maps scalar/EXISTS/IN destination-aware lowering and ordered bounded compound production to `src/select.c` (`sqlite3Select`, `multiSelect`, `multiSelectOrderBy`, `computeLimitRegisters`) while retaining one parent VDBE's work/private-state owner.
+- Compound ORDER term ownership maps to `src/resolve.c` `resolveCompoundOrderBy` / `sqlite3ResolveOrderGroupBy`: ordinal, resolved result alias, then generated expression-structure comparison. The translation no longer compares joined token text. Explicit COLLATE is ignored for expression identity and retained for sorter KeyInfo; resolved column identity tolerates equivalent qualification/spelling while preserving column index when known.
+- `test/conformance/subquery-view-foundation.test.mjs` covers all encodings, bounded scalar subqueries in both compound arms, equivalent parenthesized spelling plus COLLATE, quoted/case-varied alias ownership, and destination-aware lowering. Companion accounting is indivisible 15/15. CTE/recursive/window/unsafe atomic gates remain covered.

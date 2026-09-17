@@ -2526,3 +2526,7 @@ Accounting: `stage3-subquery-view.json` is 46 native captures, 19 attempted and
 19 credited allocated cases. `subquery-view-foundation.test.mjs` is 57/57;
 `from-subquery-routes.test.mjs` is 20/20; aggregate public accounting is now
 34/34 native-success cases (with five pinned prepare-error comparisons separate).
+
+### Expression-subquery and compound ORDER completion (2026-09-17)
+
+The accepted scalar/EXISTS/IN/correlated tranche now has direct public Fetch coverage in UTF-8, UTF-16le, and UTF-16be, plus the indivisible 15/15 lifecycle/resource companion tranche. Ordered bounded compound arms retain destination-aware subquery lowering into the parent VDBE, sharing work and private-state ownership. Compound ORDER binding follows `resolveCompoundOrderBy`: ordinal and resolved alias ownership first, then generated expression-tree identity with COLLATE decoration ignored for identity but retained in KeyInfo. Token spelling and expanded SQL text are deliberately not expression identity; parentheses, whitespace, identifier case/quoting, qualification, and COLLATE spelling must not alter ownership. Focused structural/alias/collation discriminators accompany the bounded scalar-subquery compound test. CTE, recursive CTE, window, and unsafe unmatched shapes remain atomic prepare-time gates.

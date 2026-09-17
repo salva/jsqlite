@@ -25,9 +25,9 @@ for c in spec['cases']:
    nxt=re.search(r'(?m)^\s*do_(?:execsql_|catchsql_)?test\s+',s[m.end():]); end=m.end()+nxt.start() if nxt else len(s); assert sha(s[m.start():end].rstrip().encode())==e['sha256'] and e['startLine']==s.count('\n',0,m.start())+1
 assert {c['atomicGate'] for c in spec['cases'] if c.get('atomicGate')}=={'cte','recursive-cte','window'}
 assert len([c for c in spec['cases'] if c['id'].startswith('aggregate30-')])==4
-assert comp['accounting']=={'declared':15,'tsAttempted':0,'tsCredited':0} and len(comp['cases'])==15 and len({c['id'] for c in comp['cases']})==15 and 'zero credit' in comp['disposition']
+assert comp['accounting']=={'declared':15,'tsAttempted':15,'tsCredited':15} and len(comp['cases'])==15 and len({c['id'] for c in comp['cases']})==15 and 'indivisible 15/15 credit' in comp['disposition']
 required={'nesting-prepare-atomic','coroutine-suspend-resume','coroutine-cancel-inner','coroutine-deadline-inner','coroutine-work-inner','materialized-private-growth','in-set-private-growth','overlap-private-budget','reset-before-first-step','reset-after-suspension','rebind-correlated','finalize-suspended','first-error-cleanup','deferred-close-suspended','error-restores-admission'}; assert {c['id'] for c in comp['cases']}==required
-print(f'subquery/view manifest: {n} native captures, 19 allocated TypeScript credits, 15 frozen companion specifications; hashed provenance valid')
+print(f'subquery/view manifest: {n} native captures, 19 allocated native-tranche TypeScript credits, 15/15 companion TypeScript credits; hashed provenance valid')
 
 # Closed companion schema: exact case objects are hashed so operations,
 # expectations, limits and route-specific observations cannot degrade to prose.

@@ -131,7 +131,15 @@ function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNod
  // parse.y accepts this only through error recovery. ORDER/LIMIT tokens before a
  // later compound arm are never owned by the rightmost oneselect and must not be
  // silently dropped into a partial-arm program.
- if(arms.length>1){const rightmost=arms.at(-1)!.result[0]!.tokens[0]!.startByte;const misplaced=all.find(t=>t.startByte<rightmost&&(t.text.toUpperCase()==="ORDER"||t.text.toUpperCase()==="LIMIT"));if(misplaced)throw new SqlParseError(`${misplaced.text.toUpperCase()} BY clause should come after ${arms.at(-1)!.operatorFromPrior!.toUpperCase().replace("-"," ")} not before`);}
+ if(arms.length>1){
+  const rightmost=arms.at(-1)!.result[0]!.tokens[0]!.startByte;
+  // An ORDER/LIMIT owned by a parenthesized expression subquery in an earlier
+  // result is not an arm-local compound clause. parse.y keeps that Select on
+  // the expression node; only otherwise-unowned tokens trigger recovery.
+  const expressionTokenStarts=new Set(arms.flatMap(arm=>arm.result.flatMap(result=>result.tokens.map(token=>token.startByte))));
+  const misplaced=all.find(t=>t.startByte<rightmost&&!expressionTokenStarts.has(t.startByte)&&(t.text.toUpperCase()==="ORDER"||t.text.toUpperCase()==="LIMIT"));
+  if(misplaced)throw new SqlParseError(`${misplaced.text.toUpperCase()} BY clause should come after ${arms.at(-1)!.operatorFromPrior!.toUpperCase().replace("-"," ")} not before`);
+ }
  const from=direct(one,"from ::="),fromList=from?find(from,s=>s.startsWith("seltablist ::=")):undefined,where=direct(one,"where_opt ::=");
  const result=selectListItems(one).map(item=>{if(item.kind!=="reduction")throw new SqlParseError("generated result expression is missing");const expr=item.signature.endsWith("expr scanpt as")?item.children[2]:undefined;const tokens=expr?leaves(expr):item.children.slice(2).flatMap(leaves);if(!tokens.length)throw new SqlParseError("generated result expression is missing");const asNode=expr?item.children[4]:undefined,asTokens=leaves(asNode);const alias=asTokens.length?sqlIdentifier(asTokens.at(-1)):undefined;return{kind:"tokens",tokens,...(expr?{reduction:expr}:{}),...(alias===undefined?{}:{alias})} as ExprNode;}).sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0));
  const present=(prefix:string,empty:string)=>{const node=direct(one,prefix);return node?.kind==="reduction"&&node.signature!==empty;};

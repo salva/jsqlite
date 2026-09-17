@@ -162,7 +162,7 @@ test('CTE, recursive, window and unsafe unmatched derived shapes reject atomical
   'WITH q AS (SELECT a FROM t1) SELECT * FROM q',
   'WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT * FROM q',
   'SELECT row_number() OVER () FROM t1',
-  'SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)',
+  'SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1',
  ]){
   assert.throws(()=>db.prepare(sql),error=>error.kind==='sqlite'||error.kind==='unsupported',sql);
   await scalarAdmission(db);
