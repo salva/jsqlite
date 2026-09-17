@@ -164,6 +164,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT nosuch(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: nosuch');
  assert.throws(()=>resolve('SELECT abs(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
  assert.throws(()=>resolve('SELECT median(x) OVER w FROM a WINDOW w AS (PARTITION BY row_number() OVER ())'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
+ assert.throws(()=>resolve('SELECT abs(x) FILTER (WHERE row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
+ assert.throws(()=>resolve('SELECT lag(x) FILTER (WHERE row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
+ assert.throws(()=>resolve('SELECT median(row_number() OVER ()) FILTER (WHERE x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(x) OVER (ORDER BY rank() OVER ()) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function rank()');
  assert.throws(()=>resolve('SELECT median(x) OVER (PARTITION BY row_number() OVER ()) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
