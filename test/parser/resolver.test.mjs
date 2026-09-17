@@ -322,6 +322,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x+01 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+0x10 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+16'));
  assert.doesNotThrow(()=>resolve('SELECT ABS(a.x) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x)'));
+ assert.throws(()=>resolve('SELECT CAST(a.x AS double precision) FROM a UNION ALL SELECT a.x FROM a ORDER BY CAST(x AS double PRECISION)'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT CAST(a.x AS unsigned big int) FROM a UNION ALL SELECT a.x FROM a ORDER BY CAST(x AS unsigned BIG int)'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT CAST(a.x AS decimal(10,2)) FROM a UNION ALL SELECT a.x FROM a ORDER BY CAST(x AS DECIMAL(10,2))'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT CAST(a.x AS varchar(10)) FROM a UNION ALL SELECT a.x FROM a ORDER BY CAST(x AS VARCHAR(10))'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT a.x+1e0 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1.0'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x COLLATE nocase FROM a UNION ALL SELECT a.x FROM a ORDER BY x COLLATE rtrim'));
