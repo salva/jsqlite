@@ -9,7 +9,7 @@ const here=path.dirname(new URL(import.meta.url).pathname);
 const capture=JSON.parse(fs.readFileSync(path.join(here,'cases/stage3-subquery-view.json'),'utf8'));
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
 const generated=path.join(here,'../fixtures/generations',current.generationId,'generated');
-const ids=['view-basic','view-explicit-columns','view-inferred-columns','view-duplicate-inferred','view-explicit-width-error','lexical-shadow','error-ambiguous','error-missing','error-width-scalar'];
+const ids=['view-basic','view-nested','view-explicit-columns','view-inferred-columns','view-duplicate-inferred','view-explicit-width-error','lexical-shadow','error-ambiguous','error-missing','error-width-scalar'];
 
 function value(v){
   if(v.type==='null')return null;

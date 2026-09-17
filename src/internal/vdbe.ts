@@ -10,12 +10,13 @@ import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
 import { EphemeralIndexCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
-import type { SchemaGraph, TableNode } from "./schema.ts";
+import type { SchemaGraph, TableNode, ViewNode } from "./schema.ts";
 import type { DatabaseEncoding } from "./record.ts";
 import { expandAndResolveSelect, NameResolutionError } from "./resolve.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
+import { tokenIds } from "../generated/parser-tables.ts";
 
 type AggregateOrderTerm={expression:Expression;descending:boolean;nullsLarge:boolean};
 type Expression =
@@ -641,6 +642,45 @@ function uniqueTransientColumnNames(names:readonly string[]):readonly string[]{
   return Object.freeze(result);
 }
 
+
+type ExprReduction=Extract<LemonValue<SqlToken>,{kind:"reduction"}>;
+/** Bounded select.c:flattenSubquery substitution over generated reductions. */
+function substituteViewExpression(expression:SelectNode["result"][number],columns:ReadonlyMap<string,SelectNode["result"][number]>):SelectNode["result"][number]{
+  const directName=expression.tokens.length===1?sqlName(expression.tokens[0]!.text):null;
+  const direct=directName===null?undefined:columns.get(sqliteAsciiFold(directName));
+  if(direct)return Object.freeze({...direct,...(expression.alias===undefined?{}:{alias:expression.alias})});
+  const replace=(node:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
+    if(node.kind==='terminal')return node;
+    if(node.signature==='expr ::= ID|INDEXED|JOIN_KW'){
+      const terminal=node.children.find(child=>child.kind==='terminal'&&child.value);
+      const replacement=terminal?.kind==='terminal'?columns.get(sqliteAsciiFold(sqlName(terminal.value.text))):undefined;
+      if(replacement?.reduction)return replacement.reduction;
+    }
+    return Object.freeze({...node,children:Object.freeze(node.children.map(replace))});
+  };
+  return Object.freeze({...expression,...(expression.reduction?{reduction:replace(expression.reduction)}:{})});
+}
+function andViewPredicates(left:SelectNode["where"],right:SelectNode["where"]):SelectNode["where"]{
+  if(!left)return right;if(!right)return left;if(!left.reduction||!right.reduction)throw new JSQLiteError("internal","generated view predicate lost its reduction");
+  const at=left.tokens.at(-1)?.endByte??0,andToken:SqlToken={kind:'keyword',text:'AND',startByte:at,endByte:at+3};
+  const reduction:ExprReduction=Object.freeze({kind:'reduction',rule:-1,signature:'expr ::= expr AND expr',children:Object.freeze([left.reduction,{kind:'terminal' as const,tokenId:tokenIds.AND,value:andToken},right.reduction])});
+  return Object.freeze({kind:'tokens',tokens:Object.freeze([...left.tokens,andToken,...right.tokens]),reduction});
+}
+function flattenImmutableView(select:SelectNode,view:ViewNode):SelectNode{
+  const source=select.from.items[0]!,inner=view.select;
+  if(source.alias!==null||source.databaseName!==null||source.on!==null||source.using!==null||select.hasDistinct||select.hasGroupBy||select.hasHaving||inner.hasCompound||inner.hasDistinct||inner.hasGroupBy||inner.hasHaving||inner.hasOrderBy||inner.hasLimit||inner.from.items.length!==1)
+    throw new JSQLiteError("unsupported","this view shape is not implemented",{unsupportedClassification:"temporary"});
+  if(view.columns.length&&view.columns.length!==inner.result.length)throw new JSQLiteError("sqlite",`expected ${view.columns.length} columns for '${view.name}' but got ${inner.result.length}`,{code:1});
+  const names=uniqueTransientColumnNames(view.columns.length?view.columns:inner.result.map((expression,index)=>expression.alias??(expression.tokens.length===1?sqlName(expression.tokens[0]!.text):`column${index+1}`)));
+  const exposed=inner.result.map((expression,index)=>Object.freeze({...expression,alias:names[index]!}));
+  const columns=new Map(exposed.map((_,index)=>[sqliteAsciiFold(names[index]!),inner.result[index]!]));
+  const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
+  const result=bareStar?exposed:select.result.map(expression=>substituteViewExpression(expression,columns));
+  const where=andViewPredicates(inner.where,select.where?substituteViewExpression(select.where,columns):null);
+  const orderBy=select.orderBy.map(term=>Object.freeze({...term,expr:substituteViewExpression(term.expr,columns)}));
+  return Object.freeze({...inner,result:Object.freeze(result),where,orderBy:Object.freeze(orderBy),limit:select.limit,offset:select.offset,hasOrderBy:orderBy.length>0,hasLimit:select.hasLimit,tokens:select.tokens});
+}
+
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   const materialized=compileMaterializedDerived(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(materialized)return materialized;
@@ -650,14 +690,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   if(select.from.items.length===1){
     const source=select.from.items[0]!,view=schema.views.get(sqliteAsciiFold(sqlName(source.tableName)));
     if(view){
-      const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
-      const inner=view.select;
-      if(!bareStar||source.alias!==null||source.databaseName!==null||source.on!==null||source.using!==null||select.where!==null||select.hasDistinct||select.hasGroupBy||select.hasHaving||inner.hasCompound||inner.hasDistinct||inner.hasGroupBy||inner.hasHaving||inner.hasOrderBy||inner.hasLimit||inner.from.items.length!==1)
-        throw new JSQLiteError("unsupported","this view shape is not implemented",{unsupportedClassification:"temporary"});
-      if(view.columns.length&&view.columns.length!==inner.result.length)throw new JSQLiteError("sqlite",`expected ${view.columns.length} columns for '${view.name}' but got ${inner.result.length}`,{code:1});
-      const names=uniqueTransientColumnNames(view.columns.length?view.columns:inner.result.map((expression,index)=>expression.alias??(expression.tokens.length===1?sqlName(expression.tokens[0]!.text):`column${index+1}`)));
-      const result=Object.freeze(inner.result.map((expression,index)=>Object.freeze({...expression,...(names[index]===undefined?{}:{alias:names[index]})})));
-      const expandedView:SelectNode=Object.freeze({...inner,result,orderBy:select.orderBy,limit:select.limit,offset:select.offset,hasOrderBy:select.hasOrderBy,hasLimit:select.hasLimit,tokens:select.tokens});
+      const expandedView=flattenImmutableView(select,view);
       return compileTableSelect(expandedView,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
     }
   }
