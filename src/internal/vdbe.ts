@@ -979,7 +979,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const rewindIndex=ops.length;ops.push({code:"Rewind",p2:0});const scan:FullScanPlan={rewindIndex,loopStart:ops.length};
   let ifNotIndex: number | undefined;
   let expressionCursor=1000;
-  const compileCorrelatedScalar=(expression:SubqueryExpression):number=>{
+  const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
     if(!nested||nested.sources.length>1||!item?.reduction||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasCompound||expression.select.hasValues||expression.select.offset)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     const bind=(tree:Expression):Expression=>{if(tree.kind==="column"){
@@ -1000,7 +1000,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     if(!source){
       if(isIn)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
       ops.push(expression.exists?{code:"Integer",p1:1n,p2:result}:{code:"Null",p2:result});
-      if(!expression.exists){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"Copy",p1:value,p2:result});}
+      if(!expression.exists){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});}
       return result;
     }
     if(!isIn&&!expression.exists&&aggregate.kind==="aggregate"){
@@ -1009,39 +1009,39 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     }else if(isIn){ops.push({code:"OpenEphemeral",p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});}
     else ops.push(expression.exists?{code:"Integer",p1:0n,p2:result}:{code:"Null",p2:result});
     const rewind=ops.length;ops.push({code:"Rewind",p1:source.cursorId,p2:0});const loop=ops.length;let skip:number|undefined;
-    if(expression.select.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(expression.select.where.reduction)),ops,()=>++registers,parameters,compileCorrelatedScalar);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+    if(expression.select.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(expression.select.where.reduction)),ops,()=>++registers,parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     let done=-1;
     const orderTerms=!isIn&&!expression.exists&&aggregate.kind!=="aggregate"?expression.select.orderBy.map(term=>{const tree=bind(expressionFromReduction(term.expr.reduction!));return{tree,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};}):[];
     const orderCursor=orderTerms.length?expressionCursor++:-1;
     if(orderTerms.length)ops.push({code:"SorterOpen",p1:orderCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.tree),desc:term.desc,nullsLarge:term.nullsLarge}))})});
-    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"IdxInsert",p1:cursor,keyStart:value,keyCount:1});}
+    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"IdxInsert",p1:cursor,keyStart:value,keyCount:1});}
     else if(expression.exists){ops.push({code:"Integer",p1:1n,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
-    else if(aggregate.kind==="aggregate"){const args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,()=>++registers,parameters,compileCorrelatedScalar));ops.push({code:"AggStep",name:aggregate.name,args,p2:result,collation:aggregate.collation});}
-    else if(orderTerms.length){const key=++registers;registers+=orderTerms.length-1;orderTerms.forEach((term,index)=>{const value=compileExpressionTree(term.tree,ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"Copy",p1:value,p2:key+index});});const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileCorrelatedScalar),payload=++registers;ops.push({code:"Copy",p1:value,p2:payload},{code:"SorterInsert",p1:orderCursor,keyStart:key,keyCount:orderTerms.length,payload,payloadCount:1});}
-    else {const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"Copy",p1:value,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
+    else if(aggregate.kind==="aggregate"){const args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,()=>++registers,parameters,compileExpressionSubquery));ops.push({code:"AggStep",name:aggregate.name,args,p2:result,collation:aggregate.collation});}
+    else if(orderTerms.length){const key=++registers;registers+=orderTerms.length-1;orderTerms.forEach((term,index)=>{const value=compileExpressionTree(term.tree,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:key+index});});const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery),payload=++registers;ops.push({code:"Copy",p1:value,p2:payload},{code:"SorterInsert",p1:orderCursor,keyStart:key,keyCount:orderTerms.length,payload,payloadCount:1});}
+    else {const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
     const next=ops.length;ops.push({code:"Next",p1:source.cursorId,p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(done>=0)(ops[done] as {p2:number}).p2=finish;
     if(orderTerms.length){ops.push({code:"Null",p2:result});const sort=ops.length;ops.push({code:"SorterSort",p1:orderCursor,emptyJump:0},{code:"SorterData",p1:orderCursor,p2:result,count:1},{code:"ClearSorter",p1:orderCursor});(ops[sort] as {emptyJump:number}).emptyJump=ops.length-1;}
     if(!isIn&&!expression.exists&&aggregate.kind==="aggregate")ops.push({code:"AggFinal",name:aggregate.name,p1:result});
     if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
-    if(isIn){const left=compileExpressionTree(bind(expression.left),ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"InSet",p1:cursor,key:left,output:result,affinity:expressionAffinity(aggregate)??"numeric",negated:expression.negated});if(nested.correlated)ops.push({code:"ClearEphemeral",p1:cursor});}
+    if(isIn){const left=compileExpressionTree(bind(expression.left),ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"InSet",p1:cursor,key:left,output:result,affinity:expressionAffinity(aggregate)??"numeric",negated:expression.negated});if(nested.correlated)ops.push({code:"ClearEphemeral",p1:cursor});}
     return result;
   };
   if (select.where) {
     if (!select.where.reduction) throw new JSQLiteError("unsupported", "WHERE predicate is not implemented", { unsupportedClassification: "temporary" });
     const predicate=resolveExpression(select.where);
     const compilePredicate=(tree:Expression):number=>{
-      if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")return compileCorrelatedScalar(tree);
+      if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")return compileExpressionSubquery(tree);
       if(tree.kind==="binary"&&(tree.op==="AND"||tree.op==="OR")){
         const left=compilePredicate(tree.left),right=compilePredicate(tree.right),output=++registers;
         ops.push({code:"Boolean",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:output});return output;
       }
-      return compileExpressionTree(tree,ops,()=>++registers,parameters,compileCorrelatedScalar);
+      return compileExpressionTree(tree,ops,()=>++registers,parameters,compileExpressionSubquery);
     };
     const output=compilePredicate(predicate);
     ifNotIndex=ops.length; ops.push({code:"IfNot",p1:output,p2:0});
   }
   const body=ops.length;
-  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>++registers,parameters,compileCorrelatedScalar);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
+  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
   let distinctFound: number | undefined;
   if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
   if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
