@@ -165,6 +165,12 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT mystery(missing) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT mystery(a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: mystery');
  assert.throws(()=>resolve('SELECT mystery(missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
+ assert.throws(()=>resolve('SELECT json_group_array(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
+ assert.throws(()=>resolve('SELECT percentile(a.x,50) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
+ assert.throws(()=>resolve('SELECT json_group_array(json_group_object(x,x)) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function json_group_object()');
+ assert.throws(()=>resolve('SELECT percentile(median(x),x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
+ assert.throws(()=>resolve('SELECT json_group_array(x) FILTER (WHERE median(x)) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
  assert.throws(()=>resolve('SELECT sum(sum(a.x)) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
  assert.doesNotThrow(()=>resolve('SELECT abs(sum(a.x)),max(sum(a.x),a.x),sum(abs(a.x)) FROM a'));
  assert.throws(()=>resolve('SELECT abs(a.x) FILTER (WHERE a.x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER may not be used with non-aggregate abs()');
