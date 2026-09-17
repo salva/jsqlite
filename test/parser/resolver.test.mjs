@@ -268,6 +268,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  const booleanColumns=resolve('SELECT TRUE, false FROM booleans');
  assert.equal(booleanColumns.result[0].source.table.name,'booleans');
  assert.equal(booleanColumns.result[1].source.table.name,'booleans');
+ assert.throws(()=>resolve('SELECT (a.x COLLATE nocase)+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT a.x IS NOT 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT NULL FROM a UNION ALL SELECT a.x FROM a ORDER BY x NOTNULL'));
  assert.throws(()=>resolve('SELECT a.x IS NOT 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
