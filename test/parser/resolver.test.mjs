@@ -150,6 +150,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.equal(quotedColumn.result[0].source.table.name,'quoted');
  assert.throws(()=>resolve('SELECT a."foo" FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: a.foo');
  assert.throws(()=>resolve('SELECT ? FROM a UNION ALL SELECT x FROM a ORDER BY ?'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT x FROM a UNION ALL SELECT x FROM a ORDER BY x COLLATE bogus'),e=>e instanceof NameResolutionError&&e.message==='no such collation sequence: bogus');
+ assert.doesNotThrow(()=>resolve('SELECT x FROM a UNION ALL SELECT x FROM a ORDER BY x COLLATE nocase'));
  assert.doesNotThrow(()=>resolve('SELECT ?1 FROM a UNION ALL SELECT x FROM a ORDER BY ?1'));
  assert.throws(()=>resolve('SELECT ?1 FROM a UNION ALL SELECT x FROM a ORDER BY ?2'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT :p FROM a UNION ALL SELECT x FROM a ORDER BY :p'));
