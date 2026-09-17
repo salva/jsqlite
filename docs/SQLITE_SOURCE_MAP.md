@@ -928,3 +928,23 @@ owned by downstream implementation cards.
 - `test/conformance/multisource-left.test.mjs` -> pinned/public capture cases and
   bounded all-encoding, value, composition, destination, restart, and failure-path
   checks. RIGHT/FULL mappings are intentionally not claimed.
+
+### RIGHT/FULL bounded execution mapping ([[card:card-k-e]], 2026-09-17)
+
+- `wherecode.c:sqlite3WhereRightJoinLoop`, `WhereRightJoin` -> terminal-barrier RHS
+  rowid match tracking in `EphemeralIndexCursor`, original-RHS rescan, left cursor
+  `NullRow`, and relocated interior VDBE continuation in
+  `src/internal/vdbe.ts:compileInnerTableSelect`; state uses the shared
+  `PrivateStateByteBudget` and reset/finalize cleanup.
+- `resolve.c:lookupName` FULL `pFJMatch` -> result lowering reads merged source
+  columns in source order with `NotNull`; qualified columns retain direct metadata.
+- `test/conformance/multisource-right-full.test.mjs` credits 7/13 immutable
+  RIGHT/FULL-bearing cases plus reset/rebind and cancel/deadline/work/private-limit
+  companions. Non-terminal downstream continuations and multi-left merged
+  USING/NATURAL wildcard values remain explicit atomic gates, not claimed mappings.
+
+## 2026-09-17 RIGHT/FULL completion revision
+
+- `src/internal/resolve.ts` → `select.c:sqlite3ProcessJoin`, `resolve.c:lookupName`: RIGHT/FULL USING/NATURAL merged owner and ambiguous-left USING diagnostic.
+- `src/internal/vdbe.ts` → `wherecode.c:sqlite3WhereRightJoinLoop`, `where.c:sqlite3WhereEnd`: RHS rowid match set, left NullRow, original RHS unmatched scan, and shared downstream continuation. Forward target finalization before copying is the TS opcode-array equivalent of native label resolution.
+- `test/conformance/multisource-right-full.test.mjs` → all 15 RIGHT/FULL-adjacent pinned stage-3 manifest cases plus encoding and lifecycle/resource probes.

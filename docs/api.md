@@ -331,3 +331,16 @@ scalar/structured-VALUES surface. The completed set prefix retains SQLite typed
 representatives, then trailing rows retain source order and multiplicity; compound
 ORDER and global LIMIT/OFFSET apply to the combined result. This does not admit
 previously excluded table-arm expressions, per-arm WHERE, joins, or broader SQL.
+
+## Bounded outer-join runtime status (2026-09-17)
+
+The existing prepared read-only SELECT surface now executes LEFT joins and a bounded
+RIGHT/FULL tranche over ordinary rowid tables. RIGHT/FULL is admitted only when its
+barrier is terminal and merged-column lowering is representable by the resolved
+source graph. Non-terminal RIGHT/FULL continuation and multi-left merged
+USING/NATURAL wildcard forms fail prepare with `unsupportedClassification:
+"temporary"`; this is an implementation boundary, not a product-scope exclusion.
+
+### RIGHT/FULL joins (2026-09-17 revision)
+
+`prepare()` supports the bounded ordinary-table RIGHT/FULL matrix documented in `docs/CONFORMANCE.md`, including downstream joins and USING/NATURAL wildcard metadata. Statements retain normal typed values, reset/rebind behavior, asynchronous cancellation/deadline/work limits, and shared private-state limits. Existing feature gates (including unsupported aggregate/subquery and unsupported storage shapes) remain explicit prepare errors.

@@ -1934,3 +1934,30 @@ cancel/deadline/work/row/private-state cleanup before and after matched/NullRow
 transitions. This preserves the complete native **47/47 captured** denominator but
 credits only LEFT execution; RIGHT/FULL remain gated. `where.c` `iLeftJoin` and
 `OP_NullRow` control and `vdbe.c` cursor NULL state remain the translated owners.
+
+### RIGHT/FULL bounded runtime revision ([[card:card-k-e]], 2026-09-17)
+
+Terminal RIGHT barriers now translate the pinned `WhereRightJoin` protocol without
+source reversal. Successful ON/USING matches insert the original RHS rowid into an
+existing typed ephemeral cursor under the statement-wide private-byte budget. Once
+the normal source-order pass ends, the original RHS is rescanned, matched identities
+are skipped, every cursor left of the barrier is put in `NullRow` state, and the
+relocated VDBE interior continuation executes WHERE, projection, sorter/DISTINCT,
+and LIMIT ownership for each unmatched RHS row. FULL combines this pass with the
+existing LEFT match-register fallback. Resolver-owned FULL merged result columns
+lower as source-order `Column`/`Rowid` plus `NotNull`, preserving direct qualified
+columns separately.
+
+The admitted pinned matrix is 7/13 RIGHT/FULL-bearing immutable cases: basic RIGHT
+and FULL, empty left, a three-source left operand/barrier, ON and WHERE placement,
+and two-source FULL USING/coalesce. Reset/rebind, cancellation, deadline/work and
+private-entry failures cover cleanup and no restart. This is not complete RIGHT/FULL
+credit: non-terminal barriers with downstream sources remain atomic temporary
+unsupported, and multi-left RIGHT USING/NATURAL wildcard merging remains gated
+because the current expanded result's merged identity does not yet supply the
+`sqlite3ProcessJoin` effective multi-left value during unmatched output. Those six
+immutable cases are the exact next tranche; no full-card compatibility claim is made.
+
+### 2026-09-17 RIGHT/FULL completion revision
+
+The architecture-manifest denominator for this stage is the 15 RIGHT/FULL-adjacent cases in `stage3-multisource-select.json` (13 successful RIGHT/FULL executions and two join-resolution errors). All are now promoted through the public typed API. `resolve.ts` follows `select.c:sqlite3ProcessJoin` ownership for RIGHT USING/NATURAL names: an unqualified/star merged name takes the right-side owner, including qualified-star substitutions, while FULL emits the merged coalesce expression. Ambiguous multi-left USING is rejected during join processing. `vdbe.ts` follows `wherecode.c:sqlite3WhereRightJoinLoop`: one budgeted ephemeral rowid matcher, original-RHS rescan, left-of-barrier NullRow, and a relocated shared continuation for downstream joins. Resolving forward exits before relocation is a TypeScript array-construction adaptation only; it preserves the upstream VDBE target graph and prevents address-zero restart. Tests cover the manifest matrix, UTF-8/16le/16be, reset/rebind, cancellation after match output, deadline/work/private failures, and cleanup. Neighboring unsupported SQL remains governed by existing aggregate/subquery/generated/without-rowid gates; this revision does not broaden those features.

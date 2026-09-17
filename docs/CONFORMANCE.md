@@ -295,3 +295,15 @@ first-error identity through reset/finalize, deterministic rerun, full cleanup,
 and successful later connection admission. These are no-credit resource/lifecycle
 companions: they do not change the relational 18-case accounting or the compound
 gate's 22 declared/attempted/passed/credited cases.
+
+### RIGHT/FULL bounded gate (2026-09-17)
+
+`test/conformance/multisource-right-full.test.mjs` compares 7/13 RIGHT/FULL-bearing
+cases from the immutable pinned 3.53.4 multi-source capture through the public typed
+API and adds reset/rebind plus cancellation, deadline/work, and shared private-state
+failure checks. The other six remain explicit zero-credit temporary gates; do not
+report the 47/47 native capture as TypeScript runtime credit.
+
+### RIGHT/FULL manifest promotion (2026-09-17)
+
+Public typed execution now credits all 15 bounded RIGHT/FULL-adjacent stage-3 manifest cases: 13 successful result/metadata cases and two pinned prepare diagnostics. Coverage includes terminal and downstream barriers, both unmatched sides, USING/NATURAL and wildcard ownership, WHERE/ON placement, and FULL downstream composition. UTF-16le/be smoke probes supplement the UTF-8 captured matrix. This is not a claim for neighboring aggregate, subquery, generated-column, or WITHOUT ROWID SQL, which retains its documented gates.
