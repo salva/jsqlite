@@ -319,6 +319,10 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x IS NOT DISTINCT FROM 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x IS 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x == 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x = 1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x <> 1 FROM a UNION ALL SELECT a.x FROM a ORDER BY x != 1'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x COLLATE nocase FROM a UNION ALL SELECT a.x FROM a ORDER BY x COLLATE rtrim'));
+ assert.doesNotThrow(()=>resolve('SELECT (a.x+1) COLLATE nocase FROM a UNION ALL SELECT a.x FROM a ORDER BY (x+1) COLLATE rtrim'));
+ assert.throws(()=>resolve('SELECT (a.x COLLATE nocase)+1 FROM a UNION ALL SELECT a.x FROM a ORDER BY (x COLLATE rtrim)+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT a.x COLLATE nosuch FROM a UNION ALL SELECT a.x FROM a ORDER BY x'),e=>e instanceof NameResolutionError&&e.message==='no such collation sequence: nosuch');
  assert.doesNotThrow(()=>resolve("SELECT 1+(a.x NOT LIKE 'a') FROM a UNION ALL SELECT a.x FROM a ORDER BY 1+NOT (x LIKE 'a')"));
  assert.doesNotThrow(()=>resolve("SELECT 2*(a.x NOT GLOB 'a') FROM a UNION ALL SELECT a.x FROM a ORDER BY 2*NOT (x GLOB 'a')"));
  assert.doesNotThrow(()=>resolve("SELECT (a.x NOT LIKE 'a') FROM a UNION ALL SELECT a.x FROM a ORDER BY NOT (x LIKE 'a')"));
