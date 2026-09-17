@@ -24,6 +24,8 @@
     {"id":"distinct-aggregate","fixture":"expr-relational","sql":"SELECT count(DISTINCT y),sum(DISTINCT y),group_concat(DISTINCT y) FROM t1"},
     {"id":"filter-aggregate","fixture":"expr-relational","sql":"SELECT count(*) FILTER (WHERE x%2=0),sum(x) FILTER (WHERE y<3),count(DISTINCT y) FILTER (WHERE x<20) FROM t1"},
     {"id":"ordered-group-concat","fixture":"expr-relational","sql":"SELECT group_concat(x ORDER BY x DESC),group_concat(x,'|' ORDER BY y,x) FROM t1 WHERE x<6"},
+    {"id":"ordered-group-concat-mixed-direction","fixture":"expr-relational","sql":"SELECT group_concat(x ORDER BY y ASC,x DESC) FROM t1 WHERE x<6"},
+    {"id":"ordered-group-concat-mixed-nulls","fixture":"expr-relational","sql":"SELECT group_concat(coalesce(a,-1) ORDER BY a ASC NULLS FIRST,a ASC NULLS LAST) FROM t2"},
     {"id":"group-concat-null-separator","fixture":"empty","sql":"SELECT group_concat(v,NULL ORDER BY n) FROM (SELECT 2 n,'b' v UNION ALL SELECT 1,'a' UNION ALL SELECT 3,NULL)"},
     {"id":"collation-group","fixture":"expr-where","sql":"SELECT a,count(*),min(b),max(b) FROM t GROUP BY a ORDER BY a COLLATE NOCASE"},
     {"id":"collation-distinct","fixture":"expr-where","sql":"SELECT count(DISTINCT a),min(a),max(a),group_concat(DISTINCT a) FROM t"},

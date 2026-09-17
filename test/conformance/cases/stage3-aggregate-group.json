@@ -1991,6 +1991,72 @@
       }
     },
     {
+      "id": "ordered-group-concat-mixed-direction",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(x ORDER BY y ASC,x DESC) FROM t1 WHERE x<6",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "group_concat(x ORDER BY y ASC,x DESC)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "322c332c342c352c302c31"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
+      "id": "ordered-group-concat-mixed-nulls",
+      "fixture": "expr-relational",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "databaseEncoding": "UTF-8",
+      "sql": "SELECT group_concat(coalesce(a,-1) ORDER BY a ASC NULLS FIRST,a ASC NULLS LAST) FROM t2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "group_concat(coalesce(a,-1) ORDER BY a ASC NULLS FIRST,a ASC NULLS LAST)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "2d312c2d312c312c3334352c3637383930"
+              }
+            ]
+          ]
+        },
+        "finalizeCode": 0
+      }
+    },
+    {
       "id": "group-concat-null-separator",
       "fixture": "empty",
       "fixtureSha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
@@ -2949,8 +3015,8 @@
     }
   ],
   "accounting": {
-    "declared": 37,
-    "nativeCaptured": 37,
+    "declared": 39,
+    "nativeCaptured": 39,
     "tsAttempted": 0,
     "tsCredited": 0
   }

@@ -961,7 +961,7 @@ Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `W
 | analysis/lowering/lifecycle | `src/select.c:analyzeAggregate`, `resetAccumulator`, `updateAccumulator`, `finalizeAggFunctions`, GROUP/HAVING branches; `src/expr.c` `TK_AGG_FUNCTION`; `src/vdbe.c` `OP_AggStep`/`OP_AggInverse`/`OP_AggValue`/`OP_AggFinal` | Planned AggInfo owner, statement-owned Mem/context, shared execution-wide `PrivateStateByteBudget`; no algorithm substitution |
 | built-ins | `src/func.c:countStep`, `sumStep`, `sumFinalize`, `avgFinalize`, `totalFinalize`, `minmaxStep`, `groupConcatStep`/`Inverse`/`Value`/`Finalize` | count/sum/avg/total/min/max/group_concat admitted; later-window-compatible callback seam |
 | source tests | `test/aggfunc.test`, `groupby.test`, `select1.test`, `filter1.test`, `distinctagg.test`, `minmax.test` (exact pinned tree) | Bounded public/native matrix derives empty/type/overflow/group/HAVING/alias/bare-minmax/DISTINCT/FILTER/order/collation/composition/error cases; it is not a claim that all upstream assertions are translated |
-| executable evidence | manifest + immutable fixture catalog hashes | `stage3-aggregate-group.spec.json` -> `capture-aggregate-group.py` -> `stage3-aggregate-group.json`; `aggregate-group-manifest.test.py` passes; `run-aggregate-group-ts.mjs` is an intentionally red public gate: 37 native, 33 eventual public-success cases, 0 TS credit, currently stops at `numeric-types` because `sum` is misreported as “no such function” rather than typed temporary unsupported |
+| executable evidence | manifest + immutable fixture catalog hashes | Historical pre-implementation checkpoint: `stage3-aggregate-group.spec.json` -> `capture-aggregate-group.py` -> `stage3-aggregate-group.json`; the then-current public gate was intentionally red at 37 native captures and 0 TS credit. Current accounting is recorded in the aggregate-local modifier section below. |
 
 ### Aggregate contexts and first non-grouped route
 
@@ -1004,7 +1004,7 @@ fixtures is admitted; other automatic-index layouts remain gated.
 
 | Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
 |---|---|---|
-| `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay) | `src/internal/vdbe.ts:compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 28/32 exact public tagged cases; remaining 4 need FROM subqueries |
+| `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay); `src/parse.y:918-934` per-item `sortorder`/`nulls` | `src/internal/vdbe.ts:aggregateParts` preserves each generated `sortlist` item; `compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 30/34 exact public tagged native-success cases from 39 native captures; mixed ASC/DESC and nullable mixed NULLS FIRST/LAST cases prove per-item flags; remaining 4 need FROM subqueries; 5 prepare errors compare exactly |
 | `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order, collation representative, NULL separator, and all-encoding cases; window execution remains excluded |
 | `src/vdbe.c` ephemeral/sorter lifetime | `SorterCursor.clear`, `EphemeralIndexCursor.clear`, shared `PrivateStateByteBudget` | Per-group state is released before the next group; reset/finalize/error retain common cursor cleanup |
 

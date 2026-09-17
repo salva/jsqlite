@@ -16,13 +16,13 @@ residency; known-root record/b-tree reading; SQLite-compatible schema text
 conversion; generated-Lemon SQL tokenization/parsing and reduction structures; a
 bounded immutable internal schema graph; shared Mem/value, scalar arithmetic,
 built-in collation/comparison and packed/unpacked record-key foundations; and a
-first prepared-SELECT compiler/program/VDBE slice. Public `prepare()` compiles
-no-FROM integer/parameter expressions and ordered projection plus integer-equality
-filtering over one ordinary rowid table. Public scalar/table statements now own
-connection-encoding-aware parameter `Mem` cells and use connection-wide operation
-admission across running and suspended VM states. Excluded SELECT clauses and
-broader SQL remain typed temporary unsupported; canonical first-SELECT TS credit
-is promoted at 8/8 and the implementation is not a general SQL engine.
+bounded prepared-SELECT compiler/program/VDBE. The admitted public surface now
+includes documented no-FROM, ordinary-table, multi-source join, compound, and
+grouped aggregate routes, with shared private-state limits and connection-wide
+operation admission across running and suspended VM states. This is not a general
+SQL engine: subquery FROM sources, windows, writes, and other unmapped SELECT
+shapes remain typed temporary unsupported. Historical tranche sections below are
+labeled as such and do not override this current capability summary.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -1966,17 +1966,14 @@ The earlier current-sounding statements that all RIGHT/FULL forms were gated, an
 
 ## Aggregate, GROUP BY, and HAVING tests-first contract (Stage 3 research gate)
 
-This is a pre-implementation contract pinned to SQLite 3.53.4. The executable
-37-case native capture is `test/conformance/cases/stage3-aggregate-group.json`;
-its spec, validator, capture tool, and public red gate sit beside it. Native
-capture is evidence, not TS credit (`37 nativeCaptured`, `33 public-success cases
-declared for eventual attempt`, `0 tsCredited`). The current red gate accepts only
-typed temporary unsupported; it intentionally stops at the first aggregate that is
-misreported as an ordinary SQLite error (currently `numeric-types` reports
-`no such function: sum` after four truthful temporary rejections). The matrix uses the
-current immutable Fetch generation, including its UTF-8/UTF-16le/UTF-16be
-fixtures, and preserves INTEGER decimal, REAL IEEE-754 bits, NULL, TEXT/BLOB
-bytes, column metadata, prepare/step errors, reset/rebind, and finalize codes.
+This section records the pre-implementation contract originally pinned to SQLite
+3.53.4. At that historical checkpoint the executable artifact had 37 native
+captures (33 native-success cases plus four prepare errors), 0 TS credit, and an
+intentionally red public gate. The current artifact, accounting, and admitted
+surface are recorded in the aggregate-local modifier section below. The matrix
+uses the immutable Fetch generation, including UTF-8/UTF-16le/UTF-16be fixtures,
+and preserves INTEGER decimal, REAL IEEE-754 bits, NULL, TEXT/BLOB bytes, column
+metadata, prepare/step errors, reset/rebind, and finalize codes.
 
 ### Source-derived ownership and lowering
 
@@ -2194,11 +2191,17 @@ all modifier cursors and aggregate retained values debit the execution-wide
 merge sorter rather than host `Array.sort`, and numeric aggregate state remains a
 function context behind step/final callbacks rather than a frozen sum-only model.
 
-The pinned public aggregate gate now credits **28/32** successful cases, including
-DISTINCT, FILTER, ordered `group_concat`, NOCASE duplicate representatives, and
-ordered aggregates on UTF-8/UTF-16le/UTF-16be fixtures. Four successful native
-cases requiring FROM-subquery execution remain atomically temporary unsupported;
-this modifier milestone does not claim window execution.
+The pinned public aggregate gate now credits **30/34** successful cases out of a
+39-case native artifact (34 native-success attempts plus 5 exact prepare errors),
+including DISTINCT, FILTER, ordered `group_concat`, NOCASE duplicate
+representatives, and ordered aggregates on UTF-8/UTF-16le/UTF-16be fixtures. Each
+aggregate-internal order term retains its own generated `sortlist` production:
+direction and NULL placement are read from that item's direct `sortorder` and
+`nulls` children, matching pinned `parse.y:918-934`, rather than from the complete
+list. Immutable oracle cases distinguish mixed ASC/DESC terms and mixed NULLS
+FIRST/LAST terms with nullable keys. Four successful native cases requiring
+FROM-subquery execution remain atomically temporary unsupported; this modifier
+milestone does not claim window execution.
 
 ### Aggregate definition context and compensated numeric correction ([[card:card-l-b]], 2026-09-17)
 
