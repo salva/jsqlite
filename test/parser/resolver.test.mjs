@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
@@ -15,6 +16,14 @@ test('selectExpander preserves ordered duplicate names, wildcard visibility, and
  assert.equal(r.result[8].columnIndex,-1);
  assert.ok(Object.isFrozen(r)&&Object.isFrozen(r.sources)&&Object.isFrozen(r.result));
 });
+test('compound ORDER identity uses generated reductions without token reconstruction',()=>{
+ const source=readFileSync(new URL('../../src/internal/resolve.ts',import.meta.url),'utf8');
+ assert.doesNotMatch(source,/\bnormalizedTokens\b/);
+ assert.doesNotMatch(source,/output\.splice\(/);
+ assert.match(source,/expressionStructurallyEqual/);
+});
+
+
 test('lookupName applies aliases, qualification, ambiguity, no-such-column, and rowid shadowing',()=>{
  assert.throws(()=>resolve('SELECT x FROM a INDEXED BY nope'),e=>e instanceof NameResolutionError&&e.message==='no such index: nope');
  assert.doesNotThrow(()=>resolve('SELECT x FROM a NOT INDEXED'));

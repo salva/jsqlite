@@ -51,3 +51,21 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  s=db.prepare('SELECT rowid, _rowid_, oid FROM left_meta').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1),s.column(2)],[1n,1n,1n]);assert.deepEqual(s.columnMetadata(0),{name:'rowid',declaredType:null,database:'main',table:'left_meta',origin:null});s.finalize();s=null;
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
+
+test('public resolver metadata and typed values remain exact across database encodings',async()=>{
+ const bridge=await startFixtureServer(root);
+ try{
+  for(const fixture of ['encoding-utf8','encoding-utf16le','encoding-utf16be']){
+   const db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${fixture}`));let s;
+   try{
+    s=db.prepare("SELECT NULL AS duplicate,NULL AS duplicate,'',9223372036854775807,1.5").statement;
+    assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i).name),['duplicate','duplicate',"''",'9223372036854775807','1.5'],fixture);
+    assert.deepEqual(s.columnMetadata(0),{name:'duplicate',declaredType:null,database:null,table:null,origin:null},fixture);
+    assert.equal(await s.step(),'row',fixture);
+    assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnType(i)),['null','null','text','integer','real'],fixture);
+    assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.column(i)),[null,null,'',9223372036854775807n,1.5],fixture);
+    assert.equal(await s.step(),'done',fixture);s.finalize();s=null;
+   }finally{try{s?.finalize()}catch{}try{db.closeDeferred()}catch{}}
+  }
+ }finally{await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+});

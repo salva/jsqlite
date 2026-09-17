@@ -1875,9 +1875,19 @@ pinned token distinctions. Integer leaves compare by value only through signed
 int64, including numeric underscores; overflow spellings remain distinct. Focused
 oracle/regression coverage lives in `test/parser/resolver.test.mjs`.
 
+The matcher consumes the generated `LemonValue` reduction tree directly. It does
+not copy, splice, normalize, or reparse `ExprNode.tokens`; a source-level
+regression rejects the removed `normalizedTokens`/`output.splice` implementation.
+Pinned 3.53.4 multi-source capture is recaptured byte-for-byte in all three
+database encodings, while public UTF-8/UTF-16le/UTF-16be tests independently
+exercise duplicate result names plus NULL, empty TEXT, exact int64, and REAL
+values through prepare/metadata/step. This is bounded evidence for the resolver
+foundation, not a general expression-tree equivalence or multi-source evaluator.
+
 This is not a join support claim. Multi-source public lowering remains an atomic
-temporary prepare rejection; HAVING/GROUP evaluation and outer linked contexts,
-complete FULL expression lowering, user-defined-function lookup, and streaming
-join cursor control remain pending. The
+temporary prepare rejection. Join/predicate evaluation, GROUP/HAVING evaluation,
+frame/window/aggregate execution, general/user-defined functions, complete FULL
+expression lowering, and streaming join cursor control are downstream work and
+are not completion criteria for this foundation. The
 focused parser/resolver and public test files are `test/parser/resolver.test.mjs`
 and `test/conformance/source-resolution.test.mjs`.

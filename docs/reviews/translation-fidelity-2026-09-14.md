@@ -485,3 +485,17 @@ errors before its execution gate. It does **not** supersede the join-execution
 finding: multi-source public
 SQL remains atomically temporary unsupported and the 47-case gate has not been
 claimed or compared against TypeScript.
+
+### 2026-09-17 revision — generated-reduction compound identity correction
+
+The earlier foundation's compound-ORDER behavior had accumulated a copied-token
+`normalizedTokens` canonicalizer. That implementation was not an acceptable
+translation even where tests matched SQLite. It is removed: compound expression
+identity now walks generated Lemon reductions directly, and a static regression
+rejects restoration of token-array splicing/reconstruction. The source-identity
+verified 47-case pinned capture recaptures exactly, and focused public checks cover
+duplicate result names plus NULL, empty TEXT, int64, and REAL across UTF-8,
+UTF-16le, and UTF-16be fixtures. Existing parser 27/27, compound 22/22,
+expressions 40/40, and first-SELECT 8/8 gates remain exact. This correction adds
+no join credit and does not pull in downstream joins, GROUP/HAVING,
+frame/window/aggregate execution, or general/user-defined functions.

@@ -876,6 +876,13 @@ streaming proofs before changing `docs/api.md`.
 |---|---|---|
 | `parse.y:stl_prefix/seltablist/joinop/on_using`, `build.c:sqlite3SrcListShiftJoinType` | `src/internal/parse.ts` reduction-owned immutable `SourceList` and shifted RHS flags/ownership | `test/parser/tokenizer-parser.test.mjs` |
 | `select.c:selectExpander/sqlite3ProcessJoin` | `src/internal/resolve.ts` schema/cursor binding, stars, NATURAL synthesis, USING validation/RHS hiding | `test/parser/resolver.test.mjs`; no evaluator claim |
-| `resolve.c:resolveCompoundOrderBy/sqlite3ResolveOrderGroupBy`, `expr.c:sqlite3ExprCompare` | `src/internal/resolve.ts` left-to-right alias/ordinal/structural matching; resolved identifiers use SQLite equality across quote forms, while literal/variable/BLOB/CAST and overflow-integer spellings retain pinned distinctions | `test/parser/resolver.test.mjs`; bounded structural coverage, not general tree equivalence |
+| `resolve.c:resolveCompoundOrderBy/sqlite3ResolveOrderGroupBy`, `expr.c:sqlite3ExprCompare` | `src/internal/resolve.ts` left-to-right alias/ordinal matching plus direct generated-`LemonValue` reduction comparison; resolved identifiers use SQLite equality across quote forms, while literal/variable/BLOB/CAST and overflow-integer spellings retain pinned distinctions; no copied-token normalizer or reparsing | `test/parser/resolver.test.mjs` includes the architecture invariant; bounded structural coverage, not general tree equivalence |
 | `resolve.c:lookupName/resolveAlias/resolveSelectStep/resolveOrderGroupBy`; `select.c:sqlite3SelectCheckOnClauses` | `src/internal/resolve.ts` direct/merged identity and metadata, real-column-before-rowid candidates, exact INTEGER PRIMARY KEY substitution, generated result/WHERE/ON/GROUP/HAVING/ORDER/LIMIT/function/FILTER/OVER resolution, source-first aliases, ordinals, aggregate placement, built-in arity/ownership and explicit COLLATE validation, outer-owner scope check; `src/internal/vdbe.ts` bounded WHERE alias substitution after source lookup | resolver/public source-resolution tests; linked outer contexts, user-defined functions, and GROUP/HAVING/window evaluation pending |
 | `vdbe.c:OP_Rowid`, table btree cursor rowid | `src/internal/btree.ts:TableScanCursor.rowid`; `src/internal/vdbe.ts:Rowid` | public rowid/_rowid_/oid bigint and metadata assertions |
+
+The pinned multi-source oracle artifact is exact-recaptured with source identity,
+including UTF-16le qualified lookup and UTF-16be USING-star cases. Public
+`source-resolution.test.mjs` additionally checks UTF-8/UTF-16le/UTF-16be duplicate
+names and NULL/empty TEXT/int64/REAL values. These checks grant no join execution
+credit; joins, GROUP/HAVING, frames/windows/aggregates, and general functions are
+owned by downstream implementation cards.
