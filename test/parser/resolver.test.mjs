@@ -55,6 +55,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
  assert.doesNotThrow(()=>resolve('SELECT sqlite_offset(x) FROM a'));
  assert.throws(()=>resolve('SELECT sqlite_offset() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_offset()');
+ assert.throws(()=>resolve('SELECT json_group_array(x) FILTER (WHERE x) OVER () FROM a WHERE json_group_array(x) FILTER (WHERE x) OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function json_group_array()');
+ assert.throws(()=>resolve('SELECT percentile(x,50) OVER () FROM a GROUP BY percentile(x,50) OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function percentile()');
+ assert.doesNotThrow(()=>resolve('SELECT median(x) OVER () FROM a ORDER BY median(x) OVER ()'));
  assert.doesNotThrow(()=>resolve('SELECT median(x) OVER (), percentile(x,x) OVER (), percentile_cont(x,x) OVER (), percentile_disc(x,x) OVER (), json_group_array(x) OVER (), jsonb_group_array(x) OVER (), json_group_object(x,x) OVER (), jsonb_group_object(x,x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT median(x), percentile(x,x), percentile_cont(x,x), percentile_disc(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT median(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function median()');
