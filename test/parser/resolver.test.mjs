@@ -53,6 +53,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sqlite_source_id(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_source_id()');
  assert.throws(()=>resolve('SELECT sqlite_log(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_log()');
  assert.throws(()=>resolve('SELECT substring(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function substring()');
+ assert.doesNotThrow(()=>resolve('SELECT sqlite_compileoption_used(x), sqlite_compileoption_get(x), sign(x) FROM a'));
+ assert.throws(()=>resolve('SELECT sign() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sign()');
+ assert.throws(()=>resolve('SELECT sqlite_compileoption_get() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function sqlite_compileoption_get()');
  assert.doesNotThrow(()=>resolve('SELECT json_group_array(x), jsonb_group_array(x), json_group_object(x,x), jsonb_group_object(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT json_group_array(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_group_array()');
  assert.throws(()=>resolve('SELECT json_group_object(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_group_object()');
