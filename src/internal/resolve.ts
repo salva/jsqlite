@@ -207,7 +207,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  for(let i=0;i<select.orderBy.length;i++){
   const expression=select.orderBy[i]!.expr,parsed=groupByInteger(expression);
   if(parsed!==null&&parsed>=-2147483647n&&parsed<=2147483647n){const ordinal=Number(parsed);if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term out of range - should be between 1 and ${output.length}`);}continue;}
-  resolveAgainstSources(expression,sources,select.result,false,false,false,select.windowNames,select.windowDefinitions);
+  if(select.hasCompound){const name=bareName(expression),sameExpression=(left:ExprNode,right:ExprNode)=>left.tokens.length===right.tokens.length&&left.tokens.every((token,index)=>{const other=right.tokens[index]!;return token.kind===other.kind&&(token.kind==='id'||token.kind==='keyword'?sqliteIdentifierEqual(token.text,other.text):token.text===other.text);}),matchesAlias=name!==null&&select.arms.some(arm=>arm.result.some(item=>item.alias&&sqliteIdentifierEqual(item.alias,name))),matchesExpression=select.arms.some(arm=>arm.result.some(item=>sameExpression(item,expression)));if(!matchesAlias&&!matchesExpression){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term does not match any column in the result set`);}}
+  else resolveAgainstSources(expression,sources,select.result,false,false,false,select.windowNames,select.windowDefinitions);
   const aggregate=firstAggregateName(expression);
   if(aggregate&&!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);
  }

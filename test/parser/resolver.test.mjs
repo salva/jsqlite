@@ -140,6 +140,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY sum(a.x)'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate: sum()');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FROM a ORDER BY sum(a.x)'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a GROUP BY a.x ORDER BY sum(a.x)'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x AS y FROM a ORDER BY y'));
+ assert.throws(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY missing'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.throws(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY a.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY missing'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT a.x FROM a ORDER BY 2'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term out of range - should be between 1 and 1');
  assert.doesNotThrow(()=>resolve('SELECT a.x AS z FROM a ORDER BY z'));
