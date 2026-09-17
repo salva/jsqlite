@@ -999,3 +999,11 @@ Pinned `wherecode.c:sqlite3WhereRightJoinLoop` has `WhereRightJoin` state per `W
 Aggregate-local DISTINCT/FILTER/ORDER remains [[card:card-l-d]] scope. All three database encodings execute the grouped result-DISTINCT companion.
 Only the source-shaped single-column PRIMARY KEY autoindex needed by those pinned
 fixtures is admitted; other automatic-index layouts remain gated.
+
+## Aggregate-local modifiers ([[card:card-l-d]], 2026-09-17)
+
+| Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
+|---|---|---|
+| `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay) | `src/internal/vdbe.ts:compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 28/32 exact public tagged cases; remaining 4 need FROM subqueries |
+| `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order, collation representative, NULL separator, and all-encoding cases; window execution remains excluded |
+| `src/vdbe.c` ephemeral/sorter lifetime | `SorterCursor.clear`, `EphemeralIndexCursor.clear`, shared `PrivateStateByteBudget` | Per-group state is released before the next group; reset/finalize/error retain common cursor cleanup |

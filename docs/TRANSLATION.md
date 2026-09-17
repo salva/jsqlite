@@ -2181,3 +2181,23 @@ from the table declaration and sqlite_schema root page; broader implicit index
 layouts retain the atomic temporary schema gate. Exact aggregate manifest
 accounting is **20/32** credited and **12** typed temporary unsupported; grouped
 result DISTINCT is a focused companion outside that frozen denominator.
+
+### Aggregate-local modifiers ([[card:card-l-d]], 2026-09-17)
+
+Aggregate calls now retain generated-parser DISTINCT, FILTER, and internal ORDER
+terms through resolution and AggInfo-like lowering. Following pinned
+`src/select.c:updateAccumulator`/`finalizeAggFunctions` (around lines 6680-6942),
+FILTER branches precede argument evaluation; a per-call `EphemeralIndexCursor`
+performs KeyInfo/Mem DISTINCT before stepping or queueing; and a per-call
+`SorterCursor` retains ordering keys plus argument payload and replays `AggStep`
+before `AggFinal`. Group boundaries clear those cursors and release their entries;
+all modifier cursors and aggregate retained values debit the execution-wide
+`PrivateStateByteBudget`. The implementation uses the existing stable private
+merge sorter rather than host `Array.sort`, and numeric aggregate state remains a
+function context behind step/final callbacks rather than a frozen sum-only model.
+
+The pinned public aggregate gate now credits **28/32** successful cases, including
+DISTINCT, FILTER, ordered `group_concat`, NOCASE duplicate representatives, and
+ordered aggregates on UTF-8/UTF-16le/UTF-16be fixtures. Four successful native
+cases requiring FROM-subquery execution remain atomically temporary unsupported;
+this modifier milestone does not claim window execution.

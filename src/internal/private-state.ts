@@ -92,7 +92,8 @@ export class SorterCursor {
    this.#entries=source;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#entries.length>0}next():boolean{this.#live();return ++this.#at<this.#entries.length}data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#entries.length)throw new Error("sorter cursor is not positioned");return this.#entries[this.#at]!.payload}
-  close():void{if(this.#closed)return;this.#closed=true;this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
+  clear():void{this.#live();this.#entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#entries=[];this.#at=-1}
+  close():void{if(this.#closed)return;this.clear();this.#closed=true}
   #live():void{if(this.#closed)throw new Error("sorter cursor is closed")}
 }
 
