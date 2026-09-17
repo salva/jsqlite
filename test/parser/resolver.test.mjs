@@ -305,7 +305,12 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT CASE WHEN a.x THEN a.x+1 ELSE 0 END FROM a UNION ALL SELECT a.x FROM a ORDER BY CASE WHEN x THEN x+1 ELSE 0 END'));
  assert.doesNotThrow(()=>resolve('SELECT abs(a.x+1) FROM a UNION ALL SELECT a.x FROM a ORDER BY abs(x+1)'));
  assert.doesNotThrow(()=>resolve("SELECT a.x||'q' FROM a UNION ALL SELECT a.x FROM a ORDER BY x||'q'"));
+ assert.doesNotThrow(()=>resolve('SELECT ((a.x+1))*2 FROM a UNION ALL SELECT a.x FROM a ORDER BY (x+1)*2'));
+ assert.doesNotThrow(()=>resolve('SELECT (a.x) BETWEEN 1 AND 2 FROM a UNION ALL SELECT a.x FROM a ORDER BY x BETWEEN 1 AND 2'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x IN (1,2) FROM a UNION ALL SELECT a.x FROM a ORDER BY x IN (1,2)'));
+ assert.doesNotThrow(()=>resolve('SELECT (a.x+1) FROM a UNION ALL SELECT a.x FROM a ORDER BY ((x)+1)'));
  assert.doesNotThrow(()=>resolve('SELECT (a.x+1)*2 FROM a UNION ALL SELECT a.x FROM a ORDER BY (x+1)*2'));
+ assert.doesNotThrow(()=>resolve('SELECT ((a.x)+1)*2 FROM a UNION ALL SELECT a.x FROM a ORDER BY (x+1)*2'));
  assert.throws(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY +a.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x AS y FROM a ORDER BY y'));
  assert.throws(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY missing'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
