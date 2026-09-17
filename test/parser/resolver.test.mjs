@@ -145,6 +145,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY x+1'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY main.a.x+1'));
  assert.throws(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY z.x+1'),e=>e instanceof NameResolutionError&&e.message==='1st ORDER BY term does not match any column in the result set');
+ assert.doesNotThrow(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY x COLLATE binary COLLATE nocase'));
+ assert.doesNotThrow(()=>resolve('SELECT a.x COLLATE binary COLLATE nocase FROM a UNION ALL SELECT a.x FROM a ORDER BY x'));
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a UNION ALL SELECT a.x FROM a ORDER BY a.x COLLATE nocase'));
  assert.doesNotThrow(()=>resolve('SELECT a.x AS y FROM a UNION ALL SELECT a.x FROM a ORDER BY y COLLATE nocase'));
  assert.doesNotThrow(()=>resolve('SELECT a.x+1 FROM a UNION ALL SELECT a.x+2 FROM a ORDER BY (a.x+1)'));
