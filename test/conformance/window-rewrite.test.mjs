@@ -331,3 +331,32 @@ test('public window lowering rejects atomically in all three database encodings'
     await new Promise((resolve, reject) => backend.server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test('ORDER-prefix elision uses structural expression and sort identity', () => {
+  const wrapped = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY a COLLATE NoCase) FROM t1 ' +
+    'ORDER BY a COLLATE nocase',
+  ));
+  assert.equal(wrapped.outer.orderPrefixElided, true,
+    'copied wrapper trees and case-insensitive collation names are structurally identical');
+  assert.deepEqual(wrapped.outer.orderBy, []);
+
+  const direction = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY a DESC) FROM t1 ORDER BY a ASC',
+  ));
+  assert.equal(direction.outer.orderPrefixElided, false,
+    'sqlite3ExprListCompare includes ExprList sort flags');
+  assert.equal(direction.outer.orderBy.length, 1);
+
+  const collation = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY a COLLATE nocase) FROM t1 ORDER BY a COLLATE rtrim',
+  ));
+  assert.equal(collation.outer.orderPrefixElided, false,
+    'similar terminal structure with different COLLATE nodes must not compare equal');
+
+  const integerCopy = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY 1) FROM t1 ORDER BY 1',
+  ));
+  assert.equal(integerCopy.outer.orderPrefixElided, false,
+    'bIntToNull changes the generated expression tree before the structural prefix comparison');
+});

@@ -1,6 +1,6 @@
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {ExprNode, OrderTermNode, SelectNode} from "./parse.ts";
-import type {ResolvedResult, ResolvedSelect, ResolvedWindow} from "./resolve.ts";
+import {expressionStructurallyEqual, type ResolvedResult, type ResolvedSelect, type ResolvedWindow} from "./resolve.ts";
 import {sqliteAsciiFold} from "./sqlite-case.ts";
 import type {SqlToken} from "./tokenize.ts";
 import {productions, tokenIds} from "../generated/parser-tables.ts";
@@ -60,8 +60,21 @@ function copySortExpression(value:ExprNode,integerToNull:boolean):ExprNode{
  const reduction=value.reduction?copy(value.reduction):undefined;
  return Object.freeze({kind:"tokens",tokens:Object.freeze(reduction?leaves(reduction):value.tokens.map(token=>Object.freeze({...token}))),...(reduction?{reduction}:{}),...(value.alias===undefined?{}:{alias:value.alias})});
 }
-function sortFlags(value:ExprNode):Pick<WindowRewriteSortTerm,"descending"|"nulls">{const words=value.tokens.map(token=>sqliteAsciiFold(token.text));return{descending:words.includes("desc"),nulls:words.includes("nulls")?(words.includes("first")?"first":"last"):null}}
-function normalized(value:ExprNode):string{return value.tokens.map(token=>sqliteAsciiFold(token.text)).filter(word=>word!=="asc"&&word!=="nulls"&&word!=="first"&&word!=="last").join(" ")}
+function windowOrderFlags(window:ResolvedWindow):readonly Pick<WindowRewriteSortTerm,"descending"|"nulls">[]{
+ const root=window.owner.reduction;
+ if(!root)return Object.freeze([]);
+ const find=(node:LemonValue<SqlToken>):Reduction|undefined=>node.kind!=="reduction"?undefined:node.signature.startsWith("sortlist ::=")?node:node.children.map(find).find((value):value is Reduction=>!!value);
+ const list=find(root);if(!list)return Object.freeze([]);
+ const terms:Reduction[]=[];
+ const collect=(node:Reduction):void=>{const prior=node.children.find((child):child is Reduction=>child.kind==="reduction"&&child.signature.startsWith("sortlist ::="));if(prior)collect(prior);terms.push(node);};collect(list);
+ return Object.freeze(terms.map(term=>{const words=leaves(term).map(token=>sqliteAsciiFold(token.text));return Object.freeze({descending:words.includes("desc"),nulls:words.includes("nulls")?(words.includes("first")?"first" as const:"last" as const):null});}));
+}
+function sameOrderTerm(parent:OrderTermNode,producer:WindowRewriteSortTerm,resolved:ResolvedSelect):boolean{
+ // expr.c:sqlite3ExprListCompare compares sort flags before sqlite3ExprCompare.
+ // The generated sort is a deep copy, so parser-node identity is unavailable.
+ return parent.descending===producer.descending&&parent.nulls===producer.nulls&&
+  expressionStructurallyEqual(parent.expr,producer.expression,resolved.source.from.items,false);
+}
 function windowArguments(owner:ExprNode):readonly ExprNode[]{
  const call=owner.reduction;
  if(!call||call.kind!=="reduction")return Object.freeze([]);
@@ -122,8 +135,8 @@ export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph
  const groups=new Map<number,ResolvedWindow[]>();for(const window of resolved.windows){const group=groups.get(window.compatibleGroup);if(group)group.push(window);else groups.set(window.compatibleGroup,[window]);}
  let nextCursor=Math.max(-1,...resolved.sources.map(source=>source.cursorId))+1,nextRegister=0;const layers:WindowRewriteLayerState[]=[];let parentOrder=resolved.source.orderBy;let prefixElided=false;
  for(const [compatibleGroup,windows] of groups){const main=windows[0]!;
-  const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"partition" as const,copiedIntegerToNull,...sortFlags(value)});}),...main.orderBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"order" as const,copiedIntegerToNull,...sortFlags(value)});})]);
-  if(layers.length===0&&parentOrder.length<=producerOrderBy.length&&parentOrder.every((term,index)=>normalized(term.expr)===normalized(producerOrderBy[index]!.expression))){parentOrder=Object.freeze([]);prefixElided=true;}
+  const orderFlags=windowOrderFlags(main);const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"partition" as const,copiedIntegerToNull,descending:false,nulls:null});}),...main.orderBy.map((value,index)=>{const copiedIntegerToNull=integerSortKey(value),flags=orderFlags[index]??{descending:false,nulls:null};return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"order" as const,copiedIntegerToNull,...flags});})]);
+  if(layers.length===0&&parentOrder.length<=producerOrderBy.length&&parentOrder.every((term,index)=>sameOrderTerm(term,producerOrderBy[index]!,resolved))){parentOrder=Object.freeze([]);prefixElided=true;}
   const terminalRewrite=liftExpressions([...resolved.result.map(result=>result.expression),...parentOrder.map(term=>term.expr)],resolved,main),lifted=terminalRewrite.lifted,buffer:ExprNode[]=lifted.map(item=>item.expression);
   buffer.push(...main.partitionBy,...main.orderBy);
   const functions=windows.map(window=>{const argumentColumn=buffer.length;buffer.push(...windowArguments(window.owner));const filterColumn=window.filter?(buffer.push(window.filter),buffer.length-1):null;return Object.freeze({window,argumentColumn,filterColumn,regAccum:++nextRegister,regResult:++nextRegister});});

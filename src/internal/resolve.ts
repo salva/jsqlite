@@ -17,7 +17,7 @@ export interface ResolvedSelect {readonly source:SelectNode;readonly sources:rea
 /** Transient resolve.c NameContext frame; never attached to immutable schema AST. */
 interface NameContext {readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:'reduction'};
-function expressionStructurallyEqual(left:ExprNode,right:ExprNode,sources:SelectNode['arms'][number]['from']['items']):boolean{
+export function expressionStructurallyEqual(left:ExprNode,right:ExprNode,sources:SelectNode['arms'][number]['from']['items'],ignoreTopLevelCollate=true):boolean{
  if(!left.reduction||!right.reduction)return false;
  const unwrap=(node:ExprReduction,collate=false):ExprReduction=>{
   let current=node,grouped=false;
@@ -43,7 +43,7 @@ function expressionStructurallyEqual(left:ExprNode,right:ExprNode,sources:Select
   return null;
  };
  const compare=(a0:ExprReduction,b0:ExprReduction):boolean=>{
-  const a=unwrap(a0,true),b=unwrap(b0,true),aLeaf=leaf(a),bLeaf=leaf(b);
+  const a=unwrap(a0,ignoreTopLevelCollate),b=unwrap(b0,ignoreTopLevelCollate),aLeaf=leaf(a),bLeaf=leaf(b);
   if(aLeaf!==null||bLeaf!==null){
    const resolvedBoolean=a.signature==='expr ::= nm DOT nm'||a.signature==='expr ::= nm DOT nm DOT nm'||b.signature==='expr ::= nm DOT nm'||b.signature==='expr ::= nm DOT nm DOT nm';
    const valid=(node:ExprReduction):boolean=>{if(node.signature==='expr ::= nm DOT nm'){const first=node.children.find((value):value is ExprReduction=>value.kind==='reduction'&&value.signature.startsWith('nm ::='));const token=first?.children.find(value=>value.kind==='terminal');return !!token&&token.kind==='terminal'&&sources.some(source=>sqliteIdentifierEqual(identifier(token.value.text),source.alias??source.tableName));}if(node.signature==='expr ::= nm DOT nm DOT nm'){const names=node.children.filter((value):value is ExprReduction=>value.kind==='reduction'&&value.signature.startsWith('nm ::='));const values=names.map(name=>name.children.find(value=>value.kind==='terminal')).filter((value):value is Extract<LemonValue<SqlToken>,{kind:'terminal'}>=>value?.kind==='terminal').map(value=>identifier(value.value.text));return sources.some(source=>sqliteIdentifierEqual(values[0]??'',source.databaseName??'main')&&sqliteIdentifierEqual(values[1]??'',source.alias??source.tableName));}return true;};
