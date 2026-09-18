@@ -1127,3 +1127,50 @@ machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and c
 | `src/select.c:generateWithRecursiveQuery` and recursive destination routing | `compileRecursiveCteSelect`, bounded `compileMultipleRecursiveCtes`; `OpenFifo`/`FifoInsert`/`FifoShift`; `OpenPriorityQueue`/`PriorityInsert`/`PriorityShift`; typed sorter materialization | Public recursive conformance: FIFO, all-history UNION, ORDER priority, LIMIT/OFFSET, 20k iterative/lifecycle/control stress, plus two distinct recursive declarations composed through a direct-projection cross join and output ORDER BY with source-shaped explicit collation/direction/NULL flags; producer materialization uses a zero-field stable key rather than comparing payload values. Broader/reused consumers reject temporarily. |
 | `src/select.c:resolveFromTermToCte` recursive CteUse branches | recursive pre-emission validation and generated-semantic nested-reference walk | Exact width, circular, direct multiple, nested multiple, aggregate/window prepare diagnostics. |
 | `src/vdbe.c` ephemeral cursor lifecycle/control loop | `FifoCursor`, `PriorityQueueCursor`, shared private budget, `VdbeStatement.#halt/#privateControl` | reset/rebind/finalize/error/cancel/deadline/work/yield state retained in one VM. |
+
+## Window-function pre-implementation map ([[card:card-o-a-a]], 2026-09-18)
+
+Pinned identity: SQLite 3.53.4 / source id
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+This map is progressive architecture only: current TypeScript window attempted and
+credited execution counts are **0/0**. The current generated parser/compiler has no
+admitted Window graph/lowering, so window statements remain atomic unsupported
+prepare outcomes. Existing aggregate, subquery/view and ordinary/recursive CTE
+claims are unchanged.
+
+| Pinned owner | Exact source responsibility | Planned project owner / gate |
+|---|---|---|
+| `src/parse.y`: `filter_over`, `over_clause`, `window_clause`, `windowdefn[_list]`, `window`, `frame_opt`, `range_or_rows`, `frame_bound[_s/_e]`, `frame_exclude[_opt]` | Generated construction and destruction of OVER/named-window/frame/filter semantic values; implicit RANGE unbounded/current default. | Generated parser actions and immutable test snapshots; no token reparse. Must land before syntax admission. |
+| `src/sqliteInt.h`: `struct Window`; `src/window.c`: `sqlite3WindowAlloc`, `sqlite3WindowAssemble`, `sqlite3WindowAttach`, delete/unlink/list-delete | Window fields, expression/function/SELECT ownership, default/explicit frame identity, normalized bounds and cleanup. | Mutable compiler graph with discriminated frame/bound/exclusion enums and exact one-owner cleanup. |
+| `src/window.c`: `windowFind`, `sqlite3WindowChain`, `sqlite3WindowUpdate` | Earlier-definition named inheritance, override errors, copied OVER definitions, RANGE-offset cardinality validation, built-in frame coercion and FILTER restriction. | Resolver pass after function lookup; prepare-time diagnostics and source tests. |
+| `src/resolve.c`: function-expression branch around `NC_AllowWin`/`NC_HasWin`, calls to `sqlite3WindowUpdate` and `sqlite3WindowLink` | Scope legality, nested aggregate/window checks, function class/arity, linking at the owning SELECT. | Existing linked NameContext/function resolution extended structurally; atomic no-Program errors. |
+| `src/window.c`: `sqlite3WindowCompare`, `sqlite3WindowLink` | Same frame/PARTITION/ORDER chain sharing; differing windows excluded and `SF_MultiPart` marking. | Compiler chain identity; FILTER remains function-local. Different chains lower through nested SELECT rewrites. |
+| `src/window.c`: `selectWindowRewriteExprCb`, `selectWindowRewriteEList`, `sqlite3WindowRewrite`; `src/select.c`: call before WHERE planning | Move FROM/WHERE/GROUP/HAVING to sorted subquery, rewrite parent expressions to buffer columns, append partition/order/args/filter, allocate `regAccum`, `regResult`, `iEphCsr`. | Source-shaped Select rewrite preserving existing aggregate/subquery/CTE/metadata graphs; snapshot gate before VM work. |
+| `src/select.c`: window branches in `sqlite3Select`, select-loop destinations and outer output subroutine | Compile rewritten producer, call CodeInit before WHERE loop, call CodeStep, expose each completed row through `regGosub`/`addrGosub` and `OP_Return`. | Existing SELECT destinations and VM lowering; no recursive Statement or host iterator. |
+| `src/window.c`: `sqlite3WindowCodeInit` | Open main ephemeral and three duplicate cursors; initialize partition, exclusion and built-in application cursor/register state. | Typed ephemeral cursors under the one Program private budget; non-overlapping register/cursor allocator. |
+| `src/window.c`: `WindowCodeArg`, `windowCheckValue`, `windowCodeRangeTest`, `windowIfNewPeer`, `windowCodeOp`, `sqlite3WindowCodeStep` | One-time partition bound checks; ROWS counters, GROUPS peers, RANGE ASC/DESC comparisons; partition flush; step/inverse/return ordering and safe deletion modes. | VDBE op/control translation using `Mem`/`KeyInfo`, deterministic work and resumable pc/register/cursor state. |
+| `src/window.c`: `windowAggStep`, `windowAggFinal`, `windowReturnOneRow`, `windowCacheFrame`, exclusion/full-scan branches | FILTERed step/inverse, value/final, cached/random-access versus sliding mode, frame scan and EXCLUDE semantics. | Existing aggregate context plus window accumulator state; shared byte/entry accounting and first-error cleanup. |
+| `src/window.c`: built-in callbacks and `sqlite3WindowFunctions` (`WINDOWFUNCALL`, `WINDOWFUNCX`, `WINDOWFUNCNOOP`) | Callback implementations and coerced frames for row_number/rank/dense_rank/percent_rank/cume_dist/ntile/first/last/nth/lead/lag; lead/lag bytecode ownership. | Dedicated built-in definitions preserving callback-versus-bytecode split; not ordinary host scalar registration. |
+| `src/func.c`: `WAGGREGATE` registrations for sum/total/avg/count/min/max/group_concat/string_agg and inverse/value callbacks | Ordinary aggregate functions reused as aggregate windows. | Existing source-shaped aggregate `FuncDef`/context expanded only with inverse/value lifecycle required by the selected mode. |
+| `src/vdbe.c`: `OP_Gosub`, `OP_Return`, `OP_InitCoroutine`, `OP_Yield`, `OP_EndCoroutine`, `OP_OpenEphemeral`/`OpenDup`, `OP_AggStep`/`AggInverse`/`AggValue`/`AggFinal`; `src/vdbeaux.c`: coroutine/subroutine finish/analysis | Return-address and coroutine-pc exchange, shared ephemeral handles, callback dispatch/finalization. | Existing opcode-array/register VM adaptation, resumable across bounded async yields; focused opcode and cleanup gates. |
+| `src/select.c`: coroutine/materialization/flattening and aggregate SELECT paths | Composition with derived tables, CTEs, aggregates, compounds and outer ORDER/DISTINCT/LIMIT; window flatten restriction. | Preserve current admitted architecture. Reject the complete statement at prepare if any required composed route is unavailable. |
+| `test/window*.test`, `test/e_window*.test`, `test/windowfault.test` in the pinned tree | Upstream semantic, boundary and fault evidence candidates. | Future immutable pinned-native artifact plus public Fetch TypeScript runner; no credit until exact rows/types/errors and lifecycle companions pass. |
+
+Project-only operational bounds are deliberate browser/read-only adaptations, not
+SQL algorithm substitutions: all window/auxiliary ephemeral state shares
+`PrivateStateByteBudget`, private entry/key limits and the one execution work
+counter; each move/comparison/callback/copy is charged; cancellation, deadline and
+host yield preserve state without replay. `maxRows`/`maxResultBytes` remain public
+output limits. Reset retains bindings but destroys all window execution state;
+rebind reruns cleanly; finalize/failure/cancel/deadline release every cursor,
+accumulator and reservation once while preserving the first error. Required tests
+must include tiny byte/entry/work limits and injected suspension/cleanup failures.
+
+Inspected for this decision: the manifest and the pinned files `src/window.c`,
+`src/sqliteInt.h`, `src/parse.y`, `src/resolve.c`, `src/select.c`, `src/func.c`,
+`src/vdbe.c`, and `src/vdbeaux.c`, including all named routines above. The current
+revision-labelled fidelity audit was checked against current docs/source: its
+later ordinary and recursive CTE revisions supersede old CTE predictions, while
+its sustained rule against substitute semantic owners remains applicable; it has
+no evidence of implemented window execution. No exceptional substitution is
+proposed.

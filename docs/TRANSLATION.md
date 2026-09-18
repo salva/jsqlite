@@ -2621,3 +2621,187 @@ Represented scope is deliberately narrower than SQLite: source-free setup arms, 
 Recursive evidence accounting (2026-09-18): `stage3-recursive-cte.spec.json` adds 5 exact upstream assertions (`with2-1.14`, `with1-5.6.1`, `with1-7.5`, `with1-16.1`, `with1-16.2`) and 2 no-credit companions (LIMIT/OFFSET plus multi-owner explicit-collation/NULL ordering), recaptured with pinned 3.53.4 across three encodings: 21/21 native executions. Internal opcode/queue tests are not upstream credit. Public tests separately execute UNION history, priority ORDER, LIMIT/OFFSET, typed INTEGER rows, metadata, prepare diagnostics, lifecycle and controls; the all-encoding matrix is 3 encodings × 4 behaviors = 12/12 public observations.
 
 The broad Node glob's apparent hang was bounded to `compound-collation.test.mjs`: its four existing cases pass individually in 21.3s, 6.3s, 3.3s and 15.3s, so the prior 40s file timeout was too small for their ~46s serial total. This is unrelated to recursive CTE control/lifecycle.
+
+## Window-function architecture decision ([[card:card-o-a-a]], 2026-09-18)
+
+This is a **source-derived pre-implementation decision**, not an admission or a
+TypeScript execution claim. The baseline is pinned SQLite 3.53.4, source id
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`
+from `reference/sqlite/manifest.json`. Inspection of the current generated parser,
+compiler, tests and revision-labelled fidelity audit confirms that the current
+runtime has aggregate, subquery/view, ordinary WITH and bounded recursive-WITH
+routes described above, but no admitted `Window` graph or window lowering. Window
+syntax/compositions therefore continue to fail atomically through the current
+unsupported boundary. Nothing below changes `docs/api.md`, claims manifest credit,
+or permits AST evaluation, host registration, native delegation, or a second SQL
+parser.
+
+### Generated graph, resolution, and frame validation
+
+The generated Lemon actions in pinned `src/parse.y` remain the sole producer.
+`filter_over`, `over_clause`, `window`, `frame_opt`, bounds, exclusion, and
+`window_clause` construct owned, mutable `Window` nodes with the source fields in
+`src/sqliteInt.h`: names/base name, PARTITION/ORDER expressions, frame kind and
+bounds, implicit-frame bit, exclusion, filter/function/owner links and the later
+cursor/register fields. A TypeScript object and discriminated enums are ordinary
+representational adaptations of this graph, not a replacement algorithm. The
+function expression owns its attached window; a SELECT owns its named definitions
+and the compatible execution chain. Parser-error destruction must release each
+expression/list/node once, and unsupported syntax must remain represented far
+enough to issue an honest prepare error rather than being dropped.
+
+Resolution follows `resolve.c`'s `NC_AllowWin`/`NC_HasWin` discipline. Window
+functions are legal only at the same SELECT level and expression positions as the
+pinned resolver; nested aggregate/window misuse, unknown functions/windows,
+`DISTINCT` window calls, and FILTER on a built-in non-aggregate window function
+fail during prepare. Function lookup precedes `sqlite3WindowUpdate`; that routine
+resolves `OVER name`, copies the definition, validates offset RANGE has exactly
+one ORDER term, and records the `FuncDef`. `sqlite3WindowChain` resolves a base
+only against earlier definitions and copies inherited PARTITION and, when present,
+ORDER. A derived window may not add PARTITION, may not override an inherited
+ORDER, and may not extend a base with an explicit frame. These are graph-copy
+rules, not prototype lookup at execution.
+
+`frame_opt` supplies SQLite's implicit `RANGE BETWEEN UNBOUNDED PRECEDING AND
+CURRENT ROW`; preserve `bImplicitFrame` so inheritance can distinguish omission
+from an explicit frame. `sqlite3WindowAlloc` owns start/end legality and normalizes
+explicit `0 PRECEDING`/`0 FOLLOWING` as upstream does; `sqlite3WindowUpdate` then
+coerces built-ins exactly: `row_number` to ROWS unbounded/current;
+`dense_rank`/`rank` to RANGE unbounded/current; `percent_rank` to GROUPS
+current/unbounded; `cume_dist` to GROUPS 1 FOLLOWING/unbounded; `ntile` to ROWS
+current/unbounded; `lead` to ROWS unbounded/unbounded; and `lag` to ROWS
+unbounded/current, clearing EXCLUDE and offset expressions. The remaining
+first/last/nth value functions retain the user's/default frame.
+
+Bound expressions are evaluated once at each partition initialization, not per
+output row. ROWS/GROUPS offsets must be non-negative integers; RANGE offsets must
+be non-negative numeric values. Runtime type/range failures retain SQLite's frame
+error distinction. RANGE with an offset requires one ORDER expression. ROWS moves
+by physical rows; GROUPS moves by peer groups; RANGE uses the single ORDER value,
+sort direction, affinity/collation comparison and SQLite's non-numeric `IS`-peer
+behavior. With no ORDER term all rows are peers. CURRENT ROW for RANGE/GROUPS
+therefore includes the appropriate peer group, whereas ROWS addresses the current
+physical row. EXCLUDE NO OTHERS, CURRENT ROW, GROUP and TIES are applied after
+frame-bound membership; GROUP removes the current peer group even for ROWS, and
+TIES retains the current row while removing its peers. No host `<`, equality,
+sort, or numeric coercion may replace existing `Mem`/`KeyInfo` semantics.
+
+### Rewrite ownership, compatible sharing, and nesting
+
+After expansion/name resolution and aggregate analysis, and before the ordinary
+WHERE loop, port `sqlite3WindowRewrite`. For the main compatible window it moves
+the original FROM, WHERE, GROUP BY and HAVING into one generated subquery, orders
+that producer by PARTITION then ORDER expressions, and leaves the parent ORDER,
+LIMIT and OFFSET at the outer level. It rewrites terminal/column expressions from
+the parent result and ORDER lists into buffered subquery columns; appends partition,
+order, function arguments and FILTER inputs; allocates `regAccum` and `regResult`
+per function; and assigns `iEphCsr` plus three duplicate cursors to the main window.
+The existing immutable Select/source/name graphs remain the compiler input; this
+rewrite must preserve metadata, affinity/collation, aggregate ownership, correlated
+references and the admitted subquery/CTE producers described above.
+
+`sqlite3WindowLink` and `sqlite3WindowCompare` define sharing. Windows identical
+in frame kind/bounds/exclusion/PARTITION/ORDER share one SELECT scan and chain;
+the FILTER is function-local and does not split that frame chain. A differing
+window is left outside the chain. Recursive `sqlite3Select` compilation then wraps
+the SELECT again, yielding source-shaped nested scans for different windows rather
+than one host multiplexer. Differing PARTITION marks the multi-part condition.
+This same-window sharing/different-window nesting is load-bearing: a shortcut that
+materializes all windows together changes sorting, callback order, memory timing,
+and errors. Compound arms retain their own SELECT/window ownership. Flattening
+must continue to honor the existing window restriction; CTE, derived-source,
+aggregate, join, compound, DISTINCT and ORDER/LIMIT composition is admitted only
+when every required underlying route can preserve this rewrite. Otherwise the
+whole statement fails before Program publication—never partial lowering or a
+runtime “unsupported” after side effects.
+
+### VM interface and execution modes
+
+The rewritten subquery is an ordinary SELECT producer. `select.c` supplies each
+sorted producer row through the existing select-loop destination/coroutine
+contract; `sqlite3WindowCodeInit` opens `iEphCsr` and three duplicate cursors and
+allocates partition/application state. `sqlite3WindowCodeStep` consumes producer
+columns, detects partition boundaries with `KeyInfo`, and enters the outer row
+subroutine using `Gosub(regGosub, addrGosub)`; that subroutine reads window
+`regResult` values and terminates with `Return(regGosub)`. This is distinct from,
+but composes with, `InitCoroutine`/`Yield`/`EndCoroutine` used by derived/CTE
+producers. The existing VM integer pc/register adaptation must preserve pinned
+Gosub return-address and coroutine pc-exchange semantics across async suspension;
+there is no recursive Statement or JavaScript generator substitution.
+
+Each partition buffer stores the rewritten producer record. The current, write,
+frame-start and frame-end cursors share it; peer-register arrays use resolved
+ORDER `KeyInfo`. The source state machine advances `WINDOW_AGGSTEP`,
+`WINDOW_AGGINVERSE`, and `WINDOW_RETURN_ROW`, deleting a row only at the
+source-selected safe point (after leaving the frame, after entering it, or after
+return), or retaining the partition when required. ROWS uses counters, GROUPS
+advances on peer transitions, and RANGE uses the source range tests with ASC/DESC
+and collation-aware comparisons. Partition transition calls the flush subroutine,
+finishes every pending row, resets cursor/accumulator state, then admits the next
+partition. Empty and inverted frames still invoke the source result/finalization
+path and produce SQLite values/errors.
+
+Preserve the source's two modes rather than imposing “always sliding” or “always
+cache”. Ordinary inverse-capable aggregate windows call step as rows enter,
+inverse as rows leave, value for interim output, and final exactly at accumulator
+teardown. Frames/functions for which `windowCacheFrame` is true retain the needed
+partition/frame and may recompute or random-access it; EXCLUDE uses the full-scan
+path over the selected frame with the exclusion predicate. `lead`/`lag` are
+bytecode-owned random accesses; first/nth value use application cursor/registers;
+sliding min/max owns its keyed ephemeral structure. Built-in `row_number`, rank,
+dense-rank, percent-rank, cume-dist, ntile, first/last/nth and lead/lag retain the
+callback-versus-bytecode split registered by `sqlite3WindowFunctions`; do not
+replace them with generic aggregate callbacks. Aggregate functions from `func.c`
+reuse their existing `FuncDef` step/final/value/inverse ownership and FILTER gates.
+A function lacking the callbacks required by an admitted mode must be rejected at
+prepare, not emulated by an unrelated host algorithm.
+
+### Bounds, lifecycle, integration gates, and avoided complexity
+
+Window buffers, peer/application ephemerals, retained aggregate values and copied
+`Mem` payloads consume the statement's one immutable `PrivateStateByteBudget` and
+existing private entry/key ceilings; they are not charged to `maxRows` or
+`maxResultBytes`. A buffered row is one private entry, each auxiliary min/max key
+is an entry, and all simultaneously live nested-window/subquery/CTE/sorter state
+shares the execution-wide byte ceiling. Reserve before growth, roll back failed
+growth, release on safe row deletion/partition reset, and include copied logical
+bytes and every `KeyInfo` term/cursor move/callback in deterministic work charging.
+No implementation may rely on a partition fitting host memory merely because
+SQLite may cache one. These are bounded adaptations required by the browser-safe
+product contract; they preserve SQL values, ordering, callback order and errors,
+while resource excess remains project `kind:"limit"`, not a counterfeit SQLite
+code.
+
+Every input advance, peer/range comparison, frame move, callback, scan and emitted
+outer opcode observes the existing cancellation/deadline/yield boundary. A host
+yield retains producer/coroutine pc, Gosub return register, all window cursors,
+peer/bound registers, accumulators, private reservations and the current output
+row without replay. `maxRows` is charged only when the outer `ResultRow` publishes.
+Reset invalidates the row and tears down every partition/application cursor and
+accumulator exactly once, clears pcs/register state, retains bindings, and rebuilds
+execution from pc 0; rebind after reset sees no cached frame. Finalize/error/
+cancellation/deadline and deferred connection destruction continue cleanup,
+release all reservations once, and preserve the first operation error. Busy close
+and valid zombie/deferred-close behavior remain exactly the public lifecycle
+contract above; a pending step continues to own connection admission across yields.
+
+Load-bearing prerequisites are generated semantic values for all window
+productions; full Window/Expr ownership and resolver flags; source `Mem`,
+comparison/collation and numeric coercion; aggregate callback contexts including
+inverse/value/final; typed ephemeral duplicate cursors and shared byte accounting;
+Gosub/Return plus coroutine state; nested SELECT rewrite/lowering; and existing
+aggregate, subquery/view, CTE, join, compound, ORDER/DISTINCT/LIMIT destinations.
+Implementation should proceed graph/resolution tests, rewrite snapshots, VM
+control/private-state tests, then pinned public oracle matrices for defaults,
+inheritance, peers/bounds/EXCLUDE, every built-in and aggregate callback mode,
+identical/different windows, and admitted compositions. Inject tiny limits,
+yields, cancellation/deadlines, reset/rebind/finalize and cleanup faults. Compare
+INTEGER/REAL/NULL/TEXT encoding/BLOB, rows, metadata and prepare-versus-step errors.
+Until those gates are promoted, runtime support remains zero.
+
+Rejected alternatives are an AST interpreter, host array sort/slice, JS
+Map/equality peer grouping, one materialize-all window engine, recursive prepared
+statements, and native/WASM delegation. They duplicate existing semantic owners or
+lose source control/resource timing. No exceptional algorithm substitution is
+selected by this decision; ordinary objects, `BigInt`, typed byte arrays and async
+VM suspension are representation/execution adaptations under the invariants above.
