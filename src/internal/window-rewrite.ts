@@ -28,6 +28,7 @@ export interface WindowRewriteLayer {
  readonly handoff:readonly [{readonly code:"Gosub";readonly register:number;readonly address:number},{readonly code:"Return";readonly register:number}];
  readonly producer:WindowRewriteProducer;
 }
+type WindowRewriteLayerState=Omit<WindowRewriteLayer,"producer">;
 export interface WindowRewriteGraph {
  readonly source:ResolvedSelect;readonly layers:readonly WindowRewriteLayer[];readonly root:WindowRewrittenSelect|null;
  readonly outer:Readonly<{orderBy:readonly OrderTermNode[];originalOrderBy:readonly OrderTermNode[];orderPrefixElided:boolean;limit:ExprNode|null;offset:ExprNode|null;result:readonly ResolvedResult[]}>;
@@ -119,7 +120,7 @@ function liftExpressions(owners:readonly ExprNode[],select:ResolvedSelect,main:R
 /** Immutable port of window.c:sqlite3WindowRewrite/sqlite3WindowCodeInit. */
 export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph{
  const groups=new Map<number,ResolvedWindow[]>();for(const window of resolved.windows){const group=groups.get(window.compatibleGroup);if(group)group.push(window);else groups.set(window.compatibleGroup,[window]);}
- let nextCursor=Math.max(-1,...resolved.sources.map(source=>source.cursorId))+1,nextRegister=0;const layers:WindowRewriteLayer[]=[];let parentOrder=resolved.source.orderBy;let prefixElided=false;
+ let nextCursor=Math.max(-1,...resolved.sources.map(source=>source.cursorId))+1,nextRegister=0;const layers:WindowRewriteLayerState[]=[];let parentOrder=resolved.source.orderBy;let prefixElided=false;
  for(const [compatibleGroup,windows] of groups){const main=windows[0]!;
   const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"partition" as const,copiedIntegerToNull,...sortFlags(value)});}),...main.orderBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),source:"order" as const,copiedIntegerToNull,...sortFlags(value)});})]);
   if(layers.length===0&&parentOrder.length<=producerOrderBy.length&&parentOrder.every((term,index)=>normalized(term.expr)===normalized(producerOrderBy[index]!.expression))){parentOrder=Object.freeze([]);prefixElided=true;}
@@ -131,7 +132,7 @@ export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph
   // The producer edge is attached after all layer-local state is complete. Only
   // the first rewrite owns the original clauses; later incompatible rewrites
   // consume the complete Select produced by the preceding recursive rewrite.
-  layers.push(Object.freeze({compatibleGroup,windows:Object.freeze(functions),producerOrderBy,bufferExpressions:Object.freeze(buffer),lifted:Object.freeze(lifted),aggregateDepthRepairs:Object.freeze(terminalRewrite.aggregateDepthRepairs),iEphCsr,duplicateCursors:Object.freeze([iEphCsr+1,iEphCsr+2,iEphCsr+3]) as readonly [number,number,number],regGosub,addrGosub,handoff,producer:null as never}));
+  layers.push(Object.freeze({compatibleGroup,windows:Object.freeze(functions),producerOrderBy,bufferExpressions:Object.freeze(buffer),lifted:Object.freeze(lifted),aggregateDepthRepairs:Object.freeze(terminalRewrite.aggregateDepthRepairs),iEphCsr,duplicateCursors:Object.freeze([iEphCsr+1,iEphCsr+2,iEphCsr+3]) as readonly [number,number,number],regGosub,addrGosub,handoff}));
  }
  let root:WindowRewrittenSelect|null=null;
  const linked:WindowRewriteLayer[]=[];
