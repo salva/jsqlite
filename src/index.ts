@@ -1,6 +1,6 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
-import { aggregateShapeSupported, compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveCteSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, VdbeStatement } from "./internal/vdbe.ts";
+import { aggregateShapeSupported, compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveCteSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
@@ -161,11 +161,15 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
       const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
-      if(aggregate&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+      // window.c:sqlite3WindowRewrite performs its own aggregate analysis and
+      // ORDER BY misuse validation before mutating the SELECT. Do not let the
+      // ordinary aggregate-shape admission gate bypass that phase.
+      const window = recursiveOwner===null&&selectHasWindow(selected);
+      if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const recursiveEncoding = this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be";
       const program = recursiveOwner!==null
         ? (compileMultipleRecursiveCtes(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows) ?? compileRecursiveCteSelect(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows))
-        : aggregate
+        : aggregate&&!window
         ? compileAggregateSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
         : selected.from.items.length || selected.where
         ? compileTableSelect(

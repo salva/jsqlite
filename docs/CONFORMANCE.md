@@ -396,3 +396,7 @@ suite is also separate evidence: its **39/39** observations cover bounded ordina
 and recursive execution, diagnostics, encodings, typed rows/metadata, composition,
 resource/control behavior, and lifecycle; those observations are not added to the
 native denominator or upstream-credit count.
+
+### Window rewrite implementation accounting ([[card:card-o-b-f]], 2026-09-18)
+
+The immutable `stage3-window` manifest remains unchanged: 29 declared entries, 28 native executions, 10 upstream credits, and all 29 TypeScript entries unattempted/zero-credit. Source-based `test/conformance/window-rewrite.test.mjs` is deliberately outside that credit denominator. It covers rewrite graph/lifting/sort-copy behavior, selective aggregate-depth repair, exact prepare-time ORDER aggregate misuse, and scalar/table atomic publication gates. Frame runtime remains unsupported, so these tests do not promote any manifest case.

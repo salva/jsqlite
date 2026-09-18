@@ -19,7 +19,8 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 
-export {sqlite3WindowRewrite} from "./window-rewrite.ts";
+import {sqlite3WindowRewrite} from "./window-rewrite.ts";
+export {sqlite3WindowRewrite};
 export type {WindowRewriteFunction,WindowRewriteSortTerm,WindowRewriteLayer,WindowRewriteGraph} from "./window-rewrite.ts";
 
 type SubqueryExpression=Extract<Expression,{kind:"scalar-subquery"}>|Extract<Expression,{kind:"in-subquery"}>;
@@ -275,7 +276,7 @@ export function selectHasAggregate(select:SelectNode):boolean {
 
 
 /** select.c's Select.pWin ownership is local to one SELECT. */
-function selectHasWindow(select:SelectNode):boolean {
+export function selectHasWindow(select:SelectNode):boolean {
  const visit=(node:LemonValue<SqlToken>):boolean=>{if(node.kind!=="reduction")return false;if(node.signature==="expr ::= LP select RP")return false;if(node.signature.startsWith("over_clause ::= OVER"))return true;return node.children.some(visit)};
  const expressions=[...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])];return expressions.some(expression=>expression.reduction!==undefined&&visit(expression.reduction));
 }
@@ -502,6 +503,19 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
 }
 
 export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER): Program {
+  // select.c applies sqlite3WindowRewrite to every SELECT after name/function
+  // resolution, including a SELECT without a FROM clause. Public prepare passes
+  // the schema here, so resolve before scalar lowering can misclassify the owner.
+  if(selectHasWindow(select)){
+    if(!schema)throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
+    let expanded:ReturnType<typeof expandAndResolveSelect>;
+    try{expanded=expandAndResolveSelect(select,schema)}
+    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+    sqlite3WindowRewrite(expanded);
+    // Frame stepping is not admitted. Reject before returning a Program, so the
+    // connection cannot publish a partially lowered Statement.
+    throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
+  }
   rejectUnsupportedSelectClauses(select);
   if(select.hasCompound){
     // select.c:multiSelect's unordered UNION ALL route emits each arm to one
@@ -1092,6 +1106,13 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   let expanded;
   try { expanded=expandAndResolveSelect(select,schema); }
   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  // select.c invokes sqlite3WindowRewrite after resolution/aggregate analysis and
+  // before WHERE planning. Construct the complete immutable handoff here, then
+  // reject before a Program is published until sqlite3WindowCodeStep exists.
+  if(expanded.windows.length){
+    sqlite3WindowRewrite(expanded);
+    throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
+  }
   rejectUnsupportedSelectClauses(select, true);
   if (select.from.items.length > 1) return compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
   if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
