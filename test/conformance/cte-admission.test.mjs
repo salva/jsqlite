@@ -134,6 +134,23 @@ test('public recursive CTE composes with supported outer join consumer',async()=
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
 
+test('public multiple recursive declarations compose through a supported cross join',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare(`WITH RECURSIVE
+      a(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM a WHERE x<2),
+      b(y) AS (VALUES(10) UNION ALL SELECT y+10 FROM b WHERE y<20)
+      SELECT x,y FROM a,b ORDER BY x,y`).statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push([statement.columnInteger(0),statement.columnInteger(1)]);assert.deepEqual(actual,[[1n,10n],[1n,20n],[2n,10n],[2n,20n]]);}finally{statement.finalize()}
+    const reordered=db.prepare(`WITH RECURSIVE
+      a(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM a WHERE x<2),
+      b(y) AS (VALUES(10) UNION ALL SELECT y+10 FROM b WHERE y<20)
+      SELECT x,y FROM a,b ORDER BY y DESC,x`).statement;
+    const reorderedRows=[];try{while(await reordered.step()==='row')reorderedRows.push([reordered.columnInteger(0),reordered.columnInteger(1)]);assert.deepEqual(reorderedRows,[[1n,20n],[2n,20n],[1n,10n],[2n,10n]]);}finally{reordered.finalize()}
+    await reusable(db);db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
 test('recursive queue is iterative and reset/rebind/finalize clean lifecycle state',async()=>{
   const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
   try{
@@ -156,5 +173,19 @@ test('recursive queue cleans state after work-limit, cancellation, and deadline 
       await reusable(db);
     }
     db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} recursive matrix preserves typed rows metadata and queue controls`,async()=>{
+  const body=fs.readFileSync(path.join(generated,`subquery-${encoding}.db`));const {server,db}=await openBytes(body);
+  try{
+    for(const [sql,expected] of [
+      ['WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3 UNION SELECT x FROM c) SELECT x FROM c',[1n,2n,3n]],
+      ['WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x*2 FROM q WHERE x<4 UNION ALL SELECT x*2+1 FROM q WHERE x<4 ORDER BY 1 DESC) SELECT x FROM q',[1n,3n,7n,6n,2n,5n,4n]],
+      ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c',[3n,4n,5n]]]){
+      const statement=db.prepare(sql).statement,actual=[];try{assert.equal(statement.columnMetadata(0).name,'x');while(await statement.step()==='row'){assert.equal(statement.columnType(0),'integer');actual.push(statement.columnInteger(0))}assert.deepEqual(actual,expected)}finally{statement.finalize()}
+    }
+    assert.throws(()=>db.prepare('WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) FROM i) SELECT * FROM i'),error=>error?.kind==='sqlite'&&error?.message==='recursive aggregate queries not supported');
+    await reusable(db);db.close();
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });

@@ -1,0 +1,529 @@
+{
+  "schema": "jsqlite-cte-architecture-capture/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "disposition": "recursive CTE native oracle tranche; public credit tracked separately",
+  "accounting": {
+    "cases": 6,
+    "upstreamCreditCases": 5,
+    "companionsNoCredit": 1,
+    "encodingExecutions": 18,
+    "typescriptAttempted": 0,
+    "typescriptCredited": 0
+  },
+  "captures": [
+    {
+      "id": "with2-1.14",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH t4(x) AS (VALUES(4) UNION ALL SELECT x+1 FROM t4 WHERE x<10) SELECT * FROM t4;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.14",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH t4(x) AS (VALUES(4) UNION ALL SELECT x+1 FROM t4 WHERE x<10) SELECT * FROM t4;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.14",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH t4(x) AS (VALUES(4) UNION ALL SELECT x+1 FROM t4 WHERE x<10) SELECT * FROM t4;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH i(x,y) AS (VALUES(1)) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH i(x,y) AS (VALUES(1)) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH i(x,y) AS (VALUES(1)) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with1-7.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH t(id) AS (VALUES(2) UNION ALL SELECT i FROM tree,t WHERE p=id AND p IN (SELECT id FROM t)) SELECT id FROM t;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "multiple recursive references: t"
+        }
+      }
+    },
+    {
+      "id": "with1-7.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH t(id) AS (VALUES(2) UNION ALL SELECT i FROM tree,t WHERE p=id AND p IN (SELECT id FROM t)) SELECT id FROM t;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "multiple recursive references: t"
+        }
+      }
+    },
+    {
+      "id": "with1-7.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH t(id) AS (VALUES(2) UNION ALL SELECT i FROM tree,t WHERE p=id AND p IN (SELECT id FROM t)) SELECT id FROM t;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "multiple recursive references: t"
+        }
+      }
+    },
+    {
+      "id": "with1-16.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "recursive aggregate queries not supported"
+        }
+      }
+    },
+    {
+      "id": "with1-16.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "recursive aggregate queries not supported"
+        }
+      }
+    },
+    {
+      "id": "with1-16.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "recursive aggregate queries not supported"
+        }
+      }
+    },
+    {
+      "id": "with1-16.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "cannot use window functions in recursive queries"
+        }
+      }
+    },
+    {
+      "id": "with1-16.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "cannot use window functions in recursive queries"
+        }
+      }
+    },
+    {
+      "id": "with1-16.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "cannot use window functions in recursive queries"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-limit-offset",
+      "credit": "none",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-limit-offset",
+      "credit": "none",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-limit-offset",
+      "credit": "none",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    }
+  ]
+}

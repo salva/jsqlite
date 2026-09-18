@@ -1118,6 +1118,6 @@ machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and c
 
 | SQLite 3.53.4 source | TypeScript translation | Evidence / residual |
 |---|---|---|
-| `src/select.c:generateWithRecursiveQuery` | `compileRecursiveCteSelect`; `OpenFifo`/`FifoInsert`/`FifoShift`; `OpenPriorityQueue`/`PriorityInsert`/`PriorityShift` | Public recursive conformance: FIFO, all-history UNION, ORDER priority, LIMIT/OFFSET, 20k iterative/lifecycle/control stress. Residual consumers reject temporarily. |
+| `src/select.c:generateWithRecursiveQuery` and recursive destination routing | `compileRecursiveCteSelect`, bounded `compileMultipleRecursiveCtes`; `OpenFifo`/`FifoInsert`/`FifoShift`; `OpenPriorityQueue`/`PriorityInsert`/`PriorityShift`; typed sorter materialization | Public recursive conformance: FIFO, all-history UNION, ORDER priority, LIMIT/OFFSET, 20k iterative/lifecycle/control stress, plus two distinct recursive declarations composed through a direct-projection cross join and output ORDER BY. Broader/reused consumers reject temporarily. |
 | `src/select.c:resolveFromTermToCte` recursive CteUse branches | recursive pre-emission validation and generated-semantic nested-reference walk | Exact width, circular, direct multiple, nested multiple, aggregate/window prepare diagnostics. |
 | `src/vdbe.c` ephemeral cursor lifecycle/control loop | `FifoCursor`, `PriorityQueueCursor`, shared private budget, `VdbeStatement.#halt/#privateControl` | reset/rebind/finalize/error/cancel/deadline/work/yield state retained in one VM. |

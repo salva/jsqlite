@@ -1,0 +1,15 @@
+{
+  "schema":"jsqlite-cte-architecture-spec/1",
+  "source":{"version":"3.53.4","sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc","manifest":"reference/sqlite/manifest.json"},
+  "disposition":"recursive CTE native oracle tranche; public credit tracked separately",
+  "encodings":["UTF-8","UTF-16le","UTF-16be"],
+  "upstreamFiles":{"reference/sqlite/sqlite-src-3530400/test/with1.test":"02524973b270d2adda54e33940484448a75c871e57cc25b082b7cf038d2c7092","reference/sqlite/sqlite-src-3530400/test/with2.test":"9f83b8c7668058563745ce02b957b87f914437e169400b1bd94c81d551eb7427"},
+  "cases":[
+    {"id":"with2-1.14","credit":"upstream","source":"test/with2.test","assertion":"1.14","setup":[],"sql":"WITH t4(x) AS (VALUES(4) UNION ALL SELECT x+1 FROM t4 WHERE x<10) SELECT * FROM t4;","expect":{"rows":[[4],[5],[6],[7],[8],[9],[10]]}},
+    {"id":"with1-5.6.1","credit":"upstream","source":"test/with1.test","assertion":"5.6.1","setup":[],"sql":"WITH i(x,y) AS (VALUES(1)) SELECT * FROM i;","expect":{"error":{"phase":"prepare","message":"table i has 1 values for 2 columns"}}},
+    {"id":"with1-7.5","credit":"upstream","source":"test/with1.test","assertion":"7.5","setup":["CREATE TABLE tree(i,p)","INSERT INTO tree VALUES(2,NULL),(4,2),(5,4)"],"sql":"WITH t(id) AS (VALUES(2) UNION ALL SELECT i FROM tree,t WHERE p=id AND p IN (SELECT id FROM t)) SELECT id FROM t;","expect":{"error":{"phase":"prepare","message":"multiple recursive references: t"}}},
+    {"id":"with1-16.1","credit":"upstream","source":"test/with1.test","assertion":"16.1","setup":[],"sql":"WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) FROM i) SELECT * FROM i;","expect":{"error":{"phase":"prepare","message":"recursive aggregate queries not supported"}}},
+    {"id":"with1-16.2","credit":"upstream","source":"test/with1.test","assertion":"16.2","setup":[],"sql":"WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i) SELECT * FROM i;","expect":{"error":{"phase":"prepare","message":"cannot use window functions in recursive queries"}}},
+    {"id":"companion-recursive-limit-offset","credit":"none","rationale":"Isolates queue LIMIT/OFFSET termination without outer LIMIT.","setup":[],"sql":"WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c;","expect":{"rows":[[3],[4],[5]]}}
+  ]
+}
