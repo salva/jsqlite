@@ -548,3 +548,14 @@ The prior 7/13 execution label is superseded. Current public tests promote all 1
 ## Current revision 2026-09-17 — repeated RIGHT/FULL barrier correction
 
 The prior 15/15 label is retained only as the single-barrier manifest denominator and is superseded as a claim about arbitrary chains. Immutable project review `record:///review.md?card=card-k&v=3` found that one matcher silently admitted later barriers. Production now atomically rejects >1 RIGHT/FULL barrier at prepare. Fidelity gap remains explicit: upstream owns per-`WhereLevel` `WhereRightJoin`; implementing that cardinality is the next tranche.
+
+### Revision 2026-09-18: ordinary WITH claim
+
+The earlier blanket prediction that CTEs are rejected is no longer current for
+the bounded ordinary tranche. Current public TypeScript evidence is
+`test/conformance/cte-execution.test.mjs` across three encodings; card-n-a native
+oracle assertions retain native credit, while new focused cases are public or
+companion evidence only. Shared declaration identity and one-fill/`OpenDup`
+materialization are implemented; recursive queue execution and residual
+unrepresented nesting/composition remain gaps. This revision does not claim full
+SQLite WITH compatibility.

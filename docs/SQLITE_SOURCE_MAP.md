@@ -1107,3 +1107,11 @@ Verified pinned hashes: `parse.y` `19628d51...3185`, `sqliteInt.h`
 `0ab2b579...7107`, `vdbe.c` `d92cb9c4...ca1d`, `with1.test`
 `02524973...092`, and `with2.test` `9f83b8c7...427` (full hashes remain
 machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and calls `selectGraphContainsWith()` before all ordinary lowering. `test/conformance/cte-admission.test.mjs` covers scalar/EXISTS/IN, retained and flattening-adjacent derived, compound-arm and persisted-view ownership in UTF-8/16le/16be, exact diagnostics, close-without-residue and reuse. The public claim remains temporary prepare-time unsupported rather than partial execution.
+
+## Ordinary WITH tranche (2026-09-18)
+
+| Pinned SQLite 3.53.4 source | TypeScript mapping | Evidence / credit |
+|---|---|---|
+| `select.c`: WITH scope push/pop and `resolveFromTermToCte`; `sqliteInt.h`: `CteUse` | `src/internal/cte.ts`, `SourceList.cteDerived` in `src/internal/parse.ts` | Public TS: `test/conformance/cte-execution.test.mjs` in UTF-8/UTF-16LE/UTF-16BE. Native credit remains the card-n-a oracle manifest only; companion/public cases are not relabeled native. |
+| `select.c`: coroutine eligibility and materialization (`addrM9e`/shared use), duplicate ephemeral cursor | `compileDerivedProducer` and `compileCteDerivedSources` in `src/internal/vdbe.ts` | Public TS covers one-use coroutine, two declarations, repeated-use one-fill/`OpenDup`, and `MATERIALIZED`; existing FROM-derived lifecycle tests are internal/public companion evidence. |
+| Recursive CTE queue algorithm | intentionally unmapped | No public execution credit; recursive self-reference remains typed temporary unsupported. |

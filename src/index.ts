@@ -4,6 +4,7 @@ import { aggregateShapeSupported, compileAggregateSelect, compileScalarSelect, c
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
+import { lowerOrdinaryCtes } from "./internal/cte.ts";
 
 const SQLITE_CORRUPT = 11;
 const SQLITE_BUSY = 5;
@@ -154,16 +155,17 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
       const schema = loadSchemaGraph(this);
-      if (selectGraphContainsWith(parsed.statement, schema)) {
+      const selected = lowerOrdinaryCtes(parsed.statement) ?? parsed.statement;
+      if (selectGraphContainsWith(selected, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
-      const aggregate = selectHasAggregate(parsed.statement)||parsed.statement.hasGroupBy||parsed.statement.hasHaving;
-      if(aggregate&&!parsed.statement.hasCompound&&!parsed.statement.from.derived&&!aggregateShapeSupported(parsed.statement)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+      const aggregate = selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving;
+      if(aggregate&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const program = aggregate
-        ? compileAggregateSelect(parsed.statement, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
-        : parsed.statement.from.items.length || parsed.statement.where
+        ? compileAggregateSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
+        : selected.from.items.length || selected.where
         ? compileTableSelect(
-            parsed.statement,
+            selected,
             schema,
             btreeFromConnection(this, this.#btreeLimits),
             this.#maxRows,
@@ -171,7 +173,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
             this.#limits.maxResultBytes,
             this.#limits.privateStateLimits,
           )
-        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
+        : compileScalarSelect(selected, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
       let statement!: VdbeStatement;
       statement = new VdbeStatement(program,
         () => this.#assertOperationIdle(),

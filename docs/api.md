@@ -406,3 +406,13 @@ No native/host fallback or partial statement shape is exposed.
 ### Expression subqueries (Stage 3 bounded admission)
 
 Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and correlated expression routes, including the documented bounded JOIN/aggregate/GROUP/HAVING/ORDER/DISTINCT/LIMIT/compound compositions. Results retain SQLite INTEGER/REAL/NULL/BLOB distinctions and database encoding. Uncorrelated producers may execute once; correlated producers rerun for each outer row. Reset/rebind/finalize/deferred-close and cancellation/deadline/work/private-byte failures preserve the first error, release owned state, and restore admission as tested. Compound ORDER terms bind by resolved output ownership and structural expression identity, not SQL token spelling. CTE/recursive CTE remain unsupported through the schema-aware graph admission boundary above; windows and unsafe unmatched forms remain unsupported atomically at prepare.
+
+### Ordinary WITH (bounded Stage 3 surface)
+
+`prepare()` admits the represented ordinary, non-recursive WITH forms exercised by
+the conformance suite, including aliases, multiple declarations, repeated
+references, and `AS MATERIALIZED` / `AS NOT MATERIALIZED` planning hints. Rows,
+metadata, errors, reset/finalize, cancellation, yielding, and limits use the same
+statement/VDBE contract as the underlying SELECT route. This is not unrestricted
+WITH support: recursive self-reference and unrepresented nested/compositional
+shapes reject at prepare with a typed temporary unsupported/SQLite error.

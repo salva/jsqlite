@@ -2571,3 +2571,25 @@ encodings (51 native executions), with TypeScript attempted/credited 0/0. This p
 has no `test/with.test`; none is claimed. This current evidence supersedes the
 older generic statement that CTE syntax was only retained structurally, but does
 not supersede the public execution exclusion.
+
+## Ordinary non-recursive WITH execution (2026-09-18)
+
+The admitted bounded SELECT graph now includes ordinary CTE relation lookup and
+execution. Preparation uses lexical innermost-first WITH frames, bypasses CTE
+lookup for schema-qualified names, validates explicit alias width, and allocates
+one mutable prepare-owned `CteUse` identity lazily per successfully resolved
+CTE declaration. Every relation rewrite retains that identity. A represented
+single reference may use the existing derived coroutine route; repeated uses and
+`AS MATERIALIZED` use one statement-private ephemeral fill and independent
+`OpenDup` cursors. `AS NOT MATERIALIZED` remains a planner hint: it permits the
+coroutine route but does not override a represented shape that requires shared
+materialization. These are translations of pinned `select.c` WITH push/pop,
+`resolveFromTermToCte`, `CteUse`, coroutine, and materialization/OpenDup branches,
+adapted to immutable parser nodes and browser-private VDBE state.
+
+Public evidence currently covers all three database encodings for scalar/VALUES
+and table-backed producers, multiple declarations, repeated references, aliases,
+ordinary use under the RECURSIVE scope marker, and both materialization hints.
+Recursive queue execution is not admitted. Nested/unrepresented compositions and
+other residual shapes continue to fail atomically with typed temporary errors;
+this bounded tranche must not be described as general CTE support.
