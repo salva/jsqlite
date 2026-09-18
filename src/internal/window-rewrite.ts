@@ -65,9 +65,14 @@ function windowOrderFlags(window:ResolvedWindow):readonly Pick<WindowRewriteSort
  if(!root)return Object.freeze([]);
  const find=(node:LemonValue<SqlToken>):Reduction|undefined=>node.kind!=="reduction"?undefined:node.signature.startsWith("sortlist ::=")?node:node.children.map(find).find((value):value is Reduction=>!!value);
  const list=find(root);if(!list)return Object.freeze([]);
- const terms:Reduction[]=[];
- const collect=(node:Reduction):void=>{const prior=node.children.find((child):child is Reduction=>child.kind==="reduction"&&child.signature.startsWith("sortlist ::="));if(prior)collect(prior);terms.push(node);};collect(list);
- return Object.freeze(terms.map(term=>{const words=leaves(term).map(token=>sqliteAsciiFold(token.text));return Object.freeze({descending:words.includes("desc"),nulls:words.includes("nulls")?(words.includes("first")?"first" as const:"last" as const):null});}));
+ const terms:{node:Reduction;prior:Reduction|undefined}[]=[];
+ const collect=(node:Reduction):void=>{const prior=node.children.find((child):child is Reduction=>child.kind==="reduction"&&child.signature.startsWith("sortlist ::="));if(prior)collect(prior);terms.push({node,prior});};collect(list);
+ return Object.freeze(terms.map(({node,prior})=>{
+  // Recursive sortlist nodes contain every preceding term. Read flags only
+  // from this node's appended item, matching ExprList_item.sortFlags.
+  const words=node.children.filter(child=>child!==prior).flatMap(leaves).map(token=>sqliteAsciiFold(token.text));
+  return Object.freeze({descending:words.includes("desc"),nulls:words.includes("nulls")?(words.includes("first")?"first" as const:"last" as const):null});
+ }));
 }
 function sameOrderTerm(parent:OrderTermNode,producer:WindowRewriteSortTerm,resolved:ResolvedSelect):boolean{
  // expr.c:sqlite3ExprListCompare compares sort flags before sqlite3ExprCompare.

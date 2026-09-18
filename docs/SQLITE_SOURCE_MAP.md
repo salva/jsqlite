@@ -1223,7 +1223,7 @@ Per `record:///review.md?card=card-o-b&v=3`, `compileWindowSelectLowering` lower
 
 ### Window ORDER-prefix structural identity correction ([[card:card-o-b-b]], 2026-09-18)
 
-Per the fidelity notification and immutable review `record:///review.md?card=card-o-b&v=9`, the parent ORDER-prefix branch mapped from `window.c:sqlite3WindowRewrite` and `expr.c:sqlite3ExprListCompare` no longer compares normalized token text. It reuses generated structural expression identity without skipping top-level COLLATE and compares parser-derived DESC/NULLS flags before elision. `test/conformance/window-rewrite.test.mjs` distinguishes structurally identical COLLATE copies from different collations, direction mismatch, and integer-to-NULL generated copies. This does not expand the pre-frame execution boundary.
+Per the fidelity notification and immutable review `record:///review.md?card=card-o-b&v=9`, the parent ORDER-prefix branch mapped from `window.c:sqlite3WindowRewrite` and `expr.c:sqlite3ExprListCompare` no longer compares normalized token text. It reuses generated structural expression identity without skipping top-level COLLATE and compares parser-derived DESC/NULLS flags before elision. `test/conformance/window-rewrite.test.mjs` distinguishes structurally identical COLLATE copies from different collations, direction mismatch, integer-to-NULL generated copies, grouping-wrapper equivalence, and independent per-item flags in recursive multi-term sortlists. Per-item extraction is required because each upstream `ExprList_item.sortFlags` excludes prior list items. This does not expand the pre-frame execution boundary.
 
 ### Recursive SELECT/coroutine lowering correction ([[card:card-o-b-g]], 2026-09-18)
 

@@ -386,4 +386,22 @@ test('ORDER-prefix elision uses structural expression and sort identity', () => 
   ));
   assert.equal(integerCopy.outer.orderPrefixElided, false,
     'bIntToNull changes the generated expression tree before the structural prefix comparison');
+
+  const independentTerms = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY a DESC NULLS LAST, b ASC NULLS FIRST) ' +
+    'FROM t1 ORDER BY (a) DESC NULLS LAST, b ASC NULLS FIRST',
+  ));
+  assert.equal(independentTerms.outer.orderPrefixElided, true,
+    'grouping wrappers compare structurally and recursive sortlist items retain only their own flags');
+  assert.deepEqual(
+    independentTerms.layers[0].producerOrderBy.map((term) => [term.descending, term.nulls]),
+    [[true, 'last'], [false, 'first']],
+  );
+
+  const secondTermMismatch = vdbe.sqlite3WindowRewrite(resolve(
+    'SELECT sum(a) OVER (ORDER BY a DESC NULLS LAST, b ASC NULLS FIRST) ' +
+    'FROM t1 ORDER BY a DESC NULLS LAST, b DESC NULLS FIRST',
+  ));
+  assert.equal(secondTermMismatch.outer.orderPrefixElided, false,
+    'flags from the first recursive sortlist item must not bleed into a token-similar second item');
 });
