@@ -558,9 +558,10 @@ oracle assertions retain native credit, while new focused cases are public or
 companion evidence only. Shared declaration identity and one-fill/`OpenDup`
 materialization are implemented. Follow-up public evidence now covers represented
 derived and stored-view ownership (including caller-scope isolation), mixed CROSS
-JOIN, grouped aggregation, and bounded UNION ALL. Recursive ownership is recognized
-before ordinary lowering and has a dedicated temporary diagnostic, but recursive
-queue execution remains wholly unimplemented. Expression-owned nested WITH retains
+JOIN, grouped aggregation, and bounded UNION ALL. At that ordinary-WITH checkpoint, recursive ownership was recognized
+before ordinary lowering and had a dedicated temporary diagnostic, but recursive
+queue execution remained wholly unimplemented. The recursive revision immediately
+below supersedes that implementation status. Expression-owned nested WITH retains
 a separately asserted temporary residual; it is not evidence for the recursive
 gate. Other unrepresented nesting/composition remains a gap. This revision does
 not claim full SQLite WITH compatibility.

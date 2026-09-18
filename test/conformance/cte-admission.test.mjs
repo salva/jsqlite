@@ -17,7 +17,7 @@ async function serverFor(body){
   await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',resolve).once('error',reject));
   return server;
 }
-async function openBytes(body){const server=await serverFor(body);return{server,db:await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`))};}
+async function openBytes(body,options){const server=await serverFor(body);return{server,db:await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),options)};}
 async function reusable(db){
   const statement=db.prepare('SELECT 1').statement;
   try{assert.equal(await statement.step(),'row');assert.equal(statement.columnInteger(0),1n);assert.equal(await statement.step(),'done');}
@@ -186,6 +186,56 @@ test('recursive queue cleans state after work-limit, cancellation, and deadline 
     }
     db.close();
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('recursive queue, history, and output obey row and shared private-state limits',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));
+  const cases=[
+    [{maxRows:1},'WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','statement exceeds maxRows'],
+    [{maxPrivateEntries:0},'WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','recursive queue exceeds entry limit'],
+    [{maxPrivateKeyBytes:0},'WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','recursive queue row exceeds byte limit'],
+    [{maxPrivateBytes:0},'WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','recursive queue exceeds total byte limit'],
+    // UNION owns both the work queue and its all-history ephemeral index. With
+    // a two-entry ceiling, the third distinct value fails in history insertion.
+    [{maxPrivateEntries:2},'WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','ephemeral index exceeds entry limit'],
+    [{maxPrivateKeyBytes:0},'WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3) SELECT x FROM c','ephemeral key exceeds byte limit'],
+  ];
+  for(const [limits,sql,message] of cases){
+    const {server,db}=await openBytes(body,{limits:{maxRows:100,maxPrivateEntries:100,maxPrivateKeyBytes:1024,maxPrivateBytes:4096,...limits}});
+    let statement;
+    try{
+      statement=db.prepare(sql).statement;
+      await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error?.kind==='limit'&&error?.message===message);
+      assert.throws(()=>statement.reset(),error=>error?.kind==='limit'&&error?.message===message);
+      statement.finalize();statement=undefined;
+      await reusable(db);db.close();
+    }finally{try{statement?.finalize()}catch{}try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+  }
+});
+
+test('recursive execution observes cancellation delivered while VM work is yielded',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  const timer=globalThis.setTimeout;let release,reached;
+  const suspended=new Promise(resolve=>{reached=resolve});
+  globalThis.setTimeout=(callback,ms,...args)=>{
+    if(ms===0&&!release){release=()=>timer(callback,0,...args);reached();return 0}
+    return timer(callback,ms,...args);
+  };
+  let statement;
+  try{
+    statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20000) SELECT x FROM c').statement;
+    const controller=new AbortController();
+    const pending=(async()=>{while(await statement.step({signal:controller.signal})==='row'){} })();
+    await suspended;
+    assert.throws(()=>db.prepare('SELECT 1'),error=>error?.kind==='misuse');
+    controller.abort('recursive-yield-stop');release();
+    await assert.rejects(pending,error=>error?.kind==='cancelled'&&error?.cause==='recursive-yield-stop');
+    assert.throws(()=>statement.reset(),error=>error?.kind==='cancelled'&&error?.cause==='recursive-yield-stop');
+    globalThis.setTimeout=timer;release=undefined;
+    let rows=0;while(await statement.step()==='row')rows++;assert.equal(rows,20000);
+    statement.finalize();statement=undefined;
+    await reusable(db);db.close();
+  }finally{globalThis.setTimeout=timer;try{release?.()}catch{}try{statement?.finalize()}catch{}try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} recursive matrix preserves typed rows metadata and queue controls`,async()=>{

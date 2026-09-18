@@ -391,21 +391,17 @@ producers, materializations, aggregate state, and sorters.
 This API boundary is not general subquery support. Scalar subqueries, general
 `EXISTS`, and `IN` are not promised here; the admitted correlated form is only the
 allocated persisted-view composition. General aggregate-over-derived and general
-compound-derived SQL are also not promised. CTE and recursive CTE syntax in any
-reachable SELECT graph fails atomically during `prepare()` with temporary
-unsupported and exact message `common table expressions are not implemented`.
-Admission loads schema first and checks root/nested expression SELECTs, retained
-or flattening-adjacent derived SELECTs, compound arms, and reachable persisted
-views before compiler/program creation. CTE bodies remain represented, but
-finding their owning WITH is sufficient and short-circuits the boolean admission
-walk. Rejection registers no statement
-or private execution state and leaves the connection reusable. Windows and
-unsafe/unmatched derived shapes fail under their existing typed prepare boundary.
-No native/host fallback or partial statement shape is exposed.
+compound-derived SQL are also not promised. The former blanket CTE rejection at
+this boundary has been superseded by the bounded ordinary and recursive surfaces
+below. WITH shapes outside those surfaces still fail atomically during
+`prepare()`; rejection registers no statement or private execution state and
+leaves the connection reusable. Windows and unsafe/unmatched derived shapes fail
+under their existing typed prepare boundary. No native/host fallback or partial
+statement shape is exposed.
 
 ### Expression subqueries (Stage 3 bounded admission)
 
-Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and correlated expression routes, including the documented bounded JOIN/aggregate/GROUP/HAVING/ORDER/DISTINCT/LIMIT/compound compositions. Results retain SQLite INTEGER/REAL/NULL/BLOB distinctions and database encoding. Uncorrelated producers may execute once; correlated producers rerun for each outer row. Reset/rebind/finalize/deferred-close and cancellation/deadline/work/private-byte failures preserve the first error, release owned state, and restore admission as tested. Compound ORDER terms bind by resolved output ownership and structural expression identity, not SQL token spelling. CTE/recursive CTE remain unsupported through the schema-aware graph admission boundary above; windows and unsafe unmatched forms remain unsupported atomically at prepare.
+Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and correlated expression routes, including the documented bounded JOIN/aggregate/GROUP/HAVING/ORDER/DISTINCT/LIMIT/compound compositions. Results retain SQLite INTEGER/REAL/NULL/BLOB distinctions and database encoding. Uncorrelated producers may execute once; correlated producers rerun for each outer row. Reset/rebind/finalize/deferred-close and cancellation/deadline/work/private-byte failures preserve the first error, release owned state, and restore admission as tested. Compound ORDER terms bind by resolved output ownership and structural expression identity, not SQL token spelling. WITH support is limited to the bounded ordinary and recursive surfaces below; windows and unsafe unmatched forms remain unsupported atomically at prepare.
 
 ### Ordinary WITH (bounded Stage 3 surface)
 

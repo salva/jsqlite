@@ -1091,7 +1091,11 @@ aggregate forms retain atomic prepare-time gates rather than partial execution.
   discriminator in `test/conformance/compound-union-all.test.mjs` protects the
   destination-aware table-arm handoff.
 
-## CTE source-model and compilation foundation ([[card:card-n-a]], 2026-09-18)
+## Historical CTE source-model foundation ([[card:card-n-a]], 2026-09-18; superseded below)
+
+This table records the pre-execution architecture checkpoint. Its “planned” and
+“no TS execution” cells are retained as history; the ordinary and recursive
+tranche tables below are the current implementation and evidence mapping.
 
 | Pinned SQLite 3.53.4 owner | Current/planned TypeScript owner | Evidence and boundary |
 | --- | --- | --- |

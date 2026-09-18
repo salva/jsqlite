@@ -2535,7 +2535,7 @@ Accounting: `stage3-subquery-view.json` is 46 native captures, 19 attempted and
 
 The accepted scalar/EXISTS/IN/correlated tranche now has direct public Fetch coverage in UTF-8, UTF-16le, and UTF-16be, plus the indivisible 15/15 lifecycle/resource companion tranche. Ordered bounded compound arms retain destination-aware subquery lowering into the parent VDBE, sharing work and private-state ownership. Compound ORDER binding follows `resolveCompoundOrderBy`: ordinal and resolved alias ownership first, then generated expression-tree identity with COLLATE decoration ignored for identity but retained in KeyInfo. Token spelling and expanded SQL text are deliberately not expression identity; parentheses, whitespace, identifier case/quoting, qualification, and COLLATE spelling must not alter ownership. Focused structural/alias/collation discriminators accompany the bounded scalar-subquery compound test. CTE, recursive CTE, window, and unsafe unmatched shapes remain atomic prepare-time gates.
 
-## CTE source-model and scope architecture ([[card:card-n-a]], 2026-09-18)
+## Historical CTE source-model foundation ([[card:card-n-a]], 2026-09-18; superseded below)
 
 The current CTE contract is `docs/architecture/cte-source-model.md`. Generated
 `wqas`/`wqitem`/`wqlist`/`select ::= WITH ...` reductions now own an immutable
@@ -2555,10 +2555,12 @@ the association through lowering even after scope pop or tree rewriting. Its
 semantic `materializationAddress` field maps exactly to pinned `CteUse.addrM9e`; the
 remaining state carries the hint, return register, cursor, and estimate.
 Schema-qualified names bypass the CTE chain; nested declarations shadow; views do
-not capture caller scope. Coroutine, reusable materialization, and recursive
-queue/distinct-queue lowering remain future source-shaped VDBE work.
+not capture caller scope. At this foundation checkpoint, coroutine, reusable materialization, and recursive
+queue/distinct-queue lowering remained future source-shaped VDBE work. The
+ordinary and recursive execution sections below supersede that implementation
+status while retaining this ownership model.
 
-Until those lookup, diagnostics, and lowering contracts are implemented,
+At that historical checkpoint, until those lookup, diagnostics, and lowering contracts were implemented,
 `Connection.prepare()` first loads the immutable schema, then the cycle-safe
 `selectGraphContainsWith()` walk visits root/nested expression SELECTs, retained
 and flattening-adjacent derived owners, compound-arm graphs, and FROM-reachable
@@ -2605,7 +2607,7 @@ tranche must not be described as general CTE support.
 
 The bounded recursive route translates SQLite 3.53.4 `select.c:generateWithRecursiveQuery`: setup rows enter an ephemeral FIFO Queue (`UNION ALL`) or a stable KeyInfo priority Queue (`ORDER BY`); `UNION` additionally keeps an all-history ephemeral index. Each VDBE iteration removes one Current row, applies recursive LIMIT/OFFSET ordering, emits the destination row, and generates successors with `Goto`; it never recursively invokes JavaScript. Window/aggregate and circular/multiple/nested-reference diagnostics run before opcode publication.
 
-Queue/history values are copied `Mem` cells and share `PrivateStateByteBudget`, entry/key/byte/work/row limits and statement cancellation/deadline checkpoints. VM PC/register/cursor state survives async yield; halt/error/reset/finalize close private cursors and release budget. Public stress covers 20,000 iterations, reset/rebind, finalize, work-limit, pre-abort, deadline, and connection reuse.
+Queue/history values are copied `Mem` cells and share `PrivateStateByteBudget`, entry/key/byte/work/row limits and statement cancellation/deadline checkpoints. VM PC/register/cursor state survives async yield; halt/error/reset/finalize close private cursors and release budget. Public stress covers 20,000 iterations, reset/rebind, finalize, output-row and queue/history entry/key/aggregate-byte limits, work-limit, pre-abort, cancellation delivered during a real VM yield, deadline, first-error retention, and connection reuse.
 
 Represented scope is deliberately narrower than SQLite: source-free setup arms, direct single recursive source arms with scalar WHERE/results, FIFO/distinct/priority queues and recursive LIMIT/OFFSET. The outer destination supports direct projection, one source-free scalar-derived inner join, and a bounded cross join of distinct recursive declarations when every producer column is projected directly; that multi-owner route materializes each iterative VDBE producer into statement-private stable payload sorters (with no value-comparison key) and may apply a represented output ORDER BY over direct projected columns, including explicit BINARY/NOCASE/RTRIM collation, direction, and NULL policy. Other joins, recursive subqueries, views, grouped consumers, reused recursive declarations, expression projections in the multi-owner route, and broader compounds reject temporarily because their underlying source/destination compiler routes are untranslated—not because recursive evaluation is approximated.
 
