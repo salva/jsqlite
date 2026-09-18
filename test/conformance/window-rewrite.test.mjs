@@ -191,3 +191,35 @@ test('public table prepare preserves window rewrite ORDER BY aggregate misuse ti
     await new Promise((resolve, reject) => backend.server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test('compiler emits window init cursors, result registers, and select-loop handoff', () => {
+  assert.equal(
+    typeof vdbe.compileWindowSelectSetup,
+    'function',
+    'the window rewrite still has metadata-only cursor/register/handoff records',
+  );
+  const resolved = resolve(
+    'SELECT sum(a) OVER w, avg(a) OVER w, row_number() OVER (ORDER BY a) ' +
+    'FROM t1 WINDOW w AS (PARTITION BY b ORDER BY a)',
+  );
+  const compilation = vdbe.compileWindowSelectSetup(resolved, 'utf-8');
+  assert.equal(compilation.rewrite.layers.length, 2);
+  for (const layer of compilation.rewrite.layers) {
+    const ops = compilation.program.ops;
+    assert.ok(ops.some((op) => op.code === 'OpenEphemeral' && op.p1 === layer.iEphCsr));
+    assert.deepEqual(
+      ops.filter((op) => op.code === 'OpenDup' && op.p2 === layer.iEphCsr).map((op) => op.p1),
+      layer.duplicateCursors,
+    );
+    for (const win of layer.windows) {
+      assert.ok(ops.some((op) => op.code === 'Null' && op.p2 === win.regAccum));
+      assert.ok(win.regResult <= compilation.program.registers);
+    }
+    const gosub = ops.find((op) => op.code === 'Gosub' && op.p1 === layer.regGosub);
+    assert.ok(gosub, 'the producer select-loop must enter the window subroutine');
+    assert.equal(ops[gosub.p2]?.code, 'Return');
+    assert.equal(ops[gosub.p2]?.p1, layer.regGosub);
+  }
+  assert.equal(compilation.rewrite.layers[0].windows.length, 2);
+  assert.notEqual(compilation.rewrite.layers[0].iEphCsr, compilation.rewrite.layers[1].iEphCsr);
+});

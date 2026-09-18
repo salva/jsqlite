@@ -400,3 +400,6 @@ native denominator or upstream-credit count.
 ### Window rewrite implementation accounting ([[card:card-o-b-f]], 2026-09-18)
 
 The immutable `stage3-window` manifest remains unchanged: 29 declared entries, 28 native executions, 10 upstream credits, and all 29 TypeScript entries unattempted/zero-credit. Source-based `test/conformance/window-rewrite.test.mjs` is deliberately outside that credit denominator. It covers rewrite graph/lifting/sort-copy behavior, selective aggregate-depth repair, exact prepare-time ORDER aggregate misuse, and scalar/table atomic publication gates. Frame runtime remains unsupported, so these tests do not promote any manifest case.
+
+
+Window setup evidence added by [[card:card-o-b-g]] does not change the immutable denominator: exactly 29 declared entries, 0 TypeScript attempts, and 0 TypeScript credits. The compiler-level source test inspects emitted setup operations, register/cursor identity, compatible sharing, nested ownership, and the existing atomic public gates; it does not execute a frame or manifest case.

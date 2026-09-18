@@ -19,7 +19,7 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 
-import {sqlite3WindowRewrite} from "./window-rewrite.ts";
+import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
 export type {WindowRewriteFunction,WindowRewriteSortTerm,WindowRewriteLayer,WindowRewriteGraph} from "./window-rewrite.ts";
 
@@ -139,6 +139,60 @@ export interface Program {
   readonly privateStateLimits: PrivateStateLimits;
   readonly encoding: DatabaseEncoding;
 }
+export interface WindowSetupLayer {
+  readonly compatibleGroup:number;
+  readonly regPart:number|null;
+  readonly partitionRegisters:readonly number[];
+  readonly regOne:number;
+}
+export interface WindowSetupCompilation {
+  readonly rewrite:WindowRewriteGraph;
+  readonly setup:readonly WindowSetupLayer[];
+  readonly program:Program;
+}
+
+/**
+ * Internal, deliberately non-publishable translation of window.c's
+ * sqlite3WindowCodeInit and select.c's select-loop Gosub/Return seam.  It emits
+ * real Program operations so cursor/register ownership is checked by the same
+ * compiler representation as ordinary SELECTs. sqlite3WindowCodeStep is still
+ * absent, so public prepare must never return this setup-only Program.
+ */
+export function compileWindowSelectSetup(
+  resolved:ReturnType<typeof expandAndResolveSelect>,
+  encoding:DatabaseEncoding,
+  maxWorkUnits=10_000_000,
+  maxResultBytes=1_000_000_000,
+  privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,
+):WindowSetupCompilation {
+  const rewrite=sqlite3WindowRewrite(resolved);
+  const ops:Op[]=[];
+  let registers=Math.max(0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
+  const setup:WindowSetupLayer[]=[];
+  for(const layer of rewrite.layers){
+    // window.c uses the producer e-list width as OP_OpenEphemeral P2. This
+    // VDBE's exact equivalent carries that width in a zero-key KeyInfo.
+    const width=layer.bufferExpressions.length;
+    const keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:0,terms:[]});
+    ops.push({code:"OpenEphemeral",p1:layer.iEphCsr,keyInfo});
+    for(const cursor of layer.duplicateCursors)ops.push({code:"OpenDup",p1:cursor,p2:layer.iEphCsr});
+    const partitionRegisters:number[]=[];
+    for(const _term of layer.producerOrderBy.filter(term=>term.source==="partition")){const reg=++registers;partitionRegisters.push(reg);ops.push({code:"Null",p2:reg});}
+    const regOne=++registers;ops.push({code:"Integer",p1:1n,p2:regOne});
+    for(const win of layer.windows)ops.push({code:"Null",p2:win.regAccum});
+    setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,partitionRegisters:Object.freeze(partitionRegisters),regOne}));
+  }
+  // Emit the select.c handoff after all CodeInit operations. Each generated
+  // layer owns a distinct return register and subroutine address. Halt prevents
+  // fall-through into these setup-only stubs if an internal diagnostic runs it.
+  const gosubs:{at:number;layer:WindowRewriteGraph["layers"][number]}[]=[];
+  for(const layer of rewrite.layers){gosubs.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
+  ops.push({code:"Halt"});
+  for(const {at,layer} of gosubs){const target=ops.length;(ops[at] as {code:"Gosub";p1:number;p2:number}).p2=target;ops.push({code:"Return",p1:layer.regGosub});}
+  const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+  return Object.freeze({rewrite,setup:Object.freeze(setup),program});
+}
+
 export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
 export function programControlTargets(program:Program):readonly Readonly<{index:number;code:string;target:number;targetCode:string|undefined}>[]{
   return Object.freeze(program.ops.flatMap((op,index)=>{
