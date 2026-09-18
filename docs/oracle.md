@@ -4,6 +4,29 @@ Status: **Stage 2 bounded implementation**. The checked-in development-only buil
 Fetch/open, then reports `unimplemented-temporary` at the genuine public
 `Connection.prepare()` boundary without SQL credit.
 
+## Window evidence sidecar
+
+The window tests-before-port gate is a direct C-API sidecar, not an extension of
+the closed JSONL request union and never a runtime backend. Its immutable spec and
+captured expectation are `test/conformance/cases/stage3-window.spec.json` and
+`stage3-window.json`. Reproduce them only with the manifest-verified library:
+
+```sh
+tools/oracle/build.sh
+npm run test:conformance:window:native
+npm run test:conformance:window
+```
+
+Capture fails before setup on source-ID/version mismatch and retains typed INTEGER,
+REAL bits, NULL, UTF-8 text bytes, BLOB bytes, metadata, prepare-versus-step error
+phase, reset/rebind/finalize and progress cancellation. UTF-16le/be companions set
+the database encoding before schema setup. Native success is native evidence only:
+all 29 TS entries remain unattempted and zero-credit. The bounded 10 upstream plus
+19 companion entries are not an exhaustive window-suite claim. Byte/work/row,
+deadline and yield controls are explicitly source-only/no-credit because the
+native C API cannot faithfully observe project-private controls; progress-handler
+cancellation is separately captured.
+
 ## Boundary and mandatory profile
 
 The oracle is a C subprocess linked directly to the SQLite source selected by

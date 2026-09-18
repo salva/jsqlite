@@ -13,6 +13,33 @@ There are three intentionally separate kinds of evidence:
 3. **TypeScript/runtime evidence**: only operations actually reached through the public adapter or a clearly labelled internal storage/parser test. A mapped-but-unreached SQL assertion receives zero TS credit.
 
 
+## Window functions tests-before-port gate ([[card:card-o-a-b]])
+
+`test/conformance/cases/stage3-window.spec.json` declares a bounded **29-case**
+window slice: **10 exact upstream assertions** and **19 source-based/local
+no-credit companions**. `stage3-window.json` is the immutable native expectation.
+The pinned capture attempted and passed **28/28 executable native cases**; one
+private-controls declaration is intentionally source-only. Native upstream credit
+is therefore **10/10**, companion observations are **18/18 executable plus 1
+source-only with zero credit**, and public TypeScript is exactly **0 attempted, 0
+credited, 29 unattempted**. No result claims exhaustiveness across the 17 upstream
+window suites.
+
+The slice covers all three database encodings; typed values and metadata;
+prepare/step errors; join, grouped aggregate, subquery, ordinary/recursive CTE and
+outer ordering compositions; named inheritance, default/offset bounds;
+collation/NULL peers; ROWS/RANGE/GROUPS and all EXCLUDE modes; built-ins and
+aggregate windows; same/different window sharing and illegal nesting; lifecycle;
+and progress cancellation. Private byte/work/row, deadline and yield controls are
+preserved as a source-owner declaration but receive no native or TS credit because
+the native C API cannot observe those project-private harness controls faithfully.
+
+Run `npm run test:conformance:window` for schema, pinned identity, exact upstream
+ID/SQL anchors, source-owner, ordering and denominator integrity. After
+`tools/oracle/build.sh`, `npm run test:conformance:window:native` recaptures to the
+card work root and byte-compares the immutable artifact. Native success does not
+promote any mapped case to TS runtime credit.
+
 ## Stage 3 comparison/collation/record-key tests-first evidence
 
 [[card:card-f-b-a]] established a bounded 19-case manifest in

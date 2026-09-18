@@ -1,0 +1,2551 @@
+{
+  "schema": "jsqlite-window-evidence/1",
+  "source": {
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "archiveSha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b"
+  },
+  "requiredCoverage": [
+    "utf8-utf16le-utf16be",
+    "typed-values-metadata",
+    "prepare-step-errors",
+    "joins-groups-subqueries-cte-order",
+    "named-inheritance-default-offset-bounds",
+    "collation-null-peers",
+    "rows-range-groups",
+    "exclude-modes",
+    "builtins-aggregate-windows",
+    "sharing-nesting",
+    "reset-rebind-finalize",
+    "private-controls-cancel-deadline-yield"
+  ],
+  "cases": [
+    {
+      "id": "window1-1.1",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "1.1",
+      "setup": "w1",
+      "sql": "SELECT sum(b) OVER () FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(b) OVER ()",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-1.5",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "1.5",
+      "setup": "w1",
+      "sql": "SELECT a, sum(b) OVER (PARTITION BY c) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(b) OVER (PARTITION BY c)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.2",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.2",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (PARTITION BY b) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY b)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.8",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.8",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a DESC), sum(a) OVER (PARTITION BY c ORDER BY a) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY b ORDER BY a DESC)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY c ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.9",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.9",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (ORDER BY a), avg(a) OVER (ORDER BY a) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a)",
+            "declType": null
+          },
+          {
+            "name": "avg(a) OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4004000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-5.1",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.1",
+      "setup": "w2",
+      "sql": "SELECT ntile(0) OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "ntile(0) OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "argument of ntile must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-6.3",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "6.3",
+      "setup": "w6",
+      "sql": "SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 WINDOW w AS (ORDER BY x)",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "FILTER clause may only be used with aggregate window functions",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-3.3",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "3.3",
+      "setup": "w5",
+      "sql": "SELECT a, count(*) OVER abc, count(*) OVER def FROM t5 WINDOW abc AS (ORDER BY a), def AS (ORDER BY a DESC) ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "count(*) OVER abc",
+            "declType": null
+          },
+          {
+            "name": "count(*) OVER def",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-3.4",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "3.4",
+      "setup": "w5",
+      "sql": "SELECT a, max(a) FILTER (WHERE (a%2)=0) OVER w FROM t5 WINDOW w AS (ORDER BY a)",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "max(a) FILTER (WHERE (a%2)=0) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-4.1",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "4.1",
+      "setup": "wttt",
+      "sql": "SELECT max(c), max(b) OVER (ORDER BY b) FROM ttt GROUP BY b",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "max(c)",
+            "declType": null
+          },
+          {
+            "name": "max(b) OVER (ORDER BY b)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "encoding-utf8",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "encoding": "UTF-8",
+      "sql": "SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "t",
+            "declType": "TEXT"
+          },
+          {
+            "name": "rn",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "encoding-utf16le",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "encoding": "UTF-16le",
+      "sql": "SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "t",
+            "declType": "TEXT"
+          },
+          {
+            "name": "rn",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "encoding-utf16be",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "encoding": "UTF-16be",
+      "sql": "SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "t",
+            "declType": "TEXT"
+          },
+          {
+            "name": "rn",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "typed-metadata",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,r,t,b,n,sum(i) OVER () AS total FROM t ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "r",
+            "declType": "REAL"
+          },
+          {
+            "name": "t",
+            "declType": "TEXT"
+          },
+          {
+            "name": "b",
+            "declType": "BLOB"
+          },
+          {
+            "name": "n",
+            "declType": null
+          },
+          {
+            "name": "total",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4004000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "join-subquery-outer-order",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT x.i, row_number() OVER (ORDER BY x.i) rn FROM (SELECT a.i FROM t a JOIN t b ON a.i=b.i) x ORDER BY rn DESC",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rn",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "grouped-aggregate-window",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT b,sum(a),sum(sum(a)) OVER (ORDER BY b NULLS FIRST) FROM t GROUP BY b ORDER BY b NULLS FIRST",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "b",
+            "declType": null
+          },
+          {
+            "name": "sum(a)",
+            "declType": null
+          },
+          {
+            "name": "sum(sum(a)) OVER (ORDER BY b NULLS FIRST)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "78"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "79"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "ordinary-cte",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "WITH q AS (SELECT i FROM t) SELECT i,sum(i) OVER (ORDER BY i) FROM q",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "recursive-cte",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<4) SELECT x,row_number() OVER (ORDER BY x) FROM q ORDER BY x",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "x",
+            "declType": null
+          },
+          {
+            "name": "row_number() OVER (ORDER BY x)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "inherit-default-bounds",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,sum(a) OVER child,lag(a) OVER child FROM t WINDOW base AS (PARTITION BY b), child AS (base ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER child",
+            "declType": null
+          },
+          {
+            "name": "lag(a) OVER child",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "collation-null-peers",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT b,count(*) OVER (ORDER BY b COLLATE NOCASE NULLS FIRST GROUPS CURRENT ROW) FROM t ORDER BY b COLLATE NOCASE NULLS FIRST,a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "b",
+            "declType": null
+          },
+          {
+            "name": "count(*) OVER (ORDER BY b COLLATE NOCASE NULLS FIRST GROUPS CURRENT ROW)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "78"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "78"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "79"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "rows-range-groups",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,sum(a) OVER (ORDER BY a ROWS 1 PRECEDING),sum(a) OVER (ORDER BY a RANGE 1 PRECEDING),sum(a) OVER (ORDER BY a GROUPS 1 PRECEDING) FROM t ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a ROWS 1 PRECEDING)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a RANGE 1 PRECEDING)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a GROUPS 1 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "exclude-modes",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "builtins",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT a,row_number() OVER w,rank() OVER w,dense_rank() OVER w,percent_rank() OVER w,cume_dist() OVER w,ntile(2) OVER w,first_value(c) OVER w,last_value(c) OVER w,nth_value(c,2) OVER w,lag(c) OVER w,lead(c) OVER w FROM t5 WINDOW w AS (ORDER BY b) ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "row_number() OVER w",
+            "declType": null
+          },
+          {
+            "name": "rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "dense_rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "percent_rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "cume_dist() OVER w",
+            "declType": null
+          },
+          {
+            "name": "ntile(2) OVER w",
+            "declType": null
+          },
+          {
+            "name": "first_value(c) OVER w",
+            "declType": null
+          },
+          {
+            "name": "last_value(c) OVER w",
+            "declType": null
+          },
+          {
+            "name": "nth_value(c,2) OVER w",
+            "declType": null
+          },
+          {
+            "name": "lag(c) OVER w",
+            "declType": null
+          },
+          {
+            "name": "lead(c) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "66697665"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe8000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "666f7572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "66697665"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "666f7572"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "66697665"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "66697665"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe8000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "666f7572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74776f"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6f6e65"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "66697665"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7468726565"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74776f"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "sharing-different-windows",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT a,sum(a) OVER w,avg(a) OVER w,sum(a) OVER (ORDER BY a DESC) FROM t5 WINDOW w AS (PARTITION BY b ORDER BY a) ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(a) OVER w",
+            "declType": null
+          },
+          {
+            "name": "avg(a) OVER w",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a DESC)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "nested-window-prepare-error",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT sum(row_number() OVER ()) OVER () FROM t5",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "misuse of window function row_number()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "negative-frame-step-error",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN -1 PRECEDING AND CURRENT ROW) FROM t5",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(a) OVER (ORDER BY a ROWS BETWEEN -1 PRECEDING AND CURRENT ROW)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "frame starting offset must be a non-negative integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "reset-rebind-finalize",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT a,sum(a) OVER (ORDER BY a ROWS BETWEEN ?1 PRECEDING AND CURRENT ROW) FROM t5 ORDER BY a",
+      "lifecycle": true,
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a ROWS BETWEEN ?1 PRECEDING AND CURRENT ROW)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          },
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "progress-cancel",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<100000) SELECT sum(x) OVER () FROM q",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(x) OVER ()",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 9,
+            "errorMessage": "interrupted"
+          }
+        ],
+        "finalizeCode": 9,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "private-controls-declaration",
+      "credit": "no-credit-companion",
+      "kind": "source-only",
+      "owners": [
+        "src/window.c",
+        "src/select.c",
+        "src/vdbe.c",
+        "src/vdbeapi.c"
+      ],
+      "meaning": "Byte/work/row limits, deadline and cooperative yield are project harness controls not faithfully observable through the native C API; cancellation is represented separately by progress-cancel. This entry earns no native or TS credit.",
+      "native": {
+        "disposition": "source-only-no-credit"
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 29,
+    "upstreamDeclared": 10,
+    "companionsDeclared": 19,
+    "nativeAttempted": 28,
+    "nativePassed": 28,
+    "nativeCredited": 10,
+    "sourceOnlyCompanions": 1,
+    "tsAttempted": 0,
+    "tsCredited": 0,
+    "tsUnattempted": 29,
+    "exhaustiveClaim": false
+  }
+}

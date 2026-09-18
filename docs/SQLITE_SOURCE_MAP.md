@@ -12,6 +12,24 @@ shared internal Mem/value, scalar arithmetic, built-in collation/comparison, and
 packed/unpacked record-key foundations; resolver, compiler, VDBE execution, and
 broad conformance remain incomplete.
 
+## Window-function evidence mapping
+
+The immutable tests-before-port gate in
+`test/conformance/cases/stage3-window.{spec.json,json}` maps exact selected cases
+from `test/window1.test` and `test/window4.test`; the broader `window1..9`,
+`windowA..E`, `windowerr`, `windowfault` and `windowpushd` corpus remains outside
+this bounded denominator. Algorithm/source owners are `src/window.c` (rewrite,
+frame/cache/code generation), `src/func.c` (built-in step/inverse/value functions),
+`src/resolve.c` (placement and named-window resolution), `src/parse.y` (OVER,
+WINDOW, frame and EXCLUDE grammar), `src/select.c` (aggregate/group/subquery
+composition), and applicable `src/vdbe.c`, `src/vdbeapi.c`, and `src/vdbeaux.c`
+(statement execution/lifecycle). This is a future translation map, not TS runtime
+credit. `window-manifest.test.py` requires every owner and exact upstream case/SQL
+anchor against the pin. Project-private byte/work/row/deadline/yield controls have
+no faithful native C-API observation and are explicitly source-only/no-credit;
+progress cancellation uses `sqlite3_progress_handler` as a separately captured
+native companion.
+
 ## Pinned source and usable development cache
 
 `reference/sqlite/manifest.json` is authoritative. It selects the official full

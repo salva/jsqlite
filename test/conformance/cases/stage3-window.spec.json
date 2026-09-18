@@ -1,0 +1,54 @@
+{
+  "schema": "jsqlite-window-evidence-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "archiveSha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b"
+  },
+  "setups": {
+    "w1": ["CREATE TABLE t1(a,b,c,d)", "INSERT INTO t1 VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12)"],
+    "w2": ["CREATE TABLE t2(a,b,c)", "INSERT INTO t2 VALUES(0,0,0),(1,1,1),(2,0,2),(3,1,0),(4,0,1),(5,1,2),(6,0,0)"],
+    "w5": ["CREATE TABLE t5(a INTEGER PRIMARY KEY,b TEXT,c TEXT,d INTEGER)", "INSERT INTO t5 VALUES(1,'A','one',5),(2,'B','two',4),(3,'A','three',3),(4,'B','four',2),(5,'A','five',1)"],
+    "w6": ["CREATE TABLE t1(x)", "INSERT INTO t1 VALUES(7),(6),(5),(4),(3),(2),(1)"],
+    "w7": ["CREATE TABLE t1(x,y)", "INSERT INTO t1 VALUES(1,2),(3,4),(5,6),(7,8),(9,10)"],
+    "wttt": ["CREATE TABLE ttt(a INTEGER PRIMARY KEY,b INTEGER,c INTEGER)", "INSERT INTO ttt VALUES(1,1,1),(2,2,2),(3,3,3),(4,1,2),(5,2,3),(6,3,4),(7,1,3),(8,2,4),(9,3,5)"],
+    "typed": ["CREATE TABLE t(i INTEGER,r REAL,t TEXT,b BLOB,n)", "INSERT INTO t VALUES(1,1.0,'A',x'00ff',NULL),(2,2.5,'a',x'',NULL),(3,3.0,NULL,NULL,NULL)"],
+    "inherit": ["CREATE TABLE t(a,b)", "INSERT INTO t VALUES(1,'x'),(2,'x'),(3,'y'),(4,NULL)"],
+    "empty": []
+  },
+  "requiredCoverage": ["utf8-utf16le-utf16be","typed-values-metadata","prepare-step-errors","joins-groups-subqueries-cte-order","named-inheritance-default-offset-bounds","collation-null-peers","rows-range-groups","exclude-modes","builtins-aggregate-windows","sharing-nesting","reset-rebind-finalize","private-controls-cancel-deadline-yield"],
+  "cases": [
+    {"id":"window1-1.1","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"1.1","setup":"w1","sql":"SELECT sum(b) OVER () FROM t1"},
+    {"id":"window1-1.5","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"1.5","setup":"w1","sql":"SELECT a, sum(b) OVER (PARTITION BY c) FROM t1"},
+    {"id":"window1-4.2","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"4.2","setup":"w2","sql":"SELECT a, sum(a) OVER (PARTITION BY b) FROM t2 ORDER BY a"},
+    {"id":"window1-4.8","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"4.8","setup":"w2","sql":"SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a DESC), sum(a) OVER (PARTITION BY c ORDER BY a) FROM t2 ORDER BY a"},
+    {"id":"window1-4.9","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"4.9","setup":"w2","sql":"SELECT a, sum(a) OVER (ORDER BY a), avg(a) OVER (ORDER BY a) FROM t2 ORDER BY a"},
+    {"id":"window1-5.1","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"5.1","setup":"w2","sql":"SELECT ntile(0) OVER (ORDER BY a) FROM t2","errorPhase":"step"},
+    {"id":"window1-6.3","credit":"upstream","sourceFile":"test/window1.test","sourceCase":"6.3","setup":"w6","sql":"SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 WINDOW w AS (ORDER BY x)","errorPhase":"prepare"},
+    {"id":"window4-3.3","credit":"upstream","sourceFile":"test/window4.test","sourceCase":"3.3","setup":"w5","sql":"SELECT a, count(*) OVER abc, count(*) OVER def FROM t5 WINDOW abc AS (ORDER BY a), def AS (ORDER BY a DESC) ORDER BY a"},
+    {"id":"window4-3.4","credit":"upstream","sourceFile":"test/window4.test","sourceCase":"3.4","setup":"w5","sql":"SELECT a, max(a) FILTER (WHERE (a%2)=0) OVER w FROM t5 WINDOW w AS (ORDER BY a)"},
+    {"id":"window4-4.1","credit":"upstream","sourceFile":"test/window4.test","sourceCase":"4.1","setup":"wttt","sql":"SELECT max(c), max(b) OVER (ORDER BY b) FROM ttt GROUP BY b"},
+
+    {"id":"encoding-utf8","credit":"no-credit-companion","setup":"typed","encoding":"UTF-8","sql":"SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i"},
+    {"id":"encoding-utf16le","credit":"no-credit-companion","setup":"typed","encoding":"UTF-16le","sql":"SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i"},
+    {"id":"encoding-utf16be","credit":"no-credit-companion","setup":"typed","encoding":"UTF-16be","sql":"SELECT t, row_number() OVER (ORDER BY i) AS rn FROM t ORDER BY i"},
+    {"id":"typed-metadata","credit":"no-credit-companion","setup":"typed","sql":"SELECT i,r,t,b,n,sum(i) OVER () AS total FROM t ORDER BY i"},
+    {"id":"join-subquery-outer-order","credit":"no-credit-companion","setup":"typed","sql":"SELECT x.i, row_number() OVER (ORDER BY x.i) rn FROM (SELECT a.i FROM t a JOIN t b ON a.i=b.i) x ORDER BY rn DESC"},
+    {"id":"grouped-aggregate-window","credit":"no-credit-companion","setup":"inherit","sql":"SELECT b,sum(a),sum(sum(a)) OVER (ORDER BY b NULLS FIRST) FROM t GROUP BY b ORDER BY b NULLS FIRST"},
+    {"id":"ordinary-cte","credit":"no-credit-companion","setup":"typed","sql":"WITH q AS (SELECT i FROM t) SELECT i,sum(i) OVER (ORDER BY i) FROM q"},
+    {"id":"recursive-cte","credit":"no-credit-companion","setup":"empty","sql":"WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<4) SELECT x,row_number() OVER (ORDER BY x) FROM q ORDER BY x"},
+    {"id":"inherit-default-bounds","credit":"no-credit-companion","setup":"inherit","sql":"SELECT a,sum(a) OVER child,lag(a) OVER child FROM t WINDOW base AS (PARTITION BY b), child AS (base ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) ORDER BY a"},
+    {"id":"collation-null-peers","credit":"no-credit-companion","setup":"inherit","sql":"SELECT b,count(*) OVER (ORDER BY b COLLATE NOCASE NULLS FIRST GROUPS CURRENT ROW) FROM t ORDER BY b COLLATE NOCASE NULLS FIRST,a"},
+    {"id":"rows-range-groups","credit":"no-credit-companion","setup":"inherit","sql":"SELECT a,sum(a) OVER (ORDER BY a ROWS 1 PRECEDING),sum(a) OVER (ORDER BY a RANGE 1 PRECEDING),sum(a) OVER (ORDER BY a GROUPS 1 PRECEDING) FROM t ORDER BY a"},
+    {"id":"exclude-modes","credit":"no-credit-companion","setup":"inherit","sql":"SELECT a,sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP),sum(a) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t ORDER BY a"},
+    {"id":"builtins","credit":"no-credit-companion","setup":"w5","sql":"SELECT a,row_number() OVER w,rank() OVER w,dense_rank() OVER w,percent_rank() OVER w,cume_dist() OVER w,ntile(2) OVER w,first_value(c) OVER w,last_value(c) OVER w,nth_value(c,2) OVER w,lag(c) OVER w,lead(c) OVER w FROM t5 WINDOW w AS (ORDER BY b) ORDER BY a"},
+    {"id":"sharing-different-windows","credit":"no-credit-companion","setup":"w5","sql":"SELECT a,sum(a) OVER w,avg(a) OVER w,sum(a) OVER (ORDER BY a DESC) FROM t5 WINDOW w AS (PARTITION BY b ORDER BY a) ORDER BY a"},
+    {"id":"nested-window-prepare-error","credit":"no-credit-companion","setup":"w5","sql":"SELECT sum(row_number() OVER ()) OVER () FROM t5","errorPhase":"prepare"},
+    {"id":"negative-frame-step-error","credit":"no-credit-companion","setup":"w5","sql":"SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN -1 PRECEDING AND CURRENT ROW) FROM t5","errorPhase":"step"},
+    {"id":"reset-rebind-finalize","credit":"no-credit-companion","setup":"w5","sql":"SELECT a,sum(a) OVER (ORDER BY a ROWS BETWEEN ?1 PRECEDING AND CURRENT ROW) FROM t5 ORDER BY a","bindings":[{"index":1,"integer":"1"}],"rebind":[{"index":1,"integer":"2"}],"lifecycle":true},
+    {"id":"progress-cancel","credit":"no-credit-companion","setup":"empty","sql":"WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<100000) SELECT sum(x) OVER () FROM q","progressAbortAfter":50,"errorPhase":"step"},
+    {"id":"private-controls-declaration","credit":"no-credit-companion","kind":"source-only","owners":["src/window.c","src/select.c","src/vdbe.c","src/vdbeapi.c"],"meaning":"Byte/work/row limits, deadline and cooperative yield are project harness controls not faithfully observable through the native C API; cancellation is represented separately by progress-cancel. This entry earns no native or TS credit."}
+  ]
+}
