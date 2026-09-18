@@ -151,6 +151,18 @@ test('public multiple recursive declarations compose through a supported cross j
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
 
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} multiple recursive declarations preserve explicit output collation and NULL ordering`,async()=>{
+  const body=fs.readFileSync(path.join(generated,`subquery-${encoding}.db`));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare(`WITH RECURSIVE
+      a(x) AS (VALUES('a') UNION ALL SELECT 'B' FROM a WHERE x='a'),
+      b(y) AS (VALUES(NULL) UNION ALL SELECT 'z' FROM b WHERE y IS NULL)
+      SELECT x,y FROM a,b ORDER BY x COLLATE NOCASE ASC, y COLLATE NOCASE DESC NULLS FIRST`).statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push([statement.column(0),statement.column(1)]);assert.deepEqual(actual,[['a',null],['a','z'],['B',null],['B','z']]);}finally{statement.finalize()}
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
 test('recursive queue is iterative and reset/rebind/finalize clean lifecycle state',async()=>{
   const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
   try{

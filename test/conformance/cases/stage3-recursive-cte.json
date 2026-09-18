@@ -7,10 +7,10 @@
   },
   "disposition": "recursive CTE native oracle tranche; public credit tracked separately",
   "accounting": {
-    "cases": 6,
+    "cases": 7,
     "upstreamCreditCases": 5,
-    "companionsNoCredit": 1,
-    "encodingExecutions": 18,
+    "companionsNoCredit": 2,
+    "encodingExecutions": 21,
     "typescriptAttempted": 0,
     "typescriptCredited": 0
   },
@@ -517,6 +517,216 @@
             {
               "type": "integer",
               "value": "5"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-multi-owner-collation",
+      "credit": "none",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE a(x) AS (VALUES('a') UNION ALL SELECT 'B' FROM a WHERE x='a'), b(y) AS (VALUES(NULL) UNION ALL SELECT 'z' FROM b WHERE y IS NULL) SELECT x,y FROM a,b ORDER BY x COLLATE NOCASE ASC, y COLLATE NOCASE DESC NULLS FIRST;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "y",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-multi-owner-collation",
+      "credit": "none",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH RECURSIVE a(x) AS (VALUES('a') UNION ALL SELECT 'B' FROM a WHERE x='a'), b(y) AS (VALUES(NULL) UNION ALL SELECT 'z' FROM b WHERE y IS NULL) SELECT x,y FROM a,b ORDER BY x COLLATE NOCASE ASC, y COLLATE NOCASE DESC NULLS FIRST;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "y",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-multi-owner-collation",
+      "credit": "none",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH RECURSIVE a(x) AS (VALUES('a') UNION ALL SELECT 'B' FROM a WHERE x='a'), b(y) AS (VALUES(NULL) UNION ALL SELECT 'z' FROM b WHERE y IS NULL) SELECT x,y FROM a,b ORDER BY x COLLATE NOCASE ASC, y COLLATE NOCASE DESC NULLS FIRST;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "y",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7a"
             }
           ]
         ],
