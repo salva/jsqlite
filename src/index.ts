@@ -3,6 +3,7 @@ import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.t
 import { aggregateShapeSupported, compileAggregateSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, VdbeStatement } from "./internal/vdbe.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
+import { selectGraphContainsWith } from "./internal/admission.ts";
 
 const SQLITE_CORRUPT = 11;
 const SQLITE_BUSY = 5;
@@ -149,27 +150,28 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
-      // WITH syntax has a generated-parser semantic graph, but select.c's
-      // scope and CteUse lowering are not executable yet. Reject atomically
-      // before an ordinary SELECT compiler can consume the outer query.
-      if (parsed.statement.with !== null) {
+      // Load immutable schema before admission so persisted view SELECTs are
+      // reachable, then reject the complete graph before a compiler can create
+      // or publish a Program.
+      const schema = loadSchemaGraph(this);
+      if (selectGraphContainsWith(parsed.statement, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
       const aggregate = selectHasAggregate(parsed.statement)||parsed.statement.hasGroupBy||parsed.statement.hasHaving;
       if(aggregate&&!parsed.statement.hasCompound&&!parsed.statement.from.derived&&!aggregateShapeSupported(parsed.statement)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const program = aggregate
-        ? compileAggregateSelect(parsed.statement, loadSchemaGraph(this), btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
+        ? compileAggregateSelect(parsed.statement, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
         : parsed.statement.from.items.length || parsed.statement.where
         ? compileTableSelect(
             parsed.statement,
-            loadSchemaGraph(this),
+            schema,
             btreeFromConnection(this, this.#btreeLimits),
             this.#maxRows,
             this.#limits.maxWorkUnits,
             this.#limits.maxResultBytes,
             this.#limits.privateStateLimits,
           )
-        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, loadSchemaGraph(this), btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
+        : compileScalarSelect(parsed.statement, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
       let statement!: VdbeStatement;
       statement = new VdbeStatement(program,
         () => this.#assertOperationIdle(),

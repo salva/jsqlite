@@ -2555,8 +2555,12 @@ not capture caller scope. Coroutine, reusable materialization, and recursive
 queue/distinct-queue lowering remain future source-shaped VDBE work.
 
 Until those lookup, diagnostics, and lowering contracts are implemented,
-`Connection.prepare()` rejects any retained WITH graph atomically before ordinary
-SELECT compilation. The machine tranche has 14 credited pinned `with1.test`/
+`Connection.prepare()` first loads the immutable schema, then the cycle-safe
+`selectGraphContainsWith()` walk visits root/nested expression SELECTs, retained
+and flattening-adjacent derived owners, compound-arm graphs, CTE bodies, and
+FROM-reachable persisted views. Any WITH rejects with exact temporary-unsupported
+message `common table expressions are not implemented` before any compiler or
+statement registration. Public cross-encoding tests prove post-rejection reuse. The machine tranche has 14 credited pinned `with1.test`/
 `with2.test` cases and three no-credit companions, captured for three database
 encodings (51 native executions), with TypeScript attempted/credited 0/0. This pin
 has no `test/with.test`; none is claimed. This current evidence supersedes the

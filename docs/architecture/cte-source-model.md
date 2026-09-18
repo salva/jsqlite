@@ -27,7 +27,7 @@ The mutable 2026-09-14 fidelity audit was checked against current code. Its orig
 
 These values are produced only by generated Lemon reductions (`wqas`, `wqitem`, `wqlist`, and `select ::= WITH ...`). There is no auxiliary SQL parser. The nested SELECT owns its own `WithClause`, so nested shadowing is representable without flattening scope.
 
-`Connection.prepare()` rejects every non-null `SelectNode.with` as temporary unsupported before aggregate, table, or scalar compilation. This is an atomic statement gate: no partial `Program`, cursor, coroutine, queue, or private state exists. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
+After loading the immutable schema graph, `Connection.prepare()` runs the canonical cycle-safe `selectGraphContainsWith()` admission walk. It visits the root, expression-owned scalar/`EXISTS`/`IN` SELECT reductions, retained and flattening-adjacent derived owners, every compound arm, CTE bodies, and persisted-view SELECTs reached by FROM lookup. Discovery rejects with temporary unsupported and exact message `common table expressions are not implemented` before any compiler is called. Thus no `Program`, statement registration, cursor/coroutine/queue, or private-state reservation exists; the connection remains reusable. This gate is admission only and does not implement scope or execution. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
 
 ## Proposed scope and lifetime contracts
 
@@ -116,4 +116,4 @@ The next implementation must first add focused scope/source tests, then promote 
 
 ## Integration and operational effects
 
-No public type, deployment, configuration, network, or persistent database format changes result. Parser graph size grows by bounded authored CTE structure. Runtime behavior changes only from an accidental fall-through risk to an explicit temporary prepare rejection. Future execution reuses the current resolver, VDBE, and private-state owners rather than adding another engine.
+No public type, deployment, configuration, network, or persistent database format changes result. Parser graph size grows by bounded authored CTE structure. Runtime behavior changes only from root-only accidental fall-through risk to a schema-aware, graph-complete temporary prepare rejection. Future execution reuses the current resolver, VDBE, and private-state owners rather than adding another engine.
