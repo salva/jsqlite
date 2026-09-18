@@ -336,12 +336,32 @@ WITHOUT ROWID, later-ordinal, and other implicit-index shapes remain temporary
 schema gates; this does not expand aggregate scope.
 
 
-### 2026-09-18 ordinary WITH composition follow-up
+### Historical 2026-09-18 ordinary WITH composition checkpoint (recursive status superseded below)
 
-Public companion evidence in all three database encodings now covers represented
-derived-WITH owners, persisted-view WITH owners without caller-scope capture,
-mixed table/CTE CROSS JOIN, grouped aggregate, and bounded UNION ALL composition.
-Recursive self-reference is recognized before ordinary lowering and rejects with
-the dedicated temporary prepare diagnostic; no recursive queue execution is
-credited. Expression-owned nested WITH remains a distinct asserted temporary gap.
-Native credit remains limited to the immutable card-n-a oracle manifest.
+At the ordinary-WITH checkpoint, public companion evidence in all three database
+encodings covered represented derived-WITH owners, persisted-view WITH owners
+without caller-scope capture, mixed table/CTE CROSS JOIN, grouped aggregate, and
+bounded UNION ALL composition. Recursive self-reference was recognized before
+ordinary lowering and then rejected with the dedicated temporary prepare
+diagnostic; that checkpoint credited no recursive queue execution. Expression-
+owned nested WITH remained a distinct asserted temporary gap. Native credit at
+that checkpoint remained limited to the immutable card-n-a architecture oracle
+manifest. The recursive tranche below supersedes only the old recursive admission
+status; it does not relabel architecture or ordinary public evidence.
+
+### Bounded recursive CTE conformance (2026-09-18, current)
+
+The represented recursive subset executes iteratively through the VDBE queue
+route: FIFO `UNION ALL`, all-history duplicate suppression for `UNION`, priority
+ordering, recursive LIMIT/OFFSET, represented validation diagnostics, and bounded
+lifecycle/control behavior. Unsupported recursive source/destination compositions
+remain atomic temporary gaps; this is not unrestricted recursive-WITH credit.
+
+`stage3-recursive-cte.spec.json` and its capture contain **5 upstream-credit
+assertions + 2 no-credit companions**, executed against pinned SQLite 3.53.4 in
+UTF-8, UTF-16LE, and UTF-16BE for **21 pinned native encoding executions**. Native
+upstream credit and companion evidence remain separate. The public affected CTE
+suite is also separate evidence: its **39/39** observations cover bounded ordinary
+and recursive execution, diagnostics, encodings, typed rows/metadata, composition,
+resource/control behavior, and lifecycle; those observations are not added to the
+native denominator or upstream-credit count.
