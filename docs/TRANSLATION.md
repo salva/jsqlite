@@ -2600,3 +2600,11 @@ valid. A separately asserted expression-owned nested-WITH residual still returns
 `common table expressions are not implemented`; do not conflate those predicates.
 Other unrepresented compositions remain typed temporary gaps, and this bounded
 tranche must not be described as general CTE support.
+
+## Recursive CTE queue execution (2026-09-18)
+
+The bounded recursive route translates SQLite 3.53.4 `select.c:generateWithRecursiveQuery`: setup rows enter an ephemeral FIFO Queue (`UNION ALL`) or a stable KeyInfo priority Queue (`ORDER BY`); `UNION` additionally keeps an all-history ephemeral index. Each VDBE iteration removes one Current row, applies recursive LIMIT/OFFSET ordering, emits the destination row, and generates successors with `Goto`; it never recursively invokes JavaScript. Window/aggregate and circular/multiple/nested-reference diagnostics run before opcode publication.
+
+Queue/history values are copied `Mem` cells and share `PrivateStateByteBudget`, entry/key/byte/work/row limits and statement cancellation/deadline checkpoints. VM PC/register/cursor state survives async yield; halt/error/reset/finalize close private cursors and release budget. Public stress covers 20,000 iterations, reset/rebind, finalize, work-limit, pre-abort, deadline, and connection reuse.
+
+Represented scope is deliberately narrower than SQLite: source-free setup arms, direct single recursive source arms with scalar WHERE/results, FIFO/distinct/priority queues and recursive LIMIT/OFFSET; the outer destination supports direct projection and one source-free scalar-derived inner join. Other joins, recursive subqueries, views, grouped consumers, multiple/reused recursive declarations, and broader compounds reject temporarily because their underlying source/destination compiler routes are untranslated—not because recursive evaluation is approximated.

@@ -1,6 +1,6 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
-import { aggregateShapeSupported, compileAggregateSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, VdbeStatement } from "./internal/vdbe.ts";
+import { aggregateShapeSupported, compileAggregateSelect, compileRecursiveCteSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, VdbeStatement } from "./internal/vdbe.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
@@ -155,16 +155,16 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
       const schema = loadSchemaGraph(this);
-      if (recursiveCteOwner(parsed.statement)!==null) {
-        failure("unsupported", "recursive common table expressions are not implemented", { unsupportedClassification: "temporary" });
-      }
-      const selected = lowerOrdinaryCtes(parsed.statement) ?? parsed.statement;
-      if (selectGraphContainsWith(selected, schema)) {
+      const recursiveOwner = recursiveCteOwner(parsed.statement);
+      const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
+      if (recursiveOwner===null && selectGraphContainsWith(selected, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
-      const aggregate = selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving;
+      const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
       if(aggregate&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
-      const program = aggregate
+      const program = recursiveOwner!==null
+        ? compileRecursiveCteSelect(selected, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows)
+        : aggregate
         ? compileAggregateSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
         : selected.from.items.length || selected.where
         ? compileTableSelect(

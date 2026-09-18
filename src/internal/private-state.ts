@@ -97,6 +97,42 @@ export class SorterCursor {
   #live():void{if(this.#closed)throw new Error("sorter cursor is closed")}
 }
 
+export class FifoCursor {
+  readonly kind="fifo" as const; readonly limits:PrivateStateLimits;
+  #entries:Entry[]=[];#closed=false;readonly #budget:PrivateStateByteBudget;
+  constructor(limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.limits=limits;this.#budget=budget}
+  get size():number{this.#live();return this.#entries.length}
+  async insert(values:readonly Mem[],control:PrivateStateControl):Promise<void>{
+    this.#live();const bytes=logicalBytes(values);if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("recursive queue row exceeds byte limit");if(this.#entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("recursive queue exceeds entry limit");this.#budget.reserve(bytes,"recursive queue exceeds total byte limit");
+    try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.release(bytes);throw error}
+    let entry:Entry;try{entry={key:copyCells(values),payload:[],sequence:0,bytes}}catch(error){this.#budget.release(bytes);throw error}this.#entries.push(entry);
+    try{await control.checkpoint(0)}catch(error){this.#entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}
+  }
+  shift():readonly Mem[]|null{this.#live();const entry=this.#entries.shift();if(!entry)return null;const values=entry.key.map(value=>{const copy=new Mem();copy.copyFrom(value);return copy});releaseEntry(entry);this.#budget.release(entry.bytes);return values}
+  clear():void{this.#live();for(const entry of this.#entries){releaseEntry(entry);this.#budget.release(entry.bytes)}this.#entries=[]}
+  close():void{if(this.#closed)return;this.clear();this.#closed=true}
+  #live():void{if(this.#closed)throw new Error("recursive queue cursor is closed")}
+}
+
+
+/** Mutable ORDER BY queue for select.c's recursive SRT_Queue destination. */
+export class PriorityQueueCursor {
+  readonly kind="priority-queue" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;
+  #entries:Entry[]=[];#sequence=0;#closed=false;readonly #budget:PrivateStateByteBudget;
+  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
+  async insert(key:readonly Mem[],payload:readonly Mem[],control:PrivateStateControl):Promise<void>{
+    this.#live();const keyBytes=logicalBytes(key),bytes=keyBytes+logicalBytes(payload);if(key.length!==this.keyInfo.keyFieldCount)throw new Error("priority queue key width does not match KeyInfo");if(keyBytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("recursive queue key exceeds byte limit");if(this.#entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("recursive queue exceeds entry limit");this.#budget.reserve(bytes,"recursive queue exceeds total byte limit");
+    try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.release(bytes);throw error}
+    let entry:Entry;try{entry={key:copyCells(key),payload:copyCells(payload),sequence:this.#sequence++,bytes}}catch(error){this.#budget.release(bytes);throw error}
+    let at=0;try{for(;at<this.#entries.length;at++){const c=await compareEntry(entry,this.#entries[at]!,this.keyInfo,control);if(c<0||(c===0&&entry.sequence<this.#entries[at]!.sequence))break}await control.checkpoint(0)}catch(error){this.#sequence--;releaseEntry(entry);this.#budget.release(bytes);throw error}
+    this.#entries.splice(at,0,entry);try{await control.checkpoint(0)}catch(error){this.#entries.splice(at,1);this.#sequence--;releaseEntry(entry);this.#budget.release(bytes);throw error}
+  }
+  shift():readonly Mem[]|null{this.#live();const entry=this.#entries.shift();if(!entry)return null;const values=copyCells(entry.payload);releaseEntry(entry);this.#budget.release(entry.bytes);return values}
+  clear():void{this.#live();for(const entry of this.#entries){releaseEntry(entry);this.#budget.release(entry.bytes)}this.#entries=[]}
+  close():void{if(this.#closed)return;this.clear();this.#closed=true}
+  #live():void{if(this.#closed)throw new Error("recursive priority queue cursor is closed")}
+}
+
 /** Memory-only ephemeral index. It owns complete keys and uses SQLite Mem/KeyInfo
  * equality; NULLs compare equal for DISTINCT. */
 export class EphemeralIndexCursor {

@@ -564,3 +564,7 @@ queue execution remains wholly unimplemented. Expression-owned nested WITH retai
 a separately asserted temporary residual; it is not evidence for the recursive
 gate. Other unrepresented nesting/composition remains a gap. This revision does
 not claim full SQLite WITH compatibility.
+
+### Revision 2026-09-18 — recursive CTE baseline superseded
+
+The earlier finding that recursive queue execution was wholly absent is no longer current. The bounded route now translates FIFO/all-history/priority Queue iteration, recursive LIMIT/OFFSET, exact represented validation, and VDBE lifecycle/control behavior. See `TRANSLATION.md` and `SQLITE_SOURCE_MAP.md`. This is not full SQLite recursive-SELECT compatibility: unsupported underlying source/destination composition routes listed there continue to reject temporarily.

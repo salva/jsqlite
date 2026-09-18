@@ -8,7 +8,7 @@ import type { SelectNode } from "./parse.ts";
 import { lowerOrdinaryCtes } from "./cte.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
-import { EphemeralIndexCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
+import { EphemeralIndexCursor, FifoCursor, PriorityQueueCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type TableScanCursor } from "./btree.ts";
 import type { SchemaGraph, TableNode, ViewNode } from "./schema.ts";
@@ -90,6 +90,12 @@ type Op =
   | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
   | { readonly code: "SorterData"; readonly p1:number; readonly p2:number; readonly count:number }
   | { readonly code: "SorterNext"; readonly p1:number; readonly p2:number }
+  | { readonly code: "OpenFifo"; readonly p1:number }
+  | { readonly code: "OpenPriorityQueue"; readonly p1:number; readonly keyInfo:KeyInfo }
+  | { readonly code: "PriorityInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payloadStart:number; readonly payloadCount:number }
+  | { readonly code: "PriorityShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
+  | { readonly code: "FifoInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
+  | { readonly code: "FifoShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo }
   | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean }
@@ -264,6 +270,26 @@ export function selectHasAggregate(select:SelectNode):boolean {
  return expressions.some(expression=>expression.reduction!==undefined&&visit(expression.reduction));
 }
 
+
+/** select.c's Select.pWin ownership is local to one SELECT. */
+function selectHasWindow(select:SelectNode):boolean {
+ const visit=(node:LemonValue<SqlToken>):boolean=>{if(node.kind!=="reduction")return false;if(node.signature==="expr ::= LP select RP")return false;if(node.signature.startsWith("over_clause ::= OVER"))return true;return node.children.some(visit)};
+ const expressions=[...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])];return expressions.some(expression=>expression.reduction!==undefined&&visit(expression.reduction));
+}
+
+function nestedRecursiveReferenceCount(select:SelectNode,name:string):number {
+ const visitReduction=(node:LemonValue<SqlToken>):number=>{
+  if(node.kind!=="reduction")return 0;
+  if(node.signature==="expr ::= LP select RP"||node.signature==="expr ::= EXISTS LP select RP"||node.signature==="expr ::= expr in_op LP select RP"){
+   const nested=node.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("select ::="));
+   return nested?.kind==="reduction"&&nested.semantic?visitSelect(nested.semantic as SelectNode):0;
+  }
+  return node.children.reduce((sum,child)=>sum+visitReduction(child),0);
+ };
+ const visitSelect=(node:SelectNode):number=>node.arms.reduce((sum,arm)=>sum+arm.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,name)).length+arm.result.reduce((n,expr)=>n+(expr.reduction?visitReduction(expr.reduction):0),0)+(arm.where?.reduction?visitReduction(arm.where.reduction):0),0);
+ return select.arms.reduce((sum,arm)=>sum+arm.result.reduce((n,expr)=>n+(expr.reduction?visitReduction(expr.reduction):0),0)+(arm.where?.reduction?visitReduction(arm.where.reduction):0),0);
+}
+
 function expressionName(expression: SelectNode["result"][number]): string {
   if (expression.alias !== undefined) return expression.alias;
   return expression.tokens.map((token, index) => {
@@ -381,6 +407,59 @@ function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,pa
  const capacity=allocate();ops.push({code:"Copy",p1:combined,p2:capacity});
  const ifZero=compoundZeroBeforeOffset?earlyZero:ops.length;if(!compoundZeroBeforeOffset)ops.push({code:"IfNot",p1:count,p2:0});
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
+}
+
+export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER):Program{
+ const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+ if(!owner)throw new JSQLiteError("unsupported","recursive common table expressions are not implemented",{unsupportedClassification:"temporary"});
+ const body=owner.select,arms=body.arms,width=arms[0]?.result.length??0;
+ if(owner.columns&&owner.columns.length!==width)throw new JSQLiteError("sqlite",`table ${owner.name} has ${width} values for ${owner.columns.length} columns`,{code:1});
+ const isReference=(arm:typeof arms[number])=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+ const firstRecursive=arms.findIndex(isReference);
+ if(firstRecursive===0)throw new JSQLiteError("sqlite",`circular reference: ${owner.name}`,{code:1});
+ if(!body.hasCompound||firstRecursive<1||!width||arms.some(arm=>arm.result.length!==width))throw new JSQLiteError("unsupported","this recursive common table expression shape is not implemented",{unsupportedClassification:"temporary"});
+ const recursiveArms=arms.slice(firstRecursive),distinct=recursiveArms[0]!.operatorFromPrior==="union";
+ const nestedUses=nestedRecursiveReferenceCount(body,owner.name);
+ if(nestedUses){const directUses=recursiveArms.reduce((count,arm)=>count+arm.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name)).length,0);throw new JSQLiteError("sqlite",`${directUses>0?"multiple recursive references":"recursive reference in a subquery"}: ${owner.name}`,{code:1});}
+ if(recursiveArms.some(arm=>(arm.operatorFromPrior!=="union"&&arm.operatorFromPrior!=="union-all")||(arm.operatorFromPrior==="union")!==distinct))throw new JSQLiteError("sqlite","recursive terms must be separated by UNION ALL or UNION",{code:1});
+ for(const recursive of recursiveArms){
+  const recursiveSelect={...body,result:recursive.result,from:recursive.from,where:recursive.where,hasDistinct:recursive.hasDistinct,hasGroupBy:recursive.hasGroupBy,hasHaving:recursive.hasHaving,arms:Object.freeze([recursive]),hasCompound:false};
+  if(selectHasWindow(recursiveSelect))throw new JSQLiteError("sqlite","cannot use window functions in recursive queries",{code:1});
+  if(selectHasAggregate(recursiveSelect))throw new JSQLiteError("sqlite","recursive aggregate queries not supported",{code:1});
+  const references=recursive.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+  if(references.length>1)throw new JSQLiteError("sqlite",`multiple references to recursive table: ${owner.name}`,{code:1});
+  if(references.length!==1||recursive.from.items.length!==1||recursive.hasGroupBy||recursive.hasHaving||recursive.hasDistinct)throw new JSQLiteError("unsupported","this recursive common table expression shape is not implemented",{unsupportedClassification:"temporary"});
+ }
+ const outerRecursiveIndex=select.from.items.findIndex(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+ const joinedDerived=select.from.items.length===2&&outerRecursiveIndex===0&&select.from.derived?.index===1&&!select.from.derived.select.from.items.length&&!select.from.derived.select.where&&!select.from.derived.select.hasCompound&&!select.from.derived.select.hasGroupBy&&!select.from.derived.select.hasHaving&&!select.from.derived.select.hasDistinct&&!select.from.derived.select.limit&&!select.from.derived.select.offset;
+ if((select.from.items.length!==1||outerRecursiveIndex!==0)&&!joinedDerived||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset)throw new JSQLiteError("unsupported","this recursive common table expression consumer is not implemented",{unsupportedClassification:"temporary"});
+ const names=owner.columns??arms[0]!.result.map(expressionName);const lookup=(name:string)=>names.findIndex(candidate=>sqliteIdentifierEqual(candidate,sqlName(name.split(".").at(-1)!)));
+ const bind=(tree:Expression,current:number):Expression=>{if(tree.kind==="column"){const index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:current+index}}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bind(tree.value,current)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,current),right:bind(tree.right,current)};if(tree.kind==="call")return{...tree,args:tree.args.map(value=>bind(value,current))};if(tree.kind==="case")return{...tree,operand:tree.operand?bind(tree.operand,current):null,pairs:tree.pairs.map(([a,b])=>[bind(a,current),bind(b,current)]),otherwise:tree.otherwise?bind(tree.otherwise,current):null};return tree};
+ const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let maximum=0;const allocate=()=>++maximum,queue=1,history=2;
+ const limit=computeLimitRegisters(body,ops,allocate,parameters);
+ const order=body.orderBy.map(term=>{if(!term.expr.reduction)throw new JSQLiteError("internal","recursive ORDER BY lost expression");const tree=expressionFromReduction(term.expr.reduction);let index=-1;if(tree.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(width))index=Number(tree.value)-1;else if(tree.kind==="column")index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});return{index,collation:collation(expressionFromReduction(arms[0]!.result[index]!.reduction!)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};});
+ if(order.length)ops.push({code:"OpenPriorityQueue",p1:queue,keyInfo:new KeyInfo({encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order})});else ops.push({code:"OpenFifo",p1:queue});
+ if(distinct)ops.push({code:"OpenEphemeral",p1:history,keyInfo:new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:width,terms:arms[0]!.result.map(expression=>({collation:collation(expressionFromReduction(expression.reduction!))}))})});
+ const enqueue=(start:number)=>{let found:number|undefined;if(distinct){found=ops.length;ops.push({code:"Found",p1:history,keyStart:start,keyCount:width,jump:0},{code:"IdxInsert",p1:history,keyStart:start,keyCount:width});}if(order.length){const key=allocate();maximum+=order.length-1;order.forEach((term,index)=>ops.push({code:"Copy",p1:start+term.index,p2:key+index}));ops.push({code:"PriorityInsert",p1:queue,keyStart:key,keyCount:order.length,payloadStart:start,payloadCount:width});}else ops.push({code:"FifoInsert",p1:queue,keyStart:start,keyCount:width});if(found!==undefined)(ops[found] as {jump:number}).jump=ops.length;};
+ for(const arm of arms.slice(0,firstRecursive)){
+  if(arm.from.items.length)throw new JSQLiteError("unsupported","this recursive common table expression setup is not implemented",{unsupportedClassification:"temporary"});
+  const seedRows=arm.origin==="values"?arm.valuesRows!:[arm.result];for(const row of seedRows){const values=row.map(expression=>compileExpression(expression,ops,allocate,parameters)),start=allocate();values.forEach((value,index)=>ops.push({code:"Copy",p1:value.register,p2:start+index}));maximum+=width-1;enqueue(start);}
+ }
+ let joinedStart:number|undefined,joinedNames:readonly string[]=[];
+ if(joinedDerived){const derived=select.from.derived!.select;joinedNames=derived.result.map(expression=>expression.alias??expressionName(expression));joinedStart=allocate();maximum+=derived.result.length-1;derived.result.forEach((expression,index)=>{const value=compileExpression(expression,ops,allocate,parameters);ops.push({code:"Copy",p1:value.register,p2:joinedStart!+index});});}
+ const current=allocate();maximum+=width-1;const loop=ops.length;ops.push(order.length?{code:"PriorityShift",p1:queue,p2:current,count:width,emptyJump:0}:{code:"FifoShift",p1:queue,p2:current,count:width,emptyJump:0});
+ let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
+ const bindOutput=(tree:Expression):Expression=>{if(tree.kind==="column"){const parts=tree.name.split(".").map(sqlName),qualifier=parts.length>1?parts.at(-2):undefined,name=parts.at(-1)!;if(joinedDerived&&qualifier&&sqliteIdentifierEqual(qualifier,select.from.items[1]!.alias??select.from.items[1]!.tableName)){const index=joinedNames.findIndex(candidate=>sqliteIdentifierEqual(candidate,name));if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:joinedStart!+index};}return bind(tree,current);}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bindOutput(tree.value)};if(tree.kind==="binary")return{...tree,left:bindOutput(tree.left),right:bindOutput(tree.right)};if(tree.kind==="call")return{...tree,args:tree.args.map(bindOutput)};if(tree.kind==="case")return{...tree,operand:tree.operand?bindOutput(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bindOutput(a),bindOutput(b)]),otherwise:tree.otherwise?bindOutput(tree.otherwise):null};return tree};
+ let consumerSkip:number|undefined;if(joinedDerived&&select.from.items[1]!.on?.reduction){const predicate=compileExpressionTree(bindOutput(expressionFromReduction(select.from.items[1]!.on!.reduction!)),ops,allocate,parameters);consumerSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+ const output=allocate();maximum+=select.result.length-1;select.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive result lost expression");const value=compileExpressionTree(bindOutput(expressionFromReduction(expression.reduction)),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:output+index});});ops.push({code:"ResultRow",p1:output,p2:select.result.length});
+ let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
+ const recursiveStart=ops.length;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=recursiveStart;if(consumerSkip!==undefined)(ops[consumerSkip] as {p2:number}).p2=recursiveStart;
+ for(const recursive of recursiveArms){
+  let skip:number|undefined;if(recursive.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(recursive.where.reduction),current),ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+  const next=allocate();maximum+=width-1;recursive.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive term lost expression");const value=compileExpressionTree(bind(expressionFromReduction(expression.reduction),current),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:next+index});});enqueue(next);if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;
+ }
+ ops.push({code:"Goto",p2:loop});const halt=ops.length;ops.push({code:"Halt"});(ops[loop] as {emptyJump:number}).emptyJump=halt;if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;if(limitBreak!==undefined)(ops[limitBreak] as {p2:number}).p2=halt;}
+ return Object.freeze({ops:Object.freeze(ops),registers:maximum,columns:Object.freeze(select.result.map((expression,index)=>Object.freeze({name:expression.alias??names[index]??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
 }
 
 export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER): Program {
@@ -1450,7 +1529,7 @@ export class VdbeStatement implements Statement {
   #cursors = new Map<number, TableScanCursor>();
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
-  #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor>();
+  #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor | FifoCursor | PriorityQueueCursor>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
   #borrow = new BorrowLifetime();
@@ -1497,6 +1576,12 @@ export class VdbeStatement implements Statement {
           case "IfPos": {const value=this.#registers[op.p1]!.integerValue();if(value>0n){this.#registers[op.p1]!.setInt64(value-BigInt(op.p3));this.#pc=op.p2;}break;}
           case "DecrJumpZero": {const value=this.#registers[op.p1]!.integerValue(),next=value>-(1n<<63n)?value-1n:value;this.#registers[op.p1]!.setInt64(next);if(next===0n)this.#pc=op.p2;break;}
           case "SorterOpen": this.#privateCursors.set(op.p1,new SorterCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
+          case "OpenFifo": this.#privateCursors.set(op.p1,new FifoCursor(this.#program.privateStateLimits,this.#privateBytes));break;
+          case "OpenPriorityQueue": this.#privateCursors.set(op.p1,new PriorityQueueCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
+          case "PriorityInsert": await (this.#privateCursors.get(op.p1) as PriorityQueueCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#registers.slice(op.payloadStart,op.payloadStart+op.payloadCount),this.#privateControl(options,limit,started));break;
+          case "PriorityShift": {const values=(this.#privateCursors.get(op.p1) as PriorityQueueCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
+          case "FifoInsert": await (this.#privateCursors.get(op.p1) as FifoCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
+          case "FifoShift": {const values=(this.#privateCursors.get(op.p1) as FifoCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
           case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
           case "SorterInsert": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}

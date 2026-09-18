@@ -11,7 +11,6 @@ const here=path.dirname(new URL(import.meta.url).pathname);
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
 const generated=path.join(here,'../fixtures/generations',current.generationId,'generated');
 const cteError=error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary'&&error?.message==='common table expressions are not implemented';
-const recursiveCteError=error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary'&&error?.message==='recursive common table expressions are not implemented';
 
 async function serverFor(body){
   const server=http.createServer((_request,response)=>{response.writeHead(200,{'Content-Type':'application/vnd.sqlite3','Content-Length':body.length});response.end(body)});
@@ -41,11 +40,121 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} exec
 });
 
 
-for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} keeps nested-WITH and recursive ownership distinct`,async()=>{
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} keeps nested-WITH residual distinct while executing bounded recursive ownership`,async()=>{
   const body=fs.readFileSync(path.join(generated,`subquery-${encoding}.db`));const {server,db}=await openBytes(body);
   try{
     assert.throws(()=>db.prepare('SELECT (WITH c(x) AS (VALUES(1)) SELECT x FROM c)'),cteError);
-    assert.throws(()=>db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c) SELECT x FROM c'),recursiveCteError);
+    const statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c').statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[1n,2n,3n,4n]);assert.equal(statement.columnMetadata(0).name,'x');}finally{statement.finalize()}
     await reusable(db);db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive UNION retains all-history duplicate suppression',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3 UNION SELECT x FROM c) SELECT x FROM c').statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[1n,2n,3n]);}finally{statement.finalize()}
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive ORDER BY uses a priority queue',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare('WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x*2 FROM q WHERE x<4 UNION ALL SELECT x*2+1 FROM q WHERE x<4 ORDER BY 1 DESC) SELECT x FROM q').statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[1n,3n,7n,6n,2n,5n,4n]);}finally{statement.finalize()}
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive LIMIT and OFFSET control output and termination',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c LIMIT 3 OFFSET 2) SELECT x FROM c').statement;
+    const actual=[];try{while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[3n,4n,5n]);}finally{statement.finalize()}
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation reports pinned aggregate diagnostic at prepare',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT max(x) FROM c) SELECT x FROM c'),error=>error?.kind==='sqlite'&&error?.message==='recursive aggregate queries not supported');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation reports pinned window diagnostic at prepare',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i) SELECT * FROM i'),error=>error?.kind==='sqlite'&&error?.message==='cannot use window functions in recursive queries');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation reports pinned width diagnostic at prepare',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE i(a,b) AS (VALUES(1) UNION ALL SELECT a+1,b FROM i) SELECT * FROM i'),error=>error?.kind==='sqlite'&&error?.message==='table i has 1 values for 2 columns');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation reports pinned multiple-reference diagnostic',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE t(x) AS (VALUES(1) UNION ALL SELECT a.x+b.x FROM t a,t b) SELECT * FROM t'),error=>error?.kind==='sqlite'&&error?.message==='multiple references to recursive table: t');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation reports pinned circular diagnostic at prepare',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE t(x) AS (SELECT x FROM t UNION ALL VALUES(1)) SELECT * FROM t'),error=>error?.kind==='sqlite'&&error?.message==='circular reference: t');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive validation distinguishes nested second reference',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    assert.throws(()=>db.prepare('WITH RECURSIVE t(x) AS (VALUES(1) UNION ALL SELECT (SELECT x FROM t) FROM t) SELECT * FROM t'),error=>error?.kind==='sqlite'&&error?.message==='multiple recursive references: t');
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('public recursive CTE composes with supported outer join consumer',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<3) SELECT c.x, t.x FROM c JOIN (SELECT 2 AS x) AS t ON c.x=t.x').statement;
+    try{assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnInteger(0),statement.columnInteger(1)],[2n,2n]);assert.equal(await statement.step(),'done');}finally{statement.finalize()}
+    db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('recursive queue is iterative and reset/rebind/finalize clean lifecycle state',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const sql='WITH RECURSIVE c(x) AS (VALUES(?1) UNION ALL SELECT x+1 FROM c WHERE x<?2) SELECT x FROM c';
+    const statement=db.prepare(sql).statement;
+    try{
+      statement.bind(1,1n);statement.bind(2,20000n);let rows=0,last=0n;while(await statement.step()==='row'){rows++;last=statement.columnInteger(0)}assert.equal(rows,20000);assert.equal(last,20000n);
+      statement.reset();statement.bind(1,7n);statement.bind(2,9n);const actual=[];while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[7n,8n,9n]);
+    }finally{statement.finalize()}
+    await reusable(db);db.close();
+  }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+test('recursive queue cleans state after work-limit, cancellation, and deadline errors',async()=>{
+  const body=fs.readFileSync(path.join(generated,'subquery-utf8.db'));const {server,db}=await openBytes(body);
+  try{
+    const sql='WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c) SELECT x FROM c';
+    for(const options of [{maxWorkUnits:20},{signal:AbortSignal.abort('test')},{timeoutMs:0}]){
+      const statement=db.prepare(sql).statement;try{await assert.rejects(async()=>{for(;;)await statement.step(options)},error=>['limit','cancelled','timeout'].includes(error?.kind));}finally{try{statement.reset()}catch{}statement.finalize()}
+      await reusable(db);
+    }
+    db.close();
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
