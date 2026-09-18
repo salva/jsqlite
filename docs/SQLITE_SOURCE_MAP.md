@@ -1199,3 +1199,7 @@ later ordinary and recursive CTE revisions supersede old CTE predictions, while
 its sustained rule against substitute semantic owners remains applicable; it has
 no evidence of implemented window execution. No exceptional substitution is
 proposed.
+
+### Window parser/resolver implementation evidence ([[card:card-o-b-a]], 2026-09-18)
+
+`src/internal/parse.ts` now retains the generated `frame_opt` graph (type, bounds and offset expressions, implicit default, and exclusion) and applies `sqlite3WindowAlloc`'s integer-zero boundary canonicalization. `src/internal/resolve.ts` now materializes earlier-definition inheritance using `sqlite3WindowChain`'s override ordering, updates function-owned windows after built-in arity lookup using `sqlite3WindowUpdate` frame coercions, and assigns compatible chain groups using the fields compared by `sqlite3WindowCompare`/`sqlite3WindowLink`. The immutable resolved graph is the explicit handoff to rewrite; it is not runtime admission. `test/parser/window-graph.test.mjs` covers graph identity, inheritance errors, built-in update/FILTER/arity, RANGE cardinality, zero normalization, compatible sharing, and distinct partition nesting. Runtime bound-value checks and `sqlite3WindowRewrite` remain mapped to later owners above.

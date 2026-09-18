@@ -2840,3 +2840,7 @@ statements, and native/WASM delegation. They duplicate existing semantic owners 
 lose source control/resource timing. No exceptional algorithm substitution is
 selected by this decision; ordinary objects, `BigInt`, typed byte arrays and async
 VM suspension are representation/execution adaptations under the invariants above.
+
+### Window graph implementation checkpoint ([[card:card-o-b-a]], 2026-09-18)
+
+The generated-parser/resolver owners now expose an immutable resolved-window handoff corresponding to the mutable upstream graph before rewrite: named definitions are chained against earlier declarations, function-owned `OVER` nodes copy resolved definitions, built-in lookup/arity and frame coercion run in update order, and compatible functions carry a common link-group identity while different frames/partitions remain separate for nested rewrite. Parser frame nodes retain implicit/default identity, exclusion and bound expressions, including `sqlite3WindowAlloc`'s explicit integer-zero-to-CURRENT canonicalization. This checkpoint does not admit execution or alter the window conformance denominator; `sqlite3WindowRewrite` and frame VM work remain separate mapped work.
