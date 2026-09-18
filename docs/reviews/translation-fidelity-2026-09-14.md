@@ -582,3 +582,7 @@ The prior revision's metadata-only VM-setup finding is resolved for the bounded 
 ### Producer-loop finding reconciliation (revision 2026-09-18)
 
 The disconnected-helper finding in `record:///review.md?card=card-o-b&v=3` is resolved at the pre-step boundary: the ordinary public compiler routes invoke internal lowering, and its Program has one source scan with per-row recursively ordered Gosubs and continuation-owned Returns. It is discarded before the unchanged unsupported error. This does not resolve frame evaluation. EXCLUDE and special built-in CodeInit application state are explicitly deferred with `sqlite3WindowCodeStep`; accounting stays 29 declared, 0 TypeScript attempts/credits.
+
+### Recursive lowering reconciliation (revision 2026-09-18)
+
+The flattening defect identified by `record:///review.md?card=card-o-b&v=9` is corrected: emitted operations now contain distinct child-consuming coroutine/sorter loops for incompatible groups, and only the innermost producer owns properly nested original source scans and moved clauses. Tests inspect the control graph, layer-local sort ownership, compatible sharing, incompatible nesting, and two-source rewind structure. This resolves compiler topology only; frame evaluation remains absent and accounting remains 29 declared, 0 TypeScript attempted/credited.

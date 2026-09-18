@@ -148,9 +148,14 @@ export interface WindowSetupLayer {
 export interface WindowLoopBinding {
   readonly compatibleGroup:number;
   readonly producerKind:"original"|"rewritten-select";
+  readonly producerCoroutine:number;
+  readonly childCoroutine:number;
   readonly loopBody:number;
   readonly gosub:number;
   readonly returnAddress:number;
+  readonly sorterCursor:number;
+  readonly ownedClauses:readonly ("from"|"where"|"groupBy"|"having")[];
+  readonly producerOrderBy:WindowRewriteGraph["layers"][number]["producerOrderBy"];
 }
 export interface WindowLoweringCompilation {
   readonly rewrite:WindowRewriteGraph;
@@ -195,19 +200,52 @@ export function compileWindowSelectLowering(
     for(const win of layer.windows)ops.push({code:"Null",p2:win.regAccum});
     setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,partitionRegisters:Object.freeze(partitionRegisters),regOne}));
   }
-  // The original producer owns FROM exactly once. Incompatible rewrites consume
-  // its row through the explicit nested graph, in innermost-to-outermost order.
-  const rewinds:number[]=[];
-  for(const source of resolved.sources){ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});rewinds.push(ops.length);ops.push({code:"Rewind",p1:source.cursorId,p2:0});}
-  const loopBody=ops.length;
-  const pending:{at:number;layer:WindowRewriteGraph["layers"][number]}[]=[];
-  for(const layer of compileLayers){pending.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
-  const nexts:number[]=[];
-  for(let index=resolved.sources.length-1;index>=0;index--){nexts[index]=ops.length;ops.push({code:"Next",p1:resolved.sources[index]!.cursorId,p2:loopBody});}
-  const halt=ops.length;ops.push({code:"Halt"});
-  for(let index=0;index<rewinds.length;index++)(ops[rewinds[index]!] as {p2:number}).p2=index===0?halt:nexts[index-1]!;
+  // Realize the recursive rewrite as coroutine producers. The innermost
+  // producer alone owns the original FROM scan. Each incompatible outer layer
+  // consumes the prior layer's coroutine instead of being flattened into that
+  // scan. Producer ORDER terms are materialized through the ordinary sorter
+  // op family before rows cross each boundary.
+  const maxCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]));
+  const sourceCoroutine=++registers;
+  const producerCoroutines=compileLayers.map(()=>++registers);
+  const sorterCursors=compileLayers.map((_layer,index)=>maxCursor+1+index);
+  const bindingsPending:{layer:WindowRewriteGraph["layers"][number];producerCoroutine:number;childCoroutine:number;loopBody:number;gosub:number;sorterCursor:number;ownedClauses:readonly ("from"|"where"|"groupBy"|"having")[]}[]=[];
+
+
+
+  // Source coroutine. Nested source scans use the existing SELECT loop shape:
+  // each outer row executes the inner Rewind anew, avoiding the former invalid
+  // reverse-Next Cartesian scan.
+  const sourceInit=ops.length;ops.push({code:"InitCoroutine",p1:sourceCoroutine,p2:0,p3:0});
+  const sourceStart=ops.length;(ops[sourceInit] as {p3:number}).p3=sourceStart;
+  for(const source of resolved.sources)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});
+  const emitSourceLevel=(index:number):void=>{
+    if(index===resolved.sources.length){ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
+    const cursor=resolved.sources[index]!.cursorId,rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;emitSourceLevel(index+1);ops.push({code:"Next",p1:cursor,p2:body});(ops[rewind] as {p2:number}).p2=ops.length;
+  };
+  if(resolved.sources.length)emitSourceLevel(0);else ops.push({code:"Yield",p1:sourceCoroutine,p2:0});
+  ops.push({code:"EndCoroutine",p1:sourceCoroutine,p2:0});
+  const sourceContinuation=ops.length;(ops[sourceInit] as {p2:number}).p2=sourceContinuation;
+
+  let childCoroutine=sourceCoroutine,childStart=sourceStart;
+  for(let index=0;index<compileLayers.length;index++){
+    const layer=compileLayers[index]!,producerCoroutine=producerCoroutines[index]!,sorterCursor=sorterCursors[index]!;
+    const init=ops.length;ops.push({code:"InitCoroutine",p1:producerCoroutine,p2:0,p3:0});const producerStart=ops.length;(ops[init] as {p3:number}).p3=producerStart;
+    ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});
+    const childLoop=ops.length,yieldAt=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
+    // Sort production is layer-owned and occurs before its per-row handoff.
+    const terms=layer.producerOrderBy;ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:new KeyInfo({encoding,totalFieldCount:terms.length,keyFieldCount:terms.length,terms:terms.map(term=>({collation:"binary",desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}))})});
+    const key=++registers;registers+=Math.max(0,terms.length-1);for(let term=0;term<terms.length;term++)ops.push({code:"Null",p2:key+term});const payload=++registers;ops.push({code:"Null",p2:payload},{code:"SorterInsert",p1:sorterCursor,keyStart:key,keyCount:terms.length,payload,payloadCount:1},{code:"Goto",p2:childLoop});
+    const childDone=ops.length;(ops[yieldAt] as {p2:number}).p2=childDone;
+    const sort=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0});const loopBody=ops.length;ops.push({code:"SorterData",p1:sorterCursor,p2:payload,count:1});const gosub=ops.length;ops.push({code:"Gosub",p1:layer.regGosub,p2:0},{code:"Yield",p1:producerCoroutine,p2:0},{code:"SorterNext",p1:sorterCursor,p2:loopBody});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;
+    ops.push({code:"EndCoroutine",p1:producerCoroutine,p2:0});const continuation=ops.length;(ops[init] as {p2:number}).p2=continuation;
+    bindingsPending.push({layer,producerCoroutine,childCoroutine,loopBody,gosub,sorterCursor,ownedClauses:index===0?rewrite.movedClauses:Object.freeze([])});
+    childCoroutine=producerCoroutine;childStart=producerStart;
+  }
+  // The outer SELECT drives only the root rewritten producer.
+  const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0},{code:"Goto",p2:rootLoop});const halt=ops.length;(ops[rootLoop] as {p2:number}).p2=halt;ops.push({code:"Halt"});
   const loopBindings:WindowLoopBinding[]=[];
-  for(const {at,layer} of pending){const target=ops.length;(ops[at] as {code:"Gosub";p1:number;p2:number}).p2=target;ops.push({code:"Return",p1:layer.regGosub});loopBindings.push(Object.freeze({compatibleGroup:layer.compatibleGroup,producerKind:layer.producer.kind,loopBody,gosub:at,returnAddress:target}));}
+  for(const pending of bindingsPending){const target=ops.length;(ops[pending.gosub] as {p2:number}).p2=target;ops.push({code:"Return",p1:pending.layer.regGosub});loopBindings.push(Object.freeze({compatibleGroup:pending.layer.compatibleGroup,producerKind:pending.layer.producer.kind,producerCoroutine:pending.producerCoroutine,childCoroutine:pending.childCoroutine,loopBody:pending.loopBody,gosub:pending.gosub,returnAddress:target,sorterCursor:pending.sorterCursor,ownedClauses:Object.freeze(pending.ownedClauses),producerOrderBy:pending.layer.producerOrderBy}));}
   const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
   return Object.freeze({rewrite,setup:Object.freeze(setup),loopBindings:Object.freeze(loopBindings),program});
 }

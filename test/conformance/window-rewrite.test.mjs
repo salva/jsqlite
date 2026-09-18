@@ -246,18 +246,23 @@ test('compiler emits window init cursors, result registers, and select-loop hand
   assert.equal(ops.filter((op) => op.code === 'Gosub').length, 2);
   assert.equal(ops.filter((op) => op.code === 'Return').length, 2);
   assert.equal(ops.filter((op) => op.code === 'Halt').length, 1);
-  assert.equal(ops.filter((op) => op.code === 'OpenRead').length, 1, 'the ordinary producer owns FROM once');
-  const rewind = ops.findIndex((op) => op.code === 'Rewind');
-  const next = ops.findIndex((op) => op.code === 'Next');
-  assert.ok(rewind >= 0 && next > rewind);
+  assert.equal(ops.filter((op) => op.code === 'OpenRead').length, 1, 'the innermost generated producer owns FROM once');
   assert.deepEqual(compilation.loopBindings.map((binding) => binding.producerKind), ['original', 'rewritten-select']);
+  assert.deepEqual(compilation.loopBindings.map((binding) => binding.ownedClauses), [
+    ['from', 'where', 'groupBy', 'having'], [],
+  ]);
+  assert.equal(new Set(compilation.loopBindings.map((binding) => binding.loopBody)).size, 2);
+  assert.equal(new Set(compilation.loopBindings.map((binding) => binding.producerCoroutine)).size, 2);
+  assert.equal(compilation.loopBindings[1].childCoroutine, compilation.loopBindings[0].producerCoroutine);
   for (const binding of compilation.loopBindings) {
-    assert.ok(binding.gosub > rewind && binding.gosub < next, 'each handoff is emitted per producer row');
+    assert.equal(ops[binding.loopBody].code, 'SorterData');
     assert.equal(ops[binding.gosub].code, 'Gosub');
+    assert.ok(binding.gosub >= binding.loopBody, 'handoff belongs to this generated producer loop');
     assert.equal(ops[binding.returnAddress].code, 'Return');
     assert.equal(ops[binding.returnAddress].p1, ops[binding.gosub].p1);
+    assert.ok(ops.some((op) => op.code === 'SorterOpen' && op.p1 === binding.sorterCursor));
+    assert.deepEqual(binding.producerOrderBy, compilation.rewrite.layers.find((layer) => layer.compatibleGroup === binding.compatibleGroup).producerOrderBy);
   }
-  assert.equal(ops[next].p2, compilation.loopBindings[0].loopBody);
   const allocatedRegisters = new Set();
   for (const [index, layer] of compilation.rewrite.layers.entries()) {
     const setup = compilation.setup[index];
@@ -300,6 +305,28 @@ test('compiler emits window init cursors, result registers, and select-loop hand
   assert.notEqual(compilation.rewrite.layers[0].iEphCsr, compilation.rewrite.layers[1].iEphCsr);
 });
 
+
+
+test('window lowering uses nested SELECT loops for multiple original sources', () => {
+  const resolved = resolve(
+    'SELECT sum(left_t.a) OVER (PARTITION BY left_t.b), ' +
+    'row_number() OVER (ORDER BY right_t.a) FROM t1 AS left_t, t1 AS right_t',
+  );
+  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
+  const ops = compilation.program.ops;
+  assert.equal(ops.filter((op) => op.code === 'OpenRead').length, 2);
+  const rewinds = ops.map((op, index) => op.code === 'Rewind' ? index : -1).filter((index) => index >= 0);
+  assert.equal(rewinds.length, 2);
+  const outerBody = rewinds[0] + 1;
+  assert.equal(ops[outerBody].code, 'Rewind', 'inner source is rewound for every outer row');
+  const sourceNext = ops.map((op, index) => op.code === 'Next' ? {op, index} : null).filter(Boolean);
+  assert.equal(sourceNext.length, 2);
+  assert.equal(sourceNext[0].op.p2, rewinds[1] + 1);
+  assert.equal(sourceNext[1].op.p2, outerBody);
+  assert.equal(compilation.loopBindings.length, 2);
+  assert.equal(new Set(compilation.loopBindings.map((binding) => binding.producerCoroutine)).size, 2);
+  assert.equal(compilation.loopBindings[1].childCoroutine, compilation.loopBindings[0].producerCoroutine);
+});
 
 test('public window lowering rejects atomically in all three database encodings', async () => {
   const names = ['encoding-utf8', 'encoding-utf16le', 'encoding-utf16be'];
