@@ -145,26 +145,32 @@ export interface WindowSetupLayer {
   readonly partitionRegisters:readonly number[];
   readonly regOne:number;
 }
-export interface WindowSetupCompilation {
+export interface WindowLoopBinding {
+  readonly compatibleGroup:number;
+  readonly producerKind:"original"|"rewritten-select";
+  readonly loopBody:number;
+  readonly gosub:number;
+  readonly returnAddress:number;
+}
+export interface WindowLoweringCompilation {
   readonly rewrite:WindowRewriteGraph;
   readonly setup:readonly WindowSetupLayer[];
+  readonly loopBindings:readonly WindowLoopBinding[];
   readonly program:Program;
 }
 
-/**
- * Internal, deliberately non-publishable translation of window.c's
- * sqlite3WindowCodeInit and select.c's select-loop Gosub/Return seam.  It emits
- * real Program operations so cursor/register ownership is checked by the same
- * compiler representation as ordinary SELECTs. sqlite3WindowCodeStep is still
- * absent, so public prepare must never return this setup-only Program.
- */
-export function compileWindowSelectSetup(
+/** Internal, deliberately non-publishable SELECT lowering through the boundary
+ * immediately before sqlite3WindowCodeStep. Unlike the earlier setup snapshot,
+ * this owns the ordinary source scan and places each select.c Gosub in that
+ * producer loop. The matching Return is the outer continuation. */
+export function compileWindowSelectLowering(
   resolved:ReturnType<typeof expandAndResolveSelect>,
   encoding:DatabaseEncoding,
+  database?:BtreeDatabase,
   maxWorkUnits=10_000_000,
   maxResultBytes=1_000_000_000,
   privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,
-):WindowSetupCompilation {
+):WindowLoweringCompilation {
   const rewrite=sqlite3WindowRewrite(resolved);
   const byGroup=new Map(rewrite.layers.map(layer=>[layer.compatibleGroup,layer] as const));
   const compileLayers:WindowRewriteGraph["layers"][number][]=[];
@@ -179,8 +185,6 @@ export function compileWindowSelectSetup(
   let registers=Math.max(0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
   const setup:WindowSetupLayer[]=[];
   for(const layer of compileLayers){
-    // window.c uses the producer e-list width as OP_OpenEphemeral P2. This
-    // VDBE's exact equivalent carries that width in a zero-key KeyInfo.
     const width=layer.bufferExpressions.length;
     const keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:0,terms:[]});
     ops.push({code:"OpenEphemeral",p1:layer.iEphCsr,keyInfo});
@@ -191,15 +195,21 @@ export function compileWindowSelectSetup(
     for(const win of layer.windows)ops.push({code:"Null",p2:win.regAccum});
     setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,partitionRegisters:Object.freeze(partitionRegisters),regOne}));
   }
-  // Emit the select.c handoff after all CodeInit operations. Each generated
-  // layer owns a distinct return register and subroutine address. Halt prevents
-  // fall-through into these setup-only stubs if an internal diagnostic runs it.
-  const gosubs:{at:number;layer:WindowRewriteGraph["layers"][number]}[]=[];
-  for(const layer of compileLayers){gosubs.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
-  ops.push({code:"Halt"});
-  for(const {at,layer} of gosubs){const target=ops.length;(ops[at] as {code:"Gosub";p1:number;p2:number}).p2=target;ops.push({code:"Return",p1:layer.regGosub});}
-  const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
-  return Object.freeze({rewrite,setup:Object.freeze(setup),program});
+  // The original producer owns FROM exactly once. Incompatible rewrites consume
+  // its row through the explicit nested graph, in innermost-to-outermost order.
+  const rewinds:number[]=[];
+  for(const source of resolved.sources){ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});rewinds.push(ops.length);ops.push({code:"Rewind",p1:source.cursorId,p2:0});}
+  const loopBody=ops.length;
+  const pending:{at:number;layer:WindowRewriteGraph["layers"][number]}[]=[];
+  for(const layer of compileLayers){pending.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
+  const nexts:number[]=[];
+  for(let index=resolved.sources.length-1;index>=0;index--){nexts[index]=ops.length;ops.push({code:"Next",p1:resolved.sources[index]!.cursorId,p2:loopBody});}
+  const halt=ops.length;ops.push({code:"Halt"});
+  for(let index=0;index<rewinds.length;index++)(ops[rewinds[index]!] as {p2:number}).p2=index===0?halt:nexts[index-1]!;
+  const loopBindings:WindowLoopBinding[]=[];
+  for(const {at,layer} of pending){const target=ops.length;(ops[at] as {code:"Gosub";p1:number;p2:number}).p2=target;ops.push({code:"Return",p1:layer.regGosub});loopBindings.push(Object.freeze({compatibleGroup:layer.compatibleGroup,producerKind:layer.producer.kind,loopBody,gosub:at,returnAddress:target}));}
+  const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+  return Object.freeze({rewrite,setup:Object.freeze(setup),loopBindings:Object.freeze(loopBindings),program});
 }
 
 export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
@@ -574,7 +584,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     let expanded:ReturnType<typeof expandAndResolveSelect>;
     try{expanded=expandAndResolveSelect(select,schema)}
     catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
-    sqlite3WindowRewrite(expanded);
+    compileWindowSelectLowering(expanded,encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits);
     // Frame stepping is not admitted. Reject before returning a Program, so the
     // connection cannot publish a partially lowered Statement.
     throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
@@ -1173,7 +1183,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // before WHERE planning. Construct the complete immutable handoff here, then
   // reject before a Program is published until sqlite3WindowCodeStep exists.
   if(expanded.windows.length){
-    sqlite3WindowRewrite(expanded);
+    compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits);
     throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
   }
   rejectUnsupportedSelectClauses(select, true);

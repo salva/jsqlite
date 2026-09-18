@@ -91,7 +91,7 @@ test('incompatible rewrites form recursive producer ownership and compile inside
     'SELECT sum(a) OVER (PARTITION BY b), row_number() OVER (ORDER BY a), ' +
     'avg(b) OVER (ORDER BY b) FROM t1 WHERE a > 0 GROUP BY a HAVING b > 0',
   );
-  const compilation = vdbe.compileWindowSelectSetup(resolved, 'utf-8');
+  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
   const {rewrite} = compilation;
 
   const walked = [];
@@ -230,7 +230,7 @@ test('public table prepare preserves window rewrite ORDER BY aggregate misuse ti
 
 test('compiler emits window init cursors, result registers, and select-loop handoff', () => {
   assert.equal(
-    typeof vdbe.compileWindowSelectSetup,
+    typeof vdbe.compileWindowSelectLowering,
     'function',
     'the window rewrite still has metadata-only cursor/register/handoff records',
   );
@@ -238,7 +238,7 @@ test('compiler emits window init cursors, result registers, and select-loop hand
     'SELECT sum(a) OVER w, avg(a) OVER w, row_number() OVER (ORDER BY a) ' +
     'FROM t1 WINDOW w AS (PARTITION BY b ORDER BY a)',
   );
-  const compilation = vdbe.compileWindowSelectSetup(resolved, 'utf-8');
+  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
   assert.equal(compilation.rewrite.layers.length, 2);
   const ops = compilation.program.ops;
   assert.equal(ops.filter((op) => op.code === 'OpenEphemeral').length, 2);
@@ -246,6 +246,18 @@ test('compiler emits window init cursors, result registers, and select-loop hand
   assert.equal(ops.filter((op) => op.code === 'Gosub').length, 2);
   assert.equal(ops.filter((op) => op.code === 'Return').length, 2);
   assert.equal(ops.filter((op) => op.code === 'Halt').length, 1);
+  assert.equal(ops.filter((op) => op.code === 'OpenRead').length, 1, 'the ordinary producer owns FROM once');
+  const rewind = ops.findIndex((op) => op.code === 'Rewind');
+  const next = ops.findIndex((op) => op.code === 'Next');
+  assert.ok(rewind >= 0 && next > rewind);
+  assert.deepEqual(compilation.loopBindings.map((binding) => binding.producerKind), ['original', 'rewritten-select']);
+  for (const binding of compilation.loopBindings) {
+    assert.ok(binding.gosub > rewind && binding.gosub < next, 'each handoff is emitted per producer row');
+    assert.equal(ops[binding.gosub].code, 'Gosub');
+    assert.equal(ops[binding.returnAddress].code, 'Return');
+    assert.equal(ops[binding.returnAddress].p1, ops[binding.gosub].p1);
+  }
+  assert.equal(ops[next].p2, compilation.loopBindings[0].loopBody);
   const allocatedRegisters = new Set();
   for (const [index, layer] of compilation.rewrite.layers.entries()) {
     const setup = compilation.setup[index];
@@ -286,4 +298,29 @@ test('compiler emits window init cursors, result registers, and select-loop hand
   assert.ok([...allocatedRegisters].every((register) => register <= compilation.program.registers));
   assert.equal(compilation.rewrite.layers[0].windows.length, 2);
   assert.notEqual(compilation.rewrite.layers[0].iEphCsr, compilation.rewrite.layers[1].iEphCsr);
+});
+
+
+test('public window lowering rejects atomically in all three database encodings', async () => {
+  const names = ['encoding-utf8', 'encoding-utf16le', 'encoding-utf16be'];
+  const backend = await startFixtureServer(fixtures);
+  try {
+    for (const name of names) {
+      const db = await openFixture(new Request(
+        `http://127.0.0.1:${backend.port}/fixture/${backend.token}/${name}`,
+      ));
+      try {
+        assert.throws(
+          () => db.prepare('SELECT row_number() OVER () FROM t1'),
+          (error) => error?.kind === 'unsupported' && error?.message === 'window functions are not implemented',
+          `${name} must reject before publishing a statement`,
+        );
+        const prepared = db.prepare('SELECT 1');
+        assert.ok(prepared.statement, `${name} connection remains reusable after atomic rejection`);
+        prepared.statement.finalize();
+      } finally { try { db.closeDeferred(); } catch {} }
+    }
+  } finally {
+    await new Promise((resolve, reject) => backend.server.close((error) => error ? reject(error) : resolve()));
+  }
 });
