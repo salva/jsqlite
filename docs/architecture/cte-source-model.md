@@ -1,10 +1,10 @@
 # CTE source model, scope, and compilation foundation
 
-Status: architecture proposal for [[card:card-n-a]]; parser model and atomic runtime gate implemented, execution deliberately unimplemented.
+Status: historical architecture proposal for [[card:card-n-a]]. Its parser/ownership model remains applicable, but its atomic no-execution gate is superseded by the bounded ordinary and recursive execution mappings in `docs/TRANSLATION.md` and `docs/SQLITE_SOURCE_MAP.md`.
 
 ## Scope and evidence
 
-This proposal is the handoff for [[card:card-n]]. It covers generated-parser ownership of `WITH`, lexical CTE lookup contracts, parse-lifetime use state, and the later lowering routes for ordinary and recursive CTEs. It does **not** claim public CTE execution.
+This proposal was the foundation handoff for [[card:card-n]]. It covers generated-parser ownership of `WITH`, lexical CTE lookup contracts, parse-lifetime use state, and later lowering routes for ordinary and recursive CTEs. It made no public execution claim at that checkpoint; current bounded execution is documented by the living guide and source map.
 
 The authority is the manifest-pinned SQLite 3.53.4 source ID `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`. The consulted tranche is:
 
@@ -16,9 +16,9 @@ The authority is the manifest-pinned SQLite 3.53.4 source ID `2026-07-24 19:02:5
 
 The mutable 2026-09-14 fidelity audit was checked against current code. Its original structural-SELECT concern is partly superseded: current SELECTs and nested subqueries are generated-reduction semantic graphs, and this change adds generated `wqitem`/`wqlist` actions rather than token reparsing. Its sustained rules—owning primitives, source-shaped control, exact oracle evidence, and honest credit—remain applicable.
 
-## Current delivered boundary
+## Historical foundation boundary (execution status superseded)
 
-`src/internal/parse.ts` now attaches an immutable `WithClause` directly to the owning `SelectNode`. It preserves:
+The following boundary records the card-n-a checkpoint and is not the current public admission contract. `src/internal/parse.ts` now attaches an immutable `WithClause` directly to the owning `SelectNode`. It preserves:
 
 - the `RECURSIVE` marker independently of whether recursion is found;
 - declaration order;
@@ -27,7 +27,7 @@ The mutable 2026-09-14 fidelity audit was checked against current code. Its orig
 
 These values are produced only by generated Lemon reductions (`wqas`, `wqitem`, `wqlist`, and `select ::= WITH ...`). There is no auxiliary SQL parser. The nested SELECT owns its own `WithClause`, so nested shadowing is representable without flattening scope.
 
-After loading the immutable schema graph, `Connection.prepare()` runs the canonical cycle-safe `selectGraphContainsWith()` admission walk. It visits the root, expression-owned scalar/`EXISTS`/`IN` SELECT reductions, retained and flattening-adjacent derived owners, every compound arm, and persisted-view SELECTs reached by FROM lookup. CTE bodies remain represented and reachable in the authored graph, but the boolean walk intentionally short-circuits as soon as it discovers their owning non-null `WithClause`; it does not visit those bodies on that path because rejection is already decided. Discovery rejects with temporary unsupported and exact message `common table expressions are not implemented` before any compiler is called. Thus no `Program`, statement registration, cursor/coroutine/queue, or private-state reservation exists; the connection remains reusable. This gate is admission only and does not implement scope or execution. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
+At that checkpoint, after loading the immutable schema graph, `Connection.prepare()` ran the canonical cycle-safe `selectGraphContainsWith()` admission walk. It visits the root, expression-owned scalar/`EXISTS`/`IN` SELECT reductions, retained and flattening-adjacent derived owners, every compound arm, and persisted-view SELECTs reached by FROM lookup. CTE bodies remain represented and reachable in the authored graph, but the boolean walk intentionally short-circuits as soon as it discovers their owning non-null `WithClause`; it does not visit those bodies on that path because rejection is already decided. Discovery rejects with temporary unsupported and exact message `common table expressions are not implemented` before any compiler is called. Thus no `Program`, statement registration, cursor/coroutine/queue, or private-state reservation exists; the connection remains reusable. This gate is admission only and does not implement scope or execution. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
 
 ## Proposed scope and lifetime contracts
 

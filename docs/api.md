@@ -412,10 +412,10 @@ metadata, errors, reset/finalize, cancellation, yielding, and limits use the sam
 statement/VDBE contract as the underlying SELECT route. This is not unrestricted
 WITH support: represented derived/view ownership (with stored-view scope isolation),
 mixed CTE/table CROSS JOIN, grouped aggregation, and bounded UNION ALL composition
-are covered. Recursive self-reference rejects at prepare with temporary error
-`recursive common table expressions are not implemented`; expression-owned nested
-WITH remains a distinct temporary `common table expressions are not implemented`
-residual. Other unrepresented shapes retain typed temporary/SQLite errors.
+are covered. Recursive self-reference is dispatched to the bounded recursive
+contract immediately below; only recursive shapes outside that represented surface
+reject temporarily. Expression-owned nested WITH remains a distinct temporary
+`common table expressions are not implemented` residual. Other unrepresented shapes retain typed temporary/SQLite errors.
 
 ### Recursive CTEs
 

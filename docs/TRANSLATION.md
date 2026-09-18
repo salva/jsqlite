@@ -22,11 +22,12 @@ grouped aggregate routes, with shared private-state limits and connection-wide
 operation admission across running and suspended VM states. Bounded flattened,
 coroutine, and materialized FROM-derived sources and immutable views are admitted,
 as are the documented scalar, EXISTS, IN/NOT IN, and correlated expression-
-subquery routes and their bounded compositions. This is not a general SQL engine:
-CTEs, recursive CTEs, windows, writes, unsafe or unrepresented subquery shapes,
-and other unmapped SELECT forms remain atomic typed temporary unsupported.
-Historical tranche sections below are labeled as such and do not override this
-current capability summary.
+subquery routes and their bounded compositions. This is not a general SQL engine. The admitted public surface includes the
+documented bounded ordinary WITH and iterative recursive-CTE routes. Residual CTE
+compositions outside those represented routes, windows, writes, unsafe or
+unrepresented subquery shapes, and other unmapped SELECT forms remain atomic typed
+temporary unsupported. Historical tranche sections below are labeled as such and
+do not override this current capability summary.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -2025,9 +2026,10 @@ no-FROM/single-table/multi-source/compound inputs: GROUP BY and HAVING; built-in
 `count(*)`, `count(X)`, `sum`, `avg`, `total`, `min`, `max`, and `group_concat`;
 DISTINCT and FILTER; aggregate-local ORDER BY for `group_concat`; aliases,
 collations, bare columns/minmax, result ORDER/LIMIT, reset/rebind, and existing
-metadata. Window syntax, user-defined functions, subqueries, recursive CTEs, and
-unmapped aggregate-local ORDER BY uses remain temporary unsupported. This is a
-bounded implementation sequence, not permission to silently reject a matrix case:
+metadata. At this historical aggregate-planning checkpoint, window syntax,
+user-defined functions, subqueries, recursive CTEs, and unmapped aggregate-local
+ORDER BY uses remained temporary unsupported; the later ordinary/recursive WITH
+sections supersede that CTE status. This is a bounded implementation sequence, not permission to silently reject a matrix case:
 
 1. resolver/classification and immutable AggInfo, with prepare-time errors;
 2. accumulator Mem/context and no-GROUP reset/step/final/error cleanup;
@@ -2340,9 +2342,11 @@ references point to immutable case IDs in that project oracle rather than Tcl.
   Finalize, close/deferred-close, cancellation, deadline and runtime errors release
   each nested owner exactly once, preserve the first error, invalidate exposed
   rows, and restore connection admission.
-* CTE, recursive CTE and window execution are separate gates. Their three native
-  cases prove only oracle capture. Until an owning card admits a whole shape, each
-  must reject atomically during prepare and contributes zero TS credit. The same
+* At this historical subquery-planning checkpoint, CTE, recursive CTE and window
+  execution were separate gates and their native cases proved only oracle capture.
+  The later ordinary/recursive WITH sections supersede the CTE gates; window and
+  any still-unrepresented composition continue to reject atomically and receive no
+  TS credit. The same
   rule applies to a flatten/materialize/coroutine shape whose required join,
   aggregate, compound or metadata behavior cannot be represented.
 
@@ -2522,7 +2526,9 @@ proves aggregate-local sorter overlap.
 This is deliberately not general subquery support. General scalar subqueries,
 `EXISTS`, and `IN` remain owned by their separate tranche; only the allocated
 persisted-view correlated `EXISTS` composition is admitted here. CTE, recursive
-CTE, window, and unmatched unsafe derived shapes reject atomically. Compound and
+This allocated FROM-derived checkpoint predated WITH execution: CTE, window, and
+unmatched unsafe derived shapes then rejected atomically. The ordinary/recursive
+WITH sections below supersede its CTE status. Compound and
 aggregate-over-derived admission remains limited to represented `UNION ALL`
 forms; unsupported general forms must not publish a partial Program.
 
@@ -2533,7 +2539,7 @@ Accounting: `stage3-subquery-view.json` is 46 native captures, 19 attempted and
 
 ### Expression-subquery and compound ORDER completion (2026-09-17)
 
-The accepted scalar/EXISTS/IN/correlated tranche now has direct public Fetch coverage in UTF-8, UTF-16le, and UTF-16be, plus the indivisible 15/15 lifecycle/resource companion tranche. Ordered bounded compound arms retain destination-aware subquery lowering into the parent VDBE, sharing work and private-state ownership. Compound ORDER binding follows `resolveCompoundOrderBy`: ordinal and resolved alias ownership first, then generated expression-tree identity with COLLATE decoration ignored for identity but retained in KeyInfo. Token spelling and expanded SQL text are deliberately not expression identity; parentheses, whitespace, identifier case/quoting, qualification, and COLLATE spelling must not alter ownership. Focused structural/alias/collation discriminators accompany the bounded scalar-subquery compound test. CTE, recursive CTE, window, and unsafe unmatched shapes remain atomic prepare-time gates.
+The accepted scalar/EXISTS/IN/correlated tranche now has direct public Fetch coverage in UTF-8, UTF-16le, and UTF-16be, plus the indivisible 15/15 lifecycle/resource companion tranche. Ordered bounded compound arms retain destination-aware subquery lowering into the parent VDBE, sharing work and private-state ownership. Compound ORDER binding follows `resolveCompoundOrderBy`: ordinal and resolved alias ownership first, then generated expression-tree identity with COLLATE decoration ignored for identity but retained in KeyInfo. Token spelling and expanded SQL text are deliberately not expression identity; parentheses, whitespace, identifier case/quoting, qualification, and COLLATE spelling must not alter ownership. Focused structural/alias/collation discriminators accompany the bounded scalar-subquery compound test. At that tranche checkpoint, CTE, recursive CTE, window, and unsafe unmatched shapes were atomic prepare-time gates; the ordinary/recursive WITH sections below supersede its CTE status.
 
 ## Historical CTE source-model foundation ([[card:card-n-a]], 2026-09-18; superseded below)
 
@@ -2570,9 +2576,9 @@ is complete. Any WITH rejects with exact temporary-unsupported message `common t
 statement registration. Public cross-encoding tests prove post-rejection reuse. The machine tranche has 14 credited pinned `with1.test`/
 `with2.test` cases and three no-credit companions, captured for three database
 encodings (51 native executions), with TypeScript attempted/credited 0/0. This pin
-has no `test/with.test`; none is claimed. This current evidence supersedes the
-older generic statement that CTE syntax was only retained structurally, but does
-not supersede the public execution exclusion.
+has no `test/with.test`; none is claimed. This architecture-only accounting is
+historical; the ordinary and recursive execution evidence below supersedes its
+public execution exclusion without relabeling any architecture case as TS credit.
 
 ## Ordinary non-recursive WITH execution (2026-09-18)
 
@@ -2595,10 +2601,11 @@ ordinary use under the RECURSIVE scope marker, both materialization hints, WITH
 owned by represented derived SELECTs and persisted views, mixed table/CTE CROSS
 JOIN, grouped aggregation, and UNION ALL with a scalar arm. Persisted-view lowering
 uses a fresh lexical scope, so caller CTEs do not capture stored view bodies.
-Recursive queue execution is not admitted: pre-lowering self-reference recognition
-returns exact temporary prepare error `recursive common table expressions are not
-implemented`, while represented ordinary use under a RECURSIVE marker remains
-valid. A separately asserted expression-owned nested-WITH residual still returns
+At the ordinary-only checkpoint, recursive queue execution was not yet admitted:
+pre-lowering self-reference recognition returned exact temporary prepare error
+`recursive common table expressions are not implemented`. The recursive execution
+section immediately below supersedes that historical rejection for represented
+recursive shapes, while ordinary use under a RECURSIVE marker remains valid. A separately asserted expression-owned nested-WITH residual still returns
 `common table expressions are not implemented`; do not conflate those predicates.
 Other unrepresented compositions remain typed temporary gaps, and this bounded
 tranche must not be described as general CTE support.

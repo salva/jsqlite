@@ -1063,8 +1063,10 @@ lifecycle/resource companions, and hashed assertion/source provenance live in
 
 Manifest accounting is 46 native captured, 19 TS attempted/credited. Public
 matrix accounting is 57/57 and companion route/resource accounting is 20/20.
-CTE, recursive CTE, windows, unmatched derived shapes, and unrepresented general
-aggregate-over-derived forms reject before execution.
+At this historical FROM-derived/view checkpoint, CTE, recursive CTE, windows,
+unmatched derived shapes, and unrepresented general aggregate-over-derived forms
+rejected before execution. The ordinary/recursive WITH mappings below supersede
+that CTE status.
 
 ### Expression-subquery lowering completion ([[card:card-m-f-k]])
 
@@ -1110,7 +1112,7 @@ Verified pinned hashes: `parse.y` `19628d51...3185`, `sqliteInt.h`
 `3846e622...cc3`, `select.c` `bdf052a3...3408`, `resolve.c`
 `0ab2b579...7107`, `vdbe.c` `d92cb9c4...ca1d`, `with1.test`
 `02524973...092`, and `with2.test` `9f83b8c7...427` (full hashes remain
-machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and calls `selectGraphContainsWith()` before all ordinary lowering. `test/conformance/cte-admission.test.mjs` covers scalar/EXISTS/IN, retained and flattening-adjacent derived, compound-arm and persisted-view ownership in UTF-8/16le/16be, exact diagnostics, close-without-residue and reuse. The public claim remains temporary prepare-time unsupported rather than partial execution.
+machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and calls `selectGraphContainsWith()` before all ordinary lowering. `test/conformance/cte-admission.test.mjs` covers scalar/EXISTS/IN, retained and flattening-adjacent derived, compound-arm and persisted-view ownership in UTF-8/16le/16be, exact diagnostics, close-without-residue and reuse. That architecture checkpoint's public claim was temporary prepare-time unsupported; the ordinary and recursive mappings below supersede it without retroactively granting execution credit.
 
 ## Ordinary WITH tranche (2026-09-18)
 
@@ -1118,7 +1120,7 @@ machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and c
 |---|---|---|
 | `select.c`: WITH scope push/pop and `resolveFromTermToCte`; `sqliteInt.h`: `CteUse` | `src/internal/cte.ts`, `SourceList.cteDerived` in `src/internal/parse.ts` | Public TS: `test/conformance/cte-execution.test.mjs` and `cte-admission.test.mjs` in UTF-8/UTF-16LE/UTF-16BE, including represented derived/view ownership, no caller capture, mixed CROSS JOIN, grouped aggregate, and UNION ALL composition. Native credit remains the card-n-a oracle manifest only; companion/public cases are not relabeled native. |
 | `select.c`: coroutine eligibility and materialization (`addrM9e`/shared use), duplicate ephemeral cursor | `compileDerivedProducer` and `compileCteDerivedSources` in `src/internal/vdbe.ts` | Public TS covers one-use coroutine, two declarations, repeated-use one-fill/`OpenDup`, and `MATERIALIZED`; existing FROM-derived lifecycle tests are internal/public companion evidence. |
-| `select.c` recursive-owner recognition before recursive queue lowering | `recursiveCteOwner` pre-lowering admission in `src/internal/cte.ts` / `src/index.ts` | No queue execution credit. Self-reference has dedicated exact temporary prepare error; ordinary declarations under a RECURSIVE marker still execute. Expression-owned nested ordinary WITH retains its distinct general CTE temporary residual assertion. |
+| `select.c` recursive-owner recognition before recursive queue lowering | `recursiveCteOwner` pre-lowering dispatch in `src/internal/cte.ts` / `src/index.ts` | **Historical ordinary-WITH checkpoint (superseded by the recursive mapping below):** this row carried no queue execution credit and self-reference then had a dedicated temporary prepare error. Current represented self-reference dispatches to iterative queue compilation; ordinary declarations under a RECURSIVE marker also execute. Expression-owned nested ordinary WITH retains its distinct general CTE temporary residual assertion. |
 
 | SQLite 3.53.4 source | TypeScript translation | Evidence / residual |
 |---|---|---|
