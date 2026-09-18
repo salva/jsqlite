@@ -19,10 +19,14 @@ built-in collation/comparison and packed/unpacked record-key foundations; and a
 bounded prepared-SELECT compiler/program/VDBE. The admitted public surface now
 includes documented no-FROM, ordinary-table, multi-source join, compound, and
 grouped aggregate routes, with shared private-state limits and connection-wide
-operation admission across running and suspended VM states. This is not a general
-SQL engine: subquery FROM sources, windows, writes, and other unmapped SELECT
-shapes remain typed temporary unsupported. Historical tranche sections below are
-labeled as such and do not override this current capability summary.
+operation admission across running and suspended VM states. Bounded flattened,
+coroutine, and materialized FROM-derived sources and immutable views are admitted,
+as are the documented scalar, EXISTS, IN/NOT IN, and correlated expression-
+subquery routes and their bounded compositions. This is not a general SQL engine:
+CTEs, recursive CTEs, windows, writes, unsafe or unrepresented subquery shapes,
+and other unmapped SELECT forms remain atomic typed temporary unsupported.
+Historical tranche sections below are labeled as such and do not override this
+current capability summary.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the

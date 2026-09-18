@@ -452,7 +452,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         const term=select.orderBy[0]!,tree=expressionFromReduction(term.expr.reduction!),matchTree=tree.kind==="collate"?tree.value:tree;let matches=false;
         if(matchTree.kind==="literal"&&typeof matchTree.value==="bigint"){if(matchTree.value!==1n)throw new JSQLiteError("sqlite","1st ORDER BY term out of range - should be between 1 and 1",{code:1});matches=true;}
         else if(matchTree.kind==="column"&&!matchTree.name.includes(".")){const name=sqlName(matchTree.name);matches=select.arms.some(arm=>arm.result.some(result=>result.alias!==undefined&&result.alias!==null&&sqliteIdentifierEqual(result.alias,name)));}
-        if(!matches){const identity=term.expr.tokens.map(token=>token.text).join(" ");matches=select.arms.some(arm=>arm.result.some(result=>result.tokens.map(token=>token.text).join(" ")===identity));}
+        if(!matches){matches=select.arms.some(arm=>arm.result.some(result=>result.reduction!==undefined&&result.reduction!==null&&compoundOrderExpressionEqual(matchTree,expressionFromReduction(result.reduction))));}
         if(!matches)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});
         orderDescending=term.descending;orderNullsLarge=term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false;orderCollation=explicitCollation(tree);
       }

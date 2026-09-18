@@ -69,6 +69,16 @@ identity=(lib.sqlite3_libversion().decode(),lib.sqlite3_sourceid().decode())
 assert identity==(manifest['version'],manifest['sqliteSourceId']),identity
 db=P(); assert lib.sqlite3_open_v2(str(fixture).encode(),C.byref(db),1,None)==0
 try:
+ # resolveCompoundOrderBy discriminator for the admitted DISTINCT-set route:
+ # equivalent generated structure plus COLLATE prepares, while a structurally
+ # different non-result expression is rejected by the pinned engine.
+ for sql,expected in [('SELECT 2+1 UNION SELECT 1+1 ORDER BY ((2 + 1)) COLLATE BINARY',0),('SELECT 2+1 UNION SELECT 1+1 ORDER BY 2+2',1)]:
+  stmt=P(); tail=C.c_char_p(); raw=sql.encode(); rc=lib.sqlite3_prepare_v2(db,raw,len(raw),C.byref(stmt),C.byref(tail))
+  try:
+   assert rc==expected,(sql,rc,lib.sqlite3_errmsg(db).decode())
+   if expected: assert lib.sqlite3_errmsg(db).decode()=='1st ORDER BY term does not match any column in the result set'
+  finally:
+   if stmt: assert lib.sqlite3_finalize(stmt)==0
  for c in comp['cases']:
   stmt=P(); tail=C.c_char_p(); raw=('EXPLAIN '+c['sql']).encode()
   rc=lib.sqlite3_prepare_v2(db,raw,len(raw),C.byref(stmt),C.byref(tail))
@@ -76,4 +86,4 @@ try:
   finally:
    if stmt: assert lib.sqlite3_finalize(stmt)==0
 finally: assert lib.sqlite3_close(db)==0
-print(f'closed companion schema: pinned {identity[0]} ({identity[1]}) prepared 15 literal SQL cases; exact operations/expectations valid')
+print(f'closed companion schema: pinned {identity[0]} ({identity[1]}) prepared DISTINCT-set ORDER ownership discriminators and 15 literal SQL cases; exact operations/expectations valid')
