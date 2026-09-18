@@ -2696,14 +2696,41 @@ LIMIT and OFFSET at the outer level. It rewrites terminal/column expressions fro
 the parent result and ORDER lists into buffered subquery columns; appends partition,
 order, function arguments and FILTER inputs; allocates `regAccum` and `regResult`
 per function; and assigns `iEphCsr` plus three duplicate cursors to the main window.
-The existing immutable Select/source/name graphs remain the compiler input; this
-rewrite must preserve metadata, affinity/collation, aggregate ownership, correlated
-references and the admitted subquery/CTE producers described above.
+The existing immutable Select/source/name graphs remain the compiler input. The
+rewrite walker must preserve the pinned nested-expression boundary: when
+`selectWindowRewriteSelectCb` enters a scalar subselect,
+`selectWindowRewriteExprCb` may lift only `TK_COLUMN` nodes whose cursor belongs
+to the outer SELECT's original `SrcList`. It must not lift that subselect's local
+columns, aggregates, or window functions into the outer window buffer. After the
+generated subquery layer is attached, `sqlite3WindowExtraAggFuncDepth` walks it
+with SELECT-depth tracking and increments `Expr.op2` only for qualifying
+`TK_AGG_FUNCTION` references whose recorded depth reaches across the inserted
+layer. This preserves current scalar-subquery correlation and aggregate ownership
+instead of relying on generic expression rewriting.
 
-`sqlite3WindowLink` and `sqlite3WindowCompare` define sharing. Windows identical
-in frame kind/bounds/exclusion/PARTITION/ORDER share one SELECT scan and chain;
-the FILTER is function-local and does not split that frame chain. A differing
-window is left outside the chain. Recursive `sqlite3Select` compilation then wraps
+Validation and sort-copy branches execute in pinned order. Before mutating a
+SELECT not marked `SF_Aggregate`, `disallowAggregatesInOrderByCb` walks its ORDER
+BY and retains the prepare-time `misuse of aggregate` diagnostic for an unowned
+aggregate (`pAggInfo==0`). To create the generated producer ORDER, the
+`exprListAppendList(..., bIntToNull=1)` path copies PARTITION then ORDER terms,
+retains every term's sort flags, and changes a copied integer literal (after
+COLLATE/likely wrappers) to NULL; the original frame expressions remain owned and
+unchanged. If the parent's ORDER BY is expression-identical to a prefix no longer
+than that generated sort list, `sqlite3WindowRewrite` deletes the redundant parent
+ORDER before rewriting its remaining result/ORDER expressions. Snapshot and
+source-derived tests must assert this validation ordering, copied-node identity,
+integer-to-NULL behavior, sort flags, prefix comparison/elision, scalar-subselect
+cursor filtering, and post-layer `op2` repair. Together these branches preserve
+metadata, affinity/collation, admitted aggregate/subquery/CTE callers, observable
+errors, sorter work, and correlated references.
+
+`sqlite3WindowLink` and `sqlite3WindowCompare` define sharing. The comparator is
+tri-state: only an exact return value of `0` permits one SELECT scan and chain;
+`1` (different) and `2` (indeterminate expression identity) are both
+non-shareable and follow the nesting path. Exact equality covers frame
+kind/bounds/exclusion/PARTITION/ORDER; the FILTER is function-local and does not
+split that frame chain. A non-shareable window is left outside the chain. Recursive
+`sqlite3Select` compilation then wraps
 the SELECT again, yielding source-shaped nested scans for different windows rather
 than one host multiplexer. Differing PARTITION marks the multi-part condition.
 This same-window sharing/different-window nesting is load-bearing: a shortcut that
