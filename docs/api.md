@@ -395,8 +395,10 @@ compound-derived SQL are also not promised. CTE and recursive CTE syntax in any
 reachable SELECT graph fails atomically during `prepare()` with temporary
 unsupported and exact message `common table expressions are not implemented`.
 Admission loads schema first and checks root/nested expression SELECTs, retained
-or flattening-adjacent derived SELECTs, compound arms, CTE bodies, and reachable
-persisted views before compiler/program creation. Rejection registers no statement
+or flattening-adjacent derived SELECTs, compound arms, and reachable persisted
+views before compiler/program creation. CTE bodies remain represented, but
+finding their owning WITH is sufficient and short-circuits the boolean admission
+walk. Rejection registers no statement
 or private execution state and leaves the connection reusable. Windows and
 unsafe/unmatched derived shapes fail under their existing typed prepare boundary.
 No native/host fallback or partial statement shape is exposed.

@@ -2547,9 +2547,13 @@ materialization mode. Duplicate names reject with SQLite's ASCII-insensitive
 The implementation handoff keeps relation-name scope source-shaped after
 `select.c:searchWith`, `sqlite3WithPush`, `resolveFromTermToCte`, and
 `sqlite3SelectPopWith`: a transient inner-to-outer `WithScope` is separate from,
-but feeds sources into, the existing linked expression `NameContext`. Each
-immutable declaration receives one shared prepare-lifetime `CteUse` identity for
-use count, hint, materialization address/return register/cursor, and estimate.
+but feeds sources into, the existing linked expression `NameContext`. An unused
+declaration has no use state. First successful CTE relation resolution allocates exactly one prepare-lifetime `CteUse` in a declaration-to-use map; every
+later reference, clone, and rewrite shares that identity. Resolved sources retain
+the pair, `nUse` increments per successful expansion, and the prepare context owns
+the association through lowering even after scope pop or tree rewriting. Its
+semantic `materializationAddress` field maps exactly to pinned `CteUse.addrM9e`; the
+remaining state carries the hint, return register, cursor, and estimate.
 Schema-qualified names bypass the CTE chain; nested declarations shadow; views do
 not capture caller scope. Coroutine, reusable materialization, and recursive
 queue/distinct-queue lowering remain future source-shaped VDBE work.
@@ -2557,9 +2561,10 @@ queue/distinct-queue lowering remain future source-shaped VDBE work.
 Until those lookup, diagnostics, and lowering contracts are implemented,
 `Connection.prepare()` first loads the immutable schema, then the cycle-safe
 `selectGraphContainsWith()` walk visits root/nested expression SELECTs, retained
-and flattening-adjacent derived owners, compound-arm graphs, CTE bodies, and
-FROM-reachable persisted views. Any WITH rejects with exact temporary-unsupported
-message `common table expressions are not implemented` before any compiler or
+and flattening-adjacent derived owners, compound-arm graphs, and FROM-reachable
+persisted views. CTE bodies remain represented/reachable, but discovery
+intentionally short-circuits at their owning WITH because the rejection decision
+is complete. Any WITH rejects with exact temporary-unsupported message `common table expressions are not implemented` before any compiler or
 statement registration. Public cross-encoding tests prove post-rejection reuse. The machine tranche has 14 credited pinned `with1.test`/
 `with2.test` cases and three no-credit companions, captured for three database
 encodings (51 native executions), with TypeScript attempted/credited 0/0. This pin

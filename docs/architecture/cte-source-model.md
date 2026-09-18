@@ -9,7 +9,7 @@ This proposal is the handoff for [[card:card-n]]. It covers generated-parser own
 The authority is the manifest-pinned SQLite 3.53.4 source ID `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`. The consulted tranche is:
 
 - `parse.y:609-621,1955-1973`: `WITH`/`WITH RECURSIVE`, ordered `wqlist`, aliases, and `M10d_Any/Yes/No`.
-- `sqliteInt.h:3597-3620,4462-4514`: `Select.pWith`, `Cte`, `With`, and shared parse-lifetime `CteUse`.
+- `sqliteInt.h:3597-3620,4462-4514`: `Select.pWith`, `Cte`, `With`, and lazily allocated, shared parse-lifetime `CteUse` (including `addrM9e`).
 - `select.c:5610-5880,6000-6030,6388,7275-7276,7797-8020`: lookup, push/pop, expansion, recursive marking and diagnostics, coroutine/materialization choices, and reuse.
 - `resolve.c` linked `NameContext.pNext` traversal: expression-name correlation remains separate from relation-name CTE search.
 - `vdbe.c` `OP_InitCoroutine`, `OP_Yield`, `OP_EndCoroutine`, `OP_OpenEphemeral`, `OP_Rewind`, and `OP_RowData`: future producer, materialization, and recursive queue controls.
@@ -27,7 +27,7 @@ The mutable 2026-09-14 fidelity audit was checked against current code. Its orig
 
 These values are produced only by generated Lemon reductions (`wqas`, `wqitem`, `wqlist`, and `select ::= WITH ...`). There is no auxiliary SQL parser. The nested SELECT owns its own `WithClause`, so nested shadowing is representable without flattening scope.
 
-After loading the immutable schema graph, `Connection.prepare()` runs the canonical cycle-safe `selectGraphContainsWith()` admission walk. It visits the root, expression-owned scalar/`EXISTS`/`IN` SELECT reductions, retained and flattening-adjacent derived owners, every compound arm, CTE bodies, and persisted-view SELECTs reached by FROM lookup. Discovery rejects with temporary unsupported and exact message `common table expressions are not implemented` before any compiler is called. Thus no `Program`, statement registration, cursor/coroutine/queue, or private-state reservation exists; the connection remains reusable. This gate is admission only and does not implement scope or execution. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
+After loading the immutable schema graph, `Connection.prepare()` runs the canonical cycle-safe `selectGraphContainsWith()` admission walk. It visits the root, expression-owned scalar/`EXISTS`/`IN` SELECT reductions, retained and flattening-adjacent derived owners, every compound arm, and persisted-view SELECTs reached by FROM lookup. CTE bodies remain represented and reachable in the authored graph, but the boolean walk intentionally short-circuits as soon as it discovers their owning non-null `WithClause`; it does not visit those bodies on that path because rejection is already decided. Discovery rejects with temporary unsupported and exact message `common table expressions are not implemented` before any compiler is called. Thus no `Program`, statement registration, cursor/coroutine/queue, or private-state reservation exists; the connection remains reusable. This gate is admission only and does not implement scope or execution. The oracle artifact therefore reports TypeScript attempted/credited as 0/0.
 
 ## Proposed scope and lifetime contracts
 
@@ -49,20 +49,20 @@ This relation scope is deliberately not folded into `NameContext`. `NameContext`
 
 ### Ownership and use state
 
-The authored `CteNode` graph is immutable statement syntax. Expansion creates one mutable `CteUse` object per visible declaration, shared by all resolved FROM uses even if SELECT trees are cloned or rewritten:
+The authored `CteNode` graph is immutable statement syntax, so an unused declaration allocates no mutable use state. On the first **successful CTE relation resolution**, the prepare context creates exactly one mutable `CteUse`, associates it with that declaration in a prepare-lifetime `Map<CteNode, CteUse>`, and attaches the same identity to the resolved source item. Every later reference, clone, or rewrite carries or recovers that same object; it must never allocate a per-reference replacement. This adapts pinned `Cte.pUse` without mutating the immutable TypeScript AST and preserves `resolveFromTermToCte()`'s lazy allocation and parser-cleanup lifetime:
 
 ```ts
 type CteUse = {
   nUse: number;
   materialization: CteMaterialization;
-  addressM8d: number | null;
+  materializationAddress: number | null; // pinned CteUse.addrM9e
   returnRegister: number | null;
   cursorId: number | null;
   rowEstimate: number | null;
 };
 ```
 
-Resolved source items retain `{cte, use}` identity and an `isCte` fact. `nUse` increments during expansion, not execution. The state lives only through prepare/lowering and is not public API or schema state. Program-private runtime state owns copied `Mem` values and is released by existing statement reset/finalize/error paths.
+Before rewriting, the prepare context's declaration-to-use map owns the association and each resolved source retains `{cte, use}` plus an `isCte` fact. A rewrite or clone must copy that pair by identity; after the declaration leaves lexical scope or its SELECT is rewritten away, the prepare context remains the lifetime owner until lowering/cleanup completes. `nUse` increments once for each successful expansion, not during execution. Failed resolution must not publish an association or increment `nUse`. The state is not public API or schema state. Program-private runtime state owns copied `Mem` values and is released by existing statement reset/finalize/error paths.
 
 ### Diagnostics and recursion
 
