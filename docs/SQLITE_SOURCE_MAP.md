@@ -24,8 +24,11 @@ frame/cache/code generation), `src/func.c` (built-in step/inverse/value function
 WINDOW, frame and EXCLUDE grammar), `src/select.c` (aggregate/group/subquery
 composition), and applicable `src/vdbe.c`, `src/vdbeapi.c`, and `src/vdbeaux.c`
 (statement execution/lifecycle). This is a future translation map, not TS runtime
-credit. `window-manifest.test.py` requires every owner and exact upstream case/SQL
-anchor against the pin. Project-private byte/work/row/deadline/yield controls have
+credit. `window-manifest.test.py` requires every owner, exact upstream case/SQL
+anchor, and source-derived credited setup against the pin. Complete setup-assertion
+body hashes plus normalized statement comparison protect inherited state; the
+post-`reset_db` `window1-6.1` setup is the explicit owner for `window1-6.3`, and
+`window4-4.0` owns the grouped `window4-4.1` setup. Project-private byte/work/row/deadline/yield controls have
 no faithful native C-API observation and are explicitly source-only/no-credit;
 progress cancellation uses `sqlite3_progress_handler` as a separately captured
 native companion.

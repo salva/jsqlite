@@ -2826,6 +2826,14 @@ yields, cancellation/deadlines, reset/rebind/finalize and cleanup faults. Compar
 INTEGER/REAL/NULL/TEXT encoding/BLOB, rows, metadata and prepare-versus-step errors.
 Until those gates are promoted, runtime support remains zero.
 
+The immutable native sidecar described in `docs/CONFORMANCE.md` adds a fail-closed
+setup-provenance gate: every one of its 10 credited upstream assertions uses setup
+SQL reconstructed from a hashed complete pinned setup assertion, including the
+post-`reset_db` state at `window1-6.1` for case 6.3 and the complete
+`window4-4.0` state for case 4.1. Its 28/28 native executions and 10/10 upstream
+credit remain native evidence only; all 29 TS entries remain unattempted and
+zero-credit.
+
 Rejected alternatives are an AST interpreter, host array sort/slice, JS
 Map/equality peer grouping, one materialize-all window engine, recursive prepared
 statements, and native/WASM delegation. They duplicate existing semantic owners or

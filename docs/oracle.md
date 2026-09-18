@@ -19,7 +19,11 @@ npm run test:conformance:window
 
 Capture fails before setup on source-ID/version mismatch and retains typed INTEGER,
 REAL bits, NULL, UTF-8 text bytes, BLOB bytes, metadata, prepare-versus-step error
-phase, reset/rebind/finalize and progress cancellation. UTF-16le/be companions set
+phase, reset/rebind/finalize and progress cancellation. The manifest gate also
+hashes the pinned archive and each complete upstream setup-assertion body, rebuilds
+the credited setup SQL from those bodies, and verifies the `reset_db` boundary for
+`window1-6.3`; this makes the 10/10 credit include upstream state provenance rather
+than SQL text alone. UTF-16le/be companions set
 the database encoding before schema setup. Native success is native evidence only:
 all 29 TS entries remain unattempted and zero-credit. The bounded 10 upstream plus
 19 companion entries are not an exhaustive window-suite claim. Byte/work/row,

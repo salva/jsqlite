@@ -35,8 +35,12 @@ preserved as a source-owner declaration but receive no native or TS credit becau
 the native C API cannot observe those project-private harness controls faithfully.
 
 Run `npm run test:conformance:window` for schema, pinned identity, exact upstream
-ID/SQL anchors, source-owner, ordering and denominator integrity. After
-`tools/oracle/build.sh`, `npm run test:conformance:window:native` recaptures to the
+ID/SQL anchors, **source-derived setup assertions and reset boundaries**, archive
+integrity, source-owner, ordering and denominator integrity. The setup validator
+reconstructs each credited setup from a pinned setup assertion, hashes its complete
+body, and specifically checks that `window1-6.3` follows the `reset_db` boundary
+at `window1-6.1`; `window4-4.1` is tied to the complete `window4-4.0` setup.
+After `tools/oracle/build.sh`, `npm run test:conformance:window:native` recaptures to the
 card work root and byte-compares the immutable artifact. Native success does not
 promote any mapped case to TS runtime credit.
 
