@@ -19,6 +19,9 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 
+export {sqlite3WindowRewrite} from "./window-rewrite.ts";
+export type {WindowRewriteFunction,WindowRewriteSortTerm,WindowRewriteLayer,WindowRewriteGraph} from "./window-rewrite.ts";
+
 type SubqueryExpression=Extract<Expression,{kind:"scalar-subquery"}>|Extract<Expression,{kind:"in-subquery"}>;
 type AggregateOrderTerm={expression:Expression;descending:boolean;nullsLarge:boolean};
 type Expression =
