@@ -1228,3 +1228,23 @@ Per the fidelity notification and immutable review `record:///review.md?card=car
 ### Recursive SELECT/coroutine lowering correction ([[card:card-o-b-g]], 2026-09-18)
 
 Per `record:///review.md?card=card-o-b&v=9`, `WindowRewriteGraph.root` is no longer reduced to an ordered layer array sharing one source loop. `compileWindowSelectLowering` emits an innermost original-clause coroutine, then one sorter-backed child-consuming producer coroutine per compatible group. Incompatible groups form distinct `InitCoroutine`/`Yield`/`EndCoroutine` loops with layer-local Gosub/Return; compatible functions share a producer. Multi-source original FROM uses nested Rewind/Next ownership rather than the invalid parallel reverse-Next scan. Structural ORDER-prefix identity from [[card:card-o-b-b]] determines retained versus producer ordering. CodeInit branch deferral and the no-frame/publication boundary are unchanged.
+
+### Aggregate-window step/lifetime handoff ([[card:card-o-c-a]], 2026-09-18)
+
+| Pinned 3.53.4 owner | Exact branch/observable | TypeScript consumer contract / evidence |
+|---|---|---|
+| `src/select.c:sqlite3Select` 8284, 8332 | `CodeInit` before the WHERE loop; each producer row enters `CodeStep`; outer row body is a `Gosub` continuation | accepted recursive producer graph from [[card:card-o-b]]; preserve one producer advance and VM pc across suspension |
+| `src/window.c:sqlite3WindowCodeInit` 1388 | ephemeral cursor + 3 duplicates; accum/result; cache, min/max, first/nth and lead/lag application branches | common prefix exists; specialized state is allocated only with its step consumer |
+| `src/window.c:windowAggStep/windowAggFinal/windowFullScan/windowReturnOneRow` 1656-1996 | FILTER, step/inverse/value/final, EXCLUDE scan, cursor-owned built-ins | existing aggregate `FuncDef`/context/Mem lifecycle; no generic host recomputation |
+| `src/window.c:windowCacheFrame/windowIfNewPeer/windowCodeRangeTest/windowCodeOp` 2029-2435 | cache policy, peer groups, ASC/DESC+BIGNULL+collation RANGE arithmetic, safe deletion and frame schedules | typed private cursors/`KeyInfo`; one execution byte budget; deterministic work |
+| `src/window.c:sqlite3WindowCodeStep` 2784 onward | partition compare/flush, bound evaluation, ROWS/RANGE/GROUPS start/end family dispatch | missing implementation owner; public prepare remains atomic unsupported |
+| `src/vdbe.c` 1119-1175, 7837-8019; `src/vdbeaux.c` opcode/P4 lifecycle | `Gosub/Return`; `AggStep/Inverse/Value/Final`; context error/final cleanup | VM integer pc/register adaptation, exact-once cleanup and first-error precedence |
+
+Executable evidence is
+`test/conformance/cases/stage3-aggregate-window.{spec.json,json}`, captured by
+`test/conformance/capture-aggregate-window.py` and guarded by
+`test/conformance/aggregate-window-contract-manifest.test.py`: 44 declared = 25
+hashed literal upstream cases + 19 explicitly no-credit companions; native 43/43,
+source-only 1; TypeScript 0/44. This allocation is separate from the earlier
+29-case graph/rewrite evidence and is the implementation denominator for aggregate
+window stepping.

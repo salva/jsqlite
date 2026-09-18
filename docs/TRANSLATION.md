@@ -2869,3 +2869,111 @@ The fidelity notification accompanying immutable review `record:///review.md?car
 ### Recursive producer lowering correction ([[card:card-o-b-g]], 2026-09-18)
 
 Accepted review `record:///review.md?card=card-o-b&v=9` supersedes the earlier claim that placing all Gosubs in one original-source loop realized recursive ownership. `compileWindowSelectLowering` now emits the graph itself as a coroutine chain. The innermost generated producer alone owns original FROM/WHERE/GROUP/HAVING and uses properly nested ordinary source loops (each outer row rewinds its inner source). Each layer owns PARTITION/ORDER sorter production, consumes its child coroutine, emits its per-row Gosub, and yields to a distinct outer producer; every incompatible group therefore has a separate loop/coroutine boundary. Compatible functions remain one layer and one producer. This remains a non-publishable pre-step product: no frame stepping or result publication is admitted.
+
+### Aggregate-window execution contract ([[card:card-o-c-a]], 2026-09-18)
+
+This is the executable **preimplementation** handoff for aggregate windows. It
+supersedes no public admission statement above: `sqlite3WindowCodeStep` remains
+unimplemented, prepare still rejects the whole statement before publishing a
+Program/Statement, and the new matrix has **0 TypeScript attempts/credit**. The
+pinned identity is SQLite 3.53.4/source-id and archive hash in
+`reference/sqlite/manifest.json`. Accepted [[card:card-o-b]] evidence at clean
+`e6007667362d7ce3e2eca4caf136a4fbc940c3f0` supplies the generated graph,
+recursive rewrite, producer coroutine chain and common `CodeInit` prefix; this
+contract starts at the missing step owner and preserves those boundaries.
+
+#### Exact source control map
+
+* `window.c:sqlite3WindowCodeInit` (line 1388) owns one ephemeral partition
+  cursor and three duplicates, `regOne`, accumulator/result/application
+  registers, and non-common branches: min/max keyed cursors; cached-frame
+  `regStartRowid/regEndRowid`; and first/nth/lead/lag application cursors. Those
+  branches must be added at their source-selected consumers, not as inert setup.
+* `select.c:sqlite3Select` lines 8284/8332 owns the call order around the ordinary
+  WHERE loop and the `regGosub/addrGosub` continuation. `window.c` lines
+  1619-2435 own peer reads, `windowAggStep`, `windowAggFinal`, EXCLUDE
+  `windowFullScan`, `windowReturnOneRow`, accumulator initialization,
+  `windowCacheFrame`, `windowIfNewPeer`, `windowCodeRangeTest`, and
+  `windowCodeOp`; `sqlite3WindowCodeStep` starts at line 2784. Partition change
+  compares copied PARTITION registers with `KeyInfo`, gosubs the flush path, and
+  only then resets/restarts for the newly inserted partition.
+* The frame decision is source-shaped, not a generic host recomputation. The
+  three start/end families (PRECEDING/CURRENT/FOLLOWING, with legal UNBOUNDED
+  endpoints) select the `WINDOW_AGGSTEP`, `WINDOW_AGGINVERSE`, and
+  `WINDOW_RETURN_ROW` schedule. ROWS advances physical rows; GROUPS repeats an
+  operation through peers using `windowIfNewPeer`; RANGE offset uses
+  `windowCodeRangeTest`, reversing arithmetic/operators for DESC, handling
+  BIGNULL explicitly, skipping arithmetic for non-numeric peer values, and
+  comparing with the resolved collation plus `SQLITE_NULLEQ`. Inverted same-side
+  bounds emit empty frames without moving a cursor past its counterpart.
+* `windowCacheFrame` is true for EXCLUDE (`regStartRowid`) and
+  first/nth/lead/lag. EXCLUDE uses `windowFullScan`: clear each accumulator,
+  scan frame rows, skip CURRENT/GROUP/TIES according to current rowid and peer
+  comparison, step accepted rows, then `AggFinal`. The ordinary inverse-capable
+  route streams with safe-point deletion selected by start/end shape; it calls
+  step on entry, inverse on departure, value for output, and final only at
+  teardown. first/nth and lead/lag remain cursor/bytecode owned; sliding min/max
+  keeps its keyed ephemeral. There is no accepted always-cache engine, JS array
+  frame, or generic callback substitute.
+* `windowCheckValue` owns runtime bound checks: ROWS/GROUPS require a
+  non-negative integer, RANGE a non-negative number, and nth/ntile their
+  positive-integer diagnostics. Expressions are evaluated once at partition
+  initialization. Parser/update legality (including one ORDER term for offset
+  RANGE and illegal bound order) remains prepare-time. Do not collapse these
+  prepare/step phases or their pinned messages.
+* `vdbe.c` lines 7837-8019 own `AggStep/AggInverse/AggValue/AggFinal`, including
+  inverse-count checks, context/error propagation and finalization; lines
+  1119-1175 own `Gosub/Return`. `vdbeaux.c` remains the Program/op/P4 lifetime
+  owner. Every emitted callback uses the existing aggregate registry definition,
+  FILTER gate, argument `Mem`s, collation and one accumulator context; a missing
+  inverse/value callback required by an admitted schedule is a prepare rejection.
+
+#### Consumer execution and lifetime contract
+
+One window layer owns its producer coroutine pc, sorter, partition cursor family,
+peer/bound registers, callback contexts, Gosub return register and outer
+continuation. Compatible windows share that layer and producer scan; incompatible
+windows retain the nested coroutine layers already established by
+[[card:card-o-b]]. `Gosub` stores the next VM pc and `Return` resumes it. A public
+row suspension preserves all coroutine/window pcs, cursors, current row,
+accumulators, contexts and reservations; resumption must neither replay a producer
+row nor repeat step/inverse/value/final. No recursive Statement or JS generator is
+introduced.
+
+All window rows, sorter records, copied `Mem`s, min/max keys and retained callback
+values reserve atomically from the statement execution's single
+`PrivateStateByteBudget`; nested window/subquery/CTE/aggregate state shares it.
+Existing private entry/key limits and deterministic `maxWorkUnits` cover each row
+admission, logical byte copy, KeyInfo term, cursor move, range/peer comparison and
+callback. `maxRows` remains exclusively outer-`ResultRow` publication and
+`maxResultBytes` remains delivered values. Reserve before mutation, roll back a
+failed growth, release at the source safe point, partition reset or teardown.
+Reset/finalize/error/cancel/deadline closes every cursor and context exactly once;
+the first operation error wins over cleanup diagnostics. Reset retains bindings
+but no frame state. These browser bounds are the existing product adaptation, not
+an algorithm substitution, and do not alter successful SQL values/order/errors.
+
+Preparation is atomic for every composition. A join, grouped producer, scalar
+subquery, ordinary/recursive CTE, compound or outer ORDER/LIMIT route is admitted
+only when its complete recursive producer, every window frame mode and final
+result destination are represented. Otherwise reject before Program publication;
+never run a partial producer and never recompute a window in host code.
+
+#### Executable allocation and denominator
+
+`test/conformance/cases/stage3-aggregate-window.spec.json` is the immutable-input
+allocation: exactly **44 declared = 25 literal upstream source-credit + 19 local
+companions**. Of these, **43 are native executable and 43/43 were captured** from
+the independently built pinned library; one local private-control declaration is
+source-only. Source-credit bodies carry exact source assertion hashes and setups
+carry full setup assertion hashes. They cover default aggregate windows, every
+ROWS bound family (including inverted/empty), RANGE/GROUPS, all four EXCLUDE
+forms, shared/different windows, registry aggregates, grouped and recursive-CTE
+composition, and prepare/runtime errors. Local companions supply all three
+encodings, typed INTEGER/REAL/NULL/TEXT/BLOB values, ASC/DESC/collation/NULL peer
+policy, RANGE/GROUPS offsets, offset coercion diagnostics, join/subquery/ordinary
+CTE/outer ORDER/LIMIT, registry breadth, same-window FILTER sharing, and project
+resource/lifecycle controls. Source credit and companions are deliberately never
+interchangeable. Current accounting is native **43 attempted/43 passed, 25
+credited**, source-only **1**, TypeScript **0 attempted/0 credited/44 unattempted**;
+this is bounded evidence, not exhaustive SQLite window compatibility.

@@ -403,3 +403,23 @@ The immutable `stage3-window` manifest remains unchanged: 29 declared entries, 2
 
 
 Window setup evidence added by [[card:card-o-b-g]] does not change the immutable denominator: exactly 29 declared entries, 0 TypeScript attempts, and 0 TypeScript credits. The compiler-level source test inspects emitted setup operations, register/cursor identity, compatible sharing, nested ownership, and the existing atomic public gates; it does not execute a frame or manifest case. Its public architecture gate runs two prepare outcomes in each immutable encoding fixture (UTF-8, UTF-16LE, UTF-16BE): exact pre-rewrite `misuse of aggregate: sum()` precedence and temporary unsupported atomic rejection followed by connection reuse. These 6 prepare assertions remain source/architecture evidence outside the execution-credit denominator.
+
+### Aggregate-window execution contract matrix
+
+The frame-execution implementation denominator is
+`test/conformance/cases/stage3-aggregate-window.spec.json`, with settled native
+expectations in the adjacent `.json`. It declares exactly **44 cases: 25 literal,
+hash-bound upstream assertions and 19 no-credit local companions**. Exactly 43 are
+native executable and the pinned independently built 3.53.4 library passes 43/43;
+the remaining resource-control declaration is source-only because private
+byte/entry/key/work/row ceilings, cooperative yield, deadline and injected cleanup
+faults are project controls. TypeScript remains 0 attempted, 0 credited, 44
+unattempted until `sqlite3WindowCodeStep` is implemented and the public runner
+compares tagged rows, metadata, prepare/step errors and lifecycle traces.
+
+`capture-aggregate-window.py` verifies source identity before capture.
+`aggregate-window-contract-manifest.test.py` fails closed on archive identity,
+source assertion/setup hashes, class partition, case order and all denominators.
+The source-credit partition covers source algorithms; encoding, typed-value,
+composition and safety/resource companions remain visibly non-credit. This matrix
+supplements rather than relabels the earlier 29-case window graph/rewrite evidence.

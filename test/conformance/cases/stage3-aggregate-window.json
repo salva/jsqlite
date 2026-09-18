@@ -1,0 +1,6436 @@
+{
+  "schema": "jsqlite-aggregate-window-contract/1",
+  "source": {
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "archiveSha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b"
+  },
+  "requiredCoverage": [
+    "utf8-utf16le-utf16be",
+    "existing-aggregate-registry",
+    "default-rows-range-groups",
+    "all-bound-families",
+    "all-exclude-forms",
+    "direction-collation-null-peers",
+    "offset-errors",
+    "same-window-sharing-and-nesting",
+    "join-group-subquery-ordinary-recursive-cte-outer-order",
+    "lifecycle-and-private-controls"
+  ],
+  "cases": [
+    {
+      "id": "window1-1.1",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "1.1",
+      "sourceBodySha256": "64342980a2fa124cf111dbe770e69e095240caaaae39c802353ca7cf2b9796e7",
+      "setup": "w1",
+      "sql": "SELECT sum(b) OVER () FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(b) OVER ()",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-1.5",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "1.5",
+      "sourceBodySha256": "945ddafd57ed2922530c4f558c2fb739fc11750d32980f731384642171222851",
+      "setup": "w1",
+      "sql": "SELECT a, sum(b) OVER (PARTITION BY c) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(b) OVER (PARTITION BY c)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.7",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.7",
+      "sourceBodySha256": "d4c1c80f3a6a3242000df1e2f329c6d6128f873bb39371f925aaa1eeb15ad282",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a DESC) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY b ORDER BY a DESC)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.8",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.8",
+      "sourceBodySha256": "a413937d627d88500c2038d43ddb844751e8440b256a9a290893c12cb8cad115",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a DESC), sum(a) OVER (PARTITION BY c ORDER BY a) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY b ORDER BY a DESC)",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (PARTITION BY c ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.9",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.9",
+      "sourceBodySha256": "fe32babc215a9e1b0c650706015f80b739e2601472b6429cfb3c50a7344b9ab3",
+      "setup": "w2",
+      "sql": "SELECT a, sum(a) OVER (ORDER BY a), avg(a) OVER (ORDER BY a) FROM t2 ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a)",
+            "declType": null
+          },
+          {
+            "name": "avg(a) OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4004000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-4.10.2",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "4.10.2",
+      "sourceBodySha256": "2c1580fdb779554e64c431931b557c0d592eb7733111db74caacec6aec36c4eb",
+      "setup": "w2",
+      "sql": "SELECT a, count(*) OVER (ORDER BY a DESC), group_concat(a, '.') OVER (ORDER BY a DESC) FROM t2 ORDER BY a DESC",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "count(*) OVER (ORDER BY a DESC)",
+            "declType": null
+          },
+          {
+            "name": "group_concat(a, '.') OVER (ORDER BY a DESC)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "36"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e35"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e352e34"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e352e342e33"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e352e342e332e32"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e352e342e332e322e31"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "362e352e342e332e322e312e30"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.4",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.4",
+      "sourceBodySha256": "7c3e7b686cc2ecc76a5a87e2b7730c222dec34c4bff1c9d15b9ea0b0480de2fd",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.13",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.13",
+      "sourceBodySha256": "efbe1f6a924e842b21e06bc42d26a7418883f49e89957e1b366fe08648b470be",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d ROWS BETWEEN 2 PRECEDING AND UNBOUNDED FOLLOWING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d ROWS BETWEEN 2 PRECEDING AND UNBOUNDED FOLLOWING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.14",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.14",
+      "sourceBodySha256": "ee381202e8bfb7a4cc6c9f1ee10837733ad5c451004bb87ba3cf250a231c7873",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.17",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.17",
+      "sourceBodySha256": "7c2b0b00f119d1e08f2769dd1e3c268ddfb58e5a4e0b317062ac5d984d5eac28",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( PARTITION BY b ORDER BY d ROWS BETWEEN 1 PRECEDING AND 2 PRECEDING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( PARTITION BY b ORDER BY d ROWS BETWEEN 1 PRECEDING AND 2 PRECEDING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.19",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.19",
+      "sourceBodySha256": "12e9b9bce60f6abcc2ced7c619bc291b1d12f69a26b03ca638f0757503ab0433",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( PARTITION BY b ORDER BY d ROWS BETWEEN 1 FOLLOWING AND 3 FOLLOWING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( PARTITION BY b ORDER BY d ROWS BETWEEN 1 FOLLOWING AND 3 FOLLOWING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.21",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.21",
+      "sourceBodySha256": "4ff7f51e8940a010779cfc0f84fcff4cea6d89d91f2ff9ac7704a4e0b853c4aa",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d ROWS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d ROWS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.27",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.27",
+      "sourceBodySha256": "9f2bbec151e46100806033975484c129c3e47068a3c68cc32cc712c590733066",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d ROWS BETWEEN CURRENT ROW AND CURRENT ROW ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d ROWS BETWEEN CURRENT ROW AND CURRENT ROW )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window2-2.29",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window2.test",
+      "sourceCase": "2.29",
+      "sourceBodySha256": "cc170cb008749388e8acd8365c7c58ea2bff08c8fedfe3b5a2647d2be1557646",
+      "setup": "w2rows",
+      "sql": "SELECT a, sum(d) OVER ( ORDER BY d RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(d) OVER ( ORDER BY d RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "18"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-3.5.1",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "3.5.1",
+      "sourceBodySha256": "44dd8e54c275a297e420bbd383091a43522b5386bd42ceae4ea8dbff07fb274d",
+      "setup": "w5",
+      "sql": "SELECT a, max(c) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND 2 PRECEDING) FROM t5",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "max(c) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND 2 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-4.1",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "4.1",
+      "sourceBodySha256": "1d20994caf29dc097d2a67dca435e346ab5d954a9f46af9ef44a5a7fe11ba4d4",
+      "setup": "wttt",
+      "sql": "SELECT max(c), max(b) OVER (ORDER BY b) FROM ttt GROUP BY b;",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "max(c)",
+            "declType": null
+          },
+          {
+            "name": "max(b) OVER (ORDER BY b)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window4-4.5.1.1",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window4.test",
+      "sourceCase": "4.5.1.1",
+      "sourceBodySha256": "b47aa1bdde17a69d84a0a319408f416c0f1473653c97f1c5f6a700a3762d2830",
+      "setup": "wttt",
+      "sql": "SELECT max(c) OVER (PARTITION BY b ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW), min(c) OVER (PARTITION BY b ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM ttt ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "max(c) OVER (PARTITION BY b ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+            "declType": null
+          },
+          {
+            "name": "min(c) OVER (PARTITION BY b ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window6-9.0",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window6.test",
+      "sourceCase": "9.0",
+      "sourceBodySha256": "c134796ea86fd72dfd8c6eeecfedfed31f71d32bfc6f4734ea8b3f0b5eac0d3d",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5) SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING) FROM c;",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "x",
+            "declType": null
+          },
+          {
+            "name": "group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312c32"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312c322c33"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "322c332c34"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "332c342c35"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window6-9.3",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window6.test",
+      "sourceCase": "9.3",
+      "sourceBodySha256": "df1944c0e8e98a22c0ff5543e3df0a16019774dafa48d121ef70107c008520b6",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5) SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "DISTINCT is not supported for window functions",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window6-9.4",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window6.test",
+      "sourceCase": "9.4",
+      "sourceBodySha256": "81a0d91864161aa1ef6730a037978ad3b44c4b301b9f0eac0e536d0bf8e4b060",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5) SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "near \"FOLLOWING\": syntax error",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window8-1.1.1",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window8.test",
+      "sourceCase": "1.1.1",
+      "sourceBodySha256": "02935fd0949b77845db8407226acbab195dda77c09a46f4952c2b74cb375e653",
+      "setup": "w8",
+      "sql": "SELECT a, b, sum(c) OVER (ORDER BY a GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING ) FROM t3 ORDER BY 1, 2, 3;",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "TEXT"
+          },
+          {
+            "name": "b",
+            "declType": "TEXT"
+          },
+          {
+            "name": "sum(c) OVER (ORDER BY a GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING )",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4141"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4242"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "4685"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4343"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "12025"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4444"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "15147"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "19179"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "19179"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "19179"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "19179"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "19179"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4646"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "21718"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4747"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "27386"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4848"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "31854"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4949"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "37297"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6161"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "4a4a"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6262"
+                },
+                {
+                  "type": "integer",
+                  "value": "40937"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window8-2.1.2",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window8.test",
+      "sourceCase": "2.1.2",
+      "sourceBodySha256": "da8f94b6c4a0d742079dfc3161058513ffae7659734fede05d703c605968d136",
+      "setup": "w8",
+      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE NO OTHERS )",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(c, 14) OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window8-2.2.2",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window8.test",
+      "sourceCase": "2.2.2",
+      "sourceBodySha256": "c5ba796acd749be3eb6d504e2274c62467f1320b3e5ce4557a6d00ff0f280641",
+      "setup": "w8",
+      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW )",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(c, 14) OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window8-2.3.2",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window8.test",
+      "sourceCase": "2.3.2",
+      "sourceBodySha256": "7300dfcc6e0d4bfdd88820a8cd3c70820a97a81bd915c17eb28d748227080188",
+      "setup": "w8",
+      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP )",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(c, 14) OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "250"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window8-2.4.2",
+      "class": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window8.test",
+      "sourceCase": "2.4.2",
+      "sourceBodySha256": "88493dc6b5833237908d6fc2fc5d08667b9eef6a6e790c301f3f538a6290a366",
+      "setup": "w8",
+      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE TIES )",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(c, 14) OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "247"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-utf8",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,sum(i) OVER (ORDER BY i) FROM t ORDER BY i",
+      "encoding": "UTF-8",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-utf16le",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,sum(i) OVER (ORDER BY i) FROM t ORDER BY i",
+      "encoding": "UTF-16le",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-utf16be",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,sum(i) OVER (ORDER BY i) FROM t ORDER BY i",
+      "encoding": "UTF-16be",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-range-offset-asc",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,sum(a) OVER (ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-range-offset-desc-null",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,b,sum(a) OVER (ORDER BY b COLLATE NOCASE DESC NULLS LAST RANGE BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "b",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b COLLATE NOCASE DESC NULLS LAST RANGE BETWEEN 1 PRECEDING AND CURRENT ROW)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "78"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "78"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "79"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-groups-offset",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT a,sum(a) OVER (ORDER BY b GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": null
+          },
+          {
+            "name": "sum(a) OVER (ORDER BY b GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-offset-rows-negative",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT sum(a) OVER (ORDER BY a ROWS -1 PRECEDING) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(a) OVER (ORDER BY a ROWS -1 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "frame starting offset must be a non-negative integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-offset-rows-real",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT sum(a) OVER (ORDER BY a ROWS 1.5 PRECEDING) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(a) OVER (ORDER BY a ROWS 1.5 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "frame starting offset must be a non-negative integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-offset-range-text",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "inherit",
+      "sql": "SELECT sum(a) OVER (ORDER BY a RANGE 'x' PRECEDING) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "sum(a) OVER (ORDER BY a RANGE 'x' PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "frame starting offset must be a non-negative number"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-join",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT a.i,sum(b.i) OVER (PARTITION BY a.t ORDER BY b.i) FROM t a JOIN t b ON a.i=b.i ORDER BY a.i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(b.i) OVER (PARTITION BY a.t ORDER BY b.i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-subquery",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,sum(i) OVER (ORDER BY i) FROM (SELECT i FROM t WHERE i>1) ORDER BY i DESC",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-ordinary-cte",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "WITH q AS (SELECT i FROM t) SELECT i,sum(i) OVER (ORDER BY i) FROM q ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(i) OVER (ORDER BY i)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-outer-order-limit",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,sum(i) OVER (ORDER BY i DESC) AS s FROM t ORDER BY s LIMIT 2",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "s",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-same-window-filter",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,count(*) OVER w,sum(i) FILTER (WHERE i>1) OVER w FROM t WINDOW w AS (ORDER BY i) ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "count(*) OVER w",
+            "declType": null
+          },
+          {
+            "name": "sum(i) FILTER (WHERE i>1) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-aggregate-registry",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT count(i) OVER w,sum(i) OVER w,avg(i) OVER w,total(i) OVER w,min(t) OVER w,max(t) OVER w,group_concat(t,'|') OVER w FROM t WINDOW w AS (ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "count(i) OVER w",
+            "declType": null
+          },
+          {
+            "name": "sum(i) OVER w",
+            "declType": null
+          },
+          {
+            "name": "avg(i) OVER w",
+            "declType": null
+          },
+          {
+            "name": "total(i) OVER w",
+            "declType": null
+          },
+          {
+            "name": "min(t) OVER w",
+            "declType": null
+          },
+          {
+            "name": "max(t) OVER w",
+            "declType": null
+          },
+          {
+            "name": "group_concat(t,'|') OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "417c61"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4018000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "417c61"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4004000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4014000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-typed-values",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "typed",
+      "sql": "SELECT i,r,t,b,n,sum(i) OVER () FROM t ORDER BY i",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "i",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "r",
+            "declType": "REAL"
+          },
+          {
+            "name": "t",
+            "declType": "TEXT"
+          },
+          {
+            "name": "b",
+            "declType": "BLOB"
+          },
+          {
+            "name": "n",
+            "declType": null
+          },
+          {
+            "name": "sum(i) OVER ()",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4004000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-sharing",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "w5",
+      "sql": "SELECT a,sum(a) OVER w,avg(a) OVER w,max(a) OVER w FROM t5 WINDOW w AS (PARTITION BY b ORDER BY a) ORDER BY a",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "a",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "sum(a) OVER w",
+            "declType": null
+          },
+          {
+            "name": "avg(a) OVER w",
+            "declType": null
+          },
+          {
+            "name": "max(a) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4000000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4008000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-recursive-compose",
+      "class": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<4) SELECT x,sum(x) OVER (ORDER BY x ROWS 1 PRECEDING) FROM q ORDER BY x",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "x",
+            "declType": null
+          },
+          {
+            "name": "sum(x) OVER (ORDER BY x ROWS 1 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "companion-private-controls",
+      "class": "local-safety-resource",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "kind": "source-only",
+      "owners": [
+        "src/window.c",
+        "src/select.c",
+        "src/vdbe.c",
+        "src/vdbeaux.c"
+      ],
+      "meaning": "Project private byte/entry/key/work/row ceilings, deadline, cooperative yield, injected cleanup faults, and cancellation after suspension are local safety/resource companions and receive no upstream credit.",
+      "native": {
+        "disposition": "source-only-no-credit"
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 44,
+    "upstreamDeclared": 25,
+    "companionsDeclared": 19,
+    "nativeAttempted": 43,
+    "nativePassed": 43,
+    "nativeCredited": 25,
+    "sourceOnlyCompanions": 1,
+    "tsAttempted": 0,
+    "tsCredited": 0,
+    "tsUnattempted": 44,
+    "exhaustiveClaim": false
+  }
+}

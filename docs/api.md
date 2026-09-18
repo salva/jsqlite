@@ -424,3 +424,15 @@ reject temporarily. Expression-owned nested WITH remains a distinct temporary
 ## Window prepare boundary (2026-09-18)
 
 Window syntax is structurally parsed and resolved, but remains **temporary unsupported for execution**. Internal compilation now emits source-shaped setup operations and real register/cursor/subroutine identities for compiler verification, but that setup-only product is never publicly published because frame stepping remains absent. `Connection.prepare()` resolves and performs the pinned pre-execution rewrite validation for both scalar and table-backed window SELECTs. Observable resolver/rewrite errors therefore take precedence where SQLite raises them (for example code 1 `misuse of aggregate: sum()` for an unowned aggregate in a non-aggregate SELECT's `ORDER BY`). If validation succeeds, prepare throws temporary unsupported `window functions are not implemented`; no `Statement` or partial Program is published, and the connection remains reusable. The public table-backed architecture gate verifies both diagnostic precedence and atomic rejection/reuse in UTF-8, UTF-16LE, and UTF-16BE fixture databases. This does not admit frame stepping, window rows, or TypeScript conformance credit.
+
+### Aggregate-window preimplementation boundary
+
+Window syntax is represented and rewritten internally, but aggregate-window frame
+execution is not yet a public capability. `prepare()` must reject any statement
+requiring `sqlite3WindowCodeStep` atomically before returning a Program or
+Statement, including otherwise-supported join/group/subquery/ordinary or recursive
+CTE/outer ORDER compositions. Consumers must not observe a partially lowered
+statement or runtime host recomputation. The implementation gate and lifecycle/
+resource expectations are the 44-case matrix documented in `docs/CONFORMANCE.md`;
+its current TypeScript accounting is 0 attempted/0 credited/44 unattempted. This
+paragraph changes no public method signature or owner guarantee.
