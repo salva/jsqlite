@@ -51,6 +51,10 @@ def main():
   finally:
    if s:o.setdefault('native',{})['finalizeCode']=d.sqlite3_finalize(s)
    d.sqlite3_close(db)
- result={'schema':'jsqlite-subquery-view-contract/1','source':spec['source'],'fixtureGeneration':spec['fixtureGeneration'],'requiredCoverage':spec['requiredCoverage'],'disposition':spec['disposition'],'runtimeCompanions':spec['runtimeCompanions'],'cases':out,'accounting':{'declared':len(out),'nativeCaptured':len(out),'tsAttempted':0,'tsCredited':0}}
+ # Native recapture does not execute TypeScript. The reviewed public-runtime
+ # denominator is declared separately by the spec and carried into the combined
+ # artifact so regeneration neither erases nor fabricates TypeScript credit.
+ ts=spec['typescriptAccounting']
+ result={'schema':'jsqlite-subquery-view-contract/1','source':spec['source'],'fixtureGeneration':spec['fixtureGeneration'],'requiredCoverage':spec['requiredCoverage'],'disposition':spec['disposition'],'runtimeCompanions':spec['runtimeCompanions'],'cases':out,'accounting':{'declared':len(out),'nativeCaptured':len(out),'tsAttempted':ts['attempted'],'tsCredited':ts['credited']}}
  pathlib.Path(x.output).write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n')
 if __name__=='__main__': main()

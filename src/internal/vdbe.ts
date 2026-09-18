@@ -700,7 +700,20 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
     }else if(identity.kind==="column"&&!identity.name.includes(".")){
       const name=sqlName(identity.name);matches=sqliteIdentifierEqual(name,outputName)||resolved.some(item=>item.expression.alias!==undefined&&item.expression.alias!==null&&sqliteIdentifierEqual(item.expression.alias,name));
     }
-    if(!matches){const tokens=term.expr.tokens.filter(token=>token.text.toUpperCase()!=="COLLATE"&&sqliteAsciiFold(token.text)!=="binary"&&sqliteAsciiFold(token.text)!=="nocase"&&sqliteAsciiFold(token.text)!=="rtrim").map(token=>token.text).join(" ");matches=resolved.some(item=>item.expression.tokens.map(token=>token.text).join(" ")===tokens);}
+    // resolveCompoundOrderBy compares generated expressions after alias/ordinal
+    // precedence. Token spelling is not ownership: parentheses, qualification,
+    // quoting and COLLATE decoration must not change the owning result column.
+    if(!matches){
+      const owned=(value:Expression,item:typeof resolved[number]):boolean=>{switch(value.kind){
+        case "column": {const parts=value.name.split('.').map(sqlName);return parts.length<2||sqliteIdentifierEqual(parts.at(-2)!,item.arm.from.items[0]!.alias??item.table.name);}
+        case "unary": case "cast": case "collate": return owned(value.value,item);
+        case "binary": return owned(value.left,item)&&owned(value.right,item);
+        case "call": case "aggregate": return value.args.every(arg=>owned(arg,item));
+        case "case": return (value.operand===null||owned(value.operand,item))&&value.pairs.every(([when,then])=>owned(when,item)&&owned(then,item))&&(value.otherwise===null||owned(value.otherwise,item));
+        default: return true;
+      }};
+      matches=resolved.some(item=>owned(tree,item)&&item.expression.reduction!==undefined&&item.expression.reduction!==null&&compoundOrderExpressionEqual(tree,expressionFromReduction(item.expression.reduction)));
+    }
     if(!matches)throw new JSQLiteError("sqlite",`${index+1}${index===0?"st":index===1?"nd":index===2?"rd":"th"} ORDER BY term does not match any column in the result set`,{code:1});
     const named=explicitCollation(tree)??leftCollation;if(named!=="binary"&&named!=="nocase"&&named!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${named}`,{code:1});
     return {collation:named as BuiltinCollation,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};

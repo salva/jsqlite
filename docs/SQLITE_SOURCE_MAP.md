@@ -1081,3 +1081,12 @@ aggregate forms retain atomic prepare-time gates rather than partial execution.
 - `src/internal/vdbe.ts` maps scalar/EXISTS/IN destination-aware lowering and ordered bounded compound production to `src/select.c` (`sqlite3Select`, `multiSelect`, `multiSelectOrderBy`, `computeLimitRegisters`) while retaining one parent VDBE's work/private-state owner.
 - Compound ORDER term ownership maps to `src/resolve.c` `resolveCompoundOrderBy` / `sqlite3ResolveOrderGroupBy`: ordinal, resolved result alias, then generated expression-structure comparison. The translation no longer compares joined token text. Explicit COLLATE is ignored for expression identity and retained for sorter KeyInfo; resolved column identity tolerates equivalent qualification/spelling while preserving column index when known.
 - `test/conformance/subquery-view-foundation.test.mjs` covers all encodings, bounded scalar subqueries in both compound arms, equivalent parenthesized spelling plus COLLATE, quoted/case-varied alias ownership, and destination-aware lowering. Companion accounting is indivisible 15/15. CTE/recursive/window/unsafe atomic gates remain covered.
+
+- **Compound ORDER ownership review repair (2026-09-17):** the direct-table
+  `compileSimpleTableCompound` route now shares the generated-expression identity
+  rule used by scalar compounds after ordinal/alias precedence, mapping pinned
+  `resolve.c:resolveCompoundOrderBy` rather than comparing token text. Explicit
+  COLLATE remains KeyInfo metadata while decoration, parentheses, qualification,
+  identifier quoting/case do not define ownership. The public table-compound
+  discriminator in `test/conformance/compound-union-all.test.mjs` protects the
+  destination-aware table-arm handoff.

@@ -6,6 +6,7 @@
     "manifest": "reference/sqlite/manifest.json"
   },
   "fixtureGeneration": "CURRENT",
+  "typescriptAccounting": {"attempted": 19, "credited": 19},
   "disposition": "native-captured; allocated FROM-derived/view tranche credits 19 public cases; scalar/EXISTS/IN and other cases remain uncredited",
   "requiredCoverage": [
     "derived-from",
