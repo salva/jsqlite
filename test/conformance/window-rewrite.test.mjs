@@ -311,6 +311,13 @@ test('public window lowering rejects atomically in all three database encodings'
       ));
       try {
         assert.throws(
+          () => db.prepare('SELECT row_number() OVER () FROM t1 ORDER BY sum(a)'),
+          (error) => error?.kind === 'sqlite' &&
+            error?.code === 1 &&
+            error?.message === 'misuse of aggregate: sum()',
+          `${name} must preserve the pre-rewrite SQLite diagnostic`,
+        );
+        assert.throws(
           () => db.prepare('SELECT row_number() OVER () FROM t1'),
           (error) => error?.kind === 'unsupported' && error?.message === 'window functions are not implemented',
           `${name} must reject before publishing a statement`,
