@@ -204,22 +204,50 @@ test('compiler emits window init cursors, result registers, and select-loop hand
   );
   const compilation = vdbe.compileWindowSelectSetup(resolved, 'utf-8');
   assert.equal(compilation.rewrite.layers.length, 2);
-  for (const layer of compilation.rewrite.layers) {
-    const ops = compilation.program.ops;
-    assert.ok(ops.some((op) => op.code === 'OpenEphemeral' && op.p1 === layer.iEphCsr));
+  const ops = compilation.program.ops;
+  assert.equal(ops.filter((op) => op.code === 'OpenEphemeral').length, 2);
+  assert.equal(ops.filter((op) => op.code === 'OpenDup').length, 6);
+  assert.equal(ops.filter((op) => op.code === 'Gosub').length, 2);
+  assert.equal(ops.filter((op) => op.code === 'Return').length, 2);
+  assert.equal(ops.filter((op) => op.code === 'Halt').length, 1);
+  const allocatedRegisters = new Set();
+  for (const [index, layer] of compilation.rewrite.layers.entries()) {
+    const setup = compilation.setup[index];
+    assert.equal(setup.compatibleGroup, layer.compatibleGroup);
+    const open = ops.find((op) => op.code === 'OpenEphemeral' && op.p1 === layer.iEphCsr);
+    assert.ok(open, 'each nested layer must open its own ephemeral cursor');
+    assert.equal(open.keyInfo.totalFieldCount, layer.bufferExpressions.length);
+    assert.equal(open.keyInfo.keyFieldCount, 0);
     assert.deepEqual(
       ops.filter((op) => op.code === 'OpenDup' && op.p2 === layer.iEphCsr).map((op) => op.p1),
       layer.duplicateCursors,
     );
+    const partitionCount = layer.producerOrderBy.filter((term) => term.source === 'partition').length;
+    assert.equal(setup.partitionRegisters.length, partitionCount);
+    assert.equal(setup.regPart, setup.partitionRegisters[0] ?? null);
+    for (const register of setup.partitionRegisters) {
+      assert.ok(ops.some((op) => op.code === 'Null' && op.p2 === register));
+      assert.equal(allocatedRegisters.has(register), false);
+      allocatedRegisters.add(register);
+    }
+    assert.ok(ops.some((op) => op.code === 'Integer' && op.p1 === 1n && op.p2 === setup.regOne));
+    assert.equal(allocatedRegisters.has(setup.regOne), false);
+    allocatedRegisters.add(setup.regOne);
     for (const win of layer.windows) {
       assert.ok(ops.some((op) => op.code === 'Null' && op.p2 === win.regAccum));
-      assert.ok(win.regResult <= compilation.program.registers);
+      assert.equal(allocatedRegisters.has(win.regAccum), false);
+      assert.equal(allocatedRegisters.has(win.regResult), false);
+      allocatedRegisters.add(win.regAccum);
+      allocatedRegisters.add(win.regResult);
     }
+    assert.equal(allocatedRegisters.has(layer.regGosub), false);
+    allocatedRegisters.add(layer.regGosub);
     const gosub = ops.find((op) => op.code === 'Gosub' && op.p1 === layer.regGosub);
     assert.ok(gosub, 'the producer select-loop must enter the window subroutine');
     assert.equal(ops[gosub.p2]?.code, 'Return');
     assert.equal(ops[gosub.p2]?.p1, layer.regGosub);
   }
+  assert.ok([...allocatedRegisters].every((register) => register <= compilation.program.registers));
   assert.equal(compilation.rewrite.layers[0].windows.length, 2);
   assert.notEqual(compilation.rewrite.layers[0].iEphCsr, compilation.rewrite.layers[1].iEphCsr);
 });
