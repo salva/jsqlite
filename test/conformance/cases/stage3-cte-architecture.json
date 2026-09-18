@@ -1,0 +1,1741 @@
+{
+  "schema": "jsqlite-cte-architecture-capture/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "disposition": "architecture oracle only; no TypeScript execution credit",
+  "accounting": {
+    "cases": 17,
+    "upstreamCreditCases": 14,
+    "companionsNoCredit": 3,
+    "encodingExecutions": 51,
+    "typescriptAttempted": 0,
+    "typescriptCredited": 0
+  },
+  "captures": [
+    {
+      "id": "with1-2.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp1(a) AS ( SELECT * FROM t1 ), tmp2(x) AS ( SELECT * FROM tmp1) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp1(a) AS ( SELECT * FROM t1 ), tmp2(x) AS ( SELECT * FROM tmp1) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp1(a) AS ( SELECT * FROM t1 ), tmp2(x) AS ( SELECT * FROM tmp1) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1), tmp1(a) AS ( SELECT * FROM t1 ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1), tmp1(a) AS ( SELECT * FROM t1 ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-2.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1), tmp1(a) AS ( SELECT * FROM t1 ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1 ), tmp1(a) AS ( SELECT * FROM tmp2 ) SELECT * FROM tmp1;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "circular reference: tmp1"
+        }
+      }
+    },
+    {
+      "id": "with1-3.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1 ), tmp1(a) AS ( SELECT * FROM tmp2 ) SELECT * FROM tmp1;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "circular reference: tmp1"
+        }
+      }
+    },
+    {
+      "id": "with1-3.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1 ), tmp1(a) AS ( SELECT * FROM tmp2 ) SELECT * FROM tmp1;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "circular reference: tmp1"
+        }
+      }
+    },
+    {
+      "id": "with1-3.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp(a) AS (SELECT * FROM t1), tmp(a) AS (SELECT * FROM t1) SELECT * FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "duplicate WITH table name: tmp"
+        }
+      }
+    },
+    {
+      "id": "with1-3.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp(a) AS (SELECT * FROM t1), tmp(a) AS (SELECT * FROM t1) SELECT * FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "duplicate WITH table name: tmp"
+        }
+      }
+    },
+    {
+      "id": "with1-3.2",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp(a) AS (SELECT * FROM t1), tmp(a) AS (SELECT * FROM t1) SELECT * FROM tmp;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "duplicate WITH table name: tmp"
+        }
+      }
+    },
+    {
+      "id": "with1-3.3",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH t3(a) AS (SELECT * FROM t4) SELECT * FROM t3;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.3",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH t3(a) AS (SELECT * FROM t4) SELECT * FROM t3;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.3",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH t3(a) AS (SELECT * FROM t4) SELECT * FROM t3;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.4",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5434"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5433"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5433"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-3.5",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5433"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-5.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i) SELECT x FROM i LIMIT 10;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-5.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i) SELECT x FROM i LIMIT 10;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-5.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i) SELECT x FROM i LIMIT 10;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH i(x, y) AS ( VALUES(1) ) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH i(x, y) AS ( VALUES(1) ) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with1-5.6.1",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH i(x, y) AS ( VALUES(1) ) SELECT * FROM i;",
+      "native": {
+        "prepare": {
+          "kind": "error",
+          "phase": "prepare",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "table i has 1 values for 2 columns"
+        }
+      }
+    },
+    {
+      "id": "with2-1.6",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH x1 AS (SELECT * FROM t1), x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM x1 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.6",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH x1 AS (SELECT * FROM t1), x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM x1 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.6",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH x1 AS (SELECT * FROM t1), x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM x1 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "a",
+            "declaredType": null,
+            "database": "main",
+            "table": "t1",
+            "origin": "a"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.7",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.7",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.7",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t4",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.8",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM main.t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.8",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM main.t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "with2-1.8",
+      "credit": "upstream",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM main.t3 ) SELECT * FROM x2;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": "main",
+            "table": "t3",
+            "origin": "x"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-marker",
+      "credit": "none",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(7)) SELECT x, typeof(x) FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-marker",
+      "credit": "none",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(7)) SELECT x, typeof(x) FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-recursive-marker",
+      "credit": "none",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(7)) SELECT x, typeof(x) FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "typeof(x)",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH q(x) AS MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH q(x) AS MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH q(x) AS MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-not-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-8",
+      "sql": "WITH q(x) AS NOT MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-not-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-16le",
+      "sql": "WITH q(x) AS NOT MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    },
+    {
+      "id": "companion-not-materialized",
+      "credit": "none",
+      "databaseEncoding": "UTF-16be",
+      "sql": "WITH q(x) AS NOT MATERIALIZED (VALUES(7)) SELECT x FROM q;",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "x",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            }
+          ]
+        ],
+        "step": {
+          "kind": "done"
+        }
+      }
+    }
+  ]
+}

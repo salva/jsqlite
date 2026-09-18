@@ -36,3 +36,14 @@ test('implemented VALUES production identity remains structured and executable',
   }
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
+
+test('retained WITH graphs reject atomically before ordinary SELECT lowering',async()=>{
+ const bridge=await startFixtureServer(fixtureRoot);let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+  for(const sql of ['WITH q AS (SELECT 1) SELECT * FROM q','WITH RECURSIVE q(x) AS (VALUES(1)) SELECT x FROM q','WITH q AS MATERIALIZED (SELECT 1) SELECT * FROM q']){
+   assert.throws(()=>db.prepare(sql),e=>temporary(e)&&e.message==='common table expressions are not implemented',sql);
+  }
+  const statement=db.prepare('SELECT 1').statement;assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);statement.finalize();
+ }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});

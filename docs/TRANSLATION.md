@@ -2534,3 +2534,31 @@ Accounting: `stage3-subquery-view.json` is 46 native captures, 19 attempted and
 ### Expression-subquery and compound ORDER completion (2026-09-17)
 
 The accepted scalar/EXISTS/IN/correlated tranche now has direct public Fetch coverage in UTF-8, UTF-16le, and UTF-16be, plus the indivisible 15/15 lifecycle/resource companion tranche. Ordered bounded compound arms retain destination-aware subquery lowering into the parent VDBE, sharing work and private-state ownership. Compound ORDER binding follows `resolveCompoundOrderBy`: ordinal and resolved alias ownership first, then generated expression-tree identity with COLLATE decoration ignored for identity but retained in KeyInfo. Token spelling and expanded SQL text are deliberately not expression identity; parentheses, whitespace, identifier case/quoting, qualification, and COLLATE spelling must not alter ownership. Focused structural/alias/collation discriminators accompany the bounded scalar-subquery compound test. CTE, recursive CTE, window, and unsafe unmatched shapes remain atomic prepare-time gates.
+
+## CTE source-model and scope architecture ([[card:card-n-a]], 2026-09-18)
+
+The current CTE contract is `docs/architecture/cte-source-model.md`. Generated
+`wqas`/`wqitem`/`wqlist`/`select ::= WITH ...` reductions now own an immutable
+`SelectNode.with` graph: the independent `RECURSIVE` marker, ordered declarations,
+optional ordered aliases, nested generated Select, and `M10d_Any/Yes/No`-shaped
+materialization mode. Duplicate names reject with SQLite's ASCII-insensitive
+`duplicate WITH table name` diagnostic. This is semantic retention, not execution.
+
+The implementation handoff keeps relation-name scope source-shaped after
+`select.c:searchWith`, `sqlite3WithPush`, `resolveFromTermToCte`, and
+`sqlite3SelectPopWith`: a transient inner-to-outer `WithScope` is separate from,
+but feeds sources into, the existing linked expression `NameContext`. Each
+immutable declaration receives one shared prepare-lifetime `CteUse` identity for
+use count, hint, materialization address/return register/cursor, and estimate.
+Schema-qualified names bypass the CTE chain; nested declarations shadow; views do
+not capture caller scope. Coroutine, reusable materialization, and recursive
+queue/distinct-queue lowering remain future source-shaped VDBE work.
+
+Until those lookup, diagnostics, and lowering contracts are implemented,
+`Connection.prepare()` rejects any retained WITH graph atomically before ordinary
+SELECT compilation. The machine tranche has 14 credited pinned `with1.test`/
+`with2.test` cases and three no-credit companions, captured for three database
+encodings (51 native executions), with TypeScript attempted/credited 0/0. This pin
+has no `test/with.test`; none is claimed. This current evidence supersedes the
+older generic statement that CTE syntax was only retained structurally, but does
+not supersede the public execution exclusion.

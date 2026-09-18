@@ -149,6 +149,12 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement.kind !== "select") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
       }
+      // WITH syntax has a generated-parser semantic graph, but select.c's
+      // scope and CteUse lowering are not executable yet. Reject atomically
+      // before an ordinary SELECT compiler can consume the outer query.
+      if (parsed.statement.with !== null) {
+        failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
+      }
       const aggregate = selectHasAggregate(parsed.statement)||parsed.statement.hasGroupBy||parsed.statement.hasHaving;
       if(aggregate&&!parsed.statement.hasCompound&&!parsed.statement.from.derived&&!aggregateShapeSupported(parsed.statement)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const program = aggregate

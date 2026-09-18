@@ -1090,3 +1090,22 @@ aggregate forms retain atomic prepare-time gates rather than partial execution.
   identifier quoting/case do not define ownership. The public table-compound
   discriminator in `test/conformance/compound-union-all.test.mjs` protects the
   destination-aware table-arm handoff.
+
+## CTE source-model and compilation foundation ([[card:card-n-a]], 2026-09-18)
+
+| Pinned SQLite 3.53.4 owner | Current/planned TypeScript owner | Evidence and boundary |
+| --- | --- | --- |
+| `src/parse.y:609-621,1955-1973` WITH/select attachment, `wqlist`, `wqitem`, aliases, `M10d_Any/Yes/No` | `src/internal/parse.ts` generated reduction actions and immutable `SelectNode.with` / `WithClause` / `CteNode` | parser tests cover ordered items, recursive marker, aliases, hints, nested Select ownership, freezing, ASCII-case duplicate diagnostic |
+| `src/sqliteInt.h:3597-3620,4462-4514` `Select.pWith`, `With`, `Cte`, `CteUse` | immutable authored graph now; planned transient `WithScope` and shared prepare-lifetime `CteUse` | exact ownership/lifetime contract in `docs/architecture/cte-source-model.md`; use state not yet implemented |
+| `src/select.c:5610-5880,6000-6030,6388` `searchWith`, push/pop, `resolveFromTermToCte`, recursive diagnostics | planned expansion in `resolve.ts`/compiler before ordinary `NameContext` expression resolution | innermost shadowing, outer fallback, schema-qualified bypass, view boundary, circular/recursive/width errors; currently atomically gated |
+| `src/select.c:7275-7276,7797-8020` coroutine/materialization/reuse branches | planned `vdbe.ts` producer/materialization routes using shared `CteUse` | no TS execution or route credit yet |
+| `src/vdbe.c` `InitCoroutine`/`Yield`/`EndCoroutine`, `OpenEphemeral`/`Rewind`/`RowData` and recursive SELECT queue destinations in `select.c` | existing typed coroutine/ephemeral primitives plus future bounded recursive queue | no recursive JS evaluator; one statement's work/cancel/deadline/private-state owners |
+| `test/with1.test`, `test/with2.test` | `stage3-cte-architecture.{spec,json}`, capture and validator | 14 credited logical cases + 3 no-credit companions × UTF-8/16le/16be = 51 pinned native executions; TS 0/0. Pin has no `test/with.test`. |
+
+Verified pinned hashes: `parse.y` `19628d51...3185`, `sqliteInt.h`
+`3846e622...cc3`, `select.c` `bdf052a3...3408`, `resolve.c`
+`0ab2b579...7107`, `vdbe.c` `d92cb9c4...ca1d`, `with1.test`
+`02524973...092`, and `with2.test` `9f83b8c7...427` (full hashes remain
+machine-verifiable from the pinned tree/spec). `src/index.ts` rejects non-null
+WITH before all ordinary lowering, so the current public claim remains temporary
+prepare-time unsupported rather than partial execution.

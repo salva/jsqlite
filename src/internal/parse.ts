@@ -7,13 +7,16 @@ export type ExprNode={readonly kind:"tokens";readonly tokens:readonly SqlToken[]
 export type WindowDefinitionNode={readonly name:string;readonly baseName:string|null;readonly hasFrame:boolean;readonly frameError:string|null;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[]};
 export type OrderTermNode={readonly expr:ExprNode;readonly descending:boolean;readonly nulls:"first"|"last"|null};
 export type CompoundOperator="union-all"|"union"|"intersect"|"except";
+export type CteMaterialization="any"|"materialized"|"not-materialized";
+export type CteNode=Readonly<{name:string;columns:readonly string[]|null;select:SelectNode;materialization:CteMaterialization}>;
+export type WithClause=Readonly<{recursive:boolean;ctes:readonly CteNode[]}>;
 export type JoinFlags=Readonly<{inner:boolean;cross:boolean;natural:boolean;left:boolean;right:boolean;outer:boolean;error:boolean}>;
 export type SourceItem=Readonly<{databaseName:string|null;tableName:string;alias:string|null;indexedBy:string|null;notIndexed:boolean;on:ExprNode|null;using:readonly string[]|null;joinFromLeft:JoinFlags;leftOfRightJoin:boolean;cursorId:null;table:null}>;
 type FlattenedDerived=Readonly<{select:SelectNode}>;
 export type DerivedSource=Readonly<{index:number;select:SelectNode;alias:string|null}>;
 export type SourceList=readonly SqlToken[]&Readonly<{items:readonly SourceItem[];tokens:readonly SqlToken[];flattenedDerived?:FlattenedDerived;derived?:DerivedSource}>;
 export type SelectArm={readonly result:readonly ExprNode[];readonly from:SourceList;readonly where:ExprNode|null;readonly hasDistinct:boolean;readonly hasGroupBy:boolean;readonly hasHaving:boolean;readonly origin:"select"|"values";readonly valuesRows:readonly (readonly ExprNode[])[]|null;readonly operatorFromPrior:CompoundOperator|null;readonly prior:number|null;readonly next:number|null};
-export type SelectNode={readonly kind:"select";readonly result:readonly ExprNode[];readonly from:SourceList;readonly where:ExprNode|null;readonly groupBy:readonly ExprNode[];readonly having:ExprNode|null;readonly orderBy:readonly OrderTermNode[];readonly windowNames:readonly string[];readonly windowDefinitions:readonly WindowDefinitionNode[];readonly limit:ExprNode|null;readonly offset:ExprNode|null;readonly hasDistinct:boolean;readonly hasGroupBy:boolean;readonly hasHaving:boolean;readonly hasOrderBy:boolean;readonly hasLimit:boolean;readonly hasCompound:boolean;readonly hasValues:boolean;readonly hasSubquery:boolean;readonly arms:readonly SelectArm[];readonly tokens:readonly SqlToken[]};
+export type SelectNode={readonly kind:"select";readonly result:readonly ExprNode[];readonly from:SourceList;readonly where:ExprNode|null;readonly groupBy:readonly ExprNode[];readonly having:ExprNode|null;readonly orderBy:readonly OrderTermNode[];readonly windowNames:readonly string[];readonly windowDefinitions:readonly WindowDefinitionNode[];readonly limit:ExprNode|null;readonly offset:ExprNode|null;readonly hasDistinct:boolean;readonly hasGroupBy:boolean;readonly hasHaving:boolean;readonly hasOrderBy:boolean;readonly hasLimit:boolean;readonly hasCompound:boolean;readonly hasValues:boolean;readonly hasSubquery:boolean;readonly with:WithClause|null;readonly arms:readonly SelectArm[];readonly tokens:readonly SqlToken[]};
 export interface SchemaColumnDeclaration {readonly name:string;readonly declaredType:string|null;readonly defaultExpr:ExprNode|null;readonly generatedExpr:ExprNode|null;readonly notNull:boolean;readonly primaryKey:boolean;readonly unique:boolean;readonly collation:string|null;readonly generatedStorage:"stored"|"virtual"|null}
 export interface SchemaIndexTermDeclaration {readonly expr:ExprNode;readonly descending:boolean;readonly collation:string|null;readonly nulls:"first"|"last"|null}
 export type SchemaDdlNode={readonly kind:"create-table"|"create-index"|"create-view"|"create-trigger";readonly name:string|null;readonly tokens:readonly SqlToken[];readonly columns:readonly SchemaColumnDeclaration[];readonly viewColumns:readonly string[];readonly withoutRowid:boolean;readonly indexTerms:readonly SchemaIndexTermDeclaration[];readonly tableName:string|null;readonly select:SelectNode|null;readonly indexWhere:ExprNode|null;readonly tableAsSelect:SelectNode|null;readonly primaryKey:readonly string[];readonly indexUnique:boolean;readonly hasUnsupportedConstraints:boolean};
@@ -126,7 +129,7 @@ function andFlattenedPredicates(inner:ExprNode|null,outer:ExprNode|null):ExprNod
  const reduction:LemonValue<SqlToken>=Object.freeze({kind:"reduction",rule:-1,signature:"expr ::= expr AND expr",children:Object.freeze([inner.reduction,Object.freeze({kind:"terminal",tokenId:tokenIds.AND,value:and}),outer.reduction])});
  return Object.freeze({kind:"tokens",tokens:Object.freeze([...inner.tokens,and,...outer.tokens]),reduction});
 }
-function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNode{
+function selectAction(semantic:SelectSemantic,all:readonly SqlToken[],withModel:WithClause|null=null):SelectNode{
  const one=semantic.rightmost,arms=linkedArms(semantic.arms),hasValues=arms.some(arm=>arm.origin==="values");
  // parse.y accepts this only through error recovery. ORDER/LIMIT tokens before a
  // later compound arm are never owned by the rightmost oneselect and must not be
@@ -160,7 +163,7 @@ function selectAction(semantic:SelectSemantic,all:readonly SqlToken[]):SelectNod
  // instead of the derived table's ordered projection (for example c,b).
  const parentStar=left.result.length===1&&left.result[0]!.tokens.length===1&&left.result[0]!.tokens[0]!.text==="*";
  const effectiveResult=flattened&&parentStar?flattened.select.result:left.result;
- return{kind:"select",result:effectiveResult,from:effectiveFrom,where:effectiveWhere,groupBy,having:havingExpr?{kind:"tokens",tokens:leaves(havingExpr),reduction:havingExpr}:null,orderBy:Object.freeze(orderBy),windowNames:Object.freeze(windowNames),windowDefinitions:Object.freeze(windowDefinitions),limit,offset,hasDistinct:present("distinct ::=","distinct ::="),hasGroupBy:present("groupby_opt ::=","groupby_opt ::="),hasHaving:present("having_opt ::=","having_opt ::="),hasOrderBy:present("orderby_opt ::=","orderby_opt ::="),hasLimit:present("limit_opt ::=","limit_opt ::="),hasCompound:arms.length>1,hasValues,hasSubquery:!flattened&&findAll(one,s=>s==="seltablist ::= stl_prefix LP select RP as on_using"||s==="expr ::= LP select RP"||s==="expr ::= expr in_op LP select RP"||s==="expr ::= EXISTS LP select RP").length>0,arms,tokens:all};
+ return{kind:"select",result:effectiveResult,from:effectiveFrom,where:effectiveWhere,groupBy,having:havingExpr?{kind:"tokens",tokens:leaves(havingExpr),reduction:havingExpr}:null,orderBy:Object.freeze(orderBy),windowNames:Object.freeze(windowNames),windowDefinitions:Object.freeze(windowDefinitions),limit,offset,hasDistinct:present("distinct ::=","distinct ::="),hasGroupBy:present("groupby_opt ::=","groupby_opt ::="),hasHaving:present("having_opt ::=","having_opt ::="),hasOrderBy:present("orderby_opt ::=","orderby_opt ::="),hasLimit:present("limit_opt ::=","limit_opt ::="),hasCompound:arms.length>1,hasValues,hasSubquery:!flattened&&findAll(one,s=>s==="seltablist ::= stl_prefix LP select RP as on_using"||s==="expr ::= LP select RP"||s==="expr ::= expr in_op LP select RP"||s==="expr ::= EXISTS LP select RP").length>0,with:withModel,arms,tokens:all};
 }
 function schemaName(node:LemonValue<SqlToken>|undefined):string|null{const token=leaves(node)[0];return token?sqlIdentifier(token):null;}
 function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SchemaDdlNode|undefined{
@@ -179,6 +182,15 @@ function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[]):SchemaDdlN
 function deepFreeze<T>(value:T):T {if(value&&typeof value==="object"&&!Object.isFrozen(value)){for(const child of Object.values(value as object))deepFreeze(child);Object.freeze(value);}return value;}
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[]):unknown{
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
+ if(signature==="wqas ::= AS")return "any" satisfies CteMaterialization;
+ if(signature==="wqas ::= AS MATERIALIZED")return "materialized" satisfies CteMaterialization;
+ if(signature==="wqas ::= AS NOT MATERIALIZED")return "not-materialized" satisfies CteMaterialization;
+ if(signature==="wqitem ::= withnm eidlist_opt wqas LP select RP"){
+  const name=sqlIdentifier(leaves(children[0])[0]),aliases=leaves(children[1]).filter(token=>token.text!==","&&token.text!=="("&&token.text!==")").map(sqlIdentifier);
+  return Object.freeze({name,columns:aliases.length?Object.freeze(aliases):null,select:semanticOf<SelectNode>(children[4],"CTE select"),materialization:semanticOf<CteMaterialization>(children[2],"CTE materialization")} as CteNode);
+ }
+ if(signature==="wqlist ::= wqitem")return Object.freeze([semanticOf<CteNode>(children[0],"WITH item")]);
+ if(signature==="wqlist ::= wqlist COMMA wqitem")return Object.freeze([...semanticOf<readonly CteNode[]>(children[0],"WITH list"),semanticOf<CteNode>(children[2],"WITH item")]);
  if(signature==="values ::= VALUES LP nexprlist RP"){
   const list=direct(root,"nexprlist ::=");if(!list)throw new SqlParseError("generated VALUES row is missing");return Object.freeze([expressionList(list)]);
  }
@@ -195,8 +207,11 @@ function productionAction(signature:string,children:readonly LemonValue<SqlToken
   const words=leaves(children[1]).map(t=>t.text.toUpperCase()).join(" "),operator:CompoundOperator=words==="UNION ALL"?"union-all":words==="UNION"?"union":words==="INTERSECT"?"intersect":"except";
   if(right.arms.length!==1)throw new SqlParseError("generated compound right arm is incomplete");const arm=Object.freeze({...right.arms[0]!,operatorFromPrior:operator});return Object.freeze({arms:Object.freeze([...left.arms,arm]),rightmost:right.rightmost} as SelectSemantic);
  }
- if(signature==="select ::= selectnowith"||signature==="select ::= WITH wqlist selectnowith"||signature==="select ::= WITH RECURSIVE wqlist selectnowith"){
-  const child=children.at(-1);return deepFreeze(selectAction(semanticOf<SelectSemantic>(child,"select"),leaves(root)));
+ if(signature==="select ::= selectnowith")return deepFreeze(selectAction(semanticOf<SelectSemantic>(children[0],"select"),leaves(root)));
+ if(signature==="select ::= WITH wqlist selectnowith"||signature==="select ::= WITH RECURSIVE wqlist selectnowith"){
+  const recursive=signature.includes(" RECURSIVE "),listIndex=recursive?2:1,selectIndex=recursive?3:2,ctes=semanticOf<readonly CteNode[]>(children[listIndex],"WITH list"),seen=new Set<string>();
+  for(const cte of ctes){const key=cte.name.replace(/[A-Z]/g,c=>c.toLowerCase());if(seen.has(key))throw new SqlParseError(`duplicate WITH table name: ${cte.name}`);seen.add(key);}
+  return deepFreeze(selectAction(semanticOf<SelectSemantic>(children[selectIndex],"select"),leaves(root),Object.freeze({recursive,ctes})));
  }
  if(signature.startsWith("cmd ::= select"))return semanticOf<SelectNode>(children[0],"cmd select");
  const tokens=leaves(root);

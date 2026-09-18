@@ -1,0 +1,38 @@
+{
+  "schema": "jsqlite-cte-architecture-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "disposition": "architecture oracle only; no TypeScript execution credit",
+  "encodings": ["UTF-8", "UTF-16le", "UTF-16be"],
+  "upstreamFiles": {
+    "reference/sqlite/sqlite-src-3530400/test/with1.test": "02524973b270d2adda54e33940484448a75c871e57cc25b082b7cf038d2c7092",
+    "reference/sqlite/sqlite-src-3530400/test/with2.test": "9f83b8c7668058563745ce02b957b87f914437e169400b1bd94c81d551eb7427"
+  },
+  "notes": [
+    "The 3.53.4 archive has with1.test and with2.test but no test/with.test; no nonexistent with.test assertion is claimed.",
+    "upstream cases preserve the assertion SQL and expected result/error; setup is the minimal equivalent extracted from preceding assertions in the same Tcl file.",
+    "companion cases are project-authored, carry no upstream credit, and isolate grammar-only RECURSIVE and materialization-hint facts."
+  ],
+  "cases": [
+    {"id":"with1-2.1","credit":"upstream","source":"test/with1.test","assertion":"2.1","setup":["CREATE TABLE t1(x)","INSERT INTO t1 VALUES(1)","INSERT INTO t1 VALUES(2)"],"sql":"WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;","expect":{"rows":[[1],[2]]}},
+    {"id":"with1-2.2","credit":"upstream","source":"test/with1.test","assertion":"2.2","setup":["CREATE TABLE t1(x)","INSERT INTO t1 VALUES(1)","INSERT INTO t1 VALUES(2)"],"sql":"WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;","expect":{"rows":[[1],[2]]}},
+    {"id":"with1-2.4","credit":"upstream","source":"test/with1.test","assertion":"2.4","setup":["CREATE TABLE t1(x)","INSERT INTO t1 VALUES(1)","INSERT INTO t1 VALUES(2)"],"sql":"WITH tmp1(a) AS ( SELECT * FROM t1 ), tmp2(x) AS ( SELECT * FROM tmp1) SELECT * FROM tmp2;","expect":{"rows":[[1],[2]]}},
+    {"id":"with1-2.5","credit":"upstream","source":"test/with1.test","assertion":"2.5","setup":["CREATE TABLE t1(x)","INSERT INTO t1 VALUES(1)","INSERT INTO t1 VALUES(2)"],"sql":"WITH tmp2(x) AS ( SELECT * FROM tmp1), tmp1(a) AS ( SELECT * FROM t1 ) SELECT * FROM tmp2;","expect":{"rows":[[1],[2]]}},
+    {"id":"with1-3.1","credit":"upstream","source":"test/with1.test","assertion":"3.1","setup":[],"sql":"WITH tmp2(x) AS ( SELECT * FROM tmp1 ), tmp1(a) AS ( SELECT * FROM tmp2 ) SELECT * FROM tmp1;","expect":{"error":{"phase":"prepare","message":"circular reference: tmp1"}}},
+    {"id":"with1-3.2","credit":"upstream","source":"test/with1.test","assertion":"3.2","setup":["CREATE TABLE t1(x)"],"sql":"WITH tmp(a) AS (SELECT * FROM t1), tmp(a) AS (SELECT * FROM t1) SELECT * FROM tmp;","expect":{"error":{"phase":"prepare","message":"duplicate WITH table name: tmp"}}},
+    {"id":"with1-3.3","credit":"upstream","source":"test/with1.test","assertion":"3.3","setup":["CREATE TABLE t3(x)","CREATE TABLE t4(x)","INSERT INTO t3 VALUES('T3')","INSERT INTO t4 VALUES('T4')"],"sql":"WITH t3(a) AS (SELECT * FROM t4) SELECT * FROM t3;","expect":{"rows":[["T4"]]}},
+    {"id":"with1-3.4","credit":"upstream","source":"test/with1.test","assertion":"3.4","setup":["CREATE TABLE t3(x)","CREATE TABLE t4(x)","INSERT INTO t3 VALUES('T3')","INSERT INTO t4 VALUES('T4')"],"sql":"WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;","expect":{"rows":[["T4"]]}},
+    {"id":"with1-3.5","credit":"upstream","source":"test/with1.test","assertion":"3.5","setup":["CREATE TABLE t3(x)","CREATE TABLE t4(x)","INSERT INTO t3 VALUES('T3')","INSERT INTO t4 VALUES('T4')"],"sql":"WITH tmp AS ( SELECT * FROM t3 ), tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp ) SELECT * FROM tmp2;","expect":{"rows":[["T3"]]}},
+    {"id":"with1-5.1","credit":"upstream","source":"test/with1.test","assertion":"5.1","setup":[],"sql":"WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i) SELECT x FROM i LIMIT 10;","expect":{"rows":[[1],[2],[3],[4],[5],[6],[7],[8],[9],[10]]}},
+    {"id":"with1-5.6.1","credit":"upstream","source":"test/with1.test","assertion":"5.6.1","setup":[],"sql":"WITH i(x, y) AS ( VALUES(1) ) SELECT * FROM i;","expect":{"error":{"phase":"prepare","message":"table i has 1 values for 2 columns"}}},
+    {"id":"with2-1.6","credit":"upstream","source":"test/with2.test","assertion":"1.6","setup":["CREATE TABLE t1(a)","INSERT INTO t1 VALUES(1)","INSERT INTO t1 VALUES(2)","CREATE TABLE t3 AS SELECT 3 AS x","CREATE TABLE t4 AS SELECT 4 AS x"],"sql":"WITH x1 AS (SELECT * FROM t1), x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM x1 ) SELECT * FROM x2;","expect":{"rows":[[1],[2]]}},
+    {"id":"with2-1.7","credit":"upstream","source":"test/with2.test","assertion":"1.7","setup":["CREATE TABLE t4 AS SELECT 4 AS x"],"sql":"WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM t3 ) SELECT * FROM x2;","expect":{"rows":[[4]]}},
+    {"id":"with2-1.8","credit":"upstream","source":"test/with2.test","assertion":"1.8","setup":["CREATE TABLE t3 AS SELECT 3 AS x","CREATE TABLE t4 AS SELECT 4 AS x"],"sql":"WITH x2 AS ( WITH t3 AS (SELECT * FROM t4) SELECT * FROM main.t3 ) SELECT * FROM x2;","expect":{"rows":[[3]]}},
+    {"id":"companion-recursive-marker","credit":"none","rationale":"The marker changes parse/intent state but does not itself make a CTE recursive.","setup":[],"sql":"WITH RECURSIVE q(x) AS (VALUES(7)) SELECT x, typeof(x) FROM q;","expect":{"rows":[[7,"integer"]]}},
+    {"id":"companion-materialized","credit":"none","rationale":"Isolates parse.y M10d_Yes without claiming planner route equivalence.","setup":[],"sql":"WITH q(x) AS MATERIALIZED (VALUES(7)) SELECT x FROM q;","expect":{"rows":[[7]]}},
+    {"id":"companion-not-materialized","credit":"none","rationale":"Isolates parse.y M10d_No without claiming planner route equivalence.","setup":[],"sql":"WITH q(x) AS NOT MATERIALIZED (VALUES(7)) SELECT x FROM q;","expect":{"rows":[[7]]}}
+  ]
+}
