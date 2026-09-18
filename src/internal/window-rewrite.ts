@@ -10,14 +10,26 @@ export interface WindowRewriteFunction {readonly window:ResolvedWindow;readonly 
 export interface WindowRewriteSortTerm {readonly expression:ExprNode;readonly source:"partition"|"order";readonly copiedIntegerToNull:boolean;readonly descending:boolean;readonly nulls:"first"|"last"|null}
 export interface WindowLiftedExpression {readonly expression:ExprNode;readonly kind:"column"|"aggregate"|"window";readonly bufferColumn:number;readonly selectDepth:number;readonly aggregateDepthBefore:number|null;readonly aggregateDepthAfter:number|null;readonly correlatedFromScalarSubquery:boolean}
 export interface WindowAggregateDepthRepair {readonly expression:ExprNode;readonly selectDepth:number;readonly aggregateDepthBefore:number;readonly aggregateDepthAfter:number}
+export interface WindowRewriteOriginalProducer {
+ readonly kind:"original";readonly nonFlattenable:true;readonly correlated:true;
+ readonly from:SelectNode["from"];readonly where:ExprNode|null;readonly groupBy:readonly ExprNode[];readonly having:ExprNode|null;
+}
+export interface WindowRewriteNestedProducer {
+ readonly kind:"rewritten-select";readonly nonFlattenable:true;readonly correlated:true;
+ readonly parentCompatibleGroup:number;readonly select:WindowRewrittenSelect;
+}
+export type WindowRewriteProducer=WindowRewriteOriginalProducer|WindowRewriteNestedProducer;
+export interface WindowRewrittenSelect {
+ readonly compatibleGroup:number;readonly subquery:WindowRewriteProducer;
+}
 export interface WindowRewriteLayer {
  readonly compatibleGroup:number;readonly windows:readonly WindowRewriteFunction[];readonly producerOrderBy:readonly WindowRewriteSortTerm[];readonly bufferExpressions:readonly ExprNode[];readonly lifted:readonly WindowLiftedExpression[];readonly aggregateDepthRepairs:readonly WindowAggregateDepthRepair[];
  readonly iEphCsr:number;readonly duplicateCursors:readonly [number,number,number];readonly regGosub:number;readonly addrGosub:number;
  readonly handoff:readonly [{readonly code:"Gosub";readonly register:number;readonly address:number},{readonly code:"Return";readonly register:number}];
- readonly producer:Readonly<{nonFlattenable:true;correlated:true;from:SelectNode["from"];where:ExprNode|null;groupBy:readonly ExprNode[];having:ExprNode|null;orderBy:readonly WindowRewriteSortTerm[]}>;
+ readonly producer:WindowRewriteProducer;
 }
 export interface WindowRewriteGraph {
- readonly source:ResolvedSelect;readonly layers:readonly WindowRewriteLayer[];
+ readonly source:ResolvedSelect;readonly layers:readonly WindowRewriteLayer[];readonly root:WindowRewrittenSelect|null;
  readonly outer:Readonly<{orderBy:readonly OrderTermNode[];originalOrderBy:readonly OrderTermNode[];orderPrefixElided:boolean;limit:ExprNode|null;offset:ExprNode|null;result:readonly ResolvedResult[]}>;
  readonly movedClauses:readonly ["from","where","groupBy","having"];readonly retainedClauses:readonly ["orderBy","limit","offset"];
  readonly multipleWindowPartitions:boolean;readonly frameExecution:"unsupported";
@@ -116,8 +128,20 @@ export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph
   const functions=windows.map(window=>{const argumentColumn=buffer.length;buffer.push(...windowArguments(window.owner));const filterColumn=window.filter?(buffer.push(window.filter),buffer.length-1):null;return Object.freeze({window,argumentColumn,filterColumn,regAccum:++nextRegister,regResult:++nextRegister});});
   if(buffer.length===0)buffer.push(Object.freeze({kind:"tokens",tokens:Object.freeze([])}));
   const iEphCsr=nextCursor;nextCursor+=4;const regGosub=++nextRegister,addrGosub=layers.length,handoff=Object.freeze([{code:"Gosub" as const,register:regGosub,address:addrGosub},{code:"Return" as const,register:regGosub}] as const);
-  const producer=Object.freeze({nonFlattenable:true as const,correlated:true as const,from:resolved.source.from,where:resolved.source.where,groupBy:resolved.source.groupBy,having:resolved.source.having,orderBy:producerOrderBy});
-  layers.push(Object.freeze({compatibleGroup,windows:Object.freeze(functions),producerOrderBy,bufferExpressions:Object.freeze(buffer),lifted:Object.freeze(lifted),aggregateDepthRepairs:Object.freeze(terminalRewrite.aggregateDepthRepairs),iEphCsr,duplicateCursors:Object.freeze([iEphCsr+1,iEphCsr+2,iEphCsr+3]) as readonly [number,number,number],regGosub,addrGosub,handoff,producer}));
+  // The producer edge is attached after all layer-local state is complete. Only
+  // the first rewrite owns the original clauses; later incompatible rewrites
+  // consume the complete Select produced by the preceding recursive rewrite.
+  layers.push(Object.freeze({compatibleGroup,windows:Object.freeze(functions),producerOrderBy,bufferExpressions:Object.freeze(buffer),lifted:Object.freeze(lifted),aggregateDepthRepairs:Object.freeze(terminalRewrite.aggregateDepthRepairs),iEphCsr,duplicateCursors:Object.freeze([iEphCsr+1,iEphCsr+2,iEphCsr+3]) as readonly [number,number,number],regGosub,addrGosub,handoff,producer:null as never}));
  }
- return Object.freeze({source:resolved,layers:Object.freeze(layers),outer:Object.freeze({orderBy:parentOrder,originalOrderBy:resolved.source.orderBy,orderPrefixElided:prefixElided,limit:resolved.source.limit,offset:resolved.source.offset,result:resolved.result}),movedClauses:Object.freeze(["from","where","groupBy","having"] as const),retainedClauses:Object.freeze(["orderBy","limit","offset"] as const),multipleWindowPartitions:resolved.multipleWindowPartitions,frameExecution:"unsupported"});
+ let root:WindowRewrittenSelect|null=null;
+ const linked:WindowRewriteLayer[]=[];
+ for(const [index,unlinked] of layers.entries()){
+  const producer:WindowRewriteProducer=index===0
+   ?Object.freeze({kind:"original" as const,nonFlattenable:true as const,correlated:true as const,from:resolved.source.from,where:resolved.source.where,groupBy:resolved.source.groupBy,having:resolved.source.having})
+   :Object.freeze({kind:"rewritten-select" as const,nonFlattenable:true as const,correlated:true as const,parentCompatibleGroup:unlinked.compatibleGroup,select:root!});
+  const layer:WindowRewriteLayer=Object.freeze({...unlinked,producer});
+  linked.push(layer);
+  root=Object.freeze({compatibleGroup:layer.compatibleGroup,subquery:producer});
+ }
+ return Object.freeze({source:resolved,layers:Object.freeze(linked),root,outer:Object.freeze({orderBy:parentOrder,originalOrderBy:resolved.source.orderBy,orderPrefixElided:prefixElided,limit:resolved.source.limit,offset:resolved.source.offset,result:resolved.result}),movedClauses:Object.freeze(["from","where","groupBy","having"] as const),retainedClauses:Object.freeze(["orderBy","limit","offset"] as const),multipleWindowPartitions:resolved.multipleWindowPartitions,frameExecution:"unsupported"});
 }

@@ -166,10 +166,19 @@ export function compileWindowSelectSetup(
   privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,
 ):WindowSetupCompilation {
   const rewrite=sqlite3WindowRewrite(resolved);
+  const byGroup=new Map(rewrite.layers.map(layer=>[layer.compatibleGroup,layer] as const));
+  const compileLayers:WindowRewriteGraph["layers"][number][]=[];
+  const visit=(select:NonNullable<WindowRewriteGraph["root"]>):void=>{
+    if(select.subquery.kind==="rewritten-select")visit(select.subquery.select);
+    const layer=byGroup.get(select.compatibleGroup);
+    if(!layer)throw new Error(`window rewrite lost compatible group ${select.compatibleGroup}`);
+    compileLayers.push(layer);
+  };
+  if(rewrite.root)visit(rewrite.root);
   const ops:Op[]=[];
   let registers=Math.max(0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
   const setup:WindowSetupLayer[]=[];
-  for(const layer of rewrite.layers){
+  for(const layer of compileLayers){
     // window.c uses the producer e-list width as OP_OpenEphemeral P2. This
     // VDBE's exact equivalent carries that width in a zero-key KeyInfo.
     const width=layer.bufferExpressions.length;
@@ -186,7 +195,7 @@ export function compileWindowSelectSetup(
   // layer owns a distinct return register and subroutine address. Halt prevents
   // fall-through into these setup-only stubs if an internal diagnostic runs it.
   const gosubs:{at:number;layer:WindowRewriteGraph["layers"][number]}[]=[];
-  for(const layer of rewrite.layers){gosubs.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
+  for(const layer of compileLayers){gosubs.push({at:ops.length,layer});ops.push({code:"Gosub",p1:layer.regGosub,p2:0});}
   ops.push({code:"Halt"});
   for(const {at,layer} of gosubs){const target=ops.length;(ops[at] as {code:"Gosub";p1:number;p2:number}).p2=target;ops.push({code:"Return",p1:layer.regGosub});}
   const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});

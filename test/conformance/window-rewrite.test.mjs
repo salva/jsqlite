@@ -63,8 +63,11 @@ test('rewrite shares compatible windows and nests incompatible windows in source
   const [shared, nested] = graph.layers;
   assert.ok(shared && nested);
   assert.equal(shared.producer.nonFlattenable, true);
+  assert.equal(shared.producer.kind, 'original');
   assert.equal(shared.producer.from, resolved.source.from);
   assert.equal(shared.producer.where, resolved.source.where);
+  assert.equal(nested.producer.kind, 'rewritten-select');
+  assert.equal(nested.producer.select.compatibleGroup, shared.compatibleGroup);
   assert.equal(graph.outer.originalOrderBy, resolved.source.orderBy);
   assert.deepEqual(graph.outer.orderBy, [], 'parent ORDER BY prefix is elided when the producer sort already supplies it');
   assert.equal(graph.outer.orderPrefixElided, true);
@@ -81,6 +84,39 @@ test('rewrite shares compatible windows and nests incompatible windows in source
   ]);
   assert.notEqual(shared.regGosub, nested.regGosub);
   assert.equal(graph.frameExecution, 'unsupported');
+});
+
+test('incompatible rewrites form recursive producer ownership and compile inside-out', () => {
+  const resolved = resolve(
+    'SELECT sum(a) OVER (PARTITION BY b), row_number() OVER (ORDER BY a), ' +
+    'avg(b) OVER (ORDER BY b) FROM t1 WHERE a > 0 GROUP BY a HAVING b > 0',
+  );
+  const compilation = vdbe.compileWindowSelectSetup(resolved, 'utf-8');
+  const {rewrite} = compilation;
+
+  const walked = [];
+  let select = rewrite.root;
+  while (select) {
+    walked.push(select.compatibleGroup);
+    select = select.subquery.kind === 'rewritten-select' ? select.subquery.select : null;
+  }
+  assert.deepEqual(walked, [2, 1, 0], 'outer rewrite must consume the previously rewritten SELECT');
+  const originalOwners = rewrite.layers.filter((layer) => layer.producer.kind === 'original');
+  assert.equal(originalOwners.length, 1, 'original clauses must have exactly one producer owner');
+  assert.equal(originalOwners[0].producer.from, resolved.source.from);
+  assert.equal(originalOwners[0].producer.where, resolved.source.where);
+  assert.equal(originalOwners[0].producer.groupBy, resolved.source.groupBy);
+  assert.equal(originalOwners[0].producer.having, resolved.source.having);
+  for (const layer of rewrite.layers.slice(1)) {
+    assert.equal(layer.producer.kind, 'rewritten-select');
+    assert.equal(layer.producer.parentCompatibleGroup, layer.compatibleGroup);
+  }
+
+  assert.deepEqual(
+    compilation.program.ops.filter((op) => op.code === 'OpenEphemeral').map((op) => op.p1),
+    rewrite.layers.map((layer) => layer.iEphCsr),
+    'compiler setup must visit the recursive graph inside-out, matching sqlite3Select recursion',
+  );
 });
 
 test('rewrite lifts each window-function argument instead of the owner expression', () => {
