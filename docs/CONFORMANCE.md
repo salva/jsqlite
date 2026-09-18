@@ -423,3 +423,11 @@ source assertion/setup hashes, class partition, case order and all denominators.
 The source-credit partition covers source algorithms; encoding, typed-value,
 composition and safety/resource companions remain visibly non-credit. This matrix
 supplements rather than relabels the earlier 29-case window graph/rewrite evidence.
+
+The EXCLUDE source-credit slots are pinned `window8.test` cases `2.1.3`, `2.2.3`,
+`2.3.3`, and `2.4.3`: ordinary aggregate `min`/`max`/`sum` cases for NO OTHERS,
+CURRENT ROW, GROUP, and TIES. They replace the similarly numbered `.2`
+`nth_value` cases, which require special value-function state outside this goal.
+The denominator is unchanged. Coverage in these four slots is now aggregate
+EXCLUDE over UNBOUNDED PRECEDING..CURRENT ROW, not `nth_value` or
+unbounded-following EXCLUDE coverage.

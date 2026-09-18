@@ -18,6 +18,13 @@ up=[x for x in spec['cases'] if x['class']=='source-credit']
 comp=[x for x in spec['cases'] if x['credit']=='no-credit-companion']
 assert (len(up),len(comp))==(25,19)
 assert {x['class'] for x in comp}=={'local-semantic-companion','local-safety-resource'}
+# These EXCLUDE slots belong to ordinary aggregate-window execution. Fail closed
+# against reallocating them to a special value built-in with dedicated state.
+exclude=spec['cases'][21:25]
+assert [x['sourceCase'] for x in exclude]==['2.1.3','2.2.3','2.3.3','2.4.3']
+assert [re.search(r'EXCLUDE\s+(NO OTHERS|CURRENT ROW|GROUP|TIES)',x['sql'],re.I).group(1).upper() for x in exclude]==['NO OTHERS','CURRENT ROW','GROUP','TIES']
+assert all(all(f+'(' in x['sql'].lower() for f in ('min','max','sum')) for x in exclude)
+assert all(not re.search(r'\b(?:nth_value|first_value|last_value|lead|lag)\s*\(',x['sql'],re.I) for x in exclude)
 def norm(s): return re.sub(r'\s+',' ',s).strip().rstrip(';')
 for c in up:
  text=(R/'reference/sqlite/sqlite-src-3530400'/c['sourceFile']).read_text()

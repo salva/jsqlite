@@ -1248,3 +1248,13 @@ hashed literal upstream cases + 19 explicitly no-credit companions; native 43/43
 source-only 1; TypeScript 0/44. This allocation is separate from the earlier
 29-case graph/rewrite evidence and is the implementation denominator for aggregate
 window stepping.
+
+#### EXCLUDE allocation correction ([[card:card-o-c-a]], 2026-09-18)
+
+Source-credit ordinals 22–25 are `test/window8.test` cases `2.1.3`, `2.2.3`,
+`2.3.3`, and `2.4.3` (ordinary `min`/`max`/`sum`) for EXCLUDE NO OTHERS,
+CURRENT ROW, GROUP, and TIES. The former `.2` cases used `nth_value`, whose
+dedicated `window.c` application state is outside this aggregate-window handoff.
+The replacement preserves the denominator and four-mode EXCLUDE intent, but
+changes those samples to UNBOUNDED PRECEDING..CURRENT ROW and makes no
+`nth_value` or unbounded-following coverage claim.

@@ -436,3 +436,8 @@ statement or runtime host recomputation. The implementation gate and lifecycle/
 resource expectations are the 44-case matrix documented in `docs/CONFORMANCE.md`;
 its current TypeScript accounting is 0 attempted/0 credited/44 unattempted. This
 paragraph changes no public method signature or owner guarantee.
+
+The matrix's four EXCLUDE source-credit cases exercise ordinary registered
+aggregates only. They do not claim support for `nth_value` (or its dedicated
+window application state), and this correction does not widen the temporary
+unsupported public boundary.

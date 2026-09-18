@@ -3010,19 +3010,27 @@
       }
     },
     {
-      "id": "window8-2.1.2",
+      "id": "window8-2.1.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.1.2",
-      "sourceBodySha256": "da8f94b6c4a0d742079dfc3161058513ffae7659734fede05d703c605968d136",
+      "sourceCase": "2.1.3",
+      "sourceBodySha256": "07089f0c457b4feb6dc151263def3257e8ccedb0843283314e0b4374cb2c5f4a",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE NO OTHERS )",
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE NO OTHERS \n    ) ORDER BY a, b, c;",
       "native": {
         "prepareCode": 0,
         "columns": [
           {
-            "name": "nth_value(c, 14) OVER win",
+            "name": "min(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "max(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "sum(c) OVER win",
             "declType": null
           }
         ],
@@ -3032,481 +3040,1121 @@
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "223"
+                },
+                {
+                  "type": "integer",
+                  "value": "1358"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "239"
+                },
+                {
+                  "type": "integer",
+                  "value": "2293"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "911"
+                },
+                {
+                  "type": "integer",
+                  "value": "38097"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "934"
+                },
+                {
+                  "type": "integer",
+                  "value": "39960"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "309"
+                },
+                {
+                  "type": "integer",
+                  "value": "4159"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "572"
+                },
+                {
+                  "type": "integer",
+                  "value": "10643"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "627"
+                },
+                {
+                  "type": "integer",
+                  "value": "13069"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "35417"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "247"
+                },
+                {
+                  "type": "integer",
+                  "value": "2540"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "393"
+                },
+                {
+                  "type": "integer",
+                  "value": "6608"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "399"
+                },
+                {
+                  "type": "integer",
+                  "value": "7405"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "412"
+                },
+                {
+                  "type": "integer",
+                  "value": "7817"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "660"
+                },
+                {
+                  "type": "integer",
+                  "value": "16277"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "762"
+                },
+                {
+                  "type": "integer",
+                  "value": "24077"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "633"
+                },
+                {
+                  "type": "integer",
+                  "value": "14331"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "705"
+                },
+                {
+                  "type": "integer",
+                  "value": "19673"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "711"
+                },
+                {
+                  "type": "integer",
+                  "value": "20384"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "786"
+                },
+                {
+                  "type": "integer",
+                  "value": "27176"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "792"
+                },
+                {
+                  "type": "integer",
+                  "value": "28758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "840"
+                },
+                {
+                  "type": "integer",
+                  "value": "32858"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "158"
+                },
+                {
+                  "type": "integer",
+                  "value": "767"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "430"
+                },
+                {
+                  "type": "integer",
+                  "value": "8668"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "607"
+                },
+                {
+                  "type": "integer",
+                  "value": "11824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "759"
+                },
+                {
+                  "type": "integer",
+                  "value": "23315"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "346"
+                },
+                {
+                  "type": "integer",
+                  "value": "5506"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "822"
+                },
+                {
+                  "type": "integer",
+                  "value": "31179"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "224"
+                },
+                {
+                  "type": "integer",
+                  "value": "1582"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "256"
+                },
+                {
+                  "type": "integer",
+                  "value": "3298"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "845"
+                },
+                {
+                  "type": "integer",
+                  "value": "34547"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "238"
+                },
+                {
+                  "type": "integer",
+                  "value": "2054"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "716"
+                },
+                {
+                  "type": "integer",
+                  "value": "21100"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "794"
+                },
+                {
+                  "type": "integer",
+                  "value": "29552"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "959"
+                },
+                {
+                  "type": "integer",
+                  "value": "42795"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "777"
+                },
+                {
+                  "type": "integer",
+                  "value": "26390"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "252"
+                },
+                {
+                  "type": "integer",
+                  "value": "3042"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "629"
+                },
+                {
+                  "type": "integer",
+                  "value": "13698"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "25613"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "208"
+                },
+                {
+                  "type": "integer",
+                  "value": "1135"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "618"
+                },
+                {
+                  "type": "integer",
+                  "value": "12442"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "667"
+                },
+                {
+                  "type": "integer",
+                  "value": "16944"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "670"
+                },
+                {
+                  "type": "integer",
+                  "value": "17614"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "295"
+                },
+                {
+                  "type": "integer",
+                  "value": "3850"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "574"
+                },
+                {
+                  "type": "integer",
+                  "value": "11217"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "726"
+                },
+                {
+                  "type": "integer",
+                  "value": "21826"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "36287"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "40898"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "148"
+                },
+                {
+                  "type": "integer",
+                  "value": "609"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "335"
+                },
+                {
+                  "type": "integer",
+                  "value": "4824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "9591"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "634"
+                },
+                {
+                  "type": "integer",
+                  "value": "14965"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "160"
+                },
+                {
+                  "type": "integer",
+                  "value": "927"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "844"
+                },
+                {
+                  "type": "integer",
+                  "value": "33702"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "929"
+                },
+                {
+                  "type": "integer",
+                  "value": "39026"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "41836"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "10071"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "790"
+                },
+                {
+                  "type": "integer",
+                  "value": "27966"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "979"
+                },
+                {
+                  "type": "integer",
+                  "value": "44737"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "133"
+                },
+                {
+                  "type": "integer",
+                  "value": "461"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "330"
+                },
+                {
+                  "type": "integer",
+                  "value": "4489"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "355"
+                },
+                {
+                  "type": "integer",
+                  "value": "6215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "683"
+                },
+                {
+                  "type": "integer",
+                  "value": "18968"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "730"
+                },
+                {
+                  "type": "integer",
+                  "value": "22556"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "963"
+                },
+                {
+                  "type": "integer",
+                  "value": "43758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "398"
+                },
+                {
+                  "type": "integer",
+                  "value": "7006"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "652"
+                },
+                {
+                  "type": "integer",
+                  "value": "15617"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "250"
+                },
+                {
+                  "type": "integer",
+                  "value": "2790"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "421"
+                },
+                {
+                  "type": "integer",
+                  "value": "8238"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "443"
+                },
+                {
+                  "type": "integer",
+                  "value": "9111"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "671"
+                },
+                {
+                  "type": "integer",
+                  "value": "18285"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "805"
+                },
+                {
+                  "type": "integer",
+                  "value": "30357"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "328"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "234"
+                },
+                {
+                  "type": "integer",
+                  "value": "1816"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "24845"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "899"
+                },
+                {
+                  "type": "integer",
+                  "value": "37186"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "257"
+                },
+                {
+                  "type": "integer",
+                  "value": "3555"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "336"
+                },
+                {
+                  "type": "integer",
+                  "value": "5160"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "354"
+                },
+                {
+                  "type": "integer",
+                  "value": "5860"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "839"
+                },
+                {
+                  "type": "integer",
+                  "value": "32018"
                 }
               ]
             ],
@@ -3524,19 +4172,27 @@
       }
     },
     {
-      "id": "window8-2.2.2",
+      "id": "window8-2.2.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.2.2",
-      "sourceBodySha256": "c5ba796acd749be3eb6d504e2274c62467f1320b3e5ce4557a6d00ff0f280641",
+      "sourceCase": "2.2.3",
+      "sourceBodySha256": "1c91b208dd1d9dba45e0ad023cc2dfca051891d0ffe330411f2f5a9eced19346",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW )",
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE CURRENT ROW \n    ) ORDER BY a, b, c;",
       "native": {
         "prepareCode": 0,
         "columns": [
           {
-            "name": "nth_value(c, 14) OVER win",
+            "name": "min(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "max(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "sum(c) OVER win",
             "declType": null
           }
         ],
@@ -3546,481 +4202,1118 @@
               [
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "208"
+                },
+                {
+                  "type": "integer",
+                  "value": "1135"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "238"
+                },
+                {
+                  "type": "integer",
+                  "value": "2054"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "899"
+                },
+                {
+                  "type": "integer",
+                  "value": "37186"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "929"
+                },
+                {
+                  "type": "integer",
+                  "value": "39026"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "295"
+                },
+                {
+                  "type": "integer",
+                  "value": "3850"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "10071"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "618"
+                },
+                {
+                  "type": "integer",
+                  "value": "12442"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "845"
+                },
+                {
+                  "type": "integer",
+                  "value": "34547"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "239"
+                },
+                {
+                  "type": "integer",
+                  "value": "2293"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "355"
+                },
+                {
+                  "type": "integer",
+                  "value": "6215"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "398"
+                },
+                {
+                  "type": "integer",
+                  "value": "7006"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "399"
+                },
+                {
+                  "type": "integer",
+                  "value": "7405"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "652"
+                },
+                {
+                  "type": "integer",
+                  "value": "15617"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "759"
+                },
+                {
+                  "type": "integer",
+                  "value": "23315"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "629"
+                },
+                {
+                  "type": "integer",
+                  "value": "13698"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "683"
+                },
+                {
+                  "type": "integer",
+                  "value": "18968"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "705"
+                },
+                {
+                  "type": "integer",
+                  "value": "19673"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "777"
+                },
+                {
+                  "type": "integer",
+                  "value": "26390"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "790"
+                },
+                {
+                  "type": "integer",
+                  "value": "27966"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "839"
+                },
+                {
+                  "type": "integer",
+                  "value": "32018"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "148"
+                },
+                {
+                  "type": "integer",
+                  "value": "609"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "421"
+                },
+                {
+                  "type": "integer",
+                  "value": "8238"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "574"
+                },
+                {
+                  "type": "integer",
+                  "value": "11217"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "730"
+                },
+                {
+                  "type": "integer",
+                  "value": "22556"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "336"
+                },
+                {
+                  "type": "integer",
+                  "value": "5160"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "805"
+                },
+                {
+                  "type": "integer",
+                  "value": "30357"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "223"
+                },
+                {
+                  "type": "integer",
+                  "value": "1358"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "252"
+                },
+                {
+                  "type": "integer",
+                  "value": "3042"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "844"
+                },
+                {
+                  "type": "integer",
+                  "value": "33702"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "234"
+                },
+                {
+                  "type": "integer",
+                  "value": "1816"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "711"
+                },
+                {
+                  "type": "integer",
+                  "value": "20384"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "792"
+                },
+                {
+                  "type": "integer",
+                  "value": "28758"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "41836"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "25613"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "250"
-                }
-              ],
-              [
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "2790"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "627"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "13069"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "768"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "24845"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "160"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "927"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "607"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "11824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "660"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "16277"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "667"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "16944"
                 }
               ],
               [
                 {
-                  "type": "integer",
-                  "value": "247"
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "257"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "3555"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "572"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "10643"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "716"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "21100"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "870"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "35417"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "934"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "39960"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "133"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "461"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "330"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "4489"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "443"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "9111"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "633"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "14331"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "158"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "767"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "840"
+                },
+                {
+                  "type": "integer",
+                  "value": "32858"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "911"
+                },
+                {
+                  "type": "integer",
+                  "value": "38097"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "40898"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "9591"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "786"
+                },
+                {
+                  "type": "integer",
+                  "value": "27176"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "963"
+                },
+                {
+                  "type": "integer",
+                  "value": "43758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "328"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "309"
+                },
+                {
+                  "type": "integer",
+                  "value": "4159"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "354"
+                },
+                {
+                  "type": "integer",
+                  "value": "5860"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "671"
+                },
+                {
+                  "type": "integer",
+                  "value": "18285"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "726"
+                },
+                {
+                  "type": "integer",
+                  "value": "21826"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "959"
+                },
+                {
+                  "type": "integer",
+                  "value": "42795"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "393"
+                },
+                {
+                  "type": "integer",
+                  "value": "6608"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "634"
+                },
+                {
+                  "type": "integer",
+                  "value": "14965"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "247"
+                },
+                {
+                  "type": "integer",
+                  "value": "2540"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "412"
+                },
+                {
+                  "type": "integer",
+                  "value": "7817"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "430"
+                },
+                {
+                  "type": "integer",
+                  "value": "8668"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "670"
+                },
+                {
+                  "type": "integer",
+                  "value": "17614"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "794"
+                },
+                {
+                  "type": "integer",
+                  "value": "29552"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "224"
+                },
+                {
+                  "type": "integer",
+                  "value": "1582"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "762"
+                },
+                {
+                  "type": "integer",
+                  "value": "24077"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "36287"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "256"
+                },
+                {
+                  "type": "integer",
+                  "value": "3298"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "335"
+                },
+                {
+                  "type": "integer",
+                  "value": "4824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "346"
+                },
+                {
+                  "type": "integer",
+                  "value": "5506"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "822"
+                },
+                {
+                  "type": "integer",
+                  "value": "31179"
                 }
               ]
             ],
@@ -4038,19 +5331,27 @@
       }
     },
     {
-      "id": "window8-2.3.2",
+      "id": "window8-2.3.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.3.2",
-      "sourceBodySha256": "7300dfcc6e0d4bfdd88820a8cd3c70820a97a81bd915c17eb28d748227080188",
+      "sourceCase": "2.3.3",
+      "sourceBodySha256": "aac6f5ef2dc89a41526e95f15840b178f052e30d414733b1c3f6d854b9de5c1e",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP )",
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE GROUP \n    ) ORDER BY a, b, c;",
       "native": {
         "prepareCode": 0,
         "columns": [
           {
-            "name": "nth_value(c, 14) OVER win",
+            "name": "min(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "max(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "sum(c) OVER win",
             "declType": null
           }
         ],
@@ -4060,481 +5361,1118 @@
               [
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "208"
+                },
+                {
+                  "type": "integer",
+                  "value": "1135"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "238"
+                },
+                {
+                  "type": "integer",
+                  "value": "2054"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "899"
+                },
+                {
+                  "type": "integer",
+                  "value": "37186"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "929"
+                },
+                {
+                  "type": "integer",
+                  "value": "39026"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "295"
+                },
+                {
+                  "type": "integer",
+                  "value": "3850"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "10071"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "618"
+                },
+                {
+                  "type": "integer",
+                  "value": "12442"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "845"
+                },
+                {
+                  "type": "integer",
+                  "value": "34547"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "239"
+                },
+                {
+                  "type": "integer",
+                  "value": "2293"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "355"
+                },
+                {
+                  "type": "integer",
+                  "value": "6215"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "398"
+                },
+                {
+                  "type": "integer",
+                  "value": "7006"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "399"
+                },
+                {
+                  "type": "integer",
+                  "value": "7405"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "652"
+                },
+                {
+                  "type": "integer",
+                  "value": "15617"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "759"
+                },
+                {
+                  "type": "integer",
+                  "value": "23315"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "629"
+                },
+                {
+                  "type": "integer",
+                  "value": "13698"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "683"
+                },
+                {
+                  "type": "integer",
+                  "value": "18968"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "705"
+                },
+                {
+                  "type": "integer",
+                  "value": "19673"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "777"
+                },
+                {
+                  "type": "integer",
+                  "value": "26390"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "790"
+                },
+                {
+                  "type": "integer",
+                  "value": "27966"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "839"
+                },
+                {
+                  "type": "integer",
+                  "value": "32018"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "148"
+                },
+                {
+                  "type": "integer",
+                  "value": "609"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "421"
+                },
+                {
+                  "type": "integer",
+                  "value": "8238"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "574"
+                },
+                {
+                  "type": "integer",
+                  "value": "11217"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "730"
+                },
+                {
+                  "type": "integer",
+                  "value": "22556"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "336"
+                },
+                {
+                  "type": "integer",
+                  "value": "5160"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "805"
+                },
+                {
+                  "type": "integer",
+                  "value": "30357"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "223"
+                },
+                {
+                  "type": "integer",
+                  "value": "1358"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "252"
+                },
+                {
+                  "type": "integer",
+                  "value": "3042"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "844"
+                },
+                {
+                  "type": "integer",
+                  "value": "33702"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "234"
+                },
+                {
+                  "type": "integer",
+                  "value": "1816"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "711"
+                },
+                {
+                  "type": "integer",
+                  "value": "20384"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "792"
+                },
+                {
+                  "type": "integer",
+                  "value": "28758"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "41836"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "25613"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "250"
-                }
-              ],
-              [
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "2790"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "627"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "13069"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "768"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "24845"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "160"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
+                  "value": "927"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "250"
-                }
-              ],
-              [
+                  "value": "607"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "11824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "660"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "16277"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "667"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "16944"
                 }
               ],
               [
                 {
-                  "type": "integer",
-                  "value": "247"
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "257"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "3555"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "572"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "10643"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "716"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "21100"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "870"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "35417"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "934"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "39960"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "133"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "461"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "330"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "4489"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "443"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "9111"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "633"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "14331"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "158"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "767"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
-                }
-              ],
-              [
+                  "value": "102"
+                },
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "840"
+                },
+                {
+                  "type": "integer",
+                  "value": "32858"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "911"
+                },
+                {
+                  "type": "integer",
+                  "value": "38097"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "40898"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "9591"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "786"
+                },
+                {
+                  "type": "integer",
+                  "value": "27176"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "963"
+                },
+                {
+                  "type": "integer",
+                  "value": "43758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "328"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "309"
+                },
+                {
+                  "type": "integer",
+                  "value": "4159"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "354"
+                },
+                {
+                  "type": "integer",
+                  "value": "5860"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "671"
+                },
+                {
+                  "type": "integer",
+                  "value": "18285"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "726"
+                },
+                {
+                  "type": "integer",
+                  "value": "21826"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "959"
+                },
+                {
+                  "type": "integer",
+                  "value": "42795"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "393"
+                },
+                {
+                  "type": "integer",
+                  "value": "6608"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "634"
+                },
+                {
+                  "type": "integer",
+                  "value": "14965"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "247"
+                },
+                {
+                  "type": "integer",
+                  "value": "2540"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "412"
+                },
+                {
+                  "type": "integer",
+                  "value": "7817"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "430"
+                },
+                {
+                  "type": "integer",
+                  "value": "8668"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "670"
+                },
+                {
+                  "type": "integer",
+                  "value": "17614"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "794"
+                },
+                {
+                  "type": "integer",
+                  "value": "29552"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "224"
+                },
+                {
+                  "type": "integer",
+                  "value": "1582"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "762"
+                },
+                {
+                  "type": "integer",
+                  "value": "24077"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "36287"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "256"
+                },
+                {
+                  "type": "integer",
+                  "value": "3298"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "335"
+                },
+                {
+                  "type": "integer",
+                  "value": "4824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "346"
+                },
+                {
+                  "type": "integer",
+                  "value": "5506"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "822"
+                },
+                {
+                  "type": "integer",
+                  "value": "31179"
                 }
               ]
             ],
@@ -4552,19 +6490,27 @@
       }
     },
     {
-      "id": "window8-2.4.2",
+      "id": "window8-2.4.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.4.2",
-      "sourceBodySha256": "88493dc6b5833237908d6fc2fc5d08667b9eef6a6e790c301f3f538a6290a366",
+      "sourceCase": "2.4.3",
+      "sourceBodySha256": "832304407fff3a575b9144bd6d69c80463ea26e14d658ba3dcc36f3b4b47a2d6",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE TIES )",
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE TIES \n    ) ORDER BY a, b, c;",
       "native": {
         "prepareCode": 0,
         "columns": [
           {
-            "name": "nth_value(c, 14) OVER win",
+            "name": "min(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "max(c) OVER win",
+            "declType": null
+          },
+          {
+            "name": "sum(c) OVER win",
             "declType": null
           }
         ],
@@ -4574,481 +6520,1121 @@
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "223"
+                },
+                {
+                  "type": "integer",
+                  "value": "1358"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "239"
+                },
+                {
+                  "type": "integer",
+                  "value": "2293"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "911"
+                },
+                {
+                  "type": "integer",
+                  "value": "38097"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "934"
+                },
+                {
+                  "type": "integer",
+                  "value": "39960"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "309"
+                },
+                {
+                  "type": "integer",
+                  "value": "4159"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "572"
+                },
+                {
+                  "type": "integer",
+                  "value": "10643"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "627"
+                },
+                {
+                  "type": "integer",
+                  "value": "13069"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "35417"
                 }
               ],
               [
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
                 {
                   "type": "integer",
                   "value": "247"
+                },
+                {
+                  "type": "integer",
+                  "value": "2540"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "393"
+                },
+                {
+                  "type": "integer",
+                  "value": "6608"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "399"
+                },
+                {
+                  "type": "integer",
+                  "value": "7405"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "412"
+                },
+                {
+                  "type": "integer",
+                  "value": "7817"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "660"
+                },
+                {
+                  "type": "integer",
+                  "value": "16277"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "762"
+                },
+                {
+                  "type": "integer",
+                  "value": "24077"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "633"
+                },
+                {
+                  "type": "integer",
+                  "value": "14331"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "705"
+                },
+                {
+                  "type": "integer",
+                  "value": "19673"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "711"
+                },
+                {
+                  "type": "integer",
+                  "value": "20384"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "786"
+                },
+                {
+                  "type": "integer",
+                  "value": "27176"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "792"
+                },
+                {
+                  "type": "integer",
+                  "value": "28758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "840"
+                },
+                {
+                  "type": "integer",
+                  "value": "32858"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "158"
+                },
+                {
+                  "type": "integer",
+                  "value": "767"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "430"
+                },
+                {
+                  "type": "integer",
+                  "value": "8668"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "607"
+                },
+                {
+                  "type": "integer",
+                  "value": "11824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "759"
+                },
+                {
+                  "type": "integer",
+                  "value": "23315"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "346"
+                },
+                {
+                  "type": "integer",
+                  "value": "5506"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "822"
+                },
+                {
+                  "type": "integer",
+                  "value": "31179"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "224"
+                },
+                {
+                  "type": "integer",
+                  "value": "1582"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "256"
+                },
+                {
+                  "type": "integer",
+                  "value": "3298"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "845"
+                },
+                {
+                  "type": "integer",
+                  "value": "34547"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "238"
+                },
+                {
+                  "type": "integer",
+                  "value": "2054"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "716"
+                },
+                {
+                  "type": "integer",
+                  "value": "21100"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "794"
+                },
+                {
+                  "type": "integer",
+                  "value": "29552"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "959"
+                },
+                {
+                  "type": "integer",
+                  "value": "42795"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "777"
+                },
+                {
+                  "type": "integer",
+                  "value": "26390"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "252"
+                },
+                {
+                  "type": "integer",
+                  "value": "3042"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "629"
+                },
+                {
+                  "type": "integer",
+                  "value": "13698"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "25613"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "208"
+                },
+                {
+                  "type": "integer",
+                  "value": "1135"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "618"
+                },
+                {
+                  "type": "integer",
+                  "value": "12442"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "667"
+                },
+                {
+                  "type": "integer",
+                  "value": "16944"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "670"
+                },
+                {
+                  "type": "integer",
+                  "value": "17614"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "102"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "295"
+                },
+                {
+                  "type": "integer",
+                  "value": "3850"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "574"
+                },
+                {
+                  "type": "integer",
+                  "value": "11217"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "726"
+                },
+                {
+                  "type": "integer",
+                  "value": "21826"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "870"
+                },
+                {
+                  "type": "integer",
+                  "value": "36287"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "40898"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "148"
+                },
+                {
+                  "type": "integer",
+                  "value": "609"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "335"
+                },
+                {
+                  "type": "integer",
+                  "value": "4824"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "9591"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "634"
+                },
+                {
+                  "type": "integer",
+                  "value": "14965"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "160"
+                },
+                {
+                  "type": "integer",
+                  "value": "927"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "844"
+                },
+                {
+                  "type": "integer",
+                  "value": "33702"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "929"
+                },
+                {
+                  "type": "integer",
+                  "value": "39026"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "938"
+                },
+                {
+                  "type": "integer",
+                  "value": "41836"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "480"
+                },
+                {
+                  "type": "integer",
+                  "value": "10071"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "790"
+                },
+                {
+                  "type": "integer",
+                  "value": "27966"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "979"
+                },
+                {
+                  "type": "integer",
+                  "value": "44737"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "133"
+                },
+                {
+                  "type": "integer",
+                  "value": "461"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "330"
+                },
+                {
+                  "type": "integer",
+                  "value": "4489"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "355"
+                },
+                {
+                  "type": "integer",
+                  "value": "6215"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "683"
+                },
+                {
+                  "type": "integer",
+                  "value": "18968"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "730"
+                },
+                {
+                  "type": "integer",
+                  "value": "22556"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "963"
+                },
+                {
+                  "type": "integer",
+                  "value": "43758"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "398"
+                },
+                {
+                  "type": "integer",
+                  "value": "7006"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "652"
+                },
+                {
+                  "type": "integer",
+                  "value": "15617"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "250"
+                },
+                {
+                  "type": "integer",
+                  "value": "2790"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "421"
+                },
+                {
+                  "type": "integer",
+                  "value": "8238"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "443"
+                },
+                {
+                  "type": "integer",
+                  "value": "9111"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "671"
+                },
+                {
+                  "type": "integer",
+                  "value": "18285"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "805"
+                },
+                {
+                  "type": "integer",
+                  "value": "30357"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "113"
+                },
+                {
+                  "type": "integer",
+                  "value": "328"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "234"
+                },
+                {
+                  "type": "integer",
+                  "value": "1816"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "768"
+                },
+                {
+                  "type": "integer",
+                  "value": "24845"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "899"
+                },
+                {
+                  "type": "integer",
+                  "value": "37186"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "257"
+                },
+                {
+                  "type": "integer",
+                  "value": "3555"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "336"
+                },
+                {
+                  "type": "integer",
+                  "value": "5160"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "354"
+                },
+                {
+                  "type": "integer",
+                  "value": "5860"
                 }
               ],
               [
                 {
                   "type": "integer",
-                  "value": "247"
+                  "value": "102"
+                },
+                {
+                  "type": "integer",
+                  "value": "839"
+                },
+                {
+                  "type": "integer",
+                  "value": "32018"
                 }
               ]
             ],

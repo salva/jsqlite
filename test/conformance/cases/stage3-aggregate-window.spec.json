@@ -352,44 +352,44 @@
       "sql": "SELECT a, b, sum(c) OVER (ORDER BY a GROUPS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING ) FROM t3 ORDER BY 1, 2, 3;"
     },
     {
-      "id": "window8-2.1.2",
+      "id": "window8-2.1.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.1.2",
-      "sourceBodySha256": "da8f94b6c4a0d742079dfc3161058513ffae7659734fede05d703c605968d136",
+      "sourceCase": "2.1.3",
+      "sourceBodySha256": "07089f0c457b4feb6dc151263def3257e8ccedb0843283314e0b4374cb2c5f4a",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE NO OTHERS )"
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE NO OTHERS \n    ) ORDER BY a, b, c;"
     },
     {
-      "id": "window8-2.2.2",
+      "id": "window8-2.2.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.2.2",
-      "sourceBodySha256": "c5ba796acd749be3eb6d504e2274c62467f1320b3e5ce4557a6d00ff0f280641",
+      "sourceCase": "2.2.3",
+      "sourceBodySha256": "1c91b208dd1d9dba45e0ad023cc2dfca051891d0ffe330411f2f5a9eced19346",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW )"
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE CURRENT ROW \n    ) ORDER BY a, b, c;"
     },
     {
-      "id": "window8-2.3.2",
+      "id": "window8-2.3.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.3.2",
-      "sourceBodySha256": "7300dfcc6e0d4bfdd88820a8cd3c70820a97a81bd915c17eb28d748227080188",
+      "sourceCase": "2.3.3",
+      "sourceBodySha256": "aac6f5ef2dc89a41526e95f15840b178f052e30d414733b1c3f6d854b9de5c1e",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP )"
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE GROUP \n    ) ORDER BY a, b, c;"
     },
     {
-      "id": "window8-2.4.2",
+      "id": "window8-2.4.3",
       "class": "source-credit",
       "credit": "upstream",
       "sourceFile": "test/window8.test",
-      "sourceCase": "2.4.2",
-      "sourceBodySha256": "88493dc6b5833237908d6fc2fc5d08667b9eef6a6e790c301f3f538a6290a366",
+      "sourceCase": "2.4.3",
+      "sourceBodySha256": "832304407fff3a575b9144bd6d69c80463ea26e14d658ba3dcc36f3b4b47a2d6",
       "setup": "w8",
-      "sql": "SELECT nth_value(c, 14) OVER win FROM t3 WINDOW win AS ( ORDER BY c, b, a ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE TIES )"
+      "sql": "SELECT min(c) OVER win, max(c) OVER win, sum(c) OVER win FROM t3\n    WINDOW win AS (\n      ORDER BY c, b, a\n      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW  EXCLUDE TIES \n    ) ORDER BY a, b, c;"
     },
     {
       "id": "companion-utf8",

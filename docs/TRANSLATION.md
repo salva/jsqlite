@@ -2977,3 +2977,23 @@ resource/lifecycle controls. Source credit and companions are deliberately never
 interchangeable. Current accounting is native **43 attempted/43 passed, 25
 credited**, source-only **1**, TypeScript **0 attempted/0 credited/44 unattempted**;
 this is bounded evidence, not exhaustive SQLite window compatibility.
+
+#### EXCLUDE source-case correction ([[card:card-o-c-a]], 2026-09-18)
+
+Implementation inspection found that the original source-credit ordinals 22–25,
+`window8-2.1.2` through `window8-2.4.2`, call `nth_value()`. That special value
+built-in uses dedicated `window.c` application cursor/register state and control;
+it is outside this aggregate-window step contract. The allocation now uses the
+adjacent literal upstream aggregate cases `window8-2.1.3`, `2.2.3`, `2.3.3`, and
+`2.4.3`. Each runs `min(c)`, `max(c)`, and `sum(c)` over the corresponding
+`EXCLUDE NO OTHERS`, `CURRENT ROW`, `GROUP`, or `TIES` frame. This preserves all
+four EXCLUDE modes, literal source provenance, and the 44/25/19 denominator while
+removing any implication that `nth_value` state or execution is in scope.
+
+The replacement changes the sampled frame from unbounded-to-unbounded with a
+single special value function to unbounded-preceding-to-current-row with three
+ordinary registered aggregates. It therefore tests aggregate EXCLUDE full-scan
+results directly, but no longer supplies evidence for an unbounded-following
+EXCLUDE frame in these four source-credit slots. `nth_value`, first/last value,
+and lead/lag remain separate specialized consumers and are not admitted by this
+contract.
