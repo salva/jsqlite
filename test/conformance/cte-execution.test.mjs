@@ -61,3 +61,13 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} plan
     }
   }finally{statement?.finalize();try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} composes ordinary CTEs with supported relational routes`,async()=>{
+ const body=fs.readFileSync(path.join(generated,`subquery-${encoding}.db`));const server=await serve(body);let db;let statement;
+ try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));for(const [sql,expected] of [
+  ['WITH q(x) AS (SELECT a FROM t1) SELECT t2.x,q.x FROM t2 CROSS JOIN q ORDER BY 1,2',[[1n,1n],[1n,3n],[1n,5n],[1n,7n],[1n,1n],[1n,3n],[1n,5n],[1n,7n],[3n,1n],[3n,3n],[3n,5n],[3n,7n],[9n,1n],[9n,3n],[9n,5n],[9n,7n]]],
+  ['WITH q(x) AS (SELECT a FROM t1) SELECT x,count(*) FROM q GROUP BY x ORDER BY x',[[1n,1n],[3n,1n],[5n,1n],[7n,1n]]],
+  ['WITH q(x) AS (VALUES(1)) SELECT x FROM q UNION ALL SELECT 2',[[1n],[2n]]],
+ ]){statement=db.prepare(sql).statement;const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>statement.columnInteger(i)));assert.deepEqual(rows,expected,sql);statement.finalize();statement=undefined;}}
+ finally{statement?.finalize();try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});

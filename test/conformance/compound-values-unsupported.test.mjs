@@ -6,6 +6,7 @@ import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
 const fixtureRoot=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 const temporary=e=>e instanceof JSQLiteError&&e.kind==='unsupported'&&e.unsupportedClassification==='temporary';
+const temporaryMessage=message=>e=>temporary(e)&&e.message===message;
 
 test('compound producer shapes outside the bounded implementation reject atomically',async()=>{
  const bridge=await startFixtureServer(fixtureRoot);let db;
@@ -37,13 +38,14 @@ test('implemented VALUES production identity remains structured and executable',
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('residual recursive and unrepresented WITH graphs reject atomically',async()=>{
+test('recursive and expression-owned nested WITH residuals reject distinctly',async()=>{
  const bridge=await startFixtureServer(fixtureRoot);let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
-  for(const sql of ['WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q) SELECT x FROM q','SELECT * FROM (WITH q AS (VALUES(1)) SELECT * FROM q)']){
-   assert.throws(()=>db.prepare(sql),temporary,sql);
-  }
+  const recursive='WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q) SELECT x FROM q';
+  assert.throws(()=>db.prepare(recursive),temporaryMessage('recursive common table expressions are not implemented'),recursive);
+  const nested='SELECT (WITH q(x) AS (VALUES(1)) SELECT x FROM q)';
+  assert.throws(()=>db.prepare(nested),temporaryMessage('common table expressions are not implemented'),nested);
   const statement=db.prepare('SELECT 1').statement;assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);statement.finalize();
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });

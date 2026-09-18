@@ -4,7 +4,7 @@ import { aggregateShapeSupported, compileAggregateSelect, compileScalarSelect, c
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
-import { lowerOrdinaryCtes } from "./internal/cte.ts";
+import { lowerOrdinaryCtes, recursiveCteOwner } from "./internal/cte.ts";
 
 const SQLITE_CORRUPT = 11;
 const SQLITE_BUSY = 5;
@@ -155,6 +155,9 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
       const schema = loadSchemaGraph(this);
+      if (recursiveCteOwner(parsed.statement)!==null) {
+        failure("unsupported", "recursive common table expressions are not implemented", { unsupportedClassification: "temporary" });
+      }
       const selected = lowerOrdinaryCtes(parsed.statement) ?? parsed.statement;
       if (selectGraphContainsWith(selected, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });

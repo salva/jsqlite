@@ -3,6 +3,7 @@ import type { ExprNode, SelectNode, SourceList } from "./parse.ts";
 import type { SchemaGraph } from "./schema.ts";
 import { sqliteAsciiFold } from "./sqlite-case.ts";
 import type { SqlToken } from "./tokenize.ts";
+import { lowerOrdinaryCtes } from "./cte.ts";
 
 /**
  * Pre-compilation walk of every Select owner currently reachable by select.c's
@@ -35,7 +36,8 @@ export function selectGraphContainsWith(root: SelectNode, schema: SchemaGraph): 
       const view = schema.views.get(sqliteAsciiFold(item.tableName));
       if (view && !views.has(view)) {
         views.add(view);
-        if (select(view.select)) return true;
+        const lowered=lowerOrdinaryCtes(view.select);
+        if (!lowered || select(lowered)) return true;
       }
     }
     return false;

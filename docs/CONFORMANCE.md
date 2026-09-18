@@ -334,3 +334,14 @@ proves the bounded schema prerequisite used by the encoding fixtures: a NULL-SQL
 single-column, non-INTEGER PRIMARY KEY on a rowid table. Composite, UNIQUE,
 WITHOUT ROWID, later-ordinal, and other implicit-index shapes remain temporary
 schema gates; this does not expand aggregate scope.
+
+
+### 2026-09-18 ordinary WITH composition follow-up
+
+Public companion evidence in all three database encodings now covers represented
+derived-WITH owners, persisted-view WITH owners without caller-scope capture,
+mixed table/CTE CROSS JOIN, grouped aggregate, and bounded UNION ALL composition.
+Recursive self-reference is recognized before ordinary lowering and rejects with
+the dedicated temporary prepare diagnostic; no recursive queue execution is
+credited. Expression-owned nested WITH remains a distinct asserted temporary gap.
+Native credit remains limited to the immutable card-n-a oracle manifest.

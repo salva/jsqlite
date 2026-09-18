@@ -556,6 +556,11 @@ the bounded ordinary tranche. Current public TypeScript evidence is
 `test/conformance/cte-execution.test.mjs` across three encodings; card-n-a native
 oracle assertions retain native credit, while new focused cases are public or
 companion evidence only. Shared declaration identity and one-fill/`OpenDup`
-materialization are implemented; recursive queue execution and residual
-unrepresented nesting/composition remain gaps. This revision does not claim full
-SQLite WITH compatibility.
+materialization are implemented. Follow-up public evidence now covers represented
+derived and stored-view ownership (including caller-scope isolation), mixed CROSS
+JOIN, grouped aggregation, and bounded UNION ALL. Recursive ownership is recognized
+before ordinary lowering and has a dedicated temporary diagnostic, but recursive
+queue execution remains wholly unimplemented. Expression-owned nested WITH retains
+a separately asserted temporary residual; it is not evidence for the recursive
+gate. Other unrepresented nesting/composition remains a gap. This revision does
+not claim full SQLite WITH compatibility.

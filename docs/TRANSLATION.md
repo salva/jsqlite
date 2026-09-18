@@ -2589,7 +2589,14 @@ adapted to immutable parser nodes and browser-private VDBE state.
 
 Public evidence currently covers all three database encodings for scalar/VALUES
 and table-backed producers, multiple declarations, repeated references, aliases,
-ordinary use under the RECURSIVE scope marker, and both materialization hints.
-Recursive queue execution is not admitted. Nested/unrepresented compositions and
-other residual shapes continue to fail atomically with typed temporary errors;
-this bounded tranche must not be described as general CTE support.
+ordinary use under the RECURSIVE scope marker, both materialization hints, WITH
+owned by represented derived SELECTs and persisted views, mixed table/CTE CROSS
+JOIN, grouped aggregation, and UNION ALL with a scalar arm. Persisted-view lowering
+uses a fresh lexical scope, so caller CTEs do not capture stored view bodies.
+Recursive queue execution is not admitted: pre-lowering self-reference recognition
+returns exact temporary prepare error `recursive common table expressions are not
+implemented`, while represented ordinary use under a RECURSIVE marker remains
+valid. A separately asserted expression-owned nested-WITH residual still returns
+`common table expressions are not implemented`; do not conflate those predicates.
+Other unrepresented compositions remain typed temporary gaps, and this bounded
+tranche must not be described as general CTE support.

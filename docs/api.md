@@ -414,5 +414,9 @@ the conformance suite, including aliases, multiple declarations, repeated
 references, and `AS MATERIALIZED` / `AS NOT MATERIALIZED` planning hints. Rows,
 metadata, errors, reset/finalize, cancellation, yielding, and limits use the same
 statement/VDBE contract as the underlying SELECT route. This is not unrestricted
-WITH support: recursive self-reference and unrepresented nested/compositional
-shapes reject at prepare with a typed temporary unsupported/SQLite error.
+WITH support: represented derived/view ownership (with stored-view scope isolation),
+mixed CTE/table CROSS JOIN, grouped aggregation, and bounded UNION ALL composition
+are covered. Recursive self-reference rejects at prepare with temporary error
+`recursive common table expressions are not implemented`; expression-owned nested
+WITH remains a distinct temporary `common table expressions are not implemented`
+residual. Other unrepresented shapes retain typed temporary/SQLite errors.
