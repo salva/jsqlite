@@ -1,10 +1,12 @@
 # Final assessment — ordinary scalar tests-first contract
 
-> **Current disposition after assessment of commit `9fc8c20`: refuted.** The earlier supported conclusion and the later claim that both independent-review defects were repaired are superseded by the final section of this report. Exact-routine ownership remains supported, but persisted-column native setup is not equivalent to the physical UTF-16 fixtures.
+> **Current disposition after assessment of correction commit `9e399f4`: supported for the bounded research contract.** The report retains the earlier refutation of `9fc8c20` as audit history. The final section records the superseding correction: exact-routine ownership remains supported, and persisted-column expectations are now captured from and independently validated against the exact hashed physical fixtures. This does not grant TypeScript runtime credit or establish broader SQLite compatibility.
 
 Card: [[card:card-p-a-a]]
 
-Assessed delivery: `61c5071` (`research: finalize scalar ownership contract`)
+Current assessed delivery: `9e399f4` (`research: capture scalar columns from physical fixtures`)
+
+Historical assessed deliveries: `61c5071` and `9fc8c20`; their conclusions below are retained to preserve the evidence trail.
 
 Historical conclusion for assessed delivery `61c5071`: **supported for the bounded research and implementation-contract question; superseded for the current artifact generation by the final refuted assessment below**
 
@@ -191,3 +193,40 @@ The refuted UTF-16 equivalence mechanism above has been removed, while its diagn
 The validator now requires `--library`, verifies its exact source ID, opens every physical fixture read-only through that library, executes both persisted cases in all three encodings, preserves typed INTEGER/REAL/TEXT/BLOB/NULL results, and compares rows to manifest expectations. Fixture hashes and native observation `physicalFixture` path/hash linkage are also required. This is a semantic physical-fixture gate rather than a hash-only or authored-setup equality check.
 
 The accepted all-50 implementation-owner repair is unchanged. Counts remain 50 registrations, 37 cases, and 59 native observations; the public harness still records 114 generated unsupported probes and six persisted-column unsupported executions with zero TypeScript credit. Current artifact hashes are listed above. This correction supports the bounded research contract again; it does not implement scalar runtime behavior, grant TS credit, prove repository-wide compatibility, or close separately owned scopes.
+
+## Accepted assessment report for `9e399f4`
+
+### Evidence
+
+The accepted assessment examined the independent review, the prior refutation, the correction commit, the current machine artifacts and tools, and the manifest-pinned oracle. The two persisted-column cases no longer contain `fixtureSetupSql`; capture opens each path from `publicFetchFixtures` and executes SQL against stored `scalar_values`. The unrelated UTF-8-only owner-discriminator case still contains `CAST(X'410042' AS TEXT)`, but it does not construct or stand in for a persisted fixture.
+
+A fresh capture to disposable storage reported 50 registrations, 37 cases, and 59 observations and was byte-identical to the checked-in native artifact. Fixture hashes were unchanged before and after capture. Every persisted native observation records its physical path and matching SHA-256. The corrected embedded-NUL TEXT observations in UTF-16LE and UTF-16BE are `instr(v,char(0)) = 2`, `quote(v) = 'A'`, and `upper(v)` with UTF-8 bytes `410042`.
+
+The strengthened validator requires the native library, checks the exact pinned source ID, verifies fixture and observation hashes, opens every fixture read-only, executes both persisted cases in all three encodings, preserves typed INTEGER/REAL/TEXT/BLOB/NULL values, and compares every row with the manifest. That validator passed. The all-50 implementation-owner checks remain present and passing. The still-applicable public-harness evidence remains 114 generated absent-function probes and six persisted-column attempts, with unsupported SQLite errors and zero TypeScript credit.
+
+Current immutable hashes are:
+
+- spec: `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`;
+- native capture: `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`;
+- UTF-8 fixture: `3e3464fe16235ea9805c6a14304e1dda5649b30df28defd7f71c29e1e773d1c5`;
+- UTF-16LE fixture: `cf4c67e9d3e6f7a0ab865d1384d5996d464bdb79768fc7e37e8a195fc8c313d7`;
+- UTF-16BE fixture: `5d8a834d2d8c4e9d742af57004779befa7201b07b4465033c1dbe30320115963`.
+
+### Inference and conclusion
+
+This evidence supports the bounded conclusion that `9e399f4` corrects the identified persisted-column UTF-16 equivalence defect. Typed expectations are now derived from, linked to, and independently checked against the exact hashed physical fixtures using the pinned oracle. Together with the preserved all-50 semantic-owner mapping, the two defects identified by independent review are repaired sufficiently for the ordinary-scalar tests-first implementation handoff.
+
+“Supported” describes this bounded research contract only. It is not evidence promotion to TypeScript parity, parent-card completion, policy approval, or acceptance of repository-wide SQLite compatibility.
+
+### Limitations and uncertainty
+
+- The assessment did not exhaustively re-audit every scalar expectation or every upstream semantic branch.
+- Native observations establish reference behavior only and grant no TypeScript runtime credit.
+- Current unsupported public outcomes do not prove future parity or the exact rejection layer after implementation work changes.
+- Catalog parsing and source/owner validation remain profile-specific and partly lexical; they are not a general C preprocessor or semantic call-graph proof.
+- The 12-dispatched/38-absent classification is a current-HEAD snapshot and must be revised when runtime behavior lands.
+- Date/time, math, JSON, aggregates/windows, extension policy, parent [[card:card-p-a]], and repository-wide runtime compatibility remain separately owned or incomplete.
+
+### Recommendations and handoff
+
+Future scalar implementation slices should consume the checked-in spec and native corpus without rebuilding source ownership. They must preserve typed storage classes, database encodings, embedded NULs, bound-parameter and returned-column behavior, error phase/code/message, raw/effective arities, and shared Mem/UTF/FunctionContext/collation/lifecycle/bounded-work behavior. Keep unsupported outcomes at zero credit until public TypeScript executions match the corresponding typed expectations. Continue to run physical-fixture validation with the exact pinned library; do not restore synthetic UTF-16 TEXT construction, native runtime fallback, host callbacks, JS regex/eval, or host-formatting substitutions.
