@@ -361,8 +361,11 @@ input, parameter-free ordered aggregate `UNION ALL`, and result ORDER BY,
 LIMIT/OFFSET, and SELECT DISTINCT compositions. Column names and null metadata
 follow the SELECT expressions. The public aggregate matrix passes all 34 native-
 success cases; four bounded compound-derived cases are admitted only as specified
-in the FROM-derived section below. Windows, unregistered aggregate functions,
-broader join/compound forms, and broader subquery/CTE behavior remain future scope.
+in the FROM-derived section below. The represented bounded ordinary aggregate-
+window surface specified below is also admitted. Ranking/value special built-ins,
+unrepresented window compositions, unregistered aggregate functions, and broader
+join/compound or subquery/CTE behavior remain future scope and reject atomically
+at prepare.
 
 ### Bounded grouped SELECT DISTINCT
 
