@@ -10,7 +10,7 @@
     ]
   },
   "scope": {
-    "denominator": 48,
+    "denominator": 50,
     "rule": "Production ordinary scalar registrations in src/func.c aBuiltinFunc for the pinned oracle profile; excludes test/debug, load_extension host callback, conditional soundex/sqlite_offset/filestat/unknown, aggregates/windows. Date/time, math, and JSON remain future root-owned registries.",
     "publicFetchFixtures": {
       "UTF-8": "test/fixtures/expression-cursor/users-utf8.db",
@@ -58,7 +58,9 @@
       "sqlite_source_id",
       "sqlite_log",
       "glob",
-      "like"
+      "like",
+      "sqlite_compileoption_used",
+      "sqlite_compileoption_get"
     ],
     "sqliteLogBrowserContract": "Preserve SQL argument/result semantics but route the diagnostic to an internal no-op sink. Do not expose or invoke a host callback; sqlite3_log side effects are not part of the shipped browser/read-only API.",
     "implementationBranchesBySlice": {
@@ -134,11 +136,312 @@
       ],
       "build-identity": [
         "src/func.c:versionFunc",
-        "src/func.c:sourceidFunc"
+        "src/func.c:sourceidFunc",
+        "src/func.c:compileoptionusedFunc",
+        "src/func.c:compileoptiongetFunc"
       ],
       "host-side-effect": [
         "src/func.c:errlogFunc"
       ]
+    },
+    "conditionalRegistrationDispositions": [
+      {
+        "names": [
+          "soundex"
+        ],
+        "condition": "SQLITE_SOUNDEX",
+        "profileActive": false,
+        "disposition": "inactive-profile"
+      },
+      {
+        "names": [
+          "load_extension"
+        ],
+        "condition": "!SQLITE_OMIT_LOAD_EXTENSION",
+        "profileActive": true,
+        "disposition": "permanent-product-exclusion",
+        "basis": "docs/SPEC.md: no externally loaded extensions"
+      },
+      {
+        "names": [
+          "sqlite_compileoption_used",
+          "sqlite_compileoption_get"
+        ],
+        "condition": "!SQLITE_OMIT_COMPILEOPTION_DIAGS",
+        "profileActive": true,
+        "disposition": "included"
+      },
+      {
+        "names": [
+          "sqlite_offset"
+        ],
+        "condition": "SQLITE_ENABLE_OFFSET_SQL_FUNC",
+        "profileActive": false,
+        "disposition": "inactive-profile"
+      },
+      {
+        "names": [
+          "sqlite_filestat"
+        ],
+        "condition": "SQLITE_DEBUG || SQLITE_ENABLE_FILESTAT",
+        "profileActive": false,
+        "disposition": "inactive-profile"
+      },
+      {
+        "names": [
+          "fpdecode",
+          "parseuri"
+        ],
+        "condition": "SQLITE_DEBUG",
+        "profileActive": false,
+        "disposition": "internal-debug"
+      },
+      {
+        "names": [
+          "round"
+        ],
+        "condition": "!SQLITE_OMIT_FLOATING_POINT",
+        "profileActive": true,
+        "disposition": "included"
+      },
+      {
+        "names": [
+          "glob",
+          "like"
+        ],
+        "condition": "SQLITE_CASE_SENSITIVE_LIKE branch selection",
+        "profileActive": false,
+        "disposition": "normal-LIKE branch included"
+      },
+      {
+        "names": [
+          "unknown"
+        ],
+        "condition": "SQLITE_ENABLE_UNKNOWN_SQL_FUNCTION",
+        "profileActive": false,
+        "disposition": "inactive-profile"
+      },
+      {
+        "names": [
+          "math registry"
+        ],
+        "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+        "profileActive": true,
+        "disposition": "future-root-scope"
+      },
+      {
+        "names": [
+          "percentile aggregates"
+        ],
+        "condition": "SQLITE_ENABLE_PERCENTILE",
+        "profileActive": false,
+        "disposition": "aggregate/future-root-scope"
+      }
+    ],
+    "profileFunctionArgLimit": 1000,
+    "sliceProvenance": {
+      "planner-inline": {
+        "sourceBranches": [
+          "src/func.c:aBuiltinFunc",
+          "src/resolve.c:resolveExprStep",
+          "src/expr.c:sqlite3ExprCodeTarget"
+        ],
+        "caseIds": [
+          "case-inline"
+        ],
+        "assertionIds": []
+      },
+      "like-glob": {
+        "sourceBranches": [
+          "src/func.c:likeFunc",
+          "src/func.c:patternCompare",
+          "src/func.c:compareInfo"
+        ],
+        "caseIds": [
+          "case-like-order-blob",
+          "case-like-escape",
+          "case-like-bad-escape"
+        ],
+        "assertionIds": [
+          "like-1.1"
+        ]
+      },
+      "formatting": {
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "caseIds": [
+          "case-format-boundaries",
+          "case-format-null-missing",
+          "case-variadic-limit-1000",
+          "case-variadic-over-limit-1001"
+        ],
+        "assertionIds": [
+          "printf-1.1.1"
+        ]
+      },
+      "numeric-formatting": {
+        "sourceBranches": [
+          "src/func.c:roundFunc",
+          "src/printf.c:sqlite3_mprintf"
+        ],
+        "caseIds": [
+          "case-round"
+        ],
+        "assertionIds": []
+      },
+      "ascii-case": {
+        "sourceBranches": [
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "caseIds": [
+          "case-upper-ascii-unicode",
+          "case-upper-null-blob"
+        ],
+        "assertionIds": []
+      },
+      "trim": {
+        "sourceBranches": [
+          "src/func.c:trimFunc"
+        ],
+        "caseIds": [
+          "case-trim"
+        ],
+        "assertionIds": []
+      },
+      "search": {
+        "sourceBranches": [
+          "src/func.c:instrFunc"
+        ],
+        "caseIds": [
+          "case-instr-classes"
+        ],
+        "assertionIds": []
+      },
+      "unicode": {
+        "sourceBranches": [
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
+        ],
+        "caseIds": [
+          "case-unicode",
+          "case-unistr"
+        ],
+        "assertionIds": [
+          "func9-200"
+        ]
+      },
+      "quote": {
+        "sourceBranches": [
+          "src/func.c:quoteFunc"
+        ],
+        "caseIds": [
+          "case-quote",
+          "case-unistr-quote"
+        ],
+        "assertionIds": [
+          "func9-210"
+        ]
+      },
+      "blob-text": {
+        "sourceBranches": [
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
+        ],
+        "caseIds": [
+          "case-unhex-concat"
+        ],
+        "assertionIds": []
+      },
+      "concat": {
+        "sourceBranches": [
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc"
+        ],
+        "caseIds": [],
+        "assertionIds": []
+      },
+      "numeric-core": {
+        "sourceBranches": [
+          "src/func.c:absFunc",
+          "src/func.c:signFunc"
+        ],
+        "caseIds": [
+          "case-sign"
+        ],
+        "assertionIds": []
+      },
+      "minmax-scalar": {
+        "sourceBranches": [
+          "src/func.c:minmaxFunc",
+          "src/func.c:nullifFunc",
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+        ],
+        "caseIds": [
+          "case-minmax-collation"
+        ],
+        "assertionIds": []
+      },
+      "value-introspection": {
+        "sourceBranches": [
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc"
+        ],
+        "caseIds": [
+          "case-subtype"
+        ],
+        "assertionIds": []
+      },
+      "text-core": {
+        "sourceBranches": [
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc"
+        ],
+        "caseIds": [
+          "case-substring-alias"
+        ],
+        "assertionIds": []
+      },
+      "connection-state": {
+        "sourceBranches": [
+          "src/func.c:randomFunc",
+          "src/func.c:randomBlob",
+          "src/func.c:last_insert_rowid",
+          "src/func.c:changes",
+          "src/func.c:total_changes"
+        ],
+        "caseIds": [
+          "case-random-storage"
+        ],
+        "assertionIds": []
+      },
+      "build-identity": {
+        "sourceBranches": [
+          "src/func.c:versionFunc",
+          "src/func.c:sourceidFunc",
+          "src/func.c:compileoptionusedFunc",
+          "src/func.c:compileoptiongetFunc"
+        ],
+        "caseIds": [
+          "case-identity-state",
+          "case-compile-options"
+        ],
+        "assertionIds": []
+      },
+      "host-side-effect": {
+        "sourceBranches": [
+          "src/func.c:errlogFunc"
+        ],
+        "caseIds": [
+          "case-sqlite-log"
+        ],
+        "assertionIds": []
+      }
     }
   },
   "registry": [
@@ -338,7 +641,7 @@
       "acceptedArities": [
         {
           "minimum": 1,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -364,7 +667,7 @@
       "acceptedArities": [
         {
           "minimum": 1,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -521,7 +824,7 @@
       "acceptedArities": [
         {
           "minimum": 0,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -548,7 +851,7 @@
       "acceptedArities": [
         {
           "minimum": 0,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -598,7 +901,7 @@
       "acceptedArities": [
         {
           "minimum": 0,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -785,7 +1088,7 @@
       "acceptedArities": [
         {
           "minimum": 1,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -810,7 +1113,7 @@
       "acceptedArities": [
         {
           "minimum": 2,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -1108,7 +1411,7 @@
       "acceptedArities": [
         {
           "minimum": 2,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -1136,7 +1439,7 @@
       "acceptedArities": [
         {
           "minimum": 2,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -1164,7 +1467,7 @@
       "acceptedArities": [
         {
           "minimum": 2,
-          "maximum": 127
+          "maximum": 1000
         }
       ]
     },
@@ -1421,6 +1724,56 @@
           "maximum": 3
         }
       ]
+    },
+    {
+      "name": "sqlite_compileoption_used",
+      "arities": [
+        1
+      ],
+      "macro": "DFUNCTION",
+      "implementation": "compileoptionusedFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "SLOCHNG"
+      ],
+      "slice": "build-identity",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "sqlite_compileoption_get",
+      "arities": [
+        1
+      ],
+      "macro": "DFUNCTION",
+      "implementation": "compileoptiongetFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "SLOCHNG"
+      ],
+      "slice": "build-identity",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
     }
   ],
   "futureRootScopes": [
@@ -1443,7 +1796,15 @@
       "coversRegistrations": [
         "upper",
         "lower"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-upper-null-blob",
@@ -1457,7 +1818,15 @@
         "typeof",
         "upper",
         "hex"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-like-order-blob",
@@ -1472,7 +1841,17 @@
       "coversRegistrations": [
         "like",
         "glob"
-      ]
+      ],
+      "provenance": {
+        "kind": "upstream-assertion-companion",
+        "assertionIds": [
+          "like-1.1"
+        ],
+        "setup": {
+          "kind": "none-required-for-selected-assertion",
+          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
+        }
+      }
     },
     {
       "id": "case-like-escape",
@@ -1484,7 +1863,16 @@
       "parameters": [],
       "coversRegistrations": [
         "like"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:likeFunc",
+          "src/func.c:patternCompare",
+          "src/func.c:compareInfo"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-like-bad-escape",
@@ -1496,7 +1884,16 @@
       "parameters": [],
       "coversRegistrations": [
         "like"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:likeFunc",
+          "src/func.c:patternCompare",
+          "src/func.c:compareInfo"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-trim",
@@ -1514,7 +1911,14 @@
         "trim",
         "char",
         "hex"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:trimFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-instr-classes",
@@ -1529,7 +1933,14 @@
       "coversRegistrations": [
         "instr",
         "char"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:instrFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-unicode",
@@ -1544,7 +1955,15 @@
       "coversRegistrations": [
         "unicode",
         "char"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-quote",
@@ -1559,7 +1978,14 @@
       "coversRegistrations": [
         "char",
         "quote"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:quoteFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-round",
@@ -1571,7 +1997,15 @@
       "parameters": [],
       "coversRegistrations": [
         "round"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:roundFunc",
+          "src/printf.c:sqlite3_mprintf"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-format-boundaries",
@@ -1584,7 +2018,17 @@
       "coversRegistrations": [
         "printf",
         "format"
-      ]
+      ],
+      "provenance": {
+        "kind": "upstream-assertion-companion",
+        "assertionIds": [
+          "printf-1.1.1"
+        ],
+        "setup": {
+          "kind": "none-required-for-selected-assertion",
+          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
+        }
+      }
     },
     {
       "id": "case-format-null-missing",
@@ -1596,7 +2040,15 @@
       "parameters": [],
       "coversRegistrations": [
         "printf"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-unhex-concat",
@@ -1611,7 +2063,16 @@
         "unhex",
         "concat",
         "concat_ws"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-random-storage",
@@ -1628,7 +2089,18 @@
         "zeroblob",
         "random",
         "randomblob"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:randomFunc",
+          "src/func.c:randomBlob",
+          "src/func.c:last_insert_rowid",
+          "src/func.c:changes",
+          "src/func.c:total_changes"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-identity-state",
@@ -1644,7 +2116,15 @@
         "total_changes",
         "sqlite_version",
         "sqlite_source_id"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:versionFunc",
+          "src/func.c:sourceidFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-substring-alias",
@@ -1657,7 +2137,17 @@
       "coversRegistrations": [
         "substr",
         "substring"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-sign",
@@ -1669,7 +2159,15 @@
       "parameters": [],
       "coversRegistrations": [
         "sign"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:absFunc",
+          "src/func.c:signFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-inline",
@@ -1687,7 +2185,16 @@
         "coalesce",
         "iif",
         "if"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:aBuiltinFunc",
+          "src/resolve.c:resolveExprStep",
+          "src/expr.c:sqlite3ExprCodeTarget"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-minmax-collation",
@@ -1702,7 +2209,16 @@
         "max",
         "nullif",
         "if"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:minmaxFunc",
+          "src/func.c:nullifFunc",
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-bound-params",
@@ -1756,7 +2272,12 @@
         "round",
         "upper",
         "quote"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-composed",
@@ -1777,7 +2298,12 @@
         "lower",
         "quote",
         "substr"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-subtype",
@@ -1789,7 +2315,15 @@
       "parameters": [],
       "coversRegistrations": [
         "subtype"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-unistr",
@@ -1803,7 +2337,17 @@
       "parameters": [],
       "coversRegistrations": [
         "unistr"
-      ]
+      ],
+      "provenance": {
+        "kind": "upstream-assertion-companion",
+        "assertionIds": [
+          "func9-200"
+        ],
+        "setup": {
+          "kind": "none-required-for-selected-assertion",
+          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
+        }
+      }
     },
     {
       "id": "case-unistr-quote",
@@ -1815,7 +2359,17 @@
       "parameters": [],
       "coversRegistrations": [
         "unistr_quote"
-      ]
+      ],
+      "provenance": {
+        "kind": "upstream-assertion-companion",
+        "assertionIds": [
+          "func9-210"
+        ],
+        "setup": {
+          "kind": "none-required-for-selected-assertion",
+          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
+        }
+      }
     },
     {
       "id": "case-sqlite-log",
@@ -1828,7 +2382,14 @@
       "coversRegistrations": [
         "sqlite_log"
       ],
-      "browserTreatment": "Translate result/argument semantics and route diagnostic to an internal no-op sink; do not expose or invoke a host callback. Native sqlite3_log side effect is not a shipped-runtime callback contract."
+      "browserTreatment": "Translate result/argument semantics and route diagnostic to an internal no-op sink; do not expose or invoke a host callback. Native sqlite3_log side effect is not a shipped-runtime callback contract.",
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:errlogFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-variadic-zero",
@@ -1842,7 +2403,12 @@
         "printf",
         "format",
         "char"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-variadic-minima",
@@ -1860,7 +2426,12 @@
         "if",
         "min",
         "max"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-arity-concat-zero-error",
@@ -1872,7 +2443,12 @@
       "parameters": [],
       "coversRegistrations": [
         "concat"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-arity-concat-ws-one-error",
@@ -1884,7 +2460,12 @@
       "parameters": [],
       "coversRegistrations": [
         "concat_ws"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     },
     {
       "id": "case-arity-coalesce-one-error",
@@ -1896,7 +2477,74 @@
       "parameters": [],
       "coversRegistrations": [
         "coalesce"
-      ]
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
+    },
+    {
+      "id": "case-compile-options",
+      "sql": "SELECT sqlite_compileoption_used('MAX_FUNCTION_ARG'), sqlite_compileoption_get(0), typeof(sqlite_compileoption_get(0))",
+      "slice": "build-identity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "sqlite_compileoption_used",
+        "sqlite_compileoption_get"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:versionFunc",
+          "src/func.c:sourceidFunc"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
+    },
+    {
+      "id": "case-variadic-limit-1000",
+      "sql": "SELECT length(printf('%s',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL))",
+      "slice": "formatting",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "printf",
+        "length"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
+    },
+    {
+      "id": "case-variadic-over-limit-1001",
+      "sql": "SELECT printf('%s',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+      "slice": "formatting",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "printf"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+      }
     }
   ],
   "upstreamAssertions": [
@@ -1906,7 +2554,13 @@
       "lineStart": 358,
       "lineEnd": 360,
       "bodySha256": "67dd9c7d5dc3dbf9fe16a0d95973b95f2db4faba17437d26b3645174b9226fd3",
-      "bodyBytes": 92
+      "bodyBytes": 92,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "func.test",
@@ -1914,7 +2568,13 @@
       "lineStart": 361,
       "lineEnd": 363,
       "bodySha256": "57eda552fbb3c776bca54cfb27ca22d31e4f0393e9285fd5bed18353a2e2e71d",
-      "bodyBytes": 99
+      "bodyBytes": 99,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "func.test",
@@ -1922,7 +2582,13 @@
       "lineStart": 785,
       "lineEnd": 798,
       "bodySha256": "cf0a7e350986b7eacacdd2ee7b0cc952e8b736c6dd5a682e667ca05d724072ae",
-      "bodyBytes": 347
+      "bodyBytes": 347,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "func.test",
@@ -1930,7 +2596,13 @@
       "lineStart": 1086,
       "lineEnd": 1088,
       "bodySha256": "0b7eafce58db99b1191fc517bfdef4d81d7f721425ee91d26dd7a522539a365a",
-      "bodyBytes": 62
+      "bodyBytes": 62,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "like.test",
@@ -1938,7 +2610,13 @@
       "lineStart": 53,
       "lineEnd": 57,
       "bodySha256": "e17eb7c5e8ac1526989e97a723e24e982482fc21a3af2c3ea09fdb125114ceb3",
-      "bodyBytes": 99
+      "bodyBytes": 99,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "func9.test",
@@ -1946,7 +2624,13 @@
       "lineStart": 52,
       "lineEnd": 54,
       "bodySha256": "12bceafefb9ebb2d69d0f05960c8e8c6c268801b364adafb8c8f0d4bf24edeb0",
-      "bodyBytes": 70
+      "bodyBytes": 70,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "func9.test",
@@ -1954,7 +2638,13 @@
       "lineStart": 55,
       "lineEnd": 57,
       "bodySha256": "5218585b006bcbd99e14dcb4aa37db7ca34d3883638bf81b41515a667fb21709",
-      "bodyBytes": 86
+      "bodyBytes": 86,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     },
     {
       "sourceTest": "printf.test",
@@ -1962,12 +2652,23 @@
       "lineStart": 19,
       "lineEnd": 22,
       "bodySha256": "3961989415a7b3d221702688a6fbb436dfeec8c8d459516090112394b4d95915",
-      "bodyBytes": 100
+      "bodyBytes": 100,
+      "setup": {
+        "kind": "none-required-for-selected-assertion",
+        "lineStart": null,
+        "lineEnd": null,
+        "sha256": null
+      }
     }
   ],
   "supersedes": {
     "specSha256": "14a6a900e2e167362c17bce237a678cb1abbea104c1aed2dd9fcaa1b3cf1bb7f",
     "nativeSha256": "65d5810cdb3a94590078e0cbd928ae458888383deefcc686de54d895ec893093",
-    "reason": "Correct incomplete flags/arities and add missing coverage/public-path contract."
+    "reason": "Correct incomplete flags/arities and add missing coverage/public-path contract.",
+    "secondRepair": {
+      "specSha256": "d0500841d3eafa82db12e58cad9b05400325c5abccc6b656fb1b327cfcc1010c",
+      "nativeSha256": "7fdf75835284454a6dcff22595eb64c968bc34907465b093baf67661561e3582",
+      "reason": "Second repair corrects profile maximum arity, active compile-option registrations, source-derived validation, and per-case/slice provenance."
+    }
   }
 }
