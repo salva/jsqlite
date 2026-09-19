@@ -2061,7 +2061,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const resolveExpression=(expression:SelectNode["result"][number],allowAlias=true):Expression=>{
     const assign=(e:Expression):Expression=>{
       if(e.kind==="column"){
-        try{e.index=resolve([{text:e.name}]);}
+        try{e.index=resolve([{text:e.name}]);e.cursor=0;}
         catch(error){const aliases=allowAlias&&!e.name.includes('.')?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):[];if(aliases[0])return resolveExpression(aliases[0],false);throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return e;
@@ -2136,7 +2136,18 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const limit=computeLimitRegisters(select,ops,()=>++registers,parameters);
   const sorterCursor=1,distinctCursor=2,keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   ops.push({code:"OpenRead",p1:table.rootPage,p2:0});
-  for(const nested of scalarPlans.values())for(const source of nested.sources)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});
+  // Child NameContexts number their SrcList cursors independently, but all of
+  // these plans execute in this one VDBE. Relocate child-owned read cursors so
+  // an inner scan cannot replace the positioned outer cursor (SQLite keeps
+  // SrcList.iCursor unique within the parent Parse/Vdbe).
+  let expressionCursor=1000;
+  const nestedReadCursors=new Map<object,number>();
+  for(const nested of scalarPlans.values())for(const source of nested.sources){
+    if(nestedReadCursors.has(source))continue;
+    const cursor=expressionCursor++;
+    nestedReadCursors.set(source,cursor);
+    ops.push({code:"OpenRead",p1:source.table.rootPage,p2:cursor});
+  }
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
   // select.c's DISTINCT ephemeral key uses the resolved result ExprList
   // collation. In particular, an explicit COLLATE on a direct table column
@@ -2145,11 +2156,14 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:expanded.result.map(result=>({collation:sqliteAsciiFold(result.descriptor.collation) as BuiltinCollation}))})});
   const rewindIndex=ops.length;ops.push({code:"Rewind",p2:0});const scan:FullScanPlan={rewindIndex,loopStart:ops.length};
   let ifNotIndex: number | undefined;
-  let expressionCursor=1000;
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
     if(!nested||nested.sources.length>1||!item?.reduction||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasCompound||expression.select.hasValues||expression.select.offset)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     const bind=(tree:Expression):Expression=>{if(tree.kind==="column"){
+      // Expressions already resolved by the enclosing table plan retain that
+      // lexical owner. Child reductions arrive without a cursor and are bound
+      // against the nested/enclosing NameContexts below.
+      if(tree.cursor!==undefined)return tree;
       const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!;
       const match=(candidate:NonNullable<typeof source>):number|null=>{if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,candidate.alias??candidate.table.name))return null;const index=candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));if(index<0)return null;return isIntegerPrimaryKeyAlias(candidate.table,index)?-1:index;};
       // resolve.c already established lexical ownership. Recover that source's
@@ -2158,7 +2172,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       let owner:NonNullable<typeof source>|undefined,index:number|null=null;
       for(const candidate of candidates){const found=match(candidate);if(found!==null){owner=candidate;index=found;break;}}
       if(!owner||index===null)throw new JSQLiteError("internal",`resolved correlated column lost identity: ${tree.name}`);
-      tree.cursor=owner.cursorId;tree.index=index;if(index<0){tree.affinity='integer';tree.collation='binary';return tree;}tree.affinity=affinityOf(owner.table.columns[index]!.declaredType??"");const c=sqliteAsciiFold(owner.table.columns[index]!.collation??"binary");if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${c}`,{code:1});tree.collation=c;return tree;
+      tree.cursor=nestedReadCursors.get(owner)??owner.cursorId;tree.index=index;if(index<0){tree.affinity='integer';tree.collation='binary';return tree;}tree.affinity=affinityOf(owner.table.columns[index]!.declaredType??"");const c=sqliteAsciiFold(owner.table.columns[index]!.collation??"binary");if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${c}`,{code:1});tree.collation=c;return tree;
     }if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")tree.value=bind(tree.value);else if(tree.kind==="binary"){tree.left=bind(tree.left);tree.right=bind(tree.right);}else if(tree.kind==="in-subquery")tree.left=bind(tree.left);else if(tree.kind==="call"||tree.kind==="aggregate")tree.args=tree.args.map(bind);else if(tree.kind==="case"){if(tree.operand)tree.operand=bind(tree.operand);tree.pairs=tree.pairs.map(([a,b])=>[bind(a),bind(b)]);if(tree.otherwise)tree.otherwise=bind(tree.otherwise);}return tree;};
     const result=++registers,cursor=expressionCursor++,isIn=expression.kind==="in-subquery";
     const aggregate=bind(expressionFromReduction(item.reduction));
@@ -2175,7 +2189,8 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       ops.push({code:"Null",p2:result});
     }else if(isIn){ops.push({code:"OpenEphemeral",p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});}
     else ops.push(expression.exists?{code:"Integer",p1:0n,p2:result}:{code:"Null",p2:result});
-    const rewind=ops.length;ops.push({code:"Rewind",p1:source.cursorId,p2:0});const loop=ops.length;let skip:number|undefined;
+    const sourceCursor=nestedReadCursors.get(source)??source.cursorId;
+    const rewind=ops.length;ops.push({code:"Rewind",p1:sourceCursor,p2:0});const loop=ops.length;let skip:number|undefined;
     if(expression.select.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(expression.select.where.reduction)),ops,()=>++registers,parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     let done=-1;
     const orderTerms=!isIn&&!expression.exists&&aggregate.kind!=="aggregate"?expression.select.orderBy.map(term=>{const tree=bind(expressionFromReduction(term.expr.reduction!));return{tree,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};}):[];

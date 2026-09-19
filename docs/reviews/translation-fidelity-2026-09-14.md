@@ -611,3 +611,34 @@ INTEGER columns, declared/origin metadata, and statement/connection reuse. Raw
 record serial decoding remains unchanged; upper() and ordered UNION are unrelated
 open findings. Fresh review baseline evidence is retained in card status; the repair
 is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`.
+
+## Revision 2026-09-19 — expression-subquery read-cursor ownership correction
+
+The accepted expression-subquery implementation (`e9ef7b0`, followed by the
+naming-only `cf41a84`) and its earlier 133/133 focused result did not establish
+correct parent-VDBE cursor ownership. A public Fetch reproduction over `users` and
+`orders` showed that both filtered and unfiltered table-backed `IN (SELECT ...)`
+leaked `BtreeCursorStateError: cursor is not positioned`. The exact manifest-pinned
+SQLite 3.53.4 source ID returned `Alice, Cara` and `Alice, Bob, Cara`, respectively.
+
+Root cause was child-plan-local source numbering: `compileTableSelect()` opened the
+outer table on cursor 0, then opened an independently resolved child source on its
+own cursor 0 in the same VDBE. The child scan replaced and exhausted the positioned
+outer cursor. SQLite's parent parse owns unique `SrcList.iCursor` values while
+`expr.c:sqlite3CodeSubselect` lowers the SELECT into that parent VDBE. The correction
+therefore relocates each child-owned read source to a VDBE-unique expression cursor,
+uses that relocated cursor for child column/rowid binding and `Rewind`/`Next`, and
+retains an already resolved enclosing expression's outer cursor. This is an
+ownership correction, not an alternative to SQLite's IN NULL/affinity algorithm.
+
+Public regression coverage is in
+`test/conformance/subquery-view-foundation.test.mjs` and immutable UTF-8, UTF-16LE,
+and UTF-16BE fixtures under `test/fixtures/expression-cursor/`. It covers the exact
+filtered/unfiltered multirow queries, reset/rerun, empty RHS, and a NULL-bearing
+`NOT IN` RHS. The focused regression passed 3/3. The complete subquery/view file
+passed 174/174 after the correction. The combined subquery-view command reached
+188/189: its sole failure is an unrelated concurrent window-admission expectation
+in `from-subquery-routes.test.mjs`; all expression-subquery cases passed. Evidence:
+`work:///cards/card-m-f-k/processes/proc-b16b1a50c562/stdout.log`,
+`work:///cards/card-m-f-k/processes/proc-d8ac7fb46cb4/stdout.log`, and
+`work:///cards/card-m-f-k/processes/proc-38cc53a6b0f1/stdout.log`.

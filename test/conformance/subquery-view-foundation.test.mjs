@@ -17,6 +17,7 @@ const capture=JSON.parse(fs.readFileSync(path.join(here,'cases/stage3-subquery-v
 const companions=JSON.parse(fs.readFileSync(path.join(here,'cases/stage3-subquery-view-companions.spec.json'),'utf8'));
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
 const generated=path.join(here,'../fixtures/generations',current.generationId,'generated');
+const expressionCursorFixtures=path.join(here,'../fixtures/expression-cursor');
 const ids=[
   'derived-basic','derived-nested','derived-limit-materialized','derived-join','derived-group-order','derived-compound',
   'view-basic','view-nested','view-correlated','view-metadata','view-explicit-columns','view-inferred-columns',
@@ -106,6 +107,27 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} corr
     assert.deepEqual(rows,[[1n,1n,0n],[3n,1n,0n],[5n,0n,1n],[7n,0n,1n]]);
     statement.reset();const rerun=[];while(await statement.step()==='row')rerun.push([statement.column(0),statement.column(1),statement.column(2)]);
     assert.deepEqual(rerun,rows,'reset reruns correlated RHS sets');
+  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} nested IN read cursor preserves the outer row`,async()=>{
+  const body=fs.readFileSync(path.join(expressionCursorFixtures,`users-${encoding}.db`));
+  const server=http.createServer((_request,response)=>{response.writeHead(200,{'Content-Length':body.length});response.end(body);});
+  await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',error=>error?reject(error):resolve()));
+  let db,statement;
+  const rows=async sql=>{
+    statement=db.prepare(sql).statement;const result=[];
+    while(await statement.step()==='row')result.push(statement.column(0));
+    statement.reset();const rerun=[];while(await statement.step()==='row')rerun.push(statement.column(0));
+    assert.deepEqual(rerun,result,'reset preserves independently owned read cursors');
+    statement.finalize();statement=undefined;return result;
+  };
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/users.db`));
+    assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT user_id FROM orders WHERE amount > 30.0) ORDER BY name'),['Alice','Cara']);
+    assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT user_id FROM orders) ORDER BY name'),['Alice','Bob','Cara']);
+    assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT user_id FROM orders WHERE 0) ORDER BY name'),[]);
+    assert.deepEqual(await rows("SELECT name FROM users WHERE id NOT IN (SELECT CASE WHEN note IS NULL THEN NULL ELSE user_id END FROM orders) ORDER BY name"),[]);
   }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
 

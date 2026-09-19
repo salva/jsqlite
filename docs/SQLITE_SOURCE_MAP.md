@@ -1096,7 +1096,7 @@ that CTE status.
 
 | Pinned SQLite 3.53.4 source | TypeScript mapping | Evidence / boundary |
 | --- | --- | --- |
-| `src/expr.c:sqlite3CodeSubselect`, `EP_VarSelect`, `SRT_Mem`, `SRT_Set`; `src/vdbe.c:OP_Once` | `src/internal/resolve.ts` linked nested `NameContext`; `src/internal/vdbe.ts:compileExpressionSubquery`, `Once`, typed ephemeral set, scalar destination and per-row correlated rerun/clear | `subquery-view-foundation.test.mjs`: exact public scalar/EXISTS/IN behavior across all three encodings, retained correlated IN/NOT IN reset/rerun case, and direct uncorrelated Once versus correlated no-Once opcode assertion |
+| `src/expr.c:sqlite3CodeSubselect`, `sqlite3FindInIndex` (`pParse->nTab++`), `EP_VarSelect`, `SRT_Mem`, `SRT_Set`; `src/vdbe.c:OP_OpenRead`, `OP_Rewind`, `OP_Next`, `OP_Once` | `src/internal/resolve.ts` linked nested `NameContext`; `src/internal/vdbe.ts:compileExpressionSubquery`, parent-VDBE-unique nested read-cursor relocation, `Once`, typed ephemeral set, scalar destination and per-row correlated rerun/clear | `subquery-view-foundation.test.mjs`: exact public scalar/EXISTS/IN behavior across all three encodings, retained correlated IN/NOT IN reset/rerun case, direct uncorrelated Once versus correlated no-Once opcode assertion, and outer/inner table cursor-collision regression with multirow, empty, NULL and reset paths |
 
 The admitted expression SELECT shapes share the parent program's registers, work
 and private-state budgets. Unsafe width, compound, grouping and unsupported local
