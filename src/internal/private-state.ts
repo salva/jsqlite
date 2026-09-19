@@ -178,7 +178,11 @@ export class EphemeralIndexCursor {
    this.#live();let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#shared.entries.length>0}
+  seekRowid(rowid:bigint):boolean{this.#live();const wanted=rowid<1n?1n:rowid;this.#at=this.#shared.entries.findIndex(entry=>BigInt(entry.sequence+1)>=wanted);return this.#at>=0}
+  rowid():bigint{this.#live();if(this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return BigInt(this.#shared.entries[this.#at]!.sequence+1)}
   next():boolean{this.#live();return ++this.#at<this.#shared.entries.length}
+  rewindBeforeFirst():void{this.#live();this.#at=-1}
+  hasNext():boolean{this.#live();return this.#at+1<this.#shared.entries.length}
   data():readonly Mem[]{this.#live();if(this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return this.#shared.entries[this.#at]!.key}
   /** vdbe.c OP_OpenDup creates an independently positioned cursor over the
    * same ephemeral b-tree. The duplicate borrows records; its position is not

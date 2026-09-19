@@ -2975,7 +2975,8 @@ policy, RANGE/GROUPS offsets, offset coercion diagnostics, join/subquery/ordinar
 CTE/outer ORDER/LIMIT, registry breadth, same-window FILTER sharing, and project
 resource/lifecycle controls. Source credit and companions are deliberately never
 interchangeable. Current accounting is native **43 attempted/43 passed, 25
-credited**, source-only **1**, TypeScript **0 attempted/0 credited/44 unattempted**;
+credited**; TypeScript executable **43 attempted/43 passed, 25 source-credited**;
+source-only private controls **1 validator attempted/1 passed** (no source credit);
 this is bounded evidence, not exhaustive SQLite window compatibility.
 
 #### EXCLUDE source-case correction ([[card:card-o-c-a]], 2026-09-18)
@@ -2997,3 +2998,38 @@ results directly, but no longer supplies evidence for an unbounded-following
 EXCLUDE frame in these four source-credit slots. `nth_value`, first/last value,
 and lead/lag remain separate specialized consumers and are not admitted by this
 contract.
+
+#### Sliding min/max and group-concat lifecycle (aggregate-window implementation)
+
+Pinned `window.c:sqlite3WindowCodeInit` selects an ordered ephemeral structure for
+sliding `min()`/`max()`, while pinned `func.c:groupConcatInverse` removes the
+oldest value and its following separator. The browser/read-only adaptation stores
+the same frame-owned logical entries inside the aggregate context: min/max keep a
+collation-ordered multiset of owned `Mem` cells, and group-concat keeps FIFO text
+plus per-entry separators. This avoids introducing another VDBE cursor kind while
+preserving step/inverse/value results, duplicate extrema, variable separators,
+and NULL handling. Only extrema accumulators whose emitted program contains a
+matching `AggInverse` use the multiset. Ordinary aggregate min/max continues to
+follow `func.c:minmaxStep`: it owns only the current best `Mem` and atomically
+replaces that value's byte reservation, so adding sliding support does not retain
+all ordinary inputs. Every retained logical value/separator is charged to the
+statement `PrivateStateByteBudget`; inverse and exact-once context cleanup release
+it. The source-based `companion-aggregate-registry` case exercises count, sum,
+avg, total, duplicate-capable min/max, and group-concat over one shared bounded
+ROWS scan.
+
+
+#### Aggregate-window execution completion ([[card:card-o-c-b]], 2026-09-19)
+
+`compileWindowSelectLowering` now publishes the represented aggregate-window
+program and translates the pinned CodeInit/CodeStep control families described
+above. Typed ephemeral cursors, coroutine pc/register state, aggregate callbacks,
+peer/partition keys and frame caches remain VM-owned across yield. Represented
+recursive CTEs use the existing queue VDBE as a coroutine producer: its
+`ResultRow` destination becomes payload copies plus `Yield`, rather than host
+recursion or frame recomputation. Unsupported shapes still reject before Program
+publication. Ranking and value special built-ins remain outside this tranche.
+
+Final evidence is executable 43/43 (25/25 source-credit) through the public API
+plus the separate no-credit ordinal-44 validator for private entry/key/byte, work,
+row, cancellation, deadline, reset and first-error behavior.

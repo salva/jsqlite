@@ -586,3 +586,14 @@ The disconnected-helper finding in `record:///review.md?card=card-o-b&v=3` is re
 ### Recursive lowering reconciliation (revision 2026-09-18)
 
 The flattening defect identified by `record:///review.md?card=card-o-b&v=9` is corrected: emitted operations now contain distinct child-consuming coroutine/sorter loops for incompatible groups, and only the innermost producer owns properly nested original source scans and moved clauses. Tests inspect the control graph, layer-local sort ownership, compatible sharing, incompatible nesting, and two-source rewind structure. This resolves compiler topology only; frame evaluation remains absent and accounting remains 29 declared, 0 TypeScript attempted/credited.
+
+### Aggregate-window execution reconciliation (revision 2026-09-19, [[card:card-o-c-b]])
+
+The earlier findings that frame evaluation and public publication were absent are
+superseded for the allocated aggregate-only surface. Current VDBE lowering owns
+partition/peer/frame control, typed ephemeral caches, coroutine suspension and
+aggregate callback lifecycle; represented recursive queues feed that coroutine
+without host recursion. Public evidence is 43/43 executable with 25/25 source
+credit, plus a separate 1/1 no-credit private-controls validator. Remaining scope
+gaps are explicit: ranking/value special built-ins and unrepresented compositions
+are not promoted, and this denominator is not a general SQLite compatibility claim.

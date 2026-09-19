@@ -1,6 +1,6 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
-import { aggregateShapeSupported, compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveCteSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
+import { aggregateShapeSupported, compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
@@ -157,6 +157,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       const schema = loadSchemaGraph(this);
       const recursiveOwner = recursiveCteOwner(parsed.statement);
       const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
+      if(selectHasWindow(selected)) rejectDistinctWindowFunctions(selected);
       if (recursiveOwner===null && selectGraphContainsWith(selected, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
@@ -168,7 +169,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const recursiveEncoding = this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be";
       const program = recursiveOwner!==null
-        ? (compileMultipleRecursiveCtes(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows) ?? compileRecursiveCteSelect(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows))
+        ? (compileRecursiveWindowSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits) ?? compileMultipleRecursiveCtes(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows) ?? compileRecursiveCteSelect(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows))
         : aggregate&&!window
         ? compileAggregateSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
         : selected.from.items.length || selected.where

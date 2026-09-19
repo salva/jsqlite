@@ -401,7 +401,7 @@ statement shape is exposed.
 
 ### Expression subqueries (Stage 3 bounded admission)
 
-Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and correlated expression routes, including the documented bounded JOIN/aggregate/GROUP/HAVING/ORDER/DISTINCT/LIMIT/compound compositions. Results retain SQLite INTEGER/REAL/NULL/BLOB distinctions and database encoding. Uncorrelated producers may execute once; correlated producers rerun for each outer row. Reset/rebind/finalize/deferred-close and cancellation/deadline/work/private-byte failures preserve the first error, release owned state, and restore admission as tested. Compound ORDER terms bind by resolved output ownership and structural expression identity, not SQL token spelling. WITH support is limited to the bounded ordinary and recursive surfaces below; windows and unsafe unmatched forms remain unsupported atomically at prepare.
+Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and correlated expression routes, including the documented bounded JOIN/aggregate/GROUP/HAVING/ORDER/DISTINCT/LIMIT/compound compositions. Results retain SQLite INTEGER/REAL/NULL/BLOB distinctions and database encoding. Uncorrelated producers may execute once; correlated producers rerun for each outer row. Reset/rebind/finalize/deferred-close and cancellation/deadline/work/private-byte failures preserve the first error, release owned state, and restore admission as tested. Compound ORDER terms bind by resolved output ownership and structural expression identity, not SQL token spelling. WITH support is limited to the bounded ordinary and recursive surfaces below; aggregate windows use the separately bounded surface below, while unsafe unmatched forms remain unsupported atomically at prepare.
 
 ### Ordinary WITH (bounded Stage 3 surface)
 
@@ -421,23 +421,28 @@ reject temporarily. Expression-owned nested WITH remains a distinct temporary
 
 `prepare()` accepts the represented read-only recursive CTE subset documented in `TRANSLATION.md`, including the bounded direct-projection cross join of distinct recursive declarations with optional direct-column output ordering (explicit built-in collation, direction, and NULL placement are preserved). Rows and metadata use the normal `Statement` API for UTF-8/UTF-16 databases. Recursive execution is iterative and subject to the same `step({signal, timeoutMs, maxWorkUnits})`, row, result, and private-state limits as other VDBE programs. Unsupported recursive shapes fail atomically at prepare with temporary unsupported classification; SQLite-owned invalid shapes use SQLite diagnostics. `reset()` clears queue/history/materialization state but retains bindings, and rebinding requires reset; `finalize()` releases all state.
 
-## Window prepare boundary (2026-09-18)
+## Window rewrite/setup historical boundary (2026-09-18; superseded for aggregate execution)
 
-Window syntax is structurally parsed and resolved, but remains **temporary unsupported for execution**. Internal compilation now emits source-shaped setup operations and real register/cursor/subroutine identities for compiler verification, but that setup-only product is never publicly published because frame stepping remains absent. `Connection.prepare()` resolves and performs the pinned pre-execution rewrite validation for both scalar and table-backed window SELECTs. Observable resolver/rewrite errors therefore take precedence where SQLite raises them (for example code 1 `misuse of aggregate: sum()` for an unowned aggregate in a non-aggregate SELECT's `ORDER BY`). If validation succeeds, prepare throws temporary unsupported `window functions are not implemented`; no `Statement` or partial Program is published, and the connection remains reusable. The public table-backed architecture gate verifies both diagnostic precedence and atomic rejection/reuse in UTF-8, UTF-16LE, and UTF-16BE fixture databases. This does not admit frame stepping, window rows, or TypeScript conformance credit.
+The following two paragraphs describe the pre-execution checkpoint before the
+aggregate-window completion below. They remain historical evidence for resolver,
+rewrite, diagnostic precedence, and atomic publication; they are not the current
+aggregate-window capability statement. Ranking/value special built-ins and
+unrepresented window compositions still reject atomically.
 
-### Aggregate-window preimplementation boundary
+Window syntax was then structurally parsed and resolved, but remained **temporary unsupported for execution**. Internal compilation emitted source-shaped setup operations and real register/cursor/subroutine identities for compiler verification, but that setup-only product was never publicly published because frame stepping was absent. `Connection.prepare()` resolved and performed the pinned pre-execution rewrite validation for both scalar and table-backed window SELECTs. Observable resolver/rewrite errors therefore took precedence where SQLite raised them (for example code 1 `misuse of aggregate: sum()` for an unowned aggregate in a non-aggregate SELECT's `ORDER BY`). If validation succeeded, prepare threw temporary unsupported `window functions are not implemented`; no `Statement` or partial Program was published, and the connection remained reusable. The public table-backed architecture gate verified both diagnostic precedence and atomic rejection/reuse in UTF-8, UTF-16LE, and UTF-16BE fixture databases. This checkpoint did not admit frame stepping, window rows, or TypeScript conformance credit.
 
-Window syntax is represented and rewritten internally, but aggregate-window frame
-execution is not yet a public capability. `prepare()` must reject any statement
-requiring `sqlite3WindowCodeStep` atomically before returning a Program or
-Statement, including otherwise-supported join/group/subquery/ordinary or recursive
-CTE/outer ORDER compositions. Consumers must not observe a partially lowered
-statement or runtime host recomputation. The implementation gate and lifecycle/
-resource expectations are the 44-case matrix documented in `docs/CONFORMANCE.md`;
-its current TypeScript accounting is 0 attempted/0 credited/44 unattempted. This
-paragraph changes no public method signature or owner guarantee.
+### Aggregate-window preimplementation boundary (historical)
 
-The matrix's four EXCLUDE source-credit cases exercise ordinary registered
-aggregates only. They do not claim support for `nth_value` (or its dedicated
-window application state), and this correction does not widen the temporary
-unsupported public boundary.
+Before [[card:card-o-c-b]], window syntax was represented and rewritten internally, but aggregate-window frame execution was not yet a public capability. `prepare()` rejected statements requiring `sqlite3WindowCodeStep` atomically before returning a Program or Statement, including otherwise-supported compositions. The 44-case implementation gate then had 0 TypeScript attempts. The execution section below supersedes that historical accounting and boundary for the represented aggregate-only subset.
+
+### Aggregate-window execution (2026-09-19)
+
+The represented ordinary aggregate-window subset is executable through the normal
+`Statement` API. It includes the documented default/ROWS/RANGE/GROUPS frames,
+bounds and EXCLUDE forms, compatible-window sharing, and represented join,
+grouped, derived, ordinary/recursive CTE and outer ORDER/LIMIT compositions.
+Execution obeys the same signal, deadline, work, row, result and private-state
+limits and reset/finalize/first-error rules as other VDBE programs. Unsupported
+compositions reject atomically at prepare. This does not admit ranking or value
+special built-ins such as `row_number`, `nth_value`, `first_value`, `last_value`,
+`lead`, or `lag`.

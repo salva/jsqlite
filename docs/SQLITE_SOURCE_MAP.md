@@ -1027,7 +1027,7 @@ fixtures is admitted; other automatic-index layouts remain gated.
 | Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
 |---|---|---|
 | `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay); `src/parse.y:918-934` per-item `sortorder`/`nulls` | `src/internal/vdbe.ts:aggregateParts` preserves each generated `sortlist` item; `compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 30/34 exact public tagged native-success cases from 39 native captures; mixed ASC/DESC and nullable mixed NULLS FIRST/LAST cases prove per-item flags; remaining 4 need FROM subqueries; 5 prepare errors compare exactly |
-| `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order, collation representative, NULL separator, and all-encoding cases; window execution remains excluded |
+| `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order and ordinary aggregation; represented aggregate-window execution is mapped separately below, while ranking/value built-ins remain excluded |
 | `src/vdbe.c` ephemeral/sorter lifetime | `SorterCursor.clear`, `EphemeralIndexCursor.clear`, shared `PrivateStateByteBudget` | Per-group state is released before the next group; reset/finalize/error retain common cursor cleanup |
 
 ### Compensated aggregates and callback context correction ([[card:card-l-b]], 2026-09-17)
@@ -1237,7 +1237,7 @@ Per `record:///review.md?card=card-o-b&v=9`, `WindowRewriteGraph.root` is no lon
 | `src/window.c:sqlite3WindowCodeInit` 1388 | ephemeral cursor + 3 duplicates; accum/result; cache, min/max, first/nth and lead/lag application branches | common prefix exists; specialized state is allocated only with its step consumer |
 | `src/window.c:windowAggStep/windowAggFinal/windowFullScan/windowReturnOneRow` 1656-1996 | FILTER, step/inverse/value/final, EXCLUDE scan, cursor-owned built-ins | existing aggregate `FuncDef`/context/Mem lifecycle; no generic host recomputation |
 | `src/window.c:windowCacheFrame/windowIfNewPeer/windowCodeRangeTest/windowCodeOp` 2029-2435 | cache policy, peer groups, ASC/DESC+BIGNULL+collation RANGE arithmetic, safe deletion and frame schedules | typed private cursors/`KeyInfo`; one execution byte budget; deterministic work |
-| `src/window.c:sqlite3WindowCodeStep` 2784 onward | partition compare/flush, bound evaluation, ROWS/RANGE/GROUPS start/end family dispatch | missing implementation owner; public prepare remains atomic unsupported |
+| `src/window.c:sqlite3WindowCodeStep` 2784 onward | partition compare/flush, bound evaluation, ROWS/RANGE/GROUPS start/end family dispatch | `compileWindowSelectLowering` typed VM schedules; public execution evidence in the 43-case matrix |
 | `src/vdbe.c` 1119-1175, 7837-8019; `src/vdbeaux.c` opcode/P4 lifecycle | `Gosub/Return`; `AggStep/Inverse/Value/Final`; context error/final cleanup | VM integer pc/register adaptation, exact-once cleanup and first-error precedence |
 
 Executable evidence is
@@ -1245,7 +1245,7 @@ Executable evidence is
 `test/conformance/capture-aggregate-window.py` and guarded by
 `test/conformance/aggregate-window-contract-manifest.test.py`: 44 declared = 25
 hashed literal upstream cases + 19 explicitly no-credit companions; native 43/43,
-source-only 1; TypeScript 0/44. This allocation is separate from the earlier
+source-only 1; TypeScript executable 43/43 with 25/25 source-credit, plus one separately validated no-credit private-control declaration. This allocation is separate from the earlier
 29-case graph/rewrite evidence and is the implementation denominator for aggregate
 window stepping.
 
@@ -1258,3 +1258,22 @@ dedicated `window.c` application state is outside this aggregate-window handoff.
 The replacement preserves the denominator and four-mode EXCLUDE intent, but
 changes those samples to UNBOUNDED PRECEDING..CURRENT ROW and makes no
 `nth_value` or unbounded-following coverage claim.
+
+### Aggregate-window sliding callback completion ([[card:card-o-c-b]], 2026-09-19)
+
+| Pinned owner | TypeScript mapping | Adaptation/evidence |
+| --- | --- | --- |
+| `src/window.c:sqlite3WindowCodeInit` min/max application-list branch; `src/func.c:minmaxStep` | `src/internal/vdbe.ts:extremaDefinition`; inverse-capable accumulators use an ordered owned-`Mem` multiset, ordinary accumulators retain one current best | Browser-memory aggregate-context representation replaces the dedicated sliding ephemeral cursor while preserving collation ordering, duplicates, NULL behavior, and xValue; all retained cells debit the statement byte budget. Ordinary aggregate replacement atomically swaps its one reservation, matching `minmaxStep` rather than retaining all inputs. |
+| `src/func.c:groupConcatStep/groupConcatInverse/groupConcatValue` | `src/internal/vdbe.ts:concatDefinition` FIFO text/separator entries | Preserves removal of the oldest value and following separator, including variable separators; retained UTF-8 logical bytes debit/release the statement budget. |
+| Source case plus aggregate-registry companion | `test/conformance/cases/stage3-aggregate-window.json` `companion-aggregate-registry` | Shared bounded ROWS scan verifies sliding count/sum/avg/total/min/max/group_concat through the public API. |
+
+
+### Aggregate-window execution completion ([[card:card-o-c-b]], 2026-09-19)
+
+The CodeInit/CodeStep rows above are now represented by `src/internal/vdbe.ts`
+window setup, frame schedules, typed ephemeral cursor operations and aggregate
+callback opcodes. Recursive queue producers are relocated into the same coroutine
+boundary (`ResultRow` to copy/`Yield`) without a host evaluator.
+`test/conformance/run-aggregate-window-ts.mjs` passes all 43 executable cases
+(25 source-credit); `aggregate-window-private-controls.test.mjs` separately
+validates source-only ordinal 44. Ranking/value special built-ins are not claimed.

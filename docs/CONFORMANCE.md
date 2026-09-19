@@ -413,9 +413,8 @@ hash-bound upstream assertions and 19 no-credit local companions**. Exactly 43 a
 native executable and the pinned independently built 3.53.4 library passes 43/43;
 the remaining resource-control declaration is source-only because private
 byte/entry/key/work/row ceilings, cooperative yield, deadline and injected cleanup
-faults are project controls. TypeScript remains 0 attempted, 0 credited, 44
-unattempted until `sqlite3WindowCodeStep` is implemented and the public runner
-compares tagged rows, metadata, prepare/step errors and lifecycle traces.
+faults are project controls. This paragraph records the preimplementation
+allocation; the execution result below supersedes its former zero-attempt status.
 
 `capture-aggregate-window.py` verifies source identity before capture.
 `aggregate-window-contract-manifest.test.py` fails closed on archive identity,
@@ -431,3 +430,13 @@ CURRENT ROW, GROUP, and TIES. They replace the similarly numbered `.2`
 The denominator is unchanged. Coverage in these four slots is now aggregate
 EXCLUDE over UNBOUNDED PRECEDING..CURRENT ROW, not `nth_value` or
 unbounded-following EXCLUDE coverage.
+
+### Aggregate-window execution result ([[card:card-o-c-b]], 2026-09-19)
+
+The superseding TypeScript result is **43 executable attempted / 43 passed**, with
+**25/25 upstream-source-credit cases passed**. Source-only ordinal 44 is excluded
+from that denominator and was validated separately: **1 attempted / 1 passed**, no
+source credit, by `aggregate-window-private-controls.test.mjs`. The public runner
+checks tagged values, metadata, errors, physical UTF-8/UTF-16LE/UTF-16BE fixtures
+and represented compositions. These finite denominators do not claim ranking/value
+special built-ins or exhaustive SQLite window compatibility.

@@ -163,6 +163,12 @@ export class SchemaGraph {
     try { this.#owner[storageOwner].assertOpen(); }
     catch (error) { throw new SchemaStateError("schema owner is closed"); }
   }
+  /** Resolution-only table used by select.c-style coroutine consumers. It is
+   * never opened as a b-tree; the owning compiler supplies its rows. */
+  withTransientTable(table: TableNode): SchemaGraph {
+    const tables=new Map(this.tables);tables.set(sqliteAsciiFold(table.name),table);
+    return new SchemaGraph(this.#owner,this.encoding,[...this.objects,table],tables,new Map(this.indexes),new Map(this.views));
+  }
 }
 
 const graphs = new WeakMap<object, SchemaGraph>();
@@ -172,6 +178,11 @@ const graphs = new WeakMap<object, SchemaGraph>();
  * table, simple-index and view construction tranche. Root page 1 is read via the
  * existing connection storage owner; every graph value is detached from cursor borrows.
  */
+export function canonicalSchemaCatalog(connection: StorageOwnerCarrier): string {
+  const graph = loadSchemaGraph(connection);
+  return graph.objects.map(object => `${object.kind}\t${object.name}\t${object.tableName}\t${object.sql ?? ""}\n`).join("");
+}
+
 export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
   const key = connection as object;
   const prior = graphs.get(key);

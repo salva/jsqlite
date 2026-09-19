@@ -141,16 +141,28 @@ export function windowFrame(window:LemonValue<SqlToken>|undefined):WindowFrameNo
  if(frame?.kind!=="reduction"||frame.signature==="frame_opt ::=")return Object.freeze({type:"range",start:Object.freeze({kind:"unbounded",expr:null}),end:Object.freeze({kind:"current",expr:null}),exclusion:null,implicit:true});
  const words=leaves(frame).map(token=>token.text.toUpperCase());
  const boundary=(prefix:string):WindowFrameBoundaryNode=>{
-  const wrapper=frame.children.find(child=>child.kind==="reduction"&&child.signature.startsWith(prefix));
-  const bound=wrapper?find(wrapper,signature=>signature.startsWith("frame_bound ::=")):undefined;
-  if(!bound)throw new SqlParseError("generated window frame boundary is missing");
+ const wrappers:{node:Extract<LemonValue<SqlToken>,{kind:"reduction"}>;words:string[]}[]=[];
+ const collect=(node:LemonValue<SqlToken>):void=>{if(node.kind!=="reduction")return;if(node.signature.startsWith("frame_bound ::="))wrappers.push({node,words:leaves(node).map(token=>token.text.toUpperCase())});node.children.forEach(collect)};
+ collect(frame);
+ let bound:Extract<LemonValue<SqlToken>,{kind:"reduction"}>|undefined;
+ const wrapper=find(frame,signature=>signature.startsWith(prefix));
+ const candidate=wrapper?find(wrapper,signature=>signature.startsWith("frame_bound ::=")):undefined;
+ if(candidate?.kind==="reduction")bound=candidate;
+ else if(wrapper?.kind==="reduction")bound=wrapper;
+ // Some generated reductions inline one/both wrappers. Positional fallback is
+ // only valid after the source-specific frame_bound_s/e subtree was searched.
+ if(!bound)bound=prefix.startsWith("frame_bound_e")?wrappers[1]?.node:wrappers[0]?.node;
+ if(!bound)throw new SqlParseError("generated window frame boundary is missing");
   const boundWords=leaves(bound).map(token=>token.text.toUpperCase());
   const kind:WindowFrameBoundaryKind=boundWords.includes("UNBOUNDED")?"unbounded":boundWords.includes("PRECEDING")?"preceding":boundWords.includes("FOLLOWING")?"following":"current";
   const expression=bound.kind==="reduction"?bound.children.find(child=>child.kind==="reduction"&&(child.signature.startsWith("expr ::=")||child.signature.startsWith("term ::="))):undefined;
   const expr=expression&&expression.kind==="reduction"?Object.freeze({kind:"tokens",tokens:Object.freeze(leaves(expression)),reduction:expression} as ExprNode):null;const zero=expr&&/^[+-]?0(?:_?0)*$/.test(expr.tokens.map(token=>token.text).join(""));return Object.freeze(zero?{kind:"current",expr:null}:{kind,expr});
  };
- const exclusion:WindowFrameExclusion=words.includes("TIES")?"ties":words.includes("GROUP")?"group":words.includes("CURRENT")&&words.includes("EXCLUDE")?"current-row":words.includes("OTHERS")?"no-others":null;
- return Object.freeze({type:words.includes("ROWS")?"rows":words.includes("GROUPS")?"groups":"range",start:boundary("frame_bound_s ::="),end:frame.signature.startsWith("frame_opt ::= range_or_rows BETWEEN")?boundary("frame_bound_e ::="):Object.freeze({kind:"current",expr:null}),exclusion,implicit:false});
+ const exclusion:WindowFrameExclusion=words.includes("TIES")?"ties":words.includes("GROUP")?"group":words.includes("OTHERS")?"no-others":words.includes("CURRENT")&&words.includes("EXCLUDE")?"current-row":null;
+ const start=boundary("frame_bound_s ::=");
+ const between=words.includes("BETWEEN");
+ const end=between?boundary("frame_bound_e ::="):Object.freeze({kind:"current",expr:null} as WindowFrameBoundaryNode);
+ return Object.freeze({type:words.includes("ROWS")?"rows":words.includes("GROUPS")?"groups":"range",start,end,exclusion,implicit:false});
 }
 function selectAction(semantic:SelectSemantic,all:readonly SqlToken[],withModel:WithClause|null=null):SelectNode{
  const one=semantic.rightmost,arms=linkedArms(semantic.arms),hasValues=arms.some(arm=>arm.origin==="values");

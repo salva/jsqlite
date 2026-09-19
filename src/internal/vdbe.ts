@@ -4,7 +4,7 @@
 import type { ColumnMetadata, OperationOptions, SqliteStorageClass, SqliteValue, Statement, StepResult } from "../index.ts";
 import { JSQLiteError } from "../index.ts";
 import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord, memToPublicInitial } from "./mem.ts";
-import type { SelectNode } from "./parse.ts";
+import type { ExprNode, SelectNode } from "./parse.ts";
 import { lowerOrdinaryCtes } from "./cte.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, KeyInfo, type BuiltinCollation } from "./comparison.ts";
@@ -70,10 +70,12 @@ type Op =
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation; readonly changed?:number }
+  | { readonly code: "AggInverse"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggFinal"; readonly name:string; readonly p1:number }
   | { readonly code: "AggValue"; readonly name:string; readonly p1:number; readonly p2:number }
   | { readonly code: "AggReset"; readonly registers:readonly number[] }
   | { readonly code: "CompareGroup"; readonly left:number; readonly right:number; readonly count:number; readonly keyInfo:KeyInfo; readonly jump:number }
+  | { readonly code: "WindowRangeTest"; readonly candidate:number; readonly current:number; readonly offset?:number; readonly mode:"end-current"|"end-following"|"end-unbounded"|"start-unbounded"|"start-current"|"start-preceding"|"start-following"; readonly descending:boolean; readonly collation:BuiltinCollation; readonly jump:number }
   | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
   | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
   | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
@@ -101,6 +103,9 @@ type Op =
   | { readonly code: "FifoInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "FifoShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo }
+  | { readonly code: "MakeRecord"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code: "NewRowid"; readonly p1:number; readonly p2:number }
+  | { readonly code: "Insert"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean }
   | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly replace?:boolean }
@@ -110,16 +115,24 @@ type Op =
   | { readonly code: "ClearSorter"; readonly p1:number }
   | { readonly code: "EphemeralSort"; readonly p1:number }
   | { readonly code: "EphemeralRewind"; readonly p1:number; readonly p2:number }
+  | { readonly code: "EphemeralSeekRowid"; readonly p1:number; readonly rowid:number; readonly jump:number }
+  | { readonly code: "EphemeralRowid"; readonly p1:number; readonly p2:number }
   | { readonly code: "EphemeralData"; readonly p1:number; readonly p2:number; readonly count:number }
   | { readonly code: "EphemeralNext"; readonly p1:number; readonly p2:number }
+  | { readonly code: "IfCursorSizeGt"; readonly p1:number; readonly threshold?:number; readonly thresholdRegister?:number; readonly registerAdjustment?:number; readonly jump:number }
+  | { readonly code: "IfRegisterGt"; readonly left:number; readonly right:number; readonly jump:number }
+  | { readonly code: "EphemeralAdvanceData"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump?:number }
+  | { readonly code: "IfEphemeralHasNext"; readonly p1:number; readonly jump:number }
+  | { readonly code: "EphemeralResetPosition"; readonly p1:number }
   | { readonly code: "MustBeInt"; readonly p1:number }
+  | { readonly code: "WindowCheck"; readonly p1:number; readonly boundary:"starting"|"ending"; readonly numeric:boolean }
   | { readonly code: "OffsetLimit"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "IfNotZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfPos"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "DecrJumpZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "Rewind"; readonly p1?: number; readonly p2: number }
   | { readonly code: "NullRow"; readonly p1: number }
-  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number }
+  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity }
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number }
@@ -139,11 +152,29 @@ export interface Program {
   readonly privateStateLimits: PrivateStateLimits;
   readonly encoding: DatabaseEncoding;
 }
+export type WindowDeleteMode="retain"|"agg-inverse"|"return-row"|"agg-step";
 export interface WindowSetupLayer {
   readonly compatibleGroup:number;
   readonly regPart:number|null;
+  readonly regPartInitialized:number|null;
   readonly partitionRegisters:readonly number[];
   readonly regOne:number;
+  readonly regOutputReady:number;
+  readonly boundRegisters:Readonly<{start:number|null;end:number|null}>;
+  readonly regStartRowid:number|null;
+  readonly regEndRowid:number|null;
+  readonly applicationCursor:number|null;
+  readonly deleteMode:WindowDeleteMode;
+  readonly partitionKeyInfo:KeyInfo|null;
+  readonly peerKeyInfo:KeyInfo|null;
+  readonly regNew:number;
+  readonly inputRegisters:readonly number[];
+  readonly regRecord:number;
+  readonly regRowid:number;
+  readonly regPeer:number|null;
+  readonly startPeerRegisters:readonly number[];
+  readonly currentPeerRegisters:readonly number[];
+  readonly endPeerRegisters:readonly number[];
 }
 export interface WindowLoopBinding {
   readonly compatibleGroup:number;
@@ -164,6 +195,79 @@ export interface WindowLoweringCompilation {
   readonly program:Program;
 }
 
+type WindowCodeLayer=WindowRewriteGraph["layers"][number];
+type WindowCodeOperation="WINDOW_AGGSTEP"|"WINDOW_AGGINVERSE"|"WINDOW_AGGVALUE";
+interface WindowCodeArg {
+  readonly ops:Op[];
+  readonly layer:WindowCodeLayer;
+  readonly state:WindowSetupLayer;
+  readonly collationOf:(bufferColumn:number)=>BuiltinCollation;
+}
+
+/** window.c:windowAggStep. This emits VM callback opcodes; it does not replace
+ * the pinned aggregate algorithm with a host-side implementation. */
+function windowAggStep(p:WindowCodeArg,sourceRegister:number,inverse:boolean,accumulators?:readonly number[]):void {
+  for(let index=0;index<p.layer.windows.length;index++){
+    const win=p.layer.windows[index]!,args=Array.from({length:win.window.argumentCount},(_,i)=>sourceRegister+win.argumentColumn+i);
+    let filter:number|null=null;
+    if(win.filterColumn!==null){filter=p.ops.length;p.ops.push({code:"IfNot",p1:sourceRegister+win.filterColumn,p2:0});}
+    p.ops.push({code:inverse?"AggInverse":"AggStep",name:win.window.functionName,args,p2:accumulators?.[index]??win.regAccum,collation:args.length?p.collationOf(win.argumentColumn):"binary"});
+    if(filter!==null)(p.ops[filter] as {p2:number}).p2=p.ops.length;
+  }
+}
+
+/** window.c:windowCodeOp callback phase. Cursor movement and peer/range tests
+ * remain in sqlite3WindowCodeStep; this owns callback placement in its schedule. */
+function windowCodeOp(p:WindowCodeArg,operation:WindowCodeOperation,sourceRegister=p.state.regNew,accumulators?:readonly number[]):void {
+  if(operation==="WINDOW_AGGSTEP")return windowAggStep(p,sourceRegister,false,accumulators);
+  if(operation==="WINDOW_AGGINVERSE")return windowAggStep(p,sourceRegister,true,accumulators);
+  for(let index=0;index<p.layer.windows.length;index++){
+    const win=p.layer.windows[index]!;
+    p.ops.push({code:"AggValue",name:win.window.functionName,p1:accumulators?.[index]??win.regAccum,p2:win.regResult});
+  }
+}
+
+/** window.c:windowFullScan ownership boundary. EXCLUDE schedules provide the
+ * peer/row filtering body; reset, rewind, and value remain one phase owner. */
+function windowFullScan(p:WindowCodeArg,cursor:number,accumulators:readonly number[],emitAcceptedRows:(scanPc:number)=>void):void {
+  p.ops.push({code:"AggReset",registers:accumulators});
+  const rewind=p.ops.length;p.ops.push({code:"EphemeralRewind",p1:cursor,p2:0});
+  const scan=p.ops.length;emitAcceptedRows(scan);
+  const done=p.ops.length;(p.ops[rewind] as {p2:number}).p2=done;
+  windowCodeOp(p,"WINDOW_AGGVALUE",p.state.regNew,accumulators);
+}
+
+/** window.c:sqlite3WindowCodeStep outer ownership. Frame-family schedules are
+ * migrated behind this boundary without changing their opcode order. */
+function sqlite3WindowCodeStep(emitSchedule:()=>void):void {emitSchedule();}
+
+function windowConstantInteger(expressionNode:NonNullable<ReturnType<typeof expressionFromReduction>>):number|null {
+  if(expressionNode.kind==="literal"){
+    if(typeof expressionNode.value==="bigint"&&expressionNode.value>=0n&&expressionNode.value<=BigInt(Number.MAX_SAFE_INTEGER))return Number(expressionNode.value);
+    if(typeof expressionNode.value==="number"&&Number.isSafeInteger(expressionNode.value)&&expressionNode.value>=0)return expressionNode.value;
+  }
+  return null;
+}
+
+function windowConstantIntegerGtZero(expressionNode:NonNullable<ReturnType<typeof expressionFromReduction>>):boolean {
+  // window.c:windowExprGtZero is deliberately conservative. This currently
+  // represents its literal/unary numeric subset; unknown/parameterized
+  // expressions return false and therefore select the non-early-delete mode.
+  if(expressionNode.kind==="literal"){
+    if(typeof expressionNode.value==="bigint")return expressionNode.value>0n;
+    if(typeof expressionNode.value==="number")return Math.trunc(expressionNode.value)>0;
+    if(typeof expressionNode.value==="string"){
+      const value=memFromPublic(expressionNode.value,"utf-8");value.applyAffinity("numeric","utf-8");
+      return value.initialStorageClass==="integer"?value.integerValue()>0n:value.initialStorageClass==="real"?Math.trunc(value.realValue())>0:false;
+    }
+  }
+  if(expressionNode.kind==="unary"&&(expressionNode.op==="+"||expressionNode.op==="-")){
+    const value=expressionNode.value;
+    if(value.kind==="literal"&&(typeof value.value==="bigint"||typeof value.value==="number"))return expressionNode.op==="+"?value.value>0:value.value<0;
+  }
+  return false;
+}
+
 /** Internal, deliberately non-publishable SELECT lowering through the boundary
  * immediately before sqlite3WindowCodeStep. Unlike the earlier setup snapshot,
  * this owns the ordinary source scan and places each select.c Gosub in that
@@ -175,6 +279,8 @@ export function compileWindowSelectLowering(
   maxWorkUnits=10_000_000,
   maxResultBytes=1_000_000_000,
   privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,
+  schema?:SchemaGraph,
+  coroutineProducer?:Program,
 ):WindowLoweringCompilation {
   const rewrite=sqlite3WindowRewrite(resolved);
   const byGroup=new Map(rewrite.layers.map(layer=>[layer.compatibleGroup,layer] as const));
@@ -187,8 +293,26 @@ export function compileWindowSelectLowering(
   };
   if(rewrite.root)visit(rewrite.root);
   const ops:Op[]=[];
+  const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
   let registers=Math.max(0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
   const setup:WindowSetupLayer[]=[];
+  const frameDeleteMode=(frame:NonNullable<WindowRewriteGraph["layers"][number]["windows"][number]>["window"]["frame"]):WindowDeleteMode=>{
+    const gtZero=(boundary:typeof frame.start)=>!!boundary.expr?.reduction&&windowConstantIntegerGtZero(expressionFromReduction(boundary.expr.reduction));
+    if(frame.start.kind==="following")return frame.type!=="range"&&gtZero(frame.start)?"return-row":"retain";
+    if(frame.start.kind==="unbounded"){
+      // Aggregate-only windows do not trigger windowCacheFrame(). EXCLUDE state
+      // does, because sqlite3WindowCodeInit allocated regStartRowid.
+      if(frame.exclusion!==null)return "retain";
+      if(frame.end.kind==="preceding")return frame.type!=="range"&&gtZero(frame.end)?"agg-step":"retain";
+      return "return-row";
+    }
+    return "agg-inverse";
+  };
+  const keyInfoFor=(expressions:readonly {readonly reduction?:LemonValue<SqlToken>}[],terms:readonly {readonly descending:boolean;readonly nulls:"first"|"last"|null}[],includeSortFlags:boolean):KeyInfo=>new KeyInfo({
+    encoding,totalFieldCount:expressions.length,keyFieldCount:expressions.length,
+    terms:expressions.map((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","generated window key expression lost its reduction");const term=terms[index];return{collation:collation(expressionFromReduction(expression.reduction)),...(includeSortFlags&&term?{desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}:{})};}),
+  });
+  let nextApplicationCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]))+1;
   for(const layer of compileLayers){
     const width=layer.bufferExpressions.length;
     const keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:0,terms:[]});
@@ -196,20 +320,71 @@ export function compileWindowSelectLowering(
     for(const cursor of layer.duplicateCursors)ops.push({code:"OpenDup",p1:cursor,p2:layer.iEphCsr});
     const partitionRegisters:number[]=[];
     for(const _term of layer.producerOrderBy.filter(term=>term.source==="partition")){const reg=++registers;partitionRegisters.push(reg);ops.push({code:"Null",p2:reg});}
+    const regPartInitialized=partitionRegisters.length?++registers:null;if(regPartInitialized!==null)ops.push({code:"Integer",p1:0n,p2:regPartInitialized});
     const regOne=++registers;ops.push({code:"Integer",p1:1n,p2:regOne});
+    const regOutputReady=++registers;ops.push({code:"Integer",p1:0n,p2:regOutputReady});
     for(const win of layer.windows)ops.push({code:"Null",p2:win.regAccum});
-    setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,partitionRegisters:Object.freeze(partitionRegisters),regOne}));
+    // window.c:windowCheckValue evaluates offsets once, outside the producer
+    // loop. ROWS/GROUPS require integers; RANGE admits numeric values.
+    const frame=layer.windows[0]?.window.frame;
+    const boundRegisters:{start:number|null;end:number|null}={start:null,end:null};
+    if(frame){
+      for(const [boundary,value] of [["starting",frame.start],["ending",frame.end]] as const){
+        if(!value.expr?.reduction)continue;
+        const register=compileExpressionTree(expressionFromReduction(value.expr.reduction),ops,()=>++registers,parameters);
+        boundRegisters[boundary==="starting"?"start":"end"]=register;
+        ops.push({code:"WindowCheck",p1:register,boundary,numeric:frame.type==="range"});
+      }
+    }
+    // window.c:sqlite3WindowCodeInit checks eExclude before function-specific
+    // state. Any explicit EXCLUDE (including NO OTHERS/TK_NO) owns rowid bounds
+    // and a duplicate application cursor used by windowCodeOp's full scan.
+    const exclusion=layer.windows[0]?.window.frame.exclusion??null;
+    let regStartRowid:number|null=null,regEndRowid:number|null=null,applicationCursor:number|null=null;
+    if(exclusion!==null){
+      regStartRowid=++registers;regEndRowid=++registers;applicationCursor=nextApplicationCursor++;
+      ops.push({code:"Integer",p1:1n,p2:regStartRowid},{code:"Integer",p1:0n,p2:regEndRowid},{code:"OpenDup",p1:applicationCursor,p2:layer.iEphCsr});
+    }
+    const owner=layer.windows[0]?.window;
+    const partitionExpressions=owner?.partitionBy??[];
+    const peerExpressions=owner?.orderBy??[];
+    const peerTerms=layer.producerOrderBy.filter(term=>term.source==="order");
+    const partitionKeyInfo=partitionExpressions.length?keyInfoFor(partitionExpressions,[],false):null;
+    const exclusionPeers=exclusion==="group"||exclusion==="ties";
+    const peerKeyInfo=(frame?.type!=="rows"||exclusionPeers)&&peerExpressions.length?keyInfoFor(peerExpressions,peerTerms,true):null;
+    // window.c allocates regNew[nInput], regRecord and regRowid before the
+    // producer loop. Non-ROWS frames additionally own four nPeer arrays.
+    const inputRegisters=Object.freeze(Array.from({length:width},()=>++registers));
+    const regNew=inputRegisters[0]??registers+1;
+    const regRecord=++registers,regRowid=++registers;
+    const peerRegisters=():readonly number[]=>Object.freeze(Array.from({length:peerExpressions.length},()=>++registers));
+    const regPeer=(frame?.type!=="rows"||exclusionPeers)&&peerExpressions.length?registers+1:null;
+    const mainPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
+    const startPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
+    const currentPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
+    const endPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
+    setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,regPartInitialized,partitionRegisters:Object.freeze(partitionRegisters),regOne,regOutputReady,boundRegisters:Object.freeze(boundRegisters),regStartRowid,regEndRowid,applicationCursor,deleteMode:frame?frameDeleteMode(frame):"retain",partitionKeyInfo,peerKeyInfo,regNew,inputRegisters,regRecord,regRowid,regPeer,startPeerRegisters,currentPeerRegisters,endPeerRegisters}));
   }
   // Realize the recursive rewrite as coroutine producers. The innermost
   // producer alone owns the original FROM scan. Each incompatible outer layer
   // consumes the prior layer's coroutine instead of being flattened into that
   // scan. Producer ORDER terms are materialized through the ordinary sorter
   // op family before rows cross each boundary.
-  const maxCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]));
+  const maxCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]),...setup.flatMap(layer=>layer.applicationCursor===null?[]:[layer.applicationCursor]));
+  // select.c finalizes the ordinary GROUP BY before the rewritten window
+  // subquery consumes it. Lifted aggregates therefore cannot be read from a
+  // raw source cursor. Build the existing AggInfo/sorter program as the
+  // innermost coroutine producer (its ResultRow is adapted below).
+  const groupedLayer=compileLayers[0]?.lifted.some(item=>item.kind==="aggregate")&&resolved.source.hasGroupBy?compileLayers[0]:null;
+  const groupedProducer=groupedLayer&&database&&schema?(()=>{
+    const source=resolved.source,arm=source.arms[0]!,result=groupedLayer.bufferExpressions;
+    const producer:SelectNode=Object.freeze({...source,result,orderBy:Object.freeze([]),limit:null,offset:null,windowNames:Object.freeze([]),windowDefinitions:Object.freeze([]),hasOrderBy:false,hasLimit:false,hasSubquery:false,arms:Object.freeze([Object.freeze({...arm,result,orderBy:Object.freeze([])})])});
+    return compileAggregateSelect(producer,schema,database,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits);
+  })():null;
   const sourceCoroutine=++registers;
   const producerCoroutines=compileLayers.map(()=>++registers);
   const sorterCursors=compileLayers.map((_layer,index)=>maxCursor+1+index);
-  const bindingsPending:{layer:WindowRewriteGraph["layers"][number];producerCoroutine:number;childCoroutine:number;loopBody:number;gosub:number;sorterCursor:number;ownedClauses:readonly ("from"|"where"|"groupBy"|"having")[]}[]=[];
+  const bindingsPending:{layer:WindowRewriteGraph["layers"][number];producerCoroutine:number;childCoroutine:number;loopBody:number;gosub:number;sorterCursor:number;payload:number;ownedClauses:readonly ("from"|"where"|"groupBy"|"having")[]}[]=[];
 
 
 
@@ -218,35 +393,618 @@ export function compileWindowSelectLowering(
   // reverse-Next Cartesian scan.
   const sourceInit=ops.length;ops.push({code:"InitCoroutine",p1:sourceCoroutine,p2:0,p3:0});
   const sourceStart=ops.length;(ops[sourceInit] as {p3:number}).p3=sourceStart;
-  for(const source of resolved.sources)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});
-  const emitSourceLevel=(index:number):void=>{
-    if(index===resolved.sources.length){ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
-    const cursor=resolved.sources[index]!.cursorId,rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;emitSourceLevel(index+1);ops.push({code:"Next",p1:cursor,p2:body});(ops[rewind] as {p2:number}).p2=ops.length;
-  };
-  if(resolved.sources.length)emitSourceLevel(0);else ops.push({code:"Yield",p1:sourceCoroutine,p2:0});
-  ops.push({code:"EndCoroutine",p1:sourceCoroutine,p2:0});
+  let groupedPayload:number|null=null;
+  if(groupedProducer||coroutineProducer){
+    const sourceProgram=groupedProducer??coroutineProducer!;
+    groupedPayload=registers+1;registers+=sourceProgram.columns.length;
+    const registerOffset=registers,cursorOffset=maxCursor+compileLayers.length+10;
+    registers+=sourceProgram.registers;
+    // ResultRow becomes one Copy per column plus Yield. Build the complete old
+    // PC -> new PC map before relocating branches; a constant offset would send
+    // every target after the first output into the middle of the expansion.
+    const pcMap:number[]=[];let relocatedPc=ops.length;
+    for(const original of sourceProgram.ops){pcMap.push(relocatedPc);relocatedPc+=original.code==="ResultRow"?original.p2+1:1;}
+    pcMap.push(relocatedPc);
+    const reg=(value:number)=>value+registerOffset,csr=(value:number|undefined)=>value===undefined?undefined:value+cursorOffset,pc=(value:number)=>pcMap[value]!;
+    for(const original of sourceProgram.ops){
+      if(original.code==="ResultRow"){
+        for(let column=0;column<original.p2;column++)ops.push({code:"Copy",p1:reg(original.p1+column),p2:groupedPayload+column});
+        ops.push({code:"Yield",p1:sourceCoroutine,p2:0});continue;
+      }
+      if(original.code==="Halt"){ops.push({code:"EndCoroutine",p1:sourceCoroutine,p2:0});continue;}
+      const op:any={...original};
+      switch(original.code){
+        case"SorterOpen":case"OpenEphemeral":op.p1=csr(original.p1);break;
+        case"OpenRead":op.p2=csr(original.p2);break;
+        case"Rewind":case"Next":op.p1=csr(original.p1);op.p2=pc(original.p2);break;
+        case"Column":op.p2=reg(original.p2);op.p3=csr(original.p3);break;
+        case"Rowid":op.p1=csr(original.p1);op.p2=reg(original.p2);break;
+        case"Copy":op.p1=reg(original.p1);op.p2=reg(original.p2);break;
+        case"SorterInsert":op.p1=csr(original.p1);op.keyStart=reg(original.keyStart);op.payload=reg(original.payload);break;
+        case"SorterSort":op.p1=csr(original.p1);op.emptyJump=pc(original.emptyJump);break;
+        case"SorterData":op.p1=csr(original.p1);op.p2=reg(original.p2);break;
+        case"SorterNext":op.p1=csr(original.p1);op.p2=pc(original.p2);break;
+        case"AggReset":op.registers=original.registers.map(reg);break;
+        case"AggStep":op.args=original.args.map(reg);op.p2=reg(original.p2);if(original.changed!==undefined)op.changed=reg(original.changed);break;
+        case"AggFinal":op.p1=reg(original.p1);break;
+        case"IfNot":op.p1=reg(original.p1);op.p2=pc(original.p2);break;
+        case"CompareGroup":op.left=reg(original.left);op.right=reg(original.right);op.jump=pc(original.jump);break;
+        case"Goto":op.p2=pc(original.p2);break;
+        case"OpenFifo":case"OpenPriorityQueue":op.p1=csr(original.p1);break;
+        case"FifoInsert":op.p1=csr(original.p1);op.keyStart=reg(original.keyStart);break;
+        case"PriorityInsert":op.p1=csr(original.p1);op.keyStart=reg(original.keyStart);op.payloadStart=reg(original.payloadStart);break;
+        case"FifoShift":case"PriorityShift":op.p1=csr(original.p1);op.p2=reg(original.p2);op.emptyJump=pc(original.emptyJump);break;
+        case"Found":case"IdxInsert":op.p1=csr(original.p1);op.keyStart=reg(original.keyStart);if(original.code==="Found")op.jump=pc(original.jump);break;
+        case"Binary":op.p1=reg(original.p1);op.p2=reg(original.p2);op.p3=reg(original.p3);break;
+        case"Function":case"PureFunc":op.args=original.args.map(reg);op.p2=reg(original.p2);break;
+        case"MustBeInt":op.p1=reg(original.p1);break;
+        case"OffsetLimit":op.p1=reg(original.p1);op.p2=reg(original.p2);op.p3=reg(original.p3);break;
+        case"IfPos":case"DecrJumpZero":op.p1=reg(original.p1);op.p2=pc(original.p2);break;
+        case"Null":case"Integer":case"Real":case"String":case"Blob":op.p2=reg(original.p2);break;
+        default:throw new JSQLiteError("unsupported",`grouped window producer opcode ${original.code} is not represented`,{unsupportedClassification:"temporary"});
+      }
+      ops.push(op as Op);
+    }
+  }else{
+    for(const source of resolved.sources)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});
+    const bindSourceExpression=(reduction:Reduction):Expression=>{
+      const bind=(expression:Expression,node:Reduction):Expression=>{
+        const children=descendantExprs(node).filter((child):child is Reduction=>child.kind==="reduction");
+        const child=(index:number):Reduction=>{const value=children[index];if(!value)throw new JSQLiteError("internal","source predicate expression child is missing");return value;};
+        if(expression.kind==="column"){
+          const use=resolved.columnUses.find(candidate=>candidate.expression===node);
+          if(!use)throw new JSQLiteError("internal","resolved source predicate column lost its binding");
+          expression.index=use.columnIndex<0||isIntegerPrimaryKeyAlias(use.source.table,use.columnIndex)?-1:use.columnIndex;expression.cursor=use.source.cursorId;
+        }else if(expression.kind==="unary"||expression.kind==="cast"||expression.kind==="collate")bind(expression.value,child(0));
+        else if(expression.kind==="binary"){bind(expression.left,child(0));bind(expression.right,child(1));}
+        return expression;
+      };return bind(expressionFromReduction(reduction),reduction);
+    };
+    // select.c moves FROM/WHERE into the innermost rewritten subquery. Keep
+    // these predicates in that source loop instead of silently broadening it.
+    const sourcePredicates:Reduction[]=[];for(const item of resolved.source.from.items)if(item.on?.reduction?.kind==="reduction")sourcePredicates.push(item.on.reduction);if(resolved.source.where?.reduction?.kind==="reduction")sourcePredicates.push(resolved.source.where.reduction);
+    const predicateSkips:number[]=[];
+    const emitSourceLevel=(index:number):void=>{
+      if(index===resolved.sources.length){for(const predicate of sourcePredicates){const register=compileExpressionTree(bindSourceExpression(predicate),ops,()=>++registers,parameters);predicateSkips.push(ops.length);ops.push({code:"IfNot",p1:register,p2:0});}ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
+      const cursor=resolved.sources[index]!.cursorId,rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;emitSourceLevel(index+1);const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});if(index===resolved.sources.length-1)for(const at of predicateSkips)(ops[at] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;
+    };
+    if(resolved.sources.length)emitSourceLevel(0);else ops.push({code:"Yield",p1:sourceCoroutine,p2:0});
+    ops.push({code:"EndCoroutine",p1:sourceCoroutine,p2:0});
+  }
   const sourceContinuation=ops.length;(ops[sourceInit] as {p2:number}).p2=sourceContinuation;
 
-  let childCoroutine=sourceCoroutine,childStart=sourceStart;
+  let childCoroutine=sourceCoroutine,childStart=sourceStart,allProducerExpressionsRepresented=true;
   for(let index=0;index<compileLayers.length;index++){
     const layer=compileLayers[index]!,producerCoroutine=producerCoroutines[index]!,sorterCursor=sorterCursors[index]!;
     const init=ops.length;ops.push({code:"InitCoroutine",p1:producerCoroutine,p2:0,p3:0});const producerStart=ops.length;(ops[init] as {p3:number}).p3=producerStart;
     ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});
+    // window.c opens the producer sorter once, before sqlite3WhereBegin drives
+    // rows into it. Opening it in the child-loop body discarded every prior
+    // row and made the apparently executable streaming branch single-row-only.
+    const terms=layer.producerOrderBy;ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:new KeyInfo({encoding,totalFieldCount:terms.length,keyFieldCount:terms.length,terms:terms.map(term=>{if(!term.expression.reduction)throw new JSQLiteError("internal","generated window sort expression lost its reduction");return{collation:collation(expressionFromReduction(term.expression.reduction)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};})})});
     const childLoop=ops.length,yieldAt=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
-    // Sort production is layer-owned and occurs before its per-row handoff.
-    const terms=layer.producerOrderBy;ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:new KeyInfo({encoding,totalFieldCount:terms.length,keyFieldCount:terms.length,terms:terms.map(term=>({collation:"binary",desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}))})});
-    const key=++registers;registers+=Math.max(0,terms.length-1);for(let term=0;term<terms.length;term++)ops.push({code:"Null",p2:key+term});const payload=++registers;ops.push({code:"Null",p2:payload},{code:"SorterInsert",p1:sorterCursor,keyStart:key,keyCount:terms.length,payload,payloadCount:1},{code:"Goto",p2:childLoop});
-    const childDone=ops.length;(ops[yieldAt] as {p2:number}).p2=childDone;
-    const sort=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0});const loopBody=ops.length;ops.push({code:"SorterData",p1:sorterCursor,p2:payload,count:1});const gosub=ops.length;ops.push({code:"Gosub",p1:layer.regGosub,p2:0},{code:"Yield",p1:producerCoroutine,p2:0},{code:"SorterNext",p1:sorterCursor,p2:loopBody});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;
+    let childNotReady:number|null=null;if(index>0){childNotReady=ops.length;ops.push({code:"IfNot",p1:setup[index-1]!.regOutputReady,p2:0});}
+    // Resolver-owned provenance is copied alongside generated expressions.
+    // Never infer identity from copied token spelling: wrappers, aliases and
+    // duplicate names make that unsound.
+    const emitProducerBinding=(binding:typeof layer.bufferBindings[number],target:number,value?:typeof layer.bufferExpressions[number],producerColumn?:number):void=>{
+      if(index===0&&groupedPayload!==null){const column=coroutineProducer?(binding?.columnIndex??producerColumn??-1):(producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):-1));if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
+      if(index>0&&value?.reduction){const child=compileLayers[index-1]!,childState=setup[index-1]!;const win=child.windows.find(item=>item.window.owner.reduction===value.reduction);if(win){ops.push({code:"Copy",p1:win.regResult,p2:target});return;}const column=child.bufferExpressions.findIndex(expression=>expression.reduction===value.reduction);if(column>=0){ops.push({code:"Copy",p1:childState.regNew+column,p2:target});return;}const bound=binding?child.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):-1;if(bound>=0){ops.push({code:"Copy",p1:childState.regNew+bound,p2:target});return;}}
+      if(!binding){
+        // FILTER is a complete producer expression, not a direct column
+        // binding. Evaluate it while the source cursors are positioned and
+        // retain its boolean value in the shared ephemeral payload. This is
+        // window.c's FILTER register ownership, not output-time recomputation.
+        const ownedFilter=producerColumn!==undefined&&layer.windows.some(win=>win.filterColumn===producerColumn);
+        const valueReduction=value?.reduction;
+        if(ownedFilter&&valueReduction?.kind==="reduction"){
+          const filterExpr=valueReduction.children.find((child):child is Reduction=>child.kind==="reduction"&&child.signature.startsWith("expr ::="));
+          if(!filterExpr)throw new JSQLiteError("internal","window FILTER lost its expression");
+          const bindColumns=(expression:Expression,reduction:Reduction):Expression=>{
+            const children=descendantExprs(reduction);
+            const child=(index:number):Reduction=>{const value=children[index];if(!value||value.kind!=="reduction")throw new JSQLiteError("internal","window FILTER expression child is missing");return value;};
+            if(expression.kind==="column"){
+              const use=resolved.columnUses.find(candidate=>candidate.expression===reduction);
+              if(!use)throw new JSQLiteError("internal","resolved window FILTER column lost its binding");
+              expression.index=use.columnIndex<0||isIntegerPrimaryKeyAlias(use.source.table,use.columnIndex)?-1:use.columnIndex;
+              expression.cursor=use.source.cursorId;
+            }else if(expression.kind==="unary"||expression.kind==="cast"||expression.kind==="collate")bindColumns(expression.value,child(0));
+            else if(expression.kind==="binary"){bindColumns(expression.left,child(0));bindColumns(expression.right,child(1));}
+            return expression;
+          };
+          const boundFilter=bindColumns(expressionFromReduction(filterExpr),filterExpr);const register=compileExpressionTree(boundFilter,ops,()=>++registers,parameters);ops.push({code:"Copy",p1:register,p2:target});return;
+        }
+        // Constant aggregate arguments have no resolver column binding, but
+        // sqlite3WindowRewrite still stores their value in every ephemeral row.
+        let expression:ReturnType<typeof expressionFromReduction>|null=null;
+        try{expression=value?.reduction?expressionFromReduction(value.reduction):null;}catch{/* Preserve the existing unrepresented-expression rejection below. */}
+        if(expression?.kind==="literal"){
+          const literal=expression.value;
+          if(literal===null)ops.push({code:"Null",p2:target});
+          else if(typeof literal==="bigint")ops.push({code:"Integer",p1:literal,p2:target});
+          else if(typeof literal==="number")ops.push({code:"Real",p1:literal,p2:target});
+          else if(typeof literal==="string")ops.push({code:"String",p1:literal,p2:target});
+          else ops.push({code:"Blob",p1:literal,p2:target});
+          return;
+        }
+        const windowAlias=value?.tokens.length===1?resolved.result.find(result=>result.expression.alias!==undefined&&result.expression.alias!==null&&sqliteIdentifierEqual(result.expression.alias,sqlName(value.tokens[0]!.text))&&rewrite.layers.some(owner=>owner.windows.some(win=>win.window.owner===result.expression))):undefined;
+        const deferred=!!windowAlias||!!(value?.reduction&&compileLayers.slice(index+1).some(owner=>owner.windows.some(win=>win.window.owner.reduction===value.reduction)));if(!deferred)allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;
+      }
+      const column=binding.columnIndex<0||isIntegerPrimaryKeyAlias(binding.source.table,binding.columnIndex)?-1:binding.columnIndex;
+      if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
+    };
+    const key=registers+1;registers+=terms.length;for(let term=0;term<terms.length;term++)emitProducerBinding(terms[term]!.binding,key+term,terms[term]!.expression);
+    const payload=registers+1;registers+=layer.bufferExpressions.length;
+    for(let column=0;column<layer.bufferExpressions.length;column++)emitProducerBinding(layer.bufferBindings[column]!,payload+column,layer.bufferExpressions[column],column);
+    const directCumulative=index>0&&terms.length===0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");});
+    if(directCumulative){
+      for(let column=0;column<layer.bufferExpressions.length;column++)ops.push({code:"Copy",p1:payload+column,p2:setup[index]!.regNew+column});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>setup[index]!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"},{code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});}
+      ops.push({code:"Integer",p1:1n,p2:setup[index]!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});
+    }else ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:key,keyCount:terms.length,payload,payloadCount:layer.bufferExpressions.length});
+    if(index>0)ops.push({code:"Integer",p1:0n,p2:setup[index-1]!.regOutputReady});ops.push({code:"Goto",p2:childLoop});
+    const childDone=ops.length;if(childNotReady!==null)(ops[childNotReady] as {p2:number}).p2=childLoop;(ops[yieldAt] as {p2:number}).p2=childDone;
+    const following=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="current"&&frame.end.kind==="following"&&!!frame.end.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const followingRange=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="following"&&frame.end.kind==="following"&&!!frame.start.expr?.reduction&&!!frame.end.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const precedingRange=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="preceding"&&frame.end.kind==="preceding"&&!!frame.start.expr?.reduction&&!!frame.end.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const precedingFollowing=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="preceding"&&frame.end.kind==="following"&&!!frame.start.expr?.reduction&&!!frame.end.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const followingUnbounded=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="following"&&frame.end.kind==="unbounded"&&!!frame.start.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const precedingUnbounded=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.partitionBy.length===0&&frame.start.kind==="preceding"&&frame.end.kind==="unbounded"&&!!frame.start.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const wholePartition=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.exclusion===null||frame.exclusion==="no-others")&&frame.start.kind==="unbounded"&&((frame.type==="rows"&&frame.end.kind==="unbounded")||(frame.type==="range"&&win.window.orderBy.length===0&&frame.end.kind==="current"));});
+    const singlePeerGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length===0&&frame.start.kind==="current"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const orderedCurrentGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const rangeCurrentPeerExclusion=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.type==="range"||frame.type==="groups")&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="current"&&frame.exclusion==="ties";});
+    const rangeOffsetExcludeCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||(f.start.kind==="preceding"&&!!f.start.expr?.reduction)||f.start.kind==="current"||(f.start.kind==="following"&&!!f.start.expr?.reduction))&&(f.end.kind==="unbounded"||f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion==="current-row"||f.exclusion==="ties"||f.exclusion==="group"||f.exclusion==="no-others");});
+    const groupsOnePrecedingExcludeGroup=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1&&f.end.kind==="current"&&f.exclusion==="group";});
+    const orderedCumulativePeerGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.type==="groups"||frame.type==="range")&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const orderedCumulativePriorGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="preceding"&&!!frame.end.expr?.reduction&&windowConstantInteger(expressionFromReduction(frame.end.expr.reduction))===1&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const orderedCumulativePeerExclusion=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion==="group"||frame.exclusion==="ties");});
+    const orderedSuffixGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="unbounded"&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    // First offset GROUPS schedule. Like windowCodeOp, this advances the end and
+    // start cursors by complete peer groups and leaves callback dispatch in the
+    // ordinary AggStep/AggInverse/AggValue opcodes. Do not collapse this into a
+    // host-side partition mapper: regNew/lookahead and all cursor positions are
+    // resumable VM state across each output Yield.
+    const orderedRangePrecedingCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&f.exclusion===null;});
+    const orderedAdjacentGroups=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;if(f.type!=="groups"||win.window.orderBy.length===0||f.start.kind!=="preceding"||!f.start.expr?.reduction||(f.exclusion!==null&&f.exclusion!=="group"))return false;if(f.exclusion==="group"&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1)return false;return f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction);});
+    const followingState=setup.find(item=>item.compatibleGroup===layer.compatibleGroup);
+    if((following||followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded||wholePartition||singlePeerGroups||orderedCurrentGroups||rangeCurrentPeerExclusion||rangeOffsetExcludeCurrent||groupsOnePrecedingExcludeGroup||orderedCumulativePeerGroups||orderedCumulativePriorGroups||orderedCumulativePeerExclusion||orderedSuffixGroups||orderedRangePrecedingCurrent||orderedAdjacentGroups)&&!followingState)throw new JSQLiteError("internal","window following state is missing");
+    const rangeState=(followingRange||precedingRange||precedingFollowing)?followingState!:null;
+    const rangeEndCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded)?++registers:null,rangeStartCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded)?++registers:null;
+    const emitPrecedingRangeDrain=():void=>{
+      // window.c keeps the current, end and start rows on independently
+      // positioned cursors. Our cursor payload operations share regNew, so the
+      // end-step and start-inverse reads below must not replace the current row
+      // that crosses the producer Yield boundary.
+      const outputSave=registers+1;registers+=rangeState!.inputRegisters.length;
+      const reversed=ops.length;ops.push({code:"IfRegisterGt",left:rangeState!.boundRegisters.end!,right:rangeState!.boundRegisters.start!,jump:0});
+      ops.push({code:"Copy",p1:rangeState!.boundRegisters.end!,p2:rangeEndCount!},{code:"Copy",p1:rangeState!.boundRegisters.start!,p2:rangeStartCount!},{code:"Binary",op:"+",p1:rangeStartCount!,p2:rangeState!.regOne,p3:rangeStartCount!,collation:"binary"});
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(let i=0;i<rangeState!.inputRegisters.length;i++)ops.push({code:"Copy",p1:rangeState!.regNew+i,p2:outputSave+i});
+      const endCheck=ops.length;ops.push({code:"IfPos",p1:rangeEndCount!,p2:0,p3:1});const endAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const afterEnd=ops.length;(ops[endCheck] as {p2:number}).p2=afterEnd;(ops[endAdvance] as {emptyJump:number}).emptyJump=afterEnd;
+      const startCheck=ops.length;ops.push({code:"IfPos",p1:rangeStartCount!,p2:0,p3:1});const startAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const snapshot=ops.length;(ops[startCheck] as {p2:number}).p2=snapshot;(ops[startAdvance] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});for(let i=0;i<rangeState!.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:rangeState!.regNew+i});ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});
+      const empty=ops.length;(ops[reversed] as {jump:number}).jump=empty;const emptyLoop=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:emptyLoop});const complete=ops.length;(ops[output] as {emptyJump:number}).emptyJump=complete;(ops[emptyLoop] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitPrecedingFollowingDrain=():void=>{
+      ops.push({code:"Copy",p1:rangeState!.boundRegisters.end!,p2:rangeEndCount!},{code:"Binary",op:"+",p1:rangeEndCount!,p2:rangeState!.regOne,p3:rangeEndCount!,collation:"binary"});
+      const initial=ops.length;ops.push({code:"IfPos",p1:rangeEndCount!,p2:0,p3:1},{code:"Goto",p2:0});const initialAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:initial});const initialized=ops.length;(ops[initial] as {p2:number}).p2=initialAdvance;(ops[initial+1] as {p2:number}).p2=initialized;(ops[initialAdvance] as {emptyJump:number}).emptyJump=initialized;
+      ops.push({code:"Copy",p1:rangeState!.boundRegisters.start!,p2:rangeStartCount!});
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});
+      const endAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const afterEnd=ops.length;(ops[endAdvance] as {emptyJump:number}).emptyJump=afterEnd;
+      const startCheck=ops.length;ops.push({code:"IfPos",p1:rangeStartCount!,p2:0,p3:1});const startAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const afterStart=ops.length;(ops[startCheck] as {p2:number}).p2=afterStart;(ops[startAdvance] as {emptyJump:number}).emptyJump=afterStart;ops.push({code:"Goto",p2:output});const complete=ops.length;(ops[output] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitGroupsOnePrecedingExcludeGroupDrain=():void=>{
+      const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,initialized=++registers,hasPrevious=++registers;
+      const currentPeer=registers+1;registers+=peerCount;const previousPeer=registers+1;registers+=peerCount;const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      ops.push({code:"Integer",p1:0n,p2:initialized},{code:"Integer",p1:0n,p2:hasPrevious});const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});
+      const first=ops.length;ops.push({code:"IfNot",p1:initialized,p2:0});const sameGroup=ops.length;ops.push({code:"CompareGroup",left:outputSave+peerStart,right:currentPeer,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:currentPeer+i,p2:previousPeer+i});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:outputSave+peerStart+i,p2:currentPeer+i});ops.push({code:"Integer",p1:1n,p2:hasPrevious},{code:"Goto",p2:0});const initialize=ops.length;(ops[first] as {p2:number}).p2=initialize;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:outputSave+peerStart+i,p2:currentPeer+i});ops.push({code:"Integer",p1:1n,p2:initialized});const scanStart=ops.length;(ops[sameGroup] as {jump:number}).jump=scanStart;(ops[initialize-1] as {p2:number}).p2=scanStart;ops.push({code:"AggReset",registers:temporary});const noPrevious=ops.length;ops.push({code:"IfNot",p1:hasPrevious,p2:0});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:previousPeer,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer] as {jump:number}).jump=step;for(let i=0;i<layer.windows.length;i++){const win=layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,j)=>state.regNew+win.argumentColumn+j);let filter:number|null=null;if(win.filterColumn!==null){filter=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filter!==null)(ops[filter] as {p2:number}).p2=at+1;}const next=ops.length;(ops[peer+1] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[noPrevious] as {p2:number}).p2=snapshot;(ops[rewind] as {p2:number}).p2=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitRangeOffsetExcludeCurrentDrain=():void=>{
+      const state=followingState!,orderIndex=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length,currentKey=++registers,currentRowid=++registers,candidateRowid=++registers,same=++registers;
+      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers),term=layer.producerOrderBy.find(item=>item.source==="order")!;const coll=typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary";
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid},{code:"Copy",p1:state.regNew+orderIndex,p2:currentKey});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"AggReset",registers:temporary});
+      const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const startUnbounded=layer.windows[0]!.window.frame.start.kind==="unbounded",beforeStart=ops.length;ops.push(startUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"start-current",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,collation:coll,jump:0});const endUnbounded=layer.windows[0]!.window.frame.end.kind==="unbounded",endEligible=ops.length;ops.push(endUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"end-current",descending:term.descending,collation:coll,jump:0},{code:"Goto",p2:0});const eligible=ops.length;if(startUnbounded)(ops[beforeStart] as {p2:number}).p2=eligible;if(endUnbounded)(ops[endEligible] as {p2:number}).p2=eligible;else (ops[endEligible] as {jump:number}).jump=eligible;let skipCurrent:number,identityStep:number|null=null;if(layer.windows[0]!.window.frame.exclusion==="no-others"){skipCurrent=ops.length;ops.push({code:"Goto",p2:skipCurrent+1});identityStep=skipCurrent+1;}else if(layer.windows[0]!.window.frame.exclusion==="group"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:currentKey,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer+1] as {p2:number}).p2=step;skipCurrent=peer;identityStep=step;}else if(layer.windows[0]!.window.frame.exclusion==="ties"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:currentKey,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[peer+1] as {p2:number}).p2=step;}else{ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;(ops[skipCurrent] as {p2:number}).p2=step;}for(let i=0;i<layer.windows.length;i++){const win=layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,j)=>state.regNew+win.argumentColumn+j);let filter:number|null=null;if(win.filterColumn!==null){filter=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filter!==null)(ops[filter] as {p2:number}).p2=at+1;}
+      const next=ops.length;if(!startUnbounded)(ops[beforeStart] as {jump:number}).jump=next;if(identityStep!==null){if(layer.windows[0]!.window.frame.exclusion==="group")(ops[skipCurrent] as {jump:number}).jump=next;else if(layer.windows[0]!.window.frame.exclusion!=="no-others"){(ops[skipCurrent] as {p2:number}).p2=next;(ops[skipCurrent+1] as {p2:number}).p2=identityStep;}}else (ops[skipCurrent+1] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[rewind] as {p2:number}).p2=snapshot;(ops[endEligible+1] as {p2:number}).p2=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitRangeCurrentTiesDrain=():void=>{
+      const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,currentRowid=++registers,candidateRowid=++registers,same=++registers;
+      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});
+      ops.push({code:"AggReset",registers:temporary});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const pastCurrent=ops.length;ops.push({code:"IfRegisterGt",left:candidateRowid,right:currentRowid,jump:0});const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:outputSave+peerStart,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});const skip=ops.length;ops.push({code:"IfNot",p1:same,p2:0});for(let i=0;i<layer.windows.length;i++){const win=layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,j)=>state.regNew+win.argumentColumn+j);let filter:number|null=null;if(win.filterColumn!==null){filter=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filter!==null)(ops[filter] as {p2:number}).p2=at+1;}const next=ops.length;(ops[peer+1] as {p2:number}).p2=orderedCumulativePeerExclusion?skip+1:next;(ops[skip] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[rewind] as {p2:number}).p2=snapshot;(ops[pastCurrent] as {jump:number}).jump=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitOrderedCurrentGroupsDrain=():void=>{
+      const state=followingState!,peerCount=state.currentPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-layer.windows[0]!.window.partitionBy.length-peerCount,groupRows=++registers;
+      // EphemeralAdvanceData on the end cursor reads one row ahead to discover a
+      // peer boundary. The current-cursor output loop also uses regNew, so retain
+      // that complete lookahead payload before output overwrites it. This is the
+      // register-shaped equivalent of windowCodeOp preserving its end cursor row.
+      const lookahead=registers+1;registers+=state.inputRegisters.length;
+      const first=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+      for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.endPeerRegisters[i]!});
+      const beginGroup=ops.length;ops.push({code:"Integer",p1:0n,p2:groupRows});
+      const stepRow=ops.length;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Binary",op:"+",p1:groupRows,p2:state.regOne,p3:groupRows,collation:"binary"});
+      const nextEnd=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const compare=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:state.endPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:stepRow});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:lookahead+i});
+      const output=ops.length;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});const outputLoop=ops.length;ops.push({code:"IfPos",p1:groupRows,p2:0,p3:1},{code:"Goto",p2:0});const outputRow=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:outputLoop});
+      const nextGroup=ops.length;(ops[outputLoop] as {p2:number}).p2=outputRow;(ops[outputLoop+1] as {p2:number}).p2=nextGroup;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:lookahead+i,p2:state.regNew+i});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.endPeerRegisters[i]!});ops.push({code:"Goto",p2:beginGroup});
+      const finalOutput=ops.length;(ops[first] as {emptyJump:number}).emptyJump=finalOutput;(ops[nextEnd] as {emptyJump:number}).emptyJump=finalOutput;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});const finalLoop=ops.length;ops.push({code:"IfPos",p1:groupRows,p2:0,p3:1},{code:"Goto",p2:0});const finalRow=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:finalLoop});const complete=ops.length;(ops[finalLoop] as {p2:number}).p2=finalRow;(ops[finalLoop+1] as {p2:number}).p2=complete;(ops[finalRow] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitOrderedCumulativePeerGroupsDrain=():void=>{
+      const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,groupRows=++registers,commitRows=++registers,hasLookahead=++registers;
+      const lookahead=registers+1;registers+=state.inputRegisters.length;ops.push({code:"Integer",p1:0n,p2:hasLookahead});
+      const group=ops.length;ops.push({code:"Integer",p1:0n,p2:groupRows},{code:"Integer",p1:0n,p2:commitRows});if(orderedCumulativePeerExclusion||orderedCumulativePriorGroups)for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});const useCursor=ops.length;ops.push({code:"IfNot",p1:hasLookahead,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:lookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:hasLookahead},{code:"Goto",p2:0});const advance=ops.length;(ops[useCursor] as {p2:number}).p2=advance;const first=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const have=ops.length;(ops[advance-1] as {p2:number}).p2=have;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.endPeerRegisters[i]!});
+      const step=ops.length;if(layer.windows[0]!.window.frame.exclusion!=="ties")windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP");ops.push({code:"Binary",op:"+",p1:groupRows,p2:state.regOne,p3:groupRows,collation:"binary"},{code:"Binary",op:"+",p1:commitRows,p2:state.regOne,p3:commitRows,collation:"binary"});const next=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.endPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:step});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:lookahead+i});ops.push({code:"Integer",p1:1n,p2:hasLookahead});
+      const output=ops.length;(ops[next] as {emptyJump:number}).emptyJump=output;if(!orderedCumulativePeerExclusion&&!orderedCumulativePriorGroups)for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});const loop=ops.length;ops.push({code:"IfPos",p1:groupRows,p2:0,p3:1},{code:"Goto",p2:0});const row=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});if(layer.windows[0]!.window.frame.exclusion==="ties"){for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"},{code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult},{code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}}ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:loop});const following=ops.length;(ops[loop] as {p2:number}).p2=row;(ops[loop+1] as {p2:number}).p2=following;if(layer.windows[0]!.window.frame.exclusion==="ties"){const commit=ops.length;ops.push({code:"IfPos",p1:commitRows,p2:0,p3:1},{code:"Goto",p2:0});const commitRow=ops.length;(ops[commit] as {p2:number}).p2=commitRow;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:commit});const committed=ops.length;(ops[commit+1] as {p2:number}).p2=committed;}ops.push({code:"Goto",p2:group});const done=ops.length;(ops[first] as {emptyJump:number}).emptyJump=done;(ops[row] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitOrderedSuffixGroupsDrain=():void=>{
+      const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,outputRows=++registers,inverseRows=++registers,hasOutput=++registers,hasInverse=++registers;
+      const outputLookahead=registers+1;registers+=state.inputRegisters.length;const inverseLookahead=registers+1;registers+=state.inputRegisters.length;
+      const fill=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:fill});const filled=ops.length;(ops[fill] as {emptyJump:number}).emptyJump=filled;ops.push({code:"Integer",p1:0n,p2:hasOutput},{code:"Integer",p1:0n,p2:hasInverse});
+      const group=ops.length;ops.push({code:"Integer",p1:0n,p2:outputRows},{code:"Integer",p1:0n,p2:inverseRows});
+      const useOutput=ops.length;ops.push({code:"IfNot",p1:hasOutput,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:hasOutput},{code:"Goto",p2:0});const advanceOutput=ops.length;(ops[useOutput] as {p2:number}).p2=advanceOutput;const firstOutput=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const haveOutput=ops.length;(ops[advanceOutput-1] as {p2:number}).p2=haveOutput;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.currentPeerRegisters[i]!});const countOutput=ops.length;ops.push({code:"Binary",op:"+",p1:outputRows,p2:state.regOne,p3:outputRows,collation:"binary"});const nextOutput=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.currentPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:countOutput});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputLookahead+i});ops.push({code:"Integer",p1:1n,p2:hasOutput});const snapshot=ops.length;(ops[nextOutput] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      const outputLoop=ops.length;ops.push({code:"IfPos",p1:outputRows,p2:0,p3:1},{code:"Goto",p2:0});const yieldRow=ops.length;ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:outputLoop});const inverseStart=ops.length;(ops[outputLoop] as {p2:number}).p2=yieldRow;(ops[outputLoop+1] as {p2:number}).p2=inverseStart;
+      const useInverse=ops.length;ops.push({code:"IfNot",p1:hasInverse,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:inverseLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:hasInverse},{code:"Goto",p2:0});const advanceInverse=ops.length;(ops[useInverse] as {p2:number}).p2=advanceInverse;const firstInverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const haveInverse=ops.length;(ops[advanceInverse-1] as {p2:number}).p2=haveInverse;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.startPeerRegisters[i]!});const inverse=ops.length;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const nextInverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.startPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:inverse});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:inverseLookahead+i});ops.push({code:"Integer",p1:1n,p2:hasInverse},{code:"Goto",p2:group});const done=ops.length;(ops[firstOutput] as {emptyJump:number}).emptyJump=done;(ops[firstInverse] as {emptyJump:number}).emptyJump=done;(ops[nextInverse] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitOrderedRangePrecedingCurrentDrain=():void=>{
+      const state=followingState!,orderIndex=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length,currentKey=++registers,endFlag=++registers,startFlag=++registers;
+      const outputSave=registers+1;registers+=state.inputRegisters.length;const endSave=registers+1;registers+=state.inputRegisters.length;const startSave=registers+1;registers+=state.inputRegisters.length;
+      const term=layer.producerOrderBy.find(term=>term.source==="order")!;ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Integer",p1:0n,p2:startFlag});
+      const output=ops.length;const outputAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"Copy",p1:state.regNew+orderIndex,p2:currentKey});
+      const endLoop=ops.length;const endUse=ops.length;ops.push({code:"IfNot",p1:endFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:endSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Goto",p2:0});const endAdvance=ops.length;(ops[endUse] as {p2:number}).p2=endAdvance;const endFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const endHave=ops.length;(ops[endAdvance-1] as {p2:number}).p2=endHave;const endEligible=ops.length;ops.push(layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.end.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"end-unbounded",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"end-current",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:endSave+i});ops.push({code:"Integer",p1:1n,p2:endFlag},{code:"Goto",p2:0});const endStep=ops.length;(ops[endEligible] as {jump:number}).jump=endStep;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:endLoop});const startLoop=ops.length;(ops[endEligible+state.inputRegisters.length+2] as {p2:number}).p2=startLoop;(ops[endFirst] as {emptyJump:number}).emptyJump=startLoop;
+      const startUse=ops.length;ops.push({code:"IfNot",p1:startFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:startSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:startFlag},{code:"Goto",p2:0});const startAdvance=ops.length;(ops[startUse] as {p2:number}).p2=startAdvance;const startFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const startHave=ops.length;(ops[startAdvance-1] as {p2:number}).p2=startHave;const startEligible=ops.length;ops.push(layer.windows[0]!.window.frame.start.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"start-unbounded",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,mode:"start-current",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:currentKey,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:startSave+i});ops.push({code:"Integer",p1:1n,p2:startFlag},{code:"Goto",p2:0});const inverse=ops.length;(ops[startEligible] as {jump:number}).jump=inverse;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:startLoop});const snapshot=ops.length;(ops[startEligible+state.inputRegisters.length+2] as {p2:number}).p2=snapshot;(ops[startFirst] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[outputAdvance] as {emptyJump:number}).emptyJump=done;
+    };
+    const emitOrderedAdjacentGroupsDrain=():void=>{
+      const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-state.partitionRegisters.length-peerCount;
+      const endCount=++registers,startDelay=++registers,endRows=++registers,endLookaheadFlag=++registers,startLookaheadFlag=++registers,outputLookaheadFlag=++registers,endReturn=++registers,startReturn=++registers;
+      const endLookahead=registers+1;registers+=state.inputRegisters.length;const startLookahead=registers+1;registers+=state.inputRegisters.length;const outputLookahead=registers+1;registers+=state.inputRegisters.length;const excludeGroup=layer.windows[0]!.window.frame.exclusion==="group",outputGroup=excludeGroup?++registers:0,candidateGroup=excludeGroup?++registers:0,candidateInitialized=excludeGroup?++registers:0,distance=excludeGroup?++registers:0,candidatePeer=registers+1;registers+=excludeGroup?peerCount:0;const temporary=excludeGroup?layer.windows.map(()=>++registers):[];
+      if(layer.windows[0]!.window.frame.end.kind==="current")ops.push({code:"Integer",p1:1n,p2:endCount});else ops.push({code:"Copy",p1:state.boundRegisters.end!,p2:endCount},{code:"Binary",op:"+",p1:endCount,p2:state.regOne,p3:endCount,collation:"binary"});ops.push({code:"Copy",p1:state.boundRegisters.start!,p2:startDelay},{code:"Integer",p1:0n,p2:endLookaheadFlag},{code:"Integer",p1:0n,p2:startLookaheadFlag},{code:"Integer",p1:0n,p2:outputLookaheadFlag});if(excludeGroup)ops.push({code:"Integer",p1:0n,p2:outputGroup});
+      const endCalls:number[]=[];const callEnd=():void=>{endCalls.push(ops.length);ops.push({code:"Gosub",p1:endReturn,p2:0});};
+      const initialEnd=ops.length;ops.push({code:"IfPos",p1:endCount,p2:0,p3:1},{code:"Goto",p2:0});const initialBody=ops.length;callEnd();ops.push({code:"Goto",p2:initialEnd});const output=ops.length;(ops[initialEnd] as {p2:number}).p2=initialBody;(ops[initialEnd+1] as {p2:number}).p2=output;
+      // Snapshot once for the complete current peer group. regResult remains
+      // stable across all of the group's output Yield operations.
+      if(!excludeGroup){for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});}else{
+        ops.push({code:"AggReset",registers:temporary},{code:"Integer",p1:0n,p2:candidateGroup},{code:"Integer",p1:0n,p2:candidateInitialized});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});const firstCandidate=ops.length;ops.push({code:"IfNot",p1:candidateInitialized,p2:0});const sameCandidate=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:candidatePeer,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0},{code:"Binary",op:"+",p1:candidateGroup,p2:state.regOne,p3:candidateGroup,collation:"binary"});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:candidatePeer+i});const eligible=ops.length;(ops[sameCandidate] as {jump:number}).jump=eligible;const initialize=ops.length;(ops[firstCandidate] as {p2:number}).p2=initialize;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:candidatePeer+i});ops.push({code:"Integer",p1:1n,p2:candidateInitialized});const eligibleAfterInit=ops.length;ops.push({code:"IfRegisterGt",left:candidateGroup,right:outputGroup,jump:0},{code:"Binary",op:"-",p1:outputGroup,p2:candidateGroup,p3:distance,collation:"binary"});const tooFar=ops.length;ops.push({code:"IfRegisterGt",left:distance,right:state.boundRegisters.start!,jump:0},{code:"Eq",p1:candidateGroup,p2:outputGroup,p3:distance,affinity:"numeric",collation:"binary"});const notCurrent=ops.length;ops.push({code:"IfNot",p1:distance,p2:0},{code:"Goto",p2:0});const step=ops.length;(ops[notCurrent] as {p2:number}).p2=step;for(let i=0;i<layer.windows.length;i++){const win=layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,j)=>state.regNew+win.argumentColumn+j);let filter:number|null=null;if(win.filterColumn!==null){filter=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filter!==null)(ops[filter] as {p2:number}).p2=at+1;}const nextCandidate=ops.length;(ops[eligibleAfterInit] as {jump:number}).jump=nextCandidate;(ops[tooFar] as {jump:number}).jump=nextCandidate;(ops[notCurrent+1] as {p2:number}).p2=nextCandidate;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const scanDone=ops.length;(ops[rewind] as {p2:number}).p2=scanDone;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});
+      }
+      const outputUseCursor=ops.length;ops.push({code:"IfNot",p1:outputLookaheadFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:outputLookaheadFlag},{code:"Goto",p2:0});const outputAdvance=ops.length;(ops[outputUseCursor] as {p2:number}).p2=outputAdvance;const outputFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const outputHave=ops.length;(ops[outputAdvance-1] as {p2:number}).p2=outputHave;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.currentPeerRegisters[i]!});
+      const emitRow=ops.length;ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});const outputNext=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.currentPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:emitRow});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputLookahead+i});ops.push({code:"Integer",p1:1n,p2:outputLookaheadFlag});
+      const slide=ops.length;(ops[outputNext] as {emptyJump:number}).emptyJump=slide;if(excludeGroup)ops.push({code:"Binary",op:"+",p1:outputGroup,p2:state.regOne,p3:outputGroup,collation:"binary"});
+      const delay=ops.length;ops.push({code:"IfPos",p1:startDelay,p2:0,p3:1},{code:"Gosub",p1:startReturn,p2:0});const afterInverse=ops.length;(ops[delay] as {p2:number}).p2=afterInverse;callEnd();ops.push({code:"Goto",p2:output});const done=ops.length;(ops[outputFirst] as {emptyJump:number}).emptyJump=done;const skipSubroutines=ops.length;ops.push({code:"Goto",p2:0});
+
+      // End-cursor peer scanner. It may read one row beyond a peer boundary,
+      // so the complete row is retained as resumable register state.
+      const endScan=ops.length;for(const call of endCalls)(ops[call] as {p2:number}).p2=endScan;ops.push({code:"Integer",p1:0n,p2:endRows});const endUse=ops.length;ops.push({code:"IfNot",p1:endLookaheadFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:endLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:endLookaheadFlag},{code:"Goto",p2:0});const endAdvance=ops.length;(ops[endUse] as {p2:number}).p2=endAdvance;const endFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const endHave=ops.length;(ops[endAdvance-1] as {p2:number}).p2=endHave;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.endPeerRegisters[i]!});const endStep=ops.length;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Binary",op:"+",p1:endRows,p2:state.regOne,p3:endRows,collation:"binary"});const endNext=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.endPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:endStep});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:endLookahead+i});ops.push({code:"Integer",p1:1n,p2:endLookaheadFlag});const endRet=ops.length;ops.push({code:"Return",p1:endReturn});(ops[endFirst] as {emptyJump:number}).emptyJump=endRet;(ops[endNext] as {emptyJump:number}).emptyJump=endRet;
+
+      // Start cursor removes exactly one complete peer group once the starting
+      // distance has elapsed. This is windowCodeOp's GROUPS inverse phase.
+      const startScan=ops.length;(ops[delay+1] as {p2:number}).p2=startScan;const startUse=ops.length;ops.push({code:"IfNot",p1:startLookaheadFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:startLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:startLookaheadFlag},{code:"Goto",p2:0});const startAdvance=ops.length;(ops[startUse] as {p2:number}).p2=startAdvance;const startFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const startHave=ops.length;(ops[startAdvance-1] as {p2:number}).p2=startHave;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.startPeerRegisters[i]!});const inverse=ops.length;for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const startNext=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.startPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:inverse});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:startLookahead+i});ops.push({code:"Integer",p1:1n,p2:startLookaheadFlag});const startRet=ops.length;ops.push({code:"Return",p1:startReturn});(ops[startFirst] as {emptyJump:number}).emptyJump=startRet;(ops[startNext] as {emptyJump:number}).emptyJump=startRet;(ops[skipSubroutines] as {p2:number}).p2=ops.length;
+    };
+    const emitWholePartitionDrain=():void=>{
+      const fill=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:fill});const output=ops.length;(ops[fill] as {emptyJump:number}).emptyJump=output;
+      const loop=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:followingState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:loop});const complete=ops.length;(ops[loop] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitFollowingUnboundedDrain=():void=>{
+      const fill=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:fill});const filled=ops.length;(ops[fill] as {emptyJump:number}).emptyJump=filled;
+      ops.push({code:"Copy",p1:followingState!.boundRegisters.start!,p2:rangeStartCount!});const initial=ops.length;ops.push({code:"IfPos",p1:rangeStartCount!,p2:0,p3:1},{code:"Goto",p2:0});const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:initial});const output=ops.length;(ops[initial] as {p2:number}).p2=inverse;(ops[initial+1] as {p2:number}).p2=output;(ops[inverse] as {emptyJump:number}).emptyJump=output;
+      const loop=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:followingState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});const slide=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:followingState!.regNew,count:followingState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}const afterSlide=ops.length;(ops[slide] as {emptyJump:number}).emptyJump=afterSlide;ops.push({code:"Goto",p2:loop});const complete=ops.length;(ops[loop] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitPrecedingUnboundedDrain=():void=>{
+      const state=followingState!;
+      const fill=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:fill});const filled=ops.length;(ops[fill] as {emptyJump:number}).emptyJump=filled;
+      ops.push({code:"Copy",p1:state.boundRegisters.start!,p2:rangeStartCount!});
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});
+      const delay=ops.length;ops.push({code:"IfPos",p1:rangeStartCount!,p2:output,p3:1});const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>state.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}ops.push({code:"Goto",p2:output});const complete=ops.length;(ops[output] as {emptyJump:number}).emptyJump=complete;(ops[inverse] as {emptyJump:number}).emptyJump=complete;
+    };
+    const emitFollowingRangeDrain=():void=>{
+      const reversed=ops.length;ops.push({code:"IfRegisterGt",left:rangeState!.boundRegisters.start!,right:rangeState!.boundRegisters.end!,jump:0});
+      ops.push({code:"Copy",p1:rangeState!.boundRegisters.end!,p2:rangeEndCount!},{code:"Binary",op:"+",p1:rangeEndCount!,p2:rangeState!.regOne,p3:rangeEndCount!,collation:"binary"});
+      const endLoop=ops.length,endBody=endLoop+2;ops.push({code:"IfPos",p1:rangeEndCount!,p2:endBody,p3:1},{code:"Goto",p2:0});
+      const endAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      ops.push({code:"Goto",p2:endLoop});const endDone=ops.length;(ops[endLoop+1] as {p2:number}).p2=endDone;(ops[endAdvance] as {emptyJump:number}).emptyJump=endDone;
+      ops.push({code:"Copy",p1:rangeState!.boundRegisters.start!,p2:rangeStartCount!});
+      const startLoop=ops.length,startBody=startLoop+2;ops.push({code:"IfPos",p1:rangeStartCount!,p2:startBody,p3:1},{code:"Goto",p2:0});
+      const startAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      ops.push({code:"Goto",p2:startLoop});const startDone=ops.length;(ops[startLoop+1] as {p2:number}).p2=startDone;(ops[startAdvance] as {emptyJump:number}).emptyJump=startDone;
+      const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      const snapshot=ops.length;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});
+      const slideEnd=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      const afterEnd=ops.length;(ops[slideEnd] as {emptyJump:number}).emptyJump=afterEnd;
+      const slideStart=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>rangeState!.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      const afterStart=ops.length;(ops[slideStart] as {emptyJump:number}).emptyJump=afterStart;ops.push({code:"Goto",p2:output});
+      const empty=ops.length;(ops[reversed] as {jump:number}).jump=empty;
+      const emptyLoop=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:emptyLoop});
+      const complete=ops.length;(ops[output] as {emptyJump:number}).emptyJump=complete;(ops[emptyLoop] as {emptyJump:number}).emptyJump=complete;
+        };
+    const sort=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0});const loopBody=ops.length;ops.push({code:"SorterData",p1:sorterCursor,p2:payload,count:layer.bufferExpressions.length});
+    if(wholePartition&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitWholePartitionDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(orderedRangePrecedingCurrent&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-followingState.endPeerRegisters.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitOrderedRangePrecedingCurrentDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(orderedSuffixGroups&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitOrderedSuffixGroupsDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if((orderedCumulativePeerGroups||orderedCumulativePriorGroups)&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitOrderedCumulativePeerGroupsDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(rangeOffsetExcludeCurrent&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitRangeOffsetExcludeCurrentDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(orderedAdjacentGroups&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      // The sorter payload for the first row of the next partition remains in
+      // registers while the prior cache drains through Yield. Only after that
+      // drain returns do we reset contexts/cursors and cache the pending row.
+      emitOrderedAdjacentGroupsDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(followingRange&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      emitFollowingRangeDrain();
+      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    if(following&&followingState&&followingState.partitionRegisters.length){
+      const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
+      const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
+      const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
+      const flush=ops.length;
+      for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:followingState.regNew,count:followingState.inputRegisters.length});
+      for(const win of layer.windows){const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState.regNew+win.argumentColumn+i);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      ops.push({code:"Integer",p1:1n,p2:followingState.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"IfEphemeralHasNext",p1:layer.duplicateCursors[0],jump:flush});
+      const reset=ops.length;ops.push({code:"ClearEphemeral",p1:layer.duplicateCursors[0]});
+      for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
+      ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
+    }
+    const gosub=ops.length;ops.push({code:"Gosub",p1:layer.regGosub,p2:0});
+    ops.push({code:"Yield",p1:producerCoroutine,p2:0});const sorterNext=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:loopBody});
+    (ops[sort] as {emptyJump:number}).emptyJump=ops.length;
+    sqlite3WindowCodeStep(()=>{
+      if(orderedCurrentGroups&&followingState)emitOrderedCurrentGroupsDrain();
+      if((rangeCurrentPeerExclusion||(orderedCumulativePeerExclusion&&layer.windows[0]!.window.frame.exclusion==="ties"))&&followingState)emitRangeCurrentTiesDrain();
+      if(rangeOffsetExcludeCurrent&&followingState)emitRangeOffsetExcludeCurrentDrain();
+      if(groupsOnePrecedingExcludeGroup&&followingState)emitGroupsOnePrecedingExcludeGroupDrain();
+      if((orderedCumulativePeerGroups||orderedCumulativePriorGroups||(orderedCumulativePeerExclusion&&layer.windows[0]!.window.frame.exclusion==="group"))&&followingState)emitOrderedCumulativePeerGroupsDrain();
+      if(orderedSuffixGroups&&followingState)emitOrderedSuffixGroupsDrain();
+      if(orderedRangePrecedingCurrent&&followingState)emitOrderedRangePrecedingCurrentDrain();
+      if(orderedAdjacentGroups&&followingState)emitOrderedAdjacentGroupsDrain();
+      if((wholePartition||singlePeerGroups)&&followingState)emitWholePartitionDrain();
+      if(followingUnbounded&&followingState)emitFollowingUnboundedDrain();
+      if(precedingUnbounded&&followingState)emitPrecedingUnboundedDrain();
+      if(precedingFollowing&&followingState)emitPrecedingFollowingDrain();
+      if(precedingRange&&followingState)emitPrecedingRangeDrain();
+      if(followingRange&&followingState&&rangeEndCount!==null&&rangeStartCount!==null)emitFollowingRangeDrain();
+    });
+    if(following&&followingState){
+      const trailing=ops.length;
+      for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:followingState.regNew,count:followingState.inputRegisters.length});
+      for(const win of layer.windows){
+        const args=Array.from({length:win.window.argumentCount},(_,i)=>followingState.regNew+win.argumentColumn+i);
+        ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});
+      }
+      ops.push({code:"Integer",p1:1n,p2:followingState.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"IfEphemeralHasNext",p1:layer.duplicateCursors[0],jump:trailing});
+    }
     ops.push({code:"EndCoroutine",p1:producerCoroutine,p2:0});const continuation=ops.length;(ops[init] as {p2:number}).p2=continuation;
-    bindingsPending.push({layer,producerCoroutine,childCoroutine,loopBody,gosub,sorterCursor,ownedClauses:index===0?rewrite.movedClauses:Object.freeze([])});
+    bindingsPending.push({layer,producerCoroutine,childCoroutine,loopBody,gosub,sorterCursor,payload,ownedClauses:index===0?rewrite.movedClauses:Object.freeze([])});
     childCoroutine=producerCoroutine;childStart=producerStart;
   }
-  // The outer SELECT drives only the root rewritten producer.
-  const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0},{code:"Goto",p2:rootLoop});const halt=ops.length;(ops[rootLoop] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+  // The outer SELECT drives only the root rewritten producer. The narrow
+  // aggregate-only streaming tranche can now consume regResult directly;
+  // mixed/lifted result expressions remain nonpublishable until ordinary
+  // expression lowering is attached to this boundary.
+  // sqlite3WindowRewrite makes the outermost rewritten SELECT the publication
+  // owner. Results produced by an inner incompatible layer are ordinary lifted
+  // payload columns by the time they reach this boundary; only windows owned by
+  // the root layer remain live regResult values. This avoids any rendezvous by
+  // source rowid and preserves duplicate/reordered rows through the coroutine.
+  const outputLayer=rewrite.layers.at(-1);
+  const outputEntries=outputLayer?resolved.result.map(result=>{const win=outputLayer.windows.find(item=>item.window.owner===result.expression);if(win)return Object.freeze({kind:"window" as const,win});const lifted=outputLayer.lifted.find(item=>item.expression.reduction===result.expression.reduction);return lifted?Object.freeze({kind:"column" as const,bufferColumn:lifted.bufferColumn}):null;}):[];
+  const outerOrderEntries=outputLayer?rewrite.outer.orderBy.map(term=>{const lifted=outputLayer.lifted.find(item=>item.expression.reduction===term.expr.reduction);if(lifted)return Object.freeze({kind:"column" as const,bufferColumn:lifted.bufferColumn,term});let tree:Expression|null=null;try{tree=term.expr.reduction?expressionFromReduction(term.expr.reduction):null}catch{}if(tree?.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(outputEntries.length)){const entry=outputEntries[Number(tree.value)-1];if(entry)return entry.kind==="window"?Object.freeze({kind:"window" as const,win:entry.win,term}):Object.freeze({kind:"column" as const,bufferColumn:entry.bufferColumn,term});}return null;}):[];
+  const outputWindows=outputEntries.map(entry=>entry?.kind==="window"?entry.win:null);
+  const boundedRowsOffset=(win:NonNullable<typeof outputWindows[number]>):number|null=>{const frame=win.window.frame;if(frame.type!=="rows"||frame.start.kind!=="preceding"||frame.end.kind!=="current"||frame.exclusion!==null||!frame.start.expr?.reduction)return null;return windowConstantInteger(expressionFromReduction(frame.start.expr.reduction));};
+  const runtimeBoundedRows=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const frame=win.window.frame;return frame.type==="rows"&&((frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current")||(frame.start.kind==="current"&&frame.end.kind==="current"))&&frame.exclusion===null;};
+  const precedingPreceding=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&f.end.kind==="preceding"&&!!f.start.expr?.reduction&&!!f.end.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
+  const precedingFollowingOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&f.end.kind==="following"&&!!f.start.expr?.reduction&&!!f.end.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
+  const followingUnboundedOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="following"&&f.end.kind==="unbounded"&&!!f.start.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
+  const precedingUnboundedOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&win.window.partitionBy.length===0&&f.start.kind==="preceding"&&f.end.kind==="unbounded"&&!!f.start.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
+  const wholePartitionOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.exclusion===null||f.exclusion==="no-others")&&f.start.kind==="unbounded"&&((f.type==="rows"&&f.end.kind==="unbounded")||(f.type==="range"&&win.window.orderBy.length===0&&f.end.kind==="current"));};
+  const singlePeerGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length===0&&f.start.kind==="current"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedCurrentGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
+  const rangeCurrentPeerExclusionOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.type==="range"||f.type==="groups")&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="current"&&f.exclusion==="ties";};
+  const rangeOffsetExcludeCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||(f.start.kind==="preceding"&&!!f.start.expr?.reduction)||f.start.kind==="current"||(f.start.kind==="following"&&!!f.start.expr?.reduction))&&(f.end.kind==="unbounded"||f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion==="current-row"||f.exclusion==="ties"||f.exclusion==="group"||f.exclusion==="no-others");};
+  const groupsOnePrecedingExcludeGroupOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1&&f.end.kind==="current"&&f.exclusion==="group";};
+  const orderedCumulativePeerGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.type==="groups"||f.type==="range")&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedCumulativePriorGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="preceding"&&!!f.end.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.end.expr.reduction))===1&&(f.exclusion===null||f.exclusion==="no-others");};
+  const cumulativePeerExclusion=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties");};
+  const orderedSuffixGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="unbounded"&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedRangePrecedingCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedAdjacentGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;if(f.type!=="groups"||win.window.orderBy.length===0||f.start.kind!=="preceding"||!f.start.expr?.reduction||(f.exclusion!==null&&f.exclusion!=="group"))return false;if(f.exclusion==="group"&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1)return false;return f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction);};
+  const currentFollowing=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="current"&&frame.end.kind==="following"&&!!frame.end.expr?.reduction&&frame.exclusion===null;};
+  const followingFollowing=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="following"&&f.end.kind==="following"&&!!f.start.expr?.reduction&&!!f.end.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
+  const reversedFollowing=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const frame=win.window.frame;if(win.window.partitionBy.length||frame.type!=="rows"||frame.start.kind!=="following"||frame.end.kind!=="following"||!frame.start.expr?.reduction||!frame.end.expr?.reduction||frame.exclusion!==null)return false;const start=windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)),end=windowConstantInteger(expressionFromReduction(frame.end.expr.reduction));return start!==null&&end!==null&&start>end;};
+  const cumulativeExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";};
+  const boundedPeerExclusion=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties"||f.exclusion==="no-others");};
+  const boundedExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&f.exclusion==="current-row";};
+  const executableOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>!!aggregateDefinition(win.window.functionName)&&((win.window.frame.type==="rows"&&win.window.frame.start.kind==="unbounded"&&win.window.frame.end.kind==="current"&&(win.window.frame.exclusion===null||win.window.frame.exclusion==="no-others"))||cumulativeExcludeCurrent(win)||boundedExcludeCurrent(win)||boundedPeerExclusion(win)||runtimeBoundedRows(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)||currentFollowing(win)||followingFollowing(win)||reversedFollowing(win));
+  const outerOrderRepresented=outerOrderEntries.length===rewrite.outer.orderBy.length&&outerOrderEntries.every(entry=>entry!==null);
+  const emitsRows=outputEntries.length===resolved.result.length&&outputEntries.length>0&&outerOrderRepresented&&outputEntries.every(entry=>entry!==null&&(entry.kind==="column"||executableOutput(entry.win)));
+  const outputStart=emitsRows?registers+1:0;if(emitsRows)registers+=outputEntries.length;
+  const outerSorter=emitsRows&&outerOrderEntries.length?(Math.max(nextApplicationCursor,...sorterCursors)+1):null;
+  const outerLimit=emitsRows&&(rewrite.outer.limit!==null||rewrite.outer.offset!==null)?computeLimitRegisters(resolved.source,ops,()=>++registers,parameters):undefined;
+  if(outerSorter!==null)ops.push({code:"SorterOpen",p1:outerSorter,keyInfo:new KeyInfo({encoding,totalFieldCount:outerOrderEntries.length+outputEntries.length,keyFieldCount:outerOrderEntries.length,terms:outerOrderEntries.map(entry=>({collation:collation(expressionFromReduction(entry!.term.expr.reduction!)),desc:entry!.term.descending,nullsLarge:entry!.term.nulls==="last"?!entry!.term.descending:entry!.term.nulls==="first"?entry!.term.descending:false}))})});
+  const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
+  if(emitsRows){const rootState=setup.at(-1),needsReady=outputWindows.some(win=>win!==null&&(currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:setup.at(-1)!.regNew+entry.bufferColumn,p2:outputStart+index});}if(outerSorter!==null){const keyStart=registers+1;registers+=outerOrderEntries.length;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:setup.at(-1)!.regNew+entry.bufferColumn,p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else ops.push({code:"ResultRow",p1:outputStart,p2:outputEntries.length});if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
+  ops.push({code:"Goto",p2:rootLoop});const outerDrain=ops.length;(ops[rootLoop] as {p2:number}).p2=outerDrain;if(outerSorter!==null){const sort=ops.length;ops.push({code:"SorterSort",p1:outerSorter,emptyJump:0},{code:"SorterData",p1:outerSorter,p2:outputStart,count:outputEntries.length});let offsetSkip:number|null=null;if(outerLimit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:outputStart,p2:outputEntries.length});let limitDone:number|null=null;if(outerLimit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:outerLimit.count,p2:0});}const next=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"SorterNext",p1:outerSorter,p2:sort+1});const done=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=done;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=done;if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;}ops.push({code:"Halt"});
   const loopBindings:WindowLoopBinding[]=[];
-  for(const pending of bindingsPending){const target=ops.length;(ops[pending.gosub] as {p2:number}).p2=target;ops.push({code:"Return",p1:pending.layer.regGosub});loopBindings.push(Object.freeze({compatibleGroup:pending.layer.compatibleGroup,producerKind:pending.layer.producer.kind,producerCoroutine:pending.producerCoroutine,childCoroutine:pending.childCoroutine,loopBody:pending.loopBody,gosub:pending.gosub,returnAddress:target,sorterCursor:pending.sorterCursor,ownedClauses:Object.freeze(pending.ownedClauses),producerOrderBy:pending.layer.producerOrderBy}));}
-  const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze([]),parameters:Object.freeze([]),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+  for(const pending of bindingsPending){
+    const target=ops.length;(ops[pending.gosub] as {p2:number}).p2=target;
+    const state=setup.find(item=>item.compatibleGroup===pending.layer.compatibleGroup);if(!state)throw new JSQLiteError("internal","window setup layer is missing");
+    for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+    const streaming=pending.layer.windows.every(win=>{const frame=win.window.frame;return !!aggregateDefinition(win.window.functionName)&&frame.type==="rows"&&(((frame.exclusion===null||frame.exclusion==="no-others")&&(frame.end.kind==="current"&&(frame.start.kind==="unbounded"||frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction))||reversedFollowing(win)))||(frame.exclusion==="current-row"&&frame.end.kind==="current"&&(frame.start.kind==="unbounded"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)))||((frame.exclusion==="no-others"||((frame.exclusion==="group"||frame.exclusion==="ties")&&win.window.orderBy.length>0))&&frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current"));});
+    if(streaming&&state.partitionRegisters.length){
+      const partitionStart=state.regNew+pending.layer.windows[0]!.argumentColumn-state.partitionRegisters.length-pending.layer.windows[0]!.window.orderBy.length;
+      const firstAt=ops.length;ops.push({code:"IfNot",p1:state.regPartInitialized!,p2:0});
+      const compareAt=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:state.partitionRegisters[0]!,count:state.partitionRegisters.length,keyInfo:state.partitionKeyInfo!,jump:0});
+      const resetAt=ops.length;ops.push({code:"AggReset",registers:pending.layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:pending.layer.duplicateCursors[0]});
+      for(let index=0;index<state.partitionRegisters.length;index++)ops.push({code:"Copy",p1:partitionStart+index,p2:state.partitionRegisters[index]!});
+      ops.push({code:"Integer",p1:1n,p2:state.regPartInitialized!});
+      (ops[firstAt] as {p2:number}).p2=resetAt;(ops[compareAt] as {jump:number}).jump=ops.length;
+    }
+    ops.push({code:"MakeRecord",p1:state.regNew,p2:state.inputRegisters.length,p3:state.regRecord},{code:"NewRowid",p1:pending.layer.iEphCsr,p2:state.regRowid},{code:"Insert",p1:pending.layer.iEphCsr,p2:state.regRecord,p3:state.regRowid});
+    // window.c:windowAggStep, bounded streaming tranche. For ROWS
+    // UNBOUNDED PRECEDING..CURRENT ROW no peer or lookahead navigation is
+    // required: the just-cached producer row steps each compatible aggregate
+    // once and xValue snapshots regAccum into regResult. Other frame shapes
+    // remain deliberately unexecuted until windowCodeOp owns their cursors.
+    const sharedExcludeCurrent=pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";});
+    const sharedBoundedExcludeCurrent=pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&f.exclusion==="current-row";});
+    const sharedBoundedPeerExclusion=pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties"||f.exclusion==="no-others");});
+    if(sharedExcludeCurrent){
+      // window.c EXCLUDE scan for this cumulative ROWS specialization: the
+      // frame before the current row is exactly the retained context. Snapshot
+      // it first, then admit the current cached row for the next output.
+      for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;}
+    }
+    if(sharedBoundedExcludeCurrent){
+      const frame=pending.layer.windows[0]!.window.frame,bounded=windowConstantInteger(expressionFromReduction(frame.start.expr!.reduction!));
+      // The application scan for this ROWS/CURRENT specialization has one
+      // eligible prefix: after advancing the ordinary start cursor, the base
+      // context is exactly [start,current). Snapshot it before admitting the
+      // current payload. Dynamic bounds retain the checked boundary register.
+      const trim=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0});
+      const snapshotJump=ops.length;ops.push({code:"Goto",p2:0});const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
+      const snapshot=ops.length;(ops[trim] as {jump:number}).jump=inverse;(ops[snapshotJump] as {p2:number}).p2=snapshot;for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      // Inverse loading overwrote regNew. Restore the authoritative producer
+      // payload before stepping current; the sorter payload remains retained in
+      // pending.payload across this Gosub and no host row object is introduced.
+      for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
+    }
+    if(sharedBoundedPeerExclusion){
+      const frame=pending.layer.windows[0]!.window.frame,offset=windowConstantInteger(expressionFromReduction(frame.start.expr!.reduction!));
+      const endRowid=++registers,startRowid=++registers,candidateRowid=++registers;const temporary=pending.layer.windows.map(()=>++registers);
+      ops.push({code:"AggReset",registers:temporary},{code:"Copy",p1:state.regRowid,p2:endRowid});
+      if(offset!==null){const width=++registers;ops.push({code:"Integer",p1:BigInt(offset),p2:width},{code:"Subtract",p1:endRowid,p2:width,p3:startRowid});}else ops.push({code:"Subtract",p1:endRowid,p2:state.boundRegisters.start!,p3:startRowid});
+      const seek=ops.length;ops.push({code:"EphemeralSeekRowid",p1:state.applicationCursor!,rowid:startRowid,jump:0});const loop=ops.length;ops.push({code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const beyond=ops.length;ops.push({code:"IfRegisterGt",left:candidateRowid,right:endRowid,jump:0},{code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});
+      const exclusion=frame.exclusion,orderCount=pending.layer.windows[0]!.window.orderBy.length,orderStart=pending.layer.windows[0]!.argumentColumn-orderCount;const peer=exclusion==="no-others"?null:ops.length;if(peer!==null)ops.push({code:"CompareGroup",left:state.regNew+orderStart,right:pending.payload+orderStart,count:orderCount,keyInfo:state.peerKeyInfo!,jump:0});
+      const stepJumps:number[]=[];let identitySkip:number|null=null;if(exclusion==="ties"){stepJumps.push(ops.length);ops.push({code:"Goto",p2:0});const identity=ops.length;(ops[peer!] as {jump:number}).jump=identity;const same=++registers;ops.push({code:"Eq",p1:candidateRowid,p2:endRowid,p3:same,affinity:"numeric",collation:"binary"});identitySkip=ops.length;ops.push({code:"IfNot",p1:same,p2:0});stepJumps.push(ops.length);ops.push({code:"Goto",p2:0});}
+      const step=ops.length;for(const jump of stepJumps)(ops[jump] as {p2:number}).p2=step;for(let i=0;i<pending.layer.windows.length;i++){const win=pending.layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
+      const next=ops.length;if(exclusion==="group")(ops[peer!] as {jump:number}).jump=next;if(identitySkip!==null)(ops[identitySkip] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:loop});const finish=ops.length;(ops[seek] as {jump:number}).jump=finish;(ops[beyond] as {jump:number}).jump=finish;for(let i=0;i<pending.layer.windows.length;i++)ops.push({code:"AggValue",name:pending.layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:pending.layer.windows[i]!.regResult});for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+    }
+    const sharedSliding=pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others")&&(frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction));});
+    if(sharedSliding){
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;}
+      const frame=pending.layer.windows[0]!.window.frame,bounded=frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
+      const skip=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(frame.start.kind==="current"?{threshold:1}:bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0});const done=ops.length;ops.push({code:"Goto",p2:0});const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}(ops[skip] as {jump:number}).jump=inverse;(ops[done] as {p2:number}).p2=ops.length;
+      // windowReturnOneRow publishes the current output row, not the row most
+      // recently loaded through the start cursor for xInverse. Restore the
+      // layer-owned producer payload at this explicit value boundary. This is
+      // the register equivalent of SQLite's separate current/start cursors and
+      // prevents ordinary result columns and outer keys from lagging a row.
+      for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+      for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+    }
+    const sharedFollowing=pending.layer.windows.length>0&&pending.layer.windows.every(currentFollowing);
+    if(sharedFollowing){
+      for(const win of pending.layer.windows){
+        const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
+        let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}
+        const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;
+      }
+      const ready=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,thresholdRegister:state.boundRegisters.end!,registerAdjustment:0,jump:0});
+      const done=ops.length;ops.push({code:"Goto",p2:0});const snapshot=ops.length;
+      for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);ops.push({code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});}
+      (ops[ready] as {jump:number}).jump=snapshot;(ops[done] as {p2:number}).p2=ops.length;
+    }
+    for(const win of pending.layer.windows){
+      const frame=win.window.frame,definition=aggregateDefinition(win.window.functionName);
+      const bounded=frame.start.kind==="preceding"&&frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
+      const cumulative=frame.type==="rows"&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");
+      const sliding=frame.type==="rows"&&((frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)||(frame.start.kind==="current"))&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");
+      const currentOnly=sliding&&frame.start.kind==="current";
+      const followingFrame=currentFollowing(win);
+      const reversed=reversedFollowing(win);
+      if(!definition||sharedSliding||sharedFollowing||(!cumulative&&!sliding&&!followingFrame&&!reversed))continue;
+      const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
+      if(reversed){ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});continue;}
+      let filterJump:number|null=null;
+      if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}
+      const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});
+      if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;
+      if(sliding){
+        const skip=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(currentOnly?{threshold:1}:{...(bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!})}),jump:0});
+        const done=ops.length;ops.push({code:"Goto",p2:0});
+        const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length},{code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});
+        (ops[skip] as {jump:number}).jump=inverse;(ops[done] as {p2:number}).p2=ops.length;
+      }
+      if(followingFrame){
+        const ready=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,thresholdRegister:state.boundRegisters.end!,registerAdjustment:0,jump:0});
+        const done=ops.length;ops.push({code:"Goto",p2:0});
+        const snapshot=ops.length;ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult},{code:"Integer",p1:1n,p2:state.regOutputReady},{code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length},{code:"AggInverse",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});
+        (ops[ready] as {jump:number}).jump=snapshot;(ops[done] as {p2:number}).p2=ops.length;
+      }else ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+    }
+    const returnAddress=ops.length;ops.push({code:"Return",p1:pending.layer.regGosub});
+    loopBindings.push(Object.freeze({compatibleGroup:pending.layer.compatibleGroup,producerKind:pending.layer.producer.kind,producerCoroutine:pending.producerCoroutine,childCoroutine:pending.childCoroutine,loopBody:pending.loopBody,gosub:pending.gosub,returnAddress,sorterCursor:pending.sorterCursor,ownedClauses:Object.freeze(pending.ownedClauses),producerOrderBy:pending.layer.producerOrderBy}));
+  }
+  const program=Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze(emitsRows&&allProducerExpressionsRepresented?resolved.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})):[]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
   return Object.freeze({rewrite,setup:Object.freeze(setup),loopBindings:Object.freeze(loopBindings),program});
 }
 
@@ -392,6 +1150,19 @@ export function selectHasWindow(select:SelectNode):boolean {
  const expressions=[...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])];return expressions.some(expression=>expression.reduction!==undefined&&visit(expression.reduction));
 }
 
+/** window.c:sqlite3WindowAttach rejects DISTINCT while attaching the OVER
+ * clause, before source planning (including recursive-CTE planning). */
+export function rejectDistinctWindowFunctions(select:SelectNode):void {
+ const contains=(node:LemonValue<SqlToken>,prefix:string):boolean=>node.kind==="reduction"&&(node.signature.startsWith(prefix)||node.children.some(child=>contains(child,prefix)));
+ const visit=(node:LemonValue<SqlToken>):void=>{
+  if(node.kind!=="reduction"||node.signature==="expr ::= LP select RP")return;
+  if(node.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")&&contains(node,"over_clause ::= OVER")&&contains(node,"distinct ::= DISTINCT"))throw new JSQLiteError("sqlite","DISTINCT is not supported for window functions",{code:1});
+  node.children.forEach(visit);
+ };
+ const expressions=[...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])];
+ expressions.forEach(expression=>{if(expression.reduction)visit(expression.reduction)});
+}
+
 function nestedRecursiveReferenceCount(select:SelectNode,name:string):number {
  const visitReduction=(node:LemonValue<SqlToken>):number=>{
   if(node.kind!=="reduction")return 0;
@@ -524,7 +1295,7 @@ function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,pa
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
 }
 
-export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER):Program{
+export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,producerOnly=false):Program{
  const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(!owner)throw new JSQLiteError("unsupported","recursive common table expressions are not implemented",{unsupportedClassification:"temporary"});
  const body=owner.select,arms=body.arms,width=arms[0]?.result.length??0;
@@ -547,7 +1318,7 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  }
  const outerRecursiveIndex=select.from.items.findIndex(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
  const joinedDerived=select.from.items.length===2&&outerRecursiveIndex===0&&select.from.derived?.index===1&&!select.from.derived.select.from.items.length&&!select.from.derived.select.where&&!select.from.derived.select.hasCompound&&!select.from.derived.select.hasGroupBy&&!select.from.derived.select.hasHaving&&!select.from.derived.select.hasDistinct&&!select.from.derived.select.limit&&!select.from.derived.select.offset;
- if((select.from.items.length!==1||outerRecursiveIndex!==0)&&!joinedDerived||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset)throw new JSQLiteError("unsupported","this recursive common table expression consumer is not implemented",{unsupportedClassification:"temporary"});
+ if(!producerOnly&&(((select.from.items.length!==1||outerRecursiveIndex!==0)&&!joinedDerived)||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset))throw new JSQLiteError("unsupported","this recursive common table expression consumer is not implemented",{unsupportedClassification:"temporary"});
  const names=owner.columns??arms[0]!.result.map(expressionName);const lookup=(name:string)=>names.findIndex(candidate=>sqliteIdentifierEqual(candidate,sqlName(name.split(".").at(-1)!)));
  const bind=(tree:Expression,current:number):Expression=>{if(tree.kind==="column"){const index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:current+index}}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bind(tree.value,current)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,current),right:bind(tree.right,current)};if(tree.kind==="call")return{...tree,args:tree.args.map(value=>bind(value,current))};if(tree.kind==="case")return{...tree,operand:tree.operand?bind(tree.operand,current):null,pairs:tree.pairs.map(([a,b])=>[bind(a,current),bind(b,current)]),otherwise:tree.otherwise?bind(tree.otherwise,current):null};return tree};
  const ops:Op[]=[],parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};let maximum=0;const allocate=()=>++maximum,queue=1,history=2;
@@ -566,7 +1337,7 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
  const bindOutput=(tree:Expression):Expression=>{if(tree.kind==="column"){const parts=tree.name.split(".").map(sqlName),qualifier=parts.length>1?parts.at(-2):undefined,name=parts.at(-1)!;if(joinedDerived&&qualifier&&sqliteIdentifierEqual(qualifier,select.from.items[1]!.alias??select.from.items[1]!.tableName)){const index=joinedNames.findIndex(candidate=>sqliteIdentifierEqual(candidate,name));if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:joinedStart!+index};}return bind(tree,current);}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bindOutput(tree.value)};if(tree.kind==="binary")return{...tree,left:bindOutput(tree.left),right:bindOutput(tree.right)};if(tree.kind==="call")return{...tree,args:tree.args.map(bindOutput)};if(tree.kind==="case")return{...tree,operand:tree.operand?bindOutput(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bindOutput(a),bindOutput(b)]),otherwise:tree.otherwise?bindOutput(tree.otherwise):null};return tree};
  let consumerSkip:number|undefined;if(joinedDerived&&select.from.items[1]!.on?.reduction){const predicate=compileExpressionTree(bindOutput(expressionFromReduction(select.from.items[1]!.on!.reduction!)),ops,allocate,parameters);consumerSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
- const output=allocate();maximum+=select.result.length-1;select.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive result lost expression");const value=compileExpressionTree(bindOutput(expressionFromReduction(expression.reduction)),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:output+index});});ops.push({code:"ResultRow",p1:output,p2:select.result.length});
+ const output=allocate(),outputWidth=producerOnly?width:select.result.length;maximum+=outputWidth-1;if(producerOnly){for(let index=0;index<width;index++)ops.push({code:"Copy",p1:current+index,p2:output+index});}else select.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive result lost expression");const value=compileExpressionTree(bindOutput(expressionFromReduction(expression.reduction)),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:output+index});});ops.push({code:"ResultRow",p1:output,p2:outputWidth});
  let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
  const recursiveStart=ops.length;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=recursiveStart;if(consumerSkip!==undefined)(ops[consumerSkip] as {p2:number}).p2=recursiveStart;
  for(const recursive of recursiveArms){
@@ -574,9 +1345,22 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
   const next=allocate();maximum+=width-1;recursive.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive term lost expression");const value=compileExpressionTree(bind(expressionFromReduction(expression.reduction),current),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:next+index});});enqueue(next);if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;
  }
  ops.push({code:"Goto",p2:loop});const halt=ops.length;ops.push({code:"Halt"});(ops[loop] as {emptyJump:number}).emptyJump=halt;if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;if(limitBreak!==undefined)(ops[limitBreak] as {p2:number}).p2=halt;}
- return Object.freeze({ops:Object.freeze(ops),registers:maximum,columns:Object.freeze(select.result.map((expression,index)=>Object.freeze({name:expression.alias??names[index]??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+ return Object.freeze({ops:Object.freeze(ops),registers:maximum,columns:Object.freeze(producerOnly?names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})):select.result.map((expression,index)=>Object.freeze({name:expression.alias??names[index]??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
 }
 
+
+/** select.c recursive SRT_Queue producer feeding window.c's coroutine consumer. */
+export function compileRecursiveWindowSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows=Number.MAX_SAFE_INTEGER,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS):Program|undefined {
+ const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+ if(!owner||!selectHasWindow(select))return undefined;
+ const producer=compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true),names=producer.columns.map(column=>column.name);
+ const columns=names.map(name=>Object.freeze({name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null}));
+ const table:TableNode=Object.freeze({kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),storageKey:Object.freeze([])});
+ const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
+ try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+ const compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,transient,producer);
+ return Object.freeze({...compilation.program,database,maxRows});
+}
 
 /** Compose multiple bounded recursive producers by redirecting each iterative
  * queue's output into a VDBE sorter, then draining the materializations with an
@@ -1204,6 +1988,26 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const cteSources=compileCteDerivedSources(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(cteSources)return cteSources;
   const repeatedView=compileRepeatedImmutableView(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(repeatedView)return repeatedView;
   const compoundDerived=compileSingleCompoundDerived(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(compoundDerived)return compoundDerived;
+  const derived=select.from.derived;
+  if(derived&&derived.index===0&&select.from.items.length===1&&!derived.select.hasDistinct&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&!derived.select.hasOrderBy&&!derived.select.hasLimit&&!derived.select.hasCompound&&derived.select.from.items.length===1){
+    // select.c:flattenSubquery, bounded ordinary/window-parent form. Ordinary
+    // CTE lowering deliberately retains the CTE name as a synthetic SrcItem;
+    // substitute its transient result expressions before resolution so the
+    // window rewrite sees the real producer rather than opening that name as
+    // a schema table. This is the same bounded flattening contract used by the
+    // aggregate parent below, including substitution inside OVER reductions.
+    const names=uniqueTransientColumnNames(derived.select.result.map(expression=>expression.alias??expressionName(expression)));
+    const columns=new Map(derived.select.result.map((expression,index)=>[sqliteAsciiFold(names[index]!),expression]));
+    const qualifier=select.from.items[0]!.alias??select.from.items[0]!.tableName;
+    const result=Object.freeze(select.result.map(expression=>substituteViewExpression(expression,columns,qualifier)));
+    const groupBy=Object.freeze(select.groupBy.map(expression=>substituteViewExpression(expression,columns,qualifier)));
+    const having=select.having?substituteViewExpression(select.having,columns,qualifier):null;
+    const orderBy=Object.freeze(select.orderBy.map(term=>Object.freeze({...term,expr:substituteViewExpression(term.expr,columns,qualifier)})));
+    const outerWhere=select.where?substituteViewExpression(select.where,columns,qualifier):null;
+    const where=andViewPredicates(derived.select.where,outerWhere);
+    const flattened=Object.freeze({...select,result,groupBy,having,orderBy,from:derived.select.from,where,hasSubquery:derived.select.hasSubquery,tokens:select.tokens});
+    return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  }
   const materialized=compileDerivedProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(materialized)return materialized;
   // select.c:selectExpander turns an immutable schema view into its stored
   // generated Select. This first flattenable tranche never reparses schema SQL.
@@ -1221,7 +2025,15 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // before WHERE planning. Construct the complete immutable handoff here, then
   // reject before a Program is published until sqlite3WindowCodeStep exists.
   if(expanded.windows.length){
-    compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits);
+    let compilation:WindowLoweringCompilation;
+    try{compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema);}
+    catch(error){if(error instanceof JSQLiteError&&error.kind==="unsupported")throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});throw error;}
+    // Publish only the source-shaped tranche whose complete result list and
+    // frame execution were proven by the lowering. A zero-column Program is
+    // the atomic unsupported marker for every mixed or incomplete shape.
+    if(compilation.program.columns.length===expanded.result.length&&expanded.result.length>0){
+      return Object.freeze({...compilation.program,database,maxRows});
+    }
     throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
   }
   rejectUnsupportedSelectClauses(select, true);
@@ -1632,6 +2444,7 @@ interface AggregateFunctionContext<State> {
  readonly collation:BuiltinCollation;
  readonly maxResultBytes:number;
  readonly budget:PrivateStateByteBudget;
+ readonly inverseCapable:boolean;
  state():State;
  currentState():State|undefined;
  setResult(value:Mem):void;
@@ -1653,34 +2466,36 @@ function kahanBabuskaNeumaierStep(p:SumCtx,r:number):void{const s=p.rSum,t=s+r;p
 function kahanBabuskaNeumaierStepInt64(p:SumCtx,value:bigint):void{if(value<=-KBN_SPLIT||value>=KBN_SPLIT){const small=value%16384n;kahanBabuskaNeumaierStep(p,Number(value-small));kahanBabuskaNeumaierStep(p,Number(small));}else kahanBabuskaNeumaierStep(p,Number(value));}
 function kahanBabuskaNeumaierInit(p:SumCtx,value:bigint):void{if(value<=-KBN_SPLIT||value>=KBN_SPLIT){const small=value%16384n;p.rSum=Number(value-small);p.rErr=Number(small);}else{p.rSum=Number(value);p.rErr=0;}}
 function sumStep(context:AggregateFunctionContext<SumCtx>,args:readonly Mem[]):void{const value=args[0]!,numeric=value.numericTypeCopy();if(numeric.initialStorageClass==="null")return;const p=context.state();p.cnt++;if(!p.approx){if(numeric.initialStorageClass!=="integer"){kahanBabuskaNeumaierInit(p,p.iSum);p.approx=true;kahanBabuskaNeumaierStep(p,numeric.realValue());}else{const n=numeric.integerValue(),sum=p.iSum+n;if(sum>=INT64_MIN&&sum<=INT64_MAX)p.iSum=sum;else{p.ovrfl=true;kahanBabuskaNeumaierInit(p,p.iSum);p.approx=true;kahanBabuskaNeumaierStepInt64(p,n);}}}else if(numeric.initialStorageClass==="integer")kahanBabuskaNeumaierStepInt64(p,numeric.integerValue());else{p.ovrfl=false;kahanBabuskaNeumaierStep(p,numeric.realValue());}}
+function sumInverse(context:AggregateFunctionContext<SumCtx>,args:readonly Mem[]):void{const numeric=args[0]!.numericTypeCopy();if(numeric.initialStorageClass==="null")return;const p=context.currentState();if(!p||p.cnt===0n)throw new JSQLiteError("internal","sum inverse without stepped value");p.cnt--;if(!p.approx&&numeric.initialStorageClass==="integer")p.iSum-=numeric.integerValue();else if(numeric.initialStorageClass==="integer")kahanBabuskaNeumaierStepInt64(p,-numeric.integerValue());else{kahanBabuskaNeumaierStep(p,-numeric.realValue());p.ovrfl=false}}
 function sumResult(context:AggregateFunctionContext<SumCtx>,kind:"sum"|"avg"|"total"):void{const p=context.currentState(),out=new Mem();if(kind==="total"&&!p){out.setDouble(0);context.setResult(out);return}if(!p||p.cnt===0n){context.setResult(out);return}if(kind==="sum"&&!p.approx){out.setInt64(p.iSum);context.setResult(out);return}if(kind==="sum"&&p.ovrfl){context.setError(new JSQLiteError("sqlite","integer overflow",{code:1}));return}let r=p.approx?p.rSum:p.iSum===0n?0:Number(p.iSum);if(p.approx&&!Number.isFinite(p.rErr)){}else if(p.approx)r+=p.rErr;if(kind==="avg")r/=Number(p.cnt);out.setDouble(r);context.setResult(out);}
 interface CountCtx {count:bigint}
-interface ExtremaCtx {best:Mem|null;bytes:number}
-interface ConcatCtx {parts:string[];bytes:number}
+interface ExtremaCtx {values:Mem[];bytes:number;inverseCapable:boolean}
+interface ConcatCtx {values:{text:string;separator:string;bytes:number}[];bytes:number}
 const emptySum=():SumCtx=>({rSum:0,rErr:0,iSum:0n,cnt:0n,approx:false,ovrfl:false});
 const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Object.freeze({
- count:{name:"count",arities:[0,1],create:()=>({count:0n}),step:(c,a)=>{if(!a[0]||a[0].initialStorageClass!=="null")c.state().count++},value:c=>{const out=new Mem();out.setInt64(c.currentState()?.count??0n);c.setResult(out)},final:c=>{const out=new Mem();out.setInt64(c.currentState()?.count??0n);c.setResult(out)}},
- sum:{name:"sum",arities:[1],create:emptySum,step:sumStep,value:c=>sumResult(c,"sum"),final:c=>sumResult(c,"sum")},
- avg:{name:"avg",arities:[1],create:emptySum,step:sumStep,value:c=>sumResult(c,"avg"),final:c=>sumResult(c,"avg")},
- total:{name:"total",arities:[1],create:emptySum,step:sumStep,value:c=>sumResult(c,"total"),final:c=>sumResult(c,"total")},
+ count:{name:"count",arities:[0,1],create:()=>({count:0n}),step:(c,a)=>{if(!a[0]||a[0].initialStorageClass!=="null")c.state().count++},inverse:(c,a)=>{if(!a[0]||a[0].initialStorageClass!=="null"){const state=c.currentState();if(!state||state.count===0n)throw new JSQLiteError("internal","count inverse without stepped value");state.count--}},value:c=>{const out=new Mem();out.setInt64(c.currentState()?.count??0n);c.setResult(out)},final:c=>{const out=new Mem();out.setInt64(c.currentState()?.count??0n);c.setResult(out)}},
+ sum:{name:"sum",arities:[1],create:emptySum,step:sumStep,inverse:sumInverse,value:c=>sumResult(c,"sum"),final:c=>sumResult(c,"sum")},
+ avg:{name:"avg",arities:[1],create:emptySum,step:sumStep,inverse:sumInverse,value:c=>sumResult(c,"avg"),final:c=>sumResult(c,"avg")},
+ total:{name:"total",arities:[1],create:emptySum,step:sumStep,inverse:sumInverse,value:c=>sumResult(c,"total"),final:c=>sumResult(c,"total")},
  min:extremaDefinition("min"),max:extremaDefinition("max"),
  group_concat:concatDefinition("group_concat"),string_agg:concatDefinition("string_agg"),
 });
-function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:()=>({best:null,bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return false;const state=c.state();if(state.best&&(name==="min"?compareMem(value,state.best,c.collation)>=0:compareMem(value,state.best,c.collation)<=0))return false;const bytes=valueBytes(value),growth=Math.max(0,bytes-state.bytes);c.budget.reserve(growth,"aggregate state exceeds total byte limit");const next=new Mem();try{next.copyFrom(value)}catch(error){c.budget.release(growth);throw error}const previous=state.best,previousBytes=state.bytes;state.best=next;state.bytes=bytes;previous?.release();if(previousBytes>bytes)c.budget.release(previousBytes-bytes);return true},value:c=>{const out=new Mem();if(c.currentState()?.best)out.copyFrom(c.currentState()!.best!);c.setResult(out)},final:c=>{const out=new Mem();if(c.currentState()?.best)out.copyFrom(c.currentState()!.best!);c.setResult(out)},cleanup:s=>s.best?.release()}}
-function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({parts:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",";const state=c.state(),addition=(state.parts.length?separator:"")+text,delta=new TextEncoder().encode(addition).byteLength;if(state.bytes+delta>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(delta,"aggregate state exceeds total byte limit");try{state.parts.push(addition)}catch(error){c.budget.release(delta);throw error}state.bytes+=delta},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.parts.length=0}}
+function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:c=>({values:[],bytes:0,inverseCapable:c.inverseCapable}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return false;const state=c.state(),bytes=valueBytes(value);if(!state.inverseCapable&&state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}let at=0;while(at<state.values.length&&(name==="min"?compareMem(state.values[at]!,next,c.collation)<=0:compareMem(state.values[at]!,next,c.collation)>=0))at++;state.values.splice(at,0,next);state.bytes+=bytes;return at===0},inverse:(c,a)=>{const value=a[0],state=c.currentState();if(!value||value.initialStorageClass==="null"||!state)return;if(!state.inverseCapable)throw new JSQLiteError("internal",`${name} inverse without inverse-capable state`);const at=state.values.findIndex(candidate=>compareMem(candidate,value,c.collation)===0);if(at<0)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const [removed]=state.values.splice(at,1),bytes=valueBytes(removed!);removed!.release();state.bytes-=bytes;c.budget.release(bytes)},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
+function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",",state=c.state(),prefix=state.values.length?separator:"",bytes=new TextEncoder().encode(prefix+text).byteLength;if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.values.push({text,separator:prefix,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:(c,a)=>{if(!a[0]||a[0]!.initialStorageClass==="null")return;const state=c.currentState();if(!state?.values.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.values.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes);if(state.values.length){const first=state.values[0]!,separatorBytes=new TextEncoder().encode(first.separator).byteLength;first.separator="";first.bytes-=separatorBytes;state.bytes-=separatorBytes;c.budget.release(separatorBytes)}},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.values.length=0}}
 function aggregateText(input:Mem):string{const copy=new Mem();copy.copyFrom(input);if(copy.initialStorageClass!=="text")copy.stringify("utf-8");return copy.textValue()}
-function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.parts.length)out.setText(new TextEncoder().encode(state.parts.join("")),"utf-8");c.setResult(out)}
+function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.values.length)out.setText(new TextEncoder().encode(state.values.map(value=>value.separator+value.text).join("")),"utf-8");c.setResult(out)}
 class AggregateContext<State> implements AggregateFunctionContext<State>{
  readonly #result=new FunctionContext();
- readonly cell:Mem;readonly definition:AggregateDefinition<State>;readonly encoding:DatabaseEncoding;readonly collation:BuiltinCollation;readonly maxResultBytes:number;readonly budget:PrivateStateByteBudget;
- constructor(cell:Mem,definition:AggregateDefinition<State>,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget){this.cell=cell;this.definition=definition;this.encoding=encoding;this.collation=collation;this.maxResultBytes=maxResultBytes;this.budget=budget}
+ readonly cell:Mem;readonly definition:AggregateDefinition<State>;readonly encoding:DatabaseEncoding;readonly collation:BuiltinCollation;readonly maxResultBytes:number;readonly budget:PrivateStateByteBudget;readonly inverseCapable:boolean;
+ constructor(cell:Mem,definition:AggregateDefinition<State>,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false){this.cell=cell;this.definition=definition;this.encoding=encoding;this.collation=collation;this.maxResultBytes=maxResultBytes;this.budget=budget;this.inverseCapable=inverseCapable}
  currentState():State|undefined{return this.cell.aggregateState()?.context as State|undefined}
  state():State{let state=this.currentState();if(state===undefined){state=this.definition.create(this);this.cell.setAggregate({definition:this.definition,context:state,cleanup:()=>{try{this.definition.cleanup?.(state!)}finally{const bytes=(state as any).bytes;if(typeof bytes==="number")this.budget.release(bytes)}}})}return state}
  setResult(value:Mem):void{this.#result.setResult(value)} setError(error:unknown):void{this.#result.setError(error)}
  takeResult():Mem{return this.#result.takeResult()}
 }
-function aggregateContext(cell:Mem,name:string,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget):AggregateContext<any>{const definition=aggregateDefinitions[name];if(!definition)throw new JSQLiteError("internal",`missing aggregate definition: ${name}`);const stored=cell.aggregateState()?.definition;if(stored&&stored!==definition)throw new JSQLiteError("internal","aggregate definition changed for context");return new AggregateContext(cell,definition,encoding,collation,maxResultBytes,budget)}
-function aggregateStep(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget):boolean{const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget);try{return context.definition.step(context,args)===true}catch(error){context.setError(error);context.takeResult();return false}}
+function aggregateContext(cell:Mem,name:string,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false):AggregateContext<any>{const definition=aggregateDefinitions[name];if(!definition)throw new JSQLiteError("internal",`missing aggregate definition: ${name}`);const stored=cell.aggregateState()?.definition;if(stored&&stored!==definition)throw new JSQLiteError("internal","aggregate definition changed for context");return new AggregateContext(cell,definition,encoding,collation,maxResultBytes,budget,inverseCapable)}
+function aggregateStep(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false):boolean{const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,inverseCapable);try{return context.definition.step(context,args)===true}catch(error){context.setError(error);context.takeResult();return false}}
+function aggregateInverse(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget):void{const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,true);try{if(!context.definition.inverse)throw new JSQLiteError("internal",`aggregate ${name} has no inverse callback`);context.definition.inverse(context,args)}catch(error){context.setError(error);context.takeResult()}}
 function aggregateResult(cell:Mem,name:string,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,destructive:boolean):Mem{const context=aggregateContext(cell,name,encoding,"binary",maxResultBytes,budget);try{const callback=destructive?context.definition.final:context.definition.value;if(!callback)throw new JSQLiteError("internal",`aggregate ${name} has no value callback`);callback(context);const result=context.takeResult();if(destructive)cell.setNull();return result}catch(error){context.setError(error);throw error}}
 
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
@@ -1701,8 +2516,13 @@ export class VdbeStatement implements Statement {
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor | FifoCursor | PriorityQueueCursor>();
+  // MakeRecord owns only a register-range descriptor until Insert. This avoids an
+  // unbudgeted second Mem copy; EphemeralIndexCursor performs the single
+  // statement-budgeted copy at the insertion opcode's atomic checkpoint.
+  #packedRecords = new Map<number, {start:number;count:number}>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
+  readonly #inverseAggregates: ReadonlySet<number>;
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -1712,6 +2532,7 @@ export class VdbeStatement implements Statement {
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
+    this.#inverseAggregates = new Set(program.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
   }
   get columnCount(): number { return this.#program.columns.length; }
   get parameterCount(): number { return this.#program.parameters.length; }
@@ -1742,6 +2563,23 @@ export class VdbeStatement implements Statement {
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
           case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
+          case "WindowCheck": {
+            const value=this.#registers[op.p1]!,message=`frame ${op.boundary} offset must be a non-negative ${op.numeric?"number":"integer"}`;
+            // window.c:windowCheckValue uses numeric affinity for both the
+            // OP_MustBeInt path and the RANGE comparison path. Apply it to the
+            // register itself so accepted numeric TEXT has the same subsequent
+            // register representation as the source VM sequence.
+            value.applyAffinity("numeric",this.#program.encoding);
+            if(op.numeric){
+              if(value.initialStorageClass==="integer"){if(value.integerValue()<0n)throw new JSQLiteError("sqlite",message,{code:1});}
+              else if(value.initialStorageClass==="real"){if(value.realValue()<0)throw new JSQLiteError("sqlite",message,{code:1});}
+              else throw new JSQLiteError("sqlite",message,{code:1});
+            }else{
+              if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)value.setInt64(BigInt(value.realValue()));
+              if(value.initialStorageClass!=="integer"||value.integerValue()<0n)throw new JSQLiteError("sqlite",message,{code:1});
+            }
+            break;
+          }
           case "OffsetLimit": {const count=this.#registers[op.p1]!.integerValue(),offset=this.#registers[op.p3]!.integerValue();const positive=offset>0n?offset:0n,sum=count+positive;this.#registers[op.p2]!.setInt64(count<=0n||sum>(1n<<63n)-1n?-1n:sum);break;}
           case "IfNotZero": {const value=this.#registers[op.p1]!.integerValue();if(value!==0n){if(value>0n)this.#registers[op.p1]!.setInt64(value-1n);this.#pc=op.p2;}break;}
           case "IfPos": {const value=this.#registers[op.p1]!.integerValue();if(value>0n){this.#registers[op.p1]!.setInt64(value-BigInt(op.p3));this.#pc=op.p2;}break;}
@@ -1754,6 +2592,9 @@ export class VdbeStatement implements Statement {
           case "FifoInsert": await (this.#privateCursors.get(op.p1) as FifoCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "FifoShift": {const values=(this.#privateCursors.get(op.p1) as FifoCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
           case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes));break;
+          case "MakeRecord": this.#packedRecords.set(op.p3,{start:op.p1,count:op.p2});break;
+          case "NewRowid": this.#registers[op.p2]!.setInt64(BigInt((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).size+1));break;
+          case "Insert": {const record=this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError("internal","Insert record register was not packed");await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(this.#registers.slice(record.start,record.start+record.count),this.#privateControl(options,limit,started));this.#packedRecords.delete(op.p2);break;}
           case "SorterInsert": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
@@ -1778,11 +2619,18 @@ export class VdbeStatement implements Statement {
           case "ClearSorter": (this.#privateCursors.get(op.p1) as SorterCursor).clear();break;
           case "EphemeralSort": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).sort(this.#privateControl(options,limit,started));break;
           case "EphemeralRewind": if(!(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).first())this.#pc=op.p2;break;
+          case "EphemeralSeekRowid": if(!(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).seekRowid(this.#registers[op.rowid]!.integerValue()))this.#pc=op.jump;break;
+          case "EphemeralRowid": this.#registers[op.p2]!.setInt64((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).rowid());break;
           case "EphemeralData": {const values=(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "EphemeralNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).next())this.#pc=op.p2;break;
+          case "IfCursorSizeGt": {const threshold=op.thresholdRegister===undefined?op.threshold!:Number(this.#registers[op.thresholdRegister]!.integerValue())+(op.registerAdjustment??1);if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).size>threshold)this.#pc=op.jump;break;}
+          case "IfRegisterGt": if(this.#registers[op.left]!.integerValue()>this.#registers[op.right]!.integerValue())this.#pc=op.jump;break;
+          case "EphemeralAdvanceData": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(!cursor.next()){if(op.emptyJump!==undefined){this.#pc=op.emptyJump;break;}throw new JSQLiteError("internal","window inverse cursor exhausted");}const values=cursor.data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
+          case "IfEphemeralHasNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).hasNext())this.#pc=op.jump;break;
+          case "EphemeralResetPosition": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).rewindBeforeFirst();break;
           case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
           case "NullRow": this.#records.delete(op.p1); break;
-          case "Column": { const record=this.#records.get(op.p3??0),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); break; }
+          case "Column": { const record=this.#records.get(op.p3??0),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "Rowid": {const cursor=op.p1??0;if(this.#records.has(cursor))this.#registers[op.p2]!.setInt64(this.#cursors.get(cursor)!.rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
@@ -1798,15 +2646,27 @@ export class VdbeStatement implements Statement {
           case "Return": this.#pc=Number(this.#registers[op.p1]!.integerValue());break;
           case "InitCoroutine": this.#registers[op.p1]!.setInt64(BigInt(op.p3));if(op.p2!==0)this.#pc=op.p2;break;
           case "Yield": {const destination=Number(this.#registers[op.p1]!.integerValue());this.#registers[op.p1]!.setInt64(BigInt(this.#pc));this.#pc=destination;break;}
-          case "EndCoroutine": this.#registers[op.p1]!.setInt64(BigInt(this.#pc-1));this.#pc=op.p2;break;
+          case "EndCoroutine": {
+            // vdbe.c OP_EndCoroutine: P1 identifies the suspended caller Yield.
+            // Leave P1 pointing back to this EndCoroutine so later Yields take
+            // the same caller P2 path without a sentinel-only VM convention.
+            // Existing bounded subquery producers carry that exit on
+            // EndCoroutine.P2; window coroutines use the source-shaped
+            // caller-Yield P2 owner.
+            const caller=Number(this.#registers[op.p1]!.integerValue())-1,target=this.#program.ops[caller];
+            if(target?.code!=="Yield")throw new JSQLiteError("internal","coroutine ended without caller Yield");
+            this.#registers[op.p1]!.setInt64(BigInt(this.#pc-1));this.#pc=target.p2||op.p2;break;
+          }
           case "OpenDup": {const source=this.#privateCursors.get(op.p2);if(!source)throw new JSQLiteError("internal","OpenDup source cursor is not open");if(!(source instanceof EphemeralIndexCursor))throw new JSQLiteError("internal","OpenDup source is not ephemeral");this.#privateCursors.set(op.p1,source.duplicate());break;}
           case "Goto": this.#pc=op.p2; break;
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
           case "AggReset": for(const register of op.registers)this.#registers[register]!.setNull();break;
+          case "WindowRangeTest": {const candidate=this.#registers[op.candidate]!,current=this.#registers[op.current]!;const numeric=(m:Mem)=>m.initialStorageClass==="integer"||m.initialStorageClass==="real";let yes=false;if(op.mode==="end-unbounded")yes=true;else if(op.mode==="start-unbounded")yes=false;else if(op.mode==="end-current")yes=compareMem(candidate,current,op.collation)*(op.descending?-1:1)<=0;else if(op.mode==="start-current")yes=compareMem(candidate,current,op.collation)*(op.descending?-1:1)<0;else if(numeric(candidate)&&numeric(current)){const number=(m:Mem)=>m.initialStorageClass==="integer"?Number(m.integerValue()):m.realValue(),c=number(candidate),v=number(current),d=number(this.#registers[op.offset!]!);yes=op.mode==="end-following"?(op.descending?c>=v-d:c<=v+d):op.mode==="start-following"?(op.descending?c>v-d:c<v+d):(op.descending?c>v+d:c<v-d)}else yes=op.mode==="end-following"?compareMem(candidate,current,op.collation)===0:compareMem(candidate,current,op.collation)!==0;if(yes)this.#pc=op.jump;break;}
           case "CompareGroup": {let equal=true;for(let i=0;i<op.count;i++)if(compareMem(this.#registers[op.left+i]!,this.#registers[op.right+i]!,op.keyInfo.terms[i]!.collation)!==0){equal=false;break}if(equal)this.#pc=op.jump;break;}
-          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes);if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
+          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#inverseAggregates.has(op.p2));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
+          case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes);break;}
           case "AggFinal": this.#registers[op.p1]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true));break;
           case "AggValue": this.#registers[op.p2]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false));break;
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}}};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
@@ -1883,7 +2743,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();this.#borrow.invalidate();
