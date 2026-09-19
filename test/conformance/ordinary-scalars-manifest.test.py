@@ -76,20 +76,20 @@ for x in source:
  expected=[]
  for raw in r['rawNArg']:
   expected.append({'minimum':{-1:0,-3:1,-4:2}.get(raw,raw),'maximum':1000 if raw<0 else raw})
- assert r['acceptedArities']==expected,(r['name'],expected)
+ assert r['rawFuncDefMatchArities']==expected,(r['name'],expected)
 
-assert len(s['registry'])==50 and len(s['cases'])==33 and sum(len(c['encodings']) for c in s['cases'])==51
+assert len(s['registry'])==50 and len(s['cases'])==34 and sum(len(c['encodings']) for c in s['cases'])==52
 assert sum(r['tsStatus']=='implemented' for r in s['registry'])==12 and sum(r['tsStatus']=='absent' for r in s['registry'])==38
-assert n['counts']=={'registrations':50,'cases':33,'observations':51}
+assert n['counts']=={'registrations':50,'cases':34,'observations':52}
 assert n['source']['specSha256']==hashlib.sha256(S.read_bytes()).hexdigest()
-assert len(n['observations'])==51 and len({(x['id'],x['encoding']) for x in n['observations']})==51
+assert len(n['observations'])==52 and len({(x['id'],x['encoding']) for x in n['observations']})==52
 assert all(('rows'in x) or ('error'in x) for x in n['observations'])
 byid={x['id']:x for x in n['observations']}
 assert byid['case-variadic-limit-1000'].get('rows')
 assert byid['case-variadic-over-limit-1001']['error']['phase']=='prepare'
 covered={z for c in s['cases'] for z in c['coversRegistrations']}; absent={r['name'] for r in s['registry'] if r['tsStatus']=='absent'}; assert absent<=covered
 assert set(s['scope']['publicUnsupportedCoverage'])==absent
-assert all('provenance'in c and c['provenance']['kind'] in {'upstream-assertion-companion','source-authored-local-companion'} for c in s['cases'])
+assert all('provenance'in c and c['provenance']['kind'] in {'upstream-assertion-plus-local-companion','source-authored-local-companion'} for c in s['cases'])
 ids={a['assertionId'] for a in s['upstreamAssertions']}
 for c in s['cases']:
  assert set(c['provenance'].get('assertionIds',[]))<=ids
@@ -97,4 +97,34 @@ for a in s['upstreamAssertions']:
  lines=(SRC/'test'/a['sourceTest']).read_text().splitlines(True); body=''.join(lines[a['lineStart']-1:a['lineEnd']]); assert hashlib.sha256(body.encode()).hexdigest()==a['bodySha256']; assert 'setup'in a
 assert set(s['scope']['sliceProvenance'])==set(s['scope']['implementationBranchesBySlice'])
 for f in s['scope']['publicFetchFixtures'].values():assert (R/f).is_file()
-print('ordinary scalar contract: 50 active in-scope rows, 33 cases/51 native observations, 12 implemented/38 absent; source-derived membership/operands/flags/arities and provenance verified')
+# Validate exact macro-definition and assertion setup provenance.
+mp=s['scope']['macroDefinitionProvenance']; ml=(SRC/mp['path']).read_text().splitlines(True); mb=''.join(ml[mp['lineStart']-1:mp['lineEnd']]); assert len(mb.encode())==mp['bytes'] and hashlib.sha256(mb.encode()).hexdigest()==mp['sha256']
+for a in s['upstreamAssertions']:
+ setup=a['setup']; assert setup['kind'] in {'upstream-range','embedded-in-assertion-body','self-contained-no-fixture'}
+ if setup['kind']=='upstream-range':
+  lines=(SRC/'test'/a['sourceTest']).read_text().splitlines(True); body=''.join(lines[setup['lineStart']-1:setup['lineEnd']]); assert len(body.encode())==setup['bytes'] and hashlib.sha256(body.encode()).hexdigest()==setup['sha256']
+ else: assert setup.get('rationale')
+# Every case has nonempty, existing pinned source ownership. Wildcards and /qualifiers
+# name source families/branches; validate their concrete leading symbol.
+def valid_branch(z):
+ path,sep,sym=z.partition(':'); f=SRC/path
+ if not (sep and f.is_file() and sym): return False
+ text=f.read_text(); token=sym.split('/')[0].split('(')[0].split('|')[0].rstrip('*').strip()
+ return bool(token) and token in text
+for c in s['cases']:
+ b=c['provenance'].get('sourceBranches',[]); assert b and all(valid_branch(z) for z in b),(c['id'],b)
+# Every implementation slice owns cases, and every absent row is linked from its
+# source-owned slice to a case that explicitly covers that registration.
+for sl,x in s['scope']['sliceProvenance'].items():
+ assert x['sourceBranches'] and all(valid_branch(z) for z in x['sourceBranches']); assert x['caseIds'],sl
+ known={c['id'] for c in s['cases']}; assert set(x['caseIds'])<=known
+for r in s['registry']:
+ if r['tsStatus']=='absent':
+  owned=set(s['scope']['sliceProvenance'][r['slice']]['caseIds']); assert any(c['id'] in owned and r['name'] in c['coversRegistrations'] for c in s['cases']),r['name']
+# Raw -3 matching admits one argument, but exact WAGGREGATE registration wins;
+# ordinary scalar minmaxFunc starts at two arguments.
+for name in ('min','max'):
+ r=next(x for x in s['registry'] if x['name']==name); assert r['rawFuncDefMatchArities']==[{'minimum':1,'maximum':1000}]; assert r['effectiveScalarArities']==[{'minimum':2,'maximum':1000}]; assert r['overloadResolution']['oneArgumentOwner'].startswith('aggregate/window')
+mo=s['scope']['minMaxOverloadOwnership']; assert mo['caseId']=='case-minmax-overload-discriminator'
+o=byid[mo['caseId']]; assert [v['value'] for v in o['rows'][0]]==['1','3','1','3','1']
+print('ordinary scalar contract: 50 active in-scope rows, 34 cases/52 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified')

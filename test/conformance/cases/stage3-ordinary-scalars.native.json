@@ -6,7 +6,7 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json",
     "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
-    "specSha256": "067de7bdb7f238814c63f9238fa54fbb6d9e288503c1261b824fee112bff0c52",
+    "specSha256": "aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f",
     "compileOptions": [
       "ATOMIC_INTRINSICS=1",
       "COMPILER=gcc-13.3.0",
@@ -51,8 +51,8 @@
   },
   "counts": {
     "registrations": 50,
-    "cases": 33,
-    "observations": 51
+    "cases": 34,
+    "observations": 52
   },
   "observations": [
     {
@@ -1698,6 +1698,43 @@
         "extendedCode": 1,
         "message": "too many arguments on function printf"
       }
+    },
+    {
+      "id": "case-minmax-overload-discriminator",
+      "encoding": "UTF-8",
+      "sql": "WITH t(x) AS (VALUES(3),(1),(2)) SELECT (SELECT min(x) FROM t),(SELECT max(x) FROM t),min(3,1),max(3,1),(SELECT min(x) OVER () FROM t ORDER BY x LIMIT 1)",
+      "parameters": [],
+      "columns": [
+        "(SELECT min(x) FROM t)",
+        "(SELECT max(x) FROM t)",
+        "min(3,1)",
+        "max(3,1)",
+        "(SELECT min(x) OVER () FROM t ORDER BY x LIMIT 1)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
     }
   ]
 }

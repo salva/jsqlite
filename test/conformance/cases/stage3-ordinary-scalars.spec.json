@@ -142,6 +142,17 @@
       ],
       "host-side-effect": [
         "src/func.c:errlogFunc"
+      ],
+      "public-bind": [
+        "src/vdbeapi.c:sqlite3_bind_*"
+      ],
+      "composition": [
+        "src/expr.c:sqlite3ExprCodeTarget",
+        "src/vdbe.c:sqlite3VdbeExec/OP_Function"
+      ],
+      "arity": [
+        "src/callback.c:matchQuality",
+        "src/resolve.c:resolveExprStep"
       ]
     },
     "conditionalRegistrationDispositions": [
@@ -240,14 +251,140 @@
     ],
     "profileFunctionArgLimit": 1000,
     "sliceProvenance": {
-      "planner-inline": {
+      "arity": {
         "sourceBranches": [
-          "src/func.c:aBuiltinFunc",
-          "src/resolve.c:resolveExprStep",
-          "src/expr.c:sqlite3ExprCodeTarget"
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep"
         ],
         "caseIds": [
-          "case-inline"
+          "case-variadic-zero",
+          "case-variadic-minima",
+          "case-arity-concat-zero-error",
+          "case-arity-concat-ws-one-error",
+          "case-arity-coalesce-one-error"
+        ],
+        "assertionIds": [
+          "func9-100",
+          "func9-120",
+          "func9-130",
+          "func9-160"
+        ]
+      },
+      "ascii-case": {
+        "sourceBranches": [
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "caseIds": [
+          "case-upper-ascii-unicode",
+          "case-upper-null-blob",
+          "case-bound-params",
+          "case-composed"
+        ],
+        "assertionIds": [
+          "func-5.1",
+          "func-5.2"
+        ]
+      },
+      "blob-text": {
+        "sourceBranches": [
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
+        ],
+        "caseIds": [
+          "case-upper-null-blob",
+          "case-trim",
+          "case-unhex-concat",
+          "case-random-storage"
+        ],
+        "assertionIds": [
+          "func-22.4",
+          "func-5.1",
+          "func-5.2",
+          "func9-100",
+          "func9-130"
+        ]
+      },
+      "build-identity": {
+        "sourceBranches": [
+          "src/func.c:versionFunc",
+          "src/func.c:sourceidFunc",
+          "src/func.c:compileoptionusedFunc",
+          "src/func.c:compileoptiongetFunc"
+        ],
+        "caseIds": [
+          "case-identity-state",
+          "case-compile-options"
+        ],
+        "assertionIds": []
+      },
+      "composition": {
+        "sourceBranches": [
+          "src/expr.c:sqlite3ExprCodeTarget",
+          "src/vdbe.c:sqlite3VdbeExec/OP_Function"
+        ],
+        "caseIds": [
+          "case-composed"
+        ],
+        "assertionIds": []
+      },
+      "concat": {
+        "sourceBranches": [
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc"
+        ],
+        "caseIds": [
+          "case-unhex-concat",
+          "case-variadic-minima",
+          "case-arity-concat-zero-error",
+          "case-arity-concat-ws-one-error"
+        ],
+        "assertionIds": [
+          "func9-100",
+          "func9-120",
+          "func9-130",
+          "func9-160"
+        ]
+      },
+      "connection-state": {
+        "sourceBranches": [
+          "src/func.c:randomFunc",
+          "src/func.c:randomBlob",
+          "src/func.c:last_insert_rowid",
+          "src/func.c:changes",
+          "src/func.c:total_changes"
+        ],
+        "caseIds": [
+          "case-random-storage",
+          "case-identity-state"
+        ],
+        "assertionIds": []
+      },
+      "formatting": {
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "caseIds": [
+          "case-format-boundaries",
+          "case-format-null-missing",
+          "case-bound-params",
+          "case-composed",
+          "case-variadic-zero",
+          "case-variadic-limit-1000",
+          "case-variadic-over-limit-1001"
+        ],
+        "assertionIds": [
+          "printf-1.1.1"
+        ]
+      },
+      "host-side-effect": {
+        "sourceBranches": [
+          "src/func.c:errlogFunc"
+        ],
+        "caseIds": [
+          "case-sqlite-log"
         ],
         "assertionIds": []
       },
@@ -266,103 +403,21 @@
           "like-1.1"
         ]
       },
-      "formatting": {
+      "minmax-scalar": {
         "sourceBranches": [
-          "src/func.c:printfFunc",
-          "src/printf.c:sqlite3_str_vappendf"
+          "src/func.c:minmaxFunc",
+          "src/func.c:nullifFunc",
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
         ],
         "caseIds": [
-          "case-format-boundaries",
-          "case-format-null-missing",
-          "case-variadic-limit-1000",
-          "case-variadic-over-limit-1001"
+          "case-minmax-collation",
+          "case-variadic-minima",
+          "case-minmax-overload-discriminator"
         ],
         "assertionIds": [
-          "printf-1.1.1"
+          "func9-100",
+          "func9-130"
         ]
-      },
-      "numeric-formatting": {
-        "sourceBranches": [
-          "src/func.c:roundFunc",
-          "src/printf.c:sqlite3_mprintf"
-        ],
-        "caseIds": [
-          "case-round"
-        ],
-        "assertionIds": []
-      },
-      "ascii-case": {
-        "sourceBranches": [
-          "src/func.c:upperFunc",
-          "src/func.c:lowerFunc"
-        ],
-        "caseIds": [
-          "case-upper-ascii-unicode",
-          "case-upper-null-blob"
-        ],
-        "assertionIds": []
-      },
-      "trim": {
-        "sourceBranches": [
-          "src/func.c:trimFunc"
-        ],
-        "caseIds": [
-          "case-trim"
-        ],
-        "assertionIds": []
-      },
-      "search": {
-        "sourceBranches": [
-          "src/func.c:instrFunc"
-        ],
-        "caseIds": [
-          "case-instr-classes"
-        ],
-        "assertionIds": []
-      },
-      "unicode": {
-        "sourceBranches": [
-          "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
-        ],
-        "caseIds": [
-          "case-unicode",
-          "case-unistr"
-        ],
-        "assertionIds": [
-          "func9-200"
-        ]
-      },
-      "quote": {
-        "sourceBranches": [
-          "src/func.c:quoteFunc"
-        ],
-        "caseIds": [
-          "case-quote",
-          "case-unistr-quote"
-        ],
-        "assertionIds": [
-          "func9-210"
-        ]
-      },
-      "blob-text": {
-        "sourceBranches": [
-          "src/func.c:hexFunc",
-          "src/func.c:unhexFunc",
-          "src/func.c:zeroblobFunc"
-        ],
-        "caseIds": [
-          "case-unhex-concat"
-        ],
-        "assertionIds": []
-      },
-      "concat": {
-        "sourceBranches": [
-          "src/func.c:concatFunc",
-          "src/func.c:concatwsFunc"
-        ],
-        "caseIds": [],
-        "assertionIds": []
       },
       "numeric-core": {
         "sourceBranches": [
@@ -374,24 +429,69 @@
         ],
         "assertionIds": []
       },
-      "minmax-scalar": {
+      "numeric-formatting": {
         "sourceBranches": [
-          "src/func.c:minmaxFunc",
-          "src/func.c:nullifFunc",
-          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+          "src/func.c:roundFunc",
+          "src/printf.c:sqlite3_mprintf"
         ],
         "caseIds": [
-          "case-minmax-collation"
+          "case-round",
+          "case-bound-params"
+        ],
+        "assertionIds": [
+          "func-4.6",
+          "func-4.8"
+        ]
+      },
+      "planner-inline": {
+        "sourceBranches": [
+          "src/func.c:aBuiltinFunc",
+          "src/resolve.c:resolveExprStep",
+          "src/expr.c:sqlite3ExprCodeTarget"
+        ],
+        "caseIds": [
+          "case-inline",
+          "case-minmax-collation",
+          "case-variadic-minima",
+          "case-arity-coalesce-one-error"
+        ],
+        "assertionIds": [
+          "func9-100",
+          "func9-130"
+        ]
+      },
+      "public-bind": {
+        "sourceBranches": [
+          "src/vdbeapi.c:sqlite3_bind_*"
+        ],
+        "caseIds": [
+          "case-bound-params"
         ],
         "assertionIds": []
       },
-      "value-introspection": {
+      "quote": {
         "sourceBranches": [
-          "src/func.c:typeofFunc",
-          "src/func.c:subtypeFunc"
+          "src/func.c:quoteFunc"
         ],
         "caseIds": [
-          "case-subtype"
+          "case-quote",
+          "case-bound-params",
+          "case-composed",
+          "case-unistr-quote"
+        ],
+        "assertionIds": [
+          "func-16.1",
+          "func9-210"
+        ]
+      },
+      "search": {
+        "sourceBranches": [
+          "src/func.c:instrFunc"
+        ],
+        "caseIds": [
+          "case-instr-classes",
+          "case-bound-params",
+          "case-composed"
         ],
         "assertionIds": []
       },
@@ -403,45 +503,95 @@
           "src/func.c:substrFunc"
         ],
         "caseIds": [
-          "case-substring-alias"
+          "case-random-storage",
+          "case-substring-alias",
+          "case-composed",
+          "case-variadic-limit-1000"
         ],
         "assertionIds": []
       },
-      "connection-state": {
+      "trim": {
         "sourceBranches": [
-          "src/func.c:randomFunc",
-          "src/func.c:randomBlob",
-          "src/func.c:last_insert_rowid",
-          "src/func.c:changes",
-          "src/func.c:total_changes"
+          "src/func.c:trimFunc"
         ],
         "caseIds": [
-          "case-random-storage"
+          "case-trim",
+          "case-composed"
         ],
-        "assertionIds": []
+        "assertionIds": [
+          "func-22.4"
+        ]
       },
-      "build-identity": {
+      "unicode": {
         "sourceBranches": [
-          "src/func.c:versionFunc",
-          "src/func.c:sourceidFunc",
-          "src/func.c:compileoptionusedFunc",
-          "src/func.c:compileoptiongetFunc"
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
         ],
         "caseIds": [
-          "case-identity-state",
-          "case-compile-options"
+          "case-trim",
+          "case-instr-classes",
+          "case-unicode",
+          "case-quote",
+          "case-composed",
+          "case-unistr",
+          "case-variadic-zero"
         ],
-        "assertionIds": []
+        "assertionIds": [
+          "func-16.1",
+          "func-22.4",
+          "func9-200"
+        ]
       },
-      "host-side-effect": {
+      "value-introspection": {
         "sourceBranches": [
-          "src/func.c:errlogFunc"
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc"
         ],
         "caseIds": [
-          "case-sqlite-log"
+          "case-upper-null-blob",
+          "case-random-storage",
+          "case-subtype"
         ],
-        "assertionIds": []
+        "assertionIds": [
+          "func-5.1",
+          "func-5.2"
+        ]
       }
+    },
+    "validatorDerivationContract": "Profile-specific balanced macro-invocation parser. Macro semantics/flag token mapping are checked against exact pinned sqliteInt.h definition hashes; relevant func.c conditional membership is evaluated for captured compile options. This is not a general C preprocessor.",
+    "minMaxOverloadOwnership": {
+      "rawFuncDefMatchRange": {
+        "minimum": 1,
+        "maximum": 1000
+      },
+      "effectiveOrdinaryScalarRange": {
+        "minimum": 2,
+        "maximum": 1000
+      },
+      "oneArgumentScope": "aggregate/window root",
+      "sourceBranches": [
+        "src/func.c:aBuiltinFunc WAGGREGATE and FUNCTION rows",
+        "src/callback.c:matchQuality",
+        "src/resolve.c:resolveExprStep"
+      ],
+      "caseId": "case-minmax-overload-discriminator"
+    },
+    "macroDefinitionProvenance": {
+      "path": "src/sqliteInt.h",
+      "lineStart": 2137,
+      "lineEnd": 2182,
+      "sha256": "bddf5fadf7c90b83d5a510624b1a1ff0dfe8f94d3c2377dc05cc70309827c5b6",
+      "bytes": 2579,
+      "covers": [
+        "FUNCTION",
+        "VFUNCTION",
+        "SFUNCTION",
+        "MFUNCTION",
+        "INLINE_FUNC",
+        "DFUNCTION",
+        "FUNCTION2",
+        "LIKEFUNC"
+      ]
     }
   },
   "registry": [
@@ -465,7 +615,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -492,7 +648,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -519,7 +681,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -546,7 +714,17 @@
         1,
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -577,7 +755,17 @@
         1,
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -608,7 +796,17 @@
         1,
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -638,12 +836,29 @@
       "rawNArg": [
         -3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
         {
           "minimum": 1,
           "maximum": 1000
         }
-      ]
+      ],
+      "effectiveScalarArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "overloadResolution": {
+        "oneArgumentOwner": "aggregate/window WAGGREGATE registration (exact nArg=1)",
+        "twoOrMoreOwner": "ordinary scalar FUNCTION registration minmaxFunc (raw nArg=-3)",
+        "discriminator": "sqlite3FindFunction/matchQuality exact-arity score 6 beats variadic score 1 for n=1; resolveExprStep classifies xFinalize!=0 as aggregate",
+        "sourceBranches": [
+          "src/func.c:aBuiltinFunc/WAGGREGATE(min|max,1)",
+          "src/func.c:aBuiltinFunc/FUNCTION(min|max,-3)",
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep"
+        ]
+      }
     },
     {
       "name": "max",
@@ -664,12 +879,29 @@
       "rawNArg": [
         -3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
         {
           "minimum": 1,
           "maximum": 1000
         }
-      ]
+      ],
+      "effectiveScalarArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "overloadResolution": {
+        "oneArgumentOwner": "aggregate/window WAGGREGATE registration (exact nArg=1)",
+        "twoOrMoreOwner": "ordinary scalar FUNCTION registration minmaxFunc (raw nArg=-3)",
+        "discriminator": "sqlite3FindFunction/matchQuality exact-arity score 6 beats variadic score 1 for n=1; resolveExprStep classifies xFinalize!=0 as aggregate",
+        "sourceBranches": [
+          "src/func.c:aBuiltinFunc/WAGGREGATE(min|max,1)",
+          "src/func.c:aBuiltinFunc/FUNCTION(min|max,-3)",
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep"
+        ]
+      }
     },
     {
       "name": "typeof",
@@ -690,7 +922,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -717,7 +955,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -743,7 +987,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -769,7 +1019,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -794,7 +1050,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -821,7 +1083,13 @@
       "rawNArg": [
         -1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 1000
@@ -848,7 +1116,13 @@
       "rawNArg": [
         -1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 1000
@@ -873,7 +1147,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -898,7 +1178,13 @@
       "rawNArg": [
         -1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 1000
@@ -923,7 +1209,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -950,7 +1242,17 @@
         1,
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -979,7 +1281,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1004,7 +1312,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1029,7 +1343,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1056,7 +1376,17 @@
         1,
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1085,7 +1415,13 @@
       "rawNArg": [
         -3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1000
@@ -1110,7 +1446,13 @@
       "rawNArg": [
         -4
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 1000
@@ -1136,7 +1478,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1161,7 +1509,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1186,7 +1540,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1211,7 +1571,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1236,7 +1602,13 @@
       "rawNArg": [
         3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 3,
           "maximum": 3
@@ -1261,7 +1633,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1290,7 +1668,17 @@
         2,
         3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1323,7 +1711,17 @@
         2,
         3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1352,7 +1750,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1380,7 +1784,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1408,7 +1818,13 @@
       "rawNArg": [
         -4
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 1000
@@ -1436,7 +1852,13 @@
       "rawNArg": [
         -4
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 1000
@@ -1464,7 +1886,13 @@
       "rawNArg": [
         -4
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 1000
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 1000
@@ -1488,7 +1916,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1512,7 +1946,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1536,7 +1976,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1560,7 +2006,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1584,7 +2036,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1609,7 +2067,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1634,7 +2098,13 @@
       "rawNArg": [
         0
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 0,
           "maximum": 0
@@ -1659,7 +2129,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1686,7 +2162,13 @@
       "rawNArg": [
         2
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1714,7 +2196,17 @@
         2,
         3
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 2,
           "maximum": 2
@@ -1743,7 +2235,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1768,7 +2266,13 @@
       "rawNArg": [
         1
       ],
-      "acceptedArities": [
+      "rawFuncDefMatchArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "effectiveScalarArities": [
         {
           "minimum": 1,
           "maximum": 1
@@ -1798,12 +2302,16 @@
         "lower"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func-5.1",
+          "func-5.2"
+        ],
         "sourceBranches": [
           "src/func.c:upperFunc",
           "src/func.c:lowerFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -1820,12 +2328,21 @@
         "hex"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func-5.1",
+          "func-5.2"
+        ],
         "sourceBranches": [
           "src/func.c:upperFunc",
-          "src/func.c:lowerFunc"
+          "src/func.c:lowerFunc",
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc",
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -1843,14 +2360,16 @@
         "glob"
       ],
       "provenance": {
-        "kind": "upstream-assertion-companion",
+        "kind": "upstream-assertion-plus-local-companion",
         "assertionIds": [
           "like-1.1"
         ],
-        "setup": {
-          "kind": "none-required-for-selected-assertion",
-          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
-        }
+        "sourceBranches": [
+          "src/func.c:likeFunc",
+          "src/func.c:patternCompare",
+          "src/func.c:compareInfo"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -1871,7 +2390,7 @@
           "src/func.c:patternCompare",
           "src/func.c:compareInfo"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -1892,7 +2411,7 @@
           "src/func.c:patternCompare",
           "src/func.c:compareInfo"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -1913,11 +2432,19 @@
         "hex"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
-        "sourceBranches": [
-          "src/func.c:trimFunc"
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func-22.4"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/func.c:trimFunc",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -1937,9 +2464,11 @@
       "provenance": {
         "kind": "source-authored-local-companion",
         "sourceBranches": [
-          "src/func.c:instrFunc"
+          "src/func.c:instrFunc",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -1962,7 +2491,7 @@
           "src/func.c:unicodeFunc",
           "src/utf.c:sqlite3Utf8Read"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -1980,11 +2509,16 @@
         "quote"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
-        "sourceBranches": [
-          "src/func.c:quoteFunc"
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func-16.1"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/func.c:quoteFunc",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -1999,12 +2533,16 @@
         "round"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func-4.6",
+          "func-4.8"
+        ],
         "sourceBranches": [
           "src/func.c:roundFunc",
           "src/printf.c:sqlite3_mprintf"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2020,14 +2558,15 @@
         "format"
       ],
       "provenance": {
-        "kind": "upstream-assertion-companion",
+        "kind": "upstream-assertion-plus-local-companion",
         "assertionIds": [
           "printf-1.1.1"
         ],
-        "setup": {
-          "kind": "none-required-for-selected-assertion",
-          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
-        }
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2047,7 +2586,7 @@
           "src/func.c:printfFunc",
           "src/printf.c:sqlite3_str_vappendf"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2065,13 +2604,19 @@
         "concat_ws"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func9-100",
+          "func9-130"
+        ],
         "sourceBranches": [
           "src/func.c:hexFunc",
           "src/func.c:unhexFunc",
-          "src/func.c:zeroblobFunc"
+          "src/func.c:zeroblobFunc",
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2097,9 +2642,18 @@
           "src/func.c:randomBlob",
           "src/func.c:last_insert_rowid",
           "src/func.c:changes",
-          "src/func.c:total_changes"
+          "src/func.c:total_changes",
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc",
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc",
+          "src/func.c:hexFunc",
+          "src/func.c:unhexFunc",
+          "src/func.c:zeroblobFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2121,9 +2675,16 @@
         "kind": "source-authored-local-companion",
         "sourceBranches": [
           "src/func.c:versionFunc",
-          "src/func.c:sourceidFunc"
+          "src/func.c:sourceidFunc",
+          "src/func.c:compileoptionusedFunc",
+          "src/func.c:compileoptiongetFunc",
+          "src/func.c:randomFunc",
+          "src/func.c:randomBlob",
+          "src/func.c:last_insert_rowid",
+          "src/func.c:changes",
+          "src/func.c:total_changes"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2146,7 +2707,7 @@
           "src/func.c:replaceFunc",
           "src/func.c:substrFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2166,7 +2727,7 @@
           "src/func.c:absFunc",
           "src/func.c:signFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2193,7 +2754,7 @@
           "src/resolve.c:resolveExprStep",
           "src/expr.c:sqlite3ExprCodeTarget"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2215,9 +2776,12 @@
         "sourceBranches": [
           "src/func.c:minmaxFunc",
           "src/func.c:nullifFunc",
-          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq",
+          "src/func.c:aBuiltinFunc",
+          "src/resolve.c:resolveExprStep",
+          "src/expr.c:sqlite3ExprCodeTarget"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2275,8 +2839,18 @@
       ],
       "provenance": {
         "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/vdbeapi.c:sqlite3_bind_*",
+          "src/func.c:instrFunc",
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf",
+          "src/func.c:roundFunc",
+          "src/printf.c:sqlite3_mprintf",
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc",
+          "src/func.c:quoteFunc"
+        ],
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2301,8 +2875,24 @@
       ],
       "provenance": {
         "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/expr.c:sqlite3ExprCodeTarget",
+          "src/vdbe.c:sqlite3VdbeExec/OP_Function",
+          "src/func.c:trimFunc",
+          "src/func.c:instrFunc",
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc",
+          "src/func.c:quoteFunc",
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc"
+        ],
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2322,7 +2912,7 @@
           "src/func.c:typeofFunc",
           "src/func.c:subtypeFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2339,14 +2929,15 @@
         "unistr"
       ],
       "provenance": {
-        "kind": "upstream-assertion-companion",
+        "kind": "upstream-assertion-plus-local-companion",
         "assertionIds": [
           "func9-200"
         ],
-        "setup": {
-          "kind": "none-required-for-selected-assertion",
-          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
-        }
+        "sourceBranches": [
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2361,14 +2952,14 @@
         "unistr_quote"
       ],
       "provenance": {
-        "kind": "upstream-assertion-companion",
+        "kind": "upstream-assertion-plus-local-companion",
         "assertionIds": [
           "func9-210"
         ],
-        "setup": {
-          "kind": "none-required-for-selected-assertion",
-          "rationale": "The selected assertion body is self-contained; shared tester harness is not SQL fixture setup."
-        }
+        "sourceBranches": [
+          "src/func.c:quoteFunc"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2388,7 +2979,7 @@
         "sourceBranches": [
           "src/func.c:errlogFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2406,8 +2997,15 @@
       ],
       "provenance": {
         "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep",
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read"
+        ],
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2428,9 +3026,23 @@
         "max"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func9-100",
+          "func9-130"
+        ],
+        "sourceBranches": [
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep",
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc",
+          "src/func.c:aBuiltinFunc",
+          "src/expr.c:sqlite3ExprCodeTarget",
+          "src/func.c:minmaxFunc",
+          "src/func.c:nullifFunc",
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2445,9 +3057,17 @@
         "concat"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func9-120"
+        ],
+        "sourceBranches": [
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep",
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2462,9 +3082,17 @@
         "concat_ws"
       ],
       "provenance": {
-        "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "kind": "upstream-assertion-plus-local-companion",
+        "assertionIds": [
+          "func9-160"
+        ],
+        "sourceBranches": [
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep",
+          "src/func.c:concatFunc",
+          "src/func.c:concatwsFunc"
+        ],
+        "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
     },
     {
@@ -2480,8 +3108,13 @@
       ],
       "provenance": {
         "kind": "source-authored-local-companion",
-        "sourceBranches": [],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "sourceBranches": [
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep",
+          "src/func.c:aBuiltinFunc",
+          "src/expr.c:sqlite3ExprCodeTarget"
+        ],
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2500,9 +3133,11 @@
         "kind": "source-authored-local-companion",
         "sourceBranches": [
           "src/func.c:versionFunc",
-          "src/func.c:sourceidFunc"
+          "src/func.c:sourceidFunc",
+          "src/func.c:compileoptionusedFunc",
+          "src/func.c:compileoptiongetFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2521,9 +3156,13 @@
         "kind": "source-authored-local-companion",
         "sourceBranches": [
           "src/func.c:printfFunc",
-          "src/printf.c:sqlite3_str_vappendf"
+          "src/printf.c:sqlite3_str_vappendf",
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     },
     {
@@ -2543,7 +3182,29 @@
           "src/func.c:printfFunc",
           "src/printf.c:sqlite3_str_vappendf"
         ],
-        "rationale": "No single direct upstream assertion owns this composed/storage-class/boundary case; SQL is locally authored from the pinned implementation branches."
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
+      }
+    },
+    {
+      "id": "case-minmax-overload-discriminator",
+      "sql": "WITH t(x) AS (VALUES(3),(1),(2)) SELECT (SELECT min(x) FROM t),(SELECT max(x) FROM t),min(3,1),max(3,1),(SELECT min(x) OVER () FROM t ORDER BY x LIMIT 1)",
+      "slice": "minmax-scalar",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "min",
+        "max"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:minmaxFunc",
+          "src/func.c:nullifFunc",
+          "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+        ],
+        "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
     }
   ],
@@ -2556,10 +3217,12 @@
       "bodySha256": "67dd9c7d5dc3dbf9fe16a0d95973b95f2db4faba17437d26b3645174b9226fd3",
       "bodyBytes": 92,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "upstream-range",
+        "lineStart": 21,
+        "lineEnd": 27,
+        "sha256": "4bb6312b6c1692df0dcf098e2f1c16e6953cf4065f2446ebdf4f59e002e18bc2",
+        "bytes": 236,
+        "purpose": "Creates and populates tbl1 queried by upper/lower assertions."
       }
     },
     {
@@ -2570,10 +3233,12 @@
       "bodySha256": "57eda552fbb3c776bca54cfb27ca22d31e4f0393e9285fd5bed18353a2e2e71d",
       "bodyBytes": 99,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "upstream-range",
+        "lineStart": 21,
+        "lineEnd": 27,
+        "sha256": "4bb6312b6c1692df0dcf098e2f1c16e6953cf4065f2446ebdf4f59e002e18bc2",
+        "bytes": 236,
+        "purpose": "Creates and populates tbl1 queried by upper/lower assertions."
       }
     },
     {
@@ -2584,10 +3249,8 @@
       "bodySha256": "cf0a7e350986b7eacacdd2ee7b0cc952e8b736c6dd5a682e667ca05d724072ae",
       "bodyBytes": 347,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "embedded-in-assertion-body",
+        "rationale": "Assertion body creates, binds, and queries tbl2; no external SQL fixture setup."
       }
     },
     {
@@ -2598,10 +3261,8 @@
       "bodySha256": "0b7eafce58db99b1191fc517bfdef4d81d7f721425ee91d26dd7a522539a365a",
       "bodyBytes": 62,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "self-contained-no-fixture",
+        "rationale": "Selected assertion body uses literals or test-helper inputs and no prior SQL fixture objects."
       }
     },
     {
@@ -2612,10 +3273,12 @@
       "bodySha256": "e17eb7c5e8ac1526989e97a723e24e982482fc21a3af2c3ea09fdb125114ceb3",
       "bodyBytes": 99,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "upstream-range",
+        "lineStart": 24,
+        "lineEnd": 49,
+        "sha256": "ff4fae6f035ce9517937e85705b2103ca2ce36646217202eb00f98b482acdb35",
+        "bytes": 289,
+        "purpose": "Creates and populates t1 queried by LIKE assertion."
       }
     },
     {
@@ -2626,10 +3289,8 @@
       "bodySha256": "12bceafefb9ebb2d69d0f05960c8e8c6c268801b364adafb8c8f0d4bf24edeb0",
       "bodyBytes": 70,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "self-contained-no-fixture",
+        "rationale": "Selected assertion body uses literals or test-helper inputs and no prior SQL fixture objects."
       }
     },
     {
@@ -2640,10 +3301,8 @@
       "bodySha256": "5218585b006bcbd99e14dcb4aa37db7ca34d3883638bf81b41515a667fb21709",
       "bodyBytes": 86,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "self-contained-no-fixture",
+        "rationale": "Selected assertion body uses literals or test-helper inputs and no prior SQL fixture objects."
       }
     },
     {
@@ -2654,10 +3313,88 @@
       "bodySha256": "3961989415a7b3d221702688a6fbb436dfeec8c8d459516090112394b4d95915",
       "bodyBytes": 100,
       "setup": {
-        "kind": "none-required-for-selected-assertion",
-        "lineStart": null,
-        "lineEnd": null,
-        "sha256": null
+        "kind": "self-contained-no-fixture",
+        "rationale": "Selected assertion body uses literals or test-helper inputs and no prior SQL fixture objects."
+      }
+    },
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-4.6",
+      "lineStart": 239,
+      "lineEnd": 241,
+      "bodySha256": "116ab6d8362418753efd55e153650a88fee34947edaeb278c62ae35a716d3db1",
+      "bodyBytes": 97,
+      "setup": {
+        "kind": "upstream-range",
+        "lineStart": 197,
+        "lineEnd": 205,
+        "sha256": "05f2acad48be58c096d7e789e6240b0a1f921279c249d66f8bc215039bcf3d78",
+        "bytes": 299,
+        "purpose": "Floating-point branch creates and populates t1 used by selected round assertion."
+      }
+    },
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-4.8",
+      "lineStart": 245,
+      "lineEnd": 247,
+      "bodySha256": "351ef0240efa9a054a6fe532bf21e9889b00214b3f6419802c29ccefd1003bc8",
+      "bodyBytes": 99,
+      "setup": {
+        "kind": "upstream-range",
+        "lineStart": 197,
+        "lineEnd": 205,
+        "sha256": "05f2acad48be58c096d7e789e6240b0a1f921279c249d66f8bc215039bcf3d78",
+        "bytes": 299,
+        "purpose": "Floating-point branch creates and populates t1 used by selected round assertion."
+      }
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-100",
+      "lineStart": 17,
+      "lineEnd": 19,
+      "bodySha256": "4c92e6d9c67f0647246a8c7acb7aea88c50107829c649eeb2c068fcb4114a001",
+      "bodyBytes": 81,
+      "setup": {
+        "kind": "self-contained-no-fixture",
+        "rationale": "Literal-only SELECT; no prior SQL fixture objects."
+      }
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-120",
+      "lineStart": 23,
+      "lineEnd": 25,
+      "bodySha256": "ed74dbdafda17e50bbe6414516c08b8b81ff734ca92621cf0f6e66af8ff161e2",
+      "bodyBytes": 103,
+      "setup": {
+        "kind": "self-contained-no-fixture",
+        "rationale": "Literal-free arity error; no prior SQL fixture objects."
+      }
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-130",
+      "lineStart": 26,
+      "lineEnd": 28,
+      "bodySha256": "66cda144f29444e0b4a2036abbd682023064a7a909ccff74ecff71dfbeaf2a0d",
+      "bodyBytes": 116,
+      "setup": {
+        "kind": "self-contained-no-fixture",
+        "rationale": "Literal-only SELECT; no prior SQL fixture objects."
+      }
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-160",
+      "lineStart": 47,
+      "lineEnd": 49,
+      "bodySha256": "39531db6b7a38bce9fc51a17962f66b2ab36bcc81d01dd2ba761efe828cf0710",
+      "bodyBytes": 112,
+      "setup": {
+        "kind": "self-contained-no-fixture",
+        "rationale": "Literal-only arity error; no prior SQL fixture objects."
       }
     }
   ],
@@ -2669,6 +3406,11 @@
       "specSha256": "d0500841d3eafa82db12e58cad9b05400325c5abccc6b656fb1b327cfcc1010c",
       "nativeSha256": "7fdf75835284454a6dcff22595eb64c968bc34907465b093baf67661561e3582",
       "reason": "Second repair corrects profile maximum arity, active compile-option registrations, source-derived validation, and per-case/slice provenance."
+    },
+    "thirdRepair": {
+      "specSha256": "067de7bdb7f238814c63f9238fa54fbb6d9e288503c1261b824fee112bff0c52",
+      "nativeSha256": "538b9e7f535c5ee47f47de21bfbe7316018de063504e151fab83c84aae074933",
+      "reason": "Repairs source/test setup ownership and min/max resolver-selected scalar arity precision."
     }
   }
 }

@@ -41,7 +41,7 @@ python3 test/conformance/ordinary-scalars-manifest.test.py
 sha256sum test/conformance/cases/stage3-ordinary-scalars.*.json
 ```
 
-Capture hashes at delivery: spec `067de7bdb7f238814c63f9238fa54fbb6d9e288503c1261b824fee112bff0c52`; native `538b9e7f535c5ee47f47de21bfbe7316018de063504e151fab83c84aae074933`. Superseded first-pass hashes remain in the machine spec with their correction rationale. Oracle profile is `ENABLE_COLUMN_METADATA`, `ENABLE_MATH_FUNCTIONS`. The manifest test passes 50-row/33-case/51-observation accounting and 12 implemented/38 absent classification. No scalar runtime code changed.
+Capture hashes at delivery: spec `aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f`; native `46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e`. Superseded first-pass hashes remain in the machine spec with their correction rationale. Oracle profile is `ENABLE_COLUMN_METADATA`, `ENABLE_MATH_FUNCTIONS`. The manifest test passes 50-row/34-case/52-observation accounting and 12 implemented/38 absent classification. No scalar runtime code changed.
 
 ## Second repair provenance
 
@@ -49,4 +49,12 @@ The active in-scope denominator is **50 rows**: 12 currently dispatched and 38 a
 
 Variadic accepted maxima use captured `MAX_FUNCTION_ARG=1000`. Native cases prove the 1000-argument `printf` boundary and the 1001-argument prepare error. Every case now has either exact selected upstream assertion provenance (with explicit setup disposition and body hash) or a source-authored local-companion rationale naming its implementation branches; every slice has a machine summary. The validator parses balanced pinned catalog macro calls, operands, active preprocessor conditions, `bNC`, `mFlags`, `FUNCTION2` extras, and LIKE flags instead of using a function-name flag table.
 
-Current delivery: 33 cases, 51 native observations, and 114 honest public Fetch unsupported observations. Hashes: spec `067de7bdb7f238814c63f9238fa54fbb6d9e288503c1261b824fee112bff0c52`; native `538b9e7f535c5ee47f47de21bfbe7316018de063504e151fab83c84aae074933`. Superseded hashes and reasons remain in the spec.
+Current delivery: 34 cases, 52 native observations, and 114 honest public Fetch unsupported observations. Hashes: spec `aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f`; native `46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e`. Superseded hashes and reasons remain in the spec.
+
+## Third correction: ownership, setup, and min/max dispatch
+
+Every case now has nonempty pinned branch ownership, and every source-owned slice owns one or more cases, including `concat`/`concat_ws`. Slice ownership includes cross-slice composed cases rather than relying only on a case's primary organizational label. Applicable direct assertions are linked while `localAddition` records what the corpus adds. External fixture setup for `func-5.1/.2`, `like-1.1`, and selected `round()` assertions has exact pinned line ranges, byte counts, and SHA-256; genuinely literal or body-contained assertions state and validate that narrower condition.
+
+For `min`/`max`, the machine contract distinguishes the raw `FUNCTION(...,-3,...)` match range (1..1000) from effective ordinary-scalar ownership (2..1000). At one argument, the exact `WAGGREGATE(...,1,...)` registration wins `callback.c:matchQuality` over the variadic row, and `resolve.c:resolveExprStep` classifies it by `xFinalize`; aggregate/window behavior remains separately owned. `case-minmax-overload-discriminator` captures aggregate, window, and two-argument scalar dispatch through public SQL.
+
+The validator is intentionally described as a profile-specific balanced macro-invocation parser, not a general C preprocessor. It checks the exact pinned `sqliteInt.h` macro-definition range/hash used by its encoded semantics, current-profile membership, nonempty and existent source symbols, every absent row's source-slice case ownership, exact assertion bodies/setup ranges, and min/max raw/effective arities. Current hashes: spec `aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f`; native `46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e`.

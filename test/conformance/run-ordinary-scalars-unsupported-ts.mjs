@@ -27,7 +27,7 @@ try{
     const db=await openFixture(new Request(url));
     try{
       for(const registration of absent){
-        const argc=Math.min(...registration.acceptedArities.map(x=>x.minimum));
+        const argc=Math.min(...registration.effectiveScalarArities.map(x=>x.minimum));
         const args=Array(argc).fill('NULL').join(',');
         const sql=`SELECT "${registration.name}"(${args})`;
         let outcome;
