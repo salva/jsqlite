@@ -79,15 +79,27 @@ Final immutable artifact hashes:
 - spec: `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`
 - native capture: `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`
 
-The accepted assessment reran and passed:
+The final coherence-repair rerun passed:
 
 ```text
-python3 test/conformance/ordinary-scalars-manifest.test.py
+LIB=/work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so
+python3 test/conformance/capture-ordinary-scalars.py --library "$LIB"
+# {"cases": 37, "observations": 59, "registrations": 50}
+python3 test/conformance/ordinary-scalars-manifest.test.py --library "$LIB"
+# ordinary scalar contract: 50 active in-scope rows, 37 cases/59 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified
 node test/conformance/run-ordinary-scalars-unsupported-ts.mjs
+# {"publicFetchFixtures":3,"absentRegistrations":38,"generatedUnsupportedObservations":114,"fixtureColumnObservations":6,"fixtureColumnOutcomes":["sqlite"],"outcome":"honest-unsupported-no-ts-credit"}
+python3 -m py_compile test/conformance/capture-ordinary-scalars.py test/conformance/ordinary-scalars-manifest.test.py
+npm run typecheck
 sha256sum test/conformance/cases/stage3-ordinary-scalars.spec.json \
-  test/conformance/cases/stage3-ordinary-scalars.native.json
+  test/conformance/cases/stage3-ordinary-scalars.native.json \
+  test/fixtures/expression-cursor/users-utf8.db \
+  test/fixtures/expression-cursor/users-utf16le.db \
+  test/fixtures/expression-cursor/users-utf16be.db
 git diff --check
 ```
+
+The successful validator command loaded that exact library, verified the manifest source ID, opened all three exact hashed fixtures read-only, and compared both persisted-column cases' typed rows. The previously published argument-less validator line was invalid because `--library` is required; it is superseded and must not be read as a successful gate execution.
 
 Observed focused counts were:
 

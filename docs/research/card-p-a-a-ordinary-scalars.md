@@ -4,7 +4,7 @@ This is the bounded research deliverable for [[card:card-p-a-a]], pinned **only*
 
 ## Artifacts and denominator
 
-* `test/conformance/cases/stage3-ordinary-scalars.spec.json` is the machine contract: **50 active in-scope production ordinary-scalar name/arity registration rows**, implementation routine, registration macro/flags, aliases, implementation slice, and current TS status; **30** cases expand to **48** encoding observations.
+* `test/conformance/cases/stage3-ordinary-scalars.spec.json` is the machine contract: **50 active in-scope production ordinary-scalar name/arity registration rows**, implementation routine, registration macro/flags, aliases, implementation slice, and current TS status; **37** cases expand to **59** encoding observations.
 * `stage3-ordinary-scalars.native.json` is fresh immutable typed output (INTEGER decimal strings, REAL C99 hex strings, TEXT plus UTF-8 bytes, BLOB hex, NULL; prepare/step code/message). It embeds source ID, compile options, manifest/spec hashes. `capture-ordinary-scalars.py` recaptures; `ordinary-scalars-manifest.test.py` independently validates the pinned catalog, flags, arities, absent-row coverage, exact selected upstream assertion hashes, fixture paths, accounting, and schema.
 * Denominator rule is the production ordinary scalar entries in `func.c:aBuiltinFunc` under the oracle profile. Debug/test, `load_extension`, and conditional soundex/offset/filestat/unknown are not ordinary profile entries. Aggregates/windows are separate. Date/time, math and JSON are explicitly retained as future root-owned registry scopes, not excluded product scope.
 
@@ -35,13 +35,24 @@ Pinned owners inspected: `src/func.c`, `printf.c`, `vdbemem.c`, `utf.c`, `util.c
 ## Reproduction
 
 ```sh
-tools/oracle/build.sh "$SAIVAGE_CARD_WORK_ROOT/oracle-build"
-python3 test/conformance/capture-ordinary-scalars.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"
-python3 test/conformance/ordinary-scalars-manifest.test.py
-sha256sum test/conformance/cases/stage3-ordinary-scalars.*.json
+tools/oracle/build.sh
+LIB=/work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so
+python3 test/conformance/capture-ordinary-scalars.py --library "$LIB"
+python3 test/conformance/ordinary-scalars-manifest.test.py --library "$LIB"
+node test/conformance/run-ordinary-scalars-unsupported-ts.mjs
+python3 -m py_compile test/conformance/capture-ordinary-scalars.py test/conformance/ordinary-scalars-manifest.test.py
+npm run typecheck
+sha256sum test/conformance/cases/stage3-ordinary-scalars.spec.json \
+  test/conformance/cases/stage3-ordinary-scalars.native.json \
+  test/fixtures/expression-cursor/users-utf8.db \
+  test/fixtures/expression-cursor/users-utf16le.db \
+  test/fixtures/expression-cursor/users-utf16be.db
+git diff --check
 ```
 
-Capture hashes at delivery: spec `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`; native `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`. Superseded first-pass hashes remain in the machine spec with their correction rationale. Oracle profile is `ENABLE_COLUMN_METADATA`, `ENABLE_MATH_FUNCTIONS`. The manifest test passes 50-row/37-case/59-observation accounting and 12 implemented/38 absent classification. No scalar runtime code changed.
+The exact `LIB` path above was present and used for the final rerun. `tools/oracle/build.sh` uses `$SAIVAGE_CARD_WORK_ROOT/oracle-build` by default; rebuild only when that library is missing. The validator printed `ordinary scalar contract: 50 active in-scope rows, 37 cases/59 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified`. This successful command loaded the library, matched its `sqlite3_sourceid()` to the manifest, and executed both persisted cases read-only against all three hashed physical fixtures. An argument-less validator invocation is invalid because `--library` is required; any historical transcript showing it is superseded and did not exercise this gate.
+
+Capture hashes at delivery: spec `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`; native `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`. Physical fixture hashes: UTF-8 `3e3464fe16235ea9805c6a14304e1dda5649b30df28defd7f71c29e1e773d1c5`; UTF-16LE `cf4c67e9d3e6f7a0ab865d1384d5996d464bdb79768fc7e37e8a195fc8c313d7`; UTF-16BE `5d8a834d2d8c4e9d742af57004779befa7201b07b4465033c1dbe30320115963`. Superseded first-pass hashes remain in the machine spec with their correction rationale. Oracle profile is `ENABLE_COLUMN_METADATA`, `ENABLE_MATH_FUNCTIONS`. The manifest test passes 50-row/37-case/59-observation accounting and 12 implemented/38 absent classification. No scalar runtime code changed.
 
 ## Second repair provenance
 
