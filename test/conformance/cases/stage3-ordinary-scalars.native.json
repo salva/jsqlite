@@ -6,7 +6,7 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json",
     "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
-    "specSha256": "aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f",
+    "specSha256": "27c70b961b98c7dc6cb7ace87562e9ce337e1217864ed2ab40f6fa7b2a7eecf9",
     "compileOptions": [
       "ATOMIC_INTRINSICS=1",
       "COMPILER=gcc-13.3.0",
@@ -51,8 +51,8 @@
   },
   "counts": {
     "registrations": 50,
-    "cases": 34,
-    "observations": 52
+    "cases": 37,
+    "observations": 59
   },
   "observations": [
     {
@@ -1732,6 +1732,607 @@
           {
             "type": "integer",
             "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-text",
+      "encoding": "UTF-8",
+      "sql": "SELECT id, typeof(v), upper(v), lower(v), quote(v) FROM scalar_values WHERE id IN (1,4) ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "upper(v)",
+        "lower(v)",
+        "quote(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c696365",
+            "value": "alice"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-text",
+      "encoding": "UTF-16le",
+      "sql": "SELECT id, typeof(v), upper(v), lower(v), quote(v) FROM scalar_values WHERE id IN (1,4) ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "upper(v)",
+        "lower(v)",
+        "quote(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c696365",
+            "value": "alice"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-text",
+      "encoding": "UTF-16be",
+      "sql": "SELECT id, typeof(v), upper(v), lower(v), quote(v) FROM scalar_values WHERE id IN (1,4) ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "upper(v)",
+        "lower(v)",
+        "quote(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c696365",
+            "value": "alice"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-storage",
+      "encoding": "UTF-8",
+      "sql": "SELECT id, typeof(v), length(v), instr(v,char(0)), quote(v), upper(v) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "length(v)",
+        "instr(v,char(0))",
+        "quote(v)",
+        "upper(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "274127",
+            "value": "'A'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "410042",
+            "value": "A\u0000B"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "582734313030343227",
+            "value": "X'410042'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "410042",
+            "value": "A\u0000B"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-storage",
+      "encoding": "UTF-16le",
+      "sql": "SELECT id, typeof(v), length(v), instr(v,char(0)), quote(v), upper(v) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "length(v)",
+        "instr(v,char(0))",
+        "quote(v)",
+        "upper(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "274127",
+            "value": "'A'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "41",
+            "value": "A"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "582734313030343227",
+            "value": "X'410042'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "41",
+            "value": "A"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-fixture-columns-storage",
+      "encoding": "UTF-16be",
+      "sql": "SELECT id, typeof(v), length(v), instr(v,char(0)), quote(v), upper(v) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "columns": [
+        "id",
+        "typeof(v)",
+        "length(v)",
+        "instr(v,char(0))",
+        "quote(v)",
+        "upper(v)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27416c69636527",
+            "value": "'Alice'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "414c494345",
+            "value": "ALICE"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "27e4848027",
+            "value": "'䄀'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "e48480",
+            "value": "䄀"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "582734313030343227",
+            "value": "X'410042'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "e48480",
+            "value": "䄀"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-implemented-owner-discriminator",
+      "encoding": "UTF-8",
+      "sql": "SELECT octet_length(CAST(X'410042' AS TEXT)),abs(-7),replace('aba','b','x')",
+      "parameters": [],
+      "columns": [
+        "octet_length(CAST(X'410042' AS TEXT))",
+        "abs(-7)",
+        "replace('aba','b','x')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "617861",
+            "value": "axa"
           }
         ]
       ]

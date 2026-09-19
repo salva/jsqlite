@@ -24,7 +24,7 @@ The current-HEAD inspection still supports the mutable fidelity audit correction
 
 ### Source and case ownership
 
-The final machine contract contains 34 cases and 52 encoding-expanded native observations. All 34 cases have nonempty pinned branch ownership. Every declared source-owned implementation slice has both nonempty source branches and one or more owned cases.
+The final machine contract contains 37 cases and 59 encoding-expanded native observations. All 37 cases have nonempty pinned branch ownership. Every declared source-owned implementation slice has both nonempty source branches and one or more owned cases.
 
 Ownership is not limited to each case's primary organizational label: composed cases are also linked to every source slice they exercise. In particular, the `concat` slice owns four cases that cover both `concat` and `concat_ws`. Validator checks require every absent registration row to be named by a case owned through that row's source slice.
 
@@ -72,8 +72,8 @@ Pinned `src/callback.c:matchQuality` gives an exact-arity definition a higher sc
 
 Final immutable artifact hashes:
 
-- spec: `aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f`
-- native capture: `46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e`
+- spec: `27c70b961b98c7dc6cb7ace87562e9ce337e1217864ed2ab40f6fa7b2a7eecf9`
+- native capture: `350437dccfc2b3a5cd8789896ad08e6e1a9b7f74ae2aae31b5a347ebf8136652`
 
 The accepted assessment reran and passed:
 
@@ -88,8 +88,8 @@ git diff --check
 Observed focused counts were:
 
 - 50 registrations;
-- 34 cases;
-- 52 typed native observations;
+- 37 cases;
+- 59 typed native observations;
 - 12 currently dispatched / 38 absent rows;
 - three physical public Fetch fixtures;
 - 114 unsupported/no-TypeScript-credit Fetch observations (38 absent rows × three encodings).
@@ -122,3 +122,9 @@ This inference is stronger than the two earlier deliveries because the formerly 
 4. Implement source-owned slices through the shared Mem, UTF, FunctionContext, collation, lifecycle, and bounded-work primitives. Do not substitute JS regex/eval, host formatting, callbacks, or a native runtime fallback.
 5. Earn TypeScript compatibility credit only with independent public-path tests that preserve INTEGER/REAL/TEXT/BLOB/NULL, encoding, embedded-NUL, parameter, returned-column, and error phase/code/message distinctions.
 6. Keep date/time, math, JSON, aggregate/window, and excluded extension behavior in their existing separately owned scopes. Do not interpret this report as parent completion or a product-scope change.
+
+## Post-assessment correction from independent parent review
+
+Independent review `record:///review.md?card=card-p-a&v=3` found two valid defects in the preceding supported evidence: there were no persisted-column scalar cases despite the column-coverage wording, and slice provenance did not require each row's actual routine. Both are repaired in the current artifacts. Two source-owned persisted `scalar_values` cases now run through equivalent native setup and every physical encoding Fetch fixture with exact per-encoding typed expectations for TEXT, embedded-NUL TEXT, BLOB, and NULL inputs. Current public executions produce six honest unsupported SQLite outcomes and no TS credit. The validator requires this coverage and physical fixture hashes.
+
+All 50 rows now carry an exact `implementationOwner`, which must occur in their slice and every case covering that row. Non-inline rows must equal the registry's recorded `src/func.c` routine; inline rows use an explicit compiler owner and preserve the inline registration operand. CHAR and UNISTR now own `charFunc` and `unistrFunc` respectively, with UNISTR's `isNHex` and `sqlite3AppendOneUtf8Character` helpers; they are not attributed to `unicodeFunc`. The three formerly case-uncovered implemented rows have a discriminator case. Current totals and hashes above supersede the pre-review values.

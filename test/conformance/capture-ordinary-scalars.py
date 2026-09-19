@@ -29,6 +29,8 @@ for case in spec['cases']:
  for enc in case['encodings']:
   db=P();assert L.sqlite3_open(b':memory:',C.byref(db))==0
   e=C.c_char_p();q=f"PRAGMA encoding='{enc}'".encode();assert L.sqlite3_exec(db,q,None,None,C.byref(e))==0
+  for setup_sql in case.get('fixtureSetupSql',[]):
+   assert L.sqlite3_exec(db,setup_sql.encode(),None,None,C.byref(e))==0,(case['id'],setup_sql,e.value)
   st=P();tail=C.c_char_p();rc=L.sqlite3_prepare_v2(db,case['sql'].encode(),-1,C.byref(st),C.byref(tail));o={'id':case['id'],'encoding':enc,'sql':case['sql'],'parameters':case.get('parameters',[])}
   if rc:o['error']=err(db,'prepare',rc)
   else:

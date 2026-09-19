@@ -94,7 +94,11 @@
       ],
       "unicode": [
         "src/func.c:unicodeFunc",
-        "src/utf.c:sqlite3Utf8Read"
+        "src/utf.c:sqlite3Utf8Read",
+        "src/func.c:charFunc",
+        "src/func.c:unistrFunc",
+        "src/func.c:isNHex",
+        "src/utf.c:sqlite3AppendOneUtf8Character"
       ],
       "quote": [
         "src/func.c:quoteFunc"
@@ -251,23 +255,68 @@
     ],
     "profileFunctionArgLimit": 1000,
     "sliceProvenance": {
-      "arity": {
+      "planner-inline": {
         "sourceBranches": [
-          "src/callback.c:matchQuality",
-          "src/resolve.c:resolveExprStep"
+          "src/func.c:aBuiltinFunc",
+          "src/resolve.c:resolveExprStep",
+          "src/expr.c:sqlite3ExprCodeTarget"
         ],
         "caseIds": [
-          "case-variadic-zero",
+          "case-inline",
+          "case-minmax-collation",
           "case-variadic-minima",
-          "case-arity-concat-zero-error",
-          "case-arity-concat-ws-one-error",
           "case-arity-coalesce-one-error"
         ],
         "assertionIds": [
           "func9-100",
-          "func9-120",
-          "func9-130",
-          "func9-160"
+          "func9-130"
+        ]
+      },
+      "like-glob": {
+        "sourceBranches": [
+          "src/func.c:likeFunc",
+          "src/func.c:patternCompare",
+          "src/func.c:compareInfo"
+        ],
+        "caseIds": [
+          "case-like-order-blob",
+          "case-like-escape",
+          "case-like-bad-escape"
+        ],
+        "assertionIds": [
+          "like-1.1"
+        ]
+      },
+      "formatting": {
+        "sourceBranches": [
+          "src/func.c:printfFunc",
+          "src/printf.c:sqlite3_str_vappendf"
+        ],
+        "caseIds": [
+          "case-format-boundaries",
+          "case-format-null-missing",
+          "case-bound-params",
+          "case-composed",
+          "case-variadic-zero",
+          "case-variadic-limit-1000",
+          "case-variadic-over-limit-1001"
+        ],
+        "assertionIds": [
+          "printf-1.1.1"
+        ]
+      },
+      "numeric-formatting": {
+        "sourceBranches": [
+          "src/func.c:roundFunc",
+          "src/printf.c:sqlite3_mprintf"
+        ],
+        "caseIds": [
+          "case-round",
+          "case-bound-params"
+        ],
+        "assertionIds": [
+          "func-4.6",
+          "func-4.8"
         ]
       },
       "ascii-case": {
@@ -279,11 +328,79 @@
           "case-upper-ascii-unicode",
           "case-upper-null-blob",
           "case-bound-params",
-          "case-composed"
+          "case-composed",
+          "case-fixture-columns-text",
+          "case-fixture-columns-storage"
         ],
         "assertionIds": [
           "func-5.1",
           "func-5.2"
+        ]
+      },
+      "trim": {
+        "sourceBranches": [
+          "src/func.c:trimFunc"
+        ],
+        "caseIds": [
+          "case-trim",
+          "case-composed"
+        ],
+        "assertionIds": [
+          "func-22.4"
+        ]
+      },
+      "search": {
+        "sourceBranches": [
+          "src/func.c:instrFunc"
+        ],
+        "caseIds": [
+          "case-instr-classes",
+          "case-bound-params",
+          "case-composed",
+          "case-fixture-columns-storage"
+        ],
+        "assertionIds": []
+      },
+      "unicode": {
+        "sourceBranches": [
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
+        ],
+        "caseIds": [
+          "case-trim",
+          "case-instr-classes",
+          "case-unicode",
+          "case-quote",
+          "case-composed",
+          "case-unistr",
+          "case-variadic-zero",
+          "case-fixture-columns-storage"
+        ],
+        "assertionIds": [
+          "func-16.1",
+          "func-22.4",
+          "func9-200"
+        ]
+      },
+      "quote": {
+        "sourceBranches": [
+          "src/func.c:quoteFunc"
+        ],
+        "caseIds": [
+          "case-quote",
+          "case-bound-params",
+          "case-composed",
+          "case-unistr-quote",
+          "case-fixture-columns-text",
+          "case-fixture-columns-storage"
+        ],
+        "assertionIds": [
+          "func-16.1",
+          "func9-210"
         ]
       },
       "blob-text": {
@@ -306,29 +423,6 @@
           "func9-130"
         ]
       },
-      "build-identity": {
-        "sourceBranches": [
-          "src/func.c:versionFunc",
-          "src/func.c:sourceidFunc",
-          "src/func.c:compileoptionusedFunc",
-          "src/func.c:compileoptiongetFunc"
-        ],
-        "caseIds": [
-          "case-identity-state",
-          "case-compile-options"
-        ],
-        "assertionIds": []
-      },
-      "composition": {
-        "sourceBranches": [
-          "src/expr.c:sqlite3ExprCodeTarget",
-          "src/vdbe.c:sqlite3VdbeExec/OP_Function"
-        ],
-        "caseIds": [
-          "case-composed"
-        ],
-        "assertionIds": []
-      },
       "concat": {
         "sourceBranches": [
           "src/func.c:concatFunc",
@@ -347,61 +441,16 @@
           "func9-160"
         ]
       },
-      "connection-state": {
+      "numeric-core": {
         "sourceBranches": [
-          "src/func.c:randomFunc",
-          "src/func.c:randomBlob",
-          "src/func.c:last_insert_rowid",
-          "src/func.c:changes",
-          "src/func.c:total_changes"
+          "src/func.c:absFunc",
+          "src/func.c:signFunc"
         ],
         "caseIds": [
-          "case-random-storage",
-          "case-identity-state"
+          "case-sign",
+          "case-implemented-owner-discriminator"
         ],
         "assertionIds": []
-      },
-      "formatting": {
-        "sourceBranches": [
-          "src/func.c:printfFunc",
-          "src/printf.c:sqlite3_str_vappendf"
-        ],
-        "caseIds": [
-          "case-format-boundaries",
-          "case-format-null-missing",
-          "case-bound-params",
-          "case-composed",
-          "case-variadic-zero",
-          "case-variadic-limit-1000",
-          "case-variadic-over-limit-1001"
-        ],
-        "assertionIds": [
-          "printf-1.1.1"
-        ]
-      },
-      "host-side-effect": {
-        "sourceBranches": [
-          "src/func.c:errlogFunc"
-        ],
-        "caseIds": [
-          "case-sqlite-log"
-        ],
-        "assertionIds": []
-      },
-      "like-glob": {
-        "sourceBranches": [
-          "src/func.c:likeFunc",
-          "src/func.c:patternCompare",
-          "src/func.c:compareInfo"
-        ],
-        "caseIds": [
-          "case-like-order-blob",
-          "case-like-escape",
-          "case-like-bad-escape"
-        ],
-        "assertionIds": [
-          "like-1.1"
-        ]
       },
       "minmax-scalar": {
         "sourceBranches": [
@@ -419,81 +468,22 @@
           "func9-130"
         ]
       },
-      "numeric-core": {
+      "value-introspection": {
         "sourceBranches": [
-          "src/func.c:absFunc",
-          "src/func.c:signFunc"
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc"
         ],
         "caseIds": [
-          "case-sign"
-        ],
-        "assertionIds": []
-      },
-      "numeric-formatting": {
-        "sourceBranches": [
-          "src/func.c:roundFunc",
-          "src/printf.c:sqlite3_mprintf"
-        ],
-        "caseIds": [
-          "case-round",
-          "case-bound-params"
+          "case-upper-null-blob",
+          "case-random-storage",
+          "case-subtype",
+          "case-fixture-columns-text",
+          "case-fixture-columns-storage"
         ],
         "assertionIds": [
-          "func-4.6",
-          "func-4.8"
+          "func-5.1",
+          "func-5.2"
         ]
-      },
-      "planner-inline": {
-        "sourceBranches": [
-          "src/func.c:aBuiltinFunc",
-          "src/resolve.c:resolveExprStep",
-          "src/expr.c:sqlite3ExprCodeTarget"
-        ],
-        "caseIds": [
-          "case-inline",
-          "case-minmax-collation",
-          "case-variadic-minima",
-          "case-arity-coalesce-one-error"
-        ],
-        "assertionIds": [
-          "func9-100",
-          "func9-130"
-        ]
-      },
-      "public-bind": {
-        "sourceBranches": [
-          "src/vdbeapi.c:sqlite3_bind_*"
-        ],
-        "caseIds": [
-          "case-bound-params"
-        ],
-        "assertionIds": []
-      },
-      "quote": {
-        "sourceBranches": [
-          "src/func.c:quoteFunc"
-        ],
-        "caseIds": [
-          "case-quote",
-          "case-bound-params",
-          "case-composed",
-          "case-unistr-quote"
-        ],
-        "assertionIds": [
-          "func-16.1",
-          "func9-210"
-        ]
-      },
-      "search": {
-        "sourceBranches": [
-          "src/func.c:instrFunc"
-        ],
-        "caseIds": [
-          "case-instr-classes",
-          "case-bound-params",
-          "case-composed"
-        ],
-        "assertionIds": []
       },
       "text-core": {
         "sourceBranches": [
@@ -506,55 +496,84 @@
           "case-random-storage",
           "case-substring-alias",
           "case-composed",
-          "case-variadic-limit-1000"
+          "case-variadic-limit-1000",
+          "case-fixture-columns-storage",
+          "case-implemented-owner-discriminator"
         ],
         "assertionIds": []
       },
-      "trim": {
+      "connection-state": {
         "sourceBranches": [
-          "src/func.c:trimFunc"
+          "src/func.c:randomFunc",
+          "src/func.c:randomBlob",
+          "src/func.c:last_insert_rowid",
+          "src/func.c:changes",
+          "src/func.c:total_changes"
         ],
         "caseIds": [
-          "case-trim",
+          "case-random-storage",
+          "case-identity-state"
+        ],
+        "assertionIds": []
+      },
+      "build-identity": {
+        "sourceBranches": [
+          "src/func.c:versionFunc",
+          "src/func.c:sourceidFunc",
+          "src/func.c:compileoptionusedFunc",
+          "src/func.c:compileoptiongetFunc"
+        ],
+        "caseIds": [
+          "case-identity-state",
+          "case-compile-options"
+        ],
+        "assertionIds": []
+      },
+      "host-side-effect": {
+        "sourceBranches": [
+          "src/func.c:errlogFunc"
+        ],
+        "caseIds": [
+          "case-sqlite-log"
+        ],
+        "assertionIds": []
+      },
+      "public-bind": {
+        "sourceBranches": [
+          "src/vdbeapi.c:sqlite3_bind_*"
+        ],
+        "caseIds": [
+          "case-bound-params"
+        ],
+        "assertionIds": []
+      },
+      "composition": {
+        "sourceBranches": [
+          "src/expr.c:sqlite3ExprCodeTarget",
+          "src/vdbe.c:sqlite3VdbeExec/OP_Function"
+        ],
+        "caseIds": [
           "case-composed"
         ],
-        "assertionIds": [
-          "func-22.4"
-        ]
+        "assertionIds": []
       },
-      "unicode": {
+      "arity": {
         "sourceBranches": [
-          "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/callback.c:matchQuality",
+          "src/resolve.c:resolveExprStep"
         ],
         "caseIds": [
-          "case-trim",
-          "case-instr-classes",
-          "case-unicode",
-          "case-quote",
-          "case-composed",
-          "case-unistr",
-          "case-variadic-zero"
+          "case-variadic-zero",
+          "case-variadic-minima",
+          "case-arity-concat-zero-error",
+          "case-arity-concat-ws-one-error",
+          "case-arity-coalesce-one-error"
         ],
         "assertionIds": [
-          "func-16.1",
-          "func-22.4",
-          "func9-200"
-        ]
-      },
-      "value-introspection": {
-        "sourceBranches": [
-          "src/func.c:typeofFunc",
-          "src/func.c:subtypeFunc"
-        ],
-        "caseIds": [
-          "case-upper-null-blob",
-          "case-random-storage",
-          "case-subtype"
-        ],
-        "assertionIds": [
-          "func-5.1",
-          "func-5.2"
+          "func9-100",
+          "func9-120",
+          "func9-130",
+          "func9-160"
         ]
       }
     },
@@ -592,6 +611,30 @@
         "FUNCTION2",
         "LIKEFUNC"
       ]
+    },
+    "persistedColumnCoverage": {
+      "caseIds": [
+        "case-fixture-columns-text",
+        "case-fixture-columns-storage"
+      ],
+      "fixtures": {
+        "UTF-8": "test/fixtures/expression-cursor/users-utf8.db",
+        "UTF-16le": "test/fixtures/expression-cursor/users-utf16le.db",
+        "UTF-16be": "test/fixtures/expression-cursor/users-utf16be.db"
+      },
+      "requiredStorageClasses": [
+        "text",
+        "blob",
+        "null"
+      ],
+      "requiresEmbeddedNul": true,
+      "nativeSetup": "fixtureSetupSql is executed on a fresh database in each encoding and is byte/value-equivalent to the immutable physical fixtures",
+      "publicDisposition": "Execute each manifest case against each physical Fetch fixture; unsupported absent-function outcomes remain zero credit, while any future success must equal typed expectedRowsByEncoding.",
+      "fixtureSha256": {
+        "UTF-8": "3e3464fe16235ea9805c6a14304e1dda5649b30df28defd7f71c29e1e773d1c5",
+        "UTF-16le": "cf4c67e9d3e6f7a0ab865d1384d5996d464bdb79768fc7e37e8a195fc8c313d7",
+        "UTF-16be": "5d8a834d2d8c4e9d742af57004779befa7201b07b4465033c1dbe30320115963"
+      }
     }
   },
   "registry": [
@@ -626,7 +669,12 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_unlikely"
+      }
     },
     {
       "name": "likelihood",
@@ -659,7 +707,12 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_unlikely"
+      }
     },
     {
       "name": "likely",
@@ -692,7 +745,12 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_unlikely"
+      }
     },
     {
       "name": "ltrim",
@@ -733,7 +791,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:trimFunc"
+      }
     },
     {
       "name": "rtrim",
@@ -774,7 +836,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:trimFunc"
+      }
     },
     {
       "name": "trim",
@@ -815,7 +881,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:trimFunc"
+      }
     },
     {
       "name": "min",
@@ -858,6 +928,10 @@
           "src/callback.c:matchQuality",
           "src/resolve.c:resolveExprStep"
         ]
+      },
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:minmaxFunc"
       }
     },
     {
@@ -901,6 +975,10 @@
           "src/callback.c:matchQuality",
           "src/resolve.c:resolveExprStep"
         ]
+      },
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:minmaxFunc"
       }
     },
     {
@@ -933,7 +1011,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:typeofFunc"
+      }
     },
     {
       "name": "subtype",
@@ -966,7 +1048,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:subtypeFunc"
+      }
     },
     {
       "name": "length",
@@ -998,7 +1084,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:lengthFunc"
+      }
     },
     {
       "name": "octet_length",
@@ -1030,7 +1120,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:bytelengthFunc"
+      }
     },
     {
       "name": "instr",
@@ -1061,7 +1155,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:instrFunc"
+      }
     },
     {
       "name": "printf",
@@ -1094,7 +1192,11 @@
           "minimum": 0,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:printfFunc"
+      }
     },
     {
       "name": "format",
@@ -1127,7 +1229,11 @@
           "minimum": 0,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:printfFunc"
+      }
     },
     {
       "name": "unicode",
@@ -1158,7 +1264,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:unicodeFunc"
+      }
     },
     {
       "name": "char",
@@ -1189,7 +1299,11 @@
           "minimum": 0,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:charFunc"
+      }
     },
     {
       "name": "abs",
@@ -1220,7 +1334,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:absFunc"
+      }
     },
     {
       "name": "round",
@@ -1261,7 +1379,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:roundFunc"
+      }
     },
     {
       "name": "upper",
@@ -1292,7 +1414,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:upperFunc"
+      }
     },
     {
       "name": "lower",
@@ -1323,7 +1449,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:lowerFunc"
+      }
     },
     {
       "name": "hex",
@@ -1354,7 +1484,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:hexFunc"
+      }
     },
     {
       "name": "unhex",
@@ -1395,7 +1529,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:unhexFunc"
+      }
     },
     {
       "name": "concat",
@@ -1426,7 +1564,11 @@
           "minimum": 1,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:concatFunc"
+      }
     },
     {
       "name": "concat_ws",
@@ -1457,7 +1599,11 @@
           "minimum": 2,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:concatwsFunc"
+      }
     },
     {
       "name": "nullif",
@@ -1489,7 +1635,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:nullifFunc"
+      }
     },
     {
       "name": "unistr",
@@ -1520,7 +1670,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:unistrFunc"
+      }
     },
     {
       "name": "quote",
@@ -1551,7 +1705,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:quoteFunc"
+      }
     },
     {
       "name": "unistr_quote",
@@ -1582,7 +1740,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:quoteFunc"
+      }
     },
     {
       "name": "replace",
@@ -1613,7 +1775,11 @@
           "minimum": 3,
           "maximum": 3
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:replaceFunc"
+      }
     },
     {
       "name": "zeroblob",
@@ -1644,7 +1810,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:zeroblobFunc"
+      }
     },
     {
       "name": "substr",
@@ -1687,7 +1857,11 @@
           "minimum": 3,
           "maximum": 3
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:substrFunc"
+      }
     },
     {
       "name": "substring",
@@ -1730,7 +1904,11 @@
           "minimum": 3,
           "maximum": 3
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:substrFunc"
+      }
     },
     {
       "name": "sign",
@@ -1761,7 +1939,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:signFunc"
+      }
     },
     {
       "name": "ifnull",
@@ -1795,7 +1977,12 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_coalesce"
+      }
     },
     {
       "name": "coalesce",
@@ -1829,7 +2016,12 @@
           "minimum": 2,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_coalesce"
+      }
     },
     {
       "name": "iif",
@@ -1863,7 +2055,12 @@
           "minimum": 2,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_iif"
+      }
     },
     {
       "name": "if",
@@ -1897,7 +2094,12 @@
           "minimum": 2,
           "maximum": 1000
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "compiler-inline",
+        "branch": "src/expr.c:sqlite3ExprCodeTarget",
+        "registrationOperand": "INLINEFUNC_iif"
+      }
     },
     {
       "name": "random",
@@ -1927,7 +2129,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:randomFunc"
+      }
     },
     {
       "name": "randomblob",
@@ -1957,7 +2163,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:randomBlob"
+      }
     },
     {
       "name": "last_insert_rowid",
@@ -1987,7 +2197,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:last_insert_rowid"
+      }
     },
     {
       "name": "changes",
@@ -2017,7 +2231,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:changes"
+      }
     },
     {
       "name": "total_changes",
@@ -2047,7 +2265,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:total_changes"
+      }
     },
     {
       "name": "sqlite_version",
@@ -2078,7 +2300,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:versionFunc"
+      }
     },
     {
       "name": "sqlite_source_id",
@@ -2109,7 +2335,11 @@
           "minimum": 0,
           "maximum": 0
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:sourceidFunc"
+      }
     },
     {
       "name": "sqlite_log",
@@ -2140,7 +2370,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:errlogFunc"
+      }
     },
     {
       "name": "glob",
@@ -2173,7 +2407,11 @@
           "minimum": 2,
           "maximum": 2
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:likeFunc"
+      }
     },
     {
       "name": "like",
@@ -2215,7 +2453,11 @@
           "minimum": 3,
           "maximum": 3
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:likeFunc"
+      }
     },
     {
       "name": "sqlite_compileoption_used",
@@ -2246,7 +2488,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:compileoptionusedFunc"
+      }
     },
     {
       "name": "sqlite_compileoption_get",
@@ -2277,7 +2523,11 @@
           "minimum": 1,
           "maximum": 1
         }
-      ]
+      ],
+      "implementationOwner": {
+        "kind": "function-routine",
+        "branch": "src/func.c:compileoptiongetFunc"
+      }
     }
   ],
   "futureRootScopes": [
@@ -2440,6 +2690,10 @@
           "src/func.c:trimFunc",
           "src/func.c:unicodeFunc",
           "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character",
           "src/func.c:hexFunc",
           "src/func.c:unhexFunc",
           "src/func.c:zeroblobFunc"
@@ -2466,7 +2720,11 @@
         "sourceBranches": [
           "src/func.c:instrFunc",
           "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
         ],
         "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
@@ -2489,7 +2747,11 @@
         "kind": "source-authored-local-companion",
         "sourceBranches": [
           "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
         ],
         "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
@@ -2516,7 +2778,11 @@
         "sourceBranches": [
           "src/func.c:quoteFunc",
           "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
         ],
         "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
@@ -2884,6 +3150,10 @@
           "src/printf.c:sqlite3_str_vappendf",
           "src/func.c:unicodeFunc",
           "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character",
           "src/func.c:upperFunc",
           "src/func.c:lowerFunc",
           "src/func.c:quoteFunc",
@@ -2935,7 +3205,11 @@
         ],
         "sourceBranches": [
           "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
         ],
         "localAddition": "The manifest case preserves additional composition, storage-class, encoding, parameter, or boundary behavior beyond the linked upstream assertion(s)."
       }
@@ -3003,7 +3277,11 @@
           "src/func.c:printfFunc",
           "src/printf.c:sqlite3_str_vappendf",
           "src/func.c:unicodeFunc",
-          "src/utf.c:sqlite3Utf8Read"
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character"
         ],
         "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
       }
@@ -3205,6 +3483,626 @@
           "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
         ],
         "rationale": "No directly applicable upstream assertion was selected for this exact composed/storage-class/encoding/boundary behavior; ownership follows the listed pinned branches."
+      }
+    },
+    {
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "publicFixtureColumn": true,
+      "fixtureSetupSql": [
+        "DROP TABLE IF EXISTS scalar_values",
+        "CREATE TABLE scalar_values(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, v)",
+        "INSERT INTO scalar_values VALUES(1,'text','Alice')",
+        "INSERT INTO scalar_values VALUES(2,'text-nul',CAST(X'410042' AS TEXT))",
+        "INSERT INTO scalar_values VALUES(3,'blob',X'410042')",
+        "INSERT INTO scalar_values VALUES(4,'null',NULL)"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:instrFunc",
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc",
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character",
+          "src/func.c:quoteFunc",
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "rationale": "Persisted-column case executes equivalent immutable setup natively and the physical public Fetch fixtures; it is not a literal or CTE substitute."
+      },
+      "id": "case-fixture-columns-text",
+      "sql": "SELECT id, typeof(v), upper(v), lower(v), quote(v) FROM scalar_values WHERE id IN (1,4) ORDER BY id",
+      "slice": "ascii-case",
+      "coversRegistrations": [
+        "typeof",
+        "upper",
+        "lower",
+        "quote"
+      ],
+      "expectedRowsByEncoding": {
+        "UTF-8": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "616c696365",
+              "value": "alice"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            }
+          ]
+        ],
+        "UTF-16le": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "616c696365",
+              "value": "alice"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            }
+          ]
+        ],
+        "UTF-16be": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "616c696365",
+              "value": "alice"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "publicFixtureColumn": true,
+      "fixtureSetupSql": [
+        "DROP TABLE IF EXISTS scalar_values",
+        "CREATE TABLE scalar_values(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, v)",
+        "INSERT INTO scalar_values VALUES(1,'text','Alice')",
+        "INSERT INTO scalar_values VALUES(2,'text-nul',CAST(X'410042' AS TEXT))",
+        "INSERT INTO scalar_values VALUES(3,'blob',X'410042')",
+        "INSERT INTO scalar_values VALUES(4,'null',NULL)"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:instrFunc",
+          "src/func.c:typeofFunc",
+          "src/func.c:subtypeFunc",
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc",
+          "src/func.c:unicodeFunc",
+          "src/utf.c:sqlite3Utf8Read",
+          "src/func.c:charFunc",
+          "src/func.c:unistrFunc",
+          "src/func.c:isNHex",
+          "src/utf.c:sqlite3AppendOneUtf8Character",
+          "src/func.c:quoteFunc",
+          "src/func.c:upperFunc",
+          "src/func.c:lowerFunc"
+        ],
+        "rationale": "Persisted-column case executes equivalent immutable setup natively and the physical public Fetch fixtures; it is not a literal or CTE substitute."
+      },
+      "id": "case-fixture-columns-storage",
+      "sql": "SELECT id, typeof(v), length(v), instr(v,char(0)), quote(v), upper(v) FROM scalar_values ORDER BY id",
+      "slice": "search",
+      "coversRegistrations": [
+        "typeof",
+        "length",
+        "instr",
+        "char",
+        "quote",
+        "upper"
+      ],
+      "expectedRowsByEncoding": {
+        "UTF-8": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "274127",
+              "value": "'A'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "410042",
+              "value": "A\u0000B"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62",
+              "value": "blob"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "582734313030343227",
+              "value": "X'410042'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "410042",
+              "value": "A\u0000B"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "UTF-16le": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "274127",
+              "value": "'A'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "41",
+              "value": "A"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62",
+              "value": "blob"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "582734313030343227",
+              "value": "X'410042'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "41",
+              "value": "A"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "UTF-16be": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27416c69636527",
+              "value": "'Alice'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414c494345",
+              "value": "ALICE"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "74657874",
+              "value": "text"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "27e4848027",
+              "value": "'䄀'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "e48480",
+              "value": "䄀"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "626c6f62",
+              "value": "blob"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "582734313030343227",
+              "value": "X'410042'"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "e48480",
+              "value": "䄀"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6e756c6c",
+              "value": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4e554c4c",
+              "value": "NULL"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": "case-implemented-owner-discriminator",
+      "sql": "SELECT octet_length(CAST(X'410042' AS TEXT)),abs(-7),replace('aba','b','x')",
+      "slice": "text-core",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "octet_length",
+        "abs",
+        "replace"
+      ],
+      "provenance": {
+        "kind": "source-authored-local-companion",
+        "sourceBranches": [
+          "src/func.c:lengthFunc",
+          "src/func.c:bytelengthFunc",
+          "src/func.c:replaceFunc",
+          "src/func.c:substrFunc",
+          "src/func.c:absFunc",
+          "src/func.c:signFunc"
+        ],
+        "rationale": "Local discriminator ensures every active implemented registry row is linked to a case and its actual registered semantic routine."
       }
     }
   ],
@@ -3411,6 +4309,12 @@
       "specSha256": "067de7bdb7f238814c63f9238fa54fbb6d9e288503c1261b824fee112bff0c52",
       "nativeSha256": "538b9e7f535c5ee47f47de21bfbe7316018de063504e151fab83c84aae074933",
       "reason": "Repairs source/test setup ownership and min/max resolver-selected scalar arity precision."
+    },
+    "independentReviewRepair": {
+      "review": "record:///review.md?card=card-p-a&v=3",
+      "specSha256": "aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f",
+      "nativeSha256": "46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e",
+      "reason": "Adds persisted-column all-encoding Fetch/native cases and exact per-row semantic implementation ownership."
     }
   }
 }

@@ -78,11 +78,11 @@ for x in source:
   expected.append({'minimum':{-1:0,-3:1,-4:2}.get(raw,raw),'maximum':1000 if raw<0 else raw})
  assert r['rawFuncDefMatchArities']==expected,(r['name'],expected)
 
-assert len(s['registry'])==50 and len(s['cases'])==34 and sum(len(c['encodings']) for c in s['cases'])==52
+assert len(s['registry'])==50 and len(s['cases'])==37 and sum(len(c['encodings']) for c in s['cases'])==59
 assert sum(r['tsStatus']=='implemented' for r in s['registry'])==12 and sum(r['tsStatus']=='absent' for r in s['registry'])==38
-assert n['counts']=={'registrations':50,'cases':34,'observations':52}
+assert n['counts']=={'registrations':50,'cases':37,'observations':59}
 assert n['source']['specSha256']==hashlib.sha256(S.read_bytes()).hexdigest()
-assert len(n['observations'])==52 and len({(x['id'],x['encoding']) for x in n['observations']})==52
+assert len(n['observations'])==59 and len({(x['id'],x['encoding']) for x in n['observations']})==59
 assert all(('rows'in x) or ('error'in x) for x in n['observations'])
 byid={x['id']:x for x in n['observations']}
 assert byid['case-variadic-limit-1000'].get('rows')
@@ -121,10 +121,27 @@ for sl,x in s['scope']['sliceProvenance'].items():
 for r in s['registry']:
  if r['tsStatus']=='absent':
   owned=set(s['scope']['sliceProvenance'][r['slice']]['caseIds']); assert any(c['id'] in owned and r['name'] in c['coversRegistrations'] for c in s['cases']),r['name']
+# Persisted-column contract must use all three immutable physical fixtures and
+# equivalent native setup, with TEXT/BLOB/NULL and embedded-NUL coverage.
+pc=s['scope']['persistedColumnCoverage']; assert set(pc['caseIds'])=={c['id'] for c in s['cases'] if c.get('publicFixtureColumn')}; assert len(pc['caseIds'])>=2
+assert set(pc['fixtures'])=={'UTF-8','UTF-16le','UTF-16be'} and set(pc['requiredStorageClasses'])=={'text','blob','null'} and pc['requiresEmbeddedNul'] is True
+for enc,f in pc['fixtures'].items(): assert hashlib.sha256((R/f).read_bytes()).hexdigest()==pc['fixtureSha256'][enc]
+for cid in pc['caseIds']:
+ c=next(x for x in s['cases'] if x['id']==cid); assert 'scalar_values' in c['sql'] and c['fixtureSetupSql'] and set(c['expectedRowsByEncoding'])==set(c['encodings'])==set(pc['fixtures'])
+ assert any("410042" in q for q in c['fixtureSetupSql'])
+ for enc in c['encodings']: assert next(o for o in n['observations'] if o['id']==cid and o['encoding']==enc)['rows']==c['expectedRowsByEncoding'][enc]
+# Every registry row's actual semantic routine (or explicit compiler owner for
+# inline registrations) is present in its slice and in a case covering that row.
+for r in s['registry']:
+ owner=r['implementationOwner']; assert owner['kind'] in {'function-routine','compiler-inline'}
+ branch=owner['branch']; assert branch in s['scope']['implementationBranchesBySlice'][r['slice']],r['name']
+ covering=[c for c in s['cases'] if r['name'] in c['coversRegistrations']]; assert covering,r['name']; assert all(branch in c['provenance']['sourceBranches'] for c in covering),r['name']
+ if owner['kind']=='function-routine': assert branch=='src/func.c:'+r['implementation']
+ else: assert r['implementation'].startswith('INLINEFUNC_') and owner['registrationOperand']==r['implementation']
 # Raw -3 matching admits one argument, but exact WAGGREGATE registration wins;
 # ordinary scalar minmaxFunc starts at two arguments.
 for name in ('min','max'):
  r=next(x for x in s['registry'] if x['name']==name); assert r['rawFuncDefMatchArities']==[{'minimum':1,'maximum':1000}]; assert r['effectiveScalarArities']==[{'minimum':2,'maximum':1000}]; assert r['overloadResolution']['oneArgumentOwner'].startswith('aggregate/window')
 mo=s['scope']['minMaxOverloadOwnership']; assert mo['caseId']=='case-minmax-overload-discriminator'
 o=byid[mo['caseId']]; assert [v['value'] for v in o['rows'][0]]==['1','3','1','3','1']
-print('ordinary scalar contract: 50 active in-scope rows, 34 cases/52 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified')
+print('ordinary scalar contract: 50 active in-scope rows, 37 cases/59 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified')

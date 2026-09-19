@@ -21,11 +21,33 @@ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0
 const port=server.address().port;
 const absent=spec.registry.filter(x=>x.tsStatus==='absent');
 const observations=[];
+const fixtureColumnObservations=[];
+function typed(value,type){
+  if(type==='null') return {type:'null'};
+  if(type==='integer') return {type:'integer',value:String(value)};
+  if(type==='real') return {type:'real',value:Number(value).toString()};
+  if(type==='blob') return {type:'blob',hex:Buffer.from(value).toString('hex')};
+  const bytes=new TextEncoder().encode(value); return {type:'text',utf8Hex:Buffer.from(bytes).toString('hex'),value};
+}
 try{
   for(const encoding of Object.keys(files)){
     const url=`http://127.0.0.1:${port}/${token}/${encodeURIComponent(encoding)}`;
     const db=await openFixture(new Request(url));
     try{
+      for(const testCase of spec.cases.filter(x=>x.publicFixtureColumn&&x.encodings.includes(encoding))){
+        let outcome;
+        try{
+          const prepared=db.prepare(testCase.sql); const statement=prepared.statement; const rows=[];
+          while(await statement.step()==='row') rows.push(Array.from({length:statement.columnCount},(_,i)=>typed(statement.column(i),statement.columnType(i))));
+          statement.finalize();
+          assert.deepEqual(rows,testCase.expectedRowsByEncoding[encoding]);
+          outcome={kind:'typed-success',rows};
+        }catch(error){
+          outcome={kind:error?.kind??null,code:error?.code??null,message:error?.message??String(error)};
+          assert.match(outcome.message,/no such function|not implemented|temporarily unsupported|unsupported/i);
+        }
+        fixtureColumnObservations.push({encoding,id:testCase.id,sql:testCase.sql,outcome,credit:'none-until-typed-success'});
+      }
       for(const registration of absent){
         const argc=Math.min(...registration.effectiveScalarArities.map(x=>x.minimum));
         const args=Array(argc).fill('NULL').join(',');
@@ -47,4 +69,5 @@ try{
 }finally{await new Promise(resolve=>server.close(resolve));}
 assert.equal(observations.length,Object.keys(files).length*absent.length);
 assert.deepEqual([...new Set(observations.map(x=>x.name))].sort(),absent.map(x=>x.name).sort());
-console.log(JSON.stringify({publicFetchFixtures:Object.keys(files).length,absentRegistrations:absent.length,observations:observations.length,outcome:'honest-unsupported-no-ts-credit'}));
+assert.equal(fixtureColumnObservations.length,Object.keys(files).length*spec.scope.persistedColumnCoverage.caseIds.length);
+console.log(JSON.stringify({publicFetchFixtures:Object.keys(files).length,absentRegistrations:absent.length,generatedUnsupportedObservations:observations.length,fixtureColumnObservations:fixtureColumnObservations.length,fixtureColumnOutcomes:[...new Set(fixtureColumnObservations.map(x=>x.outcome.kind))],outcome:'honest-unsupported-no-ts-credit'}));
