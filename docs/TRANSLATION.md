@@ -3093,7 +3093,13 @@ when the resolved table column has `SQLITE_AFF_REAL`; pinned
 record serial types deliberately retain compact integral values as INTEGER. The
 single-table projection lowering now emits a separate `RealAffinity` operation for
 resolved direct REAL columns, rather than changing record decode or applying a
-JavaScript-number heuristic. Public Fetch tests over source-ID-pinned UTF-8,
+JavaScript-number heuristic. Fresh native baseline execution against source ID
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`
+returned `real|20.0`, `real|10.0`, `real|35.5`, and `null|NULL` for
+`orders.amount` in every encoding; the pre-repair public path instead returned
+INTEGER/`bigint` for the compact 20 and 10 records. Commit
+`ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff` corrects that branch. Public Fetch
+tests in `test/select/real-column-affinity.test.mjs` over source-ID-pinned UTF-8,
 UTF-16le, and UTF-16be fixtures cover optimized 20.0/10.0, 35.5, NULL, signed
 int64 boundaries, neighboring NUMERIC/INTEGER columns, metadata, reset/finalize,
 and later connection use. NUMERIC/INTEGER and expression semantics are unchanged.

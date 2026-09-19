@@ -1305,4 +1305,8 @@ the pinned callback/direct-bytecode split and existing typed VDBE frame engine.
 | `src/expr.c:sqlite3ExprCodeTarget` TK_COLUMN REAL branch; `src/vdbe.c:OP_Column`, `OP_RealAffinity`; record serial decode retains INTEGER | `src/internal/vdbe.ts` direct-column lowering emits `Column` then `RealAffinity`; VM realifies only an INTEGER `Mem` | `test/select/real-column-affinity.test.mjs`, `test/fixtures/real-affinity/*`: all three database encodings; integral/nonintegral REAL, NULL, int64 boundaries and neighboring NUMERIC/INTEGER; metadata and lifecycle |
 
 This is not a record-decoder substitution: raw serial integers remain INTEGER and
-only a resolved declared-REAL column extraction receives the source opcode.
+only a resolved declared-REAL column extraction receives the source opcode. Fresh
+source-ID-pinned native baseline results were `real|20.0`, `real|10.0`,
+`real|35.5`, and `null|NULL` in UTF-8/UTF-16le/UTF-16be, while the pre-repair
+public path exposed INTEGER/`bigint` for compact integral REAL records. The mapped
+repair is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`.

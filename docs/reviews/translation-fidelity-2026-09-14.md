@@ -609,5 +609,5 @@ projection now follows that branch with a distinct VM operation. The fixture/tes
 matrix also verifies 35.5, NULL, signed int64 boundaries, unchanged NUMERIC and
 INTEGER columns, declared/origin metadata, and statement/connection reuse. Raw
 record serial decoding remains unchanged; upper() and ordered UNION are unrelated
-open findings. Baseline logs are retained in card status; the repair commit is
-recorded there after commit creation.
+open findings. Fresh review baseline evidence is retained in card status; the repair
+is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`.
