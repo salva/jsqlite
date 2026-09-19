@@ -1,0 +1,1644 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-reference-only-no-ts-credit",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+    "specSha256": "d0500841d3eafa82db12e58cad9b05400325c5abccc6b656fb1b327cfcc1010c",
+    "compileOptions": [
+      "ATOMIC_INTRINSICS=1",
+      "COMPILER=gcc-13.3.0",
+      "DEFAULT_AUTOVACUUM",
+      "DEFAULT_CACHE_SIZE=-2000",
+      "DEFAULT_FILE_FORMAT=4",
+      "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+      "DEFAULT_MMAP_SIZE=0",
+      "DEFAULT_PAGE_SIZE=4096",
+      "DEFAULT_PCACHE_INITSZ=20",
+      "DEFAULT_RECURSIVE_TRIGGERS",
+      "DEFAULT_SECTOR_SIZE=4096",
+      "DEFAULT_SYNCHRONOUS=2",
+      "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+      "DEFAULT_WAL_SYNCHRONOUS=2",
+      "DEFAULT_WORKER_THREADS=0",
+      "DIRECT_OVERFLOW_READ",
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_MATH_FUNCTIONS",
+      "MALLOC_SOFT_LIMIT=1024",
+      "MAX_ATTACHED=10",
+      "MAX_COLUMN=2000",
+      "MAX_COMPOUND_SELECT=500",
+      "MAX_DEFAULT_PAGE_SIZE=8192",
+      "MAX_EXPR_DEPTH=1000",
+      "MAX_FUNCTION_ARG=1000",
+      "MAX_LENGTH=1000000000",
+      "MAX_LIKE_PATTERN_LENGTH=50000",
+      "MAX_MMAP_SIZE=0x7fff0000",
+      "MAX_PAGE_COUNT=0xfffffffe",
+      "MAX_PAGE_SIZE=65536",
+      "MAX_SQL_LENGTH=1000000000",
+      "MAX_TRIGGER_DEPTH=1000",
+      "MAX_VARIABLE_NUMBER=32766",
+      "MAX_VDBE_OP=250000000",
+      "MAX_WORKER_THREADS=8",
+      "MUTEX_PTHREADS",
+      "SYSTEM_MALLOC",
+      "TEMP_STORE=1",
+      "THREADSAFE=1"
+    ]
+  },
+  "counts": {
+    "registrations": 48,
+    "cases": 30,
+    "observations": 48
+  },
+  "observations": [
+    {
+      "id": "case-upper-ascii-unicode",
+      "encoding": "UTF-8",
+      "sql": "SELECT upper('Azé'), lower('AzÉ')",
+      "parameters": [],
+      "columns": [
+        "upper('Azé')",
+        "lower('AzÉ')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "617ac389",
+            "value": "azÉ"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-upper-ascii-unicode",
+      "encoding": "UTF-16le",
+      "sql": "SELECT upper('Azé'), lower('AzÉ')",
+      "parameters": [],
+      "columns": [
+        "upper('Azé')",
+        "lower('AzÉ')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "617ac389",
+            "value": "azÉ"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-upper-ascii-unicode",
+      "encoding": "UTF-16be",
+      "sql": "SELECT upper('Azé'), lower('AzÉ')",
+      "parameters": [],
+      "columns": [
+        "upper('Azé')",
+        "lower('AzÉ')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "617ac389",
+            "value": "azÉ"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-upper-null-blob",
+      "encoding": "UTF-8",
+      "sql": "SELECT upper(NULL), typeof(upper(x'41620043')), hex(upper(x'41620043'))",
+      "parameters": [],
+      "columns": [
+        "upper(NULL)",
+        "typeof(upper(x'41620043'))",
+        "hex(upper(x'41620043'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "3431343230303433",
+            "value": "41420043"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-like-order-blob",
+      "encoding": "UTF-8",
+      "sql": "SELECT 'abc' LIKE 'A%', 'abc' GLOB 'a?c', x'616263' LIKE 'a%', x'616263' GLOB 'a*c'",
+      "parameters": [],
+      "columns": [
+        "'abc' LIKE 'A%'",
+        "'abc' GLOB 'a?c'",
+        "x'616263' LIKE 'a%'",
+        "x'616263' GLOB 'a*c'"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-like-order-blob",
+      "encoding": "UTF-16le",
+      "sql": "SELECT 'abc' LIKE 'A%', 'abc' GLOB 'a?c', x'616263' LIKE 'a%', x'616263' GLOB 'a*c'",
+      "parameters": [],
+      "columns": [
+        "'abc' LIKE 'A%'",
+        "'abc' GLOB 'a?c'",
+        "x'616263' LIKE 'a%'",
+        "x'616263' GLOB 'a*c'"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-like-order-blob",
+      "encoding": "UTF-16be",
+      "sql": "SELECT 'abc' LIKE 'A%', 'abc' GLOB 'a?c', x'616263' LIKE 'a%', x'616263' GLOB 'a*c'",
+      "parameters": [],
+      "columns": [
+        "'abc' LIKE 'A%'",
+        "'abc' GLOB 'a?c'",
+        "x'616263' LIKE 'a%'",
+        "x'616263' GLOB 'a*c'"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-like-escape",
+      "encoding": "UTF-8",
+      "sql": "SELECT 'a%b' LIKE 'a!%b' ESCAPE '!'",
+      "parameters": [],
+      "columns": [
+        "'a%b' LIKE 'a!%b' ESCAPE '!'"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-like-bad-escape",
+      "encoding": "UTF-8",
+      "sql": "SELECT 'x' LIKE 'x' ESCAPE 'ab'",
+      "parameters": [],
+      "columns": [
+        "'x' LIKE 'x' ESCAPE 'ab'"
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "resultCode": 1,
+        "primaryCode": 1,
+        "extendedCode": 1,
+        "message": "ESCAPE expression must be a single character"
+      }
+    },
+    {
+      "id": "case-trim",
+      "encoding": "UTF-8",
+      "sql": "SELECT trim('  x  '),ltrim('xyx','xy'),rtrim('xyx','xy'),trim(NULL),hex(trim(char(0)||'x'||char(0),char(0)))",
+      "parameters": [],
+      "columns": [
+        "trim('  x  ')",
+        "ltrim('xyx','xy')",
+        "rtrim('xyx','xy')",
+        "trim(NULL)",
+        "hex(trim(char(0)||'x'||char(0),char(0)))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "303037383030",
+            "value": "007800"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-trim",
+      "encoding": "UTF-16le",
+      "sql": "SELECT trim('  x  '),ltrim('xyx','xy'),rtrim('xyx','xy'),trim(NULL),hex(trim(char(0)||'x'||char(0),char(0)))",
+      "parameters": [],
+      "columns": [
+        "trim('  x  ')",
+        "ltrim('xyx','xy')",
+        "rtrim('xyx','xy')",
+        "trim(NULL)",
+        "hex(trim(char(0)||'x'||char(0),char(0)))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "303030303738303030303030",
+            "value": "000078000000"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-trim",
+      "encoding": "UTF-16be",
+      "sql": "SELECT trim('  x  '),ltrim('xyx','xy'),rtrim('xyx','xy'),trim(NULL),hex(trim(char(0)||'x'||char(0),char(0)))",
+      "parameters": [],
+      "columns": [
+        "trim('  x  ')",
+        "ltrim('xyx','xy')",
+        "rtrim('xyx','xy')",
+        "trim(NULL)",
+        "hex(trim(char(0)||'x'||char(0),char(0)))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "303030303030373830303030",
+            "value": "000000780000"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-instr-classes",
+      "encoding": "UTF-8",
+      "sql": "SELECT instr('a'||char(0)||'b',char(0)), instr(x'00616200',x'6200'), instr(x'6162','b'), instr(NULL,'x')",
+      "parameters": [],
+      "columns": [
+        "instr('a'||char(0)||'b',char(0))",
+        "instr(x'00616200',x'6200')",
+        "instr(x'6162','b')",
+        "instr(NULL,'x')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-instr-classes",
+      "encoding": "UTF-16le",
+      "sql": "SELECT instr('a'||char(0)||'b',char(0)), instr(x'00616200',x'6200'), instr(x'6162','b'), instr(NULL,'x')",
+      "parameters": [],
+      "columns": [
+        "instr('a'||char(0)||'b',char(0))",
+        "instr(x'00616200',x'6200')",
+        "instr(x'6162','b')",
+        "instr(NULL,'x')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-instr-classes",
+      "encoding": "UTF-16be",
+      "sql": "SELECT instr('a'||char(0)||'b',char(0)), instr(x'00616200',x'6200'), instr(x'6162','b'), instr(NULL,'x')",
+      "parameters": [],
+      "columns": [
+        "instr('a'||char(0)||'b',char(0))",
+        "instr(x'00616200',x'6200')",
+        "instr(x'6162','b')",
+        "instr(NULL,'x')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unicode",
+      "encoding": "UTF-8",
+      "sql": "SELECT unicode('A'),unicode('é'),unicode(char(0)),unicode(''),unicode(NULL)",
+      "parameters": [],
+      "columns": [
+        "unicode('A')",
+        "unicode('é')",
+        "unicode(char(0))",
+        "unicode('')",
+        "unicode(NULL)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "65"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unicode",
+      "encoding": "UTF-16le",
+      "sql": "SELECT unicode('A'),unicode('é'),unicode(char(0)),unicode(''),unicode(NULL)",
+      "parameters": [],
+      "columns": [
+        "unicode('A')",
+        "unicode('é')",
+        "unicode(char(0))",
+        "unicode('')",
+        "unicode(NULL)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "65"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unicode",
+      "encoding": "UTF-16be",
+      "sql": "SELECT unicode('A'),unicode('é'),unicode(char(0)),unicode(''),unicode(NULL)",
+      "parameters": [],
+      "columns": [
+        "unicode('A')",
+        "unicode('é')",
+        "unicode(char(0))",
+        "unicode('')",
+        "unicode(NULL)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "65"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-quote",
+      "encoding": "UTF-8",
+      "sql": "SELECT quote(NULL),quote(12),quote(1.5),quote('a''b'),quote(x'00ff'),quote('a'||char(0)||'b')",
+      "parameters": [],
+      "columns": [
+        "quote(NULL)",
+        "quote(12)",
+        "quote(1.5)",
+        "quote('a''b')",
+        "quote(x'00ff')",
+        "quote('a'||char(0)||'b')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "3132",
+            "value": "12"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "312e35",
+            "value": "1.5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127276227",
+            "value": "'a''b'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127",
+            "value": "'a'"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-quote",
+      "encoding": "UTF-16le",
+      "sql": "SELECT quote(NULL),quote(12),quote(1.5),quote('a''b'),quote(x'00ff'),quote('a'||char(0)||'b')",
+      "parameters": [],
+      "columns": [
+        "quote(NULL)",
+        "quote(12)",
+        "quote(1.5)",
+        "quote('a''b')",
+        "quote(x'00ff')",
+        "quote('a'||char(0)||'b')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "3132",
+            "value": "12"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "312e35",
+            "value": "1.5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127276227",
+            "value": "'a''b'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127",
+            "value": "'a'"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-quote",
+      "encoding": "UTF-16be",
+      "sql": "SELECT quote(NULL),quote(12),quote(1.5),quote('a''b'),quote(x'00ff'),quote('a'||char(0)||'b')",
+      "parameters": [],
+      "columns": [
+        "quote(NULL)",
+        "quote(12)",
+        "quote(1.5)",
+        "quote('a''b')",
+        "quote(x'00ff')",
+        "quote('a'||char(0)||'b')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "4e554c4c",
+            "value": "NULL"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "3132",
+            "value": "12"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "312e35",
+            "value": "1.5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127276227",
+            "value": "'a''b'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "276127",
+            "value": "'a'"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-round",
+      "encoding": "UTF-8",
+      "sql": "SELECT round(2.5),round(-2.5),round(1.2345,2),round(1.0,400),round(NULL)",
+      "parameters": [],
+      "columns": [
+        "round(2.5)",
+        "round(-2.5)",
+        "round(1.2345,2)",
+        "round(1.0,400)",
+        "round(NULL)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "value": "0x1.8000000000000p+1"
+          },
+          {
+            "type": "real",
+            "value": "-0x1.8000000000000p+1"
+          },
+          {
+            "type": "real",
+            "value": "0x1.3ae147ae147aep+0"
+          },
+          {
+            "type": "real",
+            "value": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-format-boundaries",
+      "encoding": "UTF-8",
+      "sql": "SELECT printf('%d|%lld|%.17g|%q|%Q|%w',2147483648,9223372036854775807,1.2345678901234567,'a''b','a''b','a\"b'),format('%!g',1.0/3.0)",
+      "parameters": [],
+      "columns": [
+        "printf('%d|%lld|%.17g|%q|%Q|%w',2147483648,9223372036854775807,1.2345678901234567,'a''b','a''b','a\"b')",
+        "format('%!g',1.0/3.0)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "323134373438333634387c393232333337323033363835343737353830377c312e3233343536373839303132333435377c612727627c2761272762277c61222262",
+            "value": "2147483648|9223372036854775807|1.234567890123457|a''b|'a''b'|a\"\"b"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "302e333333333333",
+            "value": "0.333333"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-format-null-missing",
+      "encoding": "UTF-8",
+      "sql": "SELECT printf(NULL,1),printf('%d/%s/%Q',NULL,NULL,NULL)",
+      "parameters": [],
+      "columns": [
+        "printf(NULL,1)",
+        "printf('%d/%s/%Q',NULL,NULL,NULL)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "302f2f4e554c4c",
+            "value": "0//NULL"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unhex-concat",
+      "encoding": "UTF-8",
+      "sql": "SELECT hex(unhex('00ff')),unhex('0'),hex(unhex('0f:aa',':')),concat(NULL,'a',1),concat_ws('-',NULL,'a',NULL,'b')",
+      "parameters": [],
+      "columns": [
+        "hex(unhex('00ff'))",
+        "unhex('0')",
+        "hex(unhex('0f:aa',':'))",
+        "concat(NULL,'a',1)",
+        "concat_ws('-',NULL,'a',NULL,'b')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "30304646",
+            "value": "00FF"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "30464141",
+            "value": "0FAA"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6131",
+            "value": "a1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "612d62",
+            "value": "a-b"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-random-storage",
+      "encoding": "UTF-8",
+      "sql": "SELECT typeof(random()),length(randomblob(4)),typeof(randomblob(4)),length(zeroblob(3)),hex(zeroblob(3))",
+      "parameters": [],
+      "columns": [
+        "typeof(random())",
+        "length(randomblob(4))",
+        "typeof(randomblob(4))",
+        "length(zeroblob(3))",
+        "hex(zeroblob(3))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "303030303030",
+            "value": "000000"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-identity-state",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqlite_version(),sqlite_source_id(),last_insert_rowid(),changes(),total_changes()",
+      "parameters": [],
+      "columns": [
+        "sqlite_version()",
+        "sqlite_source_id()",
+        "last_insert_rowid()",
+        "changes()",
+        "total_changes()"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "332e35332e34",
+            "value": "3.53.4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "323032362d30372d32342031393a30323a35372062663763376633303033313838386634653739366534323961623339373838373934383538313361616361366636343163376233336534653039343539626363",
+            "value": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-substring-alias",
+      "encoding": "UTF-8",
+      "sql": "SELECT substring('abcdef',2,3),substr('abcdef',2,3)",
+      "parameters": [],
+      "columns": [
+        "substring('abcdef',2,3)",
+        "substr('abcdef',2,3)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "626364",
+            "value": "bcd"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626364",
+            "value": "bcd"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-sign",
+      "encoding": "UTF-8",
+      "sql": "SELECT sign(NULL),sign(-2),sign(0.0),sign('12'),sign('x')",
+      "parameters": [],
+      "columns": [
+        "sign(NULL)",
+        "sign(-2)",
+        "sign(0.0)",
+        "sign('12')",
+        "sign('x')"
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-inline",
+      "encoding": "UTF-8",
+      "sql": "SELECT ifnull(NULL,7),coalesce(NULL,NULL,'x'),iif(1,'yes','no'),if(0,'yes','no'),likely(8),unlikely(9),likelihood(10,0.5)",
+      "parameters": [],
+      "columns": [
+        "ifnull(NULL,7)",
+        "coalesce(NULL,NULL,'x')",
+        "iif(1,'yes','no')",
+        "if(0,'yes','no')",
+        "likely(8)",
+        "unlikely(9)",
+        "likelihood(10,0.5)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "796573",
+            "value": "yes"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e6f",
+            "value": "no"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-minmax-collation",
+      "encoding": "UTF-8",
+      "sql": "SELECT min('a','B' COLLATE NOCASE),max(NULL,1),nullif('a','A' COLLATE NOCASE)",
+      "parameters": [],
+      "columns": [
+        "min('a','B' COLLATE NOCASE)",
+        "max(NULL,1)",
+        "nullif('a','A' COLLATE NOCASE)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "61",
+            "value": "a"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-bound-params",
+      "encoding": "UTF-8",
+      "sql": "SELECT upper(?1),instr(?2,?3),quote(?4),round(?5,?6),printf('%lld',?7)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "aZé"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "610062"
+        },
+        {
+          "index": 3,
+          "type": "blob",
+          "hex": "0062"
+        },
+        {
+          "index": 4,
+          "type": "blob",
+          "hex": "00ff"
+        },
+        {
+          "index": 5,
+          "type": "real",
+          "value": 1.255
+        },
+        {
+          "index": 6,
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "index": 7,
+          "type": "integer",
+          "value": "9223372036854775807"
+        }
+      ],
+      "columns": [
+        "upper(?1)",
+        "instr(?2,?3)",
+        "quote(?4)",
+        "round(?5,?6)",
+        "printf('%lld',?7)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "real",
+            "value": "0x1.4000000000000p+0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "39323233333732303336383534373735383037",
+            "value": "9223372036854775807"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-bound-params",
+      "encoding": "UTF-16le",
+      "sql": "SELECT upper(?1),instr(?2,?3),quote(?4),round(?5,?6),printf('%lld',?7)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "aZé"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "610062"
+        },
+        {
+          "index": 3,
+          "type": "blob",
+          "hex": "0062"
+        },
+        {
+          "index": 4,
+          "type": "blob",
+          "hex": "00ff"
+        },
+        {
+          "index": 5,
+          "type": "real",
+          "value": 1.255
+        },
+        {
+          "index": 6,
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "index": 7,
+          "type": "integer",
+          "value": "9223372036854775807"
+        }
+      ],
+      "columns": [
+        "upper(?1)",
+        "instr(?2,?3)",
+        "quote(?4)",
+        "round(?5,?6)",
+        "printf('%lld',?7)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "real",
+            "value": "0x1.4000000000000p+0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "39323233333732303336383534373735383037",
+            "value": "9223372036854775807"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-bound-params",
+      "encoding": "UTF-16be",
+      "sql": "SELECT upper(?1),instr(?2,?3),quote(?4),round(?5,?6),printf('%lld',?7)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "aZé"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "610062"
+        },
+        {
+          "index": 3,
+          "type": "blob",
+          "hex": "0062"
+        },
+        {
+          "index": 4,
+          "type": "blob",
+          "hex": "00ff"
+        },
+        {
+          "index": 5,
+          "type": "real",
+          "value": 1.255
+        },
+        {
+          "index": 6,
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "index": 7,
+          "type": "integer",
+          "value": "9223372036854775807"
+        }
+      ],
+      "columns": [
+        "upper(?1)",
+        "instr(?2,?3)",
+        "quote(?4)",
+        "round(?5,?6)",
+        "printf('%lld',?7)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "415ac3a9",
+            "value": "AZé"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "58273030464627",
+            "value": "X'00FF'"
+          },
+          {
+            "type": "real",
+            "value": "0x1.4000000000000p+0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "39323233333732303336383534373735383037",
+            "value": "9223372036854775807"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-composed",
+      "encoding": "UTF-8",
+      "sql": "SELECT quote(upper(trim(' az '))), instr(format('%s:%d',lower('X'),7),':'), unicode(substr('éx',1,1))",
+      "parameters": [],
+      "columns": [
+        "quote(upper(trim(' az ')))",
+        "instr(format('%s:%d',lower('X'),7),':')",
+        "unicode(substr('éx',1,1))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "27415a27",
+            "value": "'AZ'"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-composed",
+      "encoding": "UTF-16le",
+      "sql": "SELECT quote(upper(trim(' az '))), instr(format('%s:%d',lower('X'),7),':'), unicode(substr('éx',1,1))",
+      "parameters": [],
+      "columns": [
+        "quote(upper(trim(' az ')))",
+        "instr(format('%s:%d',lower('X'),7),':')",
+        "unicode(substr('éx',1,1))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "27415a27",
+            "value": "'AZ'"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-composed",
+      "encoding": "UTF-16be",
+      "sql": "SELECT quote(upper(trim(' az '))), instr(format('%s:%d',lower('X'),7),':'), unicode(substr('éx',1,1))",
+      "parameters": [],
+      "columns": [
+        "quote(upper(trim(' az ')))",
+        "instr(format('%s:%d',lower('X'),7),':')",
+        "unicode(substr('éx',1,1))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "27415a27",
+            "value": "'AZ'"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "233"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-subtype",
+      "encoding": "UTF-8",
+      "sql": "SELECT subtype('x'),typeof(subtype('x'))",
+      "parameters": [],
+      "columns": [
+        "subtype('x')",
+        "typeof(subtype('x'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unistr",
+      "encoding": "UTF-8",
+      "sql": "SELECT unistr('G\\u00e4ste'),hex(unistr('\\U0001F600'))",
+      "parameters": [],
+      "columns": [
+        "unistr('G\\u00e4ste')",
+        "hex(unistr('\\U0001F600'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "47c3a4737465",
+            "value": "Gäste"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4630394639383830",
+            "value": "F09F9880"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unistr",
+      "encoding": "UTF-16le",
+      "sql": "SELECT unistr('G\\u00e4ste'),hex(unistr('\\U0001F600'))",
+      "parameters": [],
+      "columns": [
+        "unistr('G\\u00e4ste')",
+        "hex(unistr('\\U0001F600'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "47c3a4737465",
+            "value": "Gäste"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "3344443830304445",
+            "value": "3DD800DE"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unistr",
+      "encoding": "UTF-16be",
+      "sql": "SELECT unistr('G\\u00e4ste'),hex(unistr('\\U0001F600'))",
+      "parameters": [],
+      "columns": [
+        "unistr('G\\u00e4ste')",
+        "hex(unistr('\\U0001F600'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "47c3a4737465",
+            "value": "Gäste"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4438334444453030",
+            "value": "D83DDE00"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-unistr-quote",
+      "encoding": "UTF-8",
+      "sql": "SELECT unistr_quote(unistr('a\\u000ab'))",
+      "parameters": [],
+      "columns": [
+        "unistr_quote(unistr('a\\u000ab'))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "756e697374722827615c7530303061622729",
+            "value": "unistr('a\\u000ab')"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-sqlite-log",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqlite_log(1,'ordinary scalar probe'),typeof(sqlite_log(1,NULL))",
+      "parameters": [],
+      "columns": [
+        "sqlite_log(1,'ordinary scalar probe')",
+        "typeof(sqlite_log(1,NULL))"
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-variadic-zero",
+      "encoding": "UTF-8",
+      "sql": "SELECT printf(),format(),hex(char())",
+      "parameters": [],
+      "columns": [
+        "printf()",
+        "format()",
+        "hex(char())"
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "",
+            "value": ""
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-variadic-minima",
+      "encoding": "UTF-8",
+      "sql": "SELECT concat('x'),concat_ws('-', 'x'),coalesce(NULL,1),iif(1,2),if(0,2),min(1,2),max(1,2)",
+      "parameters": [],
+      "columns": [
+        "concat('x')",
+        "concat_ws('-', 'x')",
+        "coalesce(NULL,1)",
+        "iif(1,2)",
+        "if(0,2)",
+        "min(1,2)",
+        "max(1,2)"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78",
+            "value": "x"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "case-arity-concat-zero-error",
+      "encoding": "UTF-8",
+      "sql": "SELECT concat()",
+      "parameters": [],
+      "error": {
+        "phase": "prepare",
+        "resultCode": 1,
+        "primaryCode": 1,
+        "extendedCode": 1,
+        "message": "wrong number of arguments to function concat()"
+      }
+    },
+    {
+      "id": "case-arity-concat-ws-one-error",
+      "encoding": "UTF-8",
+      "sql": "SELECT concat_ws('-')",
+      "parameters": [],
+      "error": {
+        "phase": "prepare",
+        "resultCode": 1,
+        "primaryCode": 1,
+        "extendedCode": 1,
+        "message": "wrong number of arguments to function concat_ws()"
+      }
+    },
+    {
+      "id": "case-arity-coalesce-one-error",
+      "encoding": "UTF-8",
+      "sql": "SELECT coalesce(1)",
+      "parameters": [],
+      "error": {
+        "phase": "prepare",
+        "resultCode": 1,
+        "primaryCode": 1,
+        "extendedCode": 1,
+        "message": "wrong number of arguments to function coalesce()"
+      }
+    }
+  ]
+}

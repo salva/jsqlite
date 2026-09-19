@@ -1,0 +1,3 @@
+# Superseded intermediate assessment — [[card:card-p-a-a]]
+
+This report recorded the assessment that refuted the first-pass 21-case/37-observation artifact. It is retained only as correction provenance and is **superseded** by the repaired handoff in [`card-p-a-a-ordinary-scalars.md`](card-p-a-a-ordinary-scalars.md). The repaired artifacts correct FuncDef flags and variadic arities, add missing cases, execute all absent registrations through three public Fetch fixtures with honest unsupported/no-credit outcomes, and strengthen source/provenance validation. Do not use this file as the current implementation contract.

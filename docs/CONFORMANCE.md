@@ -480,3 +480,7 @@ allocation-time `accounting` and per-case `ts` fields remain historical capture
 provenance, while `currentTsAccounting` guards the superseding **41/41 executable
 plus 2/2 source-only** result without changing native evidence or promoting
 companions to source credit.
+
+## Ordinary scalar tests-first evidence ([[card:card-p-a-a]])
+
+`stage3-ordinary-scalars.spec.json` inventories 48 production ordinary-scalar registration rows and declares 30 cases expanded to 48 encoding observations. Fresh manifest-pinned native capture in `stage3-ordinary-scalars.native.json` completes 48/48 typed observations, including one expected step error for multi-character LIKE ESCAPE. This is reference-only and grants **0 TypeScript credit**. Current HEAD accounting is 12 genuinely dispatched registration rows and 36 absent. `python3 test/conformance/ordinary-scalars-manifest.test.py` independently enforces pinned catalog rows, macro-derived flags, callback arity ranges, exact selected upstream assertion hashes, fixture existence, absent-row case coverage, identity, status counts, and typed outcome presence. `node test/conformance/run-ordinary-scalars-unsupported-ts.mjs` opens all three physical Fetch fixtures and records 108 honest unsupported outcomes (36 absent rows × 3 encodings), granting zero parity credit. Full behavior/slicing/reproduction notes are in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md).

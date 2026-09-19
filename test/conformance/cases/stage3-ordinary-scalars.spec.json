@@ -1,0 +1,1973 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "manifest": "reference/sqlite/manifest.json",
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "profileCompileOptions": [
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_MATH_FUNCTIONS"
+    ]
+  },
+  "scope": {
+    "denominator": 48,
+    "rule": "Production ordinary scalar registrations in src/func.c aBuiltinFunc for the pinned oracle profile; excludes test/debug, load_extension host callback, conditional soundex/sqlite_offset/filestat/unknown, aggregates/windows. Date/time, math, and JSON remain future root-owned registries.",
+    "publicFetchFixtures": {
+      "UTF-8": "test/fixtures/expression-cursor/users-utf8.db",
+      "UTF-16le": "test/fixtures/expression-cursor/users-utf16le.db",
+      "UTF-16be": "test/fixtures/expression-cursor/users-utf16be.db"
+    },
+    "sourceMetadataOwners": [
+      "src/func.c:aBuiltinFunc",
+      "src/sqliteInt.h:FUNCTION/VFUNCTION/DFUNCTION/FUNCTION2/LIKEFUNC/INLINE_FUNC",
+      "src/callback.c:matchQuality"
+    ],
+    "publicUnsupportedCoverage": [
+      "unlikely",
+      "likelihood",
+      "likely",
+      "ltrim",
+      "rtrim",
+      "trim",
+      "subtype",
+      "instr",
+      "printf",
+      "format",
+      "unicode",
+      "round",
+      "upper",
+      "lower",
+      "unhex",
+      "concat",
+      "concat_ws",
+      "unistr",
+      "quote",
+      "unistr_quote",
+      "zeroblob",
+      "substring",
+      "sign",
+      "ifnull",
+      "iif",
+      "if",
+      "random",
+      "randomblob",
+      "last_insert_rowid",
+      "changes",
+      "total_changes",
+      "sqlite_version",
+      "sqlite_source_id",
+      "sqlite_log",
+      "glob",
+      "like"
+    ],
+    "sqliteLogBrowserContract": "Preserve SQL argument/result semantics but route the diagnostic to an internal no-op sink. Do not expose or invoke a host callback; sqlite3_log side effects are not part of the shipped browser/read-only API.",
+    "implementationBranchesBySlice": {
+      "planner-inline": [
+        "src/func.c:aBuiltinFunc",
+        "src/resolve.c:resolveExprStep",
+        "src/expr.c:sqlite3ExprCodeTarget"
+      ],
+      "like-glob": [
+        "src/func.c:likeFunc",
+        "src/func.c:patternCompare",
+        "src/func.c:compareInfo"
+      ],
+      "formatting": [
+        "src/func.c:printfFunc",
+        "src/printf.c:sqlite3_str_vappendf"
+      ],
+      "numeric-formatting": [
+        "src/func.c:roundFunc",
+        "src/printf.c:sqlite3_mprintf"
+      ],
+      "ascii-case": [
+        "src/func.c:upperFunc",
+        "src/func.c:lowerFunc"
+      ],
+      "trim": [
+        "src/func.c:trimFunc"
+      ],
+      "search": [
+        "src/func.c:instrFunc"
+      ],
+      "unicode": [
+        "src/func.c:unicodeFunc",
+        "src/utf.c:sqlite3Utf8Read"
+      ],
+      "quote": [
+        "src/func.c:quoteFunc"
+      ],
+      "blob-text": [
+        "src/func.c:hexFunc",
+        "src/func.c:unhexFunc",
+        "src/func.c:zeroblobFunc"
+      ],
+      "concat": [
+        "src/func.c:concatFunc",
+        "src/func.c:concatwsFunc"
+      ],
+      "numeric-core": [
+        "src/func.c:absFunc",
+        "src/func.c:signFunc"
+      ],
+      "minmax-scalar": [
+        "src/func.c:minmaxFunc",
+        "src/func.c:nullifFunc",
+        "src/vdbe.c:sqlite3VdbeExec/OP_CollSeq"
+      ],
+      "value-introspection": [
+        "src/func.c:typeofFunc",
+        "src/func.c:subtypeFunc"
+      ],
+      "text-core": [
+        "src/func.c:lengthFunc",
+        "src/func.c:bytelengthFunc",
+        "src/func.c:replaceFunc",
+        "src/func.c:substrFunc"
+      ],
+      "connection-state": [
+        "src/func.c:randomFunc",
+        "src/func.c:randomBlob",
+        "src/func.c:last_insert_rowid",
+        "src/func.c:changes",
+        "src/func.c:total_changes"
+      ],
+      "build-identity": [
+        "src/func.c:versionFunc",
+        "src/func.c:sourceidFunc"
+      ],
+      "host-side-effect": [
+        "src/func.c:errlogFunc"
+      ]
+    }
+  },
+  "registry": [
+    {
+      "name": "unlikely",
+      "arities": [
+        1
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_unlikely",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE",
+        "UNLIKELY"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "likelihood",
+      "arities": [
+        2
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_unlikely",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE",
+        "UNLIKELY"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "likely",
+      "arities": [
+        1
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_unlikely",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE",
+        "UNLIKELY"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "ltrim",
+      "arities": [
+        1,
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "trimFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "trim",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1,
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "rtrim",
+      "arities": [
+        1,
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "trimFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "trim",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1,
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "trim",
+      "arities": [
+        1,
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "trimFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "trim",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1,
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "min",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "minmaxFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "NEEDCOLL"
+      ],
+      "slice": "minmax-scalar",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        -3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "max",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "minmaxFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "NEEDCOLL"
+      ],
+      "slice": "minmax-scalar",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        -3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "typeof",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION2",
+      "implementation": "typeofFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "TYPEOF"
+      ],
+      "slice": "value-introspection",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "subtype",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION2",
+      "implementation": "subtypeFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "TYPEOF",
+        "SUBTYPE"
+      ],
+      "slice": "value-introspection",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "length",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION2",
+      "implementation": "lengthFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "LENGTH"
+      ],
+      "slice": "text-core",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "octet_length",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION2",
+      "implementation": "bytelengthFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "BYTELEN"
+      ],
+      "slice": "text-core",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "instr",
+      "arities": [
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "instrFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "search",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "printf",
+      "arities": [
+        "variadic>=0"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "printfFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "formatting",
+      "tsStatus": "absent",
+      "aliases": [
+        "format"
+      ],
+      "rawNArg": [
+        -1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "format",
+      "arities": [
+        "variadic>=0"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "printfFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "formatting",
+      "tsStatus": "absent",
+      "aliases": [
+        "printf"
+      ],
+      "rawNArg": [
+        -1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "unicode",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "unicodeFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "unicode",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "char",
+      "arities": [
+        "variadic>=0"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "charFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "unicode",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        -1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "abs",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "absFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "numeric-core",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "round",
+      "arities": [
+        1,
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "roundFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "numeric-formatting",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1,
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "upper",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "upperFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "ascii-case",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "lower",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "lowerFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "ascii-case",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "hex",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "hexFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "blob-text",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "unhex",
+      "arities": [
+        1,
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "unhexFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "blob-text",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1,
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "concat",
+      "arities": [
+        "variadic>=1"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "concatFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "concat",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        -3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "concat_ws",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "FUNCTION",
+      "implementation": "concatwsFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "concat",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        -4
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "nullif",
+      "arities": [
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "nullifFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "NEEDCOLL"
+      ],
+      "slice": "minmax-scalar",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "unistr",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "unistrFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "unicode",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "quote",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "quoteFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "quote",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "unistr_quote",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "quoteFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "quote",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "replace",
+      "arities": [
+        3
+      ],
+      "macro": "FUNCTION",
+      "implementation": "replaceFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "text-core",
+      "tsStatus": "implemented",
+      "aliases": [],
+      "rawNArg": [
+        3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "name": "zeroblob",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "zeroblobFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "blob-text",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "substr",
+      "arities": [
+        2,
+        3
+      ],
+      "macro": "FUNCTION",
+      "implementation": "substrFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "text-core",
+      "tsStatus": "implemented",
+      "aliases": [
+        "substring"
+      ],
+      "rawNArg": [
+        2,
+        3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "name": "substring",
+      "arities": [
+        2,
+        3
+      ],
+      "macro": "FUNCTION",
+      "implementation": "substrFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "text-core",
+      "tsStatus": "absent",
+      "aliases": [
+        "substr"
+      ],
+      "rawNArg": [
+        2,
+        3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ]
+    },
+    {
+      "name": "sign",
+      "arities": [
+        1
+      ],
+      "macro": "FUNCTION",
+      "implementation": "signFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "numeric-core",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "ifnull",
+      "arities": [
+        2
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_coalesce",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [
+        "coalesce"
+      ],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "coalesce",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_coalesce",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "implemented",
+      "aliases": [
+        "ifnull"
+      ],
+      "rawNArg": [
+        -4
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "iif",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_iif",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [
+        "if"
+      ],
+      "rawNArg": [
+        -4
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "if",
+      "arities": [
+        "variadic>=2"
+      ],
+      "macro": "INLINE_FUNC",
+      "implementation": "INLINEFUNC_iif",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "INLINE"
+      ],
+      "slice": "planner-inline",
+      "tsStatus": "absent",
+      "aliases": [
+        "iif"
+      ],
+      "rawNArg": [
+        -4
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 127
+        }
+      ]
+    },
+    {
+      "name": "random",
+      "arities": [
+        0
+      ],
+      "macro": "VFUNCTION",
+      "implementation": "randomFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8"
+      ],
+      "slice": "connection-state",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "randomblob",
+      "arities": [
+        1
+      ],
+      "macro": "VFUNCTION",
+      "implementation": "randomBlob",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8"
+      ],
+      "slice": "connection-state",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        1
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    {
+      "name": "last_insert_rowid",
+      "arities": [
+        0
+      ],
+      "macro": "VFUNCTION",
+      "implementation": "last_insert_rowid",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8"
+      ],
+      "slice": "connection-state",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "changes",
+      "arities": [
+        0
+      ],
+      "macro": "VFUNCTION",
+      "implementation": "changes",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8"
+      ],
+      "slice": "connection-state",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "total_changes",
+      "arities": [
+        0
+      ],
+      "macro": "VFUNCTION",
+      "implementation": "total_changes",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8"
+      ],
+      "slice": "connection-state",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "sqlite_version",
+      "arities": [
+        0
+      ],
+      "macro": "DFUNCTION",
+      "implementation": "versionFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "SLOCHNG"
+      ],
+      "slice": "build-identity",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "sqlite_source_id",
+      "arities": [
+        0
+      ],
+      "macro": "DFUNCTION",
+      "implementation": "sourceidFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "SLOCHNG"
+      ],
+      "slice": "build-identity",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        0
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 0,
+          "maximum": 0
+        }
+      ]
+    },
+    {
+      "name": "sqlite_log",
+      "arities": [
+        2
+      ],
+      "macro": "FUNCTION",
+      "implementation": "errlogFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT"
+      ],
+      "slice": "host-side-effect",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "glob",
+      "arities": [
+        2
+      ],
+      "macro": "LIKEFUNC",
+      "implementation": "likeFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "LIKE",
+        "CASE"
+      ],
+      "slice": "like-glob",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        2
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        }
+      ]
+    },
+    {
+      "name": "like",
+      "arities": [
+        2,
+        3
+      ],
+      "macro": "LIKEFUNC",
+      "implementation": "likeFunc",
+      "funcDefFlags": [
+        "BUILTIN",
+        "UTF8",
+        "CONSTANT",
+        "LIKE"
+      ],
+      "slice": "like-glob",
+      "tsStatus": "absent",
+      "aliases": [],
+      "rawNArg": [
+        2,
+        3
+      ],
+      "acceptedArities": [
+        {
+          "minimum": 2,
+          "maximum": 2
+        },
+        {
+          "minimum": 3,
+          "maximum": 3
+        }
+      ]
+    }
+  ],
+  "futureRootScopes": [
+    "date/time: src/date.c sqlite3RegisterDateTimeFunctions",
+    "math: SQLITE_ENABLE_MATH_FUNCTIONS block in src/func.c",
+    "JSON: src/json.c sqlite3RegisterJsonFunctions",
+    "aggregate/window registrations"
+  ],
+  "cases": [
+    {
+      "id": "case-upper-ascii-unicode",
+      "sql": "SELECT upper('Azé'), lower('AzÉ')",
+      "slice": "ascii-case",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "upper",
+        "lower"
+      ]
+    },
+    {
+      "id": "case-upper-null-blob",
+      "sql": "SELECT upper(NULL), typeof(upper(x'41620043')), hex(upper(x'41620043'))",
+      "slice": "ascii-case",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "typeof",
+        "upper",
+        "hex"
+      ]
+    },
+    {
+      "id": "case-like-order-blob",
+      "sql": "SELECT 'abc' LIKE 'A%', 'abc' GLOB 'a?c', x'616263' LIKE 'a%', x'616263' GLOB 'a*c'",
+      "slice": "like-glob",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "like",
+        "glob"
+      ]
+    },
+    {
+      "id": "case-like-escape",
+      "sql": "SELECT 'a%b' LIKE 'a!%b' ESCAPE '!'",
+      "slice": "like-glob",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "like"
+      ]
+    },
+    {
+      "id": "case-like-bad-escape",
+      "sql": "SELECT 'x' LIKE 'x' ESCAPE 'ab'",
+      "slice": "like-glob",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "like"
+      ]
+    },
+    {
+      "id": "case-trim",
+      "sql": "SELECT trim('  x  '),ltrim('xyx','xy'),rtrim('xyx','xy'),trim(NULL),hex(trim(char(0)||'x'||char(0),char(0)))",
+      "slice": "trim",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "ltrim",
+        "rtrim",
+        "trim",
+        "char",
+        "hex"
+      ]
+    },
+    {
+      "id": "case-instr-classes",
+      "sql": "SELECT instr('a'||char(0)||'b',char(0)), instr(x'00616200',x'6200'), instr(x'6162','b'), instr(NULL,'x')",
+      "slice": "search",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "instr",
+        "char"
+      ]
+    },
+    {
+      "id": "case-unicode",
+      "sql": "SELECT unicode('A'),unicode('é'),unicode(char(0)),unicode(''),unicode(NULL)",
+      "slice": "unicode",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "unicode",
+        "char"
+      ]
+    },
+    {
+      "id": "case-quote",
+      "sql": "SELECT quote(NULL),quote(12),quote(1.5),quote('a''b'),quote(x'00ff'),quote('a'||char(0)||'b')",
+      "slice": "quote",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "char",
+        "quote"
+      ]
+    },
+    {
+      "id": "case-round",
+      "sql": "SELECT round(2.5),round(-2.5),round(1.2345,2),round(1.0,400),round(NULL)",
+      "slice": "numeric-formatting",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "round"
+      ]
+    },
+    {
+      "id": "case-format-boundaries",
+      "sql": "SELECT printf('%d|%lld|%.17g|%q|%Q|%w',2147483648,9223372036854775807,1.2345678901234567,'a''b','a''b','a\"b'),format('%!g',1.0/3.0)",
+      "slice": "formatting",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "printf",
+        "format"
+      ]
+    },
+    {
+      "id": "case-format-null-missing",
+      "sql": "SELECT printf(NULL,1),printf('%d/%s/%Q',NULL,NULL,NULL)",
+      "slice": "formatting",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "printf"
+      ]
+    },
+    {
+      "id": "case-unhex-concat",
+      "sql": "SELECT hex(unhex('00ff')),unhex('0'),hex(unhex('0f:aa',':')),concat(NULL,'a',1),concat_ws('-',NULL,'a',NULL,'b')",
+      "slice": "blob-text",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "hex",
+        "unhex",
+        "concat",
+        "concat_ws"
+      ]
+    },
+    {
+      "id": "case-random-storage",
+      "sql": "SELECT typeof(random()),length(randomblob(4)),typeof(randomblob(4)),length(zeroblob(3)),hex(zeroblob(3))",
+      "slice": "connection-state",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "typeof",
+        "length",
+        "hex",
+        "zeroblob",
+        "random",
+        "randomblob"
+      ]
+    },
+    {
+      "id": "case-identity-state",
+      "sql": "SELECT sqlite_version(),sqlite_source_id(),last_insert_rowid(),changes(),total_changes()",
+      "slice": "build-identity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "last_insert_rowid",
+        "changes",
+        "total_changes",
+        "sqlite_version",
+        "sqlite_source_id"
+      ]
+    },
+    {
+      "id": "case-substring-alias",
+      "sql": "SELECT substring('abcdef',2,3),substr('abcdef',2,3)",
+      "slice": "text-core",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "substr",
+        "substring"
+      ]
+    },
+    {
+      "id": "case-sign",
+      "sql": "SELECT sign(NULL),sign(-2),sign(0.0),sign('12'),sign('x')",
+      "slice": "numeric-core",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "sign"
+      ]
+    },
+    {
+      "id": "case-inline",
+      "sql": "SELECT ifnull(NULL,7),coalesce(NULL,NULL,'x'),iif(1,'yes','no'),if(0,'yes','no'),likely(8),unlikely(9),likelihood(10,0.5)",
+      "slice": "planner-inline",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "unlikely",
+        "likelihood",
+        "likely",
+        "ifnull",
+        "coalesce",
+        "iif",
+        "if"
+      ]
+    },
+    {
+      "id": "case-minmax-collation",
+      "sql": "SELECT min('a','B' COLLATE NOCASE),max(NULL,1),nullif('a','A' COLLATE NOCASE)",
+      "slice": "minmax-scalar",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "min",
+        "max",
+        "nullif",
+        "if"
+      ]
+    },
+    {
+      "id": "case-bound-params",
+      "sql": "SELECT upper(?1),instr(?2,?3),quote(?4),round(?5,?6),printf('%lld',?7)",
+      "slice": "public-bind",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "aZé"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "610062"
+        },
+        {
+          "index": 3,
+          "type": "blob",
+          "hex": "0062"
+        },
+        {
+          "index": 4,
+          "type": "blob",
+          "hex": "00ff"
+        },
+        {
+          "index": 5,
+          "type": "real",
+          "value": 1.255
+        },
+        {
+          "index": 6,
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "index": 7,
+          "type": "integer",
+          "value": "9223372036854775807"
+        }
+      ],
+      "coversRegistrations": [
+        "instr",
+        "printf",
+        "round",
+        "upper",
+        "quote"
+      ]
+    },
+    {
+      "id": "case-composed",
+      "sql": "SELECT quote(upper(trim(' az '))), instr(format('%s:%d',lower('X'),7),':'), unicode(substr('éx',1,1))",
+      "slice": "composition",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "trim",
+        "instr",
+        "format",
+        "unicode",
+        "upper",
+        "lower",
+        "quote",
+        "substr"
+      ]
+    },
+    {
+      "id": "case-subtype",
+      "sql": "SELECT subtype('x'),typeof(subtype('x'))",
+      "slice": "value-introspection",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "subtype"
+      ]
+    },
+    {
+      "id": "case-unistr",
+      "sql": "SELECT unistr('G\\u00e4ste'),hex(unistr('\\U0001F600'))",
+      "slice": "unicode",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "unistr"
+      ]
+    },
+    {
+      "id": "case-unistr-quote",
+      "sql": "SELECT unistr_quote(unistr('a\\u000ab'))",
+      "slice": "quote",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "unistr_quote"
+      ]
+    },
+    {
+      "id": "case-sqlite-log",
+      "sql": "SELECT sqlite_log(1,'ordinary scalar probe'),typeof(sqlite_log(1,NULL))",
+      "slice": "host-side-effect",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "sqlite_log"
+      ],
+      "browserTreatment": "Translate result/argument semantics and route diagnostic to an internal no-op sink; do not expose or invoke a host callback. Native sqlite3_log side effect is not a shipped-runtime callback contract."
+    },
+    {
+      "id": "case-variadic-zero",
+      "sql": "SELECT printf(),format(),hex(char())",
+      "slice": "arity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "printf",
+        "format",
+        "char"
+      ]
+    },
+    {
+      "id": "case-variadic-minima",
+      "sql": "SELECT concat('x'),concat_ws('-', 'x'),coalesce(NULL,1),iif(1,2),if(0,2),min(1,2),max(1,2)",
+      "slice": "arity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "concat",
+        "concat_ws",
+        "coalesce",
+        "iif",
+        "if",
+        "min",
+        "max"
+      ]
+    },
+    {
+      "id": "case-arity-concat-zero-error",
+      "sql": "SELECT concat()",
+      "slice": "arity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "concat"
+      ]
+    },
+    {
+      "id": "case-arity-concat-ws-one-error",
+      "sql": "SELECT concat_ws('-')",
+      "slice": "arity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "concat_ws"
+      ]
+    },
+    {
+      "id": "case-arity-coalesce-one-error",
+      "sql": "SELECT coalesce(1)",
+      "slice": "arity",
+      "encodings": [
+        "UTF-8"
+      ],
+      "parameters": [],
+      "coversRegistrations": [
+        "coalesce"
+      ]
+    }
+  ],
+  "upstreamAssertions": [
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-5.1",
+      "lineStart": 358,
+      "lineEnd": 360,
+      "bodySha256": "67dd9c7d5dc3dbf9fe16a0d95973b95f2db4faba17437d26b3645174b9226fd3",
+      "bodyBytes": 92
+    },
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-5.2",
+      "lineStart": 361,
+      "lineEnd": 363,
+      "bodySha256": "57eda552fbb3c776bca54cfb27ca22d31e4f0393e9285fd5bed18353a2e2e71d",
+      "bodyBytes": 99
+    },
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-16.1",
+      "lineStart": 785,
+      "lineEnd": 798,
+      "bodySha256": "cf0a7e350986b7eacacdd2ee7b0cc952e8b736c6dd5a682e667ca05d724072ae",
+      "bodyBytes": 347
+    },
+    {
+      "sourceTest": "func.test",
+      "assertionId": "func-22.4",
+      "lineStart": 1086,
+      "lineEnd": 1088,
+      "bodySha256": "0b7eafce58db99b1191fc517bfdef4d81d7f721425ee91d26dd7a522539a365a",
+      "bodyBytes": 62
+    },
+    {
+      "sourceTest": "like.test",
+      "assertionId": "like-1.1",
+      "lineStart": 53,
+      "lineEnd": 57,
+      "bodySha256": "e17eb7c5e8ac1526989e97a723e24e982482fc21a3af2c3ea09fdb125114ceb3",
+      "bodyBytes": 99
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-200",
+      "lineStart": 52,
+      "lineEnd": 54,
+      "bodySha256": "12bceafefb9ebb2d69d0f05960c8e8c6c268801b364adafb8c8f0d4bf24edeb0",
+      "bodyBytes": 70
+    },
+    {
+      "sourceTest": "func9.test",
+      "assertionId": "func9-210",
+      "lineStart": 55,
+      "lineEnd": 57,
+      "bodySha256": "5218585b006bcbd99e14dcb4aa37db7ca34d3883638bf81b41515a667fb21709",
+      "bodyBytes": 86
+    },
+    {
+      "sourceTest": "printf.test",
+      "assertionId": "printf-1.1.1",
+      "lineStart": 19,
+      "lineEnd": 22,
+      "bodySha256": "3961989415a7b3d221702688a6fbb436dfeec8c8d459516090112394b4d95915",
+      "bodyBytes": 100
+    }
+  ],
+  "supersedes": {
+    "specSha256": "14a6a900e2e167362c17bce237a678cb1abbea104c1aed2dd9fcaa1b3cf1bb7f",
+    "nativeSha256": "65d5810cdb3a94590078e0cbd928ae458888383deefcc686de54d895ec893093",
+    "reason": "Correct incomplete flags/arities and add missing coverage/public-path contract."
+  }
+}
