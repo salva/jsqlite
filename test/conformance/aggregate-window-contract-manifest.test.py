@@ -42,6 +42,8 @@ for name,p in spec['setupProvenance'].items():
 for c in out['cases']: assert c['ts']=={'attempted':False,'credited':False,'disposition':'unimplemented-temporary'}
 assert spec['accounting']=={'declared':44,'sourceCreditDeclared':25,'companionsDeclared':19,'nativeExecutable':43,'sourceOnlyCompanions':1,'tsAttempted':0,'tsCredited':0,'tsUnattempted':44}
 assert out['accounting']=={'declared':44,'upstreamDeclared':25,'companionsDeclared':19,'nativeAttempted':43,'nativePassed':43,'nativeCredited':25,'sourceOnlyCompanions':1,'tsAttempted':0,'tsCredited':0,'tsUnattempted':44,'exhaustiveClaim':False}
+current={'executableAttempted':43,'executablePassed':43,'sourceCreditPassed':25,'sourceOnlyAttempted':1,'sourceOnlyPassed':1,'exhaustiveClaim':False}
+assert spec['currentTsAccounting']==out['currentTsAccounting']==current
 for owner in ['src/window.c','src/select.c','src/vdbe.c','src/vdbeaux.c','src/func.c']:
  assert (R/'reference/sqlite/sqlite-src-3530400'/owner).is_file()
-print('aggregate-window contract: 44 = 25 source-credit + 19 companions; native 43/43, source-only 1; TS 0/44')
+print('aggregate-window contract: 44 = 25 source-credit + 19 companions; native 43/43; current TS 43/43 executable + 1/1 source-only, 25 source-credit')

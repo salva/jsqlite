@@ -429,5 +429,13 @@
     "tsAttempted": 0,
     "tsCredited": 0,
     "tsUnattempted": 43
+  },
+  "currentTsAccounting": {
+    "executableAttempted": 41,
+    "executablePassed": 41,
+    "sourceCreditPassed": 11,
+    "sourceOnlyAttempted": 2,
+    "sourceOnlyPassed": 2,
+    "exhaustiveClaim": false
   }
 }

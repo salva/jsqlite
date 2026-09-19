@@ -9018,5 +9018,13 @@
     "tsCredited": 0,
     "tsUnattempted": 44,
     "exhaustiveClaim": false
+  },
+  "currentTsAccounting": {
+    "executableAttempted": 43,
+    "executablePassed": 43,
+    "sourceCreditPassed": 25,
+    "sourceOnlyAttempted": 1,
+    "sourceOnlyPassed": 1,
+    "exhaustiveClaim": false
   }
 }

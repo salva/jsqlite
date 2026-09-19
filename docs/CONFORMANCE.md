@@ -440,7 +440,11 @@ source credit, by `aggregate-window-private-controls.test.mjs`. The public runne
 checks tagged values, metadata, errors, physical UTF-8/UTF-16LE/UTF-16BE fixtures
 and represented compositions. These finite denominators do not claim exhaustive
 SQLite window compatibility; the separate special-built-in section below now
-supersedes this aggregate-only checkpoint for ranking/value execution.
+supersedes this aggregate-only checkpoint for ranking/value execution. The spec
+and captured artifact retain their allocation-time `accounting` and per-case `ts`
+fields as historical capture provenance. Their `currentTsAccounting` field is the
+fail-closed current result checked by the contract validator; native expectations
+and source-credit labels are unchanged.
 
 ### Special built-in window executable contract ([[card:card-o-d-a]], 2026-09-19)
 
@@ -471,4 +475,8 @@ EXCLUDE, callback/direct cursor branches, sharing/nesting, joins/groups/subqueri
 CTEs/recursive and compound producers, UTF-8/UTF-16le/UTF-16be, interruption, and
 accounting. The separate aggregate-window plus rewrite gate passes **92/92** and
 retains its own 44-declaration denominator (43 executable, 25 source-credit, one
-source-only); these denominators are not combined.
+source-only); these denominators are not combined. As with the aggregate artifact,
+allocation-time `accounting` and per-case `ts` fields remain historical capture
+provenance, while `currentTsAccounting` guards the superseding **41/41 executable
+plus 2/2 source-only** result without changing native evidence or promoting
+companions to source credit.

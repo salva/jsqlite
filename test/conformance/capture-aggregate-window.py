@@ -79,5 +79,6 @@ def main():
   out['cases'].append(x)
  up=sum(c['credit']=='upstream' for c in spec['cases']); comp=len(spec['cases'])-up; native=len(spec['cases'])-sum(c.get('kind')=='source-only' for c in spec['cases'])
  out['accounting']={'declared':len(spec['cases']),'upstreamDeclared':up,'companionsDeclared':comp,'nativeAttempted':native,'nativePassed':native,'nativeCredited':up,'sourceOnlyCompanions':len(spec['cases'])-native,'tsAttempted':0,'tsCredited':0,'tsUnattempted':len(spec['cases']),'exhaustiveClaim':False}
+ out['currentTsAccounting']=spec['currentTsAccounting']
  pathlib.Path(a.output).write_text(json.dumps(out,indent=2)+'\n')
 if __name__=='__main__': main()

@@ -27,10 +27,12 @@ for f in ('row_number','rank','dense_rank','percent_rank','cume_dist','ntile','l
  assert any(re.search(r'\b'+f+r'\s*\(',x.get('sql',''),re.I) for x in spec['cases']),f
 assert spec['accounting']=={'declared':43,'sourceCreditDeclared':11,'companionsDeclared':32,'nativeExecutable':41,'sourceOnlyCompanions':2,'tsAttempted':0,'tsCredited':0,'tsUnattempted':43}
 assert out['accounting']=={'declared':43,'upstreamDeclared':11,'companionsDeclared':32,'nativeAttempted':41,'nativePassed':41,'nativeCredited':11,'sourceOnlyCompanions':2,'tsAttempted':0,'tsCredited':0,'tsUnattempted':43,'exhaustiveClaim':False}
+current={'executableAttempted':41,'executablePassed':41,'sourceCreditPassed':11,'sourceOnlyAttempted':2,'sourceOnlyPassed':2,'exhaustiveClaim':False}
+assert spec['currentTsAccounting']==out['currentTsAccounting']==current
 for c in out['cases']: assert c['ts']=={'attempted':False,'credited':False,'disposition':'unimplemented-temporary'}
 w=(R/'reference/sqlite/sqlite-src-3530400/src/window.c').read_text()
 for line in ('WINDOWFUNCX(row_number, 0, 0)','WINDOWFUNCX(dense_rank, 0, 0)','WINDOWFUNCX(rank, 0, 0)','WINDOWFUNCALL(percent_rank, 0, 0)','WINDOWFUNCALL(cume_dist, 0, 0)','WINDOWFUNCALL(ntile, 1, 0)','WINDOWFUNCALL(last_value, 1, 0)','WINDOWFUNCALL(nth_value, 2, 0)','WINDOWFUNCALL(first_value, 1, 0)'):
  assert line in w
 for f in ('lead','lag'):
  for n in (1,2,3): assert f'WINDOWFUNCNOOP({f}, {n}, 0)' in w
-print('special-window contract: 43 = 11 source-credit + 32 companions; native 41/41, source-only 2; TS 0/43')
+print('special-window contract: 43 = 11 source-credit + 32 companions; native 41/41; current TS 41/41 executable + 2/2 source-only, 11 source-credit')
