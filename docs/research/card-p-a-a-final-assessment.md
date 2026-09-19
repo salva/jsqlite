@@ -242,3 +242,53 @@ This evidence supports the bounded conclusion that `9e399f4` corrects the identi
 ### Recommendations and handoff
 
 Future scalar implementation slices should consume the checked-in spec and native corpus without rebuilding source ownership. They must preserve typed storage classes, database encodings, embedded NULs, bound-parameter and returned-column behavior, error phase/code/message, raw/effective arities, and shared Mem/UTF/FunctionContext/collation/lifecycle/bounded-work behavior. Keep unsupported outcomes at zero credit until public TypeScript executions match the corresponding typed expectations. Continue to run physical-fixture validation with the exact pinned library; do not restore synthetic UTF-16 TEXT construction, native runtime fallback, host callbacks, JS regex/eval, or host-formatting substitutions.
+
+## Accepted assessment of review-v6 coherence repair
+
+### Evidence
+
+Accepted parent review `record:///review.md?card=card-p-a&v=6` identified two evidence-presentation defects: the published validator transcript omitted its required `--library` argument, and the living handoff opening still described superseded 30-case/48-observation accounting. Documentation-only commit `26e5bf7` updates the final assessment, living handoff, CONFORMANCE, TRANSLATION, and SQLITE_SOURCE_MAP entrypoints.
+
+Current reproduction text supplies `--library` and records the exact library used for the final run:
+
+```sh
+LIB=/work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so
+python3 test/conformance/ordinary-scalars-manifest.test.py --library "$LIB"
+```
+
+Independent assessment confirmed that the argument-less command exits 2 because argparse requires `--library`. The exact command above succeeded and reported:
+
+```text
+ordinary scalar contract: 50 active in-scope rows, 37 cases/59 native observations, 12 implemented/38 absent; profile-specific catalog, overload ownership, source/test/setup provenance verified
+```
+
+That validator path loads the library, compares `sqlite3_sourceid()` with the manifest, opens all three exact physical fixtures read-only, and compares both persisted-column cases' typed results. Current documentation labels the old argument-less transcript invalid and superseded. The living handoff opening now states 37 cases/59 observations; a scoped search found no remaining unlabeled 30/48 scalar denominator in the reviewed entrypoints.
+
+Independent hash checks matched the published values:
+
+- spec: `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`;
+- native capture: `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`;
+- UTF-8 fixture: `3e3464fe16235ea9805c6a14304e1dda5649b30df28defd7f71c29e1e773d1c5`;
+- UTF-16LE fixture: `cf4c67e9d3e6f7a0ab865d1384d5996d464bdb79768fc7e37e8a195fc8c313d7`;
+- UTF-16BE fixture: `5d8a834d2d8c4e9d742af57004779befa7201b07b4465033c1dbe30320115963`.
+
+Accepted exploration evidence also records successful fresh capture, public Fetch unsupported harness, Python compilation, TypeScript typecheck, and diff check. Because `26e5bf7` changes documentation only, the assessment independently reran the disputed validator and hash checks and reused those still-applicable results.
+
+### Inference and conclusion
+
+The evidence supports both bounded review-v6 repairs. Current operator-facing instructions no longer claim that an impossible argument-less validator invocation passed, and they explain the source-ID/physical-fixture work performed by the valid command. The primary handoff and companion documents now coherently report 50 active rows, 37 cases, 59 native observations, and a current 12-dispatched/38-absent snapshot.
+
+This supported conclusion concerns the research handoff's command and denominator coherence. It does not enlarge the technical conclusion into TypeScript parity, exhaustive scalar correctness, parent-card completion, or repository-wide SQLite compatibility.
+
+### Limitations and uncertainty
+
+- This assessment did not freshly re-audit every registry row, source branch, or native observation.
+- Validator success remains bounded by its profile-specific catalog parser and partly lexical owner checks; it is not a general C preprocessor or semantic call-graph proof.
+- The recorded absolute library path is specific to this execution workspace. Future executors must use the pinned library at their actual `$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so` path, rebuilding per `docs/oracle.md` if absent.
+- The 12/38 classification is a current-HEAD snapshot and must change as runtime work lands.
+- Native/reference success and current unsupported public outcomes grant zero TypeScript runtime credit.
+- Date/time, math, JSON, aggregate/window, extension, parent runtime, and repository-wide compatibility scopes remain separately owned or incomplete.
+
+### Recommendations
+
+Use the exact required `--library` form in all future reproductions and preserve the source-ID plus physical-fixture execution gate. Keep 50/37/59 and 12/38 synchronized with machine artifacts and current HEAD, explicitly labeling historical denominators and transcripts as superseded. Retain all five hashes in operator-facing evidence, rerun the public harness and focused compile/typecheck checks after relevant source or harness changes, and continue withholding TypeScript credit until public behavior matches the typed reference corpus.
