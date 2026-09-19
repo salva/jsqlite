@@ -628,8 +628,8 @@
         "null"
       ],
       "requiresEmbeddedNul": true,
-      "nativeSetup": "fixtureSetupSql is executed on a fresh database in each encoding and is byte/value-equivalent to the immutable physical fixtures",
-      "publicDisposition": "Execute each manifest case against each physical Fetch fixture; unsupported absent-function outcomes remain zero credit, while any future success must equal typed expectedRowsByEncoding.",
+      "nativeSetup": "The manifest-pinned native capture opens each exact hashed physical fixture and executes the persisted-column SQL against its stored database values.",
+      "publicDisposition": "Execute each manifest case against the same physical Fetch fixture; unsupported absent-function outcomes remain zero credit, while any future success must equal the pinned-oracle typed expectedRowsByEncoding.",
       "fixtureSha256": {
         "UTF-8": "3e3464fe16235ea9805c6a14304e1dda5649b30df28defd7f71c29e1e773d1c5",
         "UTF-16le": "cf4c67e9d3e6f7a0ab865d1384d5996d464bdb79768fc7e37e8a195fc8c313d7",
@@ -3493,14 +3493,6 @@
       ],
       "parameters": [],
       "publicFixtureColumn": true,
-      "fixtureSetupSql": [
-        "DROP TABLE IF EXISTS scalar_values",
-        "CREATE TABLE scalar_values(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, v)",
-        "INSERT INTO scalar_values VALUES(1,'text','Alice')",
-        "INSERT INTO scalar_values VALUES(2,'text-nul',CAST(X'410042' AS TEXT))",
-        "INSERT INTO scalar_values VALUES(3,'blob',X'410042')",
-        "INSERT INTO scalar_values VALUES(4,'null',NULL)"
-      ],
       "provenance": {
         "kind": "source-authored-local-companion",
         "sourceBranches": [
@@ -3521,7 +3513,7 @@
           "src/func.c:upperFunc",
           "src/func.c:lowerFunc"
         ],
-        "rationale": "Persisted-column case executes equivalent immutable setup natively and the physical public Fetch fixtures; it is not a literal or CTE substitute."
+        "rationale": "Persisted-column case executes the exact hashed physical public Fetch fixture directly with the manifest-pinned oracle; it is not a literal, CTE, or synthetic setup substitute."
       },
       "id": "case-fixture-columns-text",
       "sql": "SELECT id, typeof(v), upper(v), lower(v), quote(v) FROM scalar_values WHERE id IN (1,4) ORDER BY id",
@@ -3693,14 +3685,6 @@
       ],
       "parameters": [],
       "publicFixtureColumn": true,
-      "fixtureSetupSql": [
-        "DROP TABLE IF EXISTS scalar_values",
-        "CREATE TABLE scalar_values(id INTEGER PRIMARY KEY, kind TEXT NOT NULL, v)",
-        "INSERT INTO scalar_values VALUES(1,'text','Alice')",
-        "INSERT INTO scalar_values VALUES(2,'text-nul',CAST(X'410042' AS TEXT))",
-        "INSERT INTO scalar_values VALUES(3,'blob',X'410042')",
-        "INSERT INTO scalar_values VALUES(4,'null',NULL)"
-      ],
       "provenance": {
         "kind": "source-authored-local-companion",
         "sourceBranches": [
@@ -3721,7 +3705,7 @@
           "src/func.c:upperFunc",
           "src/func.c:lowerFunc"
         ],
-        "rationale": "Persisted-column case executes equivalent immutable setup natively and the physical public Fetch fixtures; it is not a literal or CTE substitute."
+        "rationale": "Persisted-column case executes the exact hashed physical public Fetch fixture directly with the manifest-pinned oracle; it is not a literal, CTE, or synthetic setup substitute."
       },
       "id": "case-fixture-columns-storage",
       "sql": "SELECT id, typeof(v), length(v), instr(v,char(0)), quote(v), upper(v) FROM scalar_values ORDER BY id",
@@ -3895,7 +3879,7 @@
             },
             {
               "type": "integer",
-              "value": "0"
+              "value": "2"
             },
             {
               "type": "text",
@@ -3904,8 +3888,8 @@
             },
             {
               "type": "text",
-              "utf8Hex": "41",
-              "value": "A"
+              "utf8Hex": "410042",
+              "value": "A\u0000B"
             }
           ],
           [
@@ -4009,17 +3993,17 @@
             },
             {
               "type": "integer",
-              "value": "0"
+              "value": "2"
             },
             {
               "type": "text",
-              "utf8Hex": "27e4848027",
-              "value": "'䄀'"
+              "utf8Hex": "274127",
+              "value": "'A'"
             },
             {
               "type": "text",
-              "utf8Hex": "e48480",
-              "value": "䄀"
+              "utf8Hex": "410042",
+              "value": "A\u0000B"
             }
           ],
           [
@@ -4315,6 +4299,12 @@
       "specSha256": "aa7139122530cad046e2d36ff6096a7b8e02fb60d2ef66cdfac308d7105cf97f",
       "nativeSha256": "46360db3627e2b002d35a764cdac38092f05314b50ccb46a1e0287ee0cf0711e",
       "reason": "Adds persisted-column all-encoding Fetch/native cases and exact per-row semantic implementation ownership."
+    },
+    "physicalFixtureCorrection": {
+      "assessment": "record:///status.md?card=card-p-a-a&v=42",
+      "specSha256": "27c70b961b98c7dc6cb7ace87562e9ce337e1217864ed2ab40f6fa7b2a7eecf9",
+      "nativeSha256": "350437dccfc2b3a5cd8789896ad08e6e1a9b7f74ae2aae31b5a347ebf8136652",
+      "reason": "Removes non-equivalent synthetic UTF-16 TEXT setup; captures and validates exact hashed physical fixture rows directly with the pinned oracle."
     }
   }
 }

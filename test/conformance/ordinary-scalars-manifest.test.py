@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate the scalar handoff by deriving active catalog metadata from pinned C."""
-import hashlib,json,pathlib,re
+import argparse,ctypes as C,hashlib,json,pathlib,re
 R=pathlib.Path(__file__).resolve().parents[2]
+ap=argparse.ArgumentParser(); ap.add_argument('--library',required=True,help='manifest-pinned libsqlite3-oracle.so'); cli=ap.parse_args()
 S=R/'test/conformance/cases/stage3-ordinary-scalars.spec.json'; N=R/'test/conformance/cases/stage3-ordinary-scalars.native.json'; SRC=R/'reference/sqlite/sqlite-src-3530400'
 s=json.loads(S.read_text()); n=json.loads(N.read_text()); manifest=json.loads((R/'reference/sqlite/manifest.json').read_text())
 opts=set(n['source']['compileOptions']); defines={x.split('=',1)[0] for x in opts}
@@ -127,9 +128,37 @@ pc=s['scope']['persistedColumnCoverage']; assert set(pc['caseIds'])=={c['id'] fo
 assert set(pc['fixtures'])=={'UTF-8','UTF-16le','UTF-16be'} and set(pc['requiredStorageClasses'])=={'text','blob','null'} and pc['requiresEmbeddedNul'] is True
 for enc,f in pc['fixtures'].items(): assert hashlib.sha256((R/f).read_bytes()).hexdigest()==pc['fixtureSha256'][enc]
 for cid in pc['caseIds']:
- c=next(x for x in s['cases'] if x['id']==cid); assert 'scalar_values' in c['sql'] and c['fixtureSetupSql'] and set(c['expectedRowsByEncoding'])==set(c['encodings'])==set(pc['fixtures'])
- assert any("410042" in q for q in c['fixtureSetupSql'])
- for enc in c['encodings']: assert next(o for o in n['observations'] if o['id']==cid and o['encoding']==enc)['rows']==c['expectedRowsByEncoding'][enc]
+ c=next(x for x in s['cases'] if x['id']==cid); assert 'scalar_values' in c['sql'] and 'fixtureSetupSql' not in c and set(c['expectedRowsByEncoding'])==set(c['encodings'])==set(pc['fixtures'])
+ for enc in c['encodings']:
+  o=next(o for o in n['observations'] if o['id']==cid and o['encoding']==enc); assert o['rows']==c['expectedRowsByEncoding'][enc]
+  assert o['physicalFixture']=={'path':pc['fixtures'][enc],'sha256':pc['fixtureSha256'][enc]}
+# Independently execute every persisted-column case against each exact physical
+# fixture using the supplied manifest-pinned native library. This is the semantic
+# fixture-equivalence gate; file hashes or a synthetic setup are not substitutes.
+P=C.c_void_p; L=C.CDLL(cli.library)
+for name,atypes,rtype in [('sqlite3_sourceid',[],C.c_char_p),('sqlite3_open_v2',[C.c_char_p,C.POINTER(P),C.c_int,C.c_char_p],C.c_int),('sqlite3_prepare_v2',[P,C.c_char_p,C.c_int,C.POINTER(P),C.POINTER(C.c_char_p)],C.c_int),('sqlite3_step',[P],C.c_int),('sqlite3_finalize',[P],C.c_int),('sqlite3_close',[P],C.c_int),('sqlite3_column_count',[P],C.c_int),('sqlite3_column_type',[P,C.c_int],C.c_int),('sqlite3_column_int64',[P,C.c_int],C.c_longlong),('sqlite3_column_double',[P,C.c_int],C.c_double),('sqlite3_column_text',[P,C.c_int],P),('sqlite3_column_blob',[P,C.c_int],P),('sqlite3_column_bytes',[P,C.c_int],C.c_int)]:
+ f=getattr(L,name);f.argtypes=atypes;f.restype=rtype
+assert L.sqlite3_sourceid().decode()==s['source']['sourceId']
+def native_value(st,i):
+ typ=L.sqlite3_column_type(st,i)
+ if typ==5:return {'type':'null'}
+ if typ==1:return {'type':'integer','value':str(L.sqlite3_column_int64(st,i))}
+ if typ==2:return {'type':'real','value':L.sqlite3_column_double(st,i).hex()}
+ size=L.sqlite3_column_bytes(st,i); ptr=(L.sqlite3_column_blob if typ==4 else L.sqlite3_column_text)(st,i); raw=C.string_at(ptr,size) if ptr else b''
+ return {'type':'blob','hex':raw.hex()} if typ==4 else {'type':'text','utf8Hex':raw.hex(),'value':raw.decode('utf-8','replace')}
+for cid in pc['caseIds']:
+ case=next(x for x in s['cases'] if x['id']==cid)
+ for enc,rel in pc['fixtures'].items():
+  db=P(); assert L.sqlite3_open_v2(str(R/rel).encode(),C.byref(db),1,None)==0
+  st=P();tail=C.c_char_p();assert L.sqlite3_prepare_v2(db,case['sql'].encode(),-1,C.byref(st),C.byref(tail))==0
+  rows=[]
+  while True:
+   rc=L.sqlite3_step(st)
+   if rc==100:rows.append([native_value(st,i) for i in range(L.sqlite3_column_count(st))])
+   elif rc==101:break
+   else:raise AssertionError((cid,enc,'step',rc))
+  assert rows==case['expectedRowsByEncoding'][enc],(cid,enc,rows,case['expectedRowsByEncoding'][enc])
+  assert L.sqlite3_finalize(st)==0 and L.sqlite3_close(db)==0
 # Every registry row's actual semantic routine (or explicit compiler owner for
 # inline registrations) is present in its slice and in a case covering that row.
 for r in s['registry']:

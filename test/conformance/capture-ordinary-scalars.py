@@ -27,11 +27,15 @@ def bind(st,p):
 obs=[]
 for case in spec['cases']:
  for enc in case['encodings']:
-  db=P();assert L.sqlite3_open(b':memory:',C.byref(db))==0
-  e=C.c_char_p();q=f"PRAGMA encoding='{enc}'".encode();assert L.sqlite3_exec(db,q,None,None,C.byref(e))==0
-  for setup_sql in case.get('fixtureSetupSql',[]):
-   assert L.sqlite3_exec(db,setup_sql.encode(),None,None,C.byref(e))==0,(case['id'],setup_sql,e.value)
+  db=P()
+  fixture=spec['scope']['publicFetchFixtures'][enc] if case.get('publicFixtureColumn') else None
+  db_path=str(ROOT/fixture).encode() if fixture else b':memory:'
+  assert L.sqlite3_open(db_path,C.byref(db))==0
+  e=C.c_char_p()
+  if not fixture:
+   q=f"PRAGMA encoding='{enc}'".encode();assert L.sqlite3_exec(db,q,None,None,C.byref(e))==0
   st=P();tail=C.c_char_p();rc=L.sqlite3_prepare_v2(db,case['sql'].encode(),-1,C.byref(st),C.byref(tail));o={'id':case['id'],'encoding':enc,'sql':case['sql'],'parameters':case.get('parameters',[])}
+  if fixture:o['physicalFixture']={'path':fixture,'sha256':hashlib.sha256((ROOT/fixture).read_bytes()).hexdigest()}
   if rc:o['error']=err(db,'prepare',rc)
   else:
    for p in case.get('parameters',[]):bind(st,p)

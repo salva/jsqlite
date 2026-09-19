@@ -74,8 +74,8 @@ Pinned `src/callback.c:matchQuality` gives an exact-arity definition a higher sc
 
 Final immutable artifact hashes:
 
-- spec: `27c70b961b98c7dc6cb7ace87562e9ce337e1217864ed2ab40f6fa7b2a7eecf9`
-- native capture: `350437dccfc2b3a5cd8789896ad08e6e1a9b7f74ae2aae31b5a347ebf8136652`
+- spec: `e0cba75903b74f5c93f5eb5505ceedf0342acbf85e82f8dfc7a804fc33266ae0`
+- native capture: `84ac9ef390884479d4dc3d315690f9205bb3e2ce64ff7cdc1c440107e80d977a`
 
 The accepted assessment reran and passed:
 
@@ -183,3 +183,11 @@ The passing validator does not contradict that finding. It requires a `410042` s
 Do not promote this artifact generation as an implementation-ready persisted-column reference contract. Either capture each hashed physical fixture directly with the pinned oracle, or build reference databases through a demonstrably identical fixture-creation path using encoding-correct TEXT binding rather than casting UTF-8-shaped bytes as database-encoded text. Regenerate per-encoding typed expectations and the native artifact.
 
 Strengthen validation to compare pinned-oracle results from the physical fixtures (or cryptographically identical construction output), rather than only checking fixture hashes and a textual `410042` marker. Then rerun native capture, validator, public unsupported harness, Python compilation, `npm run typecheck`, hash checks, and `git diff --check`. Unsupported results remain zero credit. This correction requires no scalar runtime implementation or scope expansion.
+
+## Bounded correction after refutation: supported
+
+The refuted UTF-16 equivalence mechanism above has been removed, while its diagnosis remains as audit history. Persisted-column native capture no longer executes `CAST(X'410042' AS TEXT)` or any synthetic setup. It opens each exact hashed UTF-8, UTF-16LE, and UTF-16BE physical fixture with the manifest-pinned oracle and runs each declared scalar query against the database's stored values. Regenerated UTF-16 expectations now match direct physical evidence: embedded-NUL TEXT yields `instr(v,char(0)) = 2` and `upper(v)` UTF-8 bytes `410042` in both UTF-16 fixtures (with `quote(v) = 'A'`). BLOB behavior remains encoding-sensitive as directly observed.
+
+The validator now requires `--library`, verifies its exact source ID, opens every physical fixture read-only through that library, executes both persisted cases in all three encodings, preserves typed INTEGER/REAL/TEXT/BLOB/NULL results, and compares rows to manifest expectations. Fixture hashes and native observation `physicalFixture` path/hash linkage are also required. This is a semantic physical-fixture gate rather than a hash-only or authored-setup equality check.
+
+The accepted all-50 implementation-owner repair is unchanged. Counts remain 50 registrations, 37 cases, and 59 native observations; the public harness still records 114 generated unsupported probes and six persisted-column unsupported executions with zero TypeScript credit. Current artifact hashes are listed above. This correction supports the bounded research contract again; it does not implement scalar runtime behavior, grant TS credit, prove repository-wide compatibility, or close separately owned scopes.
