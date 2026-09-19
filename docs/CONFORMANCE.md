@@ -440,3 +440,21 @@ source credit, by `aggregate-window-private-controls.test.mjs`. The public runne
 checks tagged values, metadata, errors, physical UTF-8/UTF-16LE/UTF-16BE fixtures
 and represented compositions. These finite denominators do not claim ranking/value
 special built-ins or exhaustive SQLite window compatibility.
+
+### Special built-in window executable contract ([[card:card-o-d-a]], 2026-09-19)
+
+`test/conformance/cases/stage3-special-window.spec.json` allocates 43 cases before
+runtime implementation: 11 exact pinned `window1.test` assertions and 32 no-credit
+companions. The immutable native artifact executes 41/41 SQL cases; two companions
+are source-only project safety/atomic-rejection contracts. TypeScript accounting is
+0 attempted, 0 credited, 43 unattempted. This denominator is additive to, and does
+not relabel, the ordinary aggregate-window denominator.
+
+Run `npm run test:conformance:special-window` for archive/source identity, exact
+upstream body hashes, registration/arities, allocation and accounting. After
+`tools/oracle/build.sh "$SAIVAGE_CARD_WORK_ROOT/oracle-build"`, run
+`npm run test:conformance:special-window:native` to recapture and byte-compare typed
+rows, metadata, errors, reset/rebind and interruption outcomes. Coverage includes
+all 11 special built-ins, frame coercion versus value-frame applicability, all
+EXCLUDE forms for value functions, peers/NULL/NOCASE/order policy, parameters and
+argument errors, sharing/nesting/compositions, and UTF-8/UTF-16LE/UTF-16BE.

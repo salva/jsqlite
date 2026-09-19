@@ -3037,3 +3037,50 @@ publication. Ranking and value special built-ins remain outside this tranche.
 Final evidence is executable 43/43 (25/25 source-credit) through the public API
 plus the separate no-credit ordinal-44 validator for private entry/key/byte, work,
 row, cancellation, deadline, reset and first-error behavior.
+
+### Special built-in window executable gate ([[card:card-o-d-a]], 2026-09-19)
+
+The zero-credit implementation contract is
+`test/conformance/cases/stage3-special-window.spec.json`; the adjacent captured
+JSON is the immutable pinned-native expectation. It declares 43 cases: 11 exact
+`window1.test` assertions, 30 executable no-credit companions, and two source-only
+safety/atomic-rejection companions. Native capture executes 41/41; TypeScript is
+intentionally 0/43 until implementation. This gate supplements, and does not
+relabel, the aggregate-window 44-case denominator.
+
+Pinned `src/window.c:sqlite3WindowFunctions` registers `row_number`, `rank`, and
+`dense_rank` as zero-argument `WINDOWFUNCX`; `percent_rank` and `cume_dist` as
+zero-argument `WINDOWFUNCALL`; `ntile(1)`, `last_value(1)`, `first_value(1)`, and
+`nth_value(2)` as `WINDOWFUNCALL`; and `lead`/`lag` arities 1, 2, and 3 as
+`WINDOWFUNCNOOP`. The latter are not callback algorithms: `windowReturnOneRow`
+uses the buffered rowid plus `AddImm` or evaluated offset and `SeekRowid`, installing
+the third argument or NULL before lookup. `first_value`/`nth_value` also read the
+frame through duplicate cursors/result registers and therefore force
+`windowCacheFrame`; `lead`/`lag` force partition caching independent of the stated
+frame. `last_value`, ranking, distribution and `ntile` retain callback step,
+inverse/value/final behavior as registered.
+
+`sqlite3WindowUpdate` discards user frame bounds and EXCLUDE for: row_number
+(ROWS UNBOUNDED PRECEDING..CURRENT), rank/dense_rank (RANGE UNBOUNDED..CURRENT),
+percent_rank (GROUPS CURRENT..UNBOUNDED FOLLOWING), cume_dist (GROUPS 1 FOLLOWING..
+UNBOUNDED FOLLOWING), ntile (ROWS CURRENT..UNBOUNDED FOLLOWING), lead (ROWS
+UNBOUNDED..UNBOUNDED), and lag (ROWS UNBOUNDED..CURRENT). Value functions
+first/last/nth retain the user/default frame and EXCLUDE semantics. FILTER on every
+special built-in is rejected exactly as `FILTER clause may only be used with
+aggregate window functions`.
+
+Implementation must extend the existing source-shaped frame engine, shared
+`Mem`/aggregate context, typed ephemeral cursors and compiler register allocator;
+it must not add a host-array window evaluator. `sqlite3WindowCodeInit` owns the
+main ephemeral cursor plus three duplicates, per-function application cursors and
+registers, and EXCLUDE full-scan state. `sqlite3WindowCodeStep` evaluates frame
+bounds once per partition, buffers rewritten input records, detects partition and
+peer changes with `KeyInfo`, chooses delete timing (`inverse`, return, step, or
+never), finalizes/values into each reserved `regResult`, and returns rows through
+the existing Gosub result subroutine. The gate covers peer NULL/NOCASE ordering,
+no-ORDER partitions, explicit-frame coercion, value-function ROWS/GROUPS/RANGE and
+EXCLUDE behavior, argument errors/parameters, mixed sharing, illegal nesting,
+join/group/derived/CTE/recursive/compound compositions, three database encodings,
+progress interruption, and project cleanup/limit policy. Unavailable read-only
+compositions and non-result contexts remain indivisible atomic prepare rejections;
+no partial Program or execution may escape.

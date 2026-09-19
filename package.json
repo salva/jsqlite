@@ -38,6 +38,8 @@
     "test:conformance:subquery-view:ts": "node --experimental-strip-types --test test/conformance/subquery-view-foundation.test.mjs test/conformance/from-subquery-routes.test.mjs",
     "test:conformance:window": "python3 test/conformance/window-manifest.test.py",
     "test:conformance:window:native": "python3 test/conformance/capture-window.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-window.spec.json --output $SAIVAGE_CARD_WORK_ROOT/window-recapture.json && cmp test/conformance/cases/stage3-window.json $SAIVAGE_CARD_WORK_ROOT/window-recapture.json",
+    "test:conformance:special-window": "python3 test/conformance/special-window-contract-manifest.test.py",
+    "test:conformance:special-window:native": "python3 test/conformance/capture-special-window.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-special-window.spec.json --output $SAIVAGE_CARD_WORK_ROOT/special-window-recapture.json && cmp test/conformance/cases/stage3-special-window.json $SAIVAGE_CARD_WORK_ROOT/special-window-recapture.json",
     "test:conformance:cte:manifest": "python3 test/conformance/cte-architecture-manifest.test.py"
   },
   "devDependencies": {

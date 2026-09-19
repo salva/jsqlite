@@ -450,3 +450,15 @@ limits and reset/finalize/first-error rules as other VDBE programs. Unsupported
 compositions reject atomically at prepare. This does not admit ranking or value
 special built-ins such as `row_number`, `nth_value`, `first_value`, `last_value`,
 `lead`, or `lag`.
+
+### Special built-in window preimplementation contract (2026-09-19)
+
+Ranking, distribution, offset and value built-ins remain outside the public
+execution surface. The pinned 43-case gate records their future exact contract but
+has 0 TypeScript attempts/credits; it does not amend the aggregate-window capability
+above. Until implemented, every statement that requires `row_number`, `rank`,
+`dense_rank`, `percent_rank`, `cume_dist`, `ntile`, `lead`, `lag`, `first_value`,
+`last_value`, or `nth_value` must reject atomically during `prepare()` after any
+applicable SQLite resolver diagnostic, without publishing a Statement or partial
+Program. This includes unavailable join/group/subquery/CTE/recursive/compound
+compositions rather than silently dropping the unsupported portion.

@@ -1,0 +1,3412 @@
+{
+  "schema": "jsqlite-special-window-contract/1",
+  "source": {
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "archiveSha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b"
+  },
+  "requiredCoverage": [
+    "exact-registrations-arities-and-diagnostics",
+    "sqlite3WindowUpdate-coercions",
+    "callback-versus-direct-vdbe",
+    "peers-null-collation-order",
+    "frame-and-exclude-applicability",
+    "argument-extremes-and-parameters",
+    "sharing-nesting-and-compositions",
+    "utf8-utf16le-utf16be",
+    "lifecycle-interruption-limits-cleanup-and-atomic-rejection"
+  ],
+  "cases": [
+    {
+      "id": "window1-5.1",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.1",
+      "sourceBodySha256": "2aa1f67d27751f8960325e706f366cec3e8760b85de46ec6d6c55a6d82a48085",
+      "setup": "w2",
+      "sql": "SELECT ntile(0) OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "ntile(0) OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "argument of ntile must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-5.2",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.2",
+      "sourceBodySha256": "2465bbec3bdc2bebe1a6e4968a39f9f49801273f730c5273b8a3a47ba2d60e6e",
+      "setup": "w2",
+      "sql": "SELECT ntile(-1) OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "ntile(-1) OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "argument of ntile must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-5.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.3",
+      "sourceBodySha256": "0ee3c44e91534d780d133d0a1251ae15e291b6d6b419e559be743c33ce6bc1d3",
+      "setup": "w2",
+      "sql": "SELECT ntile('zbc') OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "ntile('zbc') OVER (ORDER BY a)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "argument of ntile must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-6.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "6.3",
+      "sourceBodySha256": "04b2320df85d38a01130752e7dfd7fe0c6aa445e9b1215f9ca9677bbbd6276a5",
+      "setup": "w6",
+      "sql": "SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 WINDOW w AS (ORDER BY x)",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "FILTER clause may only be used with aggregate window functions",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.1.1",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.1",
+      "sourceBodySha256": "7e7358dfaab181fd57a0b4a663ba1adef4ddade81f30644355b43190a01c9657",
+      "setup": "w7",
+      "sql": "SELECT nth_value(x, 1) FROM t1",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "misuse of window function nth_value()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.1.6",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.6",
+      "sourceBodySha256": "b5e2625ce6d09545c73f9bf52e832f5f79e956297db8410fbf31bdbc47b2821d",
+      "setup": "w7",
+      "sql": "SELECT trim(x) OVER (ORDER BY y) FROM t1",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "trim() may not be used as a window function",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.1.7",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.7",
+      "sourceBodySha256": "a484814ae2681bba6cd894fdd6e0c39204ba75b55de220b53e89ed050fdc8e53",
+      "setup": "w7",
+      "sql": "SELECT max(x) OVER abc FROM t1 WINDOW def AS (ORDER BY y)",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "no such window: abc",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.1.8",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.8",
+      "sourceBodySha256": "1a6d06081779e28a1332b70409d321a5e52f2405217a7f7ea11603a644d13929",
+      "setup": "w7",
+      "sql": "SELECT row_number(x) OVER () FROM t1",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "wrong number of arguments to function row_number()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.2",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.2",
+      "sourceBodySha256": "5f3ae2747a542959de995f5aca57dce98d3235cff1866d1ff784f6fa24100d8e",
+      "setup": "w7",
+      "sql": "SELECT lead(y) OVER win, lead(y, 2) OVER win, lead(y, 3, 'default') OVER win FROM t1 WINDOW win AS (ORDER BY x)",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "lead(y) OVER win",
+            "declType": null
+          },
+          {
+            "name": "lead(y, 2) OVER win",
+            "declType": null
+          },
+          {
+            "name": "lead(y, 3, 'default') OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64656661756c74"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64656661756c74"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64656661756c74"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.3",
+      "sourceBodySha256": "ed2b2258677e2a365315f498100aaf5f29cdb8db9f75a4e7ee61005697a00423",
+      "setup": "w7",
+      "sql": "SELECT row_number() OVER (ORDER BY x) FROM t1",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "row_number() OVER (ORDER BY x)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window1-7.4",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.4",
+      "sourceBodySha256": "0c0385ab60267cfa00d6637af94e7285d149a78303aa1fd55a5aa22e1c856691",
+      "setup": "w7",
+      "sql": "SELECT row_number() OVER win, lead(x) OVER win FROM t1 WINDOW win AS (ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "row_number() OVER win",
+            "declType": null
+          },
+          {
+            "name": "lead(x) OVER win",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "ranking-peers-null-collation",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,row_number() OVER w,rank() OVER w,dense_rank() OVER w,percent_rank() OVER w,cume_dist() OVER w FROM t WINDOW w AS (ORDER BY p COLLATE NOCASE NULLS FIRST) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "row_number() OVER w",
+            "declType": null
+          },
+          {
+            "name": "rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "dense_rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "percent_rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "cume_dist() OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fd0000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fd0000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe8000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe8000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fc999999999999a"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "ranking-no-order-singleton",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER () FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER ()",
+            "declType": null
+          },
+          {
+            "name": "dense_rank() OVER ()",
+            "declType": null
+          },
+          {
+            "name": "percent_rank() OVER ()",
+            "declType": null
+          },
+          {
+            "name": "cume_dist() OVER ()",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "0000000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "ntile-large-buckets",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,ntile(9) OVER (ORDER BY id) FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "ntile(9) OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "ntile-parameter-reset",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,ntile(?1) OVER (ORDER BY id) FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "ntile(?1) OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          },
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "lead-lag-arities-offsets",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,lead(n) OVER w,lead(n,0) OVER w,lead(n,9,x'aa') OVER w,lag(n,2,'d') OVER w,lag(n,-1,'z') OVER w FROM t WINDOW w AS (ORDER BY id) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "lead(n) OVER w",
+            "declType": null
+          },
+          {
+            "name": "lead(n,0) OVER w",
+            "declType": null
+          },
+          {
+            "name": "lead(n,9,x'aa') OVER w",
+            "declType": null
+          },
+          {
+            "name": "lag(n,2,'d') OVER w",
+            "declType": null
+          },
+          {
+            "name": "lag(n,-1,'z') OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7a"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "lead-null-offset",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,lead(n,NULL,'d') OVER (ORDER BY id),lag(n,NULL,'d') OVER (ORDER BY id) FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "lead(n,NULL,'d') OVER (ORDER BY id)",
+            "declType": null
+          },
+          {
+            "name": "lag(n,NULL,'d') OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "64"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "value-rows-frame",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(n) OVER w,last_value(n) OVER w,nth_value(n,2) OVER w FROM t WINDOW w AS (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "first_value(n) OVER w",
+            "declType": null
+          },
+          {
+            "name": "last_value(n) OVER w",
+            "declType": null
+          },
+          {
+            "name": "nth_value(n,2) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "value-groups-exclude-current",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(id) OVER w,last_value(id) OVER w,nth_value(id,2) OVER w FROM t WINDOW w AS (ORDER BY k GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "first_value(id) OVER w",
+            "declType": null
+          },
+          {
+            "name": "last_value(id) OVER w",
+            "declType": null
+          },
+          {
+            "name": "nth_value(id,2) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "value-range-exclude-ties",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(id) OVER w,last_value(id) OVER w,nth_value(id,2) OVER w FROM t WINDOW w AS (ORDER BY k RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "first_value(id) OVER w",
+            "declType": null
+          },
+          {
+            "name": "last_value(id) OVER w",
+            "declType": null
+          },
+          {
+            "name": "nth_value(id,2) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "value-exclude-group",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,last_value(id) OVER (ORDER BY k ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP) FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "last_value(id) OVER (ORDER BY k ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "nth-zero",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,0) OVER (ORDER BY id) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(id,0) OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "second argument to nth_value must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "nth-real",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,1.5) OVER (ORDER BY id) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(id,1.5) OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "second argument to nth_value must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "nth-text",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,'x') OVER (ORDER BY id) FROM t",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "nth_value(id,'x') OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 1,
+            "errorMessage": "second argument to nth_value must be a positive integer"
+          }
+        ],
+        "finalizeCode": 1,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "coercion-explicit-frames",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,row_number() OVER (ORDER BY id RANGE BETWEEN CURRENT ROW AND CURRENT ROW EXCLUDE TIES),rank() OVER (ORDER BY k ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING),ntile(2) OVER (ORDER BY id GROUPS CURRENT ROW),lead(id) OVER (ORDER BY id ROWS CURRENT ROW),lag(id) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) FROM t ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "row_number() OVER (ORDER BY id RANGE BETWEEN CURRENT ROW AND CURRENT ROW EXCLUDE TIES)",
+            "declType": null
+          },
+          {
+            "name": "rank() OVER (ORDER BY k ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+            "declType": null
+          },
+          {
+            "name": "ntile(2) OVER (ORDER BY id GROUPS CURRENT ROW)",
+            "declType": null
+          },
+          {
+            "name": "lead(id) OVER (ORDER BY id ROWS CURRENT ROW)",
+            "declType": null
+          },
+          {
+            "name": "lag(id) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "filter-special-rejected",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT rank() FILTER (WHERE id>1) OVER (ORDER BY id) FROM t",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "FILTER clause may only be used with aggregate window functions",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "wrong-arity-lead",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT lead() OVER () FROM t",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "wrong number of arguments to function lead()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "wrong-arity-nth",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id) OVER () FROM t",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "wrong number of arguments to function nth_value()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "placement-nested",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT sum(rank() OVER (ORDER BY id)) FROM t",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "misuse of window function rank()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "window-inside-window",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT rank() OVER (ORDER BY row_number() OVER ()) FROM t",
+      "errorPhase": "prepare",
+      "native": {
+        "prepareCode": 1,
+        "columns": [],
+        "runs": [],
+        "errorMessage": "misuse of window function row_number()",
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "sharing-mixed-special",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER w,dense_rank() OVER w,lead(n) OVER w,last_value(n) OVER w FROM t WINDOW w AS (PARTITION BY p ORDER BY k,id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "dense_rank() OVER w",
+            "declType": null
+          },
+          {
+            "name": "lead(n) OVER w",
+            "declType": null
+          },
+          {
+            "name": "last_value(n) OVER w",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "join-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT a.id,rank() OVER (ORDER BY b.id),lead(a.n) OVER (ORDER BY b.id) FROM t a JOIN t b ON a.id=b.id ORDER BY a.id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER (ORDER BY b.id)",
+            "declType": null
+          },
+          {
+            "name": "lead(a.n) OVER (ORDER BY b.id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "group-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT p,count(*),rank() OVER (ORDER BY count(*)),lag(count(*)) OVER (ORDER BY count(*)) FROM t GROUP BY p ORDER BY 2,p",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "p",
+            "declType": "TEXT"
+          },
+          {
+            "name": "count(*)",
+            "declType": null
+          },
+          {
+            "name": "rank() OVER (ORDER BY count(*))",
+            "declType": null
+          },
+          {
+            "name": "lag(count(*)) OVER (ORDER BY count(*))",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "61"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "62"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "subquery-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,dense_rank() OVER (ORDER BY k),first_value(b) OVER (ORDER BY id) FROM (SELECT * FROM t WHERE id>1) ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "dense_rank() OVER (ORDER BY k)",
+            "declType": null
+          },
+          {
+            "name": "first_value(b) OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "cte-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "WITH q AS (SELECT * FROM t) SELECT id,cume_dist() OVER (ORDER BY r),last_value(n) OVER (ORDER BY id ROWS 1 PRECEDING) FROM q ORDER BY id",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "cume_dist() OVER (ORDER BY r)",
+            "declType": null
+          },
+          {
+            "name": "last_value(n) OVER (ORDER BY id ROWS 1 PRECEDING)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fc999999999999a"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fd999999999999a"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe3333333333333"
+                },
+                {
+                  "type": "integer",
+                  "value": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3fe999999999999a"
+                },
+                {
+                  "type": "integer",
+                  "value": "40"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff0000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "50"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "recursive-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<5) SELECT x,ntile(2) OVER (ORDER BY x),lag(x) OVER (ORDER BY x) FROM q",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "x",
+            "declType": null
+          },
+          {
+            "name": "ntile(2) OVER (ORDER BY x)",
+            "declType": null
+          },
+          {
+            "name": "lag(x) OVER (ORDER BY x)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "compound-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY id) FROM t UNION ALL SELECT id,row_number() OVER (ORDER BY id DESC) FROM t ORDER BY 1,2",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "utf8",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-8",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER (ORDER BY p)",
+            "declType": null
+          },
+          {
+            "name": "lead(b,1,x'aa') OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "01"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "utf16le",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-16le",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER (ORDER BY p)",
+            "declType": null
+          },
+          {
+            "name": "lead(b,1,x'aa') OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "01"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "utf16be",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-16be",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "id",
+            "declType": "INTEGER"
+          },
+          {
+            "name": "rank() OVER (ORDER BY p)",
+            "declType": null
+          },
+          {
+            "name": "lead(b,1,x'aa') OVER (ORDER BY id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": ""
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "blob",
+                  "hex": "01"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "aa"
+                }
+              ]
+            ],
+            "terminalCode": 101,
+            "errorMessage": null
+          }
+        ],
+        "finalizeCode": 0,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "interrupt",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT row_number() OVER (ORDER BY a.id,b.id),lead(a.b) OVER (ORDER BY a.id,b.id) FROM t a,t b",
+      "errorPhase": "step",
+      "native": {
+        "prepareCode": 0,
+        "columns": [
+          {
+            "name": "row_number() OVER (ORDER BY a.id,b.id)",
+            "declType": null
+          },
+          {
+            "name": "lead(a.b) OVER (ORDER BY a.id,b.id)",
+            "declType": null
+          }
+        ],
+        "runs": [
+          {
+            "rows": [],
+            "terminalCode": 9,
+            "errorMessage": "interrupted"
+          }
+        ],
+        "finalizeCode": 9,
+        "closeCode": 0
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "private-limits-cleanup",
+      "klass": "local-safety-resource",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "kind": "source-only",
+      "owners": [
+        "src/window.c",
+        "src/vdbe.c",
+        "src/vdbeaux.c"
+      ],
+      "meaning": "Deterministic byte/entry/work/row limits, cooperative yield, cancellation after suspension, injected cursor/context cleanup failure, reset/finalize/deferred-close and first-error preservation are project companions; native progress interruption is captured separately.",
+      "native": {
+        "disposition": "source-only-no-credit"
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    },
+    {
+      "id": "unsupported-write-context",
+      "klass": "local-atomic-rejection",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "kind": "source-only",
+      "owners": [
+        "src/resolve.c",
+        "src/window.c"
+      ],
+      "meaning": "Generated columns, CHECK, index expressions, WHERE/GROUP/HAVING and other non-result/order contexts not representable by the read-only public surface must reject atomically at prepare with the applicable SQLite diagnostic; do not partially execute or silently omit.",
+      "native": {
+        "disposition": "source-only-no-credit"
+      },
+      "ts": {
+        "attempted": false,
+        "credited": false,
+        "disposition": "unimplemented-temporary"
+      }
+    }
+  ],
+  "accounting": {
+    "declared": 43,
+    "upstreamDeclared": 11,
+    "companionsDeclared": 32,
+    "nativeAttempted": 41,
+    "nativePassed": 41,
+    "nativeCredited": 11,
+    "sourceOnlyCompanions": 2,
+    "tsAttempted": 0,
+    "tsCredited": 0,
+    "tsUnattempted": 43,
+    "exhaustiveClaim": false
+  }
+}

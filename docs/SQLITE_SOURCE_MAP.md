@@ -1280,3 +1280,20 @@ boundary (`ResultRow` to copy/`Yield`) without a host evaluator.
 `test/conformance/run-aggregate-window-ts.mjs` passes all 43 executable cases
 (25 source-credit); `aggregate-window-private-controls.test.mjs` separately
 validates source-only ordinal 44. Ranking/value special built-ins are not claimed.
+
+### Special built-in window contract ([[card:card-o-d-a]], 2026-09-19)
+
+| Pinned owner | Required translated behavior | Executable evidence |
+| --- | --- | --- |
+| `src/window.c:sqlite3WindowFunctions`, `WINDOWFUNCALL/X/NOOP` | Exact names/arities and callback versus direct-VDBE ownership for all 11 special built-ins | `stage3-special-window.spec.json`: exact `window1` arity/misuse/FILTER/lead/row-number cases plus per-function companions |
+| `src/window.c:sqlite3WindowUpdate` | Coerce ranking/distribution/ntile/lead/lag frames and clear EXCLUDE; retain first/last/nth frame and EXCLUDE; reject FILTER | coercion, FILTER and all EXCLUDE companion cases |
+| `src/window.c:sqlite3WindowCodeInit`, `windowCacheFrame`, `windowReturnOneRow` | Main+duplicate cursors, application registers/cursors; cache first/nth/lead/lag; direct rowid seek and default handling | lead/lag arities and offsets, first/nth frame lookup, mixed sharing |
+| `src/window.c:windowAggStep/windowAggFinal`, ranking/value callbacks | Peer-sensitive INTEGER/REAL results, ntile partition arithmetic and exact argument errors, last-value lifecycle | peer/NULL/NOCASE/no-ORDER, large buckets, parameter reset, nth/ntile errors |
+| `src/window.c:sqlite3WindowCodeStep`; `src/select.c`; `src/vdbe.c` | Partition buffering, peer comparison, frame step/inverse/return/delete ordering, result-register Gosub publication, first-error cleanup | 43-case contract: 11 source-credit + 32 companions; native 41/41, two source-only, TS 0/43 |
+
+This allocation is additive to ordinary aggregate windows. Its immutable native
+artifact is `test/conformance/cases/stage3-special-window.json`; capture verifies
+the exact 3.53.4 source ID. Project byte/entry/work/row ceilings, cooperative yield,
+injected cleanup faults, and unsupported write-context rejection are companions,
+not upstream credit. There is no algorithm substitution: implementation handoff is
+the pinned callback/direct-bytecode split and existing typed VDBE frame engine.

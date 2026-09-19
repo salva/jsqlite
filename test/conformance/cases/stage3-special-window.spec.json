@@ -1,0 +1,433 @@
+{
+  "schema": "jsqlite-special-window-contract-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "archiveSha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b"
+  },
+  "contract": "special-built-in-window-step",
+  "setups": {
+    "w2": [
+      "CREATE TABLE t2(a,b,c)",
+      "INSERT INTO t2 VALUES(0,0,0),(1,1,1),(2,0,2),(3,1,0),(4,0,1),(5,1,2),(6,0,0)"
+    ],
+    "w6": [
+      "CREATE TABLE t1(x)",
+      "INSERT INTO t1 VALUES(7),(6),(5),(4),(3),(2),(1)",
+      "CREATE TABLE t2(x)",
+      "INSERT INTO t2 VALUES('b'),('a')"
+    ],
+    "w7": [
+      "CREATE TABLE t1(x,y)",
+      "INSERT INTO t1 VALUES(1,2),(3,4),(5,6),(7,8),(9,10)"
+    ],
+    "matrix": [
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,p TEXT COLLATE NOCASE,k,n,r REAL,b BLOB)",
+      "INSERT INTO t VALUES(1,'a',NULL,10,1.0,x'00'),(2,'A',1,NULL,2.5,x''),(3,'b',1,30,3.0,NULL),(4,'b',2,40,4.0,x'ff'),(5,NULL,2,50,5.0,x'01')"
+    ],
+    "empty": []
+  },
+  "requiredCoverage": [
+    "exact-registrations-arities-and-diagnostics",
+    "sqlite3WindowUpdate-coercions",
+    "callback-versus-direct-vdbe",
+    "peers-null-collation-order",
+    "frame-and-exclude-applicability",
+    "argument-extremes-and-parameters",
+    "sharing-nesting-and-compositions",
+    "utf8-utf16le-utf16be",
+    "lifecycle-interruption-limits-cleanup-and-atomic-rejection"
+  ],
+  "cases": [
+    {
+      "id": "window1-5.1",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.1",
+      "sourceBodySha256": "2aa1f67d27751f8960325e706f366cec3e8760b85de46ec6d6c55a6d82a48085",
+      "setup": "w2",
+      "sql": "SELECT ntile(0) OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step"
+    },
+    {
+      "id": "window1-5.2",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.2",
+      "sourceBodySha256": "2465bbec3bdc2bebe1a6e4968a39f9f49801273f730c5273b8a3a47ba2d60e6e",
+      "setup": "w2",
+      "sql": "SELECT ntile(-1) OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step"
+    },
+    {
+      "id": "window1-5.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "5.3",
+      "sourceBodySha256": "0ee3c44e91534d780d133d0a1251ae15e291b6d6b419e559be743c33ce6bc1d3",
+      "setup": "w2",
+      "sql": "SELECT ntile('zbc') OVER (ORDER BY a) FROM t2",
+      "errorPhase": "step"
+    },
+    {
+      "id": "window1-6.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "6.3",
+      "sourceBodySha256": "04b2320df85d38a01130752e7dfd7fe0c6aa445e9b1215f9ca9677bbbd6276a5",
+      "setup": "w6",
+      "sql": "SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 WINDOW w AS (ORDER BY x)",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window1-7.1.1",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.1",
+      "sourceBodySha256": "7e7358dfaab181fd57a0b4a663ba1adef4ddade81f30644355b43190a01c9657",
+      "setup": "w7",
+      "sql": "SELECT nth_value(x, 1) FROM t1",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window1-7.1.6",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.6",
+      "sourceBodySha256": "b5e2625ce6d09545c73f9bf52e832f5f79e956297db8410fbf31bdbc47b2821d",
+      "setup": "w7",
+      "sql": "SELECT trim(x) OVER (ORDER BY y) FROM t1",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window1-7.1.7",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.7",
+      "sourceBodySha256": "a484814ae2681bba6cd894fdd6e0c39204ba75b55de220b53e89ed050fdc8e53",
+      "setup": "w7",
+      "sql": "SELECT max(x) OVER abc FROM t1 WINDOW def AS (ORDER BY y)",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window1-7.1.8",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.1.8",
+      "sourceBodySha256": "1a6d06081779e28a1332b70409d321a5e52f2405217a7f7ea11603a644d13929",
+      "setup": "w7",
+      "sql": "SELECT row_number(x) OVER () FROM t1",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window1-7.2",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.2",
+      "sourceBodySha256": "5f3ae2747a542959de995f5aca57dce98d3235cff1866d1ff784f6fa24100d8e",
+      "setup": "w7",
+      "sql": "SELECT lead(y) OVER win, lead(y, 2) OVER win, lead(y, 3, 'default') OVER win FROM t1 WINDOW win AS (ORDER BY x)"
+    },
+    {
+      "id": "window1-7.3",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.3",
+      "sourceBodySha256": "ed2b2258677e2a365315f498100aaf5f29cdb8db9f75a4e7ee61005697a00423",
+      "setup": "w7",
+      "sql": "SELECT row_number() OVER (ORDER BY x) FROM t1"
+    },
+    {
+      "id": "window1-7.4",
+      "klass": "source-credit",
+      "credit": "upstream",
+      "sourceFile": "test/window1.test",
+      "sourceCase": "7.4",
+      "sourceBodySha256": "0c0385ab60267cfa00d6637af94e7285d149a78303aa1fd55a5aa22e1c856691",
+      "setup": "w7",
+      "sql": "SELECT row_number() OVER win, lead(x) OVER win FROM t1 WINDOW win AS (ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)"
+    },
+    {
+      "id": "ranking-peers-null-collation",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,row_number() OVER w,rank() OVER w,dense_rank() OVER w,percent_rank() OVER w,cume_dist() OVER w FROM t WINDOW w AS (ORDER BY p COLLATE NOCASE NULLS FIRST) ORDER BY id"
+    },
+    {
+      "id": "ranking-no-order-singleton",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER () FROM t ORDER BY id"
+    },
+    {
+      "id": "ntile-large-buckets",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,ntile(9) OVER (ORDER BY id) FROM t ORDER BY id"
+    },
+    {
+      "id": "ntile-parameter-reset",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,ntile(?1) OVER (ORDER BY id) FROM t ORDER BY id",
+      "bindings": [
+        {
+          "index": 1,
+          "integer": "2"
+        }
+      ],
+      "rebind": [
+        {
+          "index": 1,
+          "integer": "3"
+        }
+      ]
+    },
+    {
+      "id": "lead-lag-arities-offsets",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,lead(n) OVER w,lead(n,0) OVER w,lead(n,9,x'aa') OVER w,lag(n,2,'d') OVER w,lag(n,-1,'z') OVER w FROM t WINDOW w AS (ORDER BY id) ORDER BY id"
+    },
+    {
+      "id": "lead-null-offset",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,lead(n,NULL,'d') OVER (ORDER BY id),lag(n,NULL,'d') OVER (ORDER BY id) FROM t ORDER BY id"
+    },
+    {
+      "id": "value-rows-frame",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(n) OVER w,last_value(n) OVER w,nth_value(n,2) OVER w FROM t WINDOW w AS (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY id"
+    },
+    {
+      "id": "value-groups-exclude-current",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(id) OVER w,last_value(id) OVER w,nth_value(id,2) OVER w FROM t WINDOW w AS (ORDER BY k GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) ORDER BY id"
+    },
+    {
+      "id": "value-range-exclude-ties",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,first_value(id) OVER w,last_value(id) OVER w,nth_value(id,2) OVER w FROM t WINDOW w AS (ORDER BY k RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) ORDER BY id"
+    },
+    {
+      "id": "value-exclude-group",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,last_value(id) OVER (ORDER BY k ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP) FROM t ORDER BY id"
+    },
+    {
+      "id": "nth-zero",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,0) OVER (ORDER BY id) FROM t",
+      "errorPhase": "step"
+    },
+    {
+      "id": "nth-real",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,1.5) OVER (ORDER BY id) FROM t",
+      "errorPhase": "step"
+    },
+    {
+      "id": "nth-text",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id,'x') OVER (ORDER BY id) FROM t",
+      "errorPhase": "step"
+    },
+    {
+      "id": "coercion-explicit-frames",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,row_number() OVER (ORDER BY id RANGE BETWEEN CURRENT ROW AND CURRENT ROW EXCLUDE TIES),rank() OVER (ORDER BY k ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING),ntile(2) OVER (ORDER BY id GROUPS CURRENT ROW),lead(id) OVER (ORDER BY id ROWS CURRENT ROW),lag(id) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) FROM t ORDER BY id"
+    },
+    {
+      "id": "filter-special-rejected",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT rank() FILTER (WHERE id>1) OVER (ORDER BY id) FROM t",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "wrong-arity-lead",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT lead() OVER () FROM t",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "wrong-arity-nth",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT nth_value(id) OVER () FROM t",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "placement-nested",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT sum(rank() OVER (ORDER BY id)) FROM t",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "window-inside-window",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT rank() OVER (ORDER BY row_number() OVER ()) FROM t",
+      "errorPhase": "prepare"
+    },
+    {
+      "id": "sharing-mixed-special",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER w,dense_rank() OVER w,lead(n) OVER w,last_value(n) OVER w FROM t WINDOW w AS (PARTITION BY p ORDER BY k,id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY id"
+    },
+    {
+      "id": "join-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT a.id,rank() OVER (ORDER BY b.id),lead(a.n) OVER (ORDER BY b.id) FROM t a JOIN t b ON a.id=b.id ORDER BY a.id"
+    },
+    {
+      "id": "group-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT p,count(*),rank() OVER (ORDER BY count(*)),lag(count(*)) OVER (ORDER BY count(*)) FROM t GROUP BY p ORDER BY 2,p"
+    },
+    {
+      "id": "subquery-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,dense_rank() OVER (ORDER BY k),first_value(b) OVER (ORDER BY id) FROM (SELECT * FROM t WHERE id>1) ORDER BY id"
+    },
+    {
+      "id": "cte-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "WITH q AS (SELECT * FROM t) SELECT id,cume_dist() OVER (ORDER BY r),last_value(n) OVER (ORDER BY id ROWS 1 PRECEDING) FROM q ORDER BY id"
+    },
+    {
+      "id": "recursive-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<5) SELECT x,ntile(2) OVER (ORDER BY x),lag(x) OVER (ORDER BY x) FROM q"
+    },
+    {
+      "id": "compound-compose",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY id) FROM t UNION ALL SELECT id,row_number() OVER (ORDER BY id DESC) FROM t ORDER BY 1,2"
+    },
+    {
+      "id": "utf8",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-8"
+    },
+    {
+      "id": "utf16le",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-16le"
+    },
+    {
+      "id": "utf16be",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT id,rank() OVER (ORDER BY p),lead(b,1,x'aa') OVER (ORDER BY id) FROM t ORDER BY id",
+      "encoding": "UTF-16be"
+    },
+    {
+      "id": "interrupt",
+      "klass": "local-semantic-companion",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "sql": "SELECT row_number() OVER (ORDER BY a.id,b.id),lead(a.b) OVER (ORDER BY a.id,b.id) FROM t a,t b",
+      "progressAbortAfter": 30,
+      "errorPhase": "step"
+    },
+    {
+      "id": "private-limits-cleanup",
+      "klass": "local-safety-resource",
+      "credit": "no-credit-companion",
+      "setup": "empty",
+      "kind": "source-only",
+      "owners": [
+        "src/window.c",
+        "src/vdbe.c",
+        "src/vdbeaux.c"
+      ],
+      "meaning": "Deterministic byte/entry/work/row limits, cooperative yield, cancellation after suspension, injected cursor/context cleanup failure, reset/finalize/deferred-close and first-error preservation are project companions; native progress interruption is captured separately."
+    },
+    {
+      "id": "unsupported-write-context",
+      "klass": "local-atomic-rejection",
+      "credit": "no-credit-companion",
+      "setup": "matrix",
+      "kind": "source-only",
+      "owners": [
+        "src/resolve.c",
+        "src/window.c"
+      ],
+      "meaning": "Generated columns, CHECK, index expressions, WHERE/GROUP/HAVING and other non-result/order contexts not representable by the read-only public surface must reject atomically at prepare with the applicable SQLite diagnostic; do not partially execute or silently omit."
+    }
+  ],
+  "accounting": {
+    "declared": 43,
+    "sourceCreditDeclared": 11,
+    "companionsDeclared": 32,
+    "nativeExecutable": 41,
+    "sourceOnlyCompanions": 2,
+    "tsAttempted": 0,
+    "tsCredited": 0,
+    "tsUnattempted": 43
+  }
+}
