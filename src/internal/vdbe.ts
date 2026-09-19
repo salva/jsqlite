@@ -18,6 +18,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
+import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -1233,6 +1234,7 @@ interface ParameterBuilder { maximum: number; readonly names: (string | null)[];
 export class FunctionContext {
   readonly #result = new Mem();
   #resultCleanup: (() => void) | null = null;
+  readonly #auxData = new Map<number,{value:unknown;cleanup:(() => void)|null}>();
   firstError: unknown = null;
 
   setResult(value: Mem, cleanup: (() => void) | null = null): void {
@@ -1241,14 +1243,23 @@ export class FunctionContext {
     this.#resultCleanup = cleanup;
   }
   setError(error: unknown): void { if (this.firstError === null) this.firstError = error; }
+  setAuxData(index:number,value:unknown,cleanup:(() => void)|null=null):void {
+    this.cleanupAuxData(index);
+    this.#auxData.set(index,{value,cleanup});
+  }
+  getAuxData(index:number):unknown{return this.#auxData.get(index)?.value;}
+  cleanupAuxData(index?:number):void {
+    const keys=index===undefined?[...this.#auxData.keys()]:[index];
+    for(const key of keys){const item=this.#auxData.get(key);if(!item)continue;this.#auxData.delete(key);if(item.cleanup!==null)try{item.cleanup();}catch(error){this.setError(error);}}
+  }
   cleanupResult(): void {
     this.#result.release();
     const cleanup = this.#resultCleanup; this.#resultCleanup = null;
     if (cleanup !== null) try { cleanup(); } catch (error) { this.setError(error); }
   }
   takeResult(): Mem {
-    if (this.firstError !== null) { const error=this.firstError; this.cleanupResult(); throw error; }
-    const result=new Mem(); result.moveFrom(this.#result); this.cleanupResult();
+    if (this.firstError !== null) { const error=this.firstError; this.cleanupResult(); this.cleanupAuxData(); throw error; }
+    const result=new Mem(); result.moveFrom(this.#result); this.cleanupResult(); this.cleanupAuxData();
     if (this.firstError !== null) { const error=this.firstError; result.release(); throw error; }
     return result;
   }
@@ -1259,10 +1270,13 @@ function runFunctionContext(evaluate: () => Mem): Mem {
   return context.takeResult();
 }
 function aggregateDefinition(name:string):AggregateDefinition<any>|undefined{return aggregateDefinitions[name]}
-const FUNCTION_ARITIES: Readonly<Record<string, readonly number[]>> = Object.freeze({
-  typeof: [1], length: [1], octet_length: [1], abs: [1], substr: [2, 3], nullif: [2], coalesce: [],
-  min: [], max: [], char: [], hex: [1], replace: [3],
-});
+function resolveBuiltinFunction(name:string,argc:number):NonNullable<ReturnType<typeof builtinFunction>>{
+ const definition=builtinFunction(name);
+ if(definition===undefined)throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});
+ if(!builtinFunctionAccepts(definition,argc))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});
+ if(!definition.dispatchable)throw new JSQLiteError("unsupported",`built-in function ${name}() is registered but not implemented`,{unsupportedClassification:"temporary"});
+ return definition;
+}
 function exprLeaves(n:LemonValue<SqlToken>):SqlToken[]{return n.kind==="terminal"?(n.value?[n.value]:[]):n.children.flatMap(exprLeaves)}
 function descendantExprs(n:LemonValue<SqlToken>):LemonValue<SqlToken>[] {if(n.kind!=="reduction")return[];const out:LemonValue<SqlToken>[]=[];for(const c of n.children){if(c.kind==="reduction"&&(c.signature.startsWith("expr ::=")||c.signature.startsWith("term ::=")))out.push(c);else out.push(...descendantExprs(c))}return out}
 type Reduction=Extract<LemonValue<SqlToken>,{kind:'reduction'}>;
@@ -1319,7 +1333,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join("")};
  // resolve.c function lookup selects unary min/max aggregate definitions by arity;
  // two-or-more arguments must continue through the scalar function registry.
- if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),parts=aggregateParts(n),args=sig.includes(" LP STAR RP")?[]:parts.args;const aggregate=aggregateDefinition(name);if(aggregate&&((name!=="min"&&name!=="max")||args.length===1)){const arities=aggregate.arities;if(!arities.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});if(parts.distinct&&args.length!==1)throw new JSQLiteError("sqlite","DISTINCT aggregates must have exactly one argument",{code:1});return{kind:"aggregate",name,args,collation:args[0]?collation(args[0]):"binary",distinct:parts.distinct,filter:parts.filter,orderBy:parts.orderBy};}if(!(name in FUNCTION_ARITIES))throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});if(parts.filter)throw new JSQLiteError("sqlite","FILTER may not be used with non-aggregate function",{code:1});if(name==="coalesce"?args.length<2:name==="min"||name==="max"?args.length<2:name==="char"?false:!FUNCTION_ARITIES[name]!.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});return{kind:"call",name,args}}
+ if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),parts=aggregateParts(n),args=sig.includes(" LP STAR RP")?[]:parts.args;const aggregate=aggregateDefinition(name);if(aggregate&&((name!=="min"&&name!=="max")||args.length===1)){const arities=aggregate.arities;if(!arities.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});if(parts.distinct&&args.length!==1)throw new JSQLiteError("sqlite","DISTINCT aggregates must have exactly one argument",{code:1});return{kind:"aggregate",name,args,collation:args[0]?collation(args[0]):"binary",distinct:parts.distinct,filter:parts.filter,orderBy:parts.orderBy};}const definition=resolveBuiltinFunction(name,args.length);if(parts.filter)throw new JSQLiteError("sqlite","FILTER may not be used with non-aggregate function",{code:1});return{kind:"call",name:definition.name,args}}
  if(sig.startsWith("expr ::= CASE")){const vals=all.map(expressionFromReduction),hasOperand=t[1]?.text.toUpperCase()!=="WHEN",hasElse=t.some(x=>x.text.toUpperCase()==="ELSE"),operand=hasOperand?vals.shift()!:null,otherwise=hasElse?vals.pop()!:null,pairs:[Expression,Expression][]=[];while(vals.length)pairs.push([vals.shift()!,vals.shift()!]);return{kind:"case",operand,pairs,otherwise}}
  throw new JSQLiteError("unsupported","SELECT expression is not implemented",{unsupportedClassification:"temporary"})
 }
