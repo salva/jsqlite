@@ -1030,7 +1030,7 @@ fixtures is admitted; other automatic-index layouts remain gated.
 | Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence / boundary |
 |---|---|---|
 | `src/select.c:updateAccumulator`, `finalizeAggFunctions` (`iDistinct`, `iOBTab`, FILTER branch, ordered replay); `src/parse.y:918-934` per-item `sortorder`/`nulls` | `src/internal/vdbe.ts:aggregateParts` preserves each generated `sortlist` item; `compileAggregateSelect`, VDBE `Found`/`IdxInsert`, sorter replay and group-boundary clears | `run-aggregate-group-ts.mjs`: 30/34 exact public tagged native-success cases from 39 native captures; mixed ASC/DESC and nullable mixed NULLS FIRST/LAST cases prove per-item flags; remaining 4 need FROM subqueries; 5 prepare errors compare exactly |
-| `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order and ordinary aggregation; represented aggregate-window execution is mapped separately below, while ranking/value built-ins remain excluded |
+| `src/func.c` count/sum/total/avg/min/max/groupConcat callbacks | `aggregateStep`/`aggregateFinal` with aggregate-capable `Mem` context | DISTINCT/FILTER/order and ordinary aggregation; represented aggregate-window execution is mapped separately below. This aggregate-registry row does not describe the special built-ins, whose current mapping is in the later special-window section. |
 | `src/vdbe.c` ephemeral/sorter lifetime | `SorterCursor.clear`, `EphemeralIndexCursor.clear`, shared `PrivateStateByteBudget` | Per-group state is released before the next group; reset/finalize/error retain common cursor cleanup |
 
 ### Compensated aggregates and callback context correction ([[card:card-l-b]], 2026-09-17)
@@ -1279,7 +1279,8 @@ callback opcodes. Recursive queue producers are relocated into the same coroutin
 boundary (`ResultRow` to copy/`Yield`) without a host evaluator.
 `test/conformance/run-aggregate-window-ts.mjs` passes all 43 executable cases
 (25 source-credit); `aggregate-window-private-controls.test.mjs` separately
-validates source-only ordinal 44. Ranking/value special built-ins are not claimed.
+validates source-only ordinal 44. The special built-ins use the separate execution
+mapping immediately below.
 
 ### Special built-in window contract ([[card:card-o-d-a]], 2026-09-19)
 
@@ -1289,7 +1290,7 @@ validates source-only ordinal 44. Ranking/value special built-ins are not claime
 | `src/window.c:sqlite3WindowUpdate` | Coerce ranking/distribution/ntile/lead/lag frames and clear EXCLUDE; retain first/last/nth frame and EXCLUDE; reject FILTER | coercion, FILTER and all EXCLUDE companion cases |
 | `src/window.c:sqlite3WindowCodeInit`, `windowCacheFrame`, `windowReturnOneRow` | Main+duplicate cursors, application registers/cursors; cache first/nth/lead/lag; direct rowid seek and default handling | lead/lag arities and offsets, first/nth frame lookup, mixed sharing |
 | `src/window.c:windowAggStep/windowAggFinal`, ranking/value callbacks | Peer-sensitive INTEGER/REAL results, ntile partition arithmetic and exact argument errors, last-value lifecycle | peer/NULL/NOCASE/no-ORDER, large buckets, parameter reset, nth/ntile errors |
-| `src/window.c:sqlite3WindowCodeStep`; `src/select.c`; `src/vdbe.c` | Partition buffering, peer comparison, frame step/inverse/return/delete ordering, result-register Gosub publication, first-error cleanup | 43-case contract: 11 source-credit + 32 companions; native 41/41, two source-only, TS 0/43 |
+| `src/window.c:sqlite3WindowCodeStep`; `src/select.c`; `src/vdbe.c` | Partition buffering, peer comparison, frame step/inverse/return/delete ordering, result-register Gosub publication, first-error cleanup | 43-case contract: 11 source-credit + 32 companions; native 41/41; TS 41/41 executable plus two separately validated source-only companions |
 
 This allocation is additive to ordinary aggregate windows. Its immutable native
 artifact is `test/conformance/cases/stage3-special-window.json`; capture verifies
@@ -1310,3 +1311,18 @@ source-ID-pinned native baseline results were `real|20.0`, `real|10.0`,
 `real|35.5`, and `null|NULL` in UTF-8/UTF-16le/UTF-16be, while the pre-repair
 public path exposed INTEGER/`bigint` for compact integral REAL records. The mapped
 repair is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`.
+
+### Special built-in window execution ([[card:card-o-d-b]], 2026-09-19)
+
+Pinned `src/window.c:sqlite3WindowFunctions`, `sqlite3WindowUpdate`,
+`sqlite3WindowCodeInit`, `sqlite3WindowCodeStep`, `windowAggStep`,
+`windowReturnOneRow`, and `windowCodeOp` map to `src/internal/resolve.ts` and
+`src/internal/vdbe.ts`. Exact arities/coercions are resolved before lowering;
+callback functions retain aggregate contexts and inverse/value/finalize behavior,
+and lead/lag plus first/nth direct branches retain application-cursor rowid access.
+`test/conformance/run-special-window-ts.mjs` and
+`test/conformance/window-rewrite.test.mjs` cover typed results, diagnostics,
+peer/frame/exclusion branches, sharing/nesting, composition, encodings, and
+lifecycle/private controls. The bounded ROWS lower-bound repair and GROUPS
+literal-one dispatch preserve `windowCodeOp` cursor/queue ownership and introduce
+no host-side full-partition algorithm.

@@ -141,6 +141,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT row_number() OVER () AS r FROM a GROUP BY r'),e=>e instanceof NameResolutionError&&e.message==='misuse of aliased window function r');
  assert.throws(()=>resolve('SELECT a.x AS y,sum(a.x) OVER (PARTITION BY y) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: y');
  assert.throws(()=>resolve('SELECT a.x FROM a WHERE row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
+ assert.throws(()=>resolve('SELECT a.x FROM a WHERE rank() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function rank()');
+ assert.throws(()=>resolve('SELECT sum(a.x) FROM a HAVING nth_value(a.x,1) OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function nth_value()');
  assert.throws(()=>resolve('SELECT a.x FROM a GROUP BY row_number() OVER ()'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.doesNotThrow(()=>resolve('SELECT a.x FROM a ORDER BY row_number() OVER ()'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER missing FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such window: missing');

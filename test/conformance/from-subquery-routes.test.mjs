@@ -157,14 +157,12 @@ test('coroutine cancellation and deadline preserve first error and restore admis
  });
 });
 
-test('window and unsafe unmatched derived shapes reject atomically',()=>withPublicDb('utf8',{},async db=>{
- for(const sql of [
-  'SELECT row_number() OVER () FROM t1',
-  'SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1',
- ]){
-  assert.throws(()=>db.prepare(sql),error=>error.kind==='sqlite'||error.kind==='unsupported',sql);
-  await scalarAdmission(db);
- }
+test('completed window shape executes while unsafe unmatched derived shape rejects atomically',()=>withPublicDb('utf8',{},async db=>{
+ const window=db.prepare('SELECT row_number() OVER () FROM t1').statement;
+ try{assert.equal(await window.step(),'row');assert.equal(window.column(0),1n)}finally{window.finalize()}
+ const sql='SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1';
+ assert.throws(()=>db.prepare(sql),error=>error.kind==='sqlite'||error.kind==='unsupported',sql);
+ await scalarAdmission(db);
 }));
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} compound-derived aggregate and aggregate-local sorter share private bytes`,()=>withPublicDb(encoding,{limits:{maxPrivateBytes:24}},async db=>{

@@ -1,6 +1,7 @@
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
 import { aggregateShapeSupported, compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
+import { rejectBareBuiltinWindowFunctions } from "./internal/resolve.ts";
 import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
@@ -157,6 +158,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       const schema = loadSchemaGraph(this);
       const recursiveOwner = recursiveCteOwner(parsed.statement);
       const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
+      try{rejectBareBuiltinWindowFunctions(selected)}catch(error){if(error instanceof Error)failure("sqlite",error.message,{code:1});throw error;}
       if(selectHasWindow(selected)) rejectDistinctWindowFunctions(selected);
       if (recursiveOwner===null && selectGraphContainsWith(selected, schema)) {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });

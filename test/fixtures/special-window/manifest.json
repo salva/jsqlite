@@ -1,0 +1,40 @@
+{
+  "schema": "jsqlite-special-window-fixtures/1",
+  "fixtures": {
+    "empty.db": {
+      "encoding": "UTF-8",
+      "bytes": 8192,
+      "sha256": "a04f58fb1292eda239d81151c9c9e91dab6db6b3aa74e4b25d2ac1f04da11087"
+    },
+    "matrix-utf-16be.db": {
+      "encoding": "UTF-16be",
+      "bytes": 8192,
+      "sha256": "f79de91f8dee050b45fb00317e70b02cb0dd8e8f69127a89155554f0feb53e1c"
+    },
+    "matrix-utf-16le.db": {
+      "encoding": "UTF-16le",
+      "bytes": 8192,
+      "sha256": "39895a26c02f1bfbb16f0c2f84db7e1f7dd1a3e06489d6b62448d1b86e6fbb7d"
+    },
+    "matrix.db": {
+      "encoding": "UTF-8",
+      "bytes": 8192,
+      "sha256": "fb134f5713200a53233d610d2b6ae937d12803c7ed0a2d14a444e5d717475090"
+    },
+    "w2.db": {
+      "encoding": "UTF-8",
+      "bytes": 8192,
+      "sha256": "35a1ffd208998917f0516668c6bf94393e4b0ae59b63bd269bd5ef54e3d23197"
+    },
+    "w6.db": {
+      "encoding": "UTF-8",
+      "bytes": 12288,
+      "sha256": "df6dd0e4bc364ed01e324b90dee667144288a8addfd6e00327c8502ea42d2c75"
+    },
+    "w7.db": {
+      "encoding": "UTF-8",
+      "bytes": 8192,
+      "sha256": "7dfce770611c05aa813d00249d11705546056482dd9c1b130a226a51d287ee6a"
+    }
+  }
+}

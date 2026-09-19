@@ -518,12 +518,26 @@ test('public prepare applies the window compiler gate to scalar SELECTs', async 
     db = await openFixture(new Request(
       `http://127.0.0.1:${backend.port}/fixture/${backend.token}/empty`,
     ));
-    assert.throws(
-      () => db.prepare('SELECT row_number() OVER ()'),
-      (error) => error?.kind === 'unsupported' &&
-        error?.message === 'window functions are not implemented',
-      'the no-FROM compiler route must not bypass the post-rewrite atomic publication gate',
-    );
+    const statement = db.prepare('SELECT row_number() OVER ()').statement;
+    assert.equal(await statement.step(), 'row');
+    assert.equal(statement.columnType(0), 'integer');
+    assert.equal(statement.column(0), 1n);
+    assert.equal(await statement.step(), 'done');
+    statement.finalize();
+
+    const rank = db.prepare('SELECT rank() OVER ()').statement;
+    assert.equal(await rank.step(), 'row');
+    assert.equal(rank.columnType(0), 'integer');
+    assert.equal(rank.column(0), 1n);
+    assert.equal(await rank.step(), 'done');
+    rank.finalize();
+
+    const denseRank = db.prepare('SELECT dense_rank() OVER ()').statement;
+    assert.equal(await denseRank.step(), 'row');
+    assert.equal(denseRank.columnType(0), 'integer');
+    assert.equal(denseRank.column(0), 1n);
+    assert.equal(await denseRank.step(), 'done');
+    denseRank.finalize();
   } finally {
     try { db?.closeDeferred(); } catch {}
     await new Promise((resolve, reject) => backend.server.close((error) => error ? reject(error) : resolve()));
@@ -685,7 +699,7 @@ test('public streaming ROWS aggregate publishes in all three database encodings'
 });
 
 
-test('public window lowering rejects incomplete shapes atomically in all three database encodings', async () => {
+test('public window lowering preserves pre-rewrite diagnostics and publishes completed shapes in all three database encodings', async () => {
   const names = ['encoding-utf8', 'encoding-utf16le', 'encoding-utf16be'];
   const backend = await startFixtureServer(fixtures);
   try {
@@ -701,11 +715,11 @@ test('public window lowering rejects incomplete shapes atomically in all three d
             error?.message === 'misuse of aggregate: sum()',
           `${name} must preserve the pre-rewrite SQLite diagnostic`,
         );
-        assert.throws(
-          () => db.prepare('SELECT row_number() OVER () FROM t1'),
-          (error) => error?.kind === 'unsupported' && error?.message === 'window functions are not implemented',
-          `${name} must reject before publishing a statement`,
-        );
+        const windowPrepared = db.prepare('SELECT row_number() OVER (ORDER BY a) FROM t1');
+        const windowRows = [];
+        while (await windowPrepared.statement.step() === 'row') windowRows.push(windowPrepared.statement.column(0));
+        assert.deepEqual(windowRows, [1n], `${name} publishes the now-complete built-in window shape`);
+        windowPrepared.statement.finalize();
         const prepared = db.prepare('SELECT 1');
         assert.ok(prepared.statement, `${name} connection remains reusable after atomic rejection`);
         prepared.statement.finalize();

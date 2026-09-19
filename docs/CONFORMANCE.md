@@ -438,8 +438,9 @@ The superseding TypeScript result is **43 executable attempted / 43 passed**, wi
 from that denominator and was validated separately: **1 attempted / 1 passed**, no
 source credit, by `aggregate-window-private-controls.test.mjs`. The public runner
 checks tagged values, metadata, errors, physical UTF-8/UTF-16LE/UTF-16BE fixtures
-and represented compositions. These finite denominators do not claim ranking/value
-special built-ins or exhaustive SQLite window compatibility.
+and represented compositions. These finite denominators do not claim exhaustive
+SQLite window compatibility; the separate special-built-in section below now
+supersedes this aggregate-only checkpoint for ranking/value execution.
 
 ### Special built-in window executable contract ([[card:card-o-d-a]], 2026-09-19)
 
@@ -458,3 +459,16 @@ rows, metadata, errors, reset/rebind and interruption outcomes. Coverage include
 all 11 special built-ins, frame coercion versus value-frame applicability, all
 EXCLUDE forms for value functions, peers/NULL/NOCASE/order policy, parameters and
 argument errors, sharing/nesting/compositions, and UTF-8/UTF-16LE/UTF-16BE.
+
+## Special built-in window execution ([[card:card-o-d-b]])
+
+The special-window contract declares 43 cases: 41 executable and two source-only.
+`npm run test:conformance:special-window:ts` runs the 41 public cases plus one
+accounting test and currently passes **42/42**; source-only declarations receive no
+runtime credit. Coverage includes all eleven registered built-ins, arities/frame
+coercions, typed INTEGER/REAL/NULL results, validation and diagnostics, peers and
+EXCLUDE, callback/direct cursor branches, sharing/nesting, joins/groups/subqueries/
+CTEs/recursive and compound producers, UTF-8/UTF-16le/UTF-16be, interruption, and
+accounting. The separate aggregate-window plus rewrite gate passes **92/92** and
+retains its own 44-declaration denominator (43 executable, 25 source-credit, one
+source-only); these denominators are not combined.

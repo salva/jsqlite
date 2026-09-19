@@ -27,11 +27,12 @@ documented bounded ordinary WITH and iterative recursive-CTE routes, plus the
 represented aggregate-window surface: ordinary registered aggregates over the
 documented default and explicit ROWS/RANGE/GROUPS frames, bounds and EXCLUDE
 forms, including the represented join/group/derived/CTE/outer-order compositions.
-Residual CTE and window compositions outside those represented routes, ranking and
-value special built-ins, writes, unsafe or unrepresented subquery shapes, and other
-unmapped SELECT forms remain atomic typed temporary unsupported. Historical
-tranche sections below are labeled as such and do not override this current
-capability summary.
+Residual CTE and window compositions outside those represented routes, writes,
+unsafe or unrepresented subquery shapes, and other unmapped SELECT forms remain
+atomic typed temporary unsupported. The represented window surface now includes
+all eleven pinned ranking, distribution, offset, and value special built-ins;
+historical tranche sections below are labeled as such and do not override this
+current capability summary.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -3032,7 +3033,9 @@ peer/partition keys and frame caches remain VM-owned across yield. Represented
 recursive CTEs use the existing queue VDBE as a coroutine producer: its
 `ResultRow` destination becomes payload copies plus `Yield`, rather than host
 recursion or frame recomputation. Unsupported shapes still reject before Program
-publication. Ranking and value special built-ins remain outside this tranche.
+publication. At that aggregate-only checkpoint, ranking and value special built-ins
+remained outside the tranche; the special-built-in execution section below
+supersedes that limitation for the bounded represented surface.
 
 Final evidence is executable 43/43 (25/25 source-credit) through the public API
 plus the separate no-credit ordinal-44 validator for private entry/key/byte, work,
@@ -3044,9 +3047,11 @@ The zero-credit implementation contract is
 `test/conformance/cases/stage3-special-window.spec.json`; the adjacent captured
 JSON is the immutable pinned-native expectation. It declares 43 cases: 11 exact
 `window1.test` assertions, 30 executable no-credit companions, and two source-only
-safety/atomic-rejection companions. Native capture executes 41/41; TypeScript is
-intentionally 0/43 until implementation. This gate supplements, and does not
-relabel, the aggregate-window 44-case denominator.
+safety/atomic-rejection companions. Native capture executes 41/41. This historical
+allocation checkpoint recorded TypeScript as 0/43 before implementation; the
+execution section below supersedes that runtime accounting with 41/41 executable
+cases plus both separately validated source-only companions. This gate supplements,
+and does not relabel, the aggregate-window 44-case denominator.
 
 Pinned `src/window.c:sqlite3WindowFunctions` registers `row_number`, `rank`, and
 `dense_rank` as zero-argument `WINDOWFUNCX`; `percent_rank` and `cume_dist` as
@@ -3103,3 +3108,24 @@ tests in `test/select/real-column-affinity.test.mjs` over source-ID-pinned UTF-8
 UTF-16le, and UTF-16be fixtures cover optimized 20.0/10.0, 35.5, NULL, signed
 int64 boundaries, neighboring NUMERIC/INTEGER columns, metadata, reset/finalize,
 and later connection use. NUMERIC/INTEGER and expression semantics are unchanged.
+
+#### Special built-in window execution ([[card:card-o-d-b]], 2026-09-19)
+
+`compileWindowSelectLowering` now executes the eleven pinned special built-ins on
+the existing callback/frame engine. Registration arities and
+`sqlite3WindowUpdate` coercions stay resolver-owned; callback built-ins use
+`AggStep`/`AggInverse`/`AggValue`, while lead/lag and first/nth application paths
+retain duplicate ephemeral cursors and rowid access. Compatible windows share a
+layer and incompatible windows consume nested coroutine payloads. The represented
+composition surface includes joins, grouping, subqueries, CTE/recursive producers,
+compound arms, and outer ordering/limits. Unsupported expressions remain an
+atomic prepare-time rejection; this is not a general window/SQL completeness
+claim.
+
+The public special-window gate passes 42/42 tests: 41 executable declarations and
+one denominator test accounting for all 43 declarations, including two source-only
+companions. The aggregate-window/rewrite gate passes 92/92. A bounded ROWS
+EXCLUDE scan now rewinds and skips rowids below a possibly absent lower bound, and
+the one-preceding GROUPS specialization is selected only for a proven literal 1;
+runtime/multi-group bounds use the general peer-group queue. These are source-shaped
+cursor/control repairs, not host partition recomputation.

@@ -362,10 +362,9 @@ LIMIT/OFFSET, and SELECT DISTINCT compositions. Column names and null metadata
 follow the SELECT expressions. The public aggregate matrix passes all 34 native-
 success cases; four bounded compound-derived cases are admitted only as specified
 in the FROM-derived section below. The represented bounded ordinary aggregate-
-window surface specified below is also admitted. Ranking/value special built-ins,
-unrepresented window compositions, unregistered aggregate functions, and broader
-join/compound or subquery/CTE behavior remain future scope and reject atomically
-at prepare.
+window surface specified below is also admitted. Unrepresented window
+compositions, unregistered aggregate functions, and broader join/compound or
+subquery/CTE behavior remain future scope and reject atomically at prepare.
 
 ### Bounded grouped SELECT DISTINCT
 
@@ -399,9 +398,9 @@ this boundary has been superseded by the bounded ordinary and recursive surfaces
 below. WITH shapes outside those surfaces still fail atomically during
 `prepare()`; rejection registers no statement or private execution state and
 leaves the connection reusable. The represented bounded aggregate-window surface
-specified below is admitted. Ranking/value special built-ins, unrepresented window
-compositions, and unsafe/unmatched derived shapes fail atomically under their typed
-prepare boundaries. No native/host fallback or partial statement shape is exposed.
+specified below is admitted. Unrepresented window compositions and unsafe/unmatched
+derived shapes fail atomically under their typed prepare boundaries. No native/host
+fallback or partial statement shape is exposed.
 
 ### Expression subqueries (Stage 3 bounded admission)
 
@@ -430,8 +429,8 @@ reject temporarily. Expression-owned nested WITH remains a distinct temporary
 The following two paragraphs describe the pre-execution checkpoint before the
 aggregate-window completion below. They remain historical evidence for resolver,
 rewrite, diagnostic precedence, and atomic publication; they are not the current
-aggregate-window capability statement. Ranking/value special built-ins and
-unrepresented window compositions still reject atomically.
+aggregate-window capability statement. The represented special built-ins are
+specified below; unrepresented window compositions still reject atomically.
 
 Window syntax was then structurally parsed and resolved, but remained **temporary unsupported for execution**. Internal compilation emitted source-shaped setup operations and real register/cursor/subroutine identities for compiler verification, but that setup-only product was never publicly published because frame stepping was absent. `Connection.prepare()` resolved and performed the pinned pre-execution rewrite validation for both scalar and table-backed window SELECTs. Observable resolver/rewrite errors therefore took precedence where SQLite raised them (for example code 1 `misuse of aggregate: sum()` for an unowned aggregate in a non-aggregate SELECT's `ORDER BY`). If validation succeeded, prepare threw temporary unsupported `window functions are not implemented`; no `Statement` or partial Program was published, and the connection remained reusable. The public table-backed architecture gate verified both diagnostic precedence and atomic rejection/reuse in UTF-8, UTF-16LE, and UTF-16BE fixture databases. This checkpoint did not admit frame stepping, window rows, or TypeScript conformance credit.
 
@@ -447,18 +446,26 @@ bounds and EXCLUDE forms, compatible-window sharing, and represented join,
 grouped, derived, ordinary/recursive CTE and outer ORDER/LIMIT compositions.
 Execution obeys the same signal, deadline, work, row, result and private-state
 limits and reset/finalize/first-error rules as other VDBE programs. Unsupported
-compositions reject atomically at prepare. This does not admit ranking or value
-special built-ins such as `row_number`, `nth_value`, `first_value`, `last_value`,
-`lead`, or `lag`.
+compositions reject atomically at prepare. Special built-ins use the separately
+bounded execution contract below.
 
-### Special built-in window preimplementation contract (2026-09-19)
+### Special built-in window preimplementation contract (historical, 2026-09-19)
 
-Ranking, distribution, offset and value built-ins remain outside the public
-execution surface. The pinned 43-case gate records their future exact contract but
-has 0 TypeScript attempts/credits; it does not amend the aggregate-window capability
-above. Until implemented, every statement that requires `row_number`, `rank`,
-`dense_rank`, `percent_rank`, `cume_dist`, `ntile`, `lead`, `lag`, `first_value`,
-`last_value`, or `nth_value` must reject atomically during `prepare()` after any
-applicable SQLite resolver diagnostic, without publishing a Statement or partial
-Program. This includes unavailable join/group/subquery/CTE/recursive/compound
-compositions rather than silently dropping the unsupported portion.
+Before [[card:card-o-d-b]], ranking, distribution, offset and value built-ins were
+outside the public execution surface. The pinned 43-case gate recorded their exact
+contract with 0 TypeScript attempts/credits. The execution section below supersedes
+that historical boundary for represented shapes; unrepresented compositions still
+reject atomically during `prepare()` without publishing a Statement or partial
+Program.
+
+## Special built-in windows (Stage 3 bounded surface)
+
+Prepared SELECT execution includes `row_number`, `rank`, `dense_rank`,
+`percent_rank`, `cume_dist`, `ntile`, `lead`, `lag`, `first_value`, `last_value`,
+and `nth_value` at SQLite's registered arities. SQLite frame coercions, peer and
+EXCLUDE behavior, lead/lag default offset/default value, INTEGER/REAL result types,
+and prepare/step diagnostics apply on represented window shapes. Compatible
+windows may share execution; represented incompatible windows nest through joins,
+grouping, subqueries, CTEs/recursive producers, compounds, and outer ORDER/LIMIT.
+An unrepresented expression or composition rejects atomically during prepare;
+this does not advertise arbitrary window SQL.

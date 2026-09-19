@@ -594,9 +594,10 @@ superseded for the allocated aggregate-only surface. Current VDBE lowering owns
 partition/peer/frame control, typed ephemeral caches, coroutine suspension and
 aggregate callback lifecycle; represented recursive queues feed that coroutine
 without host recursion. Public evidence is 43/43 executable with 25/25 source
-credit, plus a separate 1/1 no-credit private-controls validator. Remaining scope
-gaps are explicit: ranking/value special built-ins and unrepresented compositions
-are not promoted, and this denominator is not a general SQLite compatibility claim.
+credit, plus a separate 1/1 no-credit private-controls validator. At that
+aggregate-only checkpoint, ranking/value special built-ins and unrepresented
+compositions were not promoted; the later special-window revision below supersedes
+the former limitation. Neither denominator is a general SQLite compatibility claim.
 
 ### 2026-09-19 revision — direct REAL column extraction
 
@@ -642,3 +643,16 @@ in `from-subquery-routes.test.mjs`; all expression-subquery cases passed. Eviden
 `work:///cards/card-m-f-k/processes/proc-b16b1a50c562/stdout.log`,
 `work:///cards/card-m-f-k/processes/proc-d8ac7fb46cb4/stdout.log`, and
 `work:///cards/card-m-f-k/processes/proc-38cc53a6b0f1/stdout.log`.
+
+### Revision 2026-09-19 — special built-in window execution
+
+The earlier prediction that ranking/value special built-ins were outside runtime
+execution is superseded for the bounded represented surface. All eleven pinned
+built-ins now execute through the source-shaped aggregate/frame or direct
+application-cursor branches. Current evidence is special-window 42/42 (41 public
+executables plus accounting for 43 declarations/two source-only) and aggregate
+window/rewrite 92/92. This changes those denominators only; it does not imply
+whole-SQLite window or SELECT compatibility. Remaining limitations are
+prepare-time rejection of unrepresented expressions/compositions and the stated
+source-only controls. No generic host-array/full-partition recomputation exception
+was adopted.
