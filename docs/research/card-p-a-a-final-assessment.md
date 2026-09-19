@@ -1,12 +1,14 @@
 # Final assessment — ordinary scalar tests-first contract
 
+> **Current disposition after assessment of commit `9fc8c20`: refuted.** The earlier supported conclusion and the later claim that both independent-review defects were repaired are superseded by the final section of this report. Exact-routine ownership remains supported, but persisted-column native setup is not equivalent to the physical UTF-16 fixtures.
+
 Card: [[card:card-p-a-a]]
 
 Assessed delivery: `61c5071` (`research: finalize scalar ownership contract`)
 
-Conclusion: **supported for the bounded research and implementation-contract question**
+Historical conclusion for assessed delivery `61c5071`: **supported for the bounded research and implementation-contract question; superseded for the current artifact generation by the final refuted assessment below**
 
-This conclusion accepts the source-pinned inventory, provenance model, machine contract, and tests-first corpus as an implementation-ready handoff. It does **not** claim that absent TypeScript scalar behavior is implemented, promote native results to TypeScript credit, complete parent [[card:card-p-a]], or establish repository-wide SQLite compatibility.
+This historical conclusion accepted the then-assessed source-pinned inventory, provenance model, machine contract, and tests-first corpus as an implementation-ready handoff. The final assessment below shows why that conclusion cannot be carried forward to the current persisted-column artifact generation. Neither conclusion claims that absent TypeScript scalar behavior is implemented, promotes native results to TypeScript credit, completes parent [[card:card-p-a]], or establishes repository-wide SQLite compatibility.
 
 ## Evidence
 
@@ -116,7 +118,7 @@ This inference is stronger than the two earlier deliveries because the formerly 
 
 ## Recommendations and handoff
 
-1. Accept `61c5071` as the bounded implementation-ready ordinary-scalar research contract for parent [[card:card-p-a]].
+1. Historical recommendation for `61c5071` (now superseded for the current artifact generation): accept it as the bounded ordinary-scalar research contract for parent [[card:card-p-a]]. The final section requires correction before current persisted-column artifacts can be promoted.
 2. Have future executors consume `test/conformance/cases/stage3-ordinary-scalars.spec.json` and the linked pinned source/test ranges rather than reconstructing the registry from summaries.
 3. Preserve raw FuncDef arity separately from resolver-selected effective scalar ownership, especially for one-argument versus multi-argument `min`/`max`.
 4. Implement source-owned slices through the shared Mem, UTF, FunctionContext, collation, lifecycle, and bounded-work primitives. Do not substitute JS regex/eval, host formatting, callbacks, or a native runtime fallback.
@@ -128,3 +130,56 @@ This inference is stronger than the two earlier deliveries because the formerly 
 Independent review `record:///review.md?card=card-p-a&v=3` found two valid defects in the preceding supported evidence: there were no persisted-column scalar cases despite the column-coverage wording, and slice provenance did not require each row's actual routine. Both are repaired in the current artifacts. Two source-owned persisted `scalar_values` cases now run through equivalent native setup and every physical encoding Fetch fixture with exact per-encoding typed expectations for TEXT, embedded-NUL TEXT, BLOB, and NULL inputs. Current public executions produce six honest unsupported SQLite outcomes and no TS credit. The validator requires this coverage and physical fixture hashes.
 
 All 50 rows now carry an exact `implementationOwner`, which must occur in their slice and every case covering that row. Non-inline rows must equal the registry's recorded `src/func.c` routine; inline rows use an explicit compiler owner and preserve the inline registration operand. CHAR and UNISTR now own `charFunc` and `unistrFunc` respectively, with UNISTR's `isNHex` and `sqlite3AppendOneUtf8Character` helpers; they are not attributed to `unicodeFunc`. The three formerly case-uncovered implemented rows have a discriminator case. Current totals and hashes above supersede the pre-review values.
+
+## Final assessment of the `9fc8c20` repair: refuted
+
+This section reports the accepted assessment evidence following the exploration repair. It supersedes the earlier supported disposition where the new evidence conflicts with it, without retracting separately supported catalog and routine-owner evidence.
+
+### Evidence
+
+The assessment inspected accepted parent review `record:///review.md?card=card-p-a&v=3`, commit `9fc8c20`, the current machine specification and native capture, capture and validator code, and the three hashed physical fixtures. It also executed the persisted-column SQL directly against those fixtures with the manifest-pinned SQLite oracle, source ID:
+
+```text
+2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc
+```
+
+Supported parts of the repair are:
+
+- two manifest-defined persisted `scalar_values` cases exist;
+- all three physical Fetch fixtures contain ordinary TEXT, embedded-NUL TEXT, BLOB `410042`, and NULL rows;
+- the public harness attempts six fixture-column executions, which currently reject on absent functions and correctly earn zero TypeScript credit;
+- all 50 rows carry an `implementationOwner`; direct inspection found no non-inline mismatch against `src/func.c:<recorded implementation>`;
+- the Unicode slice separately names `unicodeFunc`, `charFunc`, `unistrFunc`, `isNHex`, and `sqlite3AppendOneUtf8Character`.
+
+The conclusive contradictory evidence concerns fixture equivalence. The manifest setup creates embedded-NUL TEXT with:
+
+```sql
+CAST(X'410042' AS TEXT)
+```
+
+That byte sequence represents `A`-NUL-`B` when interpreted as UTF-8. It does not reproduce a TEXT value physically encoded in UTF-16LE or UTF-16BE. Direct pinned-oracle execution against the physical fixtures disagrees with the stored expectations:
+
+- for UTF-16LE embedded-NUL TEXT, the stored capture expects `instr(v,char(0)) = 0` and `upper(v) = 'A'`; the physical fixture produces `instr = 2` and result UTF-8 bytes `410042` (`A`-NUL-`B`);
+- for UTF-16BE embedded-NUL TEXT, the stored capture expects `instr = 0` and U+4100-shaped `quote`/`upper` results; the physical fixture produces `instr = 2`, `quote = 'A'`, and `upper` result UTF-8 bytes `410042`.
+
+The mismatch was also observed through host SQLite, but the pinned-oracle run is controlling evidence and removes host-version ambiguity.
+
+### Inference
+
+The implementation-owner correction is supported within the validator's documented lexical/profile-specific limits. The combined claim that `9fc8c20` repairs both review defects is nevertheless **refuted**. The first defect required exact typed expectations for the actual physical Fetch fixtures, but the current UTF-16 expectations were generated from a non-equivalent setup.
+
+The passing validator does not contradict that finding. It requires a `410042` setup marker, equality between authored expectations and the in-memory capture, and hashes of the fixture files. It does not execute the pinned oracle against each physical fixture or otherwise establish semantic equivalence between the setup database and those fixtures. Current TS function absence masks the mismatch because public execution fails before returning typed rows.
+
+### Limitations and uncertainty
+
+- This assessment establishes the identified UTF-16 mismatch; it is not an exhaustive re-audit of every scalar expectation.
+- It does not refute the 50-row denominator, 12/38 current-status snapshot, or exact-routine mappings except where a claim depends on the invalid persisted-fixture capture.
+- It grants no TypeScript runtime credit and makes no broad compatibility claim. The six public errors establish only current unsupported outcomes.
+- Symbol and owner checks remain profile-specific and partly lexical, not a semantic C call-graph proof.
+- Date/time, math, JSON, aggregate/window behavior, and extension policy remain separately owned scopes.
+
+### Recommendation and actionable handoff
+
+Do not promote this artifact generation as an implementation-ready persisted-column reference contract. Either capture each hashed physical fixture directly with the pinned oracle, or build reference databases through a demonstrably identical fixture-creation path using encoding-correct TEXT binding rather than casting UTF-8-shaped bytes as database-encoded text. Regenerate per-encoding typed expectations and the native artifact.
+
+Strengthen validation to compare pinned-oracle results from the physical fixtures (or cryptographically identical construction output), rather than only checking fixture hashes and a textual `410042` marker. Then rerun native capture, validator, public unsupported harness, Python compilation, `npm run typecheck`, hash checks, and `git diff --check`. Unsupported results remain zero credit. This correction requires no scalar runtime implementation or scope expansion.
