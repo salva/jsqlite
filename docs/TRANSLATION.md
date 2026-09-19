@@ -23,11 +23,15 @@ operation admission across running and suspended VM states. Bounded flattened,
 coroutine, and materialized FROM-derived sources and immutable views are admitted,
 as are the documented scalar, EXISTS, IN/NOT IN, and correlated expression-
 subquery routes and their bounded compositions. This is not a general SQL engine. The admitted public surface includes the
-documented bounded ordinary WITH and iterative recursive-CTE routes. Residual CTE
-compositions outside those represented routes, windows, writes, unsafe or
-unrepresented subquery shapes, and other unmapped SELECT forms remain atomic typed
-temporary unsupported. Historical tranche sections below are labeled as such and
-do not override this current capability summary.
+documented bounded ordinary WITH and iterative recursive-CTE routes, plus the
+represented aggregate-window surface: ordinary registered aggregates over the
+documented default and explicit ROWS/RANGE/GROUPS frames, bounds and EXCLUDE
+forms, including the represented join/group/derived/CTE/outer-order compositions.
+Residual CTE and window compositions outside those represented routes, ranking and
+value special built-ins, writes, unsafe or unrepresented subquery shapes, and other
+unmapped SELECT forms remain atomic typed temporary unsupported. Historical
+tranche sections below are labeled as such and do not override this current
+capability summary.
 
 Source-backed facts below describe the selected upstream implementation. Proposed
 TS defaults, examples and open questions are local engineering choices: the
@@ -1247,7 +1251,7 @@ The first consuming tranche is now implemented by `src/internal/private-state.ts
 
 The 14-case no-credit audit now distinguishes the pinned value-conversion owners instead of routing all conversions through CAST NUMERIC. `Mem.numericTypeCopy()` follows `src/vdbe.c:numericType`/`computeNumericType`: it preserves the source register, accepts a numeric prefix, and keeps decimal/exponent spellings REAL. `Mem.cast("integer")` follows `src/vdbemem.c:sqlite3VdbeIntValue` and consumes only the signed decimal prefix. Boolean/CASE uses the shared VDBE boolean primitive and `abs` retains `src/func.c:absFunc` storage-class dispatch. This makes the pinned/public typed audit 14/14 while retaining zero credit pending a separate promotion decision.
 
-The same integration commit carried the previously blocked relational foundation work: bounded private sorter/ephemeral state, source-shaped SeekGE/Next state transitions, deterministic accounting, and cleanup/reset coverage. That statement is historical: the current public relational manifest attempts/passes 3 of 18 and credits 2 exact-setup cases. `up-distinct-3.0` remains no-credit solely because automatic-index schema loading prevents fixture parity with upstream `UNIQUE(a,b)`. At that relational-foundation checkpoint, compounds, aggregates, windows, joins, and generalized consumers remained explicitly staged. The bounded compound completion below supersedes the compound status; the other listed gaps remain.
+The same integration commit carried the previously blocked relational foundation work: bounded private sorter/ephemeral state, source-shaped SeekGE/Next state transitions, deterministic accounting, and cleanup/reset coverage. That statement is historical: the current public relational manifest attempts/passes 3 of 18 and credits 2 exact-setup cases. `up-distinct-3.0` remains no-credit solely because automatic-index schema loading prevents fixture parity with upstream `UNIQUE(a,b)`. At that relational-foundation checkpoint, compounds, aggregates, windows, joins, and generalized consumers remained explicitly staged. Later bounded compound, aggregate, aggregate-window, join, and consumer sections supersede those checkpoint gaps.
 
 ### ORDER/LIMIT test-first contract (implementation handoff)
 

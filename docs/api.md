@@ -395,9 +395,10 @@ compound-derived SQL are also not promised. The former blanket CTE rejection at
 this boundary has been superseded by the bounded ordinary and recursive surfaces
 below. WITH shapes outside those surfaces still fail atomically during
 `prepare()`; rejection registers no statement or private execution state and
-leaves the connection reusable. Windows and unsafe/unmatched derived shapes fail
-under their existing typed prepare boundary. No native/host fallback or partial
-statement shape is exposed.
+leaves the connection reusable. The represented bounded aggregate-window surface
+specified below is admitted. Ranking/value special built-ins, unrepresented window
+compositions, and unsafe/unmatched derived shapes fail atomically under their typed
+prepare boundaries. No native/host fallback or partial statement shape is exposed.
 
 ### Expression subqueries (Stage 3 bounded admission)
 
