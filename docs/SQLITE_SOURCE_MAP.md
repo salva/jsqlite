@@ -1297,3 +1297,12 @@ the exact 3.53.4 source ID. Project byte/entry/work/row ceilings, cooperative yi
 injected cleanup faults, and unsupported write-context rejection are companions,
 not upstream credit. There is no algorithm substitution: implementation handoff is
 the pinned callback/direct-bytecode split and existing typed VDBE frame engine.
+
+### REAL-affinity extraction correction (2026-09-19)
+
+| Pinned source | TypeScript owner | Public evidence |
+| --- | --- | --- |
+| `src/expr.c:sqlite3ExprCodeTarget` TK_COLUMN REAL branch; `src/vdbe.c:OP_Column`, `OP_RealAffinity`; record serial decode retains INTEGER | `src/internal/vdbe.ts` direct-column lowering emits `Column` then `RealAffinity`; VM realifies only an INTEGER `Mem` | `test/select/real-column-affinity.test.mjs`, `test/fixtures/real-affinity/*`: all three database encodings; integral/nonintegral REAL, NULL, int64 boundaries and neighboring NUMERIC/INTEGER; metadata and lifecycle |
+
+This is not a record-decoder substitution: raw serial integers remain INTEGER and
+only a resolved declared-REAL column extraction receives the source opcode.

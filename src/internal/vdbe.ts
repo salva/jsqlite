@@ -133,6 +133,7 @@ type Op =
   | { readonly code: "Rewind"; readonly p1?: number; readonly p2: number }
   | { readonly code: "NullRow"; readonly p1: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity }
+  | { readonly code: "RealAffinity"; readonly p1: number }
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number }
@@ -2072,12 +2073,12 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // Resolve functions (including arity failures) before rejecting later planning
   // features, as resolve.c does during SELECT preparation.
   select.result.filter(x=>x.reduction&&!expanded.result.some(item=>item.expression===x&&item.columnIndex!==null)).forEach(x=>resolveExpression(x));
-  const projected: { column?: number; rowid?:boolean; expression?:Expression; name: string }[] = [];
+  const projected: { column?: number; rowid?:boolean; expression?:Expression; name: string; realAffinity?: boolean }[] = [];
   for (const item of expanded.result) {
     const expression=item.expression;
     if(item.resolution==='coalesce')throw new JSQLiteError("unsupported","FULL JOIN merged-column execution is not implemented",{unsupportedClassification:"temporary"});
-    if(item.columnIndex!==null){if(item.columnIndex<0)projected.push({rowid:true,name:item.name});else projected.push({column:item.columnIndex,name:item.name});}
-    else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name }); }
+    if(item.columnIndex!==null){if(item.columnIndex<0)projected.push({rowid:true,name:item.name});else projected.push({column:item.columnIndex,name:item.name,realAffinity:affinityOf(table.columns[item.columnIndex]!.declaredType??"")==="real"});}
+    else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name, realAffinity: column>=0&&affinityOf(table.columns[column]!.declaredType??"")==="real" }); }
     catch(error){if(!expression.reduction)throw error;projected.push({expression:resolveExpression(expression),name:expressionName(expression)});} }
   }
   let registers = projected.length;
@@ -2207,7 +2208,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     ifNotIndex=ops.length; ops.push({code:"IfNot",p1:output,p2:0});
   }
   const body=ops.length;
-  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:i+1})}else ops.push({code:"Column",p1:x.column,p2:i+1})});
+  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:i+1})}else{ops.push({code:"Column",p1:x.column,p2:i+1});if(x.realAffinity)ops.push({code:"RealAffinity",p1:i+1});}});
   let distinctFound: number | undefined;
   if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
   if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
@@ -2635,6 +2636,7 @@ export class VdbeStatement implements Statement {
           case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
           case "NullRow": this.#records.delete(op.p1); break;
           case "Column": { const record=this.#records.get(op.p3??0),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+          case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
           case "Rowid": {const cursor=op.p1??0;if(this.#records.has(cursor))this.#registers[op.p2]!.setInt64(this.#cursors.get(cursor)!.rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;

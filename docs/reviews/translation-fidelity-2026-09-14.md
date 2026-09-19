@@ -597,3 +597,17 @@ without host recursion. Public evidence is 43/43 executable with 25/25 source
 credit, plus a separate 1/1 no-credit private-controls validator. Remaining scope
 gaps are explicit: ranking/value special built-ins and unrepresented compositions
 are not promoted, and this denominator is not a general SQLite compatibility claim.
+
+### 2026-09-19 revision — direct REAL column extraction
+
+Fresh source-ID-checked pinned 3.53.4 execution showed declared REAL columns
+returning REAL 20.0/10.0 even when record storage uses an integer serial type;
+public TypeScript returned INTEGER/bigint before this correction. The mismatch was
+identical in UTF-8, UTF-16le and UTF-16be. `expr.c` emits `OP_RealAffinity` after
+`OP_Column`, and `vdbe.c` realifies only `MEM_Int|MEM_IntReal`. The repaired direct
+projection now follows that branch with a distinct VM operation. The fixture/test
+matrix also verifies 35.5, NULL, signed int64 boundaries, unchanged NUMERIC and
+INTEGER columns, declared/origin metadata, and statement/connection reuse. Raw
+record serial decoding remains unchanged; upper() and ordered UNION are unrelated
+open findings. Baseline logs are retained in card status; the repair commit is
+recorded there after commit creation.

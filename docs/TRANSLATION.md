@@ -3084,3 +3084,16 @@ join/group/derived/CTE/recursive/compound compositions, three database encodings
 progress interruption, and project cleanup/limit policy. Unavailable read-only
 compositions and non-result contexts remain indivisible atomic prepare rejections;
 no partial Program or execution may escape.
+
+### 2026-09-19 — REAL-affinity column extraction correction
+
+Pinned `expr.c:sqlite3ExprCodeTarget` emits `OP_RealAffinity` after `OP_Column`
+when the resolved table column has `SQLITE_AFF_REAL`; pinned
+`vdbe.c:OP_RealAffinity` realifies only `MEM_Int|MEM_IntReal`. This matters because
+record serial types deliberately retain compact integral values as INTEGER. The
+single-table projection lowering now emits a separate `RealAffinity` operation for
+resolved direct REAL columns, rather than changing record decode or applying a
+JavaScript-number heuristic. Public Fetch tests over source-ID-pinned UTF-8,
+UTF-16le, and UTF-16be fixtures cover optimized 20.0/10.0, 35.5, NULL, signed
+int64 boundaries, neighboring NUMERIC/INTEGER columns, metadata, reset/finalize,
+and later connection use. NUMERIC/INTEGER and expression semantics are unchanged.
