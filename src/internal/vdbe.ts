@@ -2137,7 +2137,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   ops.push({code:"OpenRead",p1:table.rootPage,p2:0});
   for(const nested of scalarPlans.values())for(const source of nested.sources)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursorId});
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
-  if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:projected.map(x=>({collation:x.expression===undefined?sqliteAsciiFold(table.columns[x.column!]!.collation??"binary") as BuiltinCollation:collation(x.expression)}))})});
+  // select.c's DISTINCT ephemeral key uses the resolved result ExprList
+  // collation. In particular, an explicit COLLATE on a direct table column
+  // overrides the column's declared collation even though the projection can
+  // still use the direct-column fast path.
+  if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:expanded.result.map(result=>({collation:sqliteAsciiFold(result.descriptor.collation) as BuiltinCollation}))})});
   const rewindIndex=ops.length;ops.push({code:"Rewind",p2:0});const scan:FullScanPlan={rewindIndex,loopStart:ops.length};
   let ifNotIndex: number | undefined;
   let expressionCursor=1000;

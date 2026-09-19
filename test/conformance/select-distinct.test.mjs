@@ -150,7 +150,7 @@ test('SELECT DISTINCT preserves prepare errors and statement ownership', async (
   }
 });
 
-test('bounded DISTINCT compounds are admitted while subqueries stay structurally unsupported', async () => {
+test('bounded DISTINCT compounds and FROM subqueries execute without poisoning later statements', async () => {
   const bridge = await startFixtureServer(path.resolve('test/fixtures'));
   let db;
   try {
@@ -160,20 +160,15 @@ test('bounded DISTINCT compounds are admitted while subqueries stay structurally
     const compound = db.prepare('SELECT DISTINCT a FROM t2 UNION SELECT a FROM t2').statement;
     while (await compound.step() === 'row') {}
     compound.finalize();
-    for (const sql of [
-      'SELECT DISTINCT a FROM (SELECT a FROM t2)',
-    ]) {
-      assert.throws(
-        () => db.prepare(sql),
-        error => error?.kind === 'unsupported'
-          && error.unsupportedClassification === 'temporary'
-          && error.message === 'compound SELECTs, VALUES, and subqueries are not implemented',
-        sql,
-      );
-    }
+    const subquery = db.prepare('SELECT DISTINCT a FROM (SELECT a FROM t2)').statement;
+    assert.deepEqual(await allRows(subquery), [[1n], [null], [345n], [67890n]]);
+    assert.deepEqual(subquery.columnMetadata(0), {
+      name: 'a', declaredType: null, database: 'main', table: 't2', origin: 'a',
+    });
+    subquery.finalize();
 
     const statement = db.prepare('SELECT DISTINCT a FROM t2 LIMIT 1').statement;
-    assert.equal(await statement.step(), 'row', 'structural rejections do not poison later admission');
+    assert.equal(await statement.step(), 'row', 'prior execution does not poison later admission');
     statement.finalize();
   } finally {
     try { db?.closeDeferred(); } catch {}

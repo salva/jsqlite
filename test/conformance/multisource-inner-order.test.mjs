@@ -175,18 +175,21 @@ test('public INNER execution preserves direct metadata and storage classes in ev
  }
 });
 
-test('public compound SELECT rejects join-bearing arms honestly in either arm position',async()=>{
+test('public compound SELECT executes join-bearing arms in either arm position',async()=>{
  const bridge=await startFixtureServer(root);let db,s;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select1-where`));
   const join="SELECT a.f1,b.f1 FROM test1 AS a CROSS JOIN test1 AS b WHERE a.f1<b.f1";
-  for(const sql of [`${join} UNION ALL SELECT 99,100`,`SELECT 99,100 UNION ALL ${join}`]){
-   assert.throws(()=>db.prepare(sql),error=>
-    error.kind==='unsupported'&&
-    error.unsupportedClassification==='temporary'&&
-    error.message==='complex compound table arms are not implemented');
+  for(const [sql,expected,metadata] of [
+   [`${join} UNION ALL SELECT 99,100`,[[11n,33n],[99n,100n]],['f1','f1']],
+   [`SELECT 99,100 UNION ALL ${join}`,[[99n,100n],[11n,33n]],['99','100']],
+  ]){
+   s=db.prepare(sql).statement;
+   assert.deepEqual(await rows(s),expected,sql);
+   assert.deepEqual(Array.from({length:2},(_,i)=>s.columnMetadata(i).name),metadata,sql);
+   s.finalize();s=null;
   }
-  // Rejected prepare must not retain connection or statement execution state.
+  // Completed compound execution must not retain connection or statement state.
   s=db.prepare(join).statement;
   assert.deepEqual(await rows(s),[[11n,33n]]);
  }finally{

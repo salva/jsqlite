@@ -686,8 +686,11 @@ admitted executions/error-phase checks, 3 expected typed structural rejections,
 and 1 expected SQLite prepare error for an unknown collation. Those include four distinct public collation attempts (declared NOCASE, explicit
 BINARY, RTRIM, and NOCASE embedded-NUL/byte-length); this attempt count is test
 inventory, not relational credit. This relational checkpoint originally gated both
-compounds and subqueries; bounded compounds are now implemented as mapped below,
-while subqueries remain gated.
+compounds and subqueries; current bounded compounds and represented FROM-subqueries
+are implemented as mapped below. Ordinary single-table DISTINCT now derives its
+membership `KeyInfo` from each resolved result descriptor, so direct columns retain
+declared collation while explicit result COLLATE overrides it. Shared byte-counted
+`compareBuiltinText` keeps BINARY case and embedded-NUL suffix distinctions.
 
 - `parse.y:orderby_opt/sortlist/limit_opt` -> typed `SelectNode.orderBy/limit/offset`.
 - `resolve.c:resolveOrderGroupBy`, `select.c:pushOntoSorter` -> expression/alias/ordinal/table fallback and complete `KeyInfo` keys in `compileTableSelect`.
