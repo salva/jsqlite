@@ -6,7 +6,7 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json",
     "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
-    "specSha256": "ace1023e2f28939d679db130b49bbdc24d01e750cefc81e1e16cded37e076fe6"
+    "specSha256": "2e945e9eb82291d82be04e6ad8ac8072f4dcd41f873e2cea0a60e12b8a6804b5"
   },
   "profile": {
     "compileOptions": [
@@ -22,8 +22,8 @@
   "counts": {
     "registryRows": 30,
     "distinctNames": 29,
-    "selectedCases": 20,
-    "observations": 60,
+    "selectedCases": 21,
+    "observations": 63,
     "tsCredit": 0
   },
   "observations": [
@@ -2294,6 +2294,98 @@
             "type": "real",
             "ieee754Hex": "4000000000000000",
             "hexFloat": "0x1.0000000000000p+1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "log-second-value-double-coercion",
+      "encoding": "UTF-8",
+      "sql": "SELECT log(2,'256x'),log(2,x'323536'),log(2,'x256'),log('2x',256),log(2,NULL),log(2,x'78')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "log-second-value-double-coercion",
+      "encoding": "UTF-16le",
+      "sql": "SELECT log(2,'256x'),log(2,x'323536'),log(2,'x256'),log('2x',256),log(2,NULL),log(2,x'78')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "log-second-value-double-coercion",
+      "encoding": "UTF-16be",
+      "sql": "SELECT log(2,'256x'),log(2,x'323536'),log(2,'x256'),log('2x',256),log(2,NULL),log(2,x'78')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
           }
         ]
       ]

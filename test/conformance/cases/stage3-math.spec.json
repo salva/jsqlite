@@ -21,8 +21,8 @@
   "scope": {
     "registryRows": 30,
     "distinctNames": 29,
-    "selectedCases": 20,
-    "oracleObservations": 60,
+    "selectedCases": 21,
+    "oracleObservations": 63,
     "tsCredit": 0
   },
   "registry": [
@@ -852,6 +852,25 @@
       "database": "memory",
       "branches": [
         "expression composition"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "log-second-value-double-coercion",
+      "sql": "SELECT log(2,'256x'),log(2,x'323536'),log(2,'x256'),log('2x',256),log(2,NULL),log(2,x'78')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "logFunc second argument sqlite3_value_double",
+        "first argument sqlite3_value_numeric_type",
+        "TEXT numeric prefix",
+        "BLOB numeric prefix",
+        "nonnumeric/NULL"
       ],
       "credit": "zero-until-public-typed-success"
     }
