@@ -6,6 +6,14 @@ Owner: [[card:card-i-a]]
 
 Scope: tests-first research only; no runtime repair.
 
+## Supported conclusion
+
+The bounded conclusion is **supported**: the external lead reproduces as a
+currently unimplemented value-list `IN` boundary, not as evidence of a general
+`OR` defect. This conclusion supports a source-shaped implementation handoff and
+regression plan only. It does not establish value-list `IN` compatibility, repair
+the runtime, or promote any conformance credit.
+
 ## Evidence
 
 Commit baseline includes REAL read/accessor repairs `ad433c2`, `f49f71f`, and `b74093a`, plus the existing subquery-IN nested-cursor foundation `f48a4c2`. The finite lane declares 21 SQL cases and executes each against UTF-8, UTF-16le, and UTF-16be databases (63 executions). `capture-audit-in-list.py` asserts exact pinned SQLite 3.53.4 source ID before creating fixtures and typed captures. Fixture hashes are committed. The public runner executes every case twice across reset, applies parameters where declared, preserves INTEGER/REAL/TEXT/BLOB/NULL distinctions, and awards zero credit.
@@ -31,3 +39,38 @@ REAL repairs require explicit regression preservation: `lead-in-two`, `parameter
 ## Limitations and recommendations
 
 This lane is no-credit and does not implement IN. The work-bound case currently stops at prepare and therefore cannot validate translated operation accounting. Reset is attempted only for successfully prepared statements. Exact cleanup/private-state bounds need implementation-side tests after lowering exists. The WHERE short-circuit discrepancy requires its boolean owner, while projection OR behavior must retain native eager error semantics. Rerun all 63 cases after value-list admission and promote only exact typed outcomes. Keep existing `subquery-view-foundation.test.mjs` selected IN/nested-cursor tests as independent regressions.
+
+### Evidence limitations
+
+- Only the six scalar-`OR` control executions run successfully through public TS.
+  The other 57 encoding executions are mismatch/unimplemented observations,
+  predominantly prepare-time rejection, rather than semantic TS executions.
+- The `OR` conclusion is limited to `a=1 OR b=2` and `id=10 OR id=11` over the
+  stated fixtures and reset. It is not a general control-flow claim. The separate
+  WHERE error-non-evaluation mismatch remains open.
+- Parameters and reset are represented in the lane, but rejected `IN` statements
+  cannot establish binding, rerun, cleanup, first-error, cancellation, deadline,
+  private-state release, or execution-work behavior.
+- The runner compares typed rows. It is not the project's stronger exact ordered
+  metadata/error phase/code/message gate.
+- Three database encodings are pinned, but integer-heavy lead queries do not by
+  themselves stress encoded text. The text/NOCASE inputs remain future execution
+  checks because TS currently rejects them.
+- REAL `columnType`, accessor, `typeof`, and `sum` expectations are pinned as
+  regressions, but they do not yet execute behind public value-list `IN`.
+- The focused preservation rerun covers selected UTF-8 subquery-IN cases. It is
+  evidence for retaining that foundation, not exhaustive subquery compatibility.
+
+### Recommended handoff
+
+1. Add value-list `IN` to generated semantic nodes and resolver/compiler lowering
+   by translating the relevant `sqlite3ExprCodeIN` branches over existing
+   Mem/ephemeral/branch primitives. Do not add a substitute evaluator.
+2. Preserve `f48a4c2` subquery-IN cursor relocation and ephemeral-set behavior;
+   retain its tests independently from the new value-list lane.
+3. Rerun all 63 executions after admission. Add exact metadata/error validation
+   and reachable operation-limit, abort/deadline, cleanup, and private-state tests.
+4. Keep the six scalar-`OR` controls and the WHERE error-non-evaluation
+   discriminator so value-list work does not mask the separate boolean issue.
+5. Preserve REAL column/accessor/`typeof`/`sum` assertions and grant credit only
+   when exact public typed outcomes execute and match.
