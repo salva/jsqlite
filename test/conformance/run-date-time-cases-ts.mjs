@@ -28,6 +28,14 @@ for(const [encoding,file] of Object.entries(names)){
    try{const columnRows=[];while(await column.step()==='row')columnRows.push(column.column(0));assert.deepEqual(columnRows,['1970-01-01 00:00:01','1970-01-01 00:00:02','1970-01-01 00:00:03']);}finally{column.finalize()}
    const {statement:formats}=db.prepare("SELECT strftime('%d|%e|%f|%F|%G|%g|%H|%k|%I|%l|%j|%J|%m|%M|%p|%P|%R|%s|%S|%T|%u|%w|%U|%V|%W|%Y|%%','2021-01-03 13:04:05.125','subsec'),strftime('%F','2000-01-01','+1 day')");
    try{assert.equal(await formats.step(),'row');assert.equal(formats.column(0),'03| 3|05.125|2021-01-03|2020|20|13|13|01| 1|004|2459218.044503761|01|04|PM|pm|13:04|1609679045.125|05|13:04:05|7|0|01|53|00|2021|%');assert.equal(formats.column(1),'2000-01-02')}finally{formats.finalize()}
+   // strftime's first argument is the format, not a time-value. These ordinary
+   // format-first cases guard the date.c strftimeFunc argv+1 dispatch boundary.
+   const {statement:formatFirst}=db.prepare("SELECT strftime('%Y','2000-01-02'),strftime('%Y-%m-%d','2024-02-29','+1 year','floor')");
+   try{assert.equal(await formatFirst.step(),'row');assert.deepEqual([formatFirst.column(0),formatFirst.column(1)],['2000','2025-02-28'])}finally{formatFirst.finalize()}
+   // timediff is calendar-aware. In addition to exact pinned results, applying
+   // each result back to B checks date.c's datetime(B,timediff(A,B)) invariant.
+   const {statement:timeDiffCalendar}=db.prepare("SELECT timediff('2024-03-31','2024-02-29'),datetime('2024-02-29',timediff('2024-03-31','2024-02-29')),timediff('2025-02-28','2024-02-29'),datetime('2024-02-29',timediff('2025-02-28','2024-02-29')),timediff('2023-02-28','2023-03-31'),datetime('2023-03-31',timediff('2023-02-28','2023-03-31'))");
+   try{assert.equal(await timeDiffCalendar.step(),'row');assert.deepEqual(Array.from({length:6},(_,i)=>timeDiffCalendar.column(i)),['+0000-01-02 00:00:00.000','2024-03-31 00:00:00','+0000-11-30 00:00:00.000','2025-02-28 00:00:00','-0000-01-03 00:00:00.000','2023-02-28 00:00:00'])}finally{timeDiffCalendar.finalize()}
    const {statement:calendar}=db.prepare("SELECT date('2024-02-29','+1 year'),date('2024-02-29','+1 year','floor'),date('2023-12-31','+2 months'),date('2023-12-31','+2 months','floor'),datetime('2000-01-01','-0.0006 seconds','subsec'),datetime('2000-01-01','+0.0006 seconds','subsec')");
    try{assert.equal(await calendar.step(),'row');assert.deepEqual(Array.from({length:6},(_,i)=>calendar.column(i)),['2025-03-01','2025-02-28','2024-03-02','2024-02-29','1999-12-31 23:59:59.999','2000-01-01 00:00:00.001'])}finally{calendar.finalize()}
    const {statement:compound}=db.prepare("SELECT datetime('2000-01-31','+0000-01-00'),datetime('2000-01-31','+0000-01-00','floor'),datetime('2000-03-31','-0000-01-02'),datetime('2000-01-01','+0001-02-03 04:05:06.789'),datetime('2000-01-01','-0001-02-03 04:05:06.789')");
