@@ -1401,3 +1401,12 @@ preflight, `etCHARX` maps to encoded repeated-byte admission, and numeric branch
 retain worst-case temporary/output checks. Pinned-native and public tests distinguish
 large literal/dynamic precision on short/empty values from genuine escaped,
 character, and floating excess under the same five-byte ceiling.
+
+#### `etSIZE` width correction
+
+Pinned `printf.c` maps `%n` to `etSIZE`, whose SQL argument-list branch clears
+`length` and `width` without consuming a conversion value. `printf.ts` now parses
+literal/dynamic width safely before dispatch but defers output admission to each
+emitting conversion. Source-ID-pinned and public tests cover `%999n`, `%*n`,
+surrounding literals, and neighboring argument consumption under a five-byte
+result ceiling, alongside retained excessive emitting-width failures.

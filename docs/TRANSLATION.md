@@ -3211,3 +3211,11 @@ precision, checkpoint that scan, and admit actual escaped and padded output. `%c
 admits actual encoded repetitions; numeric conversions retain their required
 materialization preflight. Thus large precision with a short value succeeds under
 a small result ceiling while actual excess remains a typed `limit` failure.
+
+#### Conversion-specific width admission correction
+
+Width parsing now follows the pinned 32-bit/capped parser independently of output
+admission. Emitting conversions continue to admit actual padding/output before
+allocation, while SQL `%n` (`etSIZE`) clears/ignores width, emits nothing, and
+consumes no conversion value argument after any dynamic-width argument. This
+preserves both hostile emitting-width protection and non-emitting source behavior.

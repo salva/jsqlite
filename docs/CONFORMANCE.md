@@ -520,3 +520,11 @@ escaping, embedded-NUL termination, output limits, saved-error precedence and
 cleanup. The immutable denominator remains 50 rows and 37 cases/59 native
 observations; formatting and pattern companions do not inflate it. Date/time,
 math, JSON, aggregate, and window registries remain separate scopes.
+
+### Formatting non-emitting width discriminator ([[card:card-p-b-b]])
+
+The focused formatter native/public gates distinguish pinned SQL `%n`/`etSIZE`
+from emitting conversions: literal/dynamic width is ignored for output, dynamic
+width alone consumes an argument, and surrounding literals/neighboring `%d`
+retain argument order under a five-byte result ceiling. Emitting hostile width
+continues to fail with the typed result limit and statement lifecycle coverage.

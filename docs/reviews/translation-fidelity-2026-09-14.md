@@ -713,3 +713,12 @@ character and numeric conversions retain conversion-specific materialization
 checks. Pinned-native/public short and empty values now succeed under a five-byte
 ceiling, while true escaped, repeated-character, and floating excess preserve the
 typed failure and statement lifecycle.
+
+#### Revision: conversion-specific formatter width admission
+
+The `%n` finding in `record:///review.md?card=card-p-b&v=10` is corrected. Width is
+parsed safely but admitted only by emitting conversions; SQL `etSIZE` consumes a
+dynamic width when present, consumes no conversion value, clears width, and emits
+nothing. Pinned-native/public literal and dynamic `%n` discriminators run under a
+five-byte ceiling while existing emitting-width failures and lifecycle controls
+remain covered.
