@@ -781,3 +781,15 @@ cursor or selecting the last row. The runner now checks ordered names, reset row
 expected step errors, first-error object identity and finalize failures. Literal
 `0 AND`/nonzero `OR` retains source-shaped short-circuit lowering, while the audit's
 nonliteral projection forms remain eager as observed from the pinned oracle.
+
+## Revision 2026-09-20 — date/time finding update ([[card:card-q-a-b]])
+
+The earlier date/time absence prediction is no longer current workspace fact.
+Current implementation registers and executes the ten date/time forms through the
+shared Function/PureFunc path, with bigint iJD calendar logic and statement-owned
+clock caching. Public tests currently pass 87 stored typed native observations in
+three encodings and dedicated deterministic seam, lifecycle, work, and output-limit
+checks. This revision does not claim exhaustive `date.c` equivalence. The manifest's
+18 selected upstream assertions now carry 18/18 TypeScript credit after exact public
+execution in all three encodings; companion, boundary, and seam vectors remain
+zero-credit evidence.

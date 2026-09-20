@@ -21,6 +21,7 @@ import { tokenIds } from "../generated/parser-tables.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
+import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
@@ -157,6 +158,7 @@ export interface Program {
   readonly maxResultBytes: number;
   readonly privateStateLimits: PrivateStateLimits;
   readonly encoding: DatabaseEncoding;
+  readonly dateTimeEnvironment?: DateTimeEnvironment;
 }
 export type WindowDeleteMode="retain"|"agg-inverse"|"return-row"|"agg-step";
 export interface WindowSetupLayer {
@@ -1307,7 +1309,8 @@ function isIntegerPrimaryKeyAlias(table:TableNode,columnIndex:number):boolean{co
 function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(n.kind!=="reduction"||!(n.signature.startsWith("expr ::=")||n.signature.startsWith("term ::=")))throw new JSQLiteError("unsupported","expression reduction is not implemented",{unsupportedClassification:"temporary"});
  const t=exprLeaves(n), all=descendantExprs(n), sig=n.signature;
- if(sig.startsWith("term ::=")||sig==="expr ::= term"||sig==="expr ::= VARIABLE"){const x=t[0]!;if(x.kind==="integer"){const v=BigInt(x.text);return{kind:"literal",value:v<(1n<<63n)?v:Number(x.text)}}if(x.kind==="float")return{kind:"literal",value:Number(x.text)};if(x.kind==="string")return{kind:"literal",value:decodeString(x.text)};if(x.kind==="blob")return{kind:"literal",value:Uint8Array.from(x.text.slice(2,-1).match(/../g)?.map(y=>parseInt(y,16))??[])};if(x.text.toUpperCase()==="NULL")return{kind:"literal",value:null}}
+ if(sig==="expr ::= ID|INDEXED|JOIN_KW"){const keyword=sqliteAsciiFold(t[0]!.text);if(['current_date','current_time','current_timestamp'].includes(keyword))return{kind:"call",name:keyword,args:[]};}
+ if(sig.startsWith("term ::=")||sig==="expr ::= term"||sig==="expr ::= VARIABLE"){const x=t[0]!;const keyword=sqliteAsciiFold(x.text);if(['current_date','current_time','current_timestamp'].includes(keyword))return{kind:"call",name:keyword,args:[]};if(x.kind==="integer"){const v=BigInt(x.text);return{kind:"literal",value:v<(1n<<63n)?v:Number(x.text)}}if(x.kind==="float")return{kind:"literal",value:Number(x.text)};if(x.kind==="string")return{kind:"literal",value:decodeString(x.text)};if(x.kind==="blob")return{kind:"literal",value:Uint8Array.from(x.text.slice(2,-1).match(/../g)?.map(y=>parseInt(y,16))??[])};if(x.text.toUpperCase()==="NULL")return{kind:"literal",value:null}}
  if(sig==="expr ::= VARIABLE")return{kind:"variable",spelling:t[0]!.text};
  if(sig==="expr ::= LP expr RP")return expressionFromReduction(all[0]!);
  if(sig==="expr ::= LP select RP"){
@@ -2785,10 +2788,11 @@ const explicitCollation=(x:Expression):BuiltinCollation|undefined=>{
 };
 const binaryCollation=(left:Expression,right:Expression):BuiltinCollation=>explicitCollation(left)??explicitCollation(right)??collation(left)??collation(right);
 function valueBytes(value:Mem):number{return value.initialStorageClass==="text"?value.textBytes().byteLength:value.initialStorageClass==="blob"?value.blobValue().byteLength:0;}
-interface ScalarControl { charge(units:number):void; check():void; readonly maxResultBytes:number }
+interface ScalarControl { charge(units:number):void; check():void; checkSize(bytes:number):void; readonly maxResultBytes:number; now?():bigint; readonly dateTimeEnvironment?:DateTimeEnvironment }
 function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"binary"|BuiltinCollation="binary",control?:ScalarControl):Mem{
  const out=new Mem(),charge=(units:number)=>control?.charge(units),checkSize=(bytes:number)=>{if(!Number.isSafeInteger(bytes)||bytes<0||(control&&bytes>control.maxResultBytes))throw new JSQLiteError("limit","string or blob too big")};
  const workBytes=(bytes:number)=>{if(bytes>0)charge(Math.ceil(bytes/256))},checkpoint=(index:number)=>{if((index&255)===0){charge(1);control?.check()}};
+ if(["julianday","unixepoch","date","time","datetime","strftime","timediff","current_time","current_date","current_timestamp"].includes(name))return evaluateDateTime(name,a,encoding,control?.now??(()=>BigInt(Date.now())),control?.dateTimeEnvironment??defaultDateTimeEnvironment,control);
  if(name==="likely"||name==="unlikely"||name==="likelihood")return a[0]!;
  if(name==="subtype"){out.setInt64(BigInt(a[0]!.subtypeValue()));return out}
  if(name==="sqlite_version")return scalarText(SQLITE_VERSION);
@@ -2981,6 +2985,7 @@ export class VdbeStatement implements Statement {
   #rows = 0;
   #work = 0;
   #savedError: unknown = null;
+  #currentTime: bigint|null = null;
   constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void) {
     this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
@@ -3124,7 +3129,7 @@ export class VdbeStatement implements Statement {
           case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes);break;}
           case "AggFinal": this.#registers[op.p1]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true));break;
           case "AggValue": this.#registers[op.p2]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false));break;
-          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}}};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
+          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
           case "NotNull": if(this.#registers[op.p1]!.initialStorageClass!=="null"){this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!);this.#pc=op.jump}break;
@@ -3143,7 +3148,7 @@ export class VdbeStatement implements Statement {
     }
     }).finally(release);
   }
-  reset(): void { this.#assertIdle(); const primary=this.#savedError; this.#savedError=null; const cleanup=this.#halt(); this.#rows=0; this.#work=0; this.#once.clear(); this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(primary!==null) throw primary; if(cleanup!==null) throw cleanup; }
+  reset(): void { this.#assertIdle(); const primary=this.#savedError; this.#savedError=null; const cleanup=this.#halt(); this.#rows=0; this.#work=0; this.#currentTime=null; this.#once.clear(); this.#registers.forEach(value => value.setNull()); this.#pc = 0; this.#state = "prepared"; if(primary!==null) throw primary; if(cleanup!==null) throw cleanup; }
   finalize(): void { this.#assertIdle(); if (this.#state === "finalized") misuse("statement is finalized"); const primary=this.#savedError; this.#savedError=null; const cleanup=this.#halt(); this.#registers.forEach(value => value.release()); this.#bindings.forEach(value => value.release()); this.#state = "finalized"; this.#onFinalize(); if(primary!==null) throw primary; if(cleanup!==null) throw cleanup; }
   columnMetadata(index: number): ColumnMetadata { this.#assertColumn(index, false); return Object.freeze({...this.#program.columns[index]!}); }
   columnType(index: number): SqliteStorageClass { return this.#cell(index).initialStorageClass; }
@@ -3180,6 +3185,7 @@ export class VdbeStatement implements Statement {
     // This is the single lazy execution boundary. Existing public errors retain
     // identity; only known storage provenance is classified here.
     if (error instanceof JSQLiteError) return error;
+    if (error instanceof LocalTimeUnavailableError) return new JSQLiteError("sqlite",error.message,{code:1,extendedCode:1,cause:error});
     if (error instanceof BtreeFormatError || error instanceof RecordFormatError)
       return new JSQLiteError("sqlite", error.message, { code: 11, extendedCode: 11, cause: error });
     if (error instanceof BtreeLimitError || error instanceof PrivateStateLimitError)

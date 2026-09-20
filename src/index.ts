@@ -6,6 +6,7 @@ import { loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
 import { lowerOrdinaryCtes, recursiveCteOwner } from "./internal/cte.ts";
+import {dateTimeEnvironmentOption,type DateTimeEnvironment} from "./internal/date-time.ts";
 
 const SQLITE_CORRUPT = 11;
 const SQLITE_BUSY = 5;
@@ -98,6 +99,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   readonly #maxRows: number;
   readonly #btreeLimits: { readonly maxBtreeDepth: number; readonly maxOverflowPages: number };
   readonly #statements = new Set<VdbeStatement>();
+  readonly #dateTimeEnvironment: DateTimeEnvironment | undefined;
   #activeStatement: VdbeStatement | null = null;
   readonly [storageOwner]: ImmutableStorage;
 
@@ -106,12 +108,14 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
     limits: PrepareLimits,
     maxRows: number,
     btreeLimits: { readonly maxBtreeDepth: number; readonly maxOverflowPages: number },
+    dateTimeEnvironment?: DateTimeEnvironment,
   ) {
     this.#source = source;
     this[storageOwner] = source;
     this.#limits = limits;
     this.#maxRows = maxRows;
     this.#btreeLimits = btreeLimits;
+    this.#dateTimeEnvironment = dateTimeEnvironment;
   }
 
   #assertResident(): ImmutableStorage {
@@ -186,7 +190,8 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
           )
         : compileScalarSelect(selected, this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be", this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows);
       let statement!: VdbeStatement;
-      statement = new VdbeStatement(program,
+      const executionProgram=this.#dateTimeEnvironment?{...program,dateTimeEnvironment:this.#dateTimeEnvironment}:program;
+      statement = new VdbeStatement(executionProgram,
         () => this.#assertOperationIdle(),
         () => {
           this.#assertOperationIdle();
@@ -300,7 +305,8 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     const bytes = new Uint8Array(total);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return new OpenConnection(validateFile(bytes), parserLimits, finiteLimit(options.limits?.maxRows, "limits.maxRows", 1_000_000), { maxBtreeDepth: finiteLimit(options.limits?.maxBtreeDepth, "limits.maxBtreeDepth", 64), maxOverflowPages: finiteLimit(options.limits?.maxOverflowPages, "limits.maxOverflowPages", 1_000_000) });
+    const internalOptions=options as OpenOptions&{readonly [dateTimeEnvironmentOption]?:DateTimeEnvironment};
+    return new OpenConnection(validateFile(bytes), parserLimits, finiteLimit(options.limits?.maxRows, "limits.maxRows", 1_000_000), { maxBtreeDepth: finiteLimit(options.limits?.maxBtreeDepth, "limits.maxBtreeDepth", 64), maxOverflowPages: finiteLimit(options.limits?.maxOverflowPages, "limits.maxOverflowPages", 1_000_000) },internalOptions[dateTimeEnvironmentOption]);
   } catch (error) {
     try { await reader?.cancel(); } catch { /* preserve the primary failure */ }
     return mapAcquisitionError(error, timedOut, options.signal);

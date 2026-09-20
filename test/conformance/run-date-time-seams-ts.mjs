@@ -1,32 +1,22 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import http from 'node:http';
-import path from 'node:path';
+import fs from 'node:fs';import http from 'node:http';import path from 'node:path';
 import {openFixture} from './public-api-adapter.mjs';
-
-const root=path.resolve(new URL('../..',import.meta.url).pathname);
-const spec=JSON.parse(fs.readFileSync(path.join(root,'test/conformance/cases/stage3-date-time.spec.json'),'utf8'));
-const fixture=path.join(root,'test/fixtures/expression-cursor/users-utf8.db');
-const server=http.createServer((req,res)=>{if(req.url!=='/date-time-fixture'){res.writeHead(404).end();return;}const stat=fs.statSync(fixture);res.writeHead(200,{'Content-Type':'application/vnd.sqlite3','Content-Length':stat.size,'Content-Encoding':'identity'});fs.createReadStream(fixture).pipe(res);});
-await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});
-const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/date-time-fixture`));
-const observations=[];
+import {dateTimeEnvironmentOption} from '../../src/internal/date-time.ts';
+const root=path.resolve(new URL('../..',import.meta.url).pathname),fixture=path.join(root,'test/fixtures/expression-cursor/users-utf8.db');
+const server=http.createServer((q,r)=>{r.writeHead(200,{'Content-Length':fs.statSync(fixture).size});fs.createReadStream(fixture).pipe(r)});await new Promise((x,j)=>{server.once('error',j);server.listen(0,'127.0.0.1',x)});
+async function connection(environment,limits){return openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{[dateTimeEnvironmentOption]:environment,...(limits?{limits}:{})})}
+async function row(statement){assert.equal(await statement.step(),'row');return Array.from({length:statement.columnCount},(_,i)=>statement.column(i))}
 try{
- for(const contract of spec.adaptations){
-  assert.equal(contract.credit,false); assert.equal(contract.currentDisposition,'expected-temporary-unsupported');
-  assert.ok(contract.setup&&contract.sequence.length&&contract.sql.length);
-  for(const sql of contract.sql){
-   let outcome;
-   try{
-    const {statement}=db.prepare(sql); const rows=[];
-    while(await statement.step()==='row') rows.push(Array.from({length:statement.columnCount},(_,i)=>statement.column(i)));
-    statement.finalize(); outcome={kind:'unexpected-success',rows};
-   }catch(error){outcome={kind:error?.kind??null,code:error?.code??null,message:error?.message??String(error)};}
-   assert.notEqual(outcome.kind,'unexpected-success',`${contract.id} unexpectedly became executable; replace this unsupported gate with typed seam assertions: ${JSON.stringify(outcome)}`);
-   assert.match(outcome.message,/no such function|not implemented|temporarily unsupported|unsupported|no such column/i);
-   observations.push({id:contract.id,sql,outcome:'expected-temporary-unsupported'});
-  }
- }
-}finally{db.closeDeferred();await new Promise(resolve=>server.close(resolve));}
-assert.equal(observations.length,spec.adaptations.reduce((n,x)=>n+x.sql.length,0));
-console.log(JSON.stringify({contracts:spec.adaptations.length,attempts:observations.length,outcome:'expected-temporary-unsupported',tsCredit:'0/18'}));
+ let clockCalls=0;const times=[946684800125n,978307200250n];const environment={nowUnixMilliseconds(){return times[clockCalls++]??times.at(-1)},localFieldsAtUnixSecond(){return null}};
+ const db=await connection(environment);try{
+  const {statement}=db.prepare("SELECT datetime('now'), current_timestamp, time('now'), current_time FROM users ORDER BY id");assert.equal(clockCalls,0);const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:4},(_,i)=>statement.column(i)));assert.equal(clockCalls,1);assert.deepEqual(rows,Array(3).fill(['2000-01-01 00:00:00','2000-01-01 00:00:00','00:00:00','00:00:00']));statement.finalize();
+  const {statement:again}=db.prepare("SELECT unixepoch('now','subsec'), datetime('now','subsec')");assert.deepEqual(await row(again),[978307200.25,'2001-01-01 00:00:00.250']);assert.equal(clockCalls,2);assert.equal(await again.step(),'done');again.reset();assert.deepEqual(await row(again),[978307200.25,'2001-01-01 00:00:00.250']);assert.equal(clockCalls,3);again.finalize();
+ }finally{db.close()}
+ let localCalls=0;const localScript=[{year:2000,month:1,day:1,hour:2,minute:0,second:0},{year:2000,month:1,day:1,hour:4,minute:0,second:0},{year:2000,month:1,day:1,hour:2,minute:0,second:0}];const local={nowUnixMilliseconds(){throw new Error('clock must not be sampled')},localFieldsAtUnixSecond(){return localScript[localCalls++]??null}};const localDb=await connection(local);try{const {statement}=localDb.prepare("SELECT datetime('2000-01-01 00:00:00','localtime'), datetime('2000-01-01 02:00:00','utc')");try{assert.deepEqual(await row(statement),['2000-01-01 02:00:00','2000-01-01 00:00:00']);assert.equal(localCalls,3)}finally{statement.finalize()}}finally{localDb.close()}
+ const failDb=await connection({nowUnixMilliseconds(){return 0n},localFieldsAtUnixSecond(){return null}});try{const {statement}=failDb.prepare("SELECT datetime('2000-01-01','localtime')");await assert.rejects(statement.step(),e=>e.code===1&&e.message==='local time unavailable');assert.throws(()=>statement.reset(),e=>e.code===1&&e.message==='local time unavailable');statement.finalize()}finally{failDb.close()}
+ const boundedEnv={nowUnixMilliseconds(){return 0n},localFieldsAtUnixSecond(){return null}};
+ const sizeDb=await connection(boundedEnv,{maxResultBytes:9,maxWorkUnits:1000});try{const {statement}=sizeDb.prepare("SELECT date('2000-01-01')");let error;try{await statement.step()}catch(e){error=e}assert.deepEqual({kind:error?.kind,message:error?.message},{kind:'limit',message:'string or blob too big'});assert.throws(()=>statement.reset(),e=>e===error);statement.finalize();const {statement:reuse}=sizeDb.prepare("SELECT time('00:00')");assert.equal(await reuse.step(),'row');reuse.finalize()}finally{sizeDb.close()}
+ const workDb=await connection(boundedEnv,{maxResultBytes:1000,maxWorkUnits:1000});try{const {statement}=workDb.prepare("SELECT strftime('abcdefghijklmnopqrstuvwxyz','2000-01-01')");let error;try{await statement.step({maxWorkUnits:25})}catch(e){error=e}assert.deepEqual({kind:error?.kind,message:error?.message},{kind:'limit',message:'statement exceeds maxWorkUnits'});assert.throws(()=>statement.reset(),e=>e===error);assert.equal(await statement.step({maxWorkUnits:100}),'row');assert.equal(statement.columnText(0),'abcdefghijklmnopqrstuvwxyz');statement.finalize()}finally{workDb.close()}
+ let flagCalls=0;const flagDb=await connection({nowUnixMilliseconds(){return 0n},localFieldsAtUnixSecond(second){flagCalls++;return{year:2000,month:1,day:1,hour:2,minute:0,second:0}}});try{const {statement}=flagDb.prepare("SELECT datetime('2000-01-01Z','utc'),datetime('2000-01-01Z','localtime','localtime')");try{assert.deepEqual(await row(statement),['2000-01-01 00:00:00','2000-01-01 02:00:00']);assert.equal(flagCalls,1)}finally{statement.finalize()}}finally{flagDb.close()}
+ console.log(JSON.stringify({outcome:'pass',seams:4}));
+}finally{server.close()}

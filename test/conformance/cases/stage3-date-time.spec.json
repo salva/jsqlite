@@ -13,8 +13,8 @@
     "denominatorAssertions": 18,
     "selectedCases": 29,
     "nativeObservations": 87,
-    "tsCredit": 0,
-    "rule": "Literal assertions selected from pinned test/date.test and test/timediff1.test. Each assertion is observed under UTF-8, UTF-16le, and UTF-16be. Native observations and adaptations receive no TS credit until public execution passes.",
+    "tsCredit": 18,
+    "rule": "Literal assertions selected from pinned test/date.test and test/timediff1.test. Each assertion passes public TypeScript Fetch execution under UTF-8, UTF-16le, and UTF-16be with exact typed comparison; native observations remain the independently captured reference.",
     "registrations": [
       "julianday/-1",
       "unixepoch/-1",
@@ -588,7 +588,7 @@
     {
       "id": "clock-stable-across-rows-aliases-yields",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT datetime('now'), current_timestamp, time('now'), current_time FROM users ORDER BY id"
       ],
@@ -612,7 +612,7 @@
     {
       "id": "clock-resamples-after-reset",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT unixepoch('now','subsec'), datetime('now','subsec')"
       ],
@@ -660,7 +660,7 @@
     {
       "id": "current-keyword-and-function-lowering",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT CURRENT_DATE, current_date(), CURRENT_TIME, current_time(), CURRENT_TIMESTAMP, current_timestamp()"
       ],
@@ -706,7 +706,7 @@
     {
       "id": "injected-localtime-and-utc-roundtrip",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT datetime('2000-01-01 00:00:00','localtime'), datetime('2000-01-01 02:00:00','utc')"
       ],
@@ -747,7 +747,7 @@
     {
       "id": "localtime-provider-failure-is-error",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT datetime('2000-01-01','localtime')"
       ],
@@ -776,7 +776,7 @@
     {
       "id": "ijd-boundary-public-contract",
       "credit": false,
-      "currentDisposition": "expected-temporary-unsupported",
+      "currentDisposition": "implemented-public-fetch",
       "sql": [
         "SELECT date(0)",
         "SELECT datetime(0)",

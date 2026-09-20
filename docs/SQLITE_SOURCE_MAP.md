@@ -1445,3 +1445,17 @@ result ceiling, alongside retained excessive emitting-width failures.
 | `src/vdbeapi.c:sqlite3StmtCurrentTime`; VFS current time | Connection environment plus execution-owned lazy statement cache | One injected sample per execution across rows/subqueries/yields/aliases; reset resamples; prepare does not sample |
 | `src/date.c:osLocaltime`, `toLocaltime`, localtime/utc modifier branches | Injectable `localFieldsAtUnixSecond` host boundary; source equivalent-year remap and UTC fixed-point loop remain translated | Exact local outcomes require injection; ambient browser timezone/tzdata is explicitly host-dependent; provider failure is `local time unavailable` |
 | `test/date.test`, `test/timediff1.test` selected literal assertions | `capture-date-time.py`, `date-time-manifest.test.py`, immutable typed native output | 29 selected cases x 3 encodings = 87 validated native observations; complete key/result matching; six concrete seam contracts execute as expected unsupported outside denominator; native is no TS credit |
+
+### Date/time scalar execution ([[card:card-q-a-b]])
+
+| Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence |
+|---|---|---|
+| `src/date.c` `DateTime`, `computeJD`, `computeYMD`, `computeHMS`, `parseYyyyMmDd`, `parseHhMmSs`, `parseModifier`, `isDate` | `src/internal/date-time.ts` bigint iJD/flags, parser/calendar/modifier pipeline | `run-date-time-cases-ts.mjs`, 87 typed observations × UTF-8/UTF-16LE/UTF-16BE plus branch vectors |
+| `src/date.c` `dateFunc`, `timeFunc`, `datetimeFunc`, `juliandayFunc`, `unixepochFunc`, `strftimeFunc`, `timediffFunc`, registration table | `src/internal/functions.ts` registrations; `src/internal/vdbe.ts` shared Function/PureFunc lowering/dispatch; `date-time.ts` callbacks | parameter, column, composition, reset and CURRENT_* public Fetch checks |
+| `src/vdbeapi.c:sqlite3StmtCurrentTime`; `src/date.c:localtimeOffset` | execution-owned cached clock and private `DateTimeEnvironment` local-field adapter | `run-date-time-seams-ts.mjs` lazy/stable/resample, provider calls/failure, saved-error lifecycle |
+| `sqlite3StrAccumInit(...SQLITE_LIMIT_LENGTH)` in `strftimeFunc` and VDBE interruption | shared `ScalarControl.charge/checkSize` passed into date-time execution | seam output-limit and strftime work-limit/reset/reuse checks |
+
+The local-time provider is a browser adaptation because ECMAScript exposes host
+civil-time fields rather than SQLite's platform `localtime_r`; the translated UTC
+iteration and observable SQL output/error behavior remain source-shaped. No public
+host callback API, parallel evaluator, native/WASM path, or `Date.parse` is used.

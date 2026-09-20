@@ -14,7 +14,7 @@ assert len(spec['cases']) == 29 and len(spec['adaptations']) == 6
 upstream = [c for c in spec['cases'] if 'upstreamAssertion' in c]
 assert len(upstream) == 18 and sum(c.get('credit') == 'zero-credit-companion' for c in spec['cases']) == 2
 assert sum(c.get('credit') == 'zero-credit-source-boundary' for c in spec['cases']) == 9
-assert spec['scope']['tsCredit'] == 0 and len({c['id'] for c in spec['cases']}) == 29
+assert spec['scope']['tsCredit'] == 18 and len({c['id'] for c in spec['cases']}) == 29
 for case in spec['cases']:
     assert case['sql'].startswith('SELECT ')
     assert case['encodings'] == ['UTF-8', 'UTF-16le', 'UTF-16be'] and 'expectedTyped' in case
@@ -51,7 +51,7 @@ expected_sql = {
 assert set(adaptations) == set(expected_sql)
 for ident, adaptation in adaptations.items():
     assert adaptation['credit'] is False
-    assert adaptation['currentDisposition'] == 'expected-temporary-unsupported'
+    assert adaptation['currentDisposition'] == 'implemented-public-fetch'
     assert adaptation['sql'] == expected_sql[ident]
     assert isinstance(adaptation['setup'], dict) and adaptation['sequence']
     assert all(isinstance(step, str) and step for step in adaptation['sequence'])
@@ -139,4 +139,4 @@ assert native['counts'] == {'denominatorAssertions': 18, 'selectedCases': 29, 'o
 expected = {(case['id'], encoding): (case['sql'], case['expectedTyped']) for case in spec['cases'] for encoding in case['encodings']}
 actual = {(item['id'], item['encoding']): (item['sql'], item.get('row', [None])[0]) for item in native['observations']}
 assert actual == expected
-print('date/time manifest: 18 exact upstream assertions, 2 zero-credit result companions, 9 zero-credit boundaries, 6 statically validated seam contracts, 87 oracle observations, TS credit 0/18')
+print('date/time manifest: 18 exact upstream assertions, 2 zero-credit result companions, 9 zero-credit boundaries, 6 statically validated seam contracts, 87 oracle observations, TS credit 18/18')

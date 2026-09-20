@@ -61,7 +61,11 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
 ]);
 
 if(entries.length!==50) throw new Error("ordinary scalar registry must contain 50 rows");
-const byName = new Map(entries.map(entry=>[entry.name,entry] as const));
+// date.c keeps these registrations separate; lookup and OP_Function are shared.
+const dateEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
+ definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,1),definition("timediff",[2],C,true),definition("current_time",[0],V,true),definition("current_date",[0],V,true),definition("current_timestamp",[0],V,true),
+]);
+const byName = new Map([...entries,...dateEntries].map(entry=>[entry.name,entry] as const));
 export const builtinFunctionRegistry: readonly BuiltinFunctionDefinition[] = entries;
 export function builtinFunction(name:string):BuiltinFunctionDefinition|undefined{return byName.get(name);}
 export function builtinFunctionAccepts(definition:BuiltinFunctionDefinition,argc:number):boolean{

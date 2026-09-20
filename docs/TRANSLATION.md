@@ -3273,7 +3273,31 @@ upstream assertions plus two result-class and nine range companions across three
 database encodings. Six concrete clock/timezone contracts have SQL, injected
 responses, lifecycle/call-count expectations, typed outcomes, and an executable
 expected-unsupported public gate. Native capture validates all 87 typed observations
-but remains reference-only; current public TypeScript credit is 0/18. The range
+but remains reference-only; public TypeScript execution now carries 18/18 selected
+assertion credit as recorded in the execution revision below. The range
 contract preserves signed output years: parser/`computeJD` accepts -4713..9999,
 final iJD is 0..464269060799999, year 0000 is valid, and callbacks format negative
 years with a leading minus.
+
+### Date/time execution revision ([[card:card-q-a-b]])
+
+`src/internal/date-time.ts` now translates the pinned `src/date.c` DateTime/iJD
+calendar, parser, modifier, formatter, `timediff`, and result-function control
+through the existing builtin registry and VDBE Function/PureFunc dispatch.
+Bare `CURRENT_DATE`, `CURRENT_TIME`, and `CURRENT_TIMESTAMP` lower to the same
+zero-argument registrations. The private connection environment described in the
+handoff is sampled lazily once per execution; reset starts a new execution. Local
+field conversion is the sole host-Date adaptation and reports SQLite code 1 when
+unavailable; parsing and UTC calendar arithmetic do not use `Date.parse`.
+
+The implementation preserves INTEGER `unixepoch`, REAL `julianday`/subsecond
+results, NULL invalid/range branches, source modifier ordering, parsed invalid-day
+and 24-hour field state, and inclusive iJD range. `strftime` scans charge shared
+work so cancellation/deadline checks happen within variable format input, and all
+TEXT callbacks use the VDBE output-size preflight. Public Fetch evidence is in
+`run-date-time-cases-ts.mjs` (87 stored typed native observations across all three
+encodings plus branch/composition/parameter/column/reset checks) and
+`run-date-time-seams-ts.mjs` (clock/timezone call counts, reset/error lifecycle,
+and output/work limits). These selected vectors are not a blanket compatibility
+claim; the immutable manifest denominator is reconciled at 18/18 only for those
+selected, exactly typed upstream assertions.
