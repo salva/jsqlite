@@ -3259,3 +3259,16 @@ collation/affinity, NULL and empty-list truth, parameters, lazy later RHS terms,
 projection errors, ordered metadata, reset replay, first-error identity and
 finalize handling. Value-list execution does not credit or imply subquery/index-
 backed `IN`, planner index selection, or broader relational support.
+
+## Date/time translation handoff ([[card:card-q-a-a]])
+
+The source-backed design, browser clock/timezone seam, full production registration
+inventory, exact `DateTime`/iJD flag model, parsing/modifier/result/error branches,
+and tests-first accounting are in
+[`research/card-q-a-a-date-time.md`](research/card-q-a-a-date-time.md). The mapping
+is pinned to `src/date.c` in SQLite 3.53.4 and to `sqlite3StmtCurrentTime` in
+`src/vdbeapi.c`; it does not substitute JavaScript `Date` parsing/formatting for
+SQLite algorithms. `test/conformance/cases/stage3-date-time.spec.json` declares 18
+literal upstream assertions plus two source result-class companions across three
+database encodings and six deterministic seam adaptations. Native capture is
+reference-only; current public TypeScript credit is 0/18.

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "manifest": "reference/sqlite/manifest.json",
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "profileCompileOptions": ["ENABLE_COLUMN_METADATA", "ENABLE_MATH_FUNCTIONS"]
+  },
+  "scope": {
+    "denominatorAssertions": 18,
+    "selectedCases": 20,
+    "nativeObservations": 60,
+    "tsCredit": 0,
+    "rule": "Literal assertions selected from pinned test/date.test and test/timediff1.test. Each assertion is observed under UTF-8, UTF-16le, and UTF-16be. Native observations and adaptations receive no TS credit until public execution passes.",
+    "registrations": ["julianday/-1", "unixepoch/-1", "date/-1", "time/-1", "datetime/-1", "strftime/-1", "timediff/2", "current_time/0", "current_date/0", "current_timestamp/0"],
+    "excluded": ["SQLITE_DEBUG datedebug", "SQLITE_OMIT_DATETIME_FUNCS fallback profile"]
+  },
+  "cases": [
+    {"id":"date-1.1","source":"test/date.test:38","sql":"SELECT julianday('2000-01-01')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-1.5","source":"test/date.test:42","sql":"SELECT julianday('12:00:00')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-1.8","source":"test/date.test:45","sql":"SELECT julianday('bogus')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-1.10","source":"test/date.test:47","sql":"SELECT julianday('1999-12-32')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-1.12","source":"test/date.test:49","sql":"SELECT julianday('2003-02-31')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-1.19","source":"test/date.test:60","sql":"SELECT julianday('2000-01-01 12:00:00.1')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.1","source":"test/date.test:73","sql":"SELECT datetime(0,'unixepoch')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.1b","source":"test/date.test:74","sql":"SELECT datetime(0,'unixepoc')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.3","source":"test/date.test:84","sql":"SELECT date('2003-10-22','weekday 0')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.10","source":"test/date.test:96","sql":"SELECT date('2003-10-22','weekday 7')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.13","source":"test/date.test:99","sql":"SELECT datetime('2003-10-22 12:34','start of month')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.16","source":"test/date.test:107","sql":"SELECT time('12:34:56.43')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-2.19","source":"test/date.test:110","sql":"SELECT datetime('2003-10-22 12:34','+1.25 day')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-3.2.1","source":"test/date.test:152","sql":"SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-3.8.2","source":"test/date.test:160","sql":"SELECT strftime('%s','2038-01-19 03:14:07')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-3.8.6","source":"test/date.test:164","sql":"SELECT strftime('%s','1969-12-31 23:59:59')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"date-unixepoch-integer","source":"src/date.c:unixepochFunc (registration result-class companion)","sql":"SELECT unixepoch('1970-01-01 00:00:01')","encodings":["UTF-8","UTF-16le","UTF-16be"],"credit":"zero-credit-companion"},
+    {"id":"date-unixepoch-subsec","source":"src/date.c:unixepochFunc (registration result-class companion)","sql":"SELECT unixepoch('1970-01-01 00:00:01.250','subsec')","encodings":["UTF-8","UTF-16le","UTF-16be"],"credit":"zero-credit-companion"},
+    {"id":"timediff1-3.1","source":"test/timediff1.test:74","sql":"SELECT timediff('2000-03-02','2000-01-31')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
+    {"id":"timediff1-3.2","source":"test/timediff1.test:75","sql":"SELECT timediff('2000-01-31','2000-03-02')","encodings":["UTF-8","UTF-16le","UTF-16be"]}
+  ],
+  "adaptations": [
+    {"id":"clock-stable-across-rows-aliases-yields","credit":false},
+    {"id":"clock-resamples-after-reset","credit":false},
+    {"id":"current-keyword-lowers-to-zero-arg-function","credit":false},
+    {"id":"injected-localtime-and-utc-roundtrip","credit":false},
+    {"id":"localtime-provider-failure-is-error","credit":false},
+    {"id":"ijD-min-max-and-one-step-outside","credit":false}
+  ]
+}

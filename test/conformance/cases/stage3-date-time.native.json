@@ -1,0 +1,697 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-reference-only-no-ts-credit",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+    "specSha256": "c800a192e334109bb4d637a54acf40697a1c7287ce3b6df2fcc4b9b88c5c5828"
+  },
+  "counts": {
+    "denominatorAssertions": 18,
+    "selectedCases": 20,
+    "observations": 60,
+    "tsCredit": 0
+  },
+  "observations": [
+    {
+      "id": "date-1.1",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('2000-01-01')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c40000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.1",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('2000-01-01')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c40000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.1",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('2000-01-01')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c40000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.5",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('12:00:00')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c80000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.5",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('12:00:00')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c80000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.5",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('12:00:00')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c80000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.8",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('bogus')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.8",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('bogus')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.8",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('bogus')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.10",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('1999-12-32')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.10",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('1999-12-32')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.10",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('1999-12-32')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-1.12",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('2003-02-31')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b66ec0000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.12",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('2003-02-31')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b66ec0000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.12",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('2003-02-31')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b66ec0000000p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.19",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday('2000-01-01 12:00:00.1')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c800009b6p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.19",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday('2000-01-01 12:00:00.1')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c800009b6p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-1.19",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday('2000-01-01 12:00:00.1')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.2b42c800009b6p+21"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime(0,'unixepoch')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "313937302d30312d30312030303a30303a3030",
+          "value": "1970-01-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime(0,'unixepoch')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "313937302d30312d30312030303a30303a3030",
+          "value": "1970-01-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime(0,'unixepoch')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "313937302d30312d30312030303a30303a3030",
+          "value": "1970-01-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1b",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime(0,'unixepoc')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1b",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime(0,'unixepoc')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.1b",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime(0,'unixepoc')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.3",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('2003-10-22','weekday 0')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d3236",
+          "value": "2003-10-26"
+        }
+      ]
+    },
+    {
+      "id": "date-2.3",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('2003-10-22','weekday 0')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d3236",
+          "value": "2003-10-26"
+        }
+      ]
+    },
+    {
+      "id": "date-2.3",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('2003-10-22','weekday 0')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d3236",
+          "value": "2003-10-26"
+        }
+      ]
+    },
+    {
+      "id": "date-2.10",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('2003-10-22','weekday 7')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.10",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('2003-10-22','weekday 7')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.10",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('2003-10-22','weekday 7')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-2.13",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2003-10-22 12:34','start of month')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d30312030303a30303a3030",
+          "value": "2003-10-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.13",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2003-10-22 12:34','start of month')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d30312030303a30303a3030",
+          "value": "2003-10-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.13",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2003-10-22 12:34','start of month')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d30312030303a30303a3030",
+          "value": "2003-10-01 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.16",
+      "encoding": "UTF-8",
+      "sql": "SELECT time('12:34:56.43')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "31323a33343a3536",
+          "value": "12:34:56"
+        }
+      ]
+    },
+    {
+      "id": "date-2.16",
+      "encoding": "UTF-16le",
+      "sql": "SELECT time('12:34:56.43')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "31323a33343a3536",
+          "value": "12:34:56"
+        }
+      ]
+    },
+    {
+      "id": "date-2.16",
+      "encoding": "UTF-16be",
+      "sql": "SELECT time('12:34:56.43')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "31323a33343a3536",
+          "value": "12:34:56"
+        }
+      ]
+    },
+    {
+      "id": "date-2.19",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2003-10-22 12:34','+1.25 day')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d32332031383a33343a3030",
+          "value": "2003-10-23 18:34:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.19",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2003-10-22 12:34','+1.25 day')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d32332031383a33343a3030",
+          "value": "2003-10-23 18:34:00"
+        }
+      ]
+    },
+    {
+      "id": "date-2.19",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2003-10-22 12:34','+1.25 day')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030332d31302d32332031383a33343a3030",
+          "value": "2003-10-23 18:34:00"
+        }
+      ]
+    },
+    {
+      "id": "date-3.2.1",
+      "encoding": "UTF-8",
+      "sql": "SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "70726535362e343332706f7374",
+          "value": "pre56.432post"
+        }
+      ]
+    },
+    {
+      "id": "date-3.2.1",
+      "encoding": "UTF-16le",
+      "sql": "SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "70726535362e343332706f7374",
+          "value": "pre56.432post"
+        }
+      ]
+    },
+    {
+      "id": "date-3.2.1",
+      "encoding": "UTF-16be",
+      "sql": "SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "70726535362e343332706f7374",
+          "value": "pre56.432post"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.2",
+      "encoding": "UTF-8",
+      "sql": "SELECT strftime('%s','2038-01-19 03:14:07')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32313437343833363437",
+          "value": "2147483647"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.2",
+      "encoding": "UTF-16le",
+      "sql": "SELECT strftime('%s','2038-01-19 03:14:07')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32313437343833363437",
+          "value": "2147483647"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.2",
+      "encoding": "UTF-16be",
+      "sql": "SELECT strftime('%s','2038-01-19 03:14:07')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32313437343833363437",
+          "value": "2147483647"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.6",
+      "encoding": "UTF-8",
+      "sql": "SELECT strftime('%s','1969-12-31 23:59:59')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d31",
+          "value": "-1"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.6",
+      "encoding": "UTF-16le",
+      "sql": "SELECT strftime('%s','1969-12-31 23:59:59')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d31",
+          "value": "-1"
+        }
+      ]
+    },
+    {
+      "id": "date-3.8.6",
+      "encoding": "UTF-16be",
+      "sql": "SELECT strftime('%s','1969-12-31 23:59:59')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d31",
+          "value": "-1"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-integer",
+      "encoding": "UTF-8",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01')",
+      "row": [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-integer",
+      "encoding": "UTF-16le",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01')",
+      "row": [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-integer",
+      "encoding": "UTF-16be",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01')",
+      "row": [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-subsec",
+      "encoding": "UTF-8",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01.250','subsec')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.4000000000000p+0"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-subsec",
+      "encoding": "UTF-16le",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01.250','subsec')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.4000000000000p+0"
+        }
+      ]
+    },
+    {
+      "id": "date-unixepoch-subsec",
+      "encoding": "UTF-16be",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01.250','subsec')",
+      "row": [
+        {
+          "type": "real",
+          "value": "0x1.4000000000000p+0"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.1",
+      "encoding": "UTF-8",
+      "sql": "SELECT timediff('2000-03-02','2000-01-31')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2b303030302d30312d30302030303a30303a30302e303030",
+          "value": "+0000-01-00 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.1",
+      "encoding": "UTF-16le",
+      "sql": "SELECT timediff('2000-03-02','2000-01-31')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2b303030302d30312d30302030303a30303a30302e303030",
+          "value": "+0000-01-00 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.1",
+      "encoding": "UTF-16be",
+      "sql": "SELECT timediff('2000-03-02','2000-01-31')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2b303030302d30312d30302030303a30303a30302e303030",
+          "value": "+0000-01-00 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.2",
+      "encoding": "UTF-8",
+      "sql": "SELECT timediff('2000-01-31','2000-03-02')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030302d30312d30322030303a30303a30302e303030",
+          "value": "-0000-01-02 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.2",
+      "encoding": "UTF-16le",
+      "sql": "SELECT timediff('2000-01-31','2000-03-02')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030302d30312d30322030303a30303a30302e303030",
+          "value": "-0000-01-02 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "timediff1-3.2",
+      "encoding": "UTF-16be",
+      "sql": "SELECT timediff('2000-01-31','2000-03-02')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030302d30312d30322030303a30303a30302e303030",
+          "value": "-0000-01-02 00:00:00.000"
+        }
+      ]
+    }
+  ]
+}
