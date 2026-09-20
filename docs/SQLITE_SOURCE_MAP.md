@@ -1303,7 +1303,7 @@ the pinned callback/direct-bytecode split and existing typed VDBE frame engine.
 
 | Pinned source | TypeScript owner | Public evidence |
 | --- | --- | --- |
-| `src/expr.c:sqlite3ExprCodeTarget` TK_COLUMN REAL branch; `src/vdbe.c:OP_Column`, `OP_RealAffinity`; record serial decode retains INTEGER | `src/internal/vdbe.ts` direct-column lowering emits `Column` then `RealAffinity`; VM realifies only an INTEGER `Mem` | `test/select/real-column-affinity.test.mjs`, `test/fixtures/real-affinity/*`: all three database encodings; integral/nonintegral REAL, NULL, int64 boundaries and neighboring NUMERIC/INTEGER; metadata and lifecycle |
+| `src/expr.c:sqlite3ExprCodeTarget` TK_COLUMN REAL branch; `src/vdbe.c:OP_Column`, `OP_RealAffinity`; record serial decode retains INTEGER | `src/internal/vdbe.ts` direct-column and expression-tree resolved-column lowering emit `Column` then `RealAffinity`; VM realifies only an INTEGER `Mem` | `test/select/real-column-affinity.test.mjs`, `test/fixtures/real-affinity/*`: all three database encodings; integral/nonintegral REAL, NULL, int64 boundaries and neighboring NUMERIC/INTEGER; direct, `typeof`, arithmetic, and aggregate consumers; metadata and lifecycle |
 
 This is not a record-decoder substitution: raw serial integers remain INTEGER and
 only a resolved declared-REAL column extraction receives the source opcode. Fresh

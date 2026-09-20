@@ -9,17 +9,17 @@
     "utf8.db": {
       "encoding": "UTF-8",
       "bytes": 12288,
-      "sha256": "e98d51d573f85cb119efde87aa2af61e75d3b20cc42329c26fc057062d966b12"
+      "sha256": "2bc32481ffc11f662d780753e4be23f74585c512010d259bfcde6cfbf6288be5"
     },
     "utf16le.db": {
       "encoding": "UTF-16le",
       "bytes": 12288,
-      "sha256": "cee21d302e83933398e0507608e2b72929abfc4ee4feb551ea5883b9d1499e60"
+      "sha256": "9b2abe4f87270de040fda7b7cebeb45de6bd78cba323d47595390878fac8fc65"
     },
     "utf16be.db": {
       "encoding": "UTF-16be",
       "bytes": 12288,
-      "sha256": "0dedacfefd50543d784169e55237c7b59fcbf4d93bac6f4e12aca1d87afa8a68"
+      "sha256": "7dd933d250cdf1cd8f7f3a48c1ef96b33048eda74767cbc471adcf5c9e74a14d"
     }
   }
 }

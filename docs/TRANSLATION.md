@@ -3103,11 +3103,20 @@ JavaScript-number heuristic. Fresh native baseline execution against source ID
 returned `real|20.0`, `real|10.0`, `real|35.5`, and `null|NULL` for
 `orders.amount` in every encoding; the pre-repair public path instead returned
 INTEGER/`bigint` for the compact 20 and 10 records. Commit
-`ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff` corrects that branch. Public Fetch
-tests in `test/select/real-column-affinity.test.mjs` over source-ID-pinned UTF-8,
-UTF-16le, and UTF-16be fixtures cover optimized 20.0/10.0, 35.5, NULL, signed
-int64 boundaries, neighboring NUMERIC/INTEGER columns, metadata, reset/finalize,
-and later connection use. NUMERIC/INTEGER and expression semantics are unchanged.
+`ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff` corrected direct projection, but was
+partial: expression-tree column reads still emitted bare `Column`. A fresh pinned
+oracle baseline for `typeof(amount),amount`, `sum/total/avg(amount)` on a single
+10.0 row, and `amount+0` returns REAL at every column consumer; the pre-follow-up
+public path reported `typeof` as `integer`, `sum` and arithmetic as INTEGER/`bigint`
+while direct `amount`, `total`, and `avg` happened to be REAL. Column-expression
+lowering now follows all applicable `expr.c:sqlite3ExprCodeTarget` branches and
+emits `RealAffinity` immediately after reading a resolved REAL column, before
+function, aggregate, or arithmetic consumers. Direct projection retains its
+existing operation. Public Fetch tests in `test/select/real-column-affinity.test.mjs`
+over source-ID-pinned UTF-8, UTF-16le, and UTF-16be fixtures cover these consumers,
+optimized 20.0/10.0, 35.5, NULL, signed int64 boundaries, neighboring
+NUMERIC/INTEGER columns, metadata, stable `columnType`, reset/finalize, and later
+connection use. Raw record decode and NUMERIC/INTEGER semantics are unchanged.
 
 #### Special built-in window execution ([[card:card-o-d-b]], 2026-09-19)
 

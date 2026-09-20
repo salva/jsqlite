@@ -723,3 +723,22 @@ dynamic width when present, consumes no conversion value, clears width, and emit
 nothing. Pinned-native/public literal and dynamic `%n` discriminators run under a
 five-byte ceiling while existing emitting-width failures and lifecycle controls
 remain covered.
+
+
+## Revision 2026-09-20 — declared REAL consumer coverage
+
+The 2026-09-19 `ab674fd` repair was partial: it realified direct projections but
+left expression-tree column reads as raw compact INTEGER records. Fresh source-ID-
+checked SQLite 3.53.4 returned TEXT `real` plus REAL 20.0 for
+`typeof(amount),amount`, and REAL 10.0 for each of `sum`, `total`, and `avg` on one
+row. Before this revision the public Fetch path returned TEXT `integer`, direct
+REAL 20, INTEGER/BigInt `sum`, and REAL `total`/`avg`; `amount+0` was also
+INTEGER/BigInt. Pinned `expr.c:sqlite3ExprCodeTarget` emits `OP_RealAffinity` after
+`OP_Column` in direct, aggregate direct/sorter, and general resolved-column
+branches; `vdbe.c` keeps raw `OP_Column` record storage distinct and realifies only
+`MEM_Int|MEM_IntReal`. The shared expression column-read lowering now emits the
+operation before every downstream consumer. Public three-encoding tests cover
+`typeof`, parameter-independent column arithmetic, supported single-row
+`sum`/`total`/`avg`, stable API `columnType`, reset/lifecycle, and existing REAL,
+NULL, int64 and neighboring NUMERIC/INTEGER cases. Raw record decoding and
+aggregate result-type patching remain deliberately unchanged.

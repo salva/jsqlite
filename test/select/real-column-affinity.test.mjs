@@ -11,8 +11,11 @@ for(const [encoding,file] of [['UTF-8','utf8.db'],['UTF-16le','utf16le.db'],['UT
  const db=await openBytes(path.resolve('test/fixtures/real-affinity',file));
  const orders=db.prepare('SELECT amount,id FROM orders').statement;
  assert.deepEqual(orders.columnMetadata(0),{name:'amount',declaredType:'REAL',database:'main',table:'orders',origin:'amount'});
- assert.deepEqual(await rows(orders),[[['real',20],['integer',1n]],[['real',10],['integer',2n]],[['real',35.5],['integer',3n]],[['null',null],['integer',4n]]]);
+ assert.deepEqual(await rows(orders),[[['real',20],['integer',10n]],[['real',10],['integer',11n]],[['real',35.5],['integer',12n]],[['null',null],['integer',13n]]]);
  assert.throws(()=>orders.column(0),e=>e?.kind==='misuse');orders.reset();assert.equal(await orders.step(),'row');assert.equal(orders.columnType(0),'real');assert.equal(orders.column(0),20);orders.finalize();
+ const consumers=db.prepare('SELECT typeof(amount),amount+0 FROM orders WHERE id=10').statement;assert.equal(await consumers.step(),'row');assert.equal(consumers.columnType(0),'text');assert.equal(consumers.column(0),'real');assert.equal(consumers.columnType(0),'text');assert.equal(consumers.columnType(1),'real');assert.equal(consumers.column(1),20);assert.equal(consumers.columnType(1),'real');assert.equal(await consumers.step(),'done');consumers.reset();assert.equal(await consumers.step(),'row');assert.deepEqual([consumers.columnType(0),consumers.column(0),consumers.columnType(1),consumers.column(1)],['text','real','real',20]);consumers.finalize();
+ const aggregates=db.prepare('SELECT sum(amount),total(amount),avg(amount) FROM orders WHERE id=11').statement;
+ assert.equal(await aggregates.step(),'row');assert.deepEqual(Array.from({length:3},(_,i)=>[aggregates.columnType(i),aggregates.column(i)]),[['real',10],['real',10],['real',10]]);assert.deepEqual(Array.from({length:3},(_,i)=>aggregates.columnType(i)),['real','real','real']);aggregates.finalize();
  const neighbors=db.prepare('SELECT r,n,i FROM neighbors').statement;
  assert.deepEqual(await rows(neighbors),[
   [['real',20],['integer',20n],['integer',20n]],
