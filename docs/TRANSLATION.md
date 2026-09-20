@@ -1198,7 +1198,7 @@ The additive, zero-credit baseline is `test/conformance/cases/stage3-expression-
 
 The first implementation tranche is deliberately bounded to reduction-derived expression nodes for NULL/INTEGER/REAL/TEXT/BLOB literals, variables and resolved columns; unary and binary arithmetic/comparison/boolean nodes; CAST, postfix built-in COLLATE, CASE, and function calls. It applies in projections and the existing full-scan WHERE. The consumer must replace token bags from generated reductions; reparsing token arrays or adding an evaluator is forbidden.
 
-Resolution uses an immutable built-in registry translated from `func.c`, ASCII case-insensitive names, exact arity before variadic candidates, and SQLite's distinct wrong-arity/no-such-function diagnostics. Initial functions are `typeof`, `length`, `octet_length`, `abs`, `coalesce`/`ifnull`, `nullif`, scalar `min`/`max`, and `substr`/`substring`; `replace` follows only with byte/output-limit enforcement. `coalesce`/`ifnull`, CASE, AND, and OR compile as lazy control flow, not eager callbacks. LIKE/GLOB are a later ordinary-function tranche because `patternCompare` escape, recursion/work, and blob policy are not yet pinned.
+Resolution uses an immutable built-in registry translated from `func.c`, ASCII case-insensitive names, exact arity before variadic candidates, and SQLite's distinct wrong-arity/no-such-function diagnostics. Initial functions are `typeof`, `length`, `octet_length`, `abs`, `coalesce`/`ifnull`, `nullif`, scalar `min`/`max`, and `substr`/`substring`; later ordinary-function tranches add the remaining represented registrations, including translated LIKE/GLOB. `coalesce`/`ifnull`, CASE, AND, and OR compile as lazy control flow, not eager callbacks.
 
 Expression flags carry resolved affinity and CollSeq: explicit COLLATE wins; otherwise comparisons follow SQLite left/right precedence, and column affinity is applied at comparison/cast call sites. Scalar min/max consume the selected CollSeq and preserve SQLite's first selected tie behavior. Required VDBE growth is literal loads, Cast, CollSeq, value and branch comparisons, Goto/If/IfNot/IsNull/NotNull, and Function/PureFunc over shared `Mem`.
 
@@ -1206,7 +1206,7 @@ A function context owns output `Mem`, arguments, selected CollSeq, first-error s
 
 Evidence limitations remain explicit: these companions and the dedicated native harness are no-credit implementation targets, not TS compatibility. The harness observes deterministic interruption rather than wall-clock timeout duration, and its host-registered error function is development provenance only. Detailed translated opcode/function work charges and injected deadline behavior still require implementation-side tests. This does not narrow the owner scope.
 
-Ordinary-function backlog after this tranche: `replace` limit/copy details; LIKE/GLOB pattern engine and ESCAPE/work policy; remaining core ordinary string functions. Aggregates/windows, date/time, math and JSON are not part of this tranche.
+Ordinary-function work after this historical tranche proceeded through separately mapped deliveries. The current represented registry includes translated `replace`, LIKE/GLOB, and the other ordinary scalar rows; aggregates/windows, date/time, math and JSON retain their own scope sections rather than being implied here.
 
 #### Expression/function gate evidence completion
 

@@ -667,13 +667,14 @@ pattern corpus and cross-encoding boundary gate pass. Public Fetch evidence
 for the owned tranche is 26 cases/44 immutable observations and includes bound
 parameters, no-FROM composition, exact expected errors, and both persisted-column
 cases across physical UTF-8/UTF-16LE/UTF-16BE fixtures. Mixed-owner rows compare
-owned projections only. This does not claim date/time, math, JSON, pattern, format,
-or round support. A post-review correction translates `quote(REAL)` through the
+owned projections only. This checkpoint did not claim date/time, math, JSON, format,
+or round support; its statement excluding pattern support was contradicted by the
+same paragraph's passing LIKE/GLOB evidence and is superseded by the current 50/50
+ordinary-scalar boundary. A post-review correction translates `quote(REAL)` through the
 shared `sqlite3FpDecode`/`%!0.17g` primitive instead of host number formatting,
 with pinned-native and public exact-output vectors for typed integral REAL, signed
 zero, round-trip/precision extremes, and infinities; quote TEXT/BLOB expansion now
-preflights `maxResultBytes`. The 47/50 denominator and formatting exclusions are
-unchanged.
+preflights `maxResultBytes`. The historical 47/50 checkpoint and its formatting exclusions are superseded by the current 50/50 accounting above.
 
 ### Revision: owned scalar bounded execution (2026-09-20)
 

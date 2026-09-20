@@ -1358,8 +1358,17 @@ accounting at this tranche checkpoint was 47 dispatchable and three represented
 non-dispatchable sibling rows: `printf`, `format`, and `round`; the formatting
 translation below supersedes that checkpoint. `src/internal/pattern.ts` maps `func.c:patternCompare`
 and `likeFunc` to an explicit-state LIKE/GLOB matcher (rather than host regex),
-including ESCAPE, ASCII folding, sets/ranges, NUL termination, the pinned pattern
-limit, and bounded-work control. `quote(REAL)` maps the distinct
+including ESCAPE, ASCII folding, sets/ranges, malformed classes, NUL termination, the pinned pattern
+limit, and bounded-work control. `src/internal/functions.ts` preserves `glob(2)` and
+`like(2|3)` registration/flags; `src/internal/resolve.ts` rejects wrong arity during
+prepare; infix lowering reverses candidate/pattern as `likeFunc` requires; and
+`src/internal/vdbe.ts` converts NULL/TEXT/BLOB in database encoding before normal
+Function-context dispatch. Public evidence is the five immutable observations,
+24 original boundaries, 90 cross-encoding source discriminators, 12 represented
+compositions, nine failure/reset/reuse lifecycles, and the focused window-rewrite
+case in `run-ordinary-scalars-pattern-ts.mjs` and
+`ordinary-scalars-pattern-window.test.mjs`. No RegExp, native SQLite, eval, or host
+callback is used. `quote(REAL)` maps the distinct
 `func.c:sqlite3QuoteValue` `%!0.17g` branch through the shared translated
 `util.c:sqlite3FpDecode` formatting primitive; typed pinned-native and public
 binding vectors cover integral REAL, signed zero, precision/subnormal boundaries,

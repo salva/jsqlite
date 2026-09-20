@@ -475,8 +475,16 @@ this does not advertise arbitrary window SQL.
 The represented SQLite 3.53.4 ordinary-scalar registry has 50/50 executable rows.
 `printf`, its `format` alias, and `round` execute through the translated SQLite
 formatter; `like` and `glob` execute through the translated
-pattern matcher; date/time, math, JSON, and host function/log callback
-registration are not exposed. Delivered scalar results preserve the five public
+pattern matcher. LIKE uses `%`/`_` with ASCII-only case folding; GLOB uses
+case-sensitive `*`/`?` and source-shaped classes, ranges, inversion, and malformed-
+class failure-to-match behavior. Infix operands are lowered to SQLite's pattern-
+first callback order. LIKE accepts the registered two- and three-argument forms;
+ESCAPE must decode to exactly one character (through the first embedded NUL) and
+otherwise raises SQLite code 1 during `step()`. NULL propagates, text matching
+stops at embedded NUL, and BLOB-to-text observables follow the physical database
+encoding. Pattern length, work, cancellation, and deadline controls are bounded;
+the implementation uses no RegExp, native SQLite, eval, or host callback.
+Date/time, math, JSON, and host function/log callback registration are not exposed. Delivered scalar results preserve the five public
 storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
 Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
 zero. `sqlite_log()` is a SQL NULL-producing no-op because this API has no host log

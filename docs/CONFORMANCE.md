@@ -499,9 +499,16 @@ The immutable denominator remains 50 rows and 37 cases/59 native observations.
 At this tranche checkpoint registry accounting was 47 dispatched and three
 explicitly unsupported sibling rows (`printf`, `format`, `round`); the integrated
 formatting evidence below supersedes it. The public pattern gate adds five
-immutable LIKE/GLOB observations and 24 boundary observations across the three
+immutable LIKE/GLOB observations and 24 original boundary observations across the three
 physical encodings, including BLOB conversion, ESCAPE and saved-error cleanup,
-sets/ranges, NULL/NUL, pattern length, work, cancellation, and deadline.
+sets/ranges, NULL/NUL, pattern length, work, cancellation, and deadline. The
+source-discriminator extension adds 90 cross-encoding assertions for `%`/`_`,
+ASCII-only folding, `*`/`?`, class/range/inversion/literal and malformed classes,
+Unicode, BLOB and embedded-NUL conversion, ESCAPE wildcards/NUL/NULL, exact arity
+and step-error shapes, and adversarial work. Twelve represented column, parameter,
+join, subquery and aggregate compositions and nine failure-reset-reuse lifecycles
+run through Public Fetch; the separate focused window case covers a LIKE predicate
+moved through window rewriting.
 `run-ordinary-scalars-owned-ts.mjs` gives this tranche 26-case/44-observation public
 Fetch evidence across physical UTF-8/UTF-16LE/UTF-16BE fixtures. It includes owned
 projections of parameter/composition/variadic mixed rows and persisted columns;
