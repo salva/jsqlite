@@ -1381,3 +1381,14 @@ and saved-error/finalize behavior. The foundation gate additionally checks exact
 `round` wrong-arity diagnostics. Registry accounting is now 50/50 dispatchable;
 the immutable spec's 12/38 `tsStatus` fields remain historical allocation metadata,
 not current runtime support.
+
+#### Formatting fidelity correction ([[card:card-p-b-b]])
+
+Review correction maps `printf.c`'s `etORDINAL`, `cThousand`, end-of-format `%`,
+negative `*` precision, `adjust_width_for_utf8`, and floating special-value
+branches explicitly into `src/internal/printf.ts`. The same translation now
+pre-admits every width/precision-driven repeat, padding/grouping expansion, and
+floating temporary before allocation. Public discriminators in
+`run-ordinary-scalars-format-ts.mjs` match the manifest-pinned oracle for `%r`,
+`%,d`, terminal `%`, UTF-8 width, negative precision, and infinity spelling, and
+exercise hostile literal/dynamic dimensions under a five-byte result ceiling.

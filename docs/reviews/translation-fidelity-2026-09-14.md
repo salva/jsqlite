@@ -691,3 +691,15 @@ aliases/arities/diagnostics, values, parameters, composition, output bounds and
 saved-error cleanup. The 12/38 fields in the immutable tests-first spec remain
 historical allocation metadata only. Date/time, math, JSON, aggregate and window
 surfaces are not included in this 50-row denominator.
+
+### Revision: formatting fidelity and allocation admission (2026-09-20, [[card:card-p-b-b]])
+
+The ordinary-scalar integration formatting claim is now backed by a corrective
+source comparison rather than the initial partial implementation. Missing
+`printf.c` branches for `%r`, comma grouping, terminal `%`, UTF-8 byte/character
+width, negative dynamic precision, and floating special values are translated.
+All dimension-driven materialization is checked before allocation and reports
+the typed result-limit error with normal saved-error/finalize cleanup. Focused
+public values were independently matched against the manifest-source-ID-pinned
+oracle; hostile dimensions and later connection reuse are covered locally. This
+correction changes no denominator or product scope.

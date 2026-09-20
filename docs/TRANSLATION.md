@@ -3189,3 +3189,15 @@ adaptation and remains guarded by the connection result-byte limit. Focused
 public tests preserve NULL/missing arguments, embedded-NUL termination,
 flags/width/precision, integer/REAL boundaries, escaping, composition,
 parameters, and statement saved-error cleanup.
+
+### 2026-09-20 formatting fidelity correction ([[card:card-p-b-b]])
+
+The formatting translation now includes source branches omitted by its first
+revision: `etORDINAL` (`%r`), decimal comma grouping, terminal `%`, negative
+dynamic precision, ordinary byte-counted versus `!` character-counted UTF-8
+width, and explicit NaN/infinity zero-padding/sign handling. Width, precision,
+padding, grouping, escaping, and floating temporary sizes are admitted before
+host string allocation, so hostile dimensions fail as the public `limit` error
+rather than a JavaScript `RangeError`. These are direct pinned `printf.c`
+branches, not an algorithm substitution; the public gate also checks saved-error
+identity, finalize cleanup, and subsequent connection use.

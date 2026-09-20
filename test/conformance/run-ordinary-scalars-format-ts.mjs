@@ -15,6 +15,10 @@ try{
   assert.deepEqual(await row("SELECT printf('%d|%lld|%.17g|%q|%Q|%w',2147483648,9223372036854775807,1.2345678901234567,'a''b','a''b','a\"b'),format('%!g',1.0/3.0)"),["2147483648|9223372036854775807|1.234567890123457|a''b|'a''b'|a\"\"b",'0.333333']);
   assert.deepEqual(await row("SELECT printf(NULL,1),printf('%d/%s/%Q',NULL,NULL,NULL)"),[null,'0//NULL']);
   assert.deepEqual(await row("SELECT printf('%08d|%-5s|%.3s|%x|%o|%%',?1,?2,?3,?4,?4),round(?5,?6)",[12n,'xy','abcdef',255n,2.675,2n]),['00000012|xy   |abc|ff|377|%',2.68]);
+  assert.deepEqual(await row("SELECT printf('%r|%,d|abc%',1,1234567)"),['1st|1,234,567|abc%']);
+  assert.deepEqual(await row("SELECT printf('[%5s][%!5s]','é','é'),printf('[%.*s]',-2,'abcd')"),['[   é][    é]','[ab]']);
+  assert.deepEqual(await row("SELECT printf('%f|%0.2e|%+f|% f',1e999,1e999,-1e999,1e999)"),['Inf|9.00e+999|-Inf| Inf']);
+  assert.deepEqual(await row("SELECT printf('%f|%0f',NULL,NULL)"),['0.000000|0.000000']);
   // The SQL formatter reads C strings: a NUL terminates both the format and
   // converted text. Dynamic width/precision consume arguments in source order.
   assert.deepEqual(await row("SELECT printf(?1,?2,99),format(?3,?4,?5,?6)",['[%s]\0%d','ab\0cd','%0*.*f',8n,2n,1.25]),['[ab]','00001.25']);
@@ -31,6 +35,8 @@ try{
    const s=limited.prepare("SELECT printf('%s',?1)").statement;s.bind(1,'abcdef');let saved;try{await s.step()}catch(error){saved=error}assert.equal(saved?.kind,'limit');assert.equal(saved?.message,'string or blob too big');await assert.rejects(()=>s.step(),error=>error===saved);
    assert.throws(()=>s.reset(),error=>error===saved);s.bind(1,'ok');assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'ok');assert.equal(await s.step(),'done');s.finalize();
    const reuse=limited.prepare("SELECT format('%d',7)").statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnText(0),'7');reuse.finalize();
+   for(const sql of ["SELECT printf('%999999999s','x')","SELECT printf('%*s',999999999,'x')","SELECT printf('%.*f',999999999,1.0)"]){const hostile=limited.prepare(sql).statement;let error;try{await hostile.step()}catch(caught){error=caught}assert.equal(error?.kind,'limit');assert.equal(error?.message,'string or blob too big');await assert.rejects(()=>hostile.step(),caught=>caught===error);assert.throws(()=>hostile.finalize(),caught=>caught===error)}
+   const afterHostile=limited.prepare("SELECT printf('%r',2)").statement;assert.equal(await afterHostile.step(),'row');assert.equal(afterHostile.columnText(0),'2nd');afterHostile.finalize();
   }finally{limited.closeDeferred()}
 
   // Formatting output is charged incrementally and observes all Statement controls.
