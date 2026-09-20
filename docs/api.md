@@ -469,3 +469,14 @@ windows may share execution; represented incompatible windows nest through joins
 grouping, subqueries, CTEs/recursive producers, compounds, and outer ORDER/LIMIT.
 An unrepresented expression or composition rejects atomically during prepare;
 this does not advertise arbitrary window SQL.
+
+### Ordinary scalar boundary
+
+The represented SQLite 3.53.4 ordinary-scalar registry has 45 executable rows.
+`printf`, `format`, `round`, `glob`, and `like` remain temporary unsupported and
+are rejected during prepare; date/time, math, JSON, and host function/log callback
+registration are not exposed. Delivered scalar results preserve the five public
+storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
+Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
+zero. `sqlite_log()` is a SQL NULL-producing no-op because this API has no host log
+callback.

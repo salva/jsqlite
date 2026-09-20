@@ -656,3 +656,14 @@ whole-SQLite window or SELECT compatibility. Remaining limitations are
 prepare-time rejection of unrepresented expressions/compositions and the stated
 source-only controls. No generic host-array/full-partition recomputation exception
 was adopted.
+
+## Revision 2026-09-20 — ordinary scalar registry delivery
+
+The earlier 12/38 and 14/36 ordinary-scalar predictions are superseded. The shared
+registry now reports 45 dispatchable rows and five represented non-dispatchable
+sibling rows: `printf`, `format`, `round`, `glob`, and `like`. Public Fetch evidence
+for the owned tranche is 26 cases/44 immutable observations and includes bound
+parameters, no-FROM composition, exact expected errors, and both persisted-column
+cases across physical UTF-8/UTF-16LE/UTF-16BE fixtures. Mixed-owner rows compare
+owned projections only. This does not claim date/time, math, JSON, pattern, format,
+or round support.

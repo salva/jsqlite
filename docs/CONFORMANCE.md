@@ -492,3 +492,14 @@ Following independent review `record:///review.md?card=card-p-a&v=3`, the scalar
 The corrected persisted-column gate requires the manifest-pinned native library: `python3 test/conformance/ordinary-scalars-manifest.test.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"`. Capture opens the exact hashed fixtures, and validation independently opens them read-only and compares all typed rows. This supersedes the invalid synthetic UTF-16 `CAST(X'410042' AS TEXT)` setup without changing counts or TS credit.
 
 The final coherence rerun used the exact existing library at `/work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`: `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`. It reported 50 rows, 37 cases/59 observations, and 12 implemented/38 absent after verifying source ID and executing both persisted cases against every hashed physical fixture. The former argument-less transcript was invalid and is superseded.
+
+### Ordinary scalar implementation evidence ([[card:card-p-b-a-b]])
+
+The immutable denominator remains 50 rows and 37 cases/59 native observations.
+Current registry accounting is 45 dispatched and five explicitly unsupported
+sibling rows (`printf`, `format`, `round`, `glob`, `like`).
+`run-ordinary-scalars-owned-ts.mjs` gives this tranche 26-case/44-observation public
+Fetch evidence across physical UTF-8/UTF-16LE/UTF-16BE fixtures. It includes owned
+projections of parameter/composition/variadic mixed rows and persisted columns;
+it never executes or credits sibling rows. Expected failures compare prepare/step
+phase, SQLite kind, result/primary/extended codes, and exact message.

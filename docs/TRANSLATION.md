@@ -3141,3 +3141,27 @@ After the persisted-column UTF-16 equivalence refutation, scalar native capture 
 The current ordinary-scalar denominator is 50 active rows. The immutable profile registry in `src/internal/functions.ts` now represents all 50 names, exact/variadic effective arities, macro-derived flags, and dispatchability. Resolver matching follows `callback.c:matchQuality`'s exact-before-variadic result (including scalar min/max only at two or more arguments), preserves SQLite wrong-arity/no-such-function diagnostics, and reports represented but untranslated callbacks as typed temporary unsupported rather than claiming dispatch. Ordinary SELECT calls lower to the existing VDBE `Function`, matching pinned `sqlite3VdbeAddFunctionCall`: `PureFunc` is selected by a nonzero special call context (CHECK/index/generated-column), not by the registration's CONSTANT flag. The registry nevertheless retains source flags for later context validation. The shared `FunctionContext` now owns indexed aux state as well as its result Mem: replacement/final cleanup is once-only and the first evaluation error retains precedence over cleanup failures. This foundation does not implement or claim printf/format, round formatting, or any other staged callback. The source contract remains 37 cases/59 native observations. The initial inventory was 12 dispatched/38 non-dispatchable rows; the first implementation tranche adds `upper`/`lower`, leaving 14 dispatched/36 non-dispatchable rows. `src/func.c:upperFunc/lowerFunc` is translated as UTF-8 text coercion followed by bytewise ASCII-only mapping, preserving non-ASCII bytes and embedded NUL; result limits and execution checks are applied while scanning. Four immutable-corpus observations exercise public Fetch, no-FROM, NULL, BLOB-to-TEXT, and embedded-NUL behavior in `test/conformance/run-ordinary-scalars-ascii-case-ts.mjs`. Remaining unsupported public observations remain zero credit. `test/conformance/run-ordinary-scalar-foundation-ts.mjs` and the extended cleanup runner provide focused foundation evidence.
 
 The current ordinary-scalar denominator was initially captured as 50 active rows, 37 cases/59 native observations, and 12 dispatched/38 absent. Its physical-fixture gate must be run with a pinned library, for example `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; an argument-less invocation is not a valid check. The final rerun verified the source ID and both persisted cases against all three exact fixtures.
+
+### Ordinary non-pattern/non-format scalar delivery ([[card:card-p-b-a-b]])
+
+The 50-row pinned registry now dispatches 45 rows. This tranche translates the 31
+previously absent owned rows through the shared `FunctionContext`/VDBE path:
+`unlikely`, `likelihood`, `likely`, `ltrim`, `rtrim`, `trim`, `subtype`, `instr`,
+`unicode`, `unhex`, `concat`, `concat_ws`, `unistr`, `quote`, `unistr_quote`,
+`zeroblob`, `substring`, `sign`, `ifnull`, `coalesce`, `iif`, `if`, `random`,
+`randomblob`, `last_insert_rowid`, `changes`, `total_changes`, `sqlite_version`,
+`sqlite_source_id`, `sqlite_log`, `sqlite_compileoption_used`, and
+`sqlite_compileoption_get`; `upper`/`lower` were the preceding tranche. Read-only
+connection mutation counters are observably zero. `sqlite_log` preserves its SQL
+NULL result but intentionally has no host diagnostic callback because this browser
+API exposes none. The compiler-inline forms retain short-circuit control flow.
+
+Exactly five represented sibling rows remain non-dispatchable: `printf`, `format`,
+`round`, `glob`, and `like`. Date/time, math, and JSON remain out of this registry.
+The owned public Fetch gate compares 26 cases/44 observations, including parameters,
+no-FROM expressions, compositions, expected prepare errors, and persisted physical
+UTF-8/UTF-16 columns. Mixed-owner corpus rows are projected to owned columns, so
+unsupported sibling functions receive no TypeScript credit. `func.c:upperFunc`
+first requests UTF-8 text; for BLOB input that conversion begins in the database
+encoding, which is why the persisted embedded-NUL BLOB result differs across the
+three physical encodings.

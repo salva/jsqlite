@@ -1338,3 +1338,17 @@ The scalar machine map distinguishes raw FuncDef matching from effective scalar 
 Independent review `record:///review.md?card=card-p-a&v=3` prompted a complete 50-row semantic-owner audit. Each ordinary registry row now maps its recorded routine into its source slice and covering cases; inline registrations map explicitly to `sqlite3ExprCodeTarget`. In particular CHAR owns `charFunc`, UNISTR owns `unistrFunc` plus `isNHex` and `sqlite3AppendOneUtf8Character`, and UNICODE alone owns `unicodeFunc`. Persisted-column cases use `scalar_values` in all three physical encoding fixtures; pinned native capture and validation open those exact hashed fixtures directly, avoiding synthetic encoding conversions.
 
 Current ordinary-scalar handoff accounting is 50 active registry rows, 37 cases/59 native observations, and 12 dispatched/38 absent. Final validation used `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; this loads and source-ID-checks the pinned library and executes the persisted-column cases against all three exact hashed fixtures. Any earlier argument-less transcript is invalid/superseded.
+
+### Non-pattern/non-format ordinary scalar implementation ([[card:card-p-b-a-b]])
+
+`src/internal/functions.ts`, `src/internal/ordinary-scalars.ts`, and
+`src/internal/vdbe.ts` map the delivered rows to pinned `src/func.c:aBuiltinFunc`,
+`trimFunc`, `instrFunc`, `unicodeFunc`, `charFunc`, `unistrFunc`, `quoteFunc`,
+`unhexFunc`, `zeroblobFunc`, `concatFunc`/`concatwsFunc`, `signFunc`, random/state/
+identity/compile-option callbacks; compiler-inline conditionals and hints map to
+`src/expr.c:sqlite3ExprCodeTarget`. Text/value conversion follows `src/utf.c`,
+`src/vdbemem.c`, and `src/vdbeapi.c`. `||` lowering maps to `src/expr.c:TK_CONCAT`
+and `src/vdbe.c:OP_Concat`. The browser adaptation for `sqlite_log` is a no-op
+sink because no host log callback is public; its SQL result remains NULL. Registry
+accounting is 45 dispatchable and five represented non-dispatchable sibling rows:
+`printf`, `format`, `round`, `glob`, `like`.

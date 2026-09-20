@@ -368,6 +368,7 @@ export class Mem {
     if (this.#manifest === "null" || this.#manifest === "aggregate") throw new MemError("invalid-state", "subtype requires an ordinary non-NULL value");
     this.#subtype = subtype;
   }
+  subtypeValue(): number { return this.#subtype ?? 0; }
   markFromBind(): void { this.#fromBind = true; }
 
   integerValue(): bigint {

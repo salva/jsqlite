@@ -6,10 +6,15 @@ import {compileScalarSelect,programOpcodeNames} from "../../src/internal/vdbe.ts
 assert.equal(builtinFunctionRegistry.length,50);
 assert.ok(Object.isFrozen(builtinFunctionRegistry));
 assert.deepEqual(builtinFunction("substring")?.exactArities,[2,3]);
-assert.equal(builtinFunction("substring")?.dispatchable,false);
+assert.equal(builtinFunction("substring")?.dispatchable,true);
 assert.equal(builtinFunction("upper")?.dispatchable,true);
 assert.equal(builtinFunction("lower")?.dispatchable,true);
-assert.equal(builtinFunction("ifnull")?.dispatchable,false);
+assert.equal(builtinFunction("ifnull")?.dispatchable,true);
+assert.equal(builtinFunction("printf")?.dispatchable,false);
+assert.equal(builtinFunction("format")?.dispatchable,false);
+assert.equal(builtinFunction("round")?.dispatchable,false);
+assert.equal(builtinFunction("glob")?.dispatchable,false);
+assert.equal(builtinFunction("like")?.dispatchable,false);
 assert.equal(builtinFunction("nullif")?.flags.includes("need-collation"),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("printf"),0),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("printf"),1000),true);
