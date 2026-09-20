@@ -637,7 +637,7 @@
           [
             {
               "type": "real",
-              "value": "0x1.dcd6500100000p+29"
+              "value": "0x1.c36a1c0100000p+29"
             },
             {
               "type": "text",
@@ -647,7 +647,7 @@
           [
             {
               "type": "real",
-              "value": "0x1.d294cd0200000p+29"
+              "value": "0x1.d27e440200000p+29"
             },
             {
               "type": "text",
@@ -719,6 +719,10 @@
           {
             "inputUnixSecond": "946692000",
             "return": "2000-01-01 04:00:00"
+          },
+          {
+            "inputUnixSecond": "946684800",
+            "return": "2000-01-01 02:00:00"
           }
         ]
       },
@@ -727,7 +731,7 @@
         "execute one row"
       ],
       "expected": {
-        "localCalls": 2,
+        "localCalls": 3,
         "row": [
           {
             "type": "text",
