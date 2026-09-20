@@ -1459,3 +1459,12 @@ The local-time provider is a browser adaptation because ECMAScript exposes host
 civil-time fields rather than SQLite's platform `localtime_r`; the translated UTC
 iteration and observable SQL output/error behavior remain source-shaped. No public
 host callback API, parallel evaluator, native/WASM path, or `Date.parse` is used.
+
+#### Date/time follow-up branch map ([[card:card-q-a-b]])
+
+| Pinned branch | Current owner / evidence |
+|---|---|
+| `isDate` non-numeric `sqlite3_value_text`; `parseDateOrTime` initial `subsec`/`subsecond` | `date-time.ts:textArg/parse`; cross-encoding public BLOB and lazy clock/reset checks |
+| `toLocaltime` 1970..2038 direct branch, equivalent-year mapping, `osLocaltime` failure | `date-time.ts:localJulian`; deterministic mapped provider input plus null/throw/invalid-field SQLite-error lifecycle |
+| `strftimeFunc` `%Y`, `%F`, `%G`, `%g` signed integer formatting | `date-time.ts:format`; public negative/year-zero exact TEXT checks across three encodings |
+| VDBE interrupt checks during `strftimeFunc` scan | shared `DateTimeControl.charge`; public AbortSignal identity/reset/finalize check |

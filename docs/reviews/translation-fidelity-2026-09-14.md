@@ -793,3 +793,11 @@ checks. This revision does not claim exhaustive `date.c` equivalence. The manife
 18 selected upstream assertions now carry 18/18 TypeScript credit after exact public
 execution in all three encodings; companion, boundary, and seam vectors remain
 zero-credit evidence.
+
+## Revision 2026-09-20 — independent date/time follow-up
+
+Review v3 for [[card:card-q-a]] found residual pinned branches despite 18/18 selected
+credit. The implementation now covers BLOB-to-text initial arguments, initial
+`subsec`/`subsecond`, `toLocaltime` equivalent-year mapping and normalized provider
+failures, and signed `%Y/%F/%G/%g`; public tests add three-encoding and deterministic
+seam/cancellation evidence. The denominator remains exactly 18 selected assertions.
