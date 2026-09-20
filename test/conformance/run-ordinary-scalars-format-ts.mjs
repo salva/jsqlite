@@ -32,7 +32,7 @@ try{
   assert.throws(()=>db.prepare(overLimit),error=>error?.kind==='sqlite'&&error.code===1&&error.message==='too many arguments on function printf');
 
   const limited=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{limits:{maxResultBytes:5,maxWorkUnits:10000}});try{
-   assert.deepEqual(await (async()=>{const s=limited.prepare(`SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b')`).statement;try{assert.equal(await s.step(),'row');return Array.from({length:s.columnCount},(_,i)=>s.column(i))}finally{s.finalize()}})(),['x','',"a''b","'x'",'a""b']);
+   assert.deepEqual(await (async()=>{const s=limited.prepare(`SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b'),printf('%.2c','é')`).statement;try{assert.equal(await s.step(),'row');return Array.from({length:s.columnCount},(_,i)=>s.column(i))}finally{s.finalize()}})(),['x','',"a''b","'x'",'a""b','éé']);
    const s=limited.prepare("SELECT printf('%s',?1)").statement;s.bind(1,'abcdef');let saved;try{await s.step()}catch(error){saved=error}assert.equal(saved?.kind,'limit');assert.equal(saved?.message,'string or blob too big');await assert.rejects(()=>s.step(),error=>error===saved);
    assert.throws(()=>s.reset(),error=>error===saved);s.bind(1,'ok');assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'ok');assert.equal(await s.step(),'done');s.finalize();
    const reuse=limited.prepare("SELECT format('%d',7)").statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnText(0),'7');reuse.finalize();

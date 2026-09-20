@@ -48,7 +48,7 @@ try:
         ("SELECT printf('%r|%,d|abc%',1,1234567)", ["1st|1,234,567|abc%"]),
         ("SELECT printf('[%5s][%!5s]','é','é'),printf('[%.*s]',-2,'abcd')", ["[   é][    é]", "[ab]"]),
         ("SELECT printf('%f|%0.2e|%+f|% f',1e999,1e999,-1e999,1e999)", ["Inf|9.00e+999|-Inf| Inf"]),
-        ("""SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b')""", ["x", "", "a''b", "'x'", 'a""b']),
+        ("""SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b'),printf('%.2c','é')""", ["x", "", "a''b", "'x'", 'a""b', "éé"]),
     ]
     for sql, expected in cases:
         assert execute(db, sql) == expected
