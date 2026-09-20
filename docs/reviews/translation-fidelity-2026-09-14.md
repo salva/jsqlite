@@ -808,3 +808,14 @@ Host localtime provider fields now require a valid month-specific civil day,
 including leap-year validity, before conversion. This boundary validation is
 separate from and does not tighten SQLite's permissive SQL input-date normalization.
 Deterministic seams cover invalid non-leap February 29, April 31, and valid leap day.
+
+## Revision 2026-09-20 — enabled math delivery
+
+The tests-first math finding is superseded: all 30 enabled registration rows (29
+names) now resolve and execute through shared VDBE Function dispatch. The owning
+wrapper translation is `src/internal/math.ts`, mapped to `func.c:ceilingFunc`,
+`logFunc`, `math1Func`, `math2Func`, and `piFunc`; it retains Mem numeric/storage
+semantics and NaN-to-NULL. ECMAScript `Math` is the browser-safe libm adaptation.
+The immutable public corpus passes 20/20 cases and 60/60 observations across
+UTF-8, UTF-16LE and UTF-16BE. Cross-host finite transcendental last-bit identity
+remains a portability limit, not an advertised guarantee.

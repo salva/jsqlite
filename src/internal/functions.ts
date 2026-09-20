@@ -65,7 +65,19 @@ if(entries.length!==50) throw new Error("ordinary scalar registry must contain 5
 const dateEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
  definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,1),definition("timediff",[2],C,true),definition("current_time",[0],V,true),definition("current_date",[0],V,true),definition("current_timestamp",[0],V,true),
 ]);
-const byName = new Map([...entries,...dateEntries].map(entry=>[entry.name,entry] as const));
+// func.c's SQLITE_ENABLE_MATH_FUNCTIONS block. Multiple FuncDef rows for log
+// are represented by its exact arity set, just as the ordinary catalog does.
+const M=(name:string,arities:readonly number[])=>definition(name,arities,C,true);
+const mathEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
+ M("ceil",[1]),M("ceiling",[1]),M("floor",[1]),M("trunc",[1]),
+ M("ln",[1]),M("log",[1,2]),M("log10",[1]),M("log2",[1]),
+ M("exp",[1]),M("pow",[2]),M("power",[2]),M("mod",[2]),
+ M("acos",[1]),M("asin",[1]),M("atan",[1]),M("atan2",[2]),
+ M("cos",[1]),M("sin",[1]),M("tan",[1]),M("cosh",[1]),M("sinh",[1]),M("tanh",[1]),
+ M("acosh",[1]),M("asinh",[1]),M("atanh",[1]),M("sqrt",[1]),
+ M("radians",[1]),M("degrees",[1]),M("pi",[0]),
+]);
+const byName = new Map([...entries,...dateEntries,...mathEntries].map(entry=>[entry.name,entry] as const));
 export const builtinFunctionRegistry: readonly BuiltinFunctionDefinition[] = entries;
 export function builtinFunction(name:string):BuiltinFunctionDefinition|undefined{return byName.get(name);}
 export function builtinFunctionAccepts(definition:BuiltinFunctionDefinition,argc:number):boolean{

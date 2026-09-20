@@ -1478,11 +1478,18 @@ host callback API, parallel evaluator, native/WASM path, or `Date.parse` is used
 
 | Surface | Pinned source | Project evidence | Status |
 |---|---|---|---|
-| 30 math registrations / 29 names | `src/func.c:aBuiltinFunc` `SQLITE_ENABLE_MATH_FUNCTIONS`; `src/sqliteInt.h:FUNCTION/MFUNCTION` | `stage3-math.spec.json`, `math-manifest.test.py` | exact registry/arity/flags/user-data/callback inventory; runtime absent |
-| conversion and wrapper branches | `src/func.c:ceilingFunc`, `logFunc`, `math1Func`, `math2Func`, `piFunc`; `src/vdbemem.c:sqlite3VdbeMemSetDouble` | 20 cases / 60 observations in `stage3-math.native.json` | native reference only, zero TS credit |
-| upstream behavior selection | `test/func7.test` (`func7-100`, `110`, `200`, `210`, PostgreSQL/MySQL-derived assertions) | `capture-math.py`; public `run-math-cases-ts.mjs` | source-linked; public runner honestly verifies temporary absence |
+| 30 math registrations / 29 names | `src/func.c:aBuiltinFunc` `SQLITE_ENABLE_MATH_FUNCTIONS`; `src/sqliteInt.h:FUNCTION/MFUNCTION` | `functions.ts` immutable arity/flag registry; `stage3-math.spec.json`, `math-manifest.test.py` | enabled through shared resolver/compiler/VDBE dispatch |
+| conversion and wrapper branches | `src/func.c:ceilingFunc`, `logFunc`, `math1Func`, `math2Func`, `piFunc`; `src/vdbemem.c:sqlite3VdbeMemSetDouble` | `math.ts`; 20 cases / 60 observations in `stage3-math.native.json` | public typed match, 20/20 credit |
+| upstream behavior selection | `test/func7.test` (`func7-100`, `110`, `200`, `210`, PostgreSQL/MySQL-derived assertions) | `capture-math.py`; public `run-math-cases-ts.mjs` | source-linked public pass across three encodings |
 
 The development oracle profile is SQLite 3.53.4 with
 `ENABLE_COLUMN_METADATA` and `ENABLE_MATH_FUNCTIONS`; this build exposes `trunc`,
 `acosh`, `asinh`, and `atanh`, establishing C99 availability for the captured
-profile. Host-libm exactness outside the captured environment remains unresolved.
+profile. The TypeScript adaptation uses ECMAScript `Math` as the browser-safe
+libm surface while retaining the pinned wrapper branches: SQLite numeric-type
+conversion (numeric TEXT only; BLOB rejection), INTEGER preservation for
+ceil/floor/trunc, domain/NaN-to-NULL, REAL outputs, infinity, signed zero,
+log base control, aliases and arities. The immutable corpus currently passes
+20/20 cases (60/60 encoding-specific observations). Finite transcendental
+bit-level identity beyond the captured host/profile remains a documented libm
+portability limit rather than a cross-engine guarantee.

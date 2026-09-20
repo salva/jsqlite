@@ -549,6 +549,6 @@ pass through JSON numbers. Cases cover parameters, persisted REAL/TEXT/BLOB/NULL
 columns, composition, coercion, domains/poles, NaN-to-NULL, infinity, precision,
 and result storage class. `capture-math.py` pins source/profile and
 `math-manifest.test.py` rejects registry or capture drift. `run-math-cases-ts.mjs`
-uses only the public API; absent functions are expected and earn **0/20** TS credit.
+uses only the public API and requires **20/20** TS credit (60/60 observations).
 Finite transcendental payloads are observations of this host libm, not a claim that
 all supported hosts return identical last bits.

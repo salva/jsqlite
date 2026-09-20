@@ -23,6 +23,7 @@ import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf
 import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
+import {evaluateMathFunction,isMathFunction} from "./math.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -1489,7 +1490,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="column") { const r=allocate();if(expression.index<0)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
-  if(expression.kind==="unary") { const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
+  if(expression.kind==="unary") { if(expression.op==="-"&&expression.value.kind==="literal"&&typeof expression.value.value==="number"){const r=allocate();ops.push({code:"Real",p1:-expression.value.value,p2:r});return r}const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
   if(expression.kind==="binary") {
     const left=emit(expression.left);
     // expr.c sqlite3ExprIfTrue/sqlite3ExprIfFalse can omit the RHS when a
@@ -2793,6 +2794,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  const out=new Mem(),charge=(units:number)=>control?.charge(units),checkSize=(bytes:number)=>{if(!Number.isSafeInteger(bytes)||bytes<0||(control&&bytes>control.maxResultBytes))throw new JSQLiteError("limit","string or blob too big")};
  const workBytes=(bytes:number)=>{if(bytes>0)charge(Math.ceil(bytes/256))},checkpoint=(index:number)=>{if((index&255)===0){charge(1);control?.check()}};
  if(["julianday","unixepoch","date","time","datetime","strftime","timediff","current_time","current_date","current_timestamp"].includes(name))return evaluateDateTime(name,a,encoding,control?.now??(()=>BigInt(Date.now())),control?.dateTimeEnvironment??defaultDateTimeEnvironment,control);
+ if(isMathFunction(name))return evaluateMathFunction(name,a,encoding);
  if(name==="likely"||name==="unlikely"||name==="likelihood")return a[0]!;
  if(name==="subtype"){out.setInt64(BigInt(a[0]!.subtypeValue()));return out}
  if(name==="sqlite_version")return scalarText(SQLITE_VERSION);
