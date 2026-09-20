@@ -136,6 +136,25 @@ try{
     const reuse=db.prepare("SELECT concat('ok','!')").statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnText(0),'ok!');reuse.finalize();
   }finally{db.closeDeferred();}
 }
+// Exact output boundaries remain admitted. In particular, unistr_quote must
+// choose its ordinary quote fallback before applying the larger unistr wrapper.
+{
+  const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent('UTF-8')}`),{limits:{maxResultBytes:12,maxWorkUnits:10000}});
+  try{
+    const vectors=[
+      ["SELECT length(unistr(?1))",'\\u20ac'.repeat(4),null,4n],
+      ["SELECT length(unistr_quote(?1))",'\\',null,12n],
+      ["SELECT length(concat(?1,?1))",'123456',null,12n],
+      ["SELECT length(concat_ws(?1,?2,?2))",'--','12345',12n],
+      ["SELECT length(char(?1,?1,?1))",128512n,null,3n],
+      ["SELECT length(unhex(?1))",'00'.repeat(12),null,12n],
+      ["SELECT length(zeroblob(?1))",12n,null,12n],
+      ["SELECT length(randomblob(?1))",12n,null,12n],
+    ];
+    for(const [sql,one,two,length] of vectors){const statement=db.prepare(sql).statement;statement.bind(1,one);if(two!==null)statement.bind(2,two);assert.equal(await statement.step(),'row',sql);assert.equal(statement.columnInteger(0),length,sql);statement.finalize()}
+    const fallback=db.prepare("SELECT unistr_quote('a')").statement;assert.equal(await fallback.step(),'row');assert.equal(fallback.columnText(0),"'a'");fallback.finalize();
+  }finally{db.closeDeferred();}
+}
 // Costly scalar loops charge deterministic internal work in addition to input
 // admission. Near-match instr is deliberately adversarial to its pinned nested scan.
 {
