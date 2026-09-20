@@ -674,3 +674,7 @@ with pinned-native and public exact-output vectors for typed integral REAL, sign
 zero, round-trip/precision extremes, and infinities; quote TEXT/BLOB expansion now
 preflights `maxResultBytes`. The 47/50 denominator and formatting exclusions are
 unchanged.
+
+### Revision: owned scalar bounded execution (2026-09-20)
+
+The review-v6 findings for late output checks and unchecked costly scalar loops are addressed in the implementation: owned growing branches preflight UTF-8/BLOB size before host materialization; nested `instr` comparisons and long Unicode/trim/unhex/concat/char loops charge/check at bounded intervals; random/zero BLOBs admit output and proportional work before allocation, with random generation checkpointed per browser-safe chunk. The source map and living guide record the retained upstream `instr` order and the concrete Web Crypto/deferred-zero adaptations. Public lifecycle/control tests preserve first-error and connection reuse behavior. Denominator remains 47/50 with no `printf`/`format`/`round` credit.

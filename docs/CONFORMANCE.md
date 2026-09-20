@@ -506,3 +506,5 @@ Fetch evidence across physical UTF-8/UTF-16LE/UTF-16BE fixtures. It includes own
 projections of parameter/composition/variadic mixed rows and persisted columns;
 it never executes or credits sibling rows. Expected failures compare prepare/step
 phase, SQLite kind, result/primary/extended codes, and exact message.
+
+The ordinary-scalar public runner also exercises bounded output/work companions without changing the immutable 26-case/44-observation credit count: pre-allocation failures for Unicode quoting/decoding, concatenation, character construction, hex decoding and random/zero BLOBs; adversarial `instr` work; abort/deadline interruption; first saved-error identity; reset/finalize cleanup; and connection reuse. These project-control companions grant no native or formatting-slice credit.

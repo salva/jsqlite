@@ -481,3 +481,5 @@ storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
 Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
 zero. `sqlite_log()` is a SQL NULL-producing no-op because this API has no host log
 callback. `quote(REAL)` uses pinned `sqlite3QuoteValue` `%!0.17g` semantics (REAL literal identity, round-trip boundaries, signed zero, and `±9.0e+999` infinities), and quote TEXT/BLOB expansion is checked against `maxResultBytes` before construction.
+
+Owned ordinary scalar builders honor `maxResultBytes` before oversized string/BLOB materialization and charge deterministic work while scanning or producing results. `instr` comparison loops, Unicode escape/quote builders, trim/unhex/concat/char loops, and random/zero BLOB production observe work, cancellation, and deadline controls at bounded intervals. A scalar execution error is saved on its statement: repeat `step()` and `finalize()` report the first error, while `reset()` reports it once and restores statement reuse; the connection remains usable.

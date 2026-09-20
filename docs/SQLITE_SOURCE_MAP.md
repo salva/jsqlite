@@ -1359,3 +1359,7 @@ limit, and bounded-work control. `quote(REAL)` maps the distinct
 `util.c:sqlite3FpDecode` formatting primitive; typed pinned-native and public
 binding vectors cover integral REAL, signed zero, precision/subnormal boundaries,
 and infinities. TEXT/BLOB expansion checks the result limit before construction.
+
+### Ordinary scalar bounded execution revision (2026-09-20)
+
+`src/func.c:instrFunc`, `unistrFunc`, `unistrQuoteFunc`, `concatFunc`, `charFunc`, `unhexFunc`, `zeroblobFunc`, and `randomBlob` map to the ordinary dispatch and bounded helpers in `src/internal/vdbe.ts` / `ordinary-scalars.ts`. Output bytes are incrementally preflighted before host allocation; long loops check controls and charge in 256-unit intervals. `instr` deliberately retains upstream's nested candidate comparison rather than substituting a different search algorithm. Browser Web Crypto is chunked at 65,536 bytes. Deferred upstream `MEM_Zero` is adapted to eager browser bytes because the read-only public BLOB API exposes a `Uint8Array`; allocation occurs only after output and proportional-work admission. `test/conformance/run-ordinary-scalars-owned-ts.mjs` supplies public low output/work, abort/deadline, saved-error, reset/finalize, and connection-reuse evidence. Accounting remains 47/50; `printf`, `format`, and `round` receive no credit.

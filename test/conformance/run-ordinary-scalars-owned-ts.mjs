@@ -117,6 +117,46 @@ try{
     }
   }finally{db.closeDeferred();}
 }
+// Every owned growth algorithm preflights its UTF-8/BLOB result, and failures
+// retain statement saved-error/finalize semantics without poisoning the connection.
+{
+  const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent('UTF-8')}`),{limits:{maxResultBytes:12,maxWorkUnits:10000}});
+  try{
+    const vectors=[
+      ["SELECT unistr(?1)",'\\u20ac\\u20ac\\u20ac\\u20ac\\u20ac'],
+      ["SELECT unistr_quote(?1)",'\\\\\\\\'],
+      ["SELECT concat(?1,?1)",'1234567'],
+      ["SELECT concat_ws(?1,?2,?2,?2)",'------','a'],
+      ["SELECT char("+Array(16).fill('?1').join(',')+")",128512n],
+      ["SELECT unhex(?1)",'00'.repeat(13)],
+      ["SELECT zeroblob(?1)",13n],
+      ["SELECT randomblob(?1)",13n],
+    ];
+    for(const [sql,value] of vectors){const statement=db.prepare(sql).statement;statement.bind(1,value);if(sql.includes('?2'))statement.bind(2,value==='------'?'a':value);let saved;try{await statement.step()}catch(error){saved=error}assert.equal(saved?.kind,'limit',sql);assert.equal(saved?.message,'string or blob too big',sql);await assert.rejects(()=>statement.step(),error=>error===saved);assert.throws(()=>statement.finalize(),error=>error===saved)}
+    const reuse=db.prepare("SELECT concat('ok','!')").statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnText(0),'ok!');reuse.finalize();
+  }finally{db.closeDeferred();}
+}
+// Costly scalar loops charge deterministic internal work in addition to input
+// admission. Near-match instr is deliberately adversarial to its pinned nested scan.
+{
+  const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent('UTF-8')}`),{limits:{maxResultBytes:200000,maxWorkUnits:100000}});
+  try{
+    const workCases=[
+      ["SELECT instr(?1,?2)",'a'.repeat(4096)+'b','a'.repeat(2048)+'c'],
+      ["SELECT length(randomblob(?1))",65537n,null],
+      ["SELECT length(zeroblob(?1))",65537n,null],
+      ["SELECT length(unistr(?1))",'x'.repeat(8192),null],
+    ];
+    for(const [sql,one,two] of workCases){const low=db.prepare(sql).statement;low.bind(1,one);if(two!==null)low.bind(2,two);await assert.rejects(()=>low.step({maxWorkUnits:20}),error=>error?.kind==='limit'&&error.message==='statement exceeds maxWorkUnits');assert.throws(()=>low.finalize())}
+    // Keep the output-growth charge distinguishable from fixed opcode overhead:
+    // the same plan and budget admit 2 bytes but reject 65,537 bytes.
+    const smallZero=db.prepare('SELECT length(zeroblob(?1))').statement;smallZero.bind(1,2n);assert.equal(await smallZero.step({maxWorkUnits:100}),'row');assert.equal(smallZero.columnInteger(0),2n);smallZero.finalize();
+    const largeZero=db.prepare('SELECT length(zeroblob(?1))').statement;largeZero.bind(1,65537n);await assert.rejects(()=>largeZero.step({maxWorkUnits:100}),error=>error?.kind==='limit'&&error.message==='statement exceeds maxWorkUnits');assert.throws(()=>largeZero.finalize());
+    const cryptoDescriptor=Object.getOwnPropertyDescriptor(globalThis,'crypto'),realCrypto=globalThis.crypto,abort=new AbortController();let chunks=0;Object.defineProperty(globalThis,'crypto',{configurable:true,value:{getRandomValues(target){realCrypto.getRandomValues(target);if(++chunks===1)abort.abort(new Error('scalar abort'));return target}}});const cancelled=db.prepare('SELECT randomblob(65537)').statement;let cancellation;try{await cancelled.step({signal:abort.signal})}catch(error){cancellation=error}finally{if(cryptoDescriptor)Object.defineProperty(globalThis,'crypto',cryptoDescriptor)}assert.equal(chunks,1);assert.equal(cancellation?.kind,'cancelled');await assert.rejects(()=>cancelled.step(),error=>error===cancellation);assert.throws(()=>cancelled.reset(),error=>error===cancellation);cancelled.finalize();
+    const realNow=Date.now;let ticks=0;Date.now=()=>ticks++<3?1000:1002;const timed=db.prepare("SELECT instr(?1,?2)").statement;timed.bind(1,'a'.repeat(4096)+'b');timed.bind(2,'a'.repeat(2048)+'c');let timeout;try{await timed.step({timeoutMs:2})}catch(error){timeout=error}finally{Date.now=realNow}assert.equal(timeout?.kind,'timeout');assert.throws(()=>timed.finalize(),error=>error===timeout);
+    const reuse=db.prepare('SELECT length(zeroblob(2))').statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnInteger(0),2n);reuse.finalize();
+  }finally{db.closeDeferred();}
+}
 // Web Crypto limits one getRandomValues request to 65,536 bytes. SQLite's
 // randomblob() accepts larger results, so retain a public regression across chunks.
 {
