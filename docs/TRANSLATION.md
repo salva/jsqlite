@@ -3268,7 +3268,12 @@ and tests-first accounting are in
 [`research/card-q-a-a-date-time.md`](research/card-q-a-a-date-time.md). The mapping
 is pinned to `src/date.c` in SQLite 3.53.4 and to `sqlite3StmtCurrentTime` in
 `src/vdbeapi.c`; it does not substitute JavaScript `Date` parsing/formatting for
-SQLite algorithms. `test/conformance/cases/stage3-date-time.spec.json` declares 18
-literal upstream assertions plus two source result-class companions across three
-database encodings and six deterministic seam adaptations. Native capture is
-reference-only; current public TypeScript credit is 0/18.
+SQLite algorithms. `test/conformance/cases/stage3-date-time.spec.json` declares 18 exact, body-hashed
+upstream assertions plus two result-class and nine range companions across three
+database encodings. Six concrete clock/timezone contracts have SQL, injected
+responses, lifecycle/call-count expectations, typed outcomes, and an executable
+expected-unsupported public gate. Native capture validates all 87 typed observations
+but remains reference-only; current public TypeScript credit is 0/18. The range
+contract preserves signed output years: parser/`computeJD` accepts -4713..9999,
+final iJD is 0..464269060799999, year 0000 is valid, and callbacks format negative
+years with a leading minus.

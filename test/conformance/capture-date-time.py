@@ -26,6 +26,8 @@ for case in spec['cases']:
    if rc==100: out['row']=[value(st,i) for i in range(L.sqlite3_column_count(st))]
    else: out['error']={'phase':'step','code':rc,'extendedCode':L.sqlite3_extended_errcode(db),'message':L.sqlite3_errmsg(db).decode()}
    L.sqlite3_finalize(st)
+  if 'error' not in out:
+   assert len(out['row'])==1 and out['row'][0]==case['expectedTyped'], (case['id'],enc,out.get('row'),case['expectedTyped'])
   L.sqlite3_close(db); obs.append(out)
 out={'schemaVersion':1,'kind':'native-reference-only-no-ts-credit','source':{'version':L.sqlite3_libversion().decode(),'sourceId':source,'manifest':'reference/sqlite/manifest.json','manifestSha256':hashlib.sha256((ROOT/'reference/sqlite/manifest.json').read_bytes()).hexdigest(),'specSha256':hashlib.sha256(spec_path.read_bytes()).hexdigest()},'counts':{'denominatorAssertions':spec['scope']['denominatorAssertions'],'selectedCases':len(spec['cases']),'observations':len(obs),'tsCredit':0},'observations':obs}
 pathlib.Path(ns.output).write_text(json.dumps(out,indent=2,ensure_ascii=False)+'\n'); print(json.dumps(out['counts'],sort_keys=True))

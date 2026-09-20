@@ -4,45 +4,801 @@
     "manifest": "reference/sqlite/manifest.json",
     "version": "3.53.4",
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
-    "profileCompileOptions": ["ENABLE_COLUMN_METADATA", "ENABLE_MATH_FUNCTIONS"]
+    "profileCompileOptions": [
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_MATH_FUNCTIONS"
+    ]
   },
   "scope": {
     "denominatorAssertions": 18,
-    "selectedCases": 20,
-    "nativeObservations": 60,
+    "selectedCases": 29,
+    "nativeObservations": 87,
     "tsCredit": 0,
     "rule": "Literal assertions selected from pinned test/date.test and test/timediff1.test. Each assertion is observed under UTF-8, UTF-16le, and UTF-16be. Native observations and adaptations receive no TS credit until public execution passes.",
-    "registrations": ["julianday/-1", "unixepoch/-1", "date/-1", "time/-1", "datetime/-1", "strftime/-1", "timediff/2", "current_time/0", "current_date/0", "current_timestamp/0"],
-    "excluded": ["SQLITE_DEBUG datedebug", "SQLITE_OMIT_DATETIME_FUNCS fallback profile"]
+    "registrations": [
+      "julianday/-1",
+      "unixepoch/-1",
+      "date/-1",
+      "time/-1",
+      "datetime/-1",
+      "strftime/-1",
+      "timediff/2",
+      "current_time/0",
+      "current_date/0",
+      "current_timestamp/0"
+    ],
+    "excluded": [
+      "SQLITE_DEBUG datedebug",
+      "SQLITE_OMIT_DATETIME_FUNCS fallback profile"
+    ]
   },
   "cases": [
-    {"id":"date-1.1","source":"test/date.test:38","sql":"SELECT julianday('2000-01-01')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-1.5","source":"test/date.test:42","sql":"SELECT julianday('12:00:00')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-1.8","source":"test/date.test:45","sql":"SELECT julianday('bogus')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-1.10","source":"test/date.test:47","sql":"SELECT julianday('1999-12-32')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-1.12","source":"test/date.test:49","sql":"SELECT julianday('2003-02-31')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-1.19","source":"test/date.test:60","sql":"SELECT julianday('2000-01-01 12:00:00.1')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.1","source":"test/date.test:73","sql":"SELECT datetime(0,'unixepoch')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.1b","source":"test/date.test:74","sql":"SELECT datetime(0,'unixepoc')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.3","source":"test/date.test:84","sql":"SELECT date('2003-10-22','weekday 0')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.10","source":"test/date.test:96","sql":"SELECT date('2003-10-22','weekday 7')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.13","source":"test/date.test:99","sql":"SELECT datetime('2003-10-22 12:34','start of month')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.16","source":"test/date.test:107","sql":"SELECT time('12:34:56.43')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-2.19","source":"test/date.test:110","sql":"SELECT datetime('2003-10-22 12:34','+1.25 day')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-3.2.1","source":"test/date.test:152","sql":"SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-3.8.2","source":"test/date.test:160","sql":"SELECT strftime('%s','2038-01-19 03:14:07')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-3.8.6","source":"test/date.test:164","sql":"SELECT strftime('%s','1969-12-31 23:59:59')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"date-unixepoch-integer","source":"src/date.c:unixepochFunc (registration result-class companion)","sql":"SELECT unixepoch('1970-01-01 00:00:01')","encodings":["UTF-8","UTF-16le","UTF-16be"],"credit":"zero-credit-companion"},
-    {"id":"date-unixepoch-subsec","source":"src/date.c:unixepochFunc (registration result-class companion)","sql":"SELECT unixepoch('1970-01-01 00:00:01.250','subsec')","encodings":["UTF-8","UTF-16le","UTF-16be"],"credit":"zero-credit-companion"},
-    {"id":"timediff1-3.1","source":"test/timediff1.test:74","sql":"SELECT timediff('2000-03-02','2000-01-31')","encodings":["UTF-8","UTF-16le","UTF-16be"]},
-    {"id":"timediff1-3.2","source":"test/timediff1.test:75","sql":"SELECT timediff('2000-01-31','2000-03-02')","encodings":["UTF-8","UTF-16le","UTF-16be"]}
+    {
+      "id": "date-1.1",
+      "source": "test/date.test:38",
+      "sql": "SELECT julianday('2000-01-01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 38,
+        "endLine": 38,
+        "bodySha256": "63c05408e24ce44f54999ba02f6cbeb4b7b58d48761a98739bd825f8f895923b",
+        "body": "datetest 1.1 julianday('2000-01-01') 2451544.5"
+      },
+      "expectedTyped": {
+        "type": "real",
+        "value": "0x1.2b42c40000000p+21"
+      }
+    },
+    {
+      "id": "date-1.5",
+      "source": "test/date.test:42",
+      "sql": "SELECT julianday('12:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 42,
+        "endLine": 42,
+        "bodySha256": "7251241671ca128ff32a759bb6a926a33467f5b2afc5d4082c75ac9f5f337c8b",
+        "body": "datetest 1.5 julianday('12:00:00') 2451545.0"
+      },
+      "expectedTyped": {
+        "type": "real",
+        "value": "0x1.2b42c80000000p+21"
+      }
+    },
+    {
+      "id": "date-1.8",
+      "source": "test/date.test:45",
+      "sql": "SELECT julianday('bogus')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 45,
+        "endLine": 45,
+        "bodySha256": "991d84b97bff3107c39367a392100ad23e89650a26038158cde6ad72211f007f",
+        "body": "datetest 1.8 julianday('bogus') NULL"
+      },
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "date-1.10",
+      "source": "test/date.test:47",
+      "sql": "SELECT julianday('1999-12-32')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 47,
+        "endLine": 47,
+        "bodySha256": "2e1bb70f4de46e3efb7b786c5b6cec07cce9370a5dd1d0b6622a76900355a8ef",
+        "body": "datetest 1.10 julianday('1999-12-32') NULL"
+      },
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "date-1.12",
+      "source": "test/date.test:49",
+      "sql": "SELECT julianday('2003-02-31')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 49,
+        "endLine": 49,
+        "bodySha256": "9ba0a2d63e3cbcfcda633c4fbf2fba8b3dea4064c61b91f30c25c6fa538c79a6",
+        "body": "datetest 1.12 julianday('2003-02-31') 2452701.5"
+      },
+      "expectedTyped": {
+        "type": "real",
+        "value": "0x1.2b66ec0000000p+21"
+      }
+    },
+    {
+      "id": "date-1.19",
+      "source": "test/date.test:60",
+      "sql": "SELECT julianday('2000-01-01 12:00:00.1')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 60,
+        "endLine": 60,
+        "bodySha256": "6a49354299f2ae040bf42569f83f32a12e615e78b447bf875a525d4e0408de25",
+        "body": "datetest 1.19 {julianday('2000-01-01 12:00:00.1')}   2451545.00000116"
+      },
+      "expectedTyped": {
+        "type": "real",
+        "value": "0x1.2b42c800009b6p+21"
+      }
+    },
+    {
+      "id": "date-2.1",
+      "source": "test/date.test:73",
+      "sql": "SELECT datetime(0,'unixepoch')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 73,
+        "endLine": 73,
+        "bodySha256": "72ed279d70a259325059afa704767aea221d5b4fb2792ee14dd3b4432781fcd1",
+        "body": "datetest 2.1 datetime(0,'unixepoch') {1970-01-01 00:00:00}"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "313937302d30312d30312030303a30303a3030",
+        "value": "1970-01-01 00:00:00"
+      }
+    },
+    {
+      "id": "date-2.1b",
+      "source": "test/date.test:74",
+      "sql": "SELECT datetime(0,'unixepoc')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 74,
+        "endLine": 74,
+        "bodySha256": "2ae863d64d64575734a43918cfef46e2848d83f96c9fb6b0bdfa3d1d8bcd0f1d",
+        "body": "datetest 2.1b datetime(0,'unixepoc') NULL"
+      },
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "date-2.3",
+      "source": "test/date.test:84",
+      "sql": "SELECT date('2003-10-22','weekday 0')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 84,
+        "endLine": 84,
+        "bodySha256": "3a78dbb5798d1b928364436ff4ff91bd4df4c8e03a5837903c5a5787fea5fac5",
+        "body": "datetest 2.3 {date('2003-10-22','weekday 0')} 2003-10-26"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030332d31302d3236",
+        "value": "2003-10-26"
+      }
+    },
+    {
+      "id": "date-2.10",
+      "source": "test/date.test:96",
+      "sql": "SELECT date('2003-10-22','weekday 7')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 96,
+        "endLine": 96,
+        "bodySha256": "fc4a76cfafb3458bd230504d6f180c760b35d15fd65a2094b92dd10d45c5335b",
+        "body": "datetest 2.10 {date('2003-10-22','weekday 7')} NULL"
+      },
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "date-2.13",
+      "source": "test/date.test:99",
+      "sql": "SELECT datetime('2003-10-22 12:34','start of month')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 99,
+        "endLine": 100,
+        "bodySha256": "149e28b7f47e9720497f9a01ac11f3009e7caf4e48bd3059b157c9c98e883ebe",
+        "body": "datetest 2.13 {datetime('2003-10-22 12:34','start of month')} \\\n   {2003-10-01 00:00:00}"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030332d31302d30312030303a30303a3030",
+        "value": "2003-10-01 00:00:00"
+      }
+    },
+    {
+      "id": "date-2.16",
+      "source": "test/date.test:107",
+      "sql": "SELECT time('12:34:56.43')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 107,
+        "endLine": 107,
+        "bodySha256": "34e2aebbea45307ab4919bc5ac6f3f5df35e08d9345426def2ed0e000defa05c",
+        "body": "datetest 2.16 time('12:34:56.43') 12:34:56"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "31323a33343a3536",
+        "value": "12:34:56"
+      }
+    },
+    {
+      "id": "date-2.19",
+      "source": "test/date.test:110",
+      "sql": "SELECT datetime('2003-10-22 12:34','+1.25 day')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 110,
+        "endLine": 110,
+        "bodySha256": "0df5f5e5064bde198c09b4a8357e7801628f71d3ab272168e44273a22646a480",
+        "body": "datetest 2.19 {datetime('2003-10-22 12:34','+1.25 day')} {2003-10-23 18:34:00}"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030332d31302d32332031383a33343a3030",
+        "value": "2003-10-23 18:34:00"
+      }
+    },
+    {
+      "id": "date-3.2.1",
+      "source": "test/date.test:152",
+      "sql": "SELECT strftime('pre%fpost','2003-10-31 12:34:56.432')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 152,
+        "endLine": 152,
+        "bodySha256": "db484923b77d96be163e01631784e6758dda59c376a9aa8b10d6acd9c03039f9",
+        "body": "datetest 3.2.1 {strftime('pre%fpost','2003-10-31 12:34:56.432')} pre56.432post"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "70726535362e343332706f7374",
+        "value": "pre56.432post"
+      }
+    },
+    {
+      "id": "date-3.8.2",
+      "source": "test/date.test:160",
+      "sql": "SELECT strftime('%s','2038-01-19 03:14:07')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 160,
+        "endLine": 160,
+        "bodySha256": "eeba7934cb6940b2907b2f48cab432a3f5775dcaf3fb3e1aca9829ba5194c015",
+        "body": "datetest 3.8.2 {strftime('%s','2038-01-19 03:14:07')} 2147483647"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "32313437343833363437",
+        "value": "2147483647"
+      }
+    },
+    {
+      "id": "date-3.8.6",
+      "source": "test/date.test:164",
+      "sql": "SELECT strftime('%s','1969-12-31 23:59:59')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/date.test",
+        "startLine": 164,
+        "endLine": 164,
+        "bodySha256": "e08c4719f3f99de44b3dde7d8abb4f381ef555de82009b583a82bb95be12f779",
+        "body": "datetest 3.8.6 {strftime('%s','1969-12-31 23:59:59')} -1"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2d31",
+        "value": "-1"
+      }
+    },
+    {
+      "id": "date-unixepoch-integer",
+      "source": "src/date.c:unixepochFunc (registration result-class companion)",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-companion",
+      "expectedTyped": {
+        "type": "integer",
+        "value": "1"
+      }
+    },
+    {
+      "id": "date-unixepoch-subsec",
+      "source": "src/date.c:unixepochFunc (registration result-class companion)",
+      "sql": "SELECT unixepoch('1970-01-01 00:00:01.250','subsec')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-companion",
+      "expectedTyped": {
+        "type": "real",
+        "value": "0x1.4000000000000p+0"
+      }
+    },
+    {
+      "id": "timediff1-3.1",
+      "source": "test/timediff1.test:74",
+      "sql": "SELECT timediff('2000-03-02','2000-01-31')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/timediff1.test",
+        "startLine": 74,
+        "endLine": 74,
+        "bodySha256": "59b4fdc61aba7c6d041659c0d8f265da38f95813e0dff53d0b89884e50f9dac6",
+        "body": "datetest 3.1 {timediff('2000-03-02','2000-01-31')} {+0000-01-00 00:00:00.000}"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2b303030302d30312d30302030303a30303a30302e303030",
+        "value": "+0000-01-00 00:00:00.000"
+      }
+    },
+    {
+      "id": "timediff1-3.2",
+      "source": "test/timediff1.test:75",
+      "sql": "SELECT timediff('2000-01-31','2000-03-02')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "upstreamAssertion": {
+        "path": "test/timediff1.test",
+        "startLine": 75,
+        "endLine": 75,
+        "bodySha256": "4799f8b4d8eb4ac86a6de3071177f7e479814a35c93f6efcf02d92209ccecd8e",
+        "body": "datetest 3.2 {timediff('2000-01-31','2000-03-02')} {-0000-01-02 00:00:00.000}"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2d303030302d30312d30322030303a30303a30302e303030",
+        "value": "-0000-01-02 00:00:00.000"
+      }
+    },
+    {
+      "id": "boundary-ijd-min-date",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT date(0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2d343731332d31312d3234",
+        "value": "-4713-11-24"
+      }
+    },
+    {
+      "id": "boundary-ijd-min-datetime",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT datetime(0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2d343731332d31312d32342031323a30303a3030",
+        "value": "-4713-11-24 12:00:00"
+      }
+    },
+    {
+      "id": "boundary-negative-parse",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT date('-0001-01-01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "2d303030312d30312d3031",
+        "value": "-0001-01-01"
+      }
+    },
+    {
+      "id": "boundary-year-zero",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT date('0000-01-01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "303030302d30312d3031",
+        "value": "0000-01-01"
+      }
+    },
+    {
+      "id": "boundary-ijd-max",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT datetime(5373484.4999999)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "393939392d31322d33312032333a35393a3539",
+        "value": "9999-12-31 23:59:59"
+      }
+    },
+    {
+      "id": "boundary-below-ijd",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT julianday(-0.00000001)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "boundary-at-exclusive-upper",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT julianday(5373484.5)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "boundary-year-below-computejd",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT date('-4714-01-01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "null"
+      }
+    },
+    {
+      "id": "boundary-five-digit-positive",
+      "source": "src/date.c:computeJD/validJulianDay/computeYMD/dateFunc/datetimeFunc",
+      "sql": "SELECT date('10000-01-01')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "zero-credit-source-boundary",
+      "expectedTyped": {
+        "type": "null"
+      }
+    }
   ],
   "adaptations": [
-    {"id":"clock-stable-across-rows-aliases-yields","credit":false},
-    {"id":"clock-resamples-after-reset","credit":false},
-    {"id":"current-keyword-lowers-to-zero-arg-function","credit":false},
-    {"id":"injected-localtime-and-utc-roundtrip","credit":false},
-    {"id":"localtime-provider-failure-is-error","credit":false},
-    {"id":"ijD-min-max-and-one-step-outside","credit":false}
+    {
+      "id": "clock-stable-across-rows-aliases-yields",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT datetime('now'), current_timestamp, time('now'), current_time FROM users ORDER BY id"
+      ],
+      "setup": {
+        "clockUnixMilliseconds": [
+          "946684800125",
+          "978307200250"
+        ],
+        "forcedYieldAfterRows": 1
+      },
+      "sequence": [
+        "prepare: clock calls=0",
+        "step all rows with one forced yield",
+        "finalize"
+      ],
+      "expected": {
+        "clockCalls": 1,
+        "rows": "every row repeats TEXT 2000-01-01 00:00:00, TEXT 2000-01-01 00:00:00, TEXT 00:00:00, TEXT 00:00:00"
+      }
+    },
+    {
+      "id": "clock-resamples-after-reset",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT unixepoch('now','subsec'), datetime('now','subsec')"
+      ],
+      "setup": {
+        "clockUnixMilliseconds": [
+          "946684800125",
+          "978307200250"
+        ]
+      },
+      "sequence": [
+        "prepare: clock calls=0",
+        "execute to done",
+        "reset",
+        "execute to done"
+      ],
+      "expected": {
+        "clockCallsAfterExecutions": [
+          1,
+          2
+        ],
+        "rowsByExecution": [
+          [
+            {
+              "type": "real",
+              "value": "0x1.dcd6500100000p+29"
+            },
+            {
+              "type": "text",
+              "value": "2000-01-01 00:00:00.125"
+            }
+          ],
+          [
+            {
+              "type": "real",
+              "value": "0x1.d294cd0200000p+29"
+            },
+            {
+              "type": "text",
+              "value": "2001-01-01 00:00:00.250"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": "current-keyword-and-function-lowering",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT CURRENT_DATE, current_date(), CURRENT_TIME, current_time(), CURRENT_TIMESTAMP, current_timestamp()"
+      ],
+      "setup": {
+        "clockUnixMilliseconds": [
+          "946684800000"
+        ]
+      },
+      "sequence": [
+        "prepare: clock calls=0",
+        "execute one row"
+      ],
+      "expected": {
+        "clockCalls": 1,
+        "row": [
+          {
+            "type": "text",
+            "value": "2000-01-01"
+          },
+          {
+            "type": "text",
+            "value": "2000-01-01"
+          },
+          {
+            "type": "text",
+            "value": "00:00:00"
+          },
+          {
+            "type": "text",
+            "value": "00:00:00"
+          },
+          {
+            "type": "text",
+            "value": "2000-01-01 00:00:00"
+          },
+          {
+            "type": "text",
+            "value": "2000-01-01 00:00:00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "injected-localtime-and-utc-roundtrip",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT datetime('2000-01-01 00:00:00','localtime'), datetime('2000-01-01 02:00:00','utc')"
+      ],
+      "setup": {
+        "localFieldsScript": [
+          {
+            "inputUnixSecond": "946684800",
+            "return": "2000-01-01 02:00:00"
+          },
+          {
+            "inputUnixSecond": "946692000",
+            "return": "2000-01-01 04:00:00"
+          }
+        ]
+      },
+      "sequence": [
+        "prepare",
+        "execute one row"
+      ],
+      "expected": {
+        "localCalls": 2,
+        "row": [
+          {
+            "type": "text",
+            "value": "2000-01-01 02:00:00"
+          },
+          {
+            "type": "text",
+            "value": "2000-01-01 00:00:00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "localtime-provider-failure-is-error",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT datetime('2000-01-01','localtime')"
+      ],
+      "setup": {
+        "localFieldsScript": [
+          {
+            "inputUnixSecond": "946684800",
+            "return": null
+          }
+        ]
+      },
+      "sequence": [
+        "prepare succeeds",
+        "step fails",
+        "reset/finalize cleanup"
+      ],
+      "expected": {
+        "localCalls": 1,
+        "error": {
+          "phase": "step",
+          "primaryCode": 1,
+          "message": "local time unavailable"
+        }
+      }
+    },
+    {
+      "id": "ijd-boundary-public-contract",
+      "credit": false,
+      "currentDisposition": "expected-temporary-unsupported",
+      "sql": [
+        "SELECT date(0)",
+        "SELECT datetime(0)",
+        "SELECT date('-0001-01-01')",
+        "SELECT date('0000-01-01')",
+        "SELECT datetime(5373484.4999999)",
+        "SELECT julianday(-0.00000001)",
+        "SELECT julianday(5373484.5)",
+        "SELECT date('-4714-01-01')",
+        "SELECT date('10000-01-01')"
+      ],
+      "setup": {},
+      "sequence": [
+        "prepare and execute each independently"
+      ],
+      "expectedCaseIds": [
+        "boundary-ijd-min-date",
+        "boundary-ijd-min-datetime",
+        "boundary-negative-parse",
+        "boundary-year-zero",
+        "boundary-ijd-max",
+        "boundary-below-ijd",
+        "boundary-at-exclusive-upper",
+        "boundary-year-below-computejd",
+        "boundary-five-digit-positive"
+      ]
+    }
   ]
 }

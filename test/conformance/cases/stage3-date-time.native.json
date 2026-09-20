@@ -6,12 +6,12 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json",
     "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
-    "specSha256": "c800a192e334109bb4d637a54acf40697a1c7287ce3b6df2fcc4b9b88c5c5828"
+    "specSha256": "552bda68b8c5cdee423faf2fc528b2b5e2cea45814148969efdee7fb3d91ec57"
   },
   "counts": {
     "denominatorAssertions": 18,
-    "selectedCases": 20,
-    "observations": 60,
+    "selectedCases": 29,
+    "observations": 87,
     "tsCredit": 0
   },
   "observations": [
@@ -690,6 +690,306 @@
           "type": "text",
           "utf8Hex": "2d303030302d30312d30322030303a30303a30302e303030",
           "value": "-0000-01-02 00:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-date",
+      "encoding": "UTF-8",
+      "sql": "SELECT date(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d3234",
+          "value": "-4713-11-24"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-date",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d3234",
+          "value": "-4713-11-24"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-date",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d3234",
+          "value": "-4713-11-24"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-datetime",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d32342031323a30303a3030",
+          "value": "-4713-11-24 12:00:00"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-datetime",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d32342031323a30303a3030",
+          "value": "-4713-11-24 12:00:00"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-min-datetime",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime(0)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d343731332d31312d32342031323a30303a3030",
+          "value": "-4713-11-24 12:00:00"
+        }
+      ]
+    },
+    {
+      "id": "boundary-negative-parse",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('-0001-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030312d30312d3031",
+          "value": "-0001-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-negative-parse",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('-0001-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030312d30312d3031",
+          "value": "-0001-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-negative-parse",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('-0001-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "2d303030312d30312d3031",
+          "value": "-0001-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-zero",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('0000-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "303030302d30312d3031",
+          "value": "0000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-zero",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('0000-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "303030302d30312d3031",
+          "value": "0000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-zero",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('0000-01-01')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "303030302d30312d3031",
+          "value": "0000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-max",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime(5373484.4999999)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "393939392d31322d33312032333a35393a3539",
+          "value": "9999-12-31 23:59:59"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-max",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime(5373484.4999999)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "393939392d31322d33312032333a35393a3539",
+          "value": "9999-12-31 23:59:59"
+        }
+      ]
+    },
+    {
+      "id": "boundary-ijd-max",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime(5373484.4999999)",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "393939392d31322d33312032333a35393a3539",
+          "value": "9999-12-31 23:59:59"
+        }
+      ]
+    },
+    {
+      "id": "boundary-below-ijd",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday(-0.00000001)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-below-ijd",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday(-0.00000001)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-below-ijd",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday(-0.00000001)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-at-exclusive-upper",
+      "encoding": "UTF-8",
+      "sql": "SELECT julianday(5373484.5)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-at-exclusive-upper",
+      "encoding": "UTF-16le",
+      "sql": "SELECT julianday(5373484.5)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-at-exclusive-upper",
+      "encoding": "UTF-16be",
+      "sql": "SELECT julianday(5373484.5)",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-below-computejd",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('-4714-01-01')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-below-computejd",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('-4714-01-01')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-year-below-computejd",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('-4714-01-01')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-five-digit-positive",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('10000-01-01')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-five-digit-positive",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('10000-01-01')",
+      "row": [
+        {
+          "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "boundary-five-digit-positive",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('10000-01-01')",
+      "row": [
+        {
+          "type": "null"
         }
       ]
     }
