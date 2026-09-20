@@ -1438,13 +1438,18 @@ result ceiling, alongside retained excessive emitting-width failures.
 
 ## Date/time functions ([[card:card-q-a-a]])
 
+> Historical design checkpoint: the planning/0-of-18 statements in the original
+> handoff are superseded by the current execution mapping immediately below. Current
+> bounded accounting is 18/18 selected upstream assertions; two result companions,
+> nine boundaries, and six seam contracts remain zero-credit evidence.
+
 | Pinned source owner | Translation/integration owner | Evidence and status |
 | --- | --- | --- |
-| `src/date.c:DateTime`, `parseYyyyMmDd`, `parseHhMmSs`, `computeJD`, `computeYMD_HMS`, `parseModifier`, `isDate` | Planned private date module using exact bigint iJD, independent source flags, shared Mem coercion, and FunctionContext results | `docs/research/card-q-a-a-date-time.md`; no JS Date parser/formatter substitution; implementation pending |
-| `src/date.c:sqlite3RegisterDateTimeFunctions`, output callbacks; `src/parse.y:term` CURRENT_* keywords | Existing function registry/resolver and VDBE Function lowering; preserve 10 production rows, variadic/exact arities, and keyword-to-zero-arg-call lowering | `test/conformance/cases/stage3-date-time.spec.json`; 18 body-hashed upstream denominator, 2 result-class and 9 range companions; signed negative-year/year-zero/max branches explicit; public TS 0/18 |
+| `src/date.c:DateTime`, `parseYyyyMmDd`, `parseHhMmSs`, `computeJD`, `computeYMD_HMS`, `parseModifier`, `isDate` | Historical plan for the private date module, exact bigint iJD, independent source flags, shared Mem coercion, and FunctionContext results | Superseded by “Date/time scalar execution” below; retained as design provenance |
+| `src/date.c:sqlite3RegisterDateTimeFunctions`, output callbacks; `src/parse.y:term` CURRENT_* keywords | Historical integration plan for the existing registry/resolver and VDBE Function lowering | Superseded below; current public TS credit is 18/18 selected assertions, with companion/boundary/seam categories still zero-credit |
 | `src/vdbeapi.c:sqlite3StmtCurrentTime`; VFS current time | Connection environment plus execution-owned lazy statement cache | One injected sample per execution across rows/subqueries/yields/aliases; reset resamples; prepare does not sample |
 | `src/date.c:osLocaltime`, `toLocaltime`, localtime/utc modifier branches | Injectable `localFieldsAtUnixSecond` host boundary; source equivalent-year remap and UTC fixed-point loop remain translated | Exact local outcomes require injection; ambient browser timezone/tzdata is explicitly host-dependent; provider failure is `local time unavailable` |
-| `test/date.test`, `test/timediff1.test` selected literal assertions | `capture-date-time.py`, `date-time-manifest.test.py`, immutable typed native output | 29 selected cases x 3 encodings = 87 validated native observations; complete key/result matching; six concrete seam contracts execute as expected unsupported outside denominator; native is no TS credit |
+| `test/date.test`, `test/timediff1.test` selected literal assertions | Historical capture/manifest plan | Current evidence is 29 selected cases × 3 encodings = 87 typed observations; 18/18 selected assertions are public TS credit, while six implemented seam contracts and native capture remain zero-credit evidence |
 
 ### Date/time scalar execution ([[card:card-q-a-b]])
 

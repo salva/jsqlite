@@ -3272,7 +3272,7 @@ SQLite algorithms. `test/conformance/cases/stage3-date-time.spec.json` declares 
 upstream assertions plus two result-class and nine range companions across three
 database encodings. Six concrete clock/timezone contracts have SQL, injected
 responses, lifecycle/call-count expectations, typed outcomes, and an executable
-expected-unsupported public gate. Native capture validates all 87 typed observations
+public production seam runner. Native capture validates all 87 typed observations
 but remains reference-only; public TypeScript execution now carries 18/18 selected
 assertion credit as recorded in the execution revision below. The range
 contract preserves signed output years: parser/`computeJD` accepts -4713..9999,
@@ -3289,6 +3289,16 @@ zero-argument registrations. The private connection environment described in the
 handoff is sampled lazily once per execution; reset starts a new execution. Local
 field conversion is the sole host-Date adaptation and reports SQLite code 1 when
 unavailable; parsing and UTC calendar arithmetic do not use `Date.parse`.
+
+The private environment is intentionally not a public API, so `docs/api.md` needs no
+new contract. `docs/CONFORMANCE.md` retains project-wide accounting policy while the
+exact date/time denominator lives in its manifest; no global policy changed. The
+mutable fidelity audit is updated only when a current finding changes. Ambient local
+civil fields remain host timezone/tzdata dependent, while deterministic injected
+provider tuples are validated as real civil dates before conversion. Shared VDBE
+output, work, cancellation, deadline, saved-error, reset, and finalize contracts
+apply; `strftime` scans checkpoint work/cancellation and every TEXT result is size-
+preflighted.
 
 The implementation preserves INTEGER `unixepoch`, REAL `julianday`/subsecond
 results, NULL invalid/range branches, source modifier ordering, parsed invalid-day

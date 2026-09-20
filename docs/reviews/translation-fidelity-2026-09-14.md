@@ -801,3 +801,10 @@ credit. The implementation now covers BLOB-to-text initial arguments, initial
 `subsec`/`subsecond`, `toLocaltime` equivalent-year mapping and normalized provider
 failures, and signed `%Y/%F/%G/%g`; public tests add three-encoding and deterministic
 seam/cancellation evidence. The denominator remains exactly 18 selected assertions.
+
+## Revision 2026-09-20 — local provider civil validation
+
+Host localtime provider fields now require a valid month-specific civil day,
+including leap-year validity, before conversion. This boundary validation is
+separate from and does not tighten SQLite's permissive SQL input-date normalization.
+Deterministic seams cover invalid non-leap February 29, April 31, and valid leap day.

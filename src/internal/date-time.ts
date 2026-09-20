@@ -51,7 +51,7 @@ function localJulian(iJD:bigint,env:DateTimeEnvironment):bigint{
  let mapped=iJD,yearDiff=0;const low=210866760000000n,high=213014145600000n;
  if(iJD<low||iJD>high){const f=fields(iJD);yearDiff=2000+(f.year%4)-f.year;const x=jdFromYmd(f.year+yearDiff,f.month,f.day,f.hour,f.minute,f.second);if(x===null)throw new LocalTimeUnavailableError();mapped=x}
  let l:ReturnType<DateTimeEnvironment["localFieldsAtUnixSecond"]>;try{l=env.localFieldsAtUnixSecond(divFloor(mapped-UNIX_EPOCH,1000n))}catch{throw new LocalTimeUnavailableError()}
- if(!l||!Number.isInteger(l.year)||!Number.isInteger(l.month)||!Number.isInteger(l.day)||!Number.isInteger(l.hour)||!Number.isInteger(l.minute)||!Number.isInteger(l.second)||l.month<1||l.month>12||l.day<1||l.day>31||l.hour<0||l.hour>23||l.minute<0||l.minute>59||l.second<0||l.second>59)throw new LocalTimeUnavailableError();
+ if(!l||!Number.isInteger(l.year)||!Number.isInteger(l.month)||!Number.isInteger(l.day)||!Number.isInteger(l.hour)||!Number.isInteger(l.minute)||!Number.isInteger(l.second)||l.month<1||l.month>12||l.day<1||l.day>monthDays(l.year,l.month)||l.hour<0||l.hour>23||l.minute<0||l.minute>59||l.second<0||l.second>59)throw new LocalTimeUnavailableError();
  const local=jdFromYmd(l.year-yearDiff,l.month,l.day,l.hour,l.minute,l.second);if(local===null)throw new LocalTimeUnavailableError();return local+(iJD%1000n+1000n)%1000n;
 }
 function apply(dt:DT,mod:string,env:DateTimeEnvironment,idx:number):boolean{
