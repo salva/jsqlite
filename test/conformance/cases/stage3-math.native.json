@@ -1,0 +1,2302 @@
+{
+  "schemaVersion": 1,
+  "kind": "native-reference-only-no-ts-credit",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json",
+    "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+    "specSha256": "ace1023e2f28939d679db130b49bbdc24d01e750cefc81e1e16cded37e076fe6"
+  },
+  "profile": {
+    "compileOptions": [
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_MATH_FUNCTIONS"
+    ],
+    "c99MathFunctions": true,
+    "compileOptionUsed": {
+      "ENABLE_COLUMN_METADATA": true,
+      "ENABLE_MATH_FUNCTIONS": true
+    }
+  },
+  "counts": {
+    "registryRows": 30,
+    "distinctNames": 29,
+    "selectedCases": 20,
+    "observations": 60,
+    "tsCredit": 0
+  },
+  "observations": [
+    {
+      "id": "upstream-ceil-floor",
+      "encoding": "UTF-8",
+      "sql": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4059000000000000",
+            "hexFloat": "0x1.9000000000000p+6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          },
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c032000000000000",
+            "hexFloat": "-0x1.2000000000000p+4"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-ceil-floor",
+      "encoding": "UTF-16le",
+      "sql": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4059000000000000",
+            "hexFloat": "0x1.9000000000000p+6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          },
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c032000000000000",
+            "hexFloat": "-0x1.2000000000000p+4"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-ceil-floor",
+      "encoding": "UTF-16be",
+      "sql": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4059000000000000",
+            "hexFloat": "0x1.9000000000000p+6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          },
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c032000000000000",
+            "hexFloat": "-0x1.2000000000000p+4"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-null-numeric-text",
+      "encoding": "UTF-8",
+      "sql": "SELECT ceil(NULL), ceil('-99.99')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-null-numeric-text",
+      "encoding": "UTF-16le",
+      "sql": "SELECT ceil(NULL), ceil('-99.99')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-null-numeric-text",
+      "encoding": "UTF-16be",
+      "sql": "SELECT ceil(NULL), ceil('-99.99')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "c058c00000000000",
+            "hexFloat": "-0x1.8c00000000000p+6"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-family",
+      "encoding": "UTF-8",
+      "sql": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff9c28f5c28f5c3",
+            "hexFloat": "0x1.9c28f5c28f5c3p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-family",
+      "encoding": "UTF-16le",
+      "sql": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff9c28f5c28f5c3",
+            "hexFloat": "0x1.9c28f5c28f5c3p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-family",
+      "encoding": "UTF-16be",
+      "sql": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff9c28f5c28f5c3",
+            "hexFloat": "0x1.9c28f5c28f5c3p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-domain",
+      "encoding": "UTF-8",
+      "sql": "SELECT ln(-5), log(-5,100.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-domain",
+      "encoding": "UTF-16le",
+      "sql": "SELECT ln(-5), log(-5,100.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log-domain",
+      "encoding": "UTF-16be",
+      "sql": "SELECT ln(-5), log(-5,100.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-power-alias",
+      "encoding": "UTF-8",
+      "sql": "SELECT pow(2,2), pow(2,-2), power(2,2), power(2,-2)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-power-alias",
+      "encoding": "UTF-16le",
+      "sql": "SELECT pow(2,2), pow(2,-2), power(2,2), power(2,-2)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-power-alias",
+      "encoding": "UTF-16be",
+      "sql": "SELECT pow(2,2), pow(2,-2), power(2,2), power(2,-2)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4010000000000000",
+            "hexFloat": "0x1.0000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fd0000000000000",
+            "hexFloat": "0x1.0000000000000p-2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-trig-domain",
+      "encoding": "UTF-8",
+      "sql": "SELECT acos(1), acos(1.0001), asin('foo')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-trig-domain",
+      "encoding": "UTF-16le",
+      "sql": "SELECT acos(1), acos(1.0001), asin('foo')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-trig-domain",
+      "encoding": "UTF-16be",
+      "sql": "SELECT acos(1), acos(1.0001), asin('foo')",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log2-poles",
+      "encoding": "UTF-8",
+      "sql": "SELECT log2(65536), log2(-100), log2(0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4030000000000000",
+            "hexFloat": "0x1.0000000000000p+4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log2-poles",
+      "encoding": "UTF-16le",
+      "sql": "SELECT log2(65536), log2(-100), log2(0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4030000000000000",
+            "hexFloat": "0x1.0000000000000p+4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-log2-poles",
+      "encoding": "UTF-16be",
+      "sql": "SELECT log2(65536), log2(-100), log2(0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4030000000000000",
+            "hexFloat": "0x1.0000000000000p+4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-sqrt-domain",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqrt(4), round(sqrt(20),7), sqrt(-16)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4011e3779e9d0e99",
+            "hexFloat": "0x1.1e3779e9d0e99p+2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-sqrt-domain",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sqrt(4), round(sqrt(20),7), sqrt(-16)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4011e3779e9d0e99",
+            "hexFloat": "0x1.1e3779e9d0e99p+2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "upstream-sqrt-domain",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sqrt(4), round(sqrt(20),7), sqrt(-16)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4011e3779e9d0e99",
+            "hexFloat": "0x1.1e3779e9d0e99p+2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-unary",
+      "encoding": "UTF-8",
+      "sql": "SELECT exp(1),acos(0),asin(0),atan(1),cos(0),sin(0),tan(0),cosh(0),sinh(0),tanh(0),acosh(1),asinh(0),atanh(0),radians(180),degrees(pi())",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4066800000000000",
+            "hexFloat": "0x1.6800000000000p+7"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-unary",
+      "encoding": "UTF-16le",
+      "sql": "SELECT exp(1),acos(0),asin(0),atan(1),cos(0),sin(0),tan(0),cosh(0),sinh(0),tanh(0),acosh(1),asinh(0),atanh(0),radians(180),degrees(pi())",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4066800000000000",
+            "hexFloat": "0x1.6800000000000p+7"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-unary",
+      "encoding": "UTF-16be",
+      "sql": "SELECT exp(1),acos(0),asin(0),atan(1),cos(0),sin(0),tan(0),cosh(0),sinh(0),tanh(0),acosh(1),asinh(0),atanh(0),radians(180),degrees(pi())",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "0000000000000000",
+            "hexFloat": "0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4066800000000000",
+            "hexFloat": "0x1.6800000000000p+7"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-binary",
+      "encoding": "UTF-8",
+      "sql": "SELECT atan2(1,0),mod(9,4),pow(2,8),power(2,8),log(2,256)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-binary",
+      "encoding": "UTF-16le",
+      "sql": "SELECT atan2(1,0),mod(9,4),pow(2,8),power(2,8),log(2,256)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "registry-binary",
+      "encoding": "UTF-16be",
+      "sql": "SELECT atan2(1,0),mod(9,4),pow(2,8),power(2,8),log(2,256)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "3ff921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff0000000000000",
+            "hexFloat": "0x1.0000000000000p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4070000000000000",
+            "hexFloat": "0x1.0000000000000p+8"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4020000000000000",
+            "hexFloat": "0x1.0000000000000p+3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "integer-storage-preservation",
+      "encoding": "UTF-8",
+      "sql": "SELECT ceil(17),floor(-17),trunc(42),typeof(ceil(17)),typeof(floor(-17)),typeof(trunc(42))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "integer",
+            "value": "-17"
+          },
+          {
+            "type": "integer",
+            "value": "42"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "integer-storage-preservation",
+      "encoding": "UTF-16le",
+      "sql": "SELECT ceil(17),floor(-17),trunc(42),typeof(ceil(17)),typeof(floor(-17)),typeof(trunc(42))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "integer",
+            "value": "-17"
+          },
+          {
+            "type": "integer",
+            "value": "42"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "integer-storage-preservation",
+      "encoding": "UTF-16be",
+      "sql": "SELECT ceil(17),floor(-17),trunc(42),typeof(ceil(17)),typeof(floor(-17)),typeof(trunc(42))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "integer",
+            "value": "-17"
+          },
+          {
+            "type": "integer",
+            "value": "42"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "real-storage-signed-zero",
+      "encoding": "UTF-8",
+      "sql": "SELECT ceil(-0.0),floor(-0.0),trunc(-0.0),sin(-0.0),atan(-0.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "real-storage-signed-zero",
+      "encoding": "UTF-16le",
+      "sql": "SELECT ceil(-0.0),floor(-0.0),trunc(-0.0),sin(-0.0),atan(-0.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "real-storage-signed-zero",
+      "encoding": "UTF-16be",
+      "sql": "SELECT ceil(-0.0),floor(-0.0),trunc(-0.0),sin(-0.0),atan(-0.0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "8000000000000000",
+            "hexFloat": "-0x0.0p+0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "coercion-prefix-blob",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqrt('4'),sqrt('4x'),sqrt(x'34'),sqrt(''),sqrt(NULL)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "coercion-prefix-blob",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sqrt('4'),sqrt('4x'),sqrt(x'34'),sqrt(''),sqrt(NULL)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "coercion-prefix-blob",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sqrt('4'),sqrt('4x'),sqrt(x'34'),sqrt(''),sqrt(NULL)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "domain-pole-overflow",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqrt(-1),acos(2),atanh(1),exp(1000),pow(1e308,2),mod(1,0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "domain-pole-overflow",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sqrt(-1),acos(2),atanh(1),exp(1000),pow(1e308,2),mod(1,0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "domain-pole-overflow",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sqrt(-1),acos(2),atanh(1),exp(1000),pow(1e308,2),mod(1,0)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "7ff0000000000000",
+            "hexFloat": "inf"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "precision-bits",
+      "encoding": "UTF-8",
+      "sql": "SELECT pi(),sqrt(2),exp(1),ln(2),radians(1),degrees(1)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff6a09e667f3bcd",
+            "hexFloat": "0x1.6a09e667f3bcdp+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe62e42fefa39ef",
+            "hexFloat": "0x1.62e42fefa39efp-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3f91df46a2529d39",
+            "hexFloat": "0x1.1df46a2529d39p-6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "404ca5dc1a63c1f8",
+            "hexFloat": "0x1.ca5dc1a63c1f8p+5"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "precision-bits",
+      "encoding": "UTF-16le",
+      "sql": "SELECT pi(),sqrt(2),exp(1),ln(2),radians(1),degrees(1)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff6a09e667f3bcd",
+            "hexFloat": "0x1.6a09e667f3bcdp+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe62e42fefa39ef",
+            "hexFloat": "0x1.62e42fefa39efp-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3f91df46a2529d39",
+            "hexFloat": "0x1.1df46a2529d39p-6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "404ca5dc1a63c1f8",
+            "hexFloat": "0x1.ca5dc1a63c1f8p+5"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "precision-bits",
+      "encoding": "UTF-16be",
+      "sql": "SELECT pi(),sqrt(2),exp(1),ln(2),radians(1),degrees(1)",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "400921fb54442d18",
+            "hexFloat": "0x1.921fb54442d18p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff6a09e667f3bcd",
+            "hexFloat": "0x1.6a09e667f3bcdp+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4005bf0a8b145769",
+            "hexFloat": "0x1.5bf0a8b145769p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3fe62e42fefa39ef",
+            "hexFloat": "0x1.62e42fefa39efp-1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3f91df46a2529d39",
+            "hexFloat": "0x1.1df46a2529d39p-6"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "404ca5dc1a63c1f8",
+            "hexFloat": "0x1.ca5dc1a63c1f8p+5"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameters",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqrt(?1),pow(?2,?3),ceil(?4),typeof(ceil(?4))",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "integer",
+          "value": "9"
+        },
+        {
+          "index": 2,
+          "type": "real",
+          "value": "2.0"
+        },
+        {
+          "index": 3,
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "index": 4,
+          "type": "integer",
+          "value": "7"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4008000000000000",
+            "hexFloat": "0x1.8000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4090000000000000",
+            "hexFloat": "0x1.0000000000000p+10"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameters",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sqrt(?1),pow(?2,?3),ceil(?4),typeof(ceil(?4))",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "integer",
+          "value": "9"
+        },
+        {
+          "index": 2,
+          "type": "real",
+          "value": "2.0"
+        },
+        {
+          "index": 3,
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "index": 4,
+          "type": "integer",
+          "value": "7"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4008000000000000",
+            "hexFloat": "0x1.8000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4090000000000000",
+            "hexFloat": "0x1.0000000000000p+10"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameters",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sqrt(?1),pow(?2,?3),ceil(?4),typeof(ceil(?4))",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "integer",
+          "value": "9"
+        },
+        {
+          "index": 2,
+          "type": "real",
+          "value": "2.0"
+        },
+        {
+          "index": 3,
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "index": 4,
+          "type": "integer",
+          "value": "7"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4008000000000000",
+            "hexFloat": "0x1.8000000000000p+1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4090000000000000",
+            "hexFloat": "0x1.0000000000000p+10"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572",
+            "value": "integer"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameter-nonnumeric-blob",
+      "encoding": "UTF-8",
+      "sql": "SELECT sin(?1),sin(?2),sin(?3)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "0.5x"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "302e35"
+        },
+        {
+          "index": 3,
+          "type": "null"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameter-nonnumeric-blob",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sin(?1),sin(?2),sin(?3)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "0.5x"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "302e35"
+        },
+        {
+          "index": 3,
+          "type": "null"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "parameter-nonnumeric-blob",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sin(?1),sin(?2),sin(?3)",
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "0.5x"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "302e35"
+        },
+        {
+          "index": 3,
+          "type": "null"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-real-column",
+      "encoding": "UTF-8",
+      "sql": "SELECT id,sqrt(score),pow(score,2),typeof(ceil(score)) FROM users ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff3988e1409212e",
+            "hexFloat": "0x1.3988e1409212ep+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4002000000000000",
+            "hexFloat": "0x1.2000000000000p+1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff94c583ada5b53",
+            "hexFloat": "0x1.94c583ada5b53p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4019000000000000",
+            "hexFloat": "0x1.9000000000000p+2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ffdeeea11683f49",
+            "hexFloat": "0x1.deeea11683f49p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4028800000000000",
+            "hexFloat": "0x1.8800000000000p+3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-real-column",
+      "encoding": "UTF-16le",
+      "sql": "SELECT id,sqrt(score),pow(score,2),typeof(ceil(score)) FROM users ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff3988e1409212e",
+            "hexFloat": "0x1.3988e1409212ep+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4002000000000000",
+            "hexFloat": "0x1.2000000000000p+1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff94c583ada5b53",
+            "hexFloat": "0x1.94c583ada5b53p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4019000000000000",
+            "hexFloat": "0x1.9000000000000p+2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ffdeeea11683f49",
+            "hexFloat": "0x1.deeea11683f49p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4028800000000000",
+            "hexFloat": "0x1.8800000000000p+3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-real-column",
+      "encoding": "UTF-16be",
+      "sql": "SELECT id,sqrt(score),pow(score,2),typeof(ceil(score)) FROM users ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff3988e1409212e",
+            "hexFloat": "0x1.3988e1409212ep+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4002000000000000",
+            "hexFloat": "0x1.2000000000000p+1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ff94c583ada5b53",
+            "hexFloat": "0x1.94c583ada5b53p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4019000000000000",
+            "hexFloat": "0x1.9000000000000p+2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "3ffdeeea11683f49",
+            "hexFloat": "0x1.deeea11683f49p+0"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4028800000000000",
+            "hexFloat": "0x1.8800000000000p+3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7265616c",
+            "value": "real"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-mixed-column",
+      "encoding": "UTF-8",
+      "sql": "SELECT id,kind,sqrt(v),ceil(v),typeof(ceil(v)) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "746578742d6e756c",
+            "value": "text-nul"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-mixed-column",
+      "encoding": "UTF-16le",
+      "sql": "SELECT id,kind,sqrt(v),ceil(v),typeof(ceil(v)) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "746578742d6e756c",
+            "value": "text-nul"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "fixture-mixed-column",
+      "encoding": "UTF-16be",
+      "sql": "SELECT id,kind,sqrt(v),ceil(v),typeof(ceil(v)) FROM scalar_values ORDER BY id",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "74657874",
+            "value": "text"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "746578742d6e756c",
+            "value": "text-nul"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "626c6f62",
+            "value": "blob"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e756c6c",
+            "value": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "composition",
+      "encoding": "UTF-8",
+      "sql": "SELECT sqrt(pow(3,2)+pow(4,2)),degrees(atan2(1,1)),ln(exp(2))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4014000000000000",
+            "hexFloat": "0x1.4000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4046800000000000",
+            "hexFloat": "0x1.6800000000000p+5"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "composition",
+      "encoding": "UTF-16le",
+      "sql": "SELECT sqrt(pow(3,2)+pow(4,2)),degrees(atan2(1,1)),ln(exp(2))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4014000000000000",
+            "hexFloat": "0x1.4000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4046800000000000",
+            "hexFloat": "0x1.6800000000000p+5"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "composition",
+      "encoding": "UTF-16be",
+      "sql": "SELECT sqrt(pow(3,2)+pow(4,2)),degrees(atan2(1,1)),ln(exp(2))",
+      "parameters": [],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754Hex": "4014000000000000",
+            "hexFloat": "0x1.4000000000000p+2"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4046800000000000",
+            "hexFloat": "0x1.6800000000000p+5"
+          },
+          {
+            "type": "real",
+            "ieee754Hex": "4000000000000000",
+            "hexFloat": "0x1.0000000000000p+1"
+          }
+        ]
+      ]
+    }
+  ]
+}

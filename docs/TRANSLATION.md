@@ -3311,3 +3311,22 @@ encodings plus branch/composition/parameter/column/reset checks) and
 and output/work limits). These selected vectors are not a blanket compatibility
 claim; the immutable manifest denominator is reconciled at 18/18 only for those
 selected, exactly typed upstream assertions.
+
+### Ordinary math function tests-first decision
+
+Before runtime translation, the complete pinned `SQLITE_ENABLE_MATH_FUNCTIONS`
+registry is frozen in `test/conformance/cases/stage3-math.spec.json`: 30 FuncDef
+rows/29 names and all five callback families (`ceilingFunc`, `logFunc`,
+`math1Func`, `math2Func`, `piFunc`). Translation must preserve
+`sqlite3_value_numeric_type` acceptance (numeric TEXT but not prefixes or BLOB),
+`ceilingFunc`'s INTEGER-preserving branch, log's explicit domain checks, and
+`sqlite3_result_double`/`sqlite3VdbeMemSetDouble` NaN-to-NULL while retaining
+infinities and signed zero. `pow`/`power` and `ceil`/`ceiling` share callbacks but
+remain distinct registry rows; `log` retains both arities and its base-first
+argument order. The exact-oracle corpus includes upstream `test/func7.test`
+assertions and source-derived parameter, persisted-column, composition, storage
+class, domain/pole, overflow, and precision cases in every database encoding.
+Current runtime absence receives zero credit and requires no substitute evaluator.
+The captured Linux host provides the C99 rows; finite libm last-bit portability is
+an explicit unresolved question, so future implementation comparison must report
+bit differences rather than silently widening expectations.

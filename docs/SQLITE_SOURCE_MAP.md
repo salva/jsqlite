@@ -1473,3 +1473,16 @@ host callback API, parallel evaluator, native/WASM path, or `Date.parse` is used
 | `toLocaltime` 1970..2038 direct branch, equivalent-year mapping, `osLocaltime` failure | `date-time.ts:localJulian`; deterministic mapped provider input plus null/throw/invalid-field SQLite-error lifecycle |
 | `strftimeFunc` `%Y`, `%F`, `%G`, `%g` signed integer formatting | `date-time.ts:format`; public negative/year-zero exact TEXT checks across three encodings |
 | VDBE interrupt checks during `strftimeFunc` scan | shared `DateTimeControl.charge`; public AbortSignal identity/reset/finalize check |
+
+### Ordinary math functions — tests-first mapping
+
+| Surface | Pinned source | Project evidence | Status |
+|---|---|---|---|
+| 30 math registrations / 29 names | `src/func.c:aBuiltinFunc` `SQLITE_ENABLE_MATH_FUNCTIONS`; `src/sqliteInt.h:FUNCTION/MFUNCTION` | `stage3-math.spec.json`, `math-manifest.test.py` | exact registry/arity/flags/user-data/callback inventory; runtime absent |
+| conversion and wrapper branches | `src/func.c:ceilingFunc`, `logFunc`, `math1Func`, `math2Func`, `piFunc`; `src/vdbemem.c:sqlite3VdbeMemSetDouble` | 20 cases / 60 observations in `stage3-math.native.json` | native reference only, zero TS credit |
+| upstream behavior selection | `test/func7.test` (`func7-100`, `110`, `200`, `210`, PostgreSQL/MySQL-derived assertions) | `capture-math.py`; public `run-math-cases-ts.mjs` | source-linked; public runner honestly verifies temporary absence |
+
+The development oracle profile is SQLite 3.53.4 with
+`ENABLE_COLUMN_METADATA` and `ENABLE_MATH_FUNCTIONS`; this build exposes `trunc`,
+`acosh`, `asinh`, and `atanh`, establishing C99 availability for the captured
+profile. Host-libm exactness outside the captured environment remains unresolved.

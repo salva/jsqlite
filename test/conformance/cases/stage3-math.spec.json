@@ -1,0 +1,859 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "profile": {
+    "mandatoryCompileOptions": [
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_MATH_FUNCTIONS"
+    ],
+    "c99ConditionalRows": [
+      "trunc",
+      "acosh",
+      "asinh",
+      "atanh"
+    ],
+    "hostLibmNote": "Exact finite payloads are host-libm observations; cross-host correctly-rounded identity is unresolved."
+  },
+  "scope": {
+    "registryRows": 30,
+    "distinctNames": 29,
+    "selectedCases": 20,
+    "oracleObservations": 60,
+    "tsCredit": 0
+  },
+  "registry": [
+    {
+      "name": "ceil",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "xCeil",
+      "callback": "ceilingFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "ceiling",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "xCeil",
+      "callback": "ceilingFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "floor",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "xFloor",
+      "callback": "ceilingFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "trunc",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "trunc",
+      "callback": "ceilingFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS && SQLITE_HAVE_C99_MATH_FUNCS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "ln",
+      "nArg": 1,
+      "macro": "FUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "0",
+      "callback": "logFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "log",
+      "nArg": 1,
+      "macro": "FUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "1",
+      "callback": "logFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "log10",
+      "nArg": 1,
+      "macro": "FUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "1",
+      "callback": "logFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "log2",
+      "nArg": 1,
+      "macro": "FUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "2",
+      "callback": "logFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "log",
+      "nArg": 2,
+      "macro": "FUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "0",
+      "callback": "logFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "exp",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "exp",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "pow",
+      "nArg": 2,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "pow",
+      "callback": "math2Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "power",
+      "nArg": 2,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "pow",
+      "callback": "math2Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "mod",
+      "nArg": 2,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "fmod",
+      "callback": "math2Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "acos",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "acos",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "asin",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "asin",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "atan",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "atan",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "atan2",
+      "nArg": 2,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "atan2",
+      "callback": "math2Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "cos",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "cos",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "sin",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "sin",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "tan",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "tan",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "cosh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "cosh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "sinh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "sinh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "tanh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "tanh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "acosh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "acosh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS && SQLITE_HAVE_C99_MATH_FUNCS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "asinh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "asinh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS && SQLITE_HAVE_C99_MATH_FUNCS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "atanh",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "atanh",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS && SQLITE_HAVE_C99_MATH_FUNCS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "sqrt",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "sqrt",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "radians",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "degToRad",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "degrees",
+      "nArg": 1,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "radToDeg",
+      "callback": "math1Func",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    },
+    {
+      "name": "pi",
+      "nArg": 0,
+      "macro": "MFUNCTION",
+      "flags": [
+        "SQLITE_FUNC_BUILTIN",
+        "SQLITE_FUNC_CONSTANT",
+        "SQLITE_UTF8"
+      ],
+      "userData": "0",
+      "callback": "piFunc",
+      "condition": "SQLITE_ENABLE_MATH_FUNCTIONS",
+      "tsStatus": "absent"
+    }
+  ],
+  "wrapperBranches": {
+    "ceilingFunc": [
+      "INTEGER returns INTEGER unchanged",
+      "FLOAT invokes user-data function",
+      "other leaves NULL"
+    ],
+    "logFunc": [
+      "numeric first argument only",
+      "x<=0 leaves NULL",
+      "two-argument base log requires log(base)>0 and x>0",
+      "one-argument user-data selects ln/log10/log2"
+    ],
+    "math1Func": [
+      "numeric INTEGER/REAL only",
+      "libm result through sqlite3_result_double; NaN becomes NULL, infinity remains REAL"
+    ],
+    "math2Func": [
+      "both arguments numeric INTEGER/REAL only",
+      "libm result through sqlite3_result_double; NaN becomes NULL, infinity remains REAL"
+    ],
+    "piFunc": [
+      "returns M_PI REAL"
+    ]
+  },
+  "cases": [
+    {
+      "id": "upstream-ceil-floor",
+      "sql": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "ceilingFunc integer/float"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-100",
+        "sqlVerifiedInSource": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99)"
+      }
+    },
+    {
+      "id": "upstream-null-numeric-text",
+      "sql": "SELECT ceil(NULL), ceil('-99.99')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "sqlite3_value_numeric_type"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-110",
+        "sqlVerifiedInSource": "SELECT ceil(NULL), ceil('-99.99')"
+      }
+    },
+    {
+      "id": "upstream-log-family",
+      "sql": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "logFunc argc/user-data"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-200",
+        "sqlVerifiedInSource": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256')"
+      }
+    },
+    {
+      "id": "upstream-log-domain",
+      "sql": "SELECT ln(-5), log(-5,100.0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "logFunc domain NULL"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-210",
+        "sqlVerifiedInSource": "SELECT ln(-5), log(-5,100.0)"
+      }
+    },
+    {
+      "id": "upstream-power-alias",
+      "sql": "SELECT pow(2,2), pow(2,-2), power(2,2), power(2,-2)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "math2Func aliases"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-mysql-280/281",
+        "sqlVerifiedInSource": "SELECT pow(2,2), pow(2,-2), power(2,2), power(2,-2)"
+      }
+    },
+    {
+      "id": "upstream-trig-domain",
+      "sql": "SELECT acos(1), acos(1.0001), asin('foo')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "math1Func NaN-to-NULL",
+        "nonnumeric TEXT"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-mysql-100/110/140",
+        "sqlVerifiedInSource": "SELECT acos(1), acos(1.0001), asin('foo')"
+      }
+    },
+    {
+      "id": "upstream-log2-poles",
+      "sql": "SELECT log2(65536), log2(-100), log2(0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "logFunc x<=0"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-mysql-240",
+        "sqlVerifiedInSource": "SELECT log2(65536), log2(-100), log2(0)"
+      }
+    },
+    {
+      "id": "upstream-sqrt-domain",
+      "sql": "SELECT sqrt(4), round(sqrt(20),7), sqrt(-16)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "math1Func NaN-to-NULL"
+      ],
+      "credit": "zero-until-public-typed-success",
+      "upstreamAssertion": {
+        "path": "test/func7.test",
+        "id": "func7-mysql-320",
+        "sqlVerifiedInSource": "SELECT sqrt(4), round(sqrt(20),7), sqrt(-16)"
+      }
+    },
+    {
+      "id": "registry-unary",
+      "sql": "SELECT exp(1),acos(0),asin(0),atan(1),cos(0),sin(0),tan(0),cosh(0),sinh(0),tanh(0),acosh(1),asinh(0),atanh(0),radians(180),degrees(pi())",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "math1Func",
+        "C99 rows",
+        "piFunc"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "registry-binary",
+      "sql": "SELECT atan2(1,0),mod(9,4),pow(2,8),power(2,8),log(2,256)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "math2Func",
+        "logFunc argc=2"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "integer-storage-preservation",
+      "sql": "SELECT ceil(17),floor(-17),trunc(42),typeof(ceil(17)),typeof(floor(-17)),typeof(trunc(42))",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "ceilingFunc SQLITE_INTEGER"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "real-storage-signed-zero",
+      "sql": "SELECT ceil(-0.0),floor(-0.0),trunc(-0.0),sin(-0.0),atan(-0.0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "signed zero"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "coercion-prefix-blob",
+      "sql": "SELECT sqrt('4'),sqrt('4x'),sqrt(x'34'),sqrt(''),sqrt(NULL)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "sqlite3_value_numeric_type TEXT/BLOB/NULL"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "domain-pole-overflow",
+      "sql": "SELECT sqrt(-1),acos(2),atanh(1),exp(1000),pow(1e308,2),mod(1,0)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "NaN-to-NULL",
+        "infinity/overflow",
+        "domain/pole"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "precision-bits",
+      "sql": "SELECT pi(),sqrt(2),exp(1),ln(2),radians(1),degrees(1)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "precision"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "parameters",
+      "sql": "SELECT sqrt(?1),pow(?2,?3),ceil(?4),typeof(ceil(?4))",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [
+        {
+          "index": 1,
+          "type": "integer",
+          "value": "9"
+        },
+        {
+          "index": 2,
+          "type": "real",
+          "value": "2.0"
+        },
+        {
+          "index": 3,
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "index": 4,
+          "type": "integer",
+          "value": "7"
+        }
+      ],
+      "database": "memory",
+      "branches": [
+        "bound Mem"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "parameter-nonnumeric-blob",
+      "sql": "SELECT sin(?1),sin(?2),sin(?3)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [
+        {
+          "index": 1,
+          "type": "text",
+          "value": "0.5x"
+        },
+        {
+          "index": 2,
+          "type": "blob",
+          "hex": "302e35"
+        },
+        {
+          "index": 3,
+          "type": "null"
+        }
+      ],
+      "database": "memory",
+      "branches": [
+        "bound TEXT/BLOB/NULL"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "fixture-real-column",
+      "sql": "SELECT id,sqrt(score),pow(score,2),typeof(ceil(score)) FROM users ORDER BY id",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "expression-cursor",
+      "branches": [
+        "persisted REAL",
+        "expression composition"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "fixture-mixed-column",
+      "sql": "SELECT id,kind,sqrt(v),ceil(v),typeof(ceil(v)) FROM scalar_values ORDER BY id",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "expression-cursor",
+      "branches": [
+        "persisted TEXT/BLOB/NULL"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "composition",
+      "sql": "SELECT sqrt(pow(3,2)+pow(4,2)),degrees(atan2(1,1)),ln(exp(2))",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "expression composition"
+      ],
+      "credit": "zero-until-public-typed-success"
+    }
+  ]
+}
