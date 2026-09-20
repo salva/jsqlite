@@ -388,6 +388,18 @@ export class Mem {
     if (this.#numeric?.kind === "int-real") return Number(this.#numeric.value);
     throw new MemStateError("Mem does not contain a REAL value");
   }
+  /** vdbeapi.c:sqlite3_value_double via vdbemem.c:sqlite3VdbeRealValue.
+   * Unlike numeric_type, this accepts a numeric prefix and treats nonnumeric
+   * values as zero. BLOB bytes use the connection/database encoding carried by
+   * sqlite3_value rather than an intrinsic text encoding. */
+  valueDouble(encoding: DatabaseEncoding): number {
+    if (this.#numeric !== null) return numericAsReal(this.#numeric);
+    if (this.#manifest === "null") return 0;
+    const state = this.#checkedBytes();
+    const bytes = state.kind === "blob" ? this.blobValue() : state.bytes;
+    const parsed = atof(numericCodeUnits(bytes, state.kind === "blob" ? encoding : state.encoding));
+    return parsed.validPrefix ? parsed.value : 0;
+  }
   #replaceWithNumeric(numeric: Numeric): void {
     this.#generation.invalidate();
     this.#bytes = null;

@@ -3336,8 +3336,10 @@ bit differences rather than silently widening expectations.
 The profile's `SQLITE_ENABLE_MATH_FUNCTIONS` block is now represented by 30
 `FuncDef` rows / 29 names in the immutable built-in registry and lowered through
 the existing `PureFunc`/`FunctionContext` VDBE path. `math.ts` translates pinned
-`func.c:ceilingFunc`, `logFunc`, `math1Func`, `math2Func`, and `piFunc`: numeric
-TEXT conversion but BLOB/non-numeric rejection, INTEGER preservation for the
+`func.c:ceilingFunc`, `logFunc`, `math1Func`, `math2Func`, and `piFunc`: wrapper-
+gated arguments use numeric TEXT conversion but BLOB/non-numeric rejection;
+`log(B,X)` preserves pinned `sqlite3_value_double(X)` numeric-prefix/BLOB
+conversion in the database encoding. INTEGER preservation for the
 rounding wrapper, domain and NaN-to-NULL behavior, infinity, signed zero, REAL
 callback results, aliases, exact arities, and two-argument log control flow.
 
@@ -3345,7 +3347,7 @@ ECMAScript `Math` is the required browser-safe replacement for C libm; no native
 WASM, eval, host registration, or separate expression evaluator is introduced.
 The concrete wrapper behavior remains source-translated, while finite
 transcendental last-bit identity on libm hosts other than the pinned capture host
-is not guaranteed. Public typed comparison passes all 20 immutable cases / 60
+is not guaranteed. Public typed comparison passes all 21 immutable cases / 63
 encoding-specific observations, including parameters, columns, composition and
 all three fixture encodings. Commands: `npm run typecheck` and
 `node --experimental-strip-types test/conformance/run-math-cases-ts.mjs`.

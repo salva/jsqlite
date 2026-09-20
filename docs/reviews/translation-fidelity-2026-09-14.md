@@ -816,6 +816,8 @@ names) now resolve and execute through shared VDBE Function dispatch. The owning
 wrapper translation is `src/internal/math.ts`, mapped to `func.c:ceilingFunc`,
 `logFunc`, `math1Func`, `math2Func`, and `piFunc`; it retains Mem numeric/storage
 semantics and NaN-to-NULL. ECMAScript `Math` is the browser-safe libm adaptation.
-The immutable public corpus passes 20/20 cases and 60/60 observations across
-UTF-8, UTF-16LE and UTF-16BE. Cross-host finite transcendental last-bit identity
+The immutable public corpus passes 21/21 cases and 63/63 observations across
+UTF-8, UTF-16LE and UTF-16BE. The added `log(B,X)` discriminator preserves the
+pinned asymmetry between numeric-type conversion of `B` and value-double
+numeric-prefix/BLOB conversion of `X`. Cross-host finite transcendental last-bit identity
 remains a portability limit, not an advertised guarantee.

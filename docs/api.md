@@ -484,7 +484,7 @@ otherwise raises SQLite code 1 during `step()`. NULL propagates, text matching
 stops at embedded NUL, and BLOB-to-text observables follow the physical database
 encoding. Pattern length, work, cancellation, and deadline controls are bounded;
 the implementation uses no RegExp, native SQLite, eval, or host callback.
-Date/time and the profile-enabled math scalar families are exposed through the same registry and VDBE Function dispatch; JSON and host function/log callback registration are not exposed. Math includes the documented SQLite 3.53.4 names/aliases and arities (`ceil` through `pi`) with SQLite numeric conversion, NULL/domain handling and REAL result classes. Delivered scalar results preserve the five public
+Date/time and the profile-enabled math scalar families are exposed through the same registry and VDBE Function dispatch; JSON and host function/log callback registration are not exposed. Math includes the documented SQLite 3.53.4 names/aliases and arities (`ceil` through `pi`) with each wrapper's SQLite numeric conversion (including two-argument `log`'s distinct value-double conversion for its second argument), NULL/domain handling and REAL result classes. Delivered scalar results preserve the five public
 storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
 Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
 zero. `sqlite_log()` is a SQL NULL-producing no-op because this API has no host log

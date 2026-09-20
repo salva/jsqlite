@@ -78,9 +78,11 @@ export function evaluateMathFunction(name:string,args:readonly Mem[],encoding:Da
    // converting the second argument.
    const denominator=Math.log(left);
    if(denominator<=0)return result;
-   const second=numeric(args[1]!,encoding);
-   if(!second)return result;
-   const right=real(second);
+   // Pinned logFunc deliberately does not apply numeric_type to argv[1].
+   // sqlite3_value_double accepts a numeric prefix (including BLOB bytes read
+   // in the database encoding) and maps nonnumeric/NULL to zero; the following
+   // domain check then rejects those zero values.
+   const right=args[1]!.valueDouble(encoding);
    return right<=0?result:realResult(Math.log(right)/denominator);
   }
   return realResult(name==="ln"?Math.log(left):name==="log2"?Math.log2(left):Math.log10(left));

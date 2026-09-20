@@ -542,13 +542,13 @@ continues to fail with the typed result limit and statement lifecycle coverage.
 contract for the `SQLITE_ENABLE_MATH_FUNCTIONS` block in `src/func.c`. It inventories
 30 active `FuncDef` rows (29 names; `log` has arities 1 and 2), including the four
 `SQLITE_HAVE_C99_MATH_FUNCS` rows, exact macro-derived flags, user-data, callback
-families, aliases, and wrapper branches. Twenty selected/source-derived cases yield
-60 exact native observations across UTF-8, UTF-16le, and UTF-16be. REAL observations
+families, aliases, and wrapper branches. Twenty-one selected/source-derived cases yield
+63 exact native observations across UTF-8, UTF-16le, and UTF-16be. REAL observations
 carry IEEE-754 hex plus C hex-float text, so signed zero and nonfinite values never
 pass through JSON numbers. Cases cover parameters, persisted REAL/TEXT/BLOB/NULL
 columns, composition, coercion, domains/poles, NaN-to-NULL, infinity, precision,
 and result storage class. `capture-math.py` pins source/profile and
 `math-manifest.test.py` rejects registry or capture drift. `run-math-cases-ts.mjs`
-uses only the public API and requires **20/20** TS credit (60/60 observations).
+uses only the public API and requires **21/21** TS credit (63/63 observations).
 Finite transcendental payloads are observations of this host libm, not a claim that
 all supported hosts return identical last bits.
