@@ -92,5 +92,16 @@ try{
       }
     }finally{db.closeDeferred();}
   }
+// Web Crypto limits one getRandomValues request to 65,536 bytes. SQLite's
+// randomblob() accepts larger results, so retain a public regression across chunks.
+{
+  const encoding='UTF-8',db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent(encoding)}`));
+  try{
+    const statement=db.prepare('SELECT typeof(randomblob(65537)),length(randomblob(65537))').statement;
+    assert.equal(await statement.step(),'row');
+    assert.equal(statement.columnText(0),'blob');assert.equal(statement.columnInteger(1),65537n);
+    assert.equal(await statement.step(),'done');statement.finalize();
+  }finally{db.closeDeferred();}
+}
 }finally{await new Promise(resolve=>server.close(resolve));}
 console.log(JSON.stringify({outcome:'pass',observations:count,cases:ids.size}));
