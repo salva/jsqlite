@@ -20,6 +20,7 @@ import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
+import {sqliteFormat,sqliteRound} from "./printf.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
@@ -2752,6 +2753,8 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  if(name==="sqlite_source_id")return scalarText(SQLITE_SOURCE_ID);
  if(name==="last_insert_rowid"||name==="changes"||name==="total_changes"){out.setInt64(0n);return out}
  if(name==="sqlite_log")return out;
+ if(name==="printf"||name==="format"){const formatted=a.length?sqliteFormat(a[0]!,a.slice(1),{maxBytes:control?.maxResultBytes??Number.MAX_SAFE_INTEGER,charge,check:()=>control?.check()}):null;if(formatted===null)return out;const bytes=new TextEncoder().encode(formatted);checkSize(bytes.length);out.setText(bytes,"utf-8");return out}
+ if(name==="round"){const rounded=sqliteRound(a[0]!,a[1]);if(rounded!==null)out.setDouble(rounded);return out}
  if(name==="sqlite_compileoption_get"){const index=Number(a[0]!.integerValue());return index>=0&&index<SQLITE_COMPILE_OPTIONS.length?scalarText(SQLITE_COMPILE_OPTIONS[index]!):out}
  if(name==="sqlite_compileoption_used"){const query=asText(a[0]!,encoding).toUpperCase();out.setInt64(SQLITE_COMPILE_OPTIONS.some(option=>option.toUpperCase()===query||option.split("=")[0]!.toUpperCase()===query)?1n:0n);return out}
  if(name==="like"||name==="glob"){

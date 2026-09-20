@@ -244,7 +244,7 @@ function sqliteFp2Convert10(m: bigint, e: number, n: number): { value: bigint; e
   }
   return { value: high, exponent: -p };
 }
-function sqliteRealDigits(value: number): { digits: string; exponent: number } {
+export function sqliteRealDigits(value: number): { digits: string; exponent: number } {
   const view = new DataView(new ArrayBuffer(8));
   view.setFloat64(0, value, false);
   const bits = view.getBigUint64(0, false);

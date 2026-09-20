@@ -1363,3 +1363,17 @@ and infinities. TEXT/BLOB expansion checks the result limit before construction.
 ### Ordinary scalar bounded execution revision (2026-09-20)
 
 `src/func.c:instrFunc`, `unistrFunc`, `unistrQuoteFunc`, `concatFunc`, `charFunc`, `unhexFunc`, `zeroblobFunc`, and `randomBlob` map to the ordinary dispatch and bounded helpers in `src/internal/vdbe.ts` / `ordinary-scalars.ts`. Output bytes are incrementally preflighted before host allocation; long loops check controls and charge in 256-unit intervals. `instr` deliberately retains upstream's nested candidate comparison rather than substituting a different search algorithm. Browser Web Crypto is chunked at 65,536 bytes. Deferred upstream `MEM_Zero` is adapted to eager browser bytes because the read-only public BLOB API exposes a `Uint8Array`; allocation occurs only after output and proportional-work admission. `test/conformance/run-ordinary-scalars-owned-ts.mjs` supplies public low output/work, abort/deadline, saved-error, reset/finalize, and connection-reuse evidence. Accounting remains 47/50; `printf`, `format`, and `round` receive no credit.
+
+
+### SQL formatting scalar translation ([[card:card-p-b-b]])
+
+`src/internal/printf.ts` translates the SQL-accessible branches of pinned
+`src/printf.c:sqlite3_str_vappendf` and `src/func.c:printfFunc`/`roundFunc`. It
+retains format scanning, sequential/missing argument consumption, flags, dynamic
+and literal width/precision, integer bases and signed-64 behavior, REAL decimal
+digit decoding, SQL `%q`/`%Q`/`%w` escaping, embedded-NUL termination, padding,
+and the round direct-integer versus `%!.*f` paths without host printf or Intl.
+`src/internal/vdbe.ts` owns result limits and saved-error cleanup through the
+existing FunctionContext/VDBE path. `run-ordinary-scalars-format-ts.mjs` covers
+the pinned cases plus parameters, composition, padding/bases, exact output limit,
+and saved-error/finalize behavior. Registry accounting is now 50/50 dispatchable.

@@ -3177,3 +3177,15 @@ three physical encodings.
 ### Ordinary-scalar bounded builders (2026-09-20 revision)
 
 Pinned `src/func.c` scalar loops remain the semantic reference, while the browser implementation must additionally honor the public execution controls. Owned output-growing functions now compute UTF-8/BLOB bytes with overflow-safe incremental preflight before joining/encoding/allocating: `unistr`, escaped `unistr_quote`, `concat`/`concat_ws`, `char`, `unhex`, `zeroblob`, and `randomblob`. Linear builders/searches checkpoint every 256 visited characters/comparisons and charge one deterministic work unit per 256 bytes/steps; `instr` retains pinned `instrFunc`'s candidate/needle nested comparison order and charges those comparisons, including adversarial near-matches. Web Crypto remains an adaptation: unlike SQLite's PRNG call, browsers cap `getRandomValues` requests at 65,536 bytes, so `randomblob` pre-admits output/work, allocates once, and checks control between 65,536-byte chunks. `zeroblob` is eagerly materialized because public `columnBlob()` exposes bytes and the current read-only `Mem` has no deferred-zero representation; unlike pinned deferred `MEM_Zero`, output/work are admitted before allocation. Both adaptations preserve result storage class, length/content constraints, SQL errors, and cancellation/error lifecycle; public low-limit/control and source-shaped tests cover them.
+
+### SQL printf/format and round translation (2026-09-20)
+
+The ordinary-scalar path translates pinned `src/printf.c:sqlite3_str_vappendf`
+for SQL-supported conversions and `src/func.c:printfFunc`/`roundFunc` in
+`src/internal/printf.ts`. It intentionally does not call host printf, Intl, or
+locale conversion. The existing translated SQLite floating digit decoder is
+shared with the formatter; browser string accumulation is the allocation
+adaptation and remains guarded by the connection result-byte limit. Focused
+public tests preserve NULL/missing arguments, embedded-NUL termination,
+flags/width/precision, integer/REAL boundaries, escaping, composition,
+parameters, and statement saved-error cleanup.
