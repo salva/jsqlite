@@ -24,9 +24,12 @@ test("adapter reaches the real public prepared SELECT path", async () => {
     assert.equal(prepared.statement.columnInteger(0), 1n);
     assert.equal(await prepared.statement.step(), "done");
     prepared.statement.finalize();
-    assert.throws(() => connection.prepare("SELECT 7,(SELECT 8)"), error =>
-      error instanceof JSQLiteError && error.kind === "unsupported" &&
-      error.unsupportedClassification === "temporary");
+    const scalarSubquery = connection.prepare("SELECT 7,(SELECT 8)").statement;
+    assert.equal(await scalarSubquery.step(), "row");
+    assert.equal(scalarSubquery.columnInteger(0), 7n);
+    assert.equal(scalarSubquery.columnInteger(1), 8n);
+    assert.equal(await scalarSubquery.step(), "done");
+    scalarSubquery.finalize();
     const compound = connection.prepare("SELECT 1 UNION ALL SELECT 2").statement;
     assert.equal(await compound.step(), "row");
     assert.equal(compound.columnInteger(0), 1n);
