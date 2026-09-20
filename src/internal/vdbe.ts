@@ -1276,6 +1276,9 @@ function aggregateDefinition(name:string):AggregateDefinition<any>|undefined{ret
 function resolveBuiltinFunction(name:string,argc:number):NonNullable<ReturnType<typeof builtinFunction>>{
  const definition=builtinFunction(name);
  if(definition===undefined)throw new JSQLiteError("sqlite",`no such function: ${name}`,{code:1});
+ // resolve.c rejects calls beyond SQLITE_MAX_FUNCTION_ARG independently of
+ // FuncDef arity matching, with a distinct diagnostic from ordinary mismatch.
+ if(argc>definition.maximumArity)throw new JSQLiteError("sqlite",`too many arguments on function ${name}`,{code:1});
  if(!builtinFunctionAccepts(definition,argc))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});
  if(!definition.dispatchable)throw new JSQLiteError("unsupported",`built-in function ${name}() is registered but not implemented`,{unsupportedClassification:"temporary"});
  return definition;
