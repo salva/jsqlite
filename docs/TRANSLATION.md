@@ -3239,3 +3239,23 @@ admission. Emitting conversions continue to admit actual padding/output before
 allocation, while SQL `%n` (`etSIZE`) clears/ignores width, emits nothing, and
 consumes no conversion value argument after any dynamic-width argument. This
 preserves both hostile emitting-width protection and non-emitting source behavior.
+
+### Value-list `IN` expression tranche (2026-09-20 revision)
+
+The generated reduction `expr ::= expr in_op LP exprlist RP` now owns nonempty
+value-list `IN`/`NOT IN` syntax; the empty-list reduction is retained separately.
+Lowering follows the pinned `src/expr.c:sqlite3ExprCodeIN` no-index path selected
+by `sqlite3FindInIndex`/`IN_INDEX_NOOP`: evaluate the LHS once, compare ordered RHS
+terms with shared affinity/collation comparison, stop after a match, and preserve
+NULL for no-match lists containing NULL before applying `NOT`. This is register and
+control-flow lowering in the shared VDBE compiler, not JavaScript `Set`/`includes`
+or a separate evaluator. Predicate `AND`/`OR` remains lazy; projection preserves
+pinned eager nonliteral behavior while literal decisive `0 AND` and nonzero `OR`
+use the VDBE-shaped `ShortCircuit`/`Boolean` path.
+
+The zero-credit audit has 21 cases executed through the public API against UTF-8,
+UTF-16LE and UTF-16BE fixtures (63 observations). It checks storage classes,
+collation/affinity, NULL and empty-list truth, parameters, lazy later RHS terms,
+projection errors, ordered metadata, reset replay, first-error identity and
+finalize handling. Value-list execution does not credit or imply subquery/index-
+backed `IN`, planner index selection, or broader relational support.

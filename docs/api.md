@@ -495,3 +495,15 @@ REAL conversions, `%q`/`%Q`/`%w`, missing/NULL arguments, and embedded-NUL forma
 termination. Formatting is locale-independent and does not expose a host printf.
 
 Owned ordinary scalar builders honor `maxResultBytes` before oversized string/BLOB materialization and charge deterministic work while scanning or producing results. `instr` comparison loops, Unicode escape/quote builders, trim/unhex/concat/char loops, and random/zero BLOB production observe work, cancellation, and deadline controls at bounded intervals. A scalar execution error is saved on its statement: repeat `step()` and `finalize()` report the first error, while `reset()` reports it once and restores statement reuse; the connection remains usable.
+
+### Value-list `IN` conformance note (2026-09-20)
+
+Within the documented prepared read-only SELECT surface, scalar value lists are
+accepted in `expr IN (expr, ...)`, `expr NOT IN (expr, ...)`, and their empty-list
+forms. Results use SQLite three-valued membership semantics, shared comparison
+affinity/collation, ordered RHS evaluation, and parameter binding. Public statement
+lifecycle behavior includes repeatable results after `reset()`, stable first-error
+identity, and ordinary `finalize()` cleanup. This bounded statement does not admit
+or promise subquery/index-backed `IN`, host function registration, or broader SQL
+forms not otherwise documented. The conformance tranche is deliberately zero-
+credit: 21 cases run against each of UTF-8, UTF-16LE and UTF-16BE fixtures.

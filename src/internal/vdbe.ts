@@ -42,6 +42,7 @@ type Expression =
  | {kind:"aggregate";name:string;args:Expression[];collation:BuiltinCollation;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[]}
  | {kind:"scalar-subquery";select:SelectNode;exists?:true}
  | {kind:"in-subquery";left:Expression;select:SelectNode;negated:boolean}
+ | {kind:"in-list";left:Expression;values:Expression[];negated:boolean}
  | {kind:"register";index:number}
  | {kind:"case";operand:Expression|null;pairs:[Expression,Expression][];otherwise:Expression|null};
 
@@ -524,6 +525,7 @@ export function compileWindowSelectLowering(
           expression.index=use.columnIndex<0||isIntegerPrimaryKeyAlias(use.source.table,use.columnIndex)?-1:use.columnIndex;expression.cursor=use.source.cursorId;
         }else if(expression.kind==="unary"||expression.kind==="cast"||expression.kind==="collate")bind(expression.value,child(0));
         else if(expression.kind==="binary"){bind(expression.left,child(0));bind(expression.right,child(1));}
+        else if(expression.kind==="in-list"){bind(expression.left,child(0));for(let i=0;i<expression.values.length;i++)bind(expression.values[i]!,child(i+1));}
         else if(expression.kind==="call"){const infixPattern=node.signature.startsWith("expr ::= expr likeop ")||node.signature.startsWith("expr ::= expr MATCH ");for(let i=0;i<expression.args.length;i++)bind(expression.args[i]!,child(infixPattern&&i<2?1-i:i));}
         return expression;
       };return bind(expressionFromReduction(reduction),reduction);
@@ -533,7 +535,7 @@ export function compileWindowSelectLowering(
     const sourcePredicates:Reduction[]=[];for(const item of resolved.source.from.items)if(item.on?.reduction?.kind==="reduction")sourcePredicates.push(item.on.reduction);if(resolved.source.where?.reduction?.kind==="reduction")sourcePredicates.push(resolved.source.where.reduction);
     const predicateSkips:number[]=[];
     const emitSourceLevel=(index:number):void=>{
-      if(index===resolved.sources.length){for(const predicate of sourcePredicates){const register=compileExpressionTree(bindSourceExpression(predicate),ops,()=>++registers,parameters);predicateSkips.push(ops.length);ops.push({code:"IfNot",p1:register,p2:0});}ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
+      if(index===resolved.sources.length){for(const predicate of sourcePredicates){const register=compileExpressionTree(bindSourceExpression(predicate),ops,()=>++registers,parameters,undefined,true);predicateSkips.push(ops.length);ops.push({code:"IfNot",p1:register,p2:0});}ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
       const cursor=resolved.sources[index]!.cursorId,rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;emitSourceLevel(index+1);const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});if(index===resolved.sources.length-1)for(const at of predicateSkips)(ops[at] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;
     };
     if(resolved.sources.length)emitSourceLevel(0);else ops.push({code:"Yield",p1:sourceCoroutine,p2:0});
@@ -1323,6 +1325,10 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
   if(!nested||typeof nested!=="object"||!("kind" in nested)||nested.kind!=="select")throw new JSQLiteError("internal","generated IN subquery lost its Select");
   return{kind:"in-subquery",left:expressionFromReduction(all[0]!),select:nested as SelectNode,negated:inOp?.signature==="in_op ::= NOT IN"};
  }
+ if(sig==="expr ::= expr in_op LP exprlist RP"){
+  const inOp=directReduction(n,"in_op ::="),list=directReduction(n,"exprlist ::=");
+  return{kind:"in-list",left:expressionFromReduction(all[0]!),values:list?listExpressions(list,"nexprlist ::=").map(expressionFromReduction):[],negated:inOp?.signature==="in_op ::= NOT IN"};
+ }
  if(sig==="expr ::= PLUS|MINUS expr"||sig==="expr ::= BITNOT expr"||sig==="expr ::= NOT expr"){
   // expr.c admits 2^63 only as the operand of unary minus.
   if(t[0]!.text==="-"&&all[0]?.kind==="reduction"){const leaf=exprLeaves(all[0]);if(leaf.length===1&&leaf[0]!.kind==="integer"&&leaf[0]!.text==="9223372036854775808")return{kind:"literal",value:-(1n<<63n)}}
@@ -1433,8 +1439,8 @@ function rejectUnsupportedSelectClauses(select: SelectNode, relational = false):
     throw new JSQLiteError("unsupported", "this SELECT clause is not implemented", { unsupportedClassification: "temporary" });
 }
 
-function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number,parameters?:ParameterBuilder,compileSubquery?:(expression:SubqueryExpression)=>number):number {
-  const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate,parameters,compileSubquery);
+function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>number,parameters?:ParameterBuilder,compileSubquery?:(expression:SubqueryExpression)=>number,predicateContext=false):number {
+  const emit=(e:Expression):number=>compileExpressionTree(e,ops,allocate,parameters,compileSubquery,predicateContext);
   if(expression.kind==="register") { const r=allocate();ops.push({code:"Copy",p1:expression.index,p2:r});return r; }
   if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
@@ -1458,13 +1464,36 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     if(compileSubquery)return compileSubquery(expression);
     throw new JSQLiteError("unsupported","this IN subquery shape is not implemented",{unsupportedClassification:"temporary"});
   }
+  if(expression.kind==="in-list") {
+    // sqlite3ExprCodeIN's INDEX_NOOP path compares from left to right.  Compile
+    // the chain into registers so a hit jumps over later (possibly erroring)
+    // RHS terms while misses retain SQL's false/NULL distinction.
+    const left=emit(expression.left),result=allocate();
+    if(expression.values.length===0)ops.push({code:"Integer",p1:0n,p2:result});
+    else {
+      const affinity=expressionAffinity(expression.left);
+      for(let i=0;i<expression.values.length;i++){
+        const value=expression.values[i]!,guard=i>0?ops.length:-1;
+        if(i>0)ops.push({code:"ShortCircuit",kind:"or",p1:result,p2:result,jump:0});
+        const right=emit(value),equal=i===0?result:allocate();
+        ops.push({code:"Binary",op:"=",p1:left,p2:right,p3:equal,collation:binaryCollation(expression.left,value),...(affinity?{affinity}:{})});
+        if(i>0){ops.push({code:"Boolean",kind:"or",p1:result,p2:equal,p3:result});(ops[guard] as {jump:number}).jump=ops.length;}
+      }
+    }
+    if(!expression.negated)return result;
+    const negated=allocate();ops.push({code:"Not",p1:result,p2:negated});return negated;
+  }
   if(expression.kind==="column") { const r=allocate();if(expression.index<0)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
   if(expression.kind==="binary") {
     const left=emit(expression.left);
-    if(expression.op==="AND"||expression.op==="OR") { const r=allocate(),guard=ops.length;ops.push({code:"ShortCircuit",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:r,jump:0});const right=emit(expression.right);ops.push({code:"Boolean",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:r});(ops[guard] as {jump:number}).jump=ops.length;return r; }
+    // expr.c sqlite3ExprIfTrue/sqlite3ExprIfFalse can omit the RHS when a
+    // literal left operand decides AND/OR during code generation. Projection
+    // comparisons are otherwise evaluated eagerly (unlike predicate context).
+    const literalDecides=expression.left.kind==="literal"&&typeof expression.left.value==="bigint"&&((expression.op==="AND"&&expression.left.value===0n)||(expression.op==="OR"&&expression.left.value!==0n));
+    if((expression.op==="AND"||expression.op==="OR")&&(predicateContext||literalDecides)) { const r=allocate(),guard=ops.length;ops.push({code:"ShortCircuit",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:r,jump:0});const right=emit(expression.right);ops.push({code:"Boolean",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:r});(ops[guard] as {jump:number}).jump=ops.length;return r; }
     const right=emit(expression.right),r=allocate(),affinity=expressionAffinity(expression.left)??expressionAffinity(expression.right);ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:binaryCollation(expression.left,expression.right),...(affinity?{affinity}:{})});return r;
   }
   if(expression.kind==="call") {
@@ -2369,7 +2398,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");return e;
       }
-      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
+      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
     };
     return assign(expressionFromReduction(expression.reduction!));
   };
@@ -2517,8 +2546,9 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     const compilePredicate=(tree:Expression):number=>{
       if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")return compileExpressionSubquery(tree);
       if(tree.kind==="binary"&&(tree.op==="AND"||tree.op==="OR")){
-        const left=compilePredicate(tree.left),right=compilePredicate(tree.right),output=++registers;
-        ops.push({code:"Boolean",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:output});return output;
+        const left=compilePredicate(tree.left),output=++registers,guard=ops.length;
+        ops.push({code:"ShortCircuit",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:output,jump:0});
+        const right=compilePredicate(tree.right);ops.push({code:"Boolean",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:output});(ops[guard] as {jump:number}).jump=ops.length;return output;
       }
       return compileExpressionTree(tree,ops,()=>++registers,parameters,compileExpressionSubquery);
     };
@@ -2570,6 +2600,7 @@ function sameExpression(a:Expression,b:Expression):boolean {
   case "cast": return a.affinity===(b as typeof a).affinity&&sameExpression(a.value,(b as typeof a).value);
   case "call": case "aggregate": {const x=b as typeof a;return a.name===x.name&&a.args.length===x.args.length&&a.args.every((arg,i)=>sameExpression(arg,x.args[i]!));}
   case "case": {const x=b as typeof a;return (a.operand===null?x.operand===null:x.operand!==null&&sameExpression(a.operand,x.operand))&&a.pairs.length===x.pairs.length&&a.pairs.every((pair,i)=>sameExpression(pair[0],x.pairs[i]![0])&&sameExpression(pair[1],x.pairs[i]![1]))&&(a.otherwise===null?x.otherwise===null:x.otherwise!==null&&sameExpression(a.otherwise,x.otherwise));}
+  case "in-list": {const x=b as typeof a;return a.negated===x.negated&&sameExpression(a.left,x.left)&&a.values.length===x.values.length&&a.values.every((value,i)=>sameExpression(value,x.values[i]!));}
   case "mem": case "register": case "scalar-subquery": case "in-subquery": return false;
  }
 }
@@ -2688,6 +2719,13 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  type Entry={name:string;args:Expression[];collation:BuiltinCollation;register:number;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[];distinctCursor?:number;orderCursor?:number};const entries:Entry[]=[];
  const lower=(e:Expression,inside=false):Expression=>{if(e.kind==="aggregate"){if(inside)throw new JSQLiteError("sqlite","misuse of aggregate function",{code:1});const register=allocate();entries.push({name:e.name,args:e.args,collation:e.args[0]?collation(e.args[0]):e.collation,register,distinct:e.distinct,filter:e.filter,orderBy:e.orderBy});return{kind:"register",index:register}}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=lower(e.value,inside);else if(e.kind==="binary"){e.left=lower(e.left,inside);e.right=lower(e.right,inside)}else if(e.kind==="call")e.args=e.args.map(x=>lower(x,inside));else if(e.kind==="case"){if(e.operand)e.operand=lower(e.operand,inside);e.pairs=e.pairs.map(([a,b])=>[lower(a,inside),lower(b,inside)]);if(e.otherwise)e.otherwise=lower(e.otherwise,inside)}return e};
  const outputs=trees.map(x=>lower(x)),having=havingTree?lower(havingTree):null;
+ // select.c AggInfo retains bare result columns from the first row that feeds
+ // an ordinary (non-GROUP BY) aggregate. Cache those values before Next moves
+ // the table cursor; final projection must not reread the last/exhausted cursor.
+ const bareColumns:{source:Expression;register:number}[]=[];
+ const cacheBare=(e:Expression):Expression=>{if(e.kind==="column"){const existing=bareColumns.find(item=>{const column=item.source as Extract<Expression,{kind:"column"}>;return column.cursor===e.cursor&&column.index===e.index});const register=existing?.register??allocate();if(!existing)bareColumns.push({source:e,register});return{kind:"register",index:register}}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=cacheBare(e.value);else if(e.kind==="binary"){e.left=cacheBare(e.left);e.right=cacheBare(e.right)}else if(e.kind==="call")e.args=e.args.map(cacheBare);else if(e.kind==="case"){if(e.operand)e.operand=cacheBare(e.operand);e.pairs=e.pairs.map(([a,b])=>[cacheBare(a),cacheBare(b)]);if(e.otherwise)e.otherwise=cacheBare(e.otherwise)}return e};
+ if(!select.hasGroupBy){outputs.forEach((output,index)=>outputs[index]=cacheBare(output));if(having)cacheBare(having);}
+ const bareOnce=bareColumns.length?allocate():undefined;
  const groupLimit=select.hasGroupBy?computeLimitRegisters(select,ops,allocate,parameters):undefined;
  const resolvedOrderResultIndices=select.hasGroupBy&&select.hasOrderBy?select.orderBy.map(term=>aggregateOrderResultIndex(select,term)):[];
  const resultSorter=resolvedOrderResultIndices.length>0&&resolvedOrderResultIndices.every(index=>index>=0)&&select.orderBy.some((term,index)=>term.descending||term.nulls!==null||!groups.some(group=>sameExpression(rawTrees[resolvedOrderResultIndices[index]!]!,group)))?2:undefined;
@@ -2714,7 +2752,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
   const columns=select.result.map((expression,i)=>{const tree=trees[i]!;if(tree.kind==="column"){const source=aggregateSources.find(item=>item.cursor===(tree.cursor??0))!,columnIndex=tree.index<0?(tree.payloadIndex??source.base)-source.base:tree.index,c=source.table.columns[columnIndex]!;return Object.freeze({name:expression.alias??c.name,declaredType:c.declaredType,database:"main",table:source.table.name,origin:c.name})}return Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null})});return Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
  }
  let rewind=-1,body=0,skip=-1;
- if(table){ops.push({code:"OpenRead",p1:table.rootPage});rewind=ops.length;ops.push({code:"Rewind",p2:0});body=ops.length;if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();const next=ops.length;ops.push({code:"Next",p2:body});if(skip>=0)(ops[skip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;}else {if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;}
+ if(table){ops.push({code:"OpenRead",p1:table.rootPage});rewind=ops.length;ops.push({code:"Rewind",p2:0});body=ops.length;if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}if(bareOnce!==undefined){const onceAt=ops.length;ops.push({code:"Once",p1:bareOnce,p2:0});for(const item of bareColumns){const value=compileExpressionTree(item.source,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:item.register});}(ops[onceAt] as {p2:number}).p2=ops.length;}emitSteps();const next=ops.length;ops.push({code:"Next",p2:body});if(skip>=0)(ops[skip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;}else {if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;}
  emitFinals();let reject=-1;if(having){const test=compileExpressionTree(having,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0})}outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:index+1})});ops.push({code:"ResultRow",p1:1,p2:outputs.length});if(reject>=0)(ops[reject] as {p2:number}).p2=ops.length;ops.push({code:"Halt"});
  const columns=select.result.map(expression=>Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null}));return Object.freeze({ops:Object.freeze(ops),registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
 }
@@ -2807,7 +2845,7 @@ function concatenateMem(left:Mem,right:Mem,encoding:DatabaseEncoding,maxBytes=Nu
  out.setText(result,encoding,{maxLength:maxBytes});return out;
 }
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
- const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery"||e.kind==="in-subquery")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery"||e.kind==="in-subquery"||e.kind==="in-list")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);
@@ -2928,6 +2966,9 @@ export class VdbeStatement implements Statement {
   #cursors = new Map<number, TableScanCursor>();
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
+  // Aggregate programs can retain a decoded row after Next moves the btree
+  // cursor past EOF. Cache its rowid alongside it, as the VDBE cursor does.
+  #recordRowids = new Map<number, bigint>();
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor | FifoCursor | PriorityQueueCursor>();
   // MakeRecord owns only a register-range descriptor until Insert. This avoids an
   // unbudgeted second Mem copy; EphemeralIndexCursor performs the single
@@ -3041,11 +3082,11 @@ export class VdbeStatement implements Statement {
           case "EphemeralAdvanceData": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(!cursor.next()){if(op.emptyJump!==undefined){this.#pc=op.emptyJump;break;}throw new JSQLiteError("internal","window inverse cursor exhausted");}const values=cursor.data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "IfEphemeralHasNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).hasNext())this.#pc=op.jump;break;
           case "EphemeralResetPosition": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).rewindBeforeFirst();break;
-          case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
-          case "NullRow": this.#records.delete(op.p1); break;
+          case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);this.#recordRowids.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
+          case "NullRow": this.#records.delete(op.p1); this.#recordRowids.delete(op.p1); break;
           case "Column": { const record=this.#records.get(op.p3??0),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
-          case "Rowid": {const cursor=op.p1??0;if(this.#records.has(cursor))this.#registers[op.p2]!.setInt64(this.#cursors.get(cursor)!.rowid);else this.#registers[op.p2]!.setNull();break;}
+          case "Rowid": {const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IfNot": if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
           case "Next": {const cursor=op.p1??0;if (this.#cursors.get(cursor)!.next()) { await this.#loadRecord(cursor,options, limit, started); this.#pc=op.p2; } break;}
@@ -3130,6 +3171,7 @@ export class VdbeStatement implements Statement {
     const payload = new Uint8Array(length); let at = 0;
     for (const chunk of chunks) { payload.set(chunk, at); at += chunk.byteLength; }
     this.#records.set(cursorId,decodeRecord(payload, this.#program.database!.encoding));
+    this.#recordRowids.set(cursorId,this.#cursors.get(cursorId)!.rowid);
   }
   async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running";}}}
   #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
@@ -3157,7 +3199,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();this.#borrow.invalidate();

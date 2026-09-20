@@ -761,3 +761,23 @@ Found/NotFound operations. Preserve `f48a4c2` subquery-IN/nested-cursor foundati
 this evidence does not propose replacement. Exact provenance, outcomes,
 dependencies, and limits are in `docs/research/card-i-a-in-list-audit.md` and
 `test/conformance/cases/audit-in-list.json`.
+
+### Revision 2026-09-20 — value-list `IN` and shared cursor/aggregate ownership
+
+Current-tree review supersedes the earlier absence of a value-list execution claim.
+Generated `parse.y` reductions now produce an `in-list` expression and shared VDBE
+lowering models the ordered `expr.c:sqlite3ExprCodeIN` `IN_INDEX_NOOP` path with
+comparison affinity/collation, NULL propagation and lazy later RHS terms after a
+match. Inspection and package-boundary tests find no ad-hoc parser/evaluator,
+JavaScript `Set`/`includes` membership, native/WASM runtime, dynamic code generation,
+or host registration. The canonical public audit matches 63/63 observations over
+three fixture encodings but remains zero-credit and does not cover subquery or
+index-backed branches.
+
+The audit exposed two shared-owner defects now repaired: decoded records retain the
+rowid needed after scan exhaustion, and ordinary non-min/max aggregate projection
+saves bare columns from the first qualifying input row instead of rereading a dead
+cursor or selecting the last row. The runner now checks ordered names, reset rows,
+expected step errors, first-error object identity and finalize failures. Literal
+`0 AND`/nonzero `OR` retains source-shaped short-circuit lowering, while the audit's
+nonliteral projection forms remain eager as observed from the pinned oracle.

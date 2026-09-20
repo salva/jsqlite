@@ -1426,3 +1426,12 @@ literal/dynamic width safely before dispatch but defers output admission to each
 emitting conversion. Source-ID-pinned and public tests cover `%999n`, `%*n`,
 surrounding literals, and neighboring argument consumption under a five-byte
 result ceiling, alongside retained excessive emitting-width failures.
+
+## Value-list `IN` execution mapping (2026-09-20)
+
+| TypeScript / evidence | Pinned SQLite owner | Mapping and bounded claim |
+|---|---|---|
+| `src/internal/vdbe.ts` generated expression adaptation | `src/parse.y`, reduction `expr ::= expr in_op LP exprlist RP` and the empty-list reduction | Builds an ordered `in-list` expression from generated reductions; no token reconstruction or ad-hoc SQL parser. |
+| `src/internal/vdbe.ts` `in-list` lowering | `src/expr.c:sqlite3ExprCodeIN`, `sqlite3FindInIndex`, `IN_INDEX_NOOP` | Evaluates LHS once and scans RHS terms in order using shared comparison affinity/collation and NULL propagation, with control-flow short-circuit after a match. No JS `Set`/`includes`, native/WASM runtime, or index-backed/subquery claim. |
+| `test/conformance/cases/audit-in-list.{spec.json,json}`, `capture-audit-in-list.py`, `run-audit-in-list-ts.mjs` | Exact pinned 3.53.4 public results | 21 cases × three physical encodings = 63 zero-credit comparisons; typed values, ordered names, initial/reset results, expected step errors, first-error identity and finalize behavior are checked. |
+| aggregate bare-column/rowid repair in `src/internal/vdbe.ts` | `src/select.c` aggregate code generation and `src/vdbe.c` cursor/register ownership | A decoded record caches its rowid, and ordinary non-min/max aggregate output saves bare columns from the first qualifying input row rather than rereading an exhausted cursor. This is shared ownership repair, not additional aggregate credit. |
