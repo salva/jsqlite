@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { startFixtureServer } from "./fixture-server.mjs";
 import { openFixture } from "./public-api-adapter.mjs";
-import { validateCaseData, validateResults } from "./ts-accounting.mjs";
+import { validateCaseData } from "./ts-accounting.mjs";
 const root=path.resolve(new URL("../..",import.meta.url).pathname);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,"test/conformance/cases/stage2-initial.json")));
 const data=JSON.parse(fs.readFileSync(path.join(root,"test/conformance/cases/stage2-ts.json")));
@@ -42,21 +42,37 @@ function decodeValue(v) {
  if(v?.js==="number") { const b=Buffer.from(v.ieee754be,"hex"); return b.readDoubleBE(); }
  throw new Error("malformed generated bind literal");
 }
+const expectedObservedErrors=new Map([
+ ["close.test:close-1.4.3",{kind:"misuse",operation:"prepare"}],
+ ["capi3c.test:capi3c-1.1",{kind:"sqlite",operation:"prepare"}],
+ ["capi3c.test:capi3c-1.4",{kind:"sqlite",operation:"prepare"}],
+ ["capi3c.test:capi3c-1.5",{kind:"sqlite",operation:"prepare"}],
+ ["capi3c.test:capi3c-2.1",{kind:"sqlite",operation:"prepare"}],
+ ["capi3c.test:capi3c-2.2",{kind:"sqlite",operation:"prepare"}],
+ ["capi3c.test:capi3c-2.3",{kind:"sqlite",operation:"prepare"}],
+]);
 try {
  for (const c of data.cases) {
-  const state={connection:null,statement:null}; let failure=null; let attempted=null;
+  const state={connection:null,statement:null}; let failure=null;
   for (let index=0;index<c.operations.length;index++) {
-   const op=c.operations[index]; attempted={index,key:op.key,op:op.op};
-   try { await execute(op,state); } catch(e) { failure=e; break; }
+   const op=c.operations[index];
+   try { await execute(op,state); } catch(e) { failure={error:e,index,key:op.key,op:op.op}; break; }
   }
-  if (!failure) throw new Error(`${c.id}: unexpectedly completed the mapped sequence`);
-  if (failure?.name !== "JSQLiteError" || failure?.kind !== "unsupported" || failure?.unsupportedClassification !== "temporary") throw failure;
-  const error={name:failure.name,kind:failure.kind,code:failure.code??null,extendedCode:failure.extendedCode??null,unsupportedClassification:failure.unsupportedClassification??null,message:failure.message};
-  const result={schema:"jsqlite-ts-result/1",caseId:c.id,caseCredit:c.credit,disposition:"unimplemented-temporary",credit:0,attempted,error,notAttempted:c.operations.slice(attempted.index+1).map((op,index)=>({index:index+attempted.index+1,key:op.key,op:op.op}))};
+  // This is the historical Stage 2 sequence runner. Most mapped operations are
+  // now implemented, so completion is success rather than an obsolete expected
+  // "temporary unsupported" failure. Retain real observed failures without
+  // converting them into compatibility credit.
+  const expectedError=expectedObservedErrors.get(c.id);
+  if(failure){
+   if(!expectedError||failure.op!==expectedError.operation||failure.error?.name!=="JSQLiteError"||failure.error?.kind!==expectedError.kind)throw failure.error;
+  }else if(expectedError)throw new Error(`${c.id}: expected ${expectedError.kind} at ${expectedError.operation}`);
+  const result=failure
+   ? {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"observed-error",credit:0,attempted:{index:failure.index,key:failure.key,op:failure.op},error:{name:failure.error?.name??"Error",kind:failure.error?.kind??null,code:failure.error?.code??null,extendedCode:failure.error?.extendedCode??null,unsupportedClassification:failure.error?.unsupportedClassification??null,message:String(failure.error?.message??failure.error)},notAttempted:c.operations.slice(failure.index+1).map((op,index)=>({index:index+failure.index+1,key:op.key,op:op.op}))}
+   : {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"completed",credit:0,attempted:null,error:null,notAttempted:[]};
   results.push(result); console.log(JSON.stringify(result));
  }
- validateResults(data.cases,results);
- const upstream=results.filter(r=>r.caseCredit==="upstream").length, companions=results.length-upstream;
- console.log(JSON.stringify({summary:{attempted:results.length,upstream,companions,passed:0,credit:0,disposition:"unimplemented-temporary"}}));
+ if(results.length!==data.cases.length)throw new Error("missing Stage 2 results");
+ if(results.filter(r=>r.disposition==="observed-error").length!==expectedObservedErrors.size)throw new Error("missing/extra expected Stage 2 errors");
+ const upstream=results.filter(r=>r.caseCredit==="upstream"),companions=results.filter(r=>r.caseCredit!=="upstream"),completed=results.filter(r=>r.disposition==="completed").length;
+ console.log(JSON.stringify({summary:{attempted:results.length,upstream:upstream.length,companions:companions.length,completed,observedErrors:results.length-completed,credit:0,disposition:"diagnostic-no-credit"}}));
 } finally { await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve())); }
-process.exitCode=1;
