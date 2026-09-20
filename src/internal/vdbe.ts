@@ -3107,8 +3107,8 @@ export class VdbeStatement implements Statement {
   columnMetadata(index: number): ColumnMetadata { this.#assertColumn(index, false); return Object.freeze({...this.#program.columns[index]!}); }
   columnType(index: number): SqliteStorageClass { return this.#cell(index).initialStorageClass; }
   column(index: number): SqliteValue { return memToPublicInitial(this.#cell(index)); }
-  columnInteger(index: number): bigint | null { const cell = this.#cell(index); return cell.initialStorageClass === "null" ? null : cell.integerValue(); }
-  columnReal(index: number): number | null { const cell = this.#cell(index); return cell.initialStorageClass === "null" ? null : cell.realValue(); }
+  columnInteger(index: number): bigint | null { const cell = this.#cell(index); if(cell.initialStorageClass === "null")return null;const copy=new Mem();copy.copyFrom(cell);copy.cast("integer",this.#program.encoding);return copy.integerValue(); }
+  columnReal(index: number): number | null { const cell = this.#cell(index); if(cell.initialStorageClass === "null")return null;const copy=new Mem();copy.copyFrom(cell);copy.cast("real",this.#program.encoding);return copy.realValue(); }
   columnText(index: number): string | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const copy = new Mem(); copy.copyFrom(cell); copy.cast("text", "utf-8"); return copy.textValue(); }
   columnBlob(index: number): Uint8Array | null { const cell = this.#cell(index); if (cell.initialStorageClass === "null") return null; const value = memToPublicInitial(cell); return value instanceof Uint8Array ? value : memFromPublic(String(value), "utf-8").textBytes().slice(); }
   async #loadRecord(cursorId:number,options: OperationOptions, limit: number, started: number): Promise<void> {

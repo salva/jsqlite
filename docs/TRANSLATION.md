@@ -3117,6 +3117,9 @@ over source-ID-pinned UTF-8, UTF-16le, and UTF-16be fixtures cover these consume
 optimized 20.0/10.0, 35.5, NULL, signed int64 boundaries, neighboring
 NUMERIC/INTEGER columns, metadata, stable `columnType`, reset/finalize, and later
 connection use. Raw record decode and NUMERIC/INTEGER semantics are unchanged.
+The generalized expression-consumer repair is commit
+`ad433c2a4ae92bf679ff6303e3ea421ce73f0234`; unsupported SQL consumers are not
+included in the verified set.
 
 #### Special built-in window execution ([[card:card-o-d-b]], 2026-09-19)
 

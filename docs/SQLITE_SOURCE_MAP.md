@@ -1310,7 +1310,10 @@ only a resolved declared-REAL column extraction receives the source opcode. Fres
 source-ID-pinned native baseline results were `real|20.0`, `real|10.0`,
 `real|35.5`, and `null|NULL` in UTF-8/UTF-16le/UTF-16be, while the pre-repair
 public path exposed INTEGER/`bigint` for compact integral REAL records. The mapped
-repair is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`.
+repair is commit `ab674fd7b84ddeb5ff0b0b4dde9ffa19a9cfc1ff`; the generalized
+expression-consumer follow-up is commit
+`ad433c2a4ae92bf679ff6303e3ea421ce73f0234`. Unsupported SQL consumers are not
+part of this verified mapping.
 
 ### Special built-in window execution ([[card:card-o-d-b]], 2026-09-19)
 

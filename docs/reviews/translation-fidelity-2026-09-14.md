@@ -741,4 +741,6 @@ operation before every downstream consumer. Public three-encoding tests cover
 `typeof`, parameter-independent column arithmetic, supported single-row
 `sum`/`total`/`avg`, stable API `columnType`, reset/lifecycle, and existing REAL,
 NULL, int64 and neighboring NUMERIC/INTEGER cases. Raw record decoding and
-aggregate result-type patching remain deliberately unchanged.
+aggregate result-type patching remain deliberately unchanged. The generalized repair
+is commit `ad433c2a4ae92bf679ff6303e3ea421ce73f0234`; unsupported consumers remain
+explicitly unsupported rather than being counted as verified.
