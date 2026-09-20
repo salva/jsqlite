@@ -1325,7 +1325,11 @@ and lead/lag plus first/nth direct branches retain application-cursor rowid acce
 peer/frame/exclusion branches, sharing/nesting, composition, encodings, and
 lifecycle/private controls. The bounded ROWS lower-bound repair and GROUPS
 literal-one dispatch preserve `windowCodeOp` cursor/queue ownership and introduce
-no host-side full-partition algorithm.
+no host-side full-partition algorithm. The same VDBE owner binds ordinary scalar
+calls moved with the source WHERE clause, including infix LIKE/GLOB's source-level
+operand order, and models `count(*)` as zero callback arguments;
+`test/conformance/ordinary-scalars-pattern-window.test.mjs` covers that combined
+rewrite path through Public Fetch.
 
 ## Ordinary scalar registry tests-first map ([[card:card-p-a-a]])
 

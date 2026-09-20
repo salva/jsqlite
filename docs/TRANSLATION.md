@@ -3122,6 +3122,14 @@ compound arms, and outer ordering/limits. Unsupported expressions remain an
 atomic prepare-time rejection; this is not a general window/SQL completeness
 claim.
 
+The window source producer also preserves ordinary scalar predicates while moving
+FROM/WHERE into the rewritten subquery. Its reduction-to-VDBE binder descends into
+function arguments and retains SQLite's reversed pattern/candidate argument order
+for infix LIKE/GLOB. `count(*)` is represented as the zero-argument aggregate call
+that reaches `countStep`, not as a synthetic buffered argument. Public Fetch
+coverage in `test/conformance/ordinary-scalars-pattern-window.test.mjs` exercises
+both branches with LIKE in WHERE and `count(*) OVER ()`.
+
 The public special-window gate passes 42/42 tests: 41 executable declarations and
 one denominator test accounting for all 43 declarations, including two source-only
 companions. The aggregate-window/rewrite gate passes 92/92. A bounded ROWS

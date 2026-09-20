@@ -524,6 +524,7 @@ export function compileWindowSelectLowering(
           expression.index=use.columnIndex<0||isIntegerPrimaryKeyAlias(use.source.table,use.columnIndex)?-1:use.columnIndex;expression.cursor=use.source.cursorId;
         }else if(expression.kind==="unary"||expression.kind==="cast"||expression.kind==="collate")bind(expression.value,child(0));
         else if(expression.kind==="binary"){bind(expression.left,child(0));bind(expression.right,child(1));}
+        else if(expression.kind==="call"){const infixPattern=node.signature.startsWith("expr ::= expr likeop ")||node.signature.startsWith("expr ::= expr MATCH ");for(let i=0;i<expression.args.length;i++)bind(expression.args[i]!,child(infixPattern&&i<2?1-i:i));}
         return expression;
       };return bind(expressionFromReduction(reduction),reduction);
     };

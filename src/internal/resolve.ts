@@ -146,7 +146,7 @@ function firstWindowName(expression:ExprNode):string|null{
 }
 function functionArgumentCount(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number|null{
  if(node.kind!=='reduction'||!node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP'))return null;
- if(node.signature.includes(' STAR RP'))return 1;
+ if(node.signature.includes(' STAR RP'))return 0;
  const list=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
  if(!list)return null;
  const count=(part:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):number=>part.kind==='reduction'&&part.signature==='nexprlist ::= nexprlist COMMA expr'?count(part.children[0]!)+1:part.kind==='reduction'&&part.signature==='nexprlist ::= expr'?1:part.kind==='reduction'?Math.max(0,...part.children.map(count)):0;
