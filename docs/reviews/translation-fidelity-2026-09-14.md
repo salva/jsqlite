@@ -668,4 +668,9 @@ for the owned tranche is 26 cases/44 immutable observations and includes bound
 parameters, no-FROM composition, exact expected errors, and both persisted-column
 cases across physical UTF-8/UTF-16LE/UTF-16BE fixtures. Mixed-owner rows compare
 owned projections only. This does not claim date/time, math, JSON, pattern, format,
-or round support.
+or round support. A post-review correction translates `quote(REAL)` through the
+shared `sqlite3FpDecode`/`%!0.17g` primitive instead of host number formatting,
+with pinned-native and public exact-output vectors for typed integral REAL, signed
+zero, round-trip/precision extremes, and infinities; quote TEXT/BLOB expansion now
+preflights `maxResultBytes`. The 47/50 denominator and formatting exclusions are
+unchanged.

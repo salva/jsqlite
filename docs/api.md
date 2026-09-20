@@ -480,4 +480,4 @@ registration are not exposed. Delivered scalar results preserve the five public
 storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
 Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
 zero. `sqlite_log()` is a SQL NULL-producing no-op because this API has no host log
-callback.
+callback. `quote(REAL)` uses pinned `sqlite3QuoteValue` `%!0.17g` semantics (REAL literal identity, round-trip boundaries, signed zero, and `±9.0e+999` infinities), and quote TEXT/BLOB expansion is checked against `maxResultBytes` before construction.

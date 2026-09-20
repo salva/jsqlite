@@ -1,5 +1,5 @@
 import {JSQLiteError} from "../index.ts";
-import {Mem,memToPublicInitial} from "./mem.ts";
+import {Mem,sqliteQuoteReal} from "./mem.ts";
 import type {DatabaseEncoding} from "./record.ts";
 import {decodeSqliteText} from "./utf.ts";
 
@@ -10,6 +10,19 @@ export function scalarText(value:string):Mem{const out=new Mem();out.setText(new
 export function asText(value:Mem,encoding:DatabaseEncoding):string{const copy=new Mem();copy.copyFrom(value);copy.cast("text",encoding);return copy.textValue()}
 export function asUtf8(value:Mem):Uint8Array{const copy=new Mem();copy.copyFrom(value);copy.cast("text","utf-8");return copy.textBytes()}
 export function decodeUnistr(value:string):string{let out="";for(let i=0;i<value.length;i++){if(value[i]!=="\\"){out+=value[i];continue}if(value[i+1]==="\\"){out+="\\";i++;continue}let digits=4,start=i+1;if(value[start]==="u"){start++;digits=4}else if(value[start]==="U"){start++;digits=8}else if(value[start]==="+"){start++;digits=6}const hex=value.slice(start,start+digits);if(hex.length!==digits||!/^[0-9a-f]+$/i.test(hex))throw new JSQLiteError("sqlite","invalid Unicode escape",{code:1});const cp=parseInt(hex,16);if(cp>0x10ffff||(cp>=0xd800&&cp<=0xdfff))throw new JSQLiteError("sqlite","invalid Unicode escape",{code:1});out+=String.fromCodePoint(cp);i=start+digits-1}return out}
-export function quoteValue(value:Mem):string{if(value.initialStorageClass==="null")return "NULL";if(value.initialStorageClass==="integer"||value.initialStorageClass==="real")return String(memToPublicInitial(value));if(value.initialStorageClass==="blob")return `X'${Array.from(value.blobValue(),b=>b.toString(16).padStart(2,"0")).join("").toUpperCase()}'`;return `'${value.textValue().split("\0")[0]!.replaceAll("'","''")}'`}
+export function quoteValue(value:Mem,maxBytes=Number.MAX_SAFE_INTEGER):string{
+ const admit=(bytes:number)=>{if(!Number.isSafeInteger(bytes)||bytes>maxBytes)throw new JSQLiteError("limit","string or blob too big")};
+ if(value.initialStorageClass==="null"){admit(4);return "NULL"}
+ if(value.initialStorageClass==="integer"){const result=value.integerValue().toString();admit(result.length);return result}
+ if(value.initialStorageClass==="real"){const result=sqliteQuoteReal(value.realValue());admit(result.length);return result}
+ if(value.initialStorageClass==="blob"){
+  const bytes=value.blobValue(),size=bytes.byteLength*2+3;admit(size);
+  let hex="";for(const byte of bytes)hex+=byte.toString(16).padStart(2,"0").toUpperCase();return `X'${hex}'`;
+ }
+ const text=value.textValue().split("\0",1)[0]!;
+ // func.c `%Q`: delimiters plus UTF-8 input and one byte per doubled quote.
+ const size=new TextEncoder().encode(text).byteLength+2+(text.match(/'/g)?.length??0);admit(size);
+ return `'${text.replaceAll("'","''")}'`;
+}
 export function firstCodePoint(value:Mem):number|null{if(value.initialStorageClass==="null")return null;const bytes=asUtf8(value);if(bytes.length===0||bytes[0]===0)return null;return decodeSqliteText(bytes,"utf-8").codePointAt(0)??null}
 export function secureRandom(length:number):Uint8Array{const bytes=new Uint8Array(length);for(let offset=0;offset<length;offset+=65536)globalThis.crypto.getRandomValues(bytes.subarray(offset,Math.min(length,offset+65536)));return bytes}

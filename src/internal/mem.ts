@@ -307,6 +307,14 @@ function sqliteNumberText(numeric: Numeric): string {
   return negative ? `-${rendered}` : rendered;
 }
 
+/** func.c:sqlite3QuoteValue REAL branch.  Share the translated
+ * util.c:sqlite3FpDecode/printf.c `%!.17g` path used by Mem stringification;
+ * quote's `%!0.17g` zero flag spells infinities as parseable SQL literals. */
+export function sqliteQuoteReal(value: number): string {
+  if (!Number.isFinite(value)) return value < 0 ? "-9.0e+999" : "9.0e+999";
+  return sqliteNumberText({ kind: "real", value });
+}
+
 export class Mem {
   #manifest: MemManifest = "null";
   #numeric: Numeric | null = null;

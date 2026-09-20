@@ -92,6 +92,31 @@ try{
       }
     }finally{db.closeDeferred();}
   }
+// Pinned 3.53.4 sqlite3QuoteValue uses `%!0.17g` for manifest REAL. Values are
+// public number bindings so even integral values cannot be folded to INTEGER.
+{
+  const encoding='UTF-8',db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent(encoding)}`));
+  try{
+    const vectors=[
+      [1,'1.0'],[-0,'0.0'],[0.1,'0.1'],[0.30000000000000004,'0.30000000000000004'],
+      [9007199254740992,'9007199254740992.0'],[Number.MIN_VALUE,'4.9406564584124654e-324'],
+      [Number.MAX_VALUE,'1.7976931348623157e+308'],[Infinity,'9.0e+999'],[-Infinity,'-9.0e+999'],
+    ];
+    const statement=db.prepare('SELECT typeof(?1),quote(?1)').statement;
+    for(const [input,expected] of vectors){statement.bind(1,input);assert.equal(await statement.step(),'row');assert.equal(statement.columnText(0),'real');assert.equal(statement.columnText(1),expected);assert.equal(await statement.step(),'done');statement.reset();}
+    statement.finalize();
+  }finally{db.closeDeferred();}
+}
+// quote() rejects expansion before constructing oversized TEXT/BLOB strings.
+{
+  const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/${encodeURIComponent('UTF-8')}`),{limits:{maxResultBytes:8,maxWorkUnits:10000}});
+  try{
+    for(const value of ["''''",Uint8Array.from([1,2,3])]){
+      const statement=db.prepare('SELECT quote(?1)').statement;statement.bind(1,value);
+      await assert.rejects(()=>statement.step(),error=>error?.kind==='limit'&&error.message==='string or blob too big');assert.throws(()=>statement.finalize());
+    }
+  }finally{db.closeDeferred();}
+}
 // Web Crypto limits one getRandomValues request to 65,536 bytes. SQLite's
 // randomblob() accepts larger results, so retain a public regression across chunks.
 {

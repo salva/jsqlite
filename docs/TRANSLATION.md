@@ -3155,6 +3155,10 @@ previously absent owned rows through the shared `FunctionContext`/VDBE path:
 connection mutation counters are observably zero. `sqlite_log` preserves its SQL
 NULL result but intentionally has no host diagnostic callback because this browser
 API exposes none. The compiler-inline forms retain short-circuit control flow.
+`quote(REAL)` shares the translated `util.c:sqlite3FpDecode` formatter for
+`func.c:sqlite3QuoteValue` `%!0.17g`, preserving manifest REAL literals, signed
+zero, round-trip boundaries, and SQLite's `±9.0e+999` infinity spelling. TEXT and
+BLOB quote expansion is result-limit checked before host-string construction.
 
 Exactly three represented sibling rows remain non-dispatchable: `printf`, `format`,
 and `round`. LIKE/GLOB translate pinned `func.c:patternCompare`/`likeFunc` as an

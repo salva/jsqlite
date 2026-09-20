@@ -644,7 +644,7 @@ Boundary refinement: result-value destructor observations map to `sqlite3_result
 
 | Stage 3 bounded expression/scalar execution | `src/internal/parse.ts`, `src/internal/vdbe.ts` | `expr.c:sqlite3ExprCodeTarget`, `resolve.c:resolveExprStep`, `vdbe.c:OP_Function/OP_Cast/comparisons`, `func.c:sqlite3RegisterBuiltinFunctions`, `vdbemem.c` | `test/conformance/cases/stage3-expression-functions.json`, `run-expression-functions-ts.mjs` (40 selected cases) |
 
-| `src/vdbe.c` `OP_Function` result-error/cleanup path; `src/vdbeInt.h` `sqlite3_context`; `src/vdbemem.c` release; `src/vdbeapi.c` auxdata replacement | `src/internal/vdbe.ts` `FunctionContext`, `runFunctionContext`; `test/conformance/run-expression-function-cleanup-ts.mjs` | Shared result and aux-state ownership, replacement/final cleanup, and first-error identity. Compiler emits `PureFunc` for CONSTANT registrations and retains `Function` for volatile registrations. |
+| `src/vdbe.c` `OP_Function` result-error/cleanup path; `src/vdbeInt.h` `sqlite3_context`; `src/vdbemem.c` release; `src/vdbeapi.c` auxdata replacement | `src/internal/vdbe.ts` `FunctionContext`, `runFunctionContext`; `test/conformance/run-expression-function-cleanup-ts.mjs` | Shared result and aux-state ownership, replacement/final cleanup, and first-error identity. Ordinary calls emit `Function`; `PureFunc` is selected only by a nonzero special call context, not merely by a CONSTANT registration. |
 | `src/expr.c` `sqlite3ExprCodeTarget`/`sqlite3ExprCodeFunction`, `src/vdbe.c` `OP_Function`/`OP_PureFunc`/`OP_CollSeq` and branch operations | `src/internal/vdbe.ts` `compileExpressionTree` and operation switch; `test/conformance/run-expression-opcodes-ts.mjs` | Generated-reduction expressions lower to bounded function, collation, value and lazy-control program operations; catch-all recursive Expression operation removed. |
 | `src/vdbe.c` progress/interrupt loop; `src/func.c` `replaceFunc`/`hexFunc`/`substrFunc`; `src/vdbeapi.c` result-too-big and saved reset/finalize errors | `src/internal/vdbe.ts` scalar control, `maxResultBytes`, Function/copy charging; `src/index.ts` connection limit; `test/conformance/run-expression-bounded-ts.mjs` | Deterministic bounded public scalar execution with resumable input checkpoints, source-shaped output preflight, first-error lifecycle and exact work admission. |
 
@@ -1337,7 +1337,7 @@ The scalar machine map distinguishes raw FuncDef matching from effective scalar 
 
 Independent review `record:///review.md?card=card-p-a&v=3` prompted a complete 50-row semantic-owner audit. Each ordinary registry row now maps its recorded routine into its source slice and covering cases; inline registrations map explicitly to `sqlite3ExprCodeTarget`. In particular CHAR owns `charFunc`, UNISTR owns `unistrFunc` plus `isNHex` and `sqlite3AppendOneUtf8Character`, and UNICODE alone owns `unicodeFunc`. Persisted-column cases use `scalar_values` in all three physical encoding fixtures; pinned native capture and validation open those exact hashed fixtures directly, avoiding synthetic encoding conversions.
 
-Current ordinary-scalar handoff accounting is 50 active registry rows, 37 cases/59 native observations, and 12 dispatched/38 absent. Final validation used `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; this loads and source-ID-checks the pinned library and executes the persisted-column cases against all three exact hashed fixtures. Any earlier argument-less transcript is invalid/superseded.
+The superseded tests-first handoff checkpoint was 50 active registry rows, 37 cases/59 native observations, and 12 dispatched/38 absent; current accounting is 47/50 as recorded below. Final validation used `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; this loads and source-ID-checks the pinned library and executes the persisted-column cases against all three exact hashed fixtures. Any earlier argument-less transcript is invalid/superseded.
 
 ### Non-pattern/non-format ordinary scalar implementation ([[card:card-p-b-a-b]])
 
@@ -1354,4 +1354,8 @@ accounting is 47 dispatchable and three represented non-dispatchable sibling row
 `printf`, `format`, and `round`. `src/internal/pattern.ts` maps `func.c:patternCompare`
 and `likeFunc` to an explicit-state LIKE/GLOB matcher (rather than host regex),
 including ESCAPE, ASCII folding, sets/ranges, NUL termination, the pinned pattern
-limit, and bounded-work control.
+limit, and bounded-work control. `quote(REAL)` maps the distinct
+`func.c:sqlite3QuoteValue` `%!0.17g` branch through the shared translated
+`util.c:sqlite3FpDecode` formatting primitive; typed pinned-native and public
+binding vectors cover integral REAL, signed zero, precision/subnormal boundaries,
+and infinities. TEXT/BLOB expansion checks the result limit before construction.
