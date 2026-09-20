@@ -20,6 +20,7 @@ import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom } from "./ordinary-scalars.ts";
+import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -2752,6 +2753,15 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  if(name==="sqlite_log")return out;
  if(name==="sqlite_compileoption_get"){const index=Number(a[0]!.integerValue());return index>=0&&index<SQLITE_COMPILE_OPTIONS.length?scalarText(SQLITE_COMPILE_OPTIONS[index]!):out}
  if(name==="sqlite_compileoption_used"){const query=asText(a[0]!,encoding).toUpperCase();out.setInt64(SQLITE_COMPILE_OPTIONS.some(option=>option.toUpperCase()===query||option.split("=")[0]!.toUpperCase()===query)?1n:0n);return out}
+ if(name==="like"||name==="glob"){
+  if(a.some(x=>x.initialStorageClass==="null"))return out;
+  const textValue=(value:Mem):string=>{if(value.initialStorageClass!=="blob")return asText(value,encoding);const copy=new Mem();copy.setText(value.blobValue(),encoding);return copy.textValue()};
+  const pattern=textValue(a[0]!),candidate=textValue(a[1]!);
+  // Pinned default SQLITE_LIMIT_LIKE_PATTERN_LENGTH.
+  if(new TextEncoder().encode(pattern).byteLength>50000)throw new JSQLiteError("sqlite","LIKE or GLOB pattern too complex",{code:1});
+  const escape=name==="like"&&a.length===3?validateLikeEscape(textValue(a[2]!)):null;
+  out.setInt64(sqlitePatternCompare(pattern,candidate,name,escape,control)?1n:0n);return out;
+ }
  if(name==="substring")name="substr";
  if(name==="min"||name==="max"){if(a.some(x=>x.initialStorageClass==="null"))return out;let best=0;for(let i=1;i<a.length;i++){const cmp=compareMem(a[i]!,a[best]!,coll);if(name==="min"?cmp<=0:cmp>0)best=i}return a[best]!}if(name==="upper"||name==="lower"){const input=a[0]!;if(input.initialStorageClass==="null")return out;const text=new Mem();if(input.initialStorageClass==="blob"){text.setText(input.blobValue(),encoding);text.changeEncoding("utf-8")}else{text.copyFrom(input);text.cast("text","utf-8")}const source=text.textBytes(),bytes=new Uint8Array(source);checkSize(bytes.byteLength);for(let i=0;i<bytes.length;i++){if((i&255)===0){charge(1);control?.check()}const byte=bytes[i]!;if(name==="upper"&&byte>=0x61&&byte<=0x7a)bytes[i]=byte-0x20;else if(name==="lower"&&byte>=0x41&&byte<=0x5a)bytes[i]=byte+0x20}out.setText(bytes,"utf-8");return out}
  if(name==="trim"||name==="ltrim"||name==="rtrim"){if(a.some(x=>x.initialStorageClass==="null"))return out;const source=[...asText(a[0]!,encoding)],characters=a[1]?asText(a[1],encoding).split("\0",1)[0]!:" ",set=new Set([...characters]);let start=0,end=source.length;if(name!=="rtrim")while(start<end&&set.has(source[start]!))start++;if(name!=="ltrim")while(end>start&&set.has(source[end-1]!))end--;out.setText(new TextEncoder().encode(source.slice(start,end).join("")),"utf-8");out.changeEncoding(encoding);return out}

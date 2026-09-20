@@ -1329,7 +1329,7 @@ no host-side full-partition algorithm.
 
 ## Ordinary scalar registry tests-first map ([[card:card-p-a-a]])
 
-The exact 50-row `src/func.c:aBuiltinFunc` ordinary-scalar map, aliases/arities/FuncDef flags, current 12 implemented versus 38 absent classification, source-owned implementation slices, and 37-case/59-observation typed corpus live in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md) and `test/conformance/cases/stage3-ordinary-scalars.spec.json`. Principal owners are `func.c` (`upperFunc`, `lowerFunc`, `likeFunc`/`patternCompare`, `trimFunc`, `instrFunc`, `unicodeFunc`, `quoteFunc`, `roundFunc`, `printfFunc`, registration), `printf.c`, `vdbemem.c`, `utf.c`, `util.c`, and compiler/resolver callers in `resolve.c`, `expr.c`, and `vdbe.c`. Machine-mapped implementation branches are recorded per slice. Exact selected assertion bodies and hashes include `func.test`, `like.test`, `func9-200`, `func9-210`, and `printf-1.1.1`; the validator checks them against the pinned tree. Date/time (`date.c`), math and JSON (`json.c`) remain visible future root registries; aggregates/windows are separate already-owned surfaces.
+The exact 50-row `src/func.c:aBuiltinFunc` ordinary-scalar map, aliases/arities/FuncDef flags, historical baseline 12-implemented/38-absent classification, source-owned implementation slices, and 37-case/59-observation typed corpus live in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md) and `test/conformance/cases/stage3-ordinary-scalars.spec.json`. Principal owners are `func.c` (`upperFunc`, `lowerFunc`, `likeFunc`/`patternCompare`, `trimFunc`, `instrFunc`, `unicodeFunc`, `quoteFunc`, `roundFunc`, `printfFunc`, registration), `printf.c`, `vdbemem.c`, `utf.c`, `util.c`, and compiler/resolver callers in `resolve.c`, `expr.c`, and `vdbe.c`. Machine-mapped implementation branches are recorded per slice. Exact selected assertion bodies and hashes include `func.test`, `like.test`, `func9-200`, `func9-210`, and `printf-1.1.1`; the validator checks them against the pinned tree. Date/time (`date.c`), math and JSON (`json.c`) remain visible future root registries; aggregates/windows are separate already-owned surfaces.
 
 ### Ordinary scalar overload and provenance precision (third correction)
 
@@ -1350,5 +1350,8 @@ identity/compile-option callbacks; compiler-inline conditionals and hints map to
 `src/vdbemem.c`, and `src/vdbeapi.c`. `||` lowering maps to `src/expr.c:TK_CONCAT`
 and `src/vdbe.c:OP_Concat`. The browser adaptation for `sqlite_log` is a no-op
 sink because no host log callback is public; its SQL result remains NULL. Registry
-accounting is 45 dispatchable and five represented non-dispatchable sibling rows:
-`printf`, `format`, `round`, `glob`, `like`.
+accounting is 47 dispatchable and three represented non-dispatchable sibling rows:
+`printf`, `format`, and `round`. `src/internal/pattern.ts` maps `func.c:patternCompare`
+and `likeFunc` to an explicit-state LIKE/GLOB matcher (rather than host regex),
+including ESCAPE, ASCII folding, sets/ranges, NUL termination, the pinned pattern
+limit, and bounded-work control.

@@ -55,8 +55,8 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
   definition("random",[0],V,true), definition("randomblob",[1],V,true),
   definition("last_insert_rowid",[0],V,true), definition("changes",[0],V,true), definition("total_changes",[0],V,true),
   definition("sqlite_version",[0],S,true), definition("sqlite_source_id",[0],S,true),
-  definition("sqlite_log",[2],C,true), definition("glob",[2],withFlags("like","case"),false),
-  definition("like",[2,3],withFlags("like"),false),
+  definition("sqlite_log",[2],C,true), definition("glob",[2],withFlags("like","case"),true),
+  definition("like",[2,3],withFlags("like"),true),
   definition("sqlite_compileoption_used",[1],S,true), definition("sqlite_compileoption_get",[1],S,true),
 ]);
 

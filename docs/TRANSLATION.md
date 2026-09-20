@@ -3132,7 +3132,7 @@ cursor/control repairs, not host partition recomputation.
 
 ### Ordinary scalar registry tests-first contract ([[card:card-p-a-a]])
 
-The source-pinned inventory, implementation slicing rules, current resolver/VDBE status, and typed native corpus are in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md) and `test/conformance/cases/stage3-ordinary-scalars.spec.json`. Its denominator is 50 active in-scope production ordinary-scalar registration rows: current HEAD genuinely dispatches 12 and leaves 38 absent. In particular `upper()`/`lower()` remain absent; the fidelity audit's repaired eight-case scalar tranche never established broader registry support. Native 59/59 capture completion and the 114 public-Fetch unsupported observations are no TS credit. Profile-specific validation parses balanced catalog macro calls and checks pinned macro-definition hashes, current-profile flags, raw/effective arities (including min/max aggregate dispatch), source ownership, physical fixtures, and exact assertion/setup hashes; it is not a general C preprocessor. `sqlite_log` preserves SQL result/argument semantics while routing diagnostics to an internal no-op sink: the browser API exposes no host callback. Translate source routines with shared Mem/UTF/FunctionContext/bounded-work behavior; LIKE/GLOB may not use regex, and printf/round may not use host formatting as an algorithm substitute. Date/time, math and JSON remain future root-owned scope.
+The source-pinned inventory, implementation slicing rules, current resolver/VDBE status, and typed native corpus are in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md) and `test/conformance/cases/stage3-ordinary-scalars.spec.json`. Its denominator is 50 active in-scope production ordinary-scalar registration rows. The immutable tests-first capture classified its then-current baseline as 12 dispatched/38 absent; that historical classification, including its 114 unsupported observations, is not current TS credit. Current accounting is stated below. Profile-specific validation parses balanced catalog macro calls and checks pinned macro-definition hashes, current-profile flags, raw/effective arities (including min/max aggregate dispatch), source ownership, physical fixtures, and exact assertion/setup hashes; it is not a general C preprocessor. `sqlite_log` preserves SQL result/argument semantics while routing diagnostics to an internal no-op sink: the browser API exposes no host callback. Translate source routines with shared Mem/UTF/FunctionContext/bounded-work behavior; LIKE/GLOB may not use regex, and printf/round may not use host formatting as an algorithm substitute. Date/time, math and JSON remain future root-owned scope.
 
 Independent review `record:///review.md?card=card-p-a&v=3` corrected two scalar handoff gaps. Persisted-column scalar expectations now run over physical UTF-8/UTF-16LE/UTF-16BE Fetch fixtures with TEXT, embedded-NUL TEXT, BLOB, and NULL rows, plus equivalent typed native setup; current unsupported public outcomes remain zero credit. Each of all 50 registry rows now maps its exact implementation routine into its slice/cases, or an explicit compiler owner for inline forms. `charFunc`, `unistrFunc` and UNISTR escape helpers are distinct from `unicodeFunc`.
 
@@ -3156,8 +3156,12 @@ connection mutation counters are observably zero. `sqlite_log` preserves its SQL
 NULL result but intentionally has no host diagnostic callback because this browser
 API exposes none. The compiler-inline forms retain short-circuit control flow.
 
-Exactly five represented sibling rows remain non-dispatchable: `printf`, `format`,
-`round`, `glob`, and `like`. Date/time, math, and JSON remain out of this registry.
+Exactly three represented sibling rows remain non-dispatchable: `printf`, `format`,
+and `round`. LIKE/GLOB translate pinned `func.c:patternCompare`/`likeFunc` as an
+explicit work-list state machine (not host regex), preserving ASCII-only LIKE fold,
+GLOB sets/ranges/inversion, ESCAPE validation, NUL termination, encoding-aware BLOB
+conversion, the 50,000-byte pattern limit, and execution control checks. Date/time,
+math, and JSON remain out of this registry.
 The owned public Fetch gate compares 26 cases/44 observations, including parameters,
 no-FROM expressions, compositions, expected prepare errors, and persisted physical
 UTF-8/UTF-16 columns. Mixed-owner corpus rows are projected to owned columns, so

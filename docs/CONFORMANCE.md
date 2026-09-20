@@ -496,8 +496,11 @@ The final coherence rerun used the exact existing library at `/work/jsqlite2/.sa
 ### Ordinary scalar implementation evidence ([[card:card-p-b-a-b]])
 
 The immutable denominator remains 50 rows and 37 cases/59 native observations.
-Current registry accounting is 45 dispatched and five explicitly unsupported
-sibling rows (`printf`, `format`, `round`, `glob`, `like`).
+Current registry accounting is 47 dispatched and three explicitly unsupported
+sibling rows (`printf`, `format`, `round`). The public pattern gate adds five
+immutable LIKE/GLOB observations and 24 boundary observations across the three
+physical encodings, including BLOB conversion, ESCAPE and saved-error cleanup,
+sets/ranges, NULL/NUL, pattern length, work, cancellation, and deadline.
 `run-ordinary-scalars-owned-ts.mjs` gives this tranche 26-case/44-observation public
 Fetch evidence across physical UTF-8/UTF-16LE/UTF-16BE fixtures. It includes owned
 projections of parameter/composition/variadic mixed rows and persisted columns;

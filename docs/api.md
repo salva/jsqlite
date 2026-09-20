@@ -472,9 +472,10 @@ this does not advertise arbitrary window SQL.
 
 ### Ordinary scalar boundary
 
-The represented SQLite 3.53.4 ordinary-scalar registry has 45 executable rows.
-`printf`, `format`, `round`, `glob`, and `like` remain temporary unsupported and
-are rejected during prepare; date/time, math, JSON, and host function/log callback
+The represented SQLite 3.53.4 ordinary-scalar registry has 47 executable rows.
+`printf`, `format`, and `round` remain temporary unsupported sibling scope and
+are rejected during prepare; `like` and `glob` execute through the translated
+pattern matcher; date/time, math, JSON, and host function/log callback
 registration are not exposed. Delivered scalar results preserve the five public
 storage classes, database-encoding conversion, embedded NUL, and int64 `bigint`.
 Read-only `last_insert_rowid()`, `changes()`, and `total_changes()` return integer
