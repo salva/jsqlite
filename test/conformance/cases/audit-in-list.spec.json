@@ -1,0 +1,108 @@
+{
+  "schema": "jsqlite-in-list-audit-spec/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "setup": [
+    "CREATE TABLE orders(id INTEGER PRIMARY KEY,user_id INTEGER,amount REAL,note TEXT COLLATE NOCASE)",
+    "INSERT INTO orders VALUES(10,1,10.5,'Alpha'),(11,1,11.0,'beta'),(12,2,12.25,NULL),(13,2,13.0,'ALPHA')",
+    "CREATE TABLE logic(a INTEGER,b INTEGER)",
+    "INSERT INTO logic VALUES(1,0),(0,2),(0,0)"
+  ],
+  "cases": [
+    {
+      "id": "lead-in-two",
+      "sql": "SELECT id,user_id,amount,typeof(amount) FROM orders WHERE id IN(10,11) ORDER BY id"
+    },
+    {
+      "id": "lead-in-or-id",
+      "sql": "SELECT id FROM orders WHERE id IN(10,11) OR id=13 ORDER BY id"
+    },
+    {
+      "id": "or-isolation",
+      "sql": "SELECT a,b FROM logic WHERE a=1 OR b=2 ORDER BY a DESC"
+    },
+    {
+      "id": "scalar-comparisons-only",
+      "sql": "SELECT id FROM orders WHERE id=10 OR id=11 ORDER BY id"
+    },
+    {
+      "id": "scalar-versus-in",
+      "sql": "SELECT id,id=10,id IN(10),id IN(10,11) FROM orders ORDER BY id"
+    },
+    {
+      "id": "empty-in-not-in",
+      "sql": "SELECT 7 IN(),7 NOT IN(),NULL IN(),NULL NOT IN()"
+    },
+    {
+      "id": "duplicates",
+      "sql": "SELECT 10 IN(10,10,11),12 NOT IN(10,10,11)"
+    },
+    {
+      "id": "rhs-null",
+      "sql": "SELECT 10 IN(10,NULL),12 IN(10,NULL),12 NOT IN(10,NULL)"
+    },
+    {
+      "id": "lhs-null",
+      "sql": "SELECT NULL IN(10,11),NULL NOT IN(10,11)"
+    },
+    {
+      "id": "mixed-storage",
+      "sql": "SELECT 1 IN(1.0,'1'),typeof(1 IN(1.0,'1')),'1' IN(1,1.0),1.5 IN(1,1.5)"
+    },
+    {
+      "id": "column-affinity",
+      "sql": "SELECT id,id IN('10','011'),amount IN('10.5',11),note IN('alpha','BETA') FROM orders ORDER BY id"
+    },
+    {
+      "id": "expressions",
+      "sql": "SELECT (5+5) IN(9+1,12),lower(note) IN('alpha','beta') FROM orders ORDER BY id"
+    },
+    {
+      "id": "parameter-projection",
+      "sql": "SELECT ?1 IN(?2,?3),?1 NOT IN(?2,?3)",
+      "bindings": [
+        10,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "parameter-where",
+      "sql": "SELECT id,amount,typeof(amount) FROM orders WHERE id IN(?1,?2) ORDER BY id",
+      "bindings": [
+        10,
+        11
+      ]
+    },
+    {
+      "id": "null-3vl-or",
+      "sql": "SELECT id FROM orders WHERE id IN(10,NULL) OR id=13 ORDER BY id"
+    },
+    {
+      "id": "or-projection-evaluates-error",
+      "sql": "SELECT 1=1 OR abs(-9223372036854775808),0=1 AND abs(-9223372036854775808)"
+    },
+    {
+      "id": "in-error-evaluation",
+      "sql": "SELECT 1 IN(1,abs(-9223372036854775808))"
+    },
+    {
+      "id": "real-regression",
+      "sql": "SELECT id,amount,typeof(amount),sum(amount),typeof(sum(amount)) FROM orders WHERE id IN(10,11)"
+    },
+    {
+      "id": "encoding-text",
+      "sql": "SELECT note,note IN('alpha','BETA') FROM orders ORDER BY id"
+    },
+    {
+      "id": "where-short-circuit",
+      "sql": "SELECT id FROM orders WHERE 1=1 OR abs(-9223372036854775808) ORDER BY id"
+    },
+    {
+      "id": "work-bound",
+      "sql": "SELECT id FROM orders WHERE id IN(10,11) ORDER BY id",
+      "operation": {
+        "maxWorkUnits": 1
+      }
+    }
+  ]
+}

@@ -744,3 +744,20 @@ NULL, int64 and neighboring NUMERIC/INTEGER cases. Raw record decoding and
 aggregate result-type patching remain deliberately unchanged. The generalized repair
 is commit `ad433c2a4ae92bf679ff6303e3ea421ce73f0234`; unsupported consumers remain
 explicitly unsupported rather than being counted as verified.
+
+## Revision evidence — value-list IN lead (2026-09-19, [[card:card-i-a]])
+
+A 21-case, three-encoding pinned-oracle/public-TS lane reproduces the external lead
+as a **missing value-list IN boundary**, not a demonstrated OR defect. On the exact
+`orders(id INTEGER PRIMARY KEY,user_id INTEGER,amount REAL,note TEXT COLLATE
+NOCASE)` schema, native returns 10/11 for `id IN(10,11)` and 10/11/13 when OR'ed
+with `id=13`; current TS rejects both at prepare as temporarily unsupported.
+Independent `a=1 OR b=2` and `id=10 OR id=11` match native across encodings and
+reset, disproving the broad OR hypothesis for those paths only. Value-list
+empty/NULL/duplicate/mixed-affinity/CollSeq/parameter/expression cases and REAL
+consumer regressions remain zero-credit implementation targets. Pinned owners are
+`src/expr.c` `sqlite3FindInIndex`/`sqlite3ExprCodeIN` and `src/vdbe.c` branch and
+Found/NotFound operations. Preserve `f48a4c2` subquery-IN/nested-cursor foundations;
+this evidence does not propose replacement. Exact provenance, outcomes,
+dependencies, and limits are in `docs/research/card-i-a-in-list-audit.md` and
+`test/conformance/cases/audit-in-list.json`.

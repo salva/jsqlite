@@ -1,0 +1,2407 @@
+{
+  "schema": "jsqlite-in-list-audit/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "credit": 0,
+  "encodings": {
+    "utf8": {
+      "databaseEncoding": "UTF-8",
+      "cases": [
+        {
+          "id": "lead-in-two",
+          "sql": "SELECT id,user_id,amount,typeof(amount) FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "user_id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lead-in-or-id",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-isolation",
+          "sql": "SELECT a,b FROM logic WHERE a=1 OR b=2 ORDER BY a DESC",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "a",
+              "b"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-comparisons-only",
+          "sql": "SELECT id FROM orders WHERE id=10 OR id=11 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-versus-in",
+          "sql": "SELECT id,id=10,id IN(10),id IN(10,11) FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id=10",
+              "id IN(10)",
+              "id IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "empty-in-not-in",
+          "sql": "SELECT 7 IN(),7 NOT IN(),NULL IN(),NULL NOT IN()",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "7 IN()",
+              "7 NOT IN()",
+              "NULL IN()",
+              "NULL NOT IN()"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "duplicates",
+          "sql": "SELECT 10 IN(10,10,11),12 NOT IN(10,10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,10,11)",
+              "12 NOT IN(10,10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "rhs-null",
+          "sql": "SELECT 10 IN(10,NULL),12 IN(10,NULL),12 NOT IN(10,NULL)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,NULL)",
+              "12 IN(10,NULL)",
+              "12 NOT IN(10,NULL)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lhs-null",
+          "sql": "SELECT NULL IN(10,11),NULL NOT IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "NULL IN(10,11)",
+              "NULL NOT IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "mixed-storage",
+          "sql": "SELECT 1 IN(1.0,'1'),typeof(1 IN(1.0,'1')),'1' IN(1,1.0),1.5 IN(1,1.5)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1.0,'1')",
+              "typeof(1 IN(1.0,'1'))",
+              "'1' IN(1,1.0)",
+              "1.5 IN(1,1.5)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "column-affinity",
+          "sql": "SELECT id,id IN('10','011'),amount IN('10.5',11),note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id IN('10','011')",
+              "amount IN('10.5',11)",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "expressions",
+          "sql": "SELECT (5+5) IN(9+1,12),lower(note) IN('alpha','beta') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "(5+5) IN(9+1,12)",
+              "lower(note) IN('alpha','beta')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-projection",
+          "sql": "SELECT ?1 IN(?2,?3),?1 NOT IN(?2,?3)",
+          "bindings": [
+            10,
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "?1 IN(?2,?3)",
+              "?1 NOT IN(?2,?3)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-where",
+          "sql": "SELECT id,amount,typeof(amount) FROM orders WHERE id IN(?1,?2) ORDER BY id",
+          "bindings": [
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "null-3vl-or",
+          "sql": "SELECT id FROM orders WHERE id IN(10,NULL) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-projection-evaluates-error",
+          "sql": "SELECT 1=1 OR abs(-9223372036854775808),0=1 AND abs(-9223372036854775808)",
+          "bindings": [],
+          "native": {
+            "error": {
+              "phase": "step",
+              "code": 1,
+              "message": "integer overflow"
+            },
+            "resetCode": 1
+          }
+        },
+        {
+          "id": "in-error-evaluation",
+          "sql": "SELECT 1 IN(1,abs(-9223372036854775808))",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1,abs(-9223372036854775808))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "real-regression",
+          "sql": "SELECT id,amount,typeof(amount),sum(amount),typeof(sum(amount)) FROM orders WHERE id IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)",
+              "sum(amount)",
+              "typeof(sum(amount))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4035800000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "encoding-text",
+          "sql": "SELECT note,note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "note",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "416c706861"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "62657461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "414c504841"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "where-short-circuit",
+          "sql": "SELECT id FROM orders WHERE 1=1 OR abs(-9223372036854775808) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "work-bound",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        }
+      ]
+    },
+    "utf16le": {
+      "databaseEncoding": "UTF-16le",
+      "cases": [
+        {
+          "id": "lead-in-two",
+          "sql": "SELECT id,user_id,amount,typeof(amount) FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "user_id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lead-in-or-id",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-isolation",
+          "sql": "SELECT a,b FROM logic WHERE a=1 OR b=2 ORDER BY a DESC",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "a",
+              "b"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-comparisons-only",
+          "sql": "SELECT id FROM orders WHERE id=10 OR id=11 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-versus-in",
+          "sql": "SELECT id,id=10,id IN(10),id IN(10,11) FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id=10",
+              "id IN(10)",
+              "id IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "empty-in-not-in",
+          "sql": "SELECT 7 IN(),7 NOT IN(),NULL IN(),NULL NOT IN()",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "7 IN()",
+              "7 NOT IN()",
+              "NULL IN()",
+              "NULL NOT IN()"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "duplicates",
+          "sql": "SELECT 10 IN(10,10,11),12 NOT IN(10,10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,10,11)",
+              "12 NOT IN(10,10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "rhs-null",
+          "sql": "SELECT 10 IN(10,NULL),12 IN(10,NULL),12 NOT IN(10,NULL)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,NULL)",
+              "12 IN(10,NULL)",
+              "12 NOT IN(10,NULL)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lhs-null",
+          "sql": "SELECT NULL IN(10,11),NULL NOT IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "NULL IN(10,11)",
+              "NULL NOT IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "mixed-storage",
+          "sql": "SELECT 1 IN(1.0,'1'),typeof(1 IN(1.0,'1')),'1' IN(1,1.0),1.5 IN(1,1.5)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1.0,'1')",
+              "typeof(1 IN(1.0,'1'))",
+              "'1' IN(1,1.0)",
+              "1.5 IN(1,1.5)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "column-affinity",
+          "sql": "SELECT id,id IN('10','011'),amount IN('10.5',11),note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id IN('10','011')",
+              "amount IN('10.5',11)",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "expressions",
+          "sql": "SELECT (5+5) IN(9+1,12),lower(note) IN('alpha','beta') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "(5+5) IN(9+1,12)",
+              "lower(note) IN('alpha','beta')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-projection",
+          "sql": "SELECT ?1 IN(?2,?3),?1 NOT IN(?2,?3)",
+          "bindings": [
+            10,
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "?1 IN(?2,?3)",
+              "?1 NOT IN(?2,?3)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-where",
+          "sql": "SELECT id,amount,typeof(amount) FROM orders WHERE id IN(?1,?2) ORDER BY id",
+          "bindings": [
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "null-3vl-or",
+          "sql": "SELECT id FROM orders WHERE id IN(10,NULL) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-projection-evaluates-error",
+          "sql": "SELECT 1=1 OR abs(-9223372036854775808),0=1 AND abs(-9223372036854775808)",
+          "bindings": [],
+          "native": {
+            "error": {
+              "phase": "step",
+              "code": 1,
+              "message": "integer overflow"
+            },
+            "resetCode": 1
+          }
+        },
+        {
+          "id": "in-error-evaluation",
+          "sql": "SELECT 1 IN(1,abs(-9223372036854775808))",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1,abs(-9223372036854775808))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "real-regression",
+          "sql": "SELECT id,amount,typeof(amount),sum(amount),typeof(sum(amount)) FROM orders WHERE id IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)",
+              "sum(amount)",
+              "typeof(sum(amount))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4035800000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "encoding-text",
+          "sql": "SELECT note,note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "note",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "416c706861"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "62657461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "414c504841"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "where-short-circuit",
+          "sql": "SELECT id FROM orders WHERE 1=1 OR abs(-9223372036854775808) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "work-bound",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        }
+      ]
+    },
+    "utf16be": {
+      "databaseEncoding": "UTF-16be",
+      "cases": [
+        {
+          "id": "lead-in-two",
+          "sql": "SELECT id,user_id,amount,typeof(amount) FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "user_id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lead-in-or-id",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-isolation",
+          "sql": "SELECT a,b FROM logic WHERE a=1 OR b=2 ORDER BY a DESC",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "a",
+              "b"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-comparisons-only",
+          "sql": "SELECT id FROM orders WHERE id=10 OR id=11 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "scalar-versus-in",
+          "sql": "SELECT id,id=10,id IN(10),id IN(10,11) FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id=10",
+              "id IN(10)",
+              "id IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "empty-in-not-in",
+          "sql": "SELECT 7 IN(),7 NOT IN(),NULL IN(),NULL NOT IN()",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "7 IN()",
+              "7 NOT IN()",
+              "NULL IN()",
+              "NULL NOT IN()"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "duplicates",
+          "sql": "SELECT 10 IN(10,10,11),12 NOT IN(10,10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,10,11)",
+              "12 NOT IN(10,10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "rhs-null",
+          "sql": "SELECT 10 IN(10,NULL),12 IN(10,NULL),12 NOT IN(10,NULL)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "10 IN(10,NULL)",
+              "12 IN(10,NULL)",
+              "12 NOT IN(10,NULL)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "lhs-null",
+          "sql": "SELECT NULL IN(10,11),NULL NOT IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "NULL IN(10,11)",
+              "NULL NOT IN(10,11)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "mixed-storage",
+          "sql": "SELECT 1 IN(1.0,'1'),typeof(1 IN(1.0,'1')),'1' IN(1,1.0),1.5 IN(1,1.5)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1.0,'1')",
+              "typeof(1 IN(1.0,'1'))",
+              "'1' IN(1,1.0)",
+              "1.5 IN(1,1.5)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "column-affinity",
+          "sql": "SELECT id,id IN('10','011'),amount IN('10.5',11),note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "id IN('10','011')",
+              "amount IN('10.5',11)",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "expressions",
+          "sql": "SELECT (5+5) IN(9+1,12),lower(note) IN('alpha','beta') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "(5+5) IN(9+1,12)",
+              "lower(note) IN('alpha','beta')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-projection",
+          "sql": "SELECT ?1 IN(?2,?3),?1 NOT IN(?2,?3)",
+          "bindings": [
+            10,
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "?1 IN(?2,?3)",
+              "?1 NOT IN(?2,?3)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "parameter-where",
+          "sql": "SELECT id,amount,typeof(amount) FROM orders WHERE id IN(?1,?2) ORDER BY id",
+          "bindings": [
+            10,
+            11
+          ],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4026000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "null-3vl-or",
+          "sql": "SELECT id FROM orders WHERE id IN(10,NULL) OR id=13 ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "or-projection-evaluates-error",
+          "sql": "SELECT 1=1 OR abs(-9223372036854775808),0=1 AND abs(-9223372036854775808)",
+          "bindings": [],
+          "native": {
+            "error": {
+              "phase": "step",
+              "code": 1,
+              "message": "integer overflow"
+            },
+            "resetCode": 1
+          }
+        },
+        {
+          "id": "in-error-evaluation",
+          "sql": "SELECT 1 IN(1,abs(-9223372036854775808))",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "1 IN(1,abs(-9223372036854775808))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "real-regression",
+          "sql": "SELECT id,amount,typeof(amount),sum(amount),typeof(sum(amount)) FROM orders WHERE id IN(10,11)",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id",
+              "amount",
+              "typeof(amount)",
+              "sum(amount)",
+              "typeof(sum(amount))"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4025000000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4035800000000000"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "encoding-text",
+          "sql": "SELECT note,note IN('alpha','BETA') FROM orders ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "note",
+              "note IN('alpha','BETA')"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "416c706861"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "62657461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "text",
+                  "utf8Hex": "414c504841"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "where-short-circuit",
+          "sql": "SELECT id FROM orders WHERE 1=1 OR abs(-9223372036854775808) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        },
+        {
+          "id": "work-bound",
+          "sql": "SELECT id FROM orders WHERE id IN(10,11) ORDER BY id",
+          "bindings": [],
+          "native": {
+            "columns": [
+              "id"
+            ],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                }
+              ]
+            ],
+            "resetCode": 0
+          }
+        }
+      ]
+    }
+  }
+}

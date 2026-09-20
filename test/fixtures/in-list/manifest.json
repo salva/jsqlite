@@ -1,0 +1,9 @@
+{
+  "schema":"jsqlite-in-list-fixtures/1",
+  "sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "files":[
+    {"encoding":"UTF-8","path":"orders-utf8.db","sha256":"35c0b2caa5c76b339b451a0ff936dc1df4a7677c42bb15793997e0410c493624"},
+    {"encoding":"UTF-16le","path":"orders-utf16le.db","sha256":"c26283bb9e0f95bd987e77c42d5b664f86f4a22bca57ee9cd3f462fbba395fa7"},
+    {"encoding":"UTF-16be","path":"orders-utf16be.db","sha256":"0157659d7bf218f53844f5291f7b2455ffdbd4fe72ac473e138e2b96e26ebc67"}
+  ]
+}
