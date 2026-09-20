@@ -43,7 +43,7 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
   definition("octet_length",[1],withFlags("byte-length"),true),
   definition("instr",[2]), definition("printf",[],C,false,0), definition("format",[],C,false,0),
   definition("unicode",[1]), definition("char",[],C,true,0), definition("abs",[1],C,true),
-  definition("round",[1,2]), definition("upper",[1]), definition("lower",[1]),
+  definition("round",[1,2]), definition("upper",[1],C,true), definition("lower",[1],C,true),
   definition("hex",[1],C,true), definition("unhex",[1,2]),
   definition("concat",[],C,false,1), definition("concat_ws",[],C,false,2),
   definition("nullif",[2],withFlags("need-collation"),true), definition("unistr",[1]),
