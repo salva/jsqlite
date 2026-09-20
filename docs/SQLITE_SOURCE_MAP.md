@@ -1392,3 +1392,12 @@ floating temporary before allocation. Public discriminators in
 `run-ordinary-scalars-format-ts.mjs` match the manifest-pinned oracle for `%r`,
 `%,d`, terminal `%`, UTF-8 width, negative precision, and infinity spelling, and
 exercise hostile literal/dynamic dimensions under a five-byte result ceiling.
+
+#### Conversion-specific precision admission correction
+
+The `printf.c` precision parser is separated from conversion admission:
+`etSTRING` and `etESCAPE_*` map to bounded input scans and actual expansion
+preflight, `etCHARX` maps to encoded repeated-byte admission, and numeric branches
+retain worst-case temporary/output checks. Pinned-native and public tests distinguish
+large literal/dynamic precision on short/empty values from genuine escaped,
+character, and floating excess under the same five-byte ceiling.

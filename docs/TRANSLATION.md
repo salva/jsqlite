@@ -3201,3 +3201,13 @@ host string allocation, so hostile dimensions fail as the public `limit` error
 rather than a JavaScript `RangeError`. These are direct pinned `printf.c`
 branches, not an algorithm substitution; the public gate also checks saved-error
 identity, finalize cleanup, and subsequent connection use.
+
+#### Conversion-specific precision admission correction
+
+Precision parsing is overflow-safe but no longer treated as promised output size.
+Following pinned `printf.c` `etSTRING`/escape loops, `%s`/`%z`/`%q`/`%Q`/`%w`
+scan only the available NUL-terminated input up to byte (or `!` character)
+precision, checkpoint that scan, and admit actual escaped and padded output. `%c`
+admits actual encoded repetitions; numeric conversions retain their required
+materialization preflight. Thus large precision with a short value succeeds under
+a small result ceiling while actual excess remains a typed `limit` failure.

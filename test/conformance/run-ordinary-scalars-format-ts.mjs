@@ -32,10 +32,11 @@ try{
   assert.throws(()=>db.prepare(overLimit),error=>error?.kind==='sqlite'&&error.code===1&&error.message==='too many arguments on function printf');
 
   const limited=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{limits:{maxResultBytes:5,maxWorkUnits:10000}});try{
+   assert.deepEqual(await (async()=>{const s=limited.prepare(`SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b')`).statement;try{assert.equal(await s.step(),'row');return Array.from({length:s.columnCount},(_,i)=>s.column(i))}finally{s.finalize()}})(),['x','',"a''b","'x'",'a""b']);
    const s=limited.prepare("SELECT printf('%s',?1)").statement;s.bind(1,'abcdef');let saved;try{await s.step()}catch(error){saved=error}assert.equal(saved?.kind,'limit');assert.equal(saved?.message,'string or blob too big');await assert.rejects(()=>s.step(),error=>error===saved);
    assert.throws(()=>s.reset(),error=>error===saved);s.bind(1,'ok');assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'ok');assert.equal(await s.step(),'done');s.finalize();
    const reuse=limited.prepare("SELECT format('%d',7)").statement;assert.equal(await reuse.step(),'row');assert.equal(reuse.columnText(0),'7');reuse.finalize();
-   for(const sql of ["SELECT printf('%999999999s','x')","SELECT printf('%*s',999999999,'x')","SELECT printf('%.*f',999999999,1.0)"]){const hostile=limited.prepare(sql).statement;let error;try{await hostile.step()}catch(caught){error=caught}assert.equal(error?.kind,'limit');assert.equal(error?.message,'string or blob too big');await assert.rejects(()=>hostile.step(),caught=>caught===error);assert.throws(()=>hostile.finalize(),caught=>caught===error)}
+   for(const sql of ["SELECT printf('%999999999s','x')","SELECT printf('%*s',999999999,'x')","SELECT printf('%.*f',999999999,1.0)","SELECT printf('%.999c','x')","SELECT printf('%.999Q','a''b')"]){const hostile=limited.prepare(sql).statement;let error;try{await hostile.step()}catch(caught){error=caught}assert.equal(error?.kind,'limit');assert.equal(error?.message,'string or blob too big');await assert.rejects(()=>hostile.step(),caught=>caught===error);assert.throws(()=>hostile.finalize(),caught=>caught===error)}
    const afterHostile=limited.prepare("SELECT printf('%r',2)").statement;assert.equal(await afterHostile.step(),'row');assert.equal(afterHostile.columnText(0),'2nd');afterHostile.finalize();
   }finally{limited.closeDeferred()}
 

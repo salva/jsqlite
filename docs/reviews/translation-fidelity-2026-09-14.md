@@ -703,3 +703,13 @@ the typed result-limit error with normal saved-error/finalize cleanup. Focused
 public values were independently matched against the manifest-source-ID-pinned
 oracle; hostile dimensions and later connection reuse are covered locally. This
 correction changes no denominator or product scope.
+
+#### Revision: conversion-specific formatter precision admission
+
+The re-review finding in `record:///review.md?card=card-p-b&v=6` is corrected:
+large precision is no longer rejected globally as output size. String and escape
+conversions perform bounded source-shaped scans and preflight only actual output;
+character and numeric conversions retain conversion-specific materialization
+checks. Pinned-native/public short and empty values now succeed under a five-byte
+ceiling, while true escaped, repeated-character, and floating excess preserve the
+typed failure and statement lifecycle.
