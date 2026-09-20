@@ -21,8 +21,8 @@
   "scope": {
     "registryRows": 30,
     "distinctNames": 29,
-    "selectedCases": 21,
-    "oracleObservations": 63,
+    "selectedCases": 22,
+    "oracleObservations": 66,
     "tsCredit": 0
   },
   "registry": [
@@ -871,6 +871,24 @@
         "TEXT numeric prefix",
         "BLOB numeric prefix",
         "nonnumeric/NULL"
+      ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "signed-int64-extrema",
+      "sql": "SELECT ceil(9223372036854775807),ceil(-9223372036854775808),ceiling(9223372036854775807),ceiling(-9223372036854775808),floor(9223372036854775807),floor(-9223372036854775808),trunc(9223372036854775807),trunc(-9223372036854775808),sqrt(9223372036854775807),sqrt(-9223372036854775808),sin(9223372036854775807),pow(9223372036854775807,2),mod(-9223372036854775808,3)",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "parameters": [],
+      "database": "memory",
+      "branches": [
+        "signed int64 endpoints",
+        "ceilingFunc INTEGER preservation",
+        "math1Func INTEGER-to-double conversion and domain",
+        "math2Func INTEGER-to-double conversion"
       ],
       "credit": "zero-until-public-typed-success"
     }

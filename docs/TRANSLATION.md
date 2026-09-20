@@ -3347,7 +3347,12 @@ ECMAScript `Math` is the required browser-safe replacement for C libm; no native
 WASM, eval, host registration, or separate expression evaluator is introduced.
 The concrete wrapper behavior remains source-translated, while finite
 transcendental last-bit identity on libm hosts other than the pinned capture host
-is not guaranteed. Public typed comparison passes all 21 immutable cases / 63
+is not guaranteed. Public typed comparison passes all 22 immutable cases / 66
 encoding-specific observations, including parameters, columns, composition and
-all three fixture encodings. Commands: `npm run typecheck` and
+all three fixture encodings. The `signed-int64-extrema` case makes both signed
+64-bit endpoints load-bearing: `ceil`/`ceiling`/`floor`/`trunc` retain exact
+INTEGER payloads, while representative `sqrt`, `sin`, `pow`, and `mod` calls
+record the pinned INTEGER-to-double conversion, REAL payloads, and domain NULL.
+`math-manifest.test.py` enforces those types and IEEE-754 payloads in every
+encoding so this coverage cannot silently disappear. Commands: `npm run typecheck` and
 `node --experimental-strip-types test/conformance/run-math-cases-ts.mjs`.

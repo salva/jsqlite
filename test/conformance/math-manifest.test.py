@@ -5,9 +5,9 @@ spec_path=ROOT/'test/conformance/cases/stage3-math.spec.json'; native_path=ROOT/
 spec=json.loads(spec_path.read_text()); native=json.loads(native_path.read_text()); pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 assert spec['source']['sourceId']==pin['sqliteSourceId'] and native['source']['sourceId']==pin['sqliteSourceId']
 assert native['source']['specSha256']==hashlib.sha256(spec_path.read_bytes()).hexdigest()
-assert spec['scope']=={'registryRows':30,'distinctNames':29,'selectedCases':21,'oracleObservations':63,'tsCredit':0}
-assert len(spec['registry'])==30 and len(spec['cases'])==21 and len(native['observations'])==63
-assert native['counts']=={'registryRows':30,'distinctNames':29,'selectedCases':21,'observations':63,'tsCredit':0}
+assert spec['scope']=={'registryRows':30,'distinctNames':29,'selectedCases':22,'oracleObservations':66,'tsCredit':0}
+assert len(spec['registry'])==30 and len(spec['cases'])==22 and len(native['observations'])==66
+assert native['counts']=={'registryRows':30,'distinctNames':29,'selectedCases':22,'observations':66,'tsCredit':0}
 assert native['profile']['compileOptionUsed']=={'ENABLE_COLUMN_METADATA':True,'ENABLE_MATH_FUNCTIONS':True}
 assert native['profile']['c99MathFunctions'] is True
 # Inventory must remain a literal projection of the pinned registration block.
@@ -38,5 +38,16 @@ for obs in native['observations']:
   for cell in row:
    if cell['type']=='real': assert re.fullmatch(r'[0-9a-f]{16}',cell['ieee754Hex']) and isinstance(cell['hexFloat'],str)
 ids={c['id'] for c in spec['cases']}
-for required in {'real-storage-signed-zero','domain-pole-overflow','coercion-prefix-blob','parameters','parameter-nonnumeric-blob','fixture-real-column','fixture-mixed-column','composition','precision-bits','log-second-value-double-coercion'}: assert required in ids
-print('math manifest: 30 FuncDef rows/29 names, 21 cases, 63 pinned oracle observations, C99 rows available, TS credit 0/21')
+for required in {'real-storage-signed-zero','domain-pole-overflow','coercion-prefix-blob','parameters','parameter-nonnumeric-blob','fixture-real-column','fixture-mixed-column','composition','precision-bits','log-second-value-double-coercion','signed-int64-extrema'}: assert required in ids
+extrema=next(case for case in spec['cases'] if case['id']=='signed-int64-extrema')
+assert '9223372036854775807' in extrema['sql'] and '-9223372036854775808' in extrema['sql']
+for name in ('ceil','ceiling','floor','trunc','sqrt','sin','pow','mod'): assert re.search(r'\b'+name+r'\s*\(',extrema['sql'])
+extrema_obs=[obs for obs in native['observations'] if obs['id']=='signed-int64-extrema']
+assert {obs['encoding'] for obs in extrema_obs}=={'UTF-8','UTF-16le','UTF-16be'}
+assert len(extrema_obs)==3
+for obs in extrema_obs:
+ row=obs['rows'][0]
+ assert [(cell['type'],cell.get('value')) for cell in row[:8]]==[('integer','9223372036854775807'),('integer','-9223372036854775808')]*4
+ assert [cell['type'] for cell in row[8:]]==['real','null','real','real','real']
+ assert [cell.get('ieee754Hex') for cell in row[8:]]==['41e6a09e667f3bcd',None,'3fefff6dfd42dc54','47d0000000000000','c000000000000000']
+print('math manifest: 30 FuncDef rows/29 names, 22 cases, 66 pinned oracle observations, C99 rows available, TS credit 0/22')

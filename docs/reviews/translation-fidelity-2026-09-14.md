@@ -821,3 +821,19 @@ UTF-8, UTF-16LE and UTF-16BE. The added `log(B,X)` discriminator preserves the
 pinned asymmetry between numeric-type conversion of `B` and value-double
 numeric-prefix/BLOB conversion of `X`. Cross-host finite transcendental last-bit identity
 remains a portability limit, not an advertised guarantee.
+
+### Revision 2026-09-20 — ordinary math endpoint evidence ([[card:card-q-b-b]])
+
+Current-tree review corrects the earlier ordinary-math evidence denominator. The
+immutable public corpus now has 22 selected cases and 66 typed observations over
+UTF-8, UTF-16LE, and UTF-16BE for the unchanged 30 registration rows / 29 names.
+The added `signed-int64-extrema` case independently captures both signed 64-bit
+endpoints through every INTEGER-preserving rounding alias and representative
+REAL-producing unary/binary wrappers (`sqrt`, `sin`, `pow`, and `mod`). Its
+validator requires exact INTEGER payloads, REAL/NULL storage classes, and pinned
+IEEE-754 payloads in all three encodings, exposing the intentional
+INTEGER-to-double precision loss rather than inferring it from smaller values.
+The public TypeScript runner matches 66/66 observations. This revision strengthens
+the claimed evidence; it does not widen the implementation scope or erase the
+documented ECMAScript-Math/C-libm last-bit portability limit for finite
+transcendentals.

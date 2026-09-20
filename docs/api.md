@@ -496,6 +496,39 @@ termination. Formatting is locale-independent and does not expose a host printf.
 
 Owned ordinary scalar builders honor `maxResultBytes` before oversized string/BLOB materialization and charge deterministic work while scanning or producing results. `instr` comparison loops, Unicode escape/quote builders, trim/unhex/concat/char loops, and random/zero BLOB production observe work, cancellation, and deadline controls at bounded intervals. A scalar execution error is saved on its statement: repeat `step()` and `finalize()` report the first error, while `reset()` reports it once and restores statement reuse; the connection remains usable.
 
+### Ordinary math functions
+
+The pinned `SQLITE_ENABLE_MATH_FUNCTIONS` profile exposes exactly these 30
+name/arity rows (29 distinct names) through ordinary `prepare()` and statement
+execution:
+
+| Arity | Names |
+|---|---|
+| 0 | `pi` |
+| 1 | `ceil`, `ceiling`, `floor`, `trunc`, `ln`, `log`, `log10`, `log2`, `exp`, `acos`, `asin`, `atan`, `cos`, `sin`, `tan`, `cosh`, `sinh`, `tanh`, `acosh`, `asinh`, `atanh`, `sqrt`, `radians`, `degrees` |
+| 2 | `log`, `pow`, `power`, `mod`, `atan2` |
+
+`ceil` and `ceiling` are aliases, as are `pow` and `power`. `ceil`, `ceiling`,
+`floor`, and `trunc` preserve an INTEGER argument's exact signed-int64 payload and
+storage class; when their argument is REAL they return REAL. Every other
+successful math callback returns REAL, including calls whose arguments are
+INTEGER. Consequently INTEGER inputs to unary/binary libm callbacks first undergo
+SQLite's double conversion and may lose low-order precision.
+
+The wrapper-gated arguments accept INTEGER, REAL, or wholly numeric TEXT under
+SQLite numeric conversion; NULL, BLOB, nonnumeric TEXT, and numeric-prefix-only
+TEXT produce NULL. The second argument of two-argument `log(B,X)` follows pinned
+`sqlite3_value_double()` instead, so it accepts a numeric prefix and BLOB bytes in
+the database encoding before the positive-domain check. Invalid domains and NaN
+results produce NULL; finite values, signed zero, and infinity retain REAL storage.
+Wrong arity is a SQLite prepare error under the ordinary built-in contract.
+
+ECMAScript `Math` is the browser-safe adaptation of the pinned C-libm callbacks.
+The captured public corpus pins exact IEEE-754 results on the development oracle
+and current JavaScript engine, but finite transcendental last-bit identity across
+different host libm/ECMAScript implementations is not a public portability
+guarantee.
+
 ### Value-list `IN` conformance note (2026-09-20)
 
 Within the documented prepared read-only SELECT surface, scalar value lists are
