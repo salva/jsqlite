@@ -1337,7 +1337,7 @@ The scalar machine map distinguishes raw FuncDef matching from effective scalar 
 
 Independent review `record:///review.md?card=card-p-a&v=3` prompted a complete 50-row semantic-owner audit. Each ordinary registry row now maps its recorded routine into its source slice and covering cases; inline registrations map explicitly to `sqlite3ExprCodeTarget`. In particular CHAR owns `charFunc`, UNISTR owns `unistrFunc` plus `isNHex` and `sqlite3AppendOneUtf8Character`, and UNICODE alone owns `unicodeFunc`. Persisted-column cases use `scalar_values` in all three physical encoding fixtures; pinned native capture and validation open those exact hashed fixtures directly, avoiding synthetic encoding conversions.
 
-The superseded tests-first handoff checkpoint was 50 active registry rows, 37 cases/59 native observations, and 12 dispatched/38 absent; current accounting is 47/50 as recorded below. Final validation used `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; this loads and source-ID-checks the pinned library and executes the persisted-column cases against all three exact hashed fixtures. Any earlier argument-less transcript is invalid/superseded.
+The superseded tests-first handoff checkpoint was 50 active registry rows, 37 cases/59 native observations, and 12 dispatched/38 absent; current accounting is 50/50 as recorded below. Final validation used `python3 test/conformance/ordinary-scalars-manifest.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so`; this loads and source-ID-checks the pinned library and executes the persisted-column cases against all three exact hashed fixtures. Any earlier argument-less transcript is invalid/superseded.
 
 ### Non-pattern/non-format ordinary scalar implementation ([[card:card-p-b-a-b]])
 
@@ -1350,8 +1350,9 @@ identity/compile-option callbacks; compiler-inline conditionals and hints map to
 `src/vdbemem.c`, and `src/vdbeapi.c`. `||` lowering maps to `src/expr.c:TK_CONCAT`
 and `src/vdbe.c:OP_Concat`. The browser adaptation for `sqlite_log` is a no-op
 sink because no host log callback is public; its SQL result remains NULL. Registry
-accounting is 47 dispatchable and three represented non-dispatchable sibling rows:
-`printf`, `format`, and `round`. `src/internal/pattern.ts` maps `func.c:patternCompare`
+accounting at this tranche checkpoint was 47 dispatchable and three represented
+non-dispatchable sibling rows: `printf`, `format`, and `round`; the formatting
+translation below supersedes that checkpoint. `src/internal/pattern.ts` maps `func.c:patternCompare`
 and `likeFunc` to an explicit-state LIKE/GLOB matcher (rather than host regex),
 including ESCAPE, ASCII folding, sets/ranges, NUL termination, the pinned pattern
 limit, and bounded-work control. `quote(REAL)` maps the distinct
@@ -1362,7 +1363,7 @@ and infinities. TEXT/BLOB expansion checks the result limit before construction.
 
 ### Ordinary scalar bounded execution revision (2026-09-20)
 
-`src/func.c:instrFunc`, `unistrFunc`, `unistrQuoteFunc`, `concatFunc`, `charFunc`, `unhexFunc`, `zeroblobFunc`, and `randomBlob` map to the ordinary dispatch and bounded helpers in `src/internal/vdbe.ts` / `ordinary-scalars.ts`. Output bytes are incrementally preflighted before host allocation; long loops check controls and charge in 256-unit intervals. `instr` deliberately retains upstream's nested candidate comparison rather than substituting a different search algorithm. Browser Web Crypto is chunked at 65,536 bytes. Deferred upstream `MEM_Zero` is adapted to eager browser bytes because the read-only public BLOB API exposes a `Uint8Array`; allocation occurs only after output and proportional-work admission. `test/conformance/run-ordinary-scalars-owned-ts.mjs` supplies public low output/work, abort/deadline, saved-error, reset/finalize, and connection-reuse evidence. Accounting remains 47/50; `printf`, `format`, and `round` receive no credit.
+`src/func.c:instrFunc`, `unistrFunc`, `unistrQuoteFunc`, `concatFunc`, `charFunc`, `unhexFunc`, `zeroblobFunc`, and `randomBlob` map to the ordinary dispatch and bounded helpers in `src/internal/vdbe.ts` / `ordinary-scalars.ts`. Output bytes are incrementally preflighted before host allocation; long loops check controls and charge in 256-unit intervals. `instr` deliberately retains upstream's nested candidate comparison rather than substituting a different search algorithm. Browser Web Crypto is chunked at 65,536 bytes. Deferred upstream `MEM_Zero` is adapted to eager browser bytes because the read-only public BLOB API exposes a `Uint8Array`; allocation occurs only after output and proportional-work admission. `test/conformance/run-ordinary-scalars-owned-ts.mjs` supplies public low output/work, abort/deadline, saved-error, reset/finalize, and connection-reuse evidence. At this bounded-execution checkpoint accounting remained 47/50; the formatting section below supersedes that count.
 
 
 ### SQL formatting scalar translation ([[card:card-p-b-b]])
@@ -1376,4 +1377,7 @@ and the round direct-integer versus `%!.*f` paths without host printf or Intl.
 `src/internal/vdbe.ts` owns result limits and saved-error cleanup through the
 existing FunctionContext/VDBE path. `run-ordinary-scalars-format-ts.mjs` covers
 the pinned cases plus parameters, composition, padding/bases, exact output limit,
-and saved-error/finalize behavior. Registry accounting is now 50/50 dispatchable.
+and saved-error/finalize behavior. The foundation gate additionally checks exact
+`round` wrong-arity diagnostics. Registry accounting is now 50/50 dispatchable;
+the immutable spec's 12/38 `tsStatus` fields remain historical allocation metadata,
+not current runtime support.

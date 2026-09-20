@@ -677,4 +677,17 @@ unchanged.
 
 ### Revision: owned scalar bounded execution (2026-09-20)
 
-The review-v6 findings for late output checks and unchecked costly scalar loops are addressed in the implementation: owned growing branches preflight UTF-8/BLOB size before host materialization; nested `instr` comparisons and long Unicode/trim/unhex/concat/char loops charge/check at bounded intervals; random/zero BLOBs admit output and proportional work before allocation, with random generation checkpointed per browser-safe chunk. The source map and living guide record the retained upstream `instr` order and the concrete Web Crypto/deferred-zero adaptations. Public lifecycle/control tests preserve first-error and connection reuse behavior. Denominator remains 47/50 with no `printf`/`format`/`round` credit.
+The review-v6 findings for late output checks and unchecked costly scalar loops are addressed in the implementation: owned growing branches preflight UTF-8/BLOB size before host materialization; nested `instr` comparisons and long Unicode/trim/unhex/concat/char loops charge/check at bounded intervals; random/zero BLOBs admit output and proportional work before allocation, with random generation checkpointed per browser-safe chunk. The source map and living guide record the retained upstream `instr` order and the concrete Web Crypto/deferred-zero adaptations. Public lifecycle/control tests preserve first-error and connection reuse behavior. Denominator remains 47/50 with no `printf`/`format`/`round` credit at this
+historical checkpoint.
+
+### Revision: ordinary scalar integration (2026-09-20, [[card:card-p-b-c]])
+
+The preceding 47/50 checkpoint is superseded. Inspection of the immutable
+registry, resolver, compiler `Function` lowering and VDBE callback dispatch shows
+all 50 ordinary-scalar rows dispatchable after the translated
+`printf`/`format`/`round` delivery. The formatter uses pinned `printf.c` and
+`func.c` branches rather than host formatting. Focused public tests cover its
+aliases/arities/diagnostics, values, parameters, composition, output bounds and
+saved-error cleanup. The 12/38 fields in the immutable tests-first spec remain
+historical allocation metadata only. Date/time, math, JSON, aggregate and window
+surfaces are not included in this 50-row denominator.

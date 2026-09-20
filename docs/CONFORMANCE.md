@@ -483,7 +483,7 @@ companions to source credit.
 
 ## Ordinary scalar tests-first evidence ([[card:card-p-a-a]])
 
-`stage3-ordinary-scalars.spec.json` inventories 50 active in-scope production ordinary-scalar registration rows and declares 37 cases expanded to 59 encoding observations. Fresh manifest-pinned native capture in `stage3-ordinary-scalars.native.json` completes 59/59 typed observations, including one expected step error for multi-character LIKE ESCAPE. This is reference-only and grants **0 TypeScript credit**. This was the tests-first checkpoint before implementation: accounting was 12 genuinely dispatched registration rows and 38 absent (superseded by the current 47/50 accounting below). `python3 test/conformance/ordinary-scalars-manifest.test.py` enforces pinned catalog rows, checked macro semantics/flags, raw and effective scalar arities, exact assertion and setup hashes, nonempty existing source ownership, fixture existence, absent-row/slice case coverage, identity, status counts, and typed outcome presence. It is profile-specific, not a general C preprocessor. `node test/conformance/run-ordinary-scalars-unsupported-ts.mjs` opens all three physical Fetch fixtures and records 114 honest unsupported outcomes (38 absent rows × 3 encodings), granting zero parity credit. Full behavior/slicing/reproduction notes are in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md).
+`stage3-ordinary-scalars.spec.json` inventories 50 active in-scope production ordinary-scalar registration rows and declares 37 cases expanded to 59 encoding observations. Fresh manifest-pinned native capture in `stage3-ordinary-scalars.native.json` completes 59/59 typed observations, including one expected step error for multi-character LIKE ESCAPE. This is reference-only and grants **0 TypeScript credit**. This was the tests-first checkpoint before implementation: accounting was 12 genuinely dispatched registration rows and 38 absent (superseded by the current 50/50 accounting below). `python3 test/conformance/ordinary-scalars-manifest.test.py` enforces pinned catalog rows, checked macro semantics/flags, raw and effective scalar arities, exact assertion and setup hashes, nonempty existing source ownership, fixture existence, absent-row/slice case coverage, identity, status counts, and typed outcome presence. It is profile-specific, not a general C preprocessor. The original unsupported runner recorded 114 zero-credit outcomes (38 absent rows × 3 encodings). It now treats those immutable `tsStatus` values as historical baseline metadata, asserts 50 current dispatchable rows, and requires typed success for persisted Fetch rows. Full behavior/slicing/reproduction notes are in [`research/card-p-a-a-ordinary-scalars.md`](research/card-p-a-a-ordinary-scalars.md).
 
 The ordinary-scalar contract separately records raw FuncDef match arity and resolver-selected effective scalar arity. For `min`/`max`, raw `-3` admits 1..1000, while exact one-argument aggregate/window registrations outrank it; ordinary scalar ownership is 2..1000. The native discriminator case covers aggregate, window, and scalar selections. Validator ownership checks require every absent row and source-owned slice to have cases, nonempty source symbols, and verified assertion/setup provenance.
 
@@ -496,8 +496,9 @@ The final coherence rerun used the exact existing library at `/work/jsqlite2/.sa
 ### Ordinary scalar implementation evidence ([[card:card-p-b-a-b]])
 
 The immutable denominator remains 50 rows and 37 cases/59 native observations.
-Current registry accounting is 47 dispatched and three explicitly unsupported
-sibling rows (`printf`, `format`, `round`). The public pattern gate adds five
+At this tranche checkpoint registry accounting was 47 dispatched and three
+explicitly unsupported sibling rows (`printf`, `format`, `round`); the integrated
+formatting evidence below supersedes it. The public pattern gate adds five
 immutable LIKE/GLOB observations and 24 boundary observations across the three
 physical encodings, including BLOB conversion, ESCAPE and saved-error cleanup,
 sets/ranges, NULL/NUL, pattern length, work, cancellation, and deadline.
@@ -508,3 +509,14 @@ it never executes or credits sibling rows. Expected failures compare prepare/ste
 phase, SQLite kind, result/primary/extended codes, and exact message.
 
 The ordinary-scalar public runner also exercises bounded output/work companions without changing the immutable 26-case/44-observation credit count: pre-allocation failures for Unicode quoting/decoding, concatenation, character construction, hex decoding and random/zero BLOBs; adversarial `instr` work; abort/deadline interruption; first saved-error identity; reset/finalize cleanup; and connection reuse. These project-control companions grant no native or formatting-slice credit.
+
+### Ordinary scalar integrated evidence ([[card:card-p-b-c]])
+
+Current registry accounting is 50/50 dispatchable after the source-shaped
+`printf`/`format`/`round` translation. The formatting public gate covers aliasing,
+registered arities and exact wrong-arity diagnostics, NULL/missing arguments,
+parameters, composition, flags, width/precision, integer/REAL boundaries, SQL
+escaping, embedded-NUL termination, output limits, saved-error precedence and
+cleanup. The immutable denominator remains 50 rows and 37 cases/59 native
+observations; formatting and pattern companions do not inflate it. Date/time,
+math, JSON, aggregate, and window registries remain separate scopes.

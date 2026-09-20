@@ -3144,7 +3144,7 @@ The current ordinary-scalar denominator was initially captured as 50 active rows
 
 ### Ordinary non-pattern/non-format scalar delivery ([[card:card-p-b-a-b]])
 
-The 50-row pinned registry now dispatches 45 rows. This tranche translates the 31
+At this tranche checkpoint the 50-row pinned registry dispatched 45 rows. This tranche translates the 31
 previously absent owned rows through the shared `FunctionContext`/VDBE path:
 `unlikely`, `likelihood`, `likely`, `ltrim`, `rtrim`, `trim`, `subtype`, `instr`,
 `unicode`, `unhex`, `concat`, `concat_ws`, `unistr`, `quote`, `unistr_quote`,
@@ -3160,8 +3160,8 @@ API exposes none. The compiler-inline forms retain short-circuit control flow.
 zero, round-trip boundaries, and SQLite's `±9.0e+999` infinity spelling. TEXT and
 BLOB quote expansion is result-limit checked before host-string construction.
 
-Exactly three represented sibling rows remain non-dispatchable: `printf`, `format`,
-and `round`. LIKE/GLOB translate pinned `func.c:patternCompare`/`likeFunc` as an
+At that checkpoint exactly three represented sibling rows remained non-dispatchable: `printf`, `format`,
+and `round`; the formatting delivery below supersedes this limitation. LIKE/GLOB translate pinned `func.c:patternCompare`/`likeFunc` as an
 explicit work-list state machine (not host regex), preserving ASCII-only LIKE fold,
 GLOB sets/ranges/inversion, ESCAPE validation, NUL termination, encoding-aware BLOB
 conversion, the 50,000-byte pattern limit, and execution control checks. Date/time,

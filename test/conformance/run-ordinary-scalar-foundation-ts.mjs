@@ -10,9 +10,9 @@ assert.equal(builtinFunction("substring")?.dispatchable,true);
 assert.equal(builtinFunction("upper")?.dispatchable,true);
 assert.equal(builtinFunction("lower")?.dispatchable,true);
 assert.equal(builtinFunction("ifnull")?.dispatchable,true);
-assert.equal(builtinFunction("printf")?.dispatchable,false);
-assert.equal(builtinFunction("format")?.dispatchable,false);
-assert.equal(builtinFunction("round")?.dispatchable,false);
+assert.equal(builtinFunction("printf")?.dispatchable,true);
+assert.equal(builtinFunction("format")?.dispatchable,true);
+assert.equal(builtinFunction("round")?.dispatchable,true);
 assert.equal(builtinFunction("glob")?.dispatchable,true);
 assert.equal(builtinFunction("like")?.dispatchable,true);
 assert.equal(builtinFunction("nullif")?.flags.includes("need-collation"),true);
@@ -28,6 +28,7 @@ function compile(sql){const statement=parseSql(sql).statement;assert.equal(state
 function error(sql){try{compile(sql);assert.fail("expected error")}catch(e){return e}}
 let e=error("SELECT abs()");assert.equal(e.kind,"sqlite");assert.equal(e.code,1);assert.equal(e.message,"wrong number of arguments to function abs()");
 e=error("SELECT no_such_scalar(1)");assert.equal(e.kind,"sqlite");assert.equal(e.message,"no such function: no_such_scalar");
+for(const sql of ["SELECT round()","SELECT round(1,2,3)"]){e=error(sql);assert.equal(e.kind,"sqlite");assert.equal(e.code,1);assert.equal(e.message,"wrong number of arguments to function round()")}
 const caseProgram=compile("SELECT upper('x'), lower('Y')");assert.ok(programOpcodeNames(caseProgram).includes("Function"));
 const program=compile("SELECT abs(-1)");assert.ok(programOpcodeNames(program).includes("Function"));
 assert.ok(!programOpcodeNames(program).includes("PureFunc"));
