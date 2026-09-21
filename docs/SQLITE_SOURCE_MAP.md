@@ -1526,3 +1526,34 @@ portability limit rather than a cross-engine guarantee.
 - Review correction: `src/json.c:jsonErrorFunc`, JSONB-output branches of `jsonArrayFunc`/`jsonObjectFunc`/`jsonSetFunc`/`jsonRemoveFunc`/`jsonReplaceFunc`/`jsonPatchFunc`, and `JSON_AINS` map to `src/internal/json.ts` parser error offsets, JSONB result shaping, and array insertion. `jsonLookupStep`'s missing-object-member branch maps to retained per-label JSONB encodings: path-created raw labels use `JSONB_TEXTRAW`, escaped quoted labels retain `JSONB_TEXT5`, and existing decoded labels preserve their source type/payload across edits. Exact public constructor/set/patch/array-insert bytes prevent canonical tree re-encoding from approximating this branch. `jsonPrettyFunc` is inventoried/registered but temporary unsupported.
 - Mutation correction: `src/json.c:jsonInsertIntoBlob`, `jsonRemoveFunc`, and the `jsonLookupStep` `#-N` array branch map to `src/internal/json.ts:jsonEdit`, `pathParts`, and `editNode`, shared by TEXT/JSONB families.
 | `src/json.c:jsonArgIsJsonb`, `jsonParseFuncArg` tag-20240123-a | shared `jsonArgIsJsonb` plus BLOB-document text fallback in `src/internal/json.ts` | `test/conformance/json-blob-document.test.mjs` |
+
+## WHERE planner architecture map (draft, 2026-09-21, [[card:card-s-a-a]])
+
+This is a representation/admission map for parent [[card:card-s-a]], not runtime
+credit. The mutable contract is in `TRANSLATION.md` under “WHERE planning
+representation and staged admission contract”. No public API changes.
+
+| Concern | Pinned SQLite 3.53.4 owner | Current TS owner/finding | Staged evidence gate |
+|---|---|---|---|
+| Clause split, term provenance, prerequisite masks, derived terms | `src/whereInt.h:WhereClause,WhereTerm,WhereMaskSet`; `src/whereexpr.c:exprAnalyze` (1121), `sqlite3WhereSplit` (1599), outer-join branches 506-507 and 1187-1197 | Resolved expressions/source order in `parse.ts`/`resolve.ts`; no shared term model | ON/WHERE/USING outer-join truth, correlated prerequisites, bigint-mask tests |
+| B-tree candidate generation and dominance | `src/where.c:whereLoopInsert` (2832), `whereLoopAddBtreeIndex` (3220), `whereLoopAddBtree` (4004) | `schema.ts:IndexNode`; current `vdbe.ts` scan-only lowering | rowid then ordinary-index equality/range/composite-prefix candidates; forced-index atomic gates |
+| N-best join path and order/distinct facts | `src/whereInt.h:WhereLoop,WherePath`; `src/where.c:wherePathSolver` (5835); `sqlite3WhereIsDistinct` (62), `sqlite3WhereIsOrdered` (74); `src/select.c` consumers around 8304-8308, 8543-8545 | source-order nested scan; existing typed sorter/DISTINCT and complete `KeyInfo` | deterministic cost/tie/path tests; only complete-path proof may elide sorter/distinct work |
+| Level/code ownership | `src/whereInt.h:WhereLevel`; `src/wherecode.c:codeEqualityTerm` (803), `sqlite3WhereCodeOneLoopStart` (1466); `src/where.c:sqlite3WhereBegin` (6829), `sqlite3WhereEnd` (7520) | VDBE labels/cursors/null-row/lifecycle exist but are not planner-owned | scan, rowid seek, index seek/termination, reverse, covering, deferred-seek program shapes and cleanup |
+| Physical seek and key semantics | `src/btree.c:sqlite3BtreeTableMoveto` (5805), `sqlite3BtreeIndexMoveto` (6036); seek/index/deferred-seek cases in `src/vdbe.c`; `src/sqliteInt.h:KeyInfo` | path-local `btree.ts`; shared Mem/comparison and identity-bearing `KeyInfo` | typed key boundaries plus off-path/selected-path corruption; exact IndexNode/KeyInfo identity |
+| Stats and logical cost | `src/analyze.c:decodeIntArray`, `analysisLoader`, `sqlite3AnalysisLoad`; `Index.aiRowLogEst`, `aiColumnNotNull`, STAT4 sample paths | no stat loader; no planner costs | pinned defaults first; stat1 later; STAT4 remains atomic unsupported until sample probing is ported |
+| Unsupported physical forms | WHERE index matching/partial implication/IN-loop branches; `WhereLevel.u.in`; WITHOUT ROWID index layout | schema rejects partial/ambiguous autoindexes; represents expression indexes and WITHOUT ROWID without planner capability | prepare-time atomic gates for WITHOUT ROWID, partial, expression, unsupported stats/autoindex/KeyInfo and planner-IN cases |
+
+Representation choices are ordinary TypeScript adaptations: immutable objects and
+arrays for source structs/lists, `bigint` for dense masks and logical LogEst/stat
+values, and labels for VDBE addresses. They retain upstream candidate/path/lowering
+algorithms; no exceptional substitution is proposed. Existing eager decoded-tree
+restoration, native runtime backends, writes, eval, API/registration changes, and
+product-scope changes are explicitly absent.
+
+Architecture validation performed before this draft: clean `git status`; direct
+inspection/grep of the pinned manifest and the structures/routines above; current
+`schema.ts`, `btree.ts`, `resolve.ts`, `vdbe.ts`, `comparison.ts`, and statement
+lifecycle; and revision-labeled audit findings 3/6/8/9/10. Documentation-only
+checks for this draft are recorded in the card status. Runtime/oracle checks are
+deferred to the implementing consumer because this card intentionally changes no
+runtime.

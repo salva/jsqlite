@@ -3471,3 +3471,222 @@ text flags 1/2 only after that classification and JSONB flags 4/8 only to recogn
 JSONB. This compatibility is limited to document arguments. Constructors and
 aggregates still reject an ordinary BLOB value with `JSON cannot hold BLOB values`,
 as `jsonFunctionArgToBlob`/`jsonAppendSqlValue` require.
+## WHERE planning representation and staged admission contract (draft, 2026-09-21, [[card:card-s-a-a]])
+
+This section is the mutable architecture gate for parent [[card:card-s-a]]. It
+commits the shared representation before any runtime consumer, but implements no
+planner or opcode. SQLite 3.53.4 is the pin. The owning source model is
+`src/whereInt.h:WhereClause`/`WhereTerm`/`WhereLoop`/`WherePath`/`WhereLevel`;
+term derivation is `src/whereexpr.c:exprAnalyze` (1121) and `sqlite3WhereSplit`
+(1599); loop generation/dominance and path solving are
+`src/where.c:whereLoopInsert` (2832), `whereLoopAddBtreeIndex` (3220),
+`whereLoopAddBtree` (4004), and `wherePathSolver` (5835); ownership enters and
+leaves through `sqlite3WhereBegin` (6829) and `sqlite3WhereEnd` (7520).
+
+### Current-system finding and boundary
+
+Current `src/internal/vdbe.ts` still opens every resolved table in source order,
+emits nested `Rewind`/`Next`, and evaluates all ON/WHERE predicates in the inner
+body (around 523-545). It has no shared WhereClause/Loop/Path/Level object and no
+persistent-index seek/deferred-seek opcodes. This is a truthful scan compiler, not
+a WHERE planner. Preserve its source-order and null-row controls as the fallback
+and semantic reference while replacing loop choice at one owner. Also preserve:
+`src/internal/btree.ts`'s page-local table/index seek translation,
+`src/internal/comparison.ts`'s identity-bearing immutable `KeyInfo` and shared
+Mem comparison, schema object identity, and VDBE reset/finalize cleanup.
+
+The schema graph represents explicit simple and expression `IndexNode` terms and
+a bounded primary-key autoindex. It atomically rejects partial indexes and other
+ambiguous automatic indexes; WITHOUT ROWID tables are represented but their
+implicit index layout is not admitted. No sqlite_stat data is loaded. Resolver
+already validates `INDEXED BY` names and retains join source order/provenance, but
+there is no plan-time parameter sensitivity or reprepare. These are integration
+facts, not reasons to infer index capability.
+
+### Shared TypeScript model
+
+The first implementation should place an internal model in one planner module
+(`where-plan.ts` is the proposed name). Names may change together, but the
+following semantic fields and identities may not be split into caller-local
+copies:
+
+```ts
+type SourceMask = bigint; // dense source-bit positions, never JS bitwise number
+
+type TermOrigin =
+  | { kind: "where" }
+  | { kind: "join-on"; rightSource: number; join: "inner"|"left"|"right"|"full" }
+  | { kind: "using"; rightSource: number; name: string }
+  | { kind: "derived"; parentTerm: number; reason: "commuted"|"transitive"|"range" };
+
+type WhereOperator = "eq"|"is"|"is-null"|"lt"|"le"|"gt"|"ge";
+interface WhereTerm {
+  readonly id: number; readonly expression: Expression; readonly origin: TermOrigin;
+  readonly operator: WhereOperator|null; readonly left: ColumnBinding|null;
+  readonly prereqRight: SourceMask; readonly prereqAll: SourceMask;
+  readonly parentId: number|null; readonly childIds: readonly number[];
+  readonly virtual: boolean; coded: boolean;
+  readonly outerJoinSafe: { readonly mayDrive: boolean; readonly mayOmitResidual: boolean };
+}
+interface WhereClause { readonly split: "and"|"or"; readonly terms: readonly WhereTerm[];
+  readonly outer: WhereClause|null; }
+
+type LogicalEstimate = bigint; // SQLite LogEst units; no 32-bit coercion
+interface BtreeCapability {
+  readonly index: IndexNode|null; readonly keyInfo: KeyInfo|null;
+  readonly equalityPrefix: readonly WhereTerm[]; readonly lower: WhereTerm|null;
+  readonly upper: WhereTerm|null; readonly constrainedFields: number;
+  readonly orderTermsSatisfied: number; readonly reverse: boolean;
+  readonly covering: boolean; readonly needsTableLookup: boolean;
+}
+interface WhereLoop { readonly source: ResolvedSource; readonly prereq: SourceMask;
+  readonly capability: BtreeCapability|null; readonly kind: "table-scan"|"rowid"|"index";
+  readonly setupCost: LogicalEstimate; readonly runCost: LogicalEstimate;
+  readonly outputRows: LogicalEstimate; readonly terms: readonly WhereTerm[]; }
+interface WherePath { readonly loops: readonly WhereLoop[]; readonly ready: SourceMask;
+  readonly reverse: SourceMask; readonly rows: LogicalEstimate;
+  readonly cost: LogicalEstimate; readonly unsortedCost: LogicalEstimate;
+  readonly orderTermsSatisfied: number|null; }
+interface WhereLevel { readonly loop: WhereLoop; readonly sourceOrdinal: number;
+  readonly tableCursor: number; readonly indexCursor: number|null;
+  readonly continueLabel: Label; readonly breakLabel: Label;
+  readonly nullRowRegister: number|null; readonly deferredSeek: boolean; }
+```
+
+`Expression`, `ColumnBinding`, and `ResolvedSource` refer to resolved object
+identity, not reparsed text. `BtreeCapability.index` is the exact frozen
+`IndexNode` linked from its `TableNode`; `keyInfo` is one exact immutable
+`KeyInfo` built once from that physical index's complete key layout and encoding.
+Selection, unpack, compare, cursor open, and deferred table lookup must retain
+those identities and reject structurally-equal substitution. A capability records
+an equality prefix followed by at most one lower/upper range on the next key term;
+no skipped leading column is implied. `orderTermsSatisfied`, direction, and
+covering are independently derived facts—not consequences of “uses index”.
+Covering must include every column needed by result, residual predicates, join,
+ORDER/GROUP/DISTINCT, and lowering; otherwise `needsTableLookup` is true.
+
+`SourceMask` uses `bigint` dense bits mapped once from resolver cursor identities.
+This is the ordinary TS representation adaptation of `WhereMaskSet`/SQLite's
+64-bit `Bitmask`, not an algorithm substitution. Admission still enforces the
+product/parser source-count limit; no `number` bitwise operator may truncate it.
+`LogicalEstimate` also uses `bigint` for exact logical `LogEst` units and stat
+counts. Arithmetic ports upstream saturation/comparison intentionally; it never
+uses floating host cost as an accidental tie-breaker. Deterministic ties preserve
+the upstream loop insertion/path iteration ordering. Arrays replace linked lists
+and labels replace C instruction addresses; these are ordinary allocation/codegen
+adaptations. No exceptional planner algorithm substitution is proposed.
+
+`WhereClause` owns terms and derived-term parent/child disable relationships.
+Candidate loops borrow terms and schema/KeyInfo identities. A selected `WherePath`
+owns its immutable loop sequence. Lowering alone allocates mutable `WhereLevel`
+state and marks terms coded; reset/finalize owns cursor, register, IN/private-state,
+and borrow cleanup. Thus candidates never own cursors, and statement execution
+never mutates the selected path.
+
+### Provenance, outer joins, and prerequisites
+
+Port `exprAnalyze` prerequisite calculation branch-for-branch, including
+`EP_OuterON`/`EP_InnerON` behavior around `whereexpr.c:1187-1197` and derived-term
+flag propagation around 506-507. A term from ON/USING is tagged with the exact
+right-hand join boundary before splitting. `prereqRight` means sources needed to
+evaluate the RHS; `prereqAll` includes all references plus source-order barriers.
+A loop is eligible only when `(prereq & ~ready) == 0n`. A derived/commuted term may
+constrain a seek only where its origin allows it, and `mayOmitResidual` is false
+until source rules prove the original term coded. WHERE terms must not be moved
+inside an outer join in a way that rejects its synthetic NULL row; ON terms must
+not be delayed so that unmatched-row detection changes. Existing join null-row
+register/control remains the lowerer's owner, represented by `WhereLevel` rather
+than hidden in predicate compilation.
+
+### Statistics, costs, and staged admission
+
+Stage W0 (representation) admits no changed SQL behavior. Stage W1 admits table
+scan and INTEGER PRIMARY KEY equality/range loops using existing table seek; this
+establishes term/prerequisite/path/level lowering while preserving residual tests.
+Stage W2 admits explicit ordinary rowid-table indexes: complete leading equality
+prefix, optional next-field range, forward/reverse order contribution, covering
+reads, and deferred table seek. It ports loop proposal/dominance and bounded
+N-best path expansion rather than selecting an index ad hoc. Stage W3 may load
+supported sqlite_stat1 values and refine costs; STAT4 samples stay gated until the
+`analyze.c` sample decode/probe path and matching KeyInfo comparisons are ported.
+IN-loop, OR/multi-index, skip-scan, automatic-index construction, and expression
+or partial-index implication each require their own later source/test tranche.
+
+Absent statistics use pinned default LogEst estimates from the same
+`whereLoopAddBtree*` branches; never infer cardinality by eagerly decoding the
+whole tree. Stat fields are logical non-32-bit values, validated atomically before
+schema/planner publication. Pinned owners for later loading are
+`src/analyze.c:decodeIntArray`, `analysisLoader`, and `sqlite3AnalysisLoad`; corrupt
+catalog/stat state is SQLite corruption, while a configured work ceiling is
+`limit` and an unrepresented valid stat format is temporary unsupported.
+
+Admission is atomic before candidate generation/lowering:
+
+* any participating WITHOUT ROWID table/index is temporary unsupported until its
+  physical primary-key/suffix layout and seek/column lowering are represented;
+* partial indexes are already rejected by schema construction and remain so until
+  predicate implication is translated; expression indexes may remain in the
+  schema graph but cannot form a loop until expression identity, affinity and
+  collation matching are source-derived;
+* an index with unknown autoindex terms, unsupported collation/KeyInfo layout, or
+  unrepresented sqlite_stat payload is rejected rather than ignored when forced
+  by `INDEXED BY`; an unforced unusable index is excluded without affecting a
+  truthful table-scan plan;
+* `IN` terms are not downgraded into equality. Any query whose correctness or
+  forced access depends on planner IN-loop state is rejected as one prepare-time
+  unit until `codeEqualityTerm`/`WhereLevel.u.in` lowering exists. Existing
+  independently implemented expression-IN routes remain separate and cannot be
+  mislabeled index planning.
+
+Unsupported gates run before opening cursors or emitting a partial program. This
+keeps malformed/corrupt distinct from valid-but-temporary unsupported and prevents
+fallback from violating `INDEXED BY`/`NOT INDEXED` promises.
+
+### Lowering and lifecycle contract
+
+Lower selected levels using the control branches in
+`src/wherecode.c:codeEqualityTerm` (803) and `sqlite3WhereCodeOneLoopStart`
+(1466), with matching
+`sqlite3WhereEnd` tails. Required branches are: table scan `Rewind/Next`;
+rowid exact/range `SeekGE/SeekGT/SeekLE/SeekLT` plus bound checks; index prefix/range
+seek and `Idx*` termination; reverse traversal; covering `Column` from the index;
+and non-covering index rowid extraction followed by `DeferredSeek`/table column
+materialization. VDBE seek comparison must consume the shared Mem/KeyInfo path,
+and B-tree movement must call the existing page-local translations of
+`btree.c:sqlite3BtreeTableMoveto` (5805) and `sqlite3BtreeIndexMoveto` (6036).
+Residual terms are coded only after the required cursors are positioned; errors
+preserve opcode ordering and no failure becomes an empty result.
+
+A prepared statement owns its selected path/program. Bind values are Mem cells
+copied at execution as today. Reset retains bindings, clears registers/cursors and
+all mutable `WhereLevel` execution state, and restarts the same valid plan.
+SQLite's parameter-sensitive LIKE/STAT4 planning and schema-change reprepare are
+not silently approximated: until an explicit plan-sensitivity descriptor and
+reprepare owner are implemented, such shapes are atomically temporary
+unsupported (or use a parameter-independent admitted scan), never replanned during
+`step()`. Immutable main storage means ordinary reset needs no schema cookie
+reprepare; adding mutable schemas is outside this decision. Finalize releases plan
+references only after VM cleanup. Public API and registration do not change, so
+`docs/api.md` is intentionally unchanged.
+
+### Audit reconciliation and validation plan
+
+The mutable fidelity audit was checked against current code rather than copied.
+Finding 3 is closed by current path-local B-tree seeks and is a planner foundation,
+not planner completion. Findings 6 and 8 are closed in shared comparison/boolean
+and numeric-conversion owners; planner term admission must use those owners rather
+than reimplement coercion. Finding 9 is closed in shared NOCASE comparison and is
+inherited through `KeyInfo`. Finding 10's ORDER/DISTINCT lowering is current and
+multi-term, but scans still do not report index-provided order/distinctness; the
+new `orderTermsSatisfied`/covering contract must feed the existing sorter and
+DISTINCT decisions only after complete-path proof. No finding is reopened or used
+as a compatibility claim.
+
+Consumer implementation requires tests-first: exact typed public comparisons to
+the pinned oracle for INTEGER/REAL/NULL/TEXT/BLOB keys; equality/range boundary
+and composite-prefix neighbors; collation, DESC and NULL order; covering versus
+deferred seek; outer-join ON versus WHERE placement and empty/null rows; join
+prerequisites/path order; ORDER/DISTINCT sorter elision; reset/rebind/error cleanup;
+and every atomic gate above. Add path-local corruption tests showing unrelated
+subtrees remain untouched. Program-shape tests must prove the selected lowering,
+while oracle results prove behavior; neither alone is compatibility evidence.
