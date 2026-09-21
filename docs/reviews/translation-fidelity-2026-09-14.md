@@ -857,12 +857,13 @@ three encodings. This remains bounded evidence, not exhaustive `date.c` equivale
 
 ### Revision 2026-09-21 — JSON foundation
 
-The earlier absence finding is superseded for the bounded `json`, `jsonb`,
-`json_valid`, `json_extract`, JSON aggregate and `json_each` tranche. Source-derived
+The earlier absence finding is superseded only for the bounded `json`, `jsonb`,
+`json_valid`, `json_extract`, JSON aggregate and literal-only `SELECT * FROM
+json_each(...)` tranche. Source-derived
 representation, JSON5 canonicalization, JSONB bytes/validation, subtype handoff and
-resource/lifecycle tests are now present. Mutation functions and the full virtual-
-table/path surface remain later-consumer gaps; this revision does not award them
-credit.
+resource/lifecycle tests are now present. General/rooted/composed `json_each`, its
+hidden columns, `jsonb_each`, `json_tree`, `jsonb_tree`, and the full virtual-
+table/path corpus remain gaps; this revision does not award them credit.
 
 ### Revision 2026-09-21 — JSON scalar finding
 

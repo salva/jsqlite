@@ -559,10 +559,19 @@ The read-only SQL surface currently includes `json(X)`, `jsonb(X)`,
 `json_valid(X[,flags])`, `json_extract(X,path,...)`, JSON array/object aggregates,
 and the bounded `json_each(X)` table route. Results follow SQLite storage classes:
 canonical JSON is TEXT, JSONB is `Uint8Array`/BLOB, validity is INTEGER, and SQL
-NULL remains NULL. JSON text and JSONB carry SQLite's internal JSON subtype across
-expression composition but the public value remains the documented TEXT/BLOB
-value. Malformed JSON is a `JSQLiteError` with `kind:"sqlite"`; statement work,
-result-byte, cancellation and deadline controls apply normally.
+NULL remains NULL. Canonical JSON TEXT carries SQLite's private subtype 74 across
+expression composition. JSONB is instead a subtype-0 BLOB recognized by validated
+SQLite JSONB structure, matching the pinned `jsonb` result flags; this distinction
+is internal and the public value remains the documented TEXT/BLOB value. Malformed
+JSON is a `JSQLiteError` with `kind:"sqlite"`; statement work, result-byte,
+cancellation and deadline controls apply normally.
+
+The current table-valued surface is intentionally narrower than SQLite's module:
+only `SELECT * FROM json_each('<string literal>')` is admitted, exposing its eight
+visible columns through the ordinary Fetch metadata/value contract. A second root
+argument, parameters or expression arguments, projection/filter/join/order/group/
+limit compositions, hidden columns, `jsonb_each`, `json_tree`, and `jsonb_tree`
+are typed temporary unsupported, not compatibility credit.
 
 ### JSON scalar functions
 

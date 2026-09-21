@@ -3380,10 +3380,15 @@ used. Browser-safe `Uint8Array`, `BigInt`, and `TextEncoder/Decoder` replace C
 buffers without changing the serialized bytes.
 
 The coherent public tranche is `json`, `jsonb`, `json_valid`, `json_extract`, JSON
-array/object aggregates, and the bounded read-only `json_each` route. Later JSON
-mutation/path/table consumers remain separate work and must reuse this owner.
-Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys, exact
-JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and
+array/object aggregates, and one bounded read-only table route:
+`SELECT * FROM json_each('<string literal>')`. Its eight visible columns are
+produced by an internal/native TypeScript table producer and exposed through the
+ordinary Fetch statement API; this is not host registration. Root-argument,
+parameter/expression-input, projection/filter/join/order/group/limit and hidden-
+column `json_each` shapes, plus `jsonb_each`, `json_tree`, and `jsonb_tree`, remain
+atomic typed temporary unsupported. Scalar mutation/path consumers are described
+below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,
+exact JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and
 subtype behavior; public Fetch tests add work/output/depth and statement cleanup.
 
 ### JSON scalar completion (2026-09-21, [[card:card-r-b]])
