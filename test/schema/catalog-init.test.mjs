@@ -160,7 +160,7 @@ test("index DDL table links use SQLite ASCII identifier comparison", async () =>
 test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained in every encoding", async () => {
   for (const encoding of ["UTF-8", "UTF-16le", "UTF-16be"]) {
   const ddl = `PRAGMA encoding=${JSON.stringify(encoding)}; CREATE TABLE p(id PRIMARY KEY);
-    CREATE TABLE t(a TEXT PRIMARY KEY CHECK(length(a)>0), b,
+    CREATE TABLE t(a TEXT PRIMARY KEY CHECK(length(a)>0), b, c REFERENCES p(id) DEFERRABLE INITIALLY DEFERRED,
       CONSTRAINT ck CHECK(a<>b),
       CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES p(id,other)
       ON DELETE CASCADE ON UPDATE SET NULL DEFERRABLE INITIALLY DEFERRED) WITHOUT ROWID`;
@@ -173,8 +173,8 @@ test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained
       assert.equal(t.columns[0]?.notNull,true);
       assert.equal(t.checks.length,2);assert.equal(t.checks[1]?.name,"ck");assert.equal(t.columns[0]?.checks.length,1);assert.equal(t.checks[0]?.column,t.columns[0]);
       assert.deepEqual(t.checks.map(check=>check.expr.tokens.map(token=>token.text).join("")),["length(a)>0","a<>b"]);
-      const foreign=t.foreignKeys[0];assert.ok(foreign);assert.equal(foreign.name,"fk");assert.deepEqual(foreign.columns.map(link=>[link.column.name,link.referencedColumn]),[["a","id"],["b","other"]]);
-      assert.equal(foreign.referencedTable,p);assert.equal(p.referencedBy[0],foreign);assert.equal(foreign.onDelete,"cascade");assert.equal(foreign.onUpdate,"set-null");assert.equal(foreign.deferrable,true);assert.equal(foreign.initiallyDeferred,true);
+      const foreign=t.foreignKeys[1];assert.ok(foreign);assert.equal(t.foreignKeys[0]?.deferrable,true);assert.equal(t.foreignKeys[0]?.initiallyDeferred,true);assert.equal(foreign.name,"fk");assert.deepEqual(foreign.columns.map(link=>[link.column.name,link.referencedColumn]),[["a","id"],["b","other"]]);
+      assert.equal(foreign.referencedTable,p);assert.ok(p.referencedBy.includes(foreign));assert.equal(foreign.onDelete,"cascade");assert.equal(foreign.onUpdate,"set-null");assert.equal(foreign.deferrable,true);assert.equal(foreign.initiallyDeferred,true);
       assert.ok(Object.isFrozen(t.checks)&&Object.isFrozen(t.foreignKeys)&&Object.isFrozen(p.referencedBy));connection.close();
     });
   } finally { await rm(dir, { recursive: true, force: true }); }
