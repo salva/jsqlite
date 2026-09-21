@@ -3367,8 +3367,13 @@ encoding so this coverage cannot silently disappear. Commands: `npm run typechec
 layout, text/JSON5 recursive descent, canonical renderer, `json_valid` flag split,
 and `JsonParse`-shaped ordered tree. Objects are ordered entry arrays, not host
 objects, so duplicate labels survive; numbers retain source spelling until the
-same JSON5 canonicalization boundary. JSON text travels as `Mem` subtype 74 and
-JSONB as BLOB subtype 74 through existing copy/move/release rules. Parsing and
+same JSON5 canonicalization boundary. JSON text travels as `Mem` subtype 74;
+JSONB travels as an ordinary BLOB with subtype 0 and is recognized by its
+validated JSONB header/payload, matching `json.c:jsonArgIsJsonb` and the
+`JFUNCTION(jsonb, ..., bRS=0, ..., bJsonB=1, ...)` registration. This distinction
+is load-bearing when JSONB composes into constructors and aggregates: binary
+structure is preserved without fabricating the JSON-text subtype. Both forms use
+existing copy/move/release rules. Parsing and
 JSONB descent are charged through statement control, depth is capped at 1000, and
 result bytes use the connection length limit. Host `JSON.parse/stringify` is not
 used. Browser-safe `Uint8Array`, `BigInt`, and `TextEncoder/Decoder` replace C
