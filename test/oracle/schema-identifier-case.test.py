@@ -41,3 +41,13 @@ for encoding in ("UTF-8", "UTF-16le", "UTF-16be"):
             assert execute(db, "SELECT unicode(CAST(x'FF8080' AS TEXT)), unicode(CAST(x'FD8080' AS TEXT))") == [("65533", "4096")]
         assert lib.sqlite3_close(db) == 0
 print("pinned oracle schema identifiers: ASCII folds and non-ASCII case variants remain distinct in UTF-8/16le/16be")
+
+chinook = pathlib.Path(os.environ.get("SAIVAGE_CARD_WORK_ROOT", "")) / "chinook-fixture/Chinook_Sqlite.sqlite"
+if chinook.is_file():
+    import hashlib
+    assert chinook.stat().st_size == 1007616
+    assert hashlib.sha256(chinook.read_bytes()).hexdigest() == "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15"
+    db = DB(); assert lib.sqlite3_open_v2(str(chinook).encode(), ctypes.byref(db), 1, None) == 0
+    assert execute(db, "SELECT count(*),min(Title) FILTER(WHERE AlbumId=1) FROM Album") == [("347", "For Those About To Rock We Salute You")]
+    assert execute(db, "SELECT \"from\",\"table\",\"to\",on_update,on_delete FROM pragma_foreign_key_list('Album')") == [("ArtistId", "Artist", "ArtistId", "NO ACTION", "NO ACTION")]
+    assert lib.sqlite3_close(db) == 0

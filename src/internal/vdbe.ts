@@ -1631,8 +1631,8 @@ export function compileRecursiveWindowSelect(select:SelectNode,schema:SchemaGrap
  const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(!owner||!selectHasWindow(select))return undefined;
  const producer=compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true),names=producer.columns.map(column=>column.name);
- const columns=names.map(name=>Object.freeze({name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null}));
- const table:TableNode=Object.freeze({kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),storageKey:Object.freeze([])});
+ const columns=names.map(name=>Object.freeze({name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
+ const table:TableNode=Object.freeze({kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
  const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
  try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
  const compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,transient,producer);

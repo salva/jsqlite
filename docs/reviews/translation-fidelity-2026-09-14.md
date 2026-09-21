@@ -64,7 +64,9 @@ a wrong partial query.
 
 **Revision 2026-09-15 ([[card:card-e-h]] current repair): reproduced and corrected at the schema owner.**
 
-Current reproduction showed the predicted WITHOUT ROWID column as `notNull:false`, and generated CHECK/REFERENCES reductions were silently omitted. The loader now applies `build.c:2332-2407` implicit NOT NULL to declared WITHOUT ROWID primary-key columns and rejects recognized CHECK/REFERENCES/table FOREIGN KEY declarations as temporary unsupported before atomic publication. Focused persisted-catalog tests cover all three branches; graph construction remains progressive rather than claiming enforcement semantics.
+**Revision 2026-09-21 ([[card:card-e-h]] public-fixture repair):** the temporary CHECK/REFERENCES gate was superseded after exact public Chinook bytes (1,007,616 bytes, SHA-256 `7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`) reproduced an Album rejection. Generated reductions now retain ordered CHECK expression/source and FK local/referenced columns, target links, actions, and deferral metadata; this does not implement writes. Pinned 3.53.4 read-only native capture verifies source ID, schema and representative rows.
+
+**Earlier revision:** Current reproduction showed the predicted WITHOUT ROWID column as `notNull:false`, and generated CHECK/REFERENCES reductions were silently omitted. The loader now applies `build.c:2332-2407` implicit NOT NULL to declared WITHOUT ROWID primary-key columns and rejects recognized CHECK/REFERENCES/table FOREIGN KEY declarations as temporary unsupported before atomic publication. Focused persisted-catalog tests cover all three branches; graph construction remains progressive rather than claiming enforcement semantics.
 
 **Superseded baseline label:**
 

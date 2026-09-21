@@ -31,7 +31,11 @@ export interface ColumnNode {
   readonly unique: boolean;
   readonly collation: string | null;
   readonly generatedStorage: "stored" | "virtual" | null;
+  readonly checks: readonly CheckConstraintNode[];
 }
+export interface CheckConstraintNode { readonly name: string | null; readonly column: ColumnNode | null; readonly expr: ExprNode; readonly sql: string; }
+export interface ForeignKeyColumnNode { readonly column: ColumnNode; readonly referencedColumn: string | null; }
+export interface ForeignKeyNode { readonly name: string | null; readonly columns: readonly ForeignKeyColumnNode[]; readonly referencedTableName: string; readonly referencedTable: TableNode | null; readonly onDelete: import("./parse.ts").ForeignKeyAction; readonly onUpdate: import("./parse.ts").ForeignKeyAction; readonly deferrable: boolean; readonly initiallyDeferred: boolean; readonly sql: string; }
 export interface IndexTerm { readonly column: ColumnNode | null; readonly expression: ExprNode | null; readonly expressionSql: string | null; readonly descending: boolean; readonly collation: string | null; readonly nulls: "first" | "last" | null; }
 export interface TableNode {
   readonly kind: "table";
@@ -44,6 +48,9 @@ export interface TableNode {
   readonly withoutRowid: boolean;
   readonly primaryKey: readonly ColumnNode[];
   readonly storageKey: readonly ColumnNode[];
+  readonly checks: readonly CheckConstraintNode[];
+  readonly foreignKeys: readonly ForeignKeyNode[];
+  readonly referencedBy: readonly ForeignKeyNode[];
 }
 export interface IndexNode {
   readonly kind: "index";
@@ -213,19 +220,22 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       if (item.sql === null) malformed(`table ${item.name} has null SQL`);
       const ddl = parseDdl(item.sql, "create-table", item.name);
       if (ddl.tableAsSelect) throw new SchemaUnsupportedError(`CREATE TABLE AS construction is not implemented: ${item.name}`);
-      if (ddl.hasUnsupportedConstraints) throw new SchemaUnsupportedError(`CHECK/REFERENCES constraint construction is not implemented: ${item.name}`);
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
       let defaultIndex = 0;
       const declaredPrimary = ddl.primaryKey.length ? ddl.primaryKey : ddl.columns.filter(column => column.primaryKey).map(column => column.name);
-      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: column.declaredType, affinity: affinity(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage })));
+      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: column.declaredType, affinity: affinity(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
       const primaryKey = Object.freeze(declaredPrimary.map(name => { const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name, name));if(!column)malformed(`primary key refers to unknown column ${name}`);return column; }));
       // For WITHOUT ROWID, the declared PK is the b-tree storage key. Rowid
       // tables retain their implicit rowid key, represented by an empty list.
       const storageKey = ddl.withoutRowid ? primaryKey : Object.freeze([] as ColumnNode[]);
-      const table: TableNode = { kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, storageKey };
+      const checks=Object.freeze(ddl.checks.map(check=>{const column=check.columnName===null?null:columns.find(candidate=>sqliteIdentifierEqual(candidate.name,check.columnName!))??null;if(check.columnName!==null&&!column)malformed(`CHECK refers to unknown column ${check.columnName}`);const node=Object.freeze({name:check.name,column,expr:check.expr,sql:check.tokens.map(token=>token.text).join(" ")});if(column)(column.checks as CheckConstraintNode[]).push(node);return node;}));
+      for(const column of columns)Object.freeze(column.checks);
+      const foreignKeys=Object.freeze(ddl.foreignKeys.map(foreign=>{if(foreign.referencedColumns&&foreign.referencedColumns.length!==foreign.columns.length)malformed("number of columns in foreign key does not match referenced columns");const links=Object.freeze(foreign.columns.map((name,index)=>{const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name,name));if(!column)malformed(`unknown column ${name} in foreign key definition`);return Object.freeze({column,referencedColumn:foreign.referencedColumns?.[index]??null});}));return {name:foreign.name,columns:links,referencedTableName:foreign.referencedTable,referencedTable:null,onDelete:foreign.onDelete,onUpdate:foreign.onUpdate,deferrable:foreign.deferrable,initiallyDeferred:foreign.initiallyDeferred,sql:foreign.tokens.map(token=>token.text).join(" ")} as ForeignKeyNode;}));
+      const table: TableNode = { kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, storageKey, checks, foreignKeys, referencedBy: [] };
       tables.set(folded, table);
     }
   }
+  for(const table of tables.values())for(const foreign of table.foreignKeys){const target=tables.get(sqliteAsciiFold(foreign.referencedTableName))??null;(foreign as {referencedTable:TableNode|null}).referencedTable=target;if(target)(target.referencedBy as ForeignKeyNode[]).push(foreign);Object.freeze(foreign);}
   for (const item of rows) {
     const folded = sqliteAsciiFold(item.name);
     if (item.type === "table") continue;
@@ -241,12 +251,11 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
         const expected = `sqlite_autoindex_${table.name}_1`;
         const primary = table.primaryKey;
         const rowidAlias = primary.length === 1 && primary[0]!.declaredType?.toUpperCase() === "INTEGER";
-        if (table.withoutRowid || item.name !== expected || primary.length !== 1 || rowidAlias || table.columns.some(column => column.unique)) {
+        if (table.withoutRowid || item.name !== expected || primary.length === 0 || rowidAlias || table.columns.some(column => column.unique)) {
           throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
         }
-        const column = primary[0]!;
-        const term: IndexTerm = Object.freeze({ column, expression: null, expressionSql: null, descending: false, collation: column.collation, nulls: null });
-        const index: IndexNode = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms: Object.freeze([term]), unique: true, origin: "primary-key" };
+        const terms: readonly IndexTerm[] = Object.freeze(primary.map(column => Object.freeze({ column, expression: null, expressionSql: null, descending: false, collation: column.collation, nulls: null })));
+        const index: IndexNode = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key" };
         table.indexes.push(index); indexes.set(folded, Object.freeze(index));
         continue;
       }
@@ -279,7 +288,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
     const object = byName.get(sqliteAsciiFold(item.name));
     if (object) objects.push(object);
   }
-  for (const table of tables.values()) { Object.freeze(table.indexes); Object.freeze(table); }
+  for (const table of tables.values()) { Object.freeze(table.indexes); Object.freeze(table.referencedBy); Object.freeze(table); }
   const graph = new SchemaGraph(connection, database.encoding, objects, tables, indexes, views);
   graphs.set(key, graph);
   return graph;

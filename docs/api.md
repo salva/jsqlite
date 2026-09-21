@@ -540,3 +540,11 @@ identity, and ordinary `finalize()` cleanup. This bounded statement does not adm
 or promise subquery/index-backed `IN`, host function registration, or broader SQL
 forms not otherwise documented. The conformance tranche is deliberately zero-
 credit: 21 cases run against each of UTF-8, UTF-16LE and UTF-16BE fixtures.
+
+### Internal immutable schema constraint metadata
+
+Schema initialization used by the read pipeline retains generated-parser CHECK and
+REFERENCES/FOREIGN KEY declarations (ordered expressions/source, local and referenced
+columns, target-table identity links, actions, and deferral state). This is not a new
+public schema-introspection API, does not expose `sqlite_schema` through SQL, and does
+not add write-time constraint enforcement.

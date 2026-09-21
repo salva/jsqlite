@@ -923,9 +923,7 @@ or links are corruption; recognized but not constructed automatic indexes,
 triggers, virtual tables, and further grammar consumers are temporary unsupported.
 Supported generated/default/WITHOUT ROWID state and expression-index links are
 published; `build.c:2332-2407` implicit NOT NULL is applied to every WITHOUT ROWID
-primary-key column. CHECK and REFERENCES/foreign-key reductions are recognized but
-currently fail temporary unsupported before publication rather than being silently
-flattened. Detailed WITHOUT ROWID storage-key remapping remains progressive work.
+primary-key column. Generated CHECK and REFERENCES/FOREIGN KEY reductions now retain ordered immutable read-schema metadata: CHECK expression/source and column ownership, and foreign-key local/referenced columns, target-table links, actions, and deferral state. This is schema introspection only; write enforcement remains outside the read-only scope. Detailed WITHOUT ROWID storage-key remapping remains progressive work.
 This follows pinned `prepare.c:sqlite3InitOne/sqlite3InitCallback`, `build.c`, and
 `sqliteInt.h` Table/Column/Index; the narrower parser currently limits the graph
 tranche, not product scope.

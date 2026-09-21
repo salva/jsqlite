@@ -157,22 +157,37 @@ test("index DDL table links use SQLite ASCII identifier comparison", async () =>
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test("WITHOUT ROWID primary keys are implicitly NOT NULL and unconsumed constraints reject", async () => {
-  for (const [ddl, assertion] of [
-    ["CREATE TABLE t(a TEXT PRIMARY KEY) WITHOUT ROWID", schema => assert.equal(schema.tables.get("t")?.columns[0]?.notNull, true)],
-    ["CREATE TABLE t(a TEXT CHECK(length(a)>0))", error => assert.match(error.message, /CHECK\/REFERENCES constraint construction/)],
-    ["CREATE TABLE p(id PRIMARY KEY); CREATE TABLE t(a REFERENCES p(id))", error => assert.match(error.message, /CHECK\/REFERENCES constraint construction/)],
-  ]) {
-    const dir = await mkdtemp(join(tmpdir(), "jsqlite-schema-constraint-"));
-    try {
-      const path = join(dir, "constraint.db");
-      await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
-      await withImage(new Uint8Array(await readFile(path)), "constraint.db", async connection => {
-        if (ddl.includes("CHECK") || ddl.includes("REFERENCES")) {
-          assert.throws(() => loadSchemaGraph(connection), error => error instanceof SchemaUnsupportedError && (assertion(error), true));
-        } else assertion(loadSchemaGraph(connection));
-        connection.close();
-      });
-    } finally { await rm(dir, { recursive: true, force: true }); }
-  }
+test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained", async () => {
+  const ddl = `CREATE TABLE p(id PRIMARY KEY);
+    CREATE TABLE t(a TEXT PRIMARY KEY CHECK(length(a)>0), b,
+      CONSTRAINT ck CHECK(a<>b),
+      CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES p(id,other)
+      ON DELETE CASCADE ON UPDATE SET NULL DEFERRABLE INITIALLY DEFERRED) WITHOUT ROWID`;
+  const dir = await mkdtemp(join(tmpdir(), "jsqlite-schema-constraint-"));
+  try {
+    const path = join(dir, "constraint.db");
+    await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
+    await withImage(new Uint8Array(await readFile(path)), "constraint.db", async connection => {
+      const schema=loadSchemaGraph(connection),p=schema.tables.get("p"),t=schema.tables.get("t");assert.ok(p&&t);
+      assert.equal(t.columns[0]?.notNull,true);
+      assert.equal(t.checks.length,2);assert.equal(t.checks[1]?.name,"ck");assert.equal(t.columns[0]?.checks.length,1);assert.equal(t.checks[0]?.column,t.columns[0]);
+      assert.deepEqual(t.checks.map(check=>check.expr.tokens.map(token=>token.text).join("")),["length(a)>0","a<>b"]);
+      const foreign=t.foreignKeys[0];assert.ok(foreign);assert.equal(foreign.name,"fk");assert.deepEqual(foreign.columns.map(link=>[link.column.name,link.referencedColumn]),[["a","id"],["b","other"]]);
+      assert.equal(foreign.referencedTable,p);assert.equal(p.referencedBy[0],foreign);assert.equal(foreign.onDelete,"cascade");assert.equal(foreign.onUpdate,"set-null");assert.equal(foreign.deferrable,true);assert.equal(foreign.initiallyDeferred,true);
+      assert.ok(Object.isFrozen(t.checks)&&Object.isFrozen(t.foreignKeys)&&Object.isFrozen(p.referencedBy));connection.close();
+    });
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("public Chinook capture loads retained foreign keys and representative rows", async () => {
+  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
+  if(!path)return;
+  const image=new Uint8Array(await readFile(path));
+  assert.equal(image.byteLength,1007616);
+  const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
+  await withImage(image,"Chinook_Sqlite.sqlite",async connection=>{
+    const schema=loadSchemaGraph(connection),album=schema.tables.get("album"),artist=schema.tables.get("artist");assert.ok(album&&artist);
+    const foreign=album.foreignKeys[0];assert.ok(foreign);assert.deepEqual(foreign.columns.map(link=>[link.column.name,link.referencedColumn]),[["ArtistId","ArtistId"]]);assert.equal(foreign.referencedTable,artist);assert.equal(foreign.onDelete,"no-action");assert.equal(foreign.onUpdate,"no-action");
+    const statement=connection.prepare("SELECT Title FROM Album WHERE AlbumId=1").statement;assert.equal(await statement.step(),"row");assert.equal(statement.column(0),"For Those About To Rock We Salute You");statement.finalize();connection.close();
+  });
 });
