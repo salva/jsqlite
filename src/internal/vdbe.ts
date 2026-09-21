@@ -2905,9 +2905,10 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  if(name==="json_array_length"){return jsonArrayLength(a[0]!,a[1],units=>{charge(units);control?.check()})}
  if(name==="json_error_position")return jsonErrorPosition(a[0]!);
  if(name==="json_quote")return jsonQuote(a[0]!);
- if(name==="json_array"||name==="json_object"){const result=jsonConstruct(name==="json_array"?"array":"object",a);checkSize(valueBytes(result));return result}
- if(name==="json_insert"||name==="json_replace"||name==="json_set"||name==="json_remove"){const result=jsonEdit(a[0]!,a.slice(1),name.slice(5) as "insert"|"replace"|"set"|"remove",units=>{charge(units);control?.check()});checkSize(valueBytes(result));return result}
- if(name==="json_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()});checkSize(valueBytes(result));return result}
+ if(["json_array","json_object","jsonb_array","jsonb_object"].includes(name)){const result=jsonConstruct(name.endsWith("array")?"array":"object",a,name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
+ if(/jsonb?_(?:insert|replace|set|remove|array_insert)$/.test(name)){const mode=name.endsWith("array_insert")?"array_insert":name.slice(name.indexOf("_")+1) as "insert"|"replace"|"set"|"remove";const result=jsonEdit(a[0]!,a.slice(1),mode,units=>{charge(units);control?.check()},name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
+ if(name==="json_patch"||name==="jsonb_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()},name==="jsonb_patch");checkSize(valueBytes(result));return result}
+ if(name==="json_pretty")throw new JSQLiteError("unsupported","json_pretty() is temporarily unsupported",{unsupportedClassification:"temporary"});
  if(name==="json_valid"){
   if(a[0]!.initialStorageClass==="null")return out;
   let flags=1;

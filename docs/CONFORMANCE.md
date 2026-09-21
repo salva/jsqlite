@@ -585,3 +585,6 @@ evidence for these cases, not a claim for later unimplemented JSON consumers.
 - JSON scalar public-path coverage: `test/conformance/json-scalar-full.test.mjs`
   covers type/length/error detection, quote/array/object subtype consumption,
   insert/replace/set/remove/patch, append paths, duplicate labels and arrows.
+- Scalar review corpus includes non-leading parser positions, duplicate lookup,
+  root/sequential edits, array insertion, and public BLOB metadata for JSONB
+  constructor/edit/patch rows.

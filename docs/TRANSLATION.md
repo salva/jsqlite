@@ -3427,3 +3427,12 @@ public source-based tests cover duplicate labels, subtype embedding, exact JSONB
 sliding windows, cleanup, and limits.  Retained bytes are charged to
 `PrivateStateByteBudget`; final/reset/finalize use the common exactly-once cleanup
 path. No host JSON parser/stringifier or native registration is used.
+
+### JSON scalar review correction (2026-09-21, [[card:card-r-b]])
+
+Pinned `src/json.c:jsonErrorFunc` character-position semantics now come from parser
+failure state rather than a placeholder. JSONB construction/edit production rows
+(`jsonb_array/object/insert/replace/set/remove/patch`) and both array-insert rows
+use the shared ordered tree and SQLite JSONB encoder. The production registration
+inventory also confirms `json_pretty` arities 1/2; those rows are registered but
+atomically return typed temporary-unsupported until the pretty renderer is ported.

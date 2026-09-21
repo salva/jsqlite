@@ -885,3 +885,12 @@ limits, and shared aggregate cleanup. Credit is supported by
 `test/conformance/json-aggregate-paths.test.mjs` and the source map above. This
 revision does not claim unsupported window shapes or unrelated JSON virtual-table
 features.
+
+### Revision 2026-09-21 — scalar review corrections
+
+Finding 1's placeholder error position and finding 4's missing JSONB/edit
+registrations are corrected by [[card:card-r-b]]. Production `json_pretty` is
+explicitly registered temporary unsupported at both pinned arities. Focused public
+coverage now discriminates non-leading positions, duplicate/root/sequential edit,
+array insertion, and JSONB BLOB result branches; exhaustive corpus parity remains
+a test-evidence limitation rather than an implementation claim.

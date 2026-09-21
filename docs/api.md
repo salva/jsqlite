@@ -597,3 +597,9 @@ ordinary SQL text is quoted, ordinary BLOB values fail, and duplicate object
 labels/order follow SQLite. They use the same operation limits, cancellation,
 reset/finalize lifecycle, and represented window-frame support as other built-in
 aggregates.
+
+JSONB scalar output names `jsonb_array`, `jsonb_object`, `jsonb_insert`,
+`jsonb_replace`, `jsonb_set`, `jsonb_remove`, `jsonb_patch`, and
+`jsonb_array_insert` return SQLite JSONB BLOBs; `json_array_insert` returns JSON
+TEXT. `json_pretty` is recognized at arities 1 and 2 but currently fails with a
+typed temporary-unsupported error rather than an approximation.
