@@ -2477,8 +2477,9 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   try { expanded=expandAndResolveSelect(select,schema); }
   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
   // select.c invokes sqlite3WindowRewrite after resolution/aggregate analysis and
-  // before WHERE planning. Construct the complete immutable handoff here, then
-  // reject before a Program is published until sqlite3WindowCodeStep exists.
+  // before WHERE planning. Construct the complete immutable handoff here. Only
+  // residual shapes whose lowering cannot publish every result column reject
+  // atomically below, before a Program or Statement is exposed to the caller.
   if(expanded.windows.length){
     let compilation:WindowLoweringCompilation;
     try{compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema);}
