@@ -886,6 +886,23 @@ limits, and shared aggregate cleanup. Credit is supported by
 revision does not claim unsupported window shapes or unrelated JSON virtual-table
 features.
 
+### Revision 2026-09-21 — JSON table cursor fidelity correction ([[card:card-r-d]])
+
+Current-tree review supersedes the JSON foundation revision's implication that
+canonical offset shaping was sufficient for all JSONB inputs. The four internal
+read-only table functions now retain original JSONB element bounds and object-label
+offsets, so nonminimal headers preserve native `id`/`parent` values and binary
+container `value` bytes. Rewind validates and retains one ordered parse image, but
+row traversal is incremental: next constructs only the current row, allowing an
+unsorted LIMIT to stop before unconsumed descendants. Input, parsed-node estimate,
+current path, and traversal depth reserve against statement private state; cursor
+cleanup occurs on exhaustion, replacement rewind, reset, finalize, and error.
+Focused public evidence covers nested/rooted nonminimal JSONB, `jsonb_each` and
+`jsonb_tree`, truncated input, LIMIT early stop, and saved private-limit error
+cleanup. This does not claim generalized virtual-table planning, event-loop yield
+inside one synchronous parse, or the unsupported compositions listed in the
+living guide.
+
 ### Revision 2026-09-21 — scalar review corrections
 
 Finding 1's placeholder error position and finding 4's missing JSONB/edit

@@ -24,7 +24,7 @@ import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
-import { jsonArrayLength, jsonArrow, jsonConstruct, jsonEachRows, jsonTreeRows, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode } from "./json.ts";
+import { jsonArrayLength, jsonArrow, jsonConstruct, openJsonTableCursor, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode, type JsonTableCursor } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -3101,7 +3101,7 @@ export class VdbeStatement implements Statement {
   #rowStart = 0;
   #rowCount = 0;
   #cursors = new Map<number, TableScanCursor>();
-  #jsonCursors = new Map<number,{rows:readonly (readonly Mem[])[];index:number}>();
+  #jsonCursors = new Map<number,JsonTableCursor>();
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
   // Aggregate programs can retain a decoded row after Next moves the btree
@@ -3158,15 +3158,15 @@ export class VdbeStatement implements Statement {
           case "JsonTableRewind": {
             const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!.initialStorageClass==="null"?null:this.#registers[op.root]!.textValue();
             const charge=(units:number)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}};
-            const rows=root===null?Object.freeze([]):op.recursive?jsonTreeRows(input,charge,root,op.binaryContainers):jsonEachRows(input,charge,root,op.binaryContainers);
-            const cursor={rows,index:0};this.#jsonCursors.set(op.p1,cursor);
-            if(rows.length===0){this.#pc=op.p2;break;}
-            for(let i=0;i<rows[0]!.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(rows[0]![i]!);
+            this.#jsonCursors.get(op.p1)?.close();
+            const cursor=openJsonTableCursor(input,op.recursive,charge,root??"$",op.binaryContainers,(oldBytes,newBytes)=>this.#privateBytes.replace(oldBytes,newBytes,"JSON table cursor exceeds private-state byte limit"));this.#jsonCursors.set(op.p1,cursor);
+            const row=root===null?null:cursor.next();if(row===null){cursor.close();this.#jsonCursors.delete(op.p1);this.#pc=op.p2;break;}
+            for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);
             break;
           }
           case "JsonTableNext": {
-            const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","advance on unopened JSON table cursor");cursor.index++;
-            if(cursor.index<cursor.rows.length){const row=cursor.rows[cursor.index]!;for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);this.#pc=op.p2;}
+            const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","advance on unopened JSON table cursor");const row=cursor.next();
+            if(row){for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);this.#pc=op.p2;}else this.#jsonCursors.delete(op.p1);
             break;
           }
           case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
@@ -3353,7 +3353,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();this.#borrow.invalidate();

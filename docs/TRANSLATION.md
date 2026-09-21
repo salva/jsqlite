@@ -3386,9 +3386,18 @@ ordinary scalar-expression arguments, visible expression projections and WHERE.
 Their runtime statement-owned filter/next state is produced by internal/native
 TypeScript table machinery and exposed through the ordinary Fetch statement API;
 this is not host registration. `json_tree` recursively walks the ordered node tree
-depth-first and retains canonical JSONB byte offsets for id/parent; parameters,
-reset, rooted scans, hidden `json`/`root` reads, and JSONB container BLOB results
-have direct public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
+depth-first. The VDBE now owns an incremental current-row cursor: rewind validates
+and retains one ordered parse image, while each next operation alone constructs
+and charges the next row, so an unsorted LIMIT can halt without traversing or
+materializing unconsumed descendants. Retained input, parsed nodes, current path,
+and traversal depth debit the statement private-state budget and cursor close on
+exhaustion, replacement rewind, reset, finalize, or error. For JSONB, decoder
+metadata preserves original element bounds and object-label offsets (including
+nonminimal headers); `id`/`parent` therefore use the input parse-image offsets and
+`jsonb_*` container values slice the original representation rather than canonical
+re-encoding. Text input continues to use its canonical internal JSONB offsets.
+Parameters, reset, rooted scans, hidden `json`/`root` reads, and JSONB container
+BLOB results have direct public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
 atomic typed temporary unsupported. Scalar mutation/path consumers are described
 below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,
 exact JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and

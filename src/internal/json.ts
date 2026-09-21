@@ -10,6 +10,9 @@ export type JsonNode =
   | { readonly kind:"array"; readonly values:readonly JsonNode[] }
   | { readonly kind:"object"; readonly entries:readonly (readonly [string,JsonNode])[] };
 
+const jsonbBounds=new WeakMap<object,{start:number;end:number}>();
+const jsonbLabels=new WeakMap<object,readonly number[]>();
+
 const te=new TextEncoder(),td=new TextDecoder("utf-8",{fatal:true});
 const malformed=()=>new JSQLiteError("sqlite","malformed JSON",{code:1});
 class JsonPositionError extends Error{readonly offset:number;constructor(offset:number){super("malformed JSON");this.offset=offset}}
@@ -37,11 +40,11 @@ export function encodeJsonb(n:JsonNode):Uint8Array{switch(n.kind){case"null":ret
 function jsonbSize(b:Uint8Array,at=0):{size:number,type:number,header:number}|null{if(at>=b.length)return null;const x=b[at]!,tag=x>>>4,type=x&15;let header=1,size=tag;if(tag>=12){header=tag===12?2:tag===13?3:tag===14?5:9;if(at+header>b.length)return null;size=0;for(let i=1;i<header;i++){size=size*256+b[at+i]!;if(!Number.isSafeInteger(size))return null}}return{size,type,header}}
 function decodePayload(b:Uint8Array,start:number,end:number):string{try{return td.decode(b.subarray(start,end))}catch{throw malformed()}}
 function decodeJsonbAt(b:Uint8Array,at:number,depth:number,charge:(n:number)=>void):{node:JsonNode;end:number}{
- charge(1);if(depth>1000)throw malformed();const h=jsonbSize(b,at);if(!h||h.type>12||at+h.header+h.size>b.length)throw malformed();const start=at+h.header,end=start+h.size,raw=decodePayload(b,start,end);
- if(h.type<=2){if(h.size)throw malformed();return{node:{kind:h.type===0?"null":h.type===1?"true":"false"},end}}
- if(h.type>=3&&h.type<=6){const json5=h.type===4||h.type===6,node=new Parser(raw,json5,charge).parse();if(node.kind!=="number")throw malformed();return{node,end}}
- if(h.type>=7&&h.type<=10){let value:string;if(h.type===7||h.type===10)value=raw;else{const node=new Parser(`"${raw}"`,h.type===9,charge).parse();if(node.kind!=="string")throw malformed();value=node.value}return{node:{kind:"string",value},end}}
- const values:JsonNode[]=[],entries:(readonly[string,JsonNode])[]=[];let p=start,index=0;while(p<end){const child=decodeJsonbAt(b,p,depth+1,charge);p=child.end;if(h.type===11)values.push(child.node);else if((index++&1)===0){if(child.node.kind!=="string")throw malformed();entries.push([child.node.value,{kind:"null"}])}else entries[entries.length-1]=[entries.at(-1)![0],child.node]}if(p!==end||(h.type===12&&index%2))throw malformed();return{node:h.type===11?{kind:"array",values}:{kind:"object",entries},end}
+ charge(1);if(depth>1000)throw malformed();const h=jsonbSize(b,at);if(!h||h.type>12||at+h.header+h.size>b.length)throw malformed();const start=at+h.header,end=start+h.size,raw=h.type<=10?decodePayload(b,start,end):"";
+ if(h.type<=2){if(h.size)throw malformed();const node:JsonNode={kind:h.type===0?"null":h.type===1?"true":"false"};jsonbBounds.set(node,{start:at,end});return{node,end}}
+ if(h.type>=3&&h.type<=6){const json5=h.type===4||h.type===6,node=new Parser(raw,json5,charge).parse();if(node.kind!=="number")throw malformed();jsonbBounds.set(node,{start:at,end});return{node,end}}
+ if(h.type>=7&&h.type<=10){let value:string;if(h.type===7||h.type===10)value=raw;else{const node=new Parser(`"${raw}"`,h.type===9,charge).parse();if(node.kind!=="string")throw malformed();value=node.value}const node:JsonNode={kind:"string",value};jsonbBounds.set(node,{start:at,end});return{node,end}}
+ const values:JsonNode[]=[],entries:(readonly[string,JsonNode])[]=[],labels:number[]=[];let p=start,index=0;while(p<end){const child=decodeJsonbAt(b,p,depth+1,charge);p=child.end;if(h.type===11)values.push(child.node);else if((index++&1)===0){if(child.node.kind!=="string")throw malformed();labels.push(jsonbBounds.get(child.node)!.start);entries.push([child.node.value,{kind:"null"}])}else entries[entries.length-1]=[entries.at(-1)![0],child.node]}if(p!==end||(h.type===12&&index%2))throw malformed();const node:JsonNode=h.type===11?{kind:"array",values}:{kind:"object",entries};jsonbBounds.set(node,{start:at,end});if(h.type===12)jsonbLabels.set(node,labels);return{node,end}
 }
 function validJsonb(b:Uint8Array,deep:boolean,at=0,depth=0):number{const h=jsonbSize(b,at);if(!h||h.type>12||at+h.header+h.size>b.length||depth>1000)return-1;const end=at+h.header+h.size;if(!deep)return end;try{return decodeJsonbAt(b,at,depth,()=>{}).end}catch{return-1}}
 export function parseJsonMem(value:Mem,json5=true,charge:(n:number)=>void=()=>{}):JsonNode{try{if(value.initialStorageClass==="null")throw malformed();if(value.initialStorageClass==="blob"){const b=value.blobValue(),decoded=decodeJsonbAt(b,0,0,charge);if(decoded.end!==b.length)throw malformed();return decoded.node}return new Parser(value.textValue(),json5,charge).parse()}catch(error){if(error instanceof JsonPositionError)throw malformed();throw error}}
@@ -116,41 +119,37 @@ function scalarResult(node:JsonNode):Mem{
 export const JSON_EACH_COLUMNS=Object.freeze(["key","value","type","atom","id","parent","fullkey","path"] as const);
 export const JSON_TABLE_COLUMNS=Object.freeze([...JSON_EACH_COLUMNS,"json","root"] as const);
 
-/** src/json.c JsonEachCursor/jsonEachColumn, non-recursive xFilter/xNext slice.
- * IDs are offsets in SQLite's canonical JSONB parse image, not ordinals. */
-export function jsonEachRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{return jsonTableRows(value,false,charge,rootPath,binaryContainers)}
-export function jsonTreeRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{return jsonTableRows(value,true,charge,rootPath,binaryContainers)}
-
-/** src/json.c JsonEachCursor/jsonEachFilter/jsonEachNext/jsonEachColumn traversal.
- * The recursive mode retains JSONB byte offsets as ids and parent ids. */
-function jsonTableRows(value:Mem,recursive:boolean,charge:(n:number)=>void,rootPath:string,binaryContainers:boolean):readonly (readonly Mem[])[]{
- if(value.initialStorageClass==="null")return Object.freeze([]);
- const document=value.initialStorageClass==="blob"?(()=>{const b=value.blobValue(),decoded=decodeJsonbUnchecked(b);if(decoded.next!==b.length)throw malformed();return decoded.node})():parseJsonMem(value,true,charge);
- const selected=jsonLookup(document,rootPath);if(selected===undefined)return Object.freeze([]);
- const size=(node:JsonNode):number=>encodeJsonb(node).length;
- let selectedId=0;
- const locate=(node:JsonNode,id:number):boolean=>{if(node===selected){selectedId=id;return true}let offset=id+1;if(node.kind==="array")for(const child of node.values){if(locate(child,offset))return true;offset+=size(child)}else if(node.kind==="object")for(const [label,child] of node.entries){if(locate(child,offset))return true;offset+=encodeJsonb({kind:"string",value:label}).length+size(child)}return false};locate(document,0);
- const root=selected;
- const text=(s:string):Mem=>{const m=new Mem();m.setText(te.encode(s),"utf-8");return m};
- const integer=(n:bigint):Mem=>{const m=new Mem();m.setInt64(n);return m};
- const nil=():Mem=>{const m=new Mem();m.setNull();return m};
- const valueResult=(node:JsonNode):Mem=>node.kind==="array"||node.kind==="object"?(binaryContainers?jsonbResult(node):jsonTextResult(node)):scalarResult(node);
- const type=(node:JsonNode):string=>node.kind==="true"||node.kind==="false"?node.kind:node.kind==="number"?(/^-?\d+$/.test(canonicalNumber(node.raw))?"integer":"real"):node.kind;
- const row=(key:Mem,node:JsonNode,id:number,parent:number|null,fullkey:string,path:string):readonly Mem[]=>Object.freeze([key,valueResult(node),text(type(node)),node.kind==="array"||node.kind==="object"?nil():scalarResult(node),integer(BigInt(id)),parent===null?nil():integer(BigInt(parent)),text(fullkey),text(path),value,text(rootPath)]);
- const rows:(readonly Mem[])[]=[];
- const walk=(node:JsonNode,id:number,parent:number|null,key:Mem,fullkey:string,path:string):void=>{
-  rows.push(row(key,node,id,parent,fullkey,path));if(!recursive)return;
-  let offset=id+1;
-  if(node.kind==="array")for(let i=0;i<node.values.length;i++){const child=node.values[i]!,childPath=`${fullkey}[${i}]`;walk(child,offset,id,integer(BigInt(i)),childPath,fullkey);offset+=size(child)}
-  else if(node.kind==="object")for(const [label,child] of node.entries){const labelBytes=encodeJsonb({kind:"string",value:label}),childId=offset,childPath=/^[A-Za-z][A-Za-z0-9]*$/.test(label)?`${fullkey}.${label}`:`${fullkey}.${quote(label)}`;walk(child,childId,id,text(label),childPath,fullkey);offset+=labelBytes.length+size(child)}
- };
- if(recursive){walk(root,selectedId,null,nil(),rootPath,rootPath);return Object.freeze(rows)}
- if(root.kind!=="array"&&root.kind!=="object")return Object.freeze([row(nil(),root,selectedId,null,rootPath,rootPath)]);
- let offset=selectedId+1;
- if(root.kind==="array")for(let i=0;i<root.values.length;i++){const node=root.values[i]!;rows.push(row(integer(BigInt(i)),node,offset,null,`${rootPath}[${i}]`,rootPath));offset+=size(node)}
- else for(const [key,node] of root.entries){const label=encodeJsonb({kind:"string",value:key});const id=offset;const simple=/^[A-Za-z][A-Za-z0-9]*$/.test(key);rows.push(row(text(key),node,id,null,simple?`${rootPath}.${key}`:`${rootPath}.${quote(key)}`,rootPath));offset+=label.length+size(node)}
- return Object.freeze(rows);
+/** Incremental src/json.c JsonEachCursor analogue. Parsing validates and retains
+ * one ordered parse image; next() alone advances traversal and constructs the
+ * current row. The reserve hook owns retained input plus current stack/path. */
+export interface JsonTableCursor { next():readonly Mem[]|null; close():void }
+export function openJsonTableCursor(value:Mem,recursive:boolean,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false,reserve:(oldBytes:number,newBytes:number)=>void=()=>{}):JsonTableCursor {
+ let retained=0,closed=false;
+ const inputBytes=value.initialStorageClass==="blob"?value.blobValue().byteLength:value.initialStorageClass==="text"?value.textBytes().byteLength:0;
+ const replace=(n:number)=>{reserve(retained,n);retained=n};
+ try{replace(inputBytes+rootPath.length*2+64);
+  if(value.initialStorageClass==="null")return{next:()=>null,close(){if(!closed){closed=true;replace(0)}}};
+  let parseUnits=0;
+  const document=parseJsonMem(value,true,n=>{parseUnits+=n;charge(n);replace(inputBytes+rootPath.length*2+64+parseUnits*64)}),selected=jsonLookup(document,rootPath);
+  const parseBytes=parseUnits*64;
+  const text=(x:string)=>{const m=new Mem();m.setText(te.encode(x),"utf-8");return m},integer=(x:bigint)=>{const m=new Mem();m.setInt64(x);return m},nil=()=>{const m=new Mem();m.setNull();return m};
+  const size=(node:JsonNode)=>{const bounds=jsonbBounds.get(node);return bounds?bounds.end-bounds.start:encodeJsonb(node).length};
+  const offset=(node:JsonNode,fallback:number)=>jsonbBounds.get(node)?.start??fallback;
+  let selectedId=0,selectedValueAt=0;
+  const valueStart=(node:JsonNode,fallback:number)=>jsonbBounds.get(node)?.start??fallback;
+  const contentStart=(node:JsonNode,at:number)=>at+(jsonbBounds.get(node)?jsonbSize(value.blobValue(),at)!.header:1);
+  const locate=(node:JsonNode,id:number,valueAt:number):boolean=>{if(node===selected){selectedId=id;selectedValueAt=valueAt;return true}let at=contentStart(node,valueAt);if(node.kind==="array")for(const child of node.values){const childAt=valueStart(child,at);if(locate(child,childAt,childAt))return true;at=childAt+size(child)}else if(node.kind==="object")for(let i=0;i<node.entries.length;i++){const [label,child]=node.entries[i]!,labelAt=jsonbLabels.get(node)?.[i]??at,childAt=valueStart(child,labelAt+encodeJsonb({kind:"string",value:label}).length);if(locate(child,labelAt,childAt))return true;at=childAt+size(child)}return false};
+  if(selected)locate(document,0,0);
+  const valueResult=(node:JsonNode):Mem=>{if(node.kind!=="array"&&node.kind!=="object")return scalarResult(node);if(!binaryContainers)return jsonTextResult(node);const bounds=jsonbBounds.get(node);if(!bounds)return jsonbResult(node);const out=new Mem();out.setBlob(value.blobValue().slice(bounds.start,bounds.end));return out};
+  const type=(node:JsonNode)=>node.kind==="true"||node.kind==="false"?node.kind:node.kind==="number"?(/^-?\d+$/.test(canonicalNumber(node.raw))?"integer":"real"):node.kind;
+  const row=(key:Mem,node:JsonNode,id:number,parent:number|null,fullkey:string,path:string,depth:number):readonly Mem[]=>{replace(inputBytes+parseBytes+(fullkey.length+path.length+rootPath.length)*2+(depth+1)*64);charge(1);return Object.freeze([key,valueResult(node),text(type(node)),node.kind==="array"||node.kind==="object"?nil():scalarResult(node),integer(BigInt(id)),parent===null?nil():integer(BigInt(parent)),text(fullkey),text(path),value,text(rootPath)])};
+  function *walk(node:JsonNode,id:number,valueAt:number,parent:number|null,key:Mem,fullkey:string,path:string,depth:number):Generator<readonly Mem[]>{yield row(key,node,id,parent,fullkey,path,depth);if(!recursive)return;let at=contentStart(node,valueAt);if(node.kind==="array")for(let i=0;i<node.values.length;i++){const child=node.values[i]!,childAt=valueStart(child,at),childPath=`${fullkey}[${i}]`;yield*walk(child,childAt,childAt,id,integer(BigInt(i)),childPath,fullkey,depth+1);at=childAt+size(child)}else if(node.kind==="object")for(let i=0;i<node.entries.length;i++){const [label,child]=node.entries[i]!,childId=jsonbLabels.get(node)?.[i]??at,childAt=valueStart(child,childId+encodeJsonb({kind:"string",value:label}).length),childPath=/^[A-Za-z][A-Za-z0-9]*$/.test(label)?`${fullkey}.${label}`:`${fullkey}.${quote(label)}`;yield*walk(child,childId,childAt,id,text(label),childPath,fullkey,depth+1);at=childAt+size(child)}}
+  function *rows():Generator<readonly Mem[]>{if(!selected)return;if(recursive){yield*walk(selected,selectedId,selectedValueAt,null,nil(),rootPath,rootPath,0);return}if(selected.kind!=="array"&&selected.kind!=="object"){yield row(nil(),selected,selectedId,null,rootPath,rootPath,0);return}let at=contentStart(selected,selectedValueAt);if(selected.kind==="array")for(let i=0;i<selected.values.length;i++){const node=selected.values[i]!,id=valueStart(node,at);yield row(integer(BigInt(i)),node,id,null,`${rootPath}[${i}]`,rootPath,1);at=id+size(node)}else for(let i=0;i<selected.entries.length;i++){const [key,node]=selected.entries[i]!,id=jsonbLabels.get(selected)?.[i]??at,childAt=valueStart(node,id+encodeJsonb({kind:"string",value:key}).length);yield row(text(key),node,id,null,/^[A-Za-z][A-Za-z0-9]*$/.test(key)?`${rootPath}.${key}`:`${rootPath}.${quote(key)}`,rootPath,1);at=childAt+size(node)}}
+  const iterator=rows();return{next(){if(closed)return null;const item=iterator.next();if(item.done){this.close();return null}return item.value},close(){if(!closed){closed=true;iterator.return?.(undefined);replace(0)}}};
+ }catch(error){if(retained)replace(0);throw error}
 }
+export function jsonEachRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{const cursor=openJsonTableCursor(value,false,charge,rootPath,binaryContainers),rows:(readonly Mem[])[]=[];try{for(let row;(row=cursor.next()!)!==null;)rows.push(row);return Object.freeze(rows)}finally{cursor.close()}}
+export function jsonTreeRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{const cursor=openJsonTableCursor(value,true,charge,rootPath,binaryContainers),rows:(readonly Mem[])[]=[];try{for(let row;(row=cursor.next()!)!==null;)rows.push(row);return Object.freeze(rows)}finally{cursor.close()}}
 
 /** src/json.c:jsonExtractFunc result shaping. */
 export function jsonExtract(value:Mem,paths:readonly Mem[],charge:(n:number)=>void=()=>{}):Mem{

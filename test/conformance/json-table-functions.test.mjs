@@ -181,3 +181,38 @@ test('grouped JSON table aggregates apply HAVING after finalization',async()=>{
   const bridge=await startFixtureServer(fixtureRoot);let db,statement;
   try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));statement=db.prepare(`SELECT type, count(*) AS n FROM json_each(?1) GROUP BY type HAVING count(*) > 1`).statement;statement.bind(1,'[1,2,"x",4]');assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnText(0),statement.columnInteger(1)],['integer',3n]);assert.equal(await statement.step(),'done');}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
 });
+
+test('JSON table cursor preserves nonminimal JSONB offsets and LIMIT is incremental',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+    // CC 06 object payload; C7 01 'a' is a valid nonminimal label header;
+    // C3 01 '1' is a valid nonminimal integer header. SQLite IDs use label offsets.
+    statement=db.prepare(`SELECT key,id,parent FROM jsonb_tree(?1)`).statement;
+    statement.bind(1,Uint8Array.from([0xcc,6,0xc7,1,0x61,0xc3,1,0x31]));
+    assert.equal(await statement.step(),'row');assert.deepEqual([statement.column(0),statement.column(1),statement.column(2)],[null,0n,null]);
+    assert.equal(await statement.step(),'row');assert.deepEqual([statement.column(0),statement.column(1),statement.column(2)],['a',2n,0n]);assert.equal(await statement.step(),'done');statement.finalize();
+    // Nested object values start after their labels, but native row IDs and
+    // recursive parent IDs remain label offsets. Root selection must retain
+    // both positions, and jsonb_* container values preserve source bytes.
+    const nested=Uint8Array.from([0xcc,11,0xc7,1,0x61,0xcc,6,0xc7,1,0x62,0xc3,1,0x31]);
+    statement=db.prepare(`SELECT id,parent,typeof(value),value FROM jsonb_tree(?1,'$.a')`).statement;statement.bind(1,nested);
+    assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnInteger(0),statement.column(1),statement.columnText(2),statement.columnBlob(3)],[2n,null,'blob',nested.slice(5)]);
+    assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnInteger(0),statement.columnInteger(1)],[7n,2n]);assert.equal(await statement.step(),'done');statement.finalize();
+    statement=db.prepare(`SELECT id,typeof(value),value FROM jsonb_each(?1)`).statement;statement.bind(1,nested);
+    assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnInteger(0),statement.columnText(1),statement.columnBlob(2)],[2n,'blob',nested.slice(5)]);assert.equal(await statement.step(),'done');statement.finalize();
+    statement=db.prepare(`SELECT id FROM jsonb_tree(?1)`).statement;statement.bind(1,nested.slice(0,-1));await assert.rejects(statement.step(),error=>error?.message==='malformed JSON');assert.throws(()=>statement.finalize(),error=>error?.message==='malformed JSON');statement=undefined;
+    const wide='['+Array.from({length:2000},(_,i)=>i).join(',')+']';
+    statement=db.prepare(`SELECT atom FROM json_tree(?1) LIMIT 1`).statement;statement.bind(1,wide);
+    // Parsing plus the first row fits; eager row construction/traversal did not.
+    assert.equal(await statement.step({maxWorkUnits:2100}),'row');assert.equal(statement.columnType(0),'null');statement.finalize();
+  }finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+});
+
+test('JSON table cursor budgets retained state and preserves first control error',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`),{limits:{maxPrivateBytes:64}});
+    statement=db.prepare(`SELECT atom FROM json_tree(?1)`).statement;statement.bind(1,'[1,2,3]');const first=await statement.step().then(()=>null,error=>error);const second=await statement.step().then(()=>null,error=>error);assert.equal(second,first);assert.throws(()=>statement.finalize(),error=>error===first);statement=undefined;
+  }finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+});
