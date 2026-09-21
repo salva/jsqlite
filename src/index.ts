@@ -168,7 +168,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
       const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
-      const jsonTableAggregate = aggregate&&!selected.hasGroupBy&&!selected.hasHaving&&selected.from.items.length===1&&
+      const jsonTableAggregate = aggregate&&!selected.hasHaving&&selected.from.items.length===1&&
         ["json_each","json_tree","jsonb_each","jsonb_tree"].includes(selected.from.items[0]!.tableName.toLowerCase());
       // window.c:sqlite3WindowRewrite performs its own aggregate analysis and
       // ORDER BY misuse validation before mutating the SELECT. Do not let the
