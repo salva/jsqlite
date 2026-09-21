@@ -858,9 +858,8 @@ three encodings. This remains bounded evidence, not exhaustive `date.c` equivale
 ### Revision 2026-09-21 — JSON foundation
 
 The earlier absence finding is superseded only for the bounded `json`, `jsonb`,
-`json_valid`, `json_extract`, JSON aggregate, literal `SELECT * FROM
-json_each(...)`, and runtime expression/root/WHERE and JSONB table-function tranche.
-Source-derived representation, JSON5 canonicalization, JSONB bytes/validation,
+`json_valid`, `json_extract`, JSON aggregate, and runtime expression/root/WHERE/
+JSONB table-function tranche. Source-derived representation, JSON5 canonicalization, JSONB bytes/validation,
 subtype handoff and resource/lifecycle tests are now present. The recursive
 producer translates depth-first traversal and JSONB-offset id/parent shaping, with
 pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input,

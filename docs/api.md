@@ -557,7 +557,8 @@ not add write-time constraint enforcement.
 
 The read-only SQL surface currently includes `json(X)`, `jsonb(X)`,
 `json_valid(X[,flags])`, `json_extract(X,path,...)`, JSON array/object aggregates,
-and the bounded `json_each(X)` table route. Results follow SQLite storage classes:
+and the bounded `json_each`, `json_tree`, `jsonb_each`, and `jsonb_tree` table
+routes described below. Results follow SQLite storage classes:
 canonical JSON is TEXT, JSONB is `Uint8Array`/BLOB, validity is INTEGER, and SQL
 NULL remains NULL. Canonical JSON TEXT carries SQLite's private subtype 74 across
 expression composition. JSONB is instead a subtype-0 BLOB recognized by validated

@@ -573,8 +573,12 @@ remain separately reported seam evidence. These bounded counts do not claim full
 canonicalization, duplicate labels, exact JSONB bytes, BLOB/nonminimal input,
 malformed/truncated/depth branches, NULL/subtype composition, work/result limits
 and post-error lifecycle. The scalar, aggregate and table focused files cover
-`json_extract`, empty aggregate finals and the exact literal-only
-`SELECT * FROM json_each(...)` shape. Native comparison uses the
+`json_extract`, empty aggregate finals, and the 12 current table-function cases.
+Those public Fetch cases cover all four `json_*`/`jsonb_*` each/tree producers,
+scalar/root arguments, parameters/reset, visible and hidden columns, JSONB container
+storage, expression projection/WHERE, ORDER/LIMIT/OFFSET, left-to-right JSON and
+physical-left correlation, and ordinary/grouped aggregate consumers with HAVING.
+Native comparison uses the
 manifest-verified SQLite 3.53.4 CLI built by `tools/oracle/build.sh`; it is bounded
 evidence for these cases, not a claim for later unimplemented JSON consumers.
 
