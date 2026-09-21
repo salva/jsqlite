@@ -6,10 +6,32 @@
     "manifest": "reference/sqlite/manifest.json"
   },
   "upstreamAnchors": [
-    {"id":"up-index3-2.2","path":"test/index3.test","assertion":"index3-2.2","setup":"index3-2.1","expected":[[5]]},
-    {"id":"where-loop-btree","path":"src/where.c","symbol":"whereLoopAddBtreeIndex"},
-    {"id":"where-code-loop","path":"src/wherecode.c","symbol":"sqlite3WhereCodeOneLoopStart"},
-    {"id":"where-code-equality","path":"src/wherecode.c","symbol":"codeEqualityTerm"}
+    {
+      "id": "up-index3-2.2",
+      "path": "test/index3.test",
+      "assertion": "index3-2.2",
+      "setup": "index3-2.1",
+      "expected": [
+        [
+          5
+        ]
+      ]
+    },
+    {
+      "id": "where-loop-btree",
+      "path": "src/where.c",
+      "symbol": "whereLoopAddBtreeIndex"
+    },
+    {
+      "id": "where-code-loop",
+      "path": "src/wherecode.c",
+      "symbol": "sqlite3WhereCodeOneLoopStart"
+    },
+    {
+      "id": "where-code-equality",
+      "path": "src/wherecode.c",
+      "symbol": "codeEqualityTerm"
+    }
   ],
   "setup": [
     "PRAGMA page_size=512",
@@ -17,29 +39,217 @@
     "CREATE INDEX ix_ab_desc ON t(a, b COLLATE NOCASE DESC)",
     "CREATE INDEX ix_c ON t(c)",
     "INSERT INTO t VALUES(1,1,'Alpha',1.0,'p1','tag1'),(2,1,'beta',2.5,'p2','tag2'),(3,1,NULL,3.0,'p3','tag3'),(4,2,'ALPHA',4.5,'p4','tag4'),(5,2,'gamma',5.0,'p5','tag5'),(6,3,'delta',6.25,'p6','tag6'),(7,NULL,'zeta',7.0,'p7','tag7')",
+    "CREATE TABLE up_t1(a, b, c, d, e, PRIMARY KEY(a), UNIQUE(b COLLATE nocase DESC))",
+    "CREATE INDEX up_t1c ON up_t1('c')",
+    "CREATE INDEX up_t1d ON up_t1('d' COLLATE binary ASC)",
+    "WITH RECURSIVE seq(x) AS (VALUES(1) UNION SELECT x+1 FROM seq WHERE x<30) INSERT INTO up_t1(a,b,c,d,e) SELECT x, printf('ab%03xxy',x), x, x, x FROM seq",
     "CREATE TABLE u(k INTEGER PRIMARY KEY, note TEXT)",
     "INSERT INTO u VALUES(1,'u1'),(8,'u8')"
   ],
   "cases": [
-    {"id":"rowid-equality","coverage":["rowid","equality"],"sql":"SELECT id,c FROM t WHERE id=?1","bindings":[4]},
-    {"id":"rowid-range-desc","coverage":["rowid","range","ordering-satisfied"],"sql":"SELECT id FROM t WHERE id>?1 AND id<=?2 ORDER BY id DESC","bindings":[2,6]},
-    {"id":"index-equality","coverage":["explicit-index","equality","covering"],"sql":"SELECT a,b FROM t WHERE a=?1 ORDER BY b DESC","bindings":[1]},
-    {"id":"index-composite-prefix-range","coverage":["explicit-index","left-prefix","range","declared-collation","desc"],"sql":"SELECT id,b FROM t WHERE a=?1 AND b>=?2 COLLATE NOCASE ORDER BY b DESC","bindings":[1,"alpha"]},
-    {"id":"index-null","coverage":["null","covering"],"sql":"SELECT id,a,b FROM t WHERE a=?1 AND b IS NULL","bindings":[1]},
-    {"id":"order-unsatisfied-fallback","coverage":["ordering-unsatisfied","fallback-sorter"],"sql":"SELECT id,b FROM t WHERE a>=?1 ORDER BY payload","bindings":[1]},
-    {"id":"covering-index","coverage":["covering"],"sql":"SELECT a,b FROM t WHERE a=?1","bindings":[2]},
-    {"id":"deferred-table-lookup","coverage":["table-lookup","deferred-seek"],"sql":"SELECT payload FROM t WHERE a=?1","bindings":[2]},
-    {"id":"parameter-reset-rebind","coverage":["parameter","reset","rebind","real-class"],"sql":"SELECT id,typeof(c),c FROM t WHERE c>=?1 ORDER BY c","bindingRuns":[[4.5],[6.0]]},
-    {"id":"residual-predicate","coverage":["residual"],"sql":"SELECT id FROM t WHERE a=?1 AND length(payload)=?2 ORDER BY id","bindings":[1,2]},
-    {"id":"left-join-on-provenance","coverage":["left-join","on-provenance"],"sql":"SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id","bindings":["u8"]},
-    {"id":"left-join-where-safety","coverage":["left-join","where-safety"],"sql":"SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id WHERE t.id<=2 AND u.note=?1 ORDER BY t.id","bindings":["u8"]},
-    {"id":"up-index3-2.2","coverage":["upstream-assertion","implicit-autoindex","nocase"],"sql":"SELECT id FROM t WHERE tag=?1","bindings":["tag1"],"expectedRows":[[1]]}
+    {
+      "id": "rowid-equality",
+      "coverage": [
+        "rowid",
+        "equality"
+      ],
+      "sql": "SELECT id,c FROM t WHERE id=?1",
+      "bindings": [
+        4
+      ]
+    },
+    {
+      "id": "rowid-range-desc",
+      "coverage": [
+        "rowid",
+        "range",
+        "ordering-satisfied"
+      ],
+      "sql": "SELECT id FROM t WHERE id>?1 AND id<=?2 ORDER BY id DESC",
+      "bindings": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "index-equality",
+      "coverage": [
+        "explicit-index",
+        "equality",
+        "covering"
+      ],
+      "sql": "SELECT a,b FROM t WHERE a=?1 ORDER BY b DESC",
+      "bindings": [
+        1
+      ]
+    },
+    {
+      "id": "index-composite-prefix-range",
+      "coverage": [
+        "explicit-index",
+        "left-prefix",
+        "range",
+        "declared-collation",
+        "desc"
+      ],
+      "sql": "SELECT id,b FROM t WHERE a=?1 AND b>=?2 COLLATE NOCASE ORDER BY b DESC",
+      "bindings": [
+        1,
+        "alpha"
+      ]
+    },
+    {
+      "id": "index-null",
+      "coverage": [
+        "null",
+        "covering"
+      ],
+      "sql": "SELECT id,a,b FROM t WHERE a=?1 AND b IS NULL",
+      "bindings": [
+        1
+      ]
+    },
+    {
+      "id": "order-unsatisfied-fallback",
+      "coverage": [
+        "ordering-unsatisfied",
+        "fallback-sorter"
+      ],
+      "sql": "SELECT id,b FROM t WHERE a>=?1 ORDER BY payload",
+      "bindings": [
+        1
+      ]
+    },
+    {
+      "id": "covering-index",
+      "coverage": [
+        "covering"
+      ],
+      "sql": "SELECT a,b FROM t WHERE a=?1",
+      "bindings": [
+        2
+      ]
+    },
+    {
+      "id": "deferred-table-lookup",
+      "coverage": [
+        "table-lookup",
+        "deferred-seek"
+      ],
+      "sql": "SELECT payload FROM t WHERE a=?1",
+      "bindings": [
+        2
+      ]
+    },
+    {
+      "id": "parameter-reset-rebind",
+      "coverage": [
+        "parameter",
+        "reset",
+        "rebind",
+        "real-class"
+      ],
+      "sql": "SELECT id,typeof(c),c FROM t WHERE c>=?1 ORDER BY c",
+      "bindingRuns": [
+        [
+          4.5
+        ],
+        [
+          6.0
+        ]
+      ]
+    },
+    {
+      "id": "residual-predicate",
+      "coverage": [
+        "residual"
+      ],
+      "sql": "SELECT id FROM t WHERE a=?1 AND length(payload)=?2 ORDER BY id",
+      "bindings": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "left-join-on-provenance",
+      "coverage": [
+        "left-join",
+        "on-provenance"
+      ],
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
+      "bindings": [
+        "u8"
+      ]
+    },
+    {
+      "id": "left-join-where-safety",
+      "coverage": [
+        "left-join",
+        "where-safety"
+      ],
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id WHERE t.id<=2 AND u.note=?1 ORDER BY t.id",
+      "bindings": [
+        "u8"
+      ]
+    },
+    {
+      "id": "up-index3-2.2",
+      "coverage": [
+        "upstream-assertion",
+        "implicit-autoindex",
+        "nocase"
+      ],
+      "sql": "SELECT a FROM up_t1 WHERE b='ab005xy' COLLATE nocase",
+      "bindings": [],
+      "expectedRows": [
+        [
+          5
+        ]
+      ]
+    }
   ],
   "atomicGates": [
-    {"id":"gate-without-rowid","feature":"WITHOUT ROWID","setup":["CREATE TABLE wr(a TEXT PRIMARY KEY,b) WITHOUT ROWID"],"sql":"SELECT b FROM wr WHERE a=?1"},
-    {"id":"gate-partial-index","feature":"partial index","setup":["CREATE TABLE p(a,b)","CREATE INDEX p_a ON p(a) WHERE b IS NOT NULL"],"sql":"SELECT b FROM p WHERE a=?1 AND b IS NOT NULL"},
-    {"id":"gate-expression-index","feature":"expression index","setup":["CREATE TABLE e(a,b)","CREATE INDEX e_lower ON e(lower(a))"],"sql":"SELECT b FROM e WHERE lower(a)=?1"},
-    {"id":"gate-sqlite-stat-choice","feature":"sqlite_stat-driven choice","setup":["CREATE TABLE s(a,b)","CREATE INDEX s_a ON s(a)","ANALYZE"],"sql":"SELECT b FROM s WHERE a=?1"},
-    {"id":"gate-index-backed-in","feature":"index-backed IN","setup":[],"sql":"SELECT payload FROM t WHERE a IN (?1,?2)"}
+    {
+      "id": "gate-without-rowid",
+      "feature": "WITHOUT ROWID",
+      "setup": [
+        "CREATE TABLE wr(a TEXT PRIMARY KEY,b) WITHOUT ROWID"
+      ],
+      "sql": "SELECT b FROM wr WHERE a=?1"
+    },
+    {
+      "id": "gate-partial-index",
+      "feature": "partial index",
+      "setup": [
+        "CREATE TABLE p(a,b)",
+        "CREATE INDEX p_a ON p(a) WHERE b IS NOT NULL"
+      ],
+      "sql": "SELECT b FROM p WHERE a=?1 AND b IS NOT NULL"
+    },
+    {
+      "id": "gate-expression-index",
+      "feature": "expression index",
+      "setup": [
+        "CREATE TABLE e(a,b)",
+        "CREATE INDEX e_lower ON e(lower(a))"
+      ],
+      "sql": "SELECT b FROM e WHERE lower(a)=?1"
+    },
+    {
+      "id": "gate-sqlite-stat-choice",
+      "feature": "sqlite_stat-driven choice",
+      "setup": [
+        "CREATE TABLE s(a,b)",
+        "CREATE INDEX s_a ON s(a)",
+        "ANALYZE"
+      ],
+      "sql": "SELECT b FROM s WHERE a=?1"
+    },
+    {
+      "id": "gate-index-backed-in",
+      "feature": "index-backed IN",
+      "setup": [],
+      "sql": "SELECT payload FROM t WHERE a IN (?1,?2)"
+    }
   ]
 }

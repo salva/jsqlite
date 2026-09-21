@@ -3757,7 +3757,7 @@ subtrees remain untouched.
 #### Executable persistent-index planner boundary ([[card:card-s-a-b]])
 
 `test/conformance/cases/stage3-index-planner.spec.json` and its pinned capture now
-make W1/W2 a tests-first, zero-credit executable contract. The 512-byte immutable
+make W1/W2 a tests-first, zero-credit executable contract. The 512-byte-page immutable
 fixture is created only by manifest-pinned SQLite 3.53.4, reopened read-only for
 capture, and records exact schema root pages plus `index_xinfo`, including the
 `sqlite_autoindex_t_1` identity for `UNIQUE(tag)`. Thirteen native cases cover

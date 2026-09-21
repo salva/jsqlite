@@ -21,7 +21,7 @@ class IndexPlannerContract(unittest.TestCase):
   self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest(),cap['fixture']['headerPageSize']),(cap['fixture']['bytes'],cap['fixture']['sha256'],512))
   schema={bytes.fromhex(r[1]['utf8Hex']).decode():(r[0],r[2],r[3]) for r in cap['fixture']['schema']}
   self.assertIn('sqlite_autoindex_t_1',schema)
-  for name in ('t','u','ix_ab_desc','ix_c','sqlite_autoindex_t_1'):
+  for name in ('t','u','ix_ab_desc','ix_c','sqlite_autoindex_t_1','up_t1','sqlite_autoindex_up_t1_1','sqlite_autoindex_up_t1_2','up_t1c','up_t1d'):
    self.assertGreater(int(schema[name][2]['value']),0,name)
   auto=cap['fixture']['indexXinfo']['sqlite_autoindex_t_1']
   self.assertEqual(int(auto[0][1]['value']),5) # UNIQUE(tag), physical implicit autoindex identity
@@ -31,7 +31,8 @@ class IndexPlannerContract(unittest.TestCase):
   self.assertIn('do_execsql_test index3-2.1',text); self.assertIn('do_execsql_test index3-2.2',text)
   self.assertIn('USING INDEX',text)
   for path,symbol in [('src/where.c','whereLoopAddBtreeIndex('),('src/wherecode.c','codeEqualityTerm('),('src/wherecode.c','sqlite3WhereCodeOneLoopStart(')]: self.assertIn(symbol,(UPSTREAM/path).read_text())
-  self.assertEqual(self.cases['up-index3-2.2']['nativeRuns'][0]['rows'],[[{'type':'integer','value':'1'}]])
+  self.assertEqual(self.cases['up-index3-2.2']['nativeRuns'][0]['rows'],[[{'type':'integer','value':'5'}]])
+  self.assertIn('sqlite_autoindex_up_t1_2',self.cases['up-index3-2.2']['nativeRuns'][0]['eqp'][0])
 
  def test_native_access_shapes_rows_and_real_class(self):
   by=self.cases

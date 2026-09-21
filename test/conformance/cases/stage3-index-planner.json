@@ -35,8 +35,8 @@
   ],
   "fixture": {
     "path": "test/conformance/fixtures/index-planner.db",
-    "bytes": 3072,
-    "sha256": "29fbcb4ebfc8adcd2d4f836ac2df15cca5fdd912eacaf37786c0417f1c05c84c",
+    "bytes": 7680,
+    "sha256": "576cf57e66f563baf710ae0012a55e1895c88ed17a6eb9b2bb811577ab0e2ff8",
     "headerPageSize": 512,
     "schema": [
       [
@@ -54,7 +54,7 @@
         },
         {
           "type": "integer",
-          "value": "5"
+          "value": "9"
         },
         {
           "type": "text",
@@ -76,7 +76,7 @@
         },
         {
           "type": "integer",
-          "value": "6"
+          "value": "11"
         },
         {
           "type": "text",
@@ -99,6 +99,50 @@
         {
           "type": "integer",
           "value": "3"
+        },
+        {
+          "type": "text",
+          "utf8Hex": ""
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "73716c6974655f6175746f696e6465785f75705f74315f31"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "integer",
+          "value": "5"
+        },
+        {
+          "type": "text",
+          "utf8Hex": ""
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "73716c6974655f6175746f696e6465785f75705f74315f32"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "integer",
+          "value": "6"
         },
         {
           "type": "text",
@@ -142,11 +186,77 @@
         },
         {
           "type": "integer",
-          "value": "4"
+          "value": "7"
         },
         {
           "type": "text",
           "utf8Hex": "435245415445205441424c452075286b20494e5445474552205052494d415259204b45592c206e6f7465205445585429"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "7461626c65"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "integer",
+          "value": "4"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "435245415445205441424c452075705f743128612c20622c20632c20642c20652c205052494d415259204b45592861292c20554e49515545286220434f4c4c415445206e6f6361736520444553432929"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f743163"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "integer",
+          "value": "12"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "43524541544520494e4445582075705f743163204f4e2075705f74312827632729"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f743164"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75705f7431"
+        },
+        {
+          "type": "integer",
+          "value": "13"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "43524541544520494e4445582075705f743164204f4e2075705f74312827642720434f4c4c4154452062696e6172792041534329"
         }
       ]
     ],
@@ -304,6 +414,218 @@
           {
             "type": "text",
             "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "sqlite_autoindex_up_t1_1": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "61"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "sqlite_autoindex_up_t1_2": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "6e6f63617365"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "up_t1c": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "63"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "up_t1d": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "64"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62696e617279"
           },
           {
             "type": "integer",
@@ -560,7 +882,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -664,7 +986,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -756,7 +1078,7 @@
             {
               "opcode": "OpenRead",
               "p1": 1,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -913,7 +1235,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -1035,7 +1357,7 @@
             {
               "opcode": "OpenRead",
               "p1": 1,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -1132,7 +1454,7 @@
             {
               "opcode": "OpenRead",
               "p1": 1,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -1274,7 +1596,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 6,
+              "p2": 11,
               "p3": 0
             },
             {
@@ -1355,7 +1677,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 6,
+              "p2": 11,
               "p3": 0
             },
             {
@@ -1466,7 +1788,7 @@
             {
               "opcode": "OpenRead",
               "p1": 2,
-              "p2": 5,
+              "p2": 9,
               "p3": 0
             },
             {
@@ -1588,7 +1910,7 @@
             {
               "opcode": "OpenRead",
               "p1": 1,
-              "p2": 4,
+              "p2": 7,
               "p3": 0
             },
             {
@@ -1667,7 +1989,7 @@
             {
               "opcode": "OpenRead",
               "p1": 1,
-              "p2": 4,
+              "p2": 7,
               "p3": 0
             },
             {
@@ -1723,61 +2045,69 @@
         "implicit-autoindex",
         "nocase"
       ],
-      "sql": "SELECT id FROM t WHERE tag=?1",
-      "bindings": [
-        "tag1"
-      ],
+      "sql": "SELECT a FROM up_t1 WHERE b='ab005xy' COLLATE nocase",
+      "bindings": [],
       "expectedRows": [
         [
-          1
+          5
         ]
       ],
       "nativeRuns": [
         {
-          "bindings": [
-            "tag1"
-          ],
+          "bindings": [],
           "rows": [
             [
               {
                 "type": "integer",
-                "value": "1"
+                "value": "5"
               }
             ]
           ],
           "eqp": [
-            "SEARCH t USING COVERING INDEX sqlite_autoindex_t_1 (tag=?)"
+            "SEARCH up_t1 USING INDEX sqlite_autoindex_up_t1_2 (b=?)"
           ],
           "cursorProgram": [
             {
               "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
               "p1": 1,
-              "p2": 3,
+              "p2": 6,
               "p3": 0
             },
             {
               "opcode": "SeekGE",
               "p1": 1,
-              "p2": 9,
+              "p2": 10,
               "p3": 1
             },
             {
               "opcode": "IdxGT",
               "p1": 1,
-              "p2": 9,
+              "p2": 10,
               "p3": 1
             },
             {
-              "opcode": "IdxRowid",
+              "opcode": "DeferredSeek",
               "p1": 1,
-              "p2": 2,
+              "p2": 0,
               "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 2
             }
           ],
           "work": {
             "fullscanSteps": 0,
             "sortOperations": 0,
-            "vmSteps": 11
+            "vmSteps": 12
           }
         }
       ],

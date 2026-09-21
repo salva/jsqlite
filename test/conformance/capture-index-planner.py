@@ -79,7 +79,7 @@ def main():
  execsql(d,db,'VACUUM'); d.sqlite3_close(db)
  raw=fixture.read_bytes(); db=C.c_void_p(); assert d.sqlite3_open_v2(str(fixture).encode(),C.byref(db),SQLITE_OPEN_READONLY,None)==OK
  schema_rows,_=query(d,db,"SELECT type,name,tbl_name,rootpage,coalesce(sql,'') FROM sqlite_schema WHERE rootpage>0 ORDER BY name")
- xinfo={name:query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ['ix_ab_desc','ix_c','sqlite_autoindex_t_1']}
+ xinfo={name:query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ['ix_ab_desc','ix_c','sqlite_autoindex_t_1','sqlite_autoindex_up_t1_1','sqlite_autoindex_up_t1_2','up_t1c','up_t1d']}
  cases=[]
  for case in spec['cases']:
   runs=case.get('bindingRuns',[case.get('bindings',[])])
