@@ -15,11 +15,11 @@ test('JSON scalar constructors, inspection, mutation and patch use public VDBE p
  assert.deepEqual(await query(db,`SELECT '{"a":[1,2]}' -> 'a','{"a":[1,2]}' ->> '$.a[1]'`),['[1,2]',2n]);
  assert.deepEqual(await query(db,`SELECT json_extract('{"a":1,"a":2}','$.a'),json_set('{"a":{}}','$.a.b',1,'$.a.c',2),json_replace('1','$',2),json_remove('[0,1,2]','$[1]')`),[1n,'{"a":{"b":1,"c":2}}','2','[0,2]']);
  assert.deepEqual(await query(db,`SELECT json_array_insert('[0,2]','$[1]',1),json_array_insert('[0]','$[#]',1)`),['[0,1,2]','[0,1]']);
- const blobs=await typed(db,`SELECT jsonb_array(1,json('{"x":2}')),jsonb_object('a',1),jsonb_set(jsonb('{"a":1}'),'$.b',2),jsonb_patch(jsonb('{"a":1}'),'{"b":2}'),jsonb_array_insert(jsonb('[0,2]'),'$[1]',1)`);
- assert.deepEqual(blobs.map(x=>x[0]),['blob','blob','blob','blob','blob']);assert.ok(blobs.every(([,v])=>v instanceof Uint8Array));
+ const blobs=await typed(db,`SELECT jsonb_array(1,json('{"x":2}')),jsonb_object('a',1),jsonb_set(jsonb('{"a":1}'),'$.b',2),jsonb_patch(jsonb('{"a":1}'),'{"b":2}'),jsonb_array_insert(jsonb('[0,2]'),'$[1]',1),jsonb_set(jsonb('{"a":1}'),'$."b"',2),jsonb_set(jsonb('{"a":1}'),'$."b\\\\n"',2)`);
+ assert.deepEqual(blobs.map(x=>x[0]),['blob','blob','blob','blob','blob','blob','blob']);assert.ok(blobs.every(([,v])=>v instanceof Uint8Array));
  // Pinned 3.53.4 jsonArrayFunc/jsonObjectFunc/jsonSetFunc/jsonPatchFunc bytes:
  // these distinguish JSONB output from a merely typed or text-round-tripped result.
- assert.deepEqual(blobs.map(([,v])=>Buffer.from(v).toString('hex')),['7b13314c17781332','4c17611331','8c176113311a621332','8c1761133117621332','6b133013311332']);
+ assert.deepEqual(blobs.map(([,v])=>Buffer.from(v).toString('hex')),['7b13314c17781332','4c17611331','8c176113311a621332','8c1761133117621332','6b133013311332','8c176113311a621332','bc1761133149625c5c6e1332']);
  const pretty=db.prepare(`SELECT json_pretty('{}')`).statement;
  await assert.rejects(pretty.step(),error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary'&&error?.message==='json_pretty() is temporarily unsupported');
  assert.throws(()=>pretty.finalize(),error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary');
