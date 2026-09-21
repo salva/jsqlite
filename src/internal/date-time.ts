@@ -57,6 +57,7 @@ function localJulian(iJD:bigint,env:DateTimeEnvironment):bigint{
 }
 function apply(dt:DT,mod:string,env:DateTimeEnvironment,idx:number):boolean{
  if(mod!==asciiTrim(mod))return false;const z=asciiLower(mod);if(z==="subsec"||z==="subsecond"){dt.subsec=true;return true}
+ if(z==="auto"){if(idx>1)return false;if(dt.raw===undefined)return true;if(dt.validJD){delete dt.raw;return true}if(dt.raw>=-210866760000&&dt.raw<=253402300799){dt.iJD=UNIX_EPOCH+BigInt(Math.round(dt.raw*1000));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}return false}
  delete dt.sourceYmd;delete dt.sourceHms;
  if(z.startsWith("start of ")&&dt.parsedYmd){const p=dt.parsedYmd,f=fields(dt.iJD),day=z==="start of day"?p.day:1,month=z==="start of year"?1:p.month,x=jdFromYmd(p.year,month,day);if(x===null)return false;dt.iJD=x;delete dt.parsedYmd;dt.nFloor=0;return z==="start of day"||z==="start of month"||z==="start of year"}
  delete dt.parsedYmd;
@@ -64,7 +65,6 @@ function apply(dt:DT,mod:string,env:DateTimeEnvironment,idx:number):boolean{
  if(compound){const sign=compound[1]==="-"?-1:1,y=Number(compound[2]),m=Number(compound[3]),d=Number(compound[4]);if(m>=12||d>=31)return false;let f=fields(dt.iJD),month=f.month+sign*m,year=f.year+sign*y;while(month>12){month-=12;year++}while(month<1){month+=12;year--}dt.nFloor=Math.max(0,f.day-monthDays(year,month));const shifted=jdFromYmd(year,month,f.day,f.hour,f.minute,f.second);if(shifted===null)return false;dt.iJD=shifted+BigInt(sign*d)*DAY;if(compound[5]){const h=Number(compound[5]),mi=Number(compound[6]),sec=Number(compound[7]??0);if(h>24||mi>59||sec>=60)return false;dt.iJD+=BigInt(sign)*roundedMs((h*3600+mi*60+sec)*1000)}return valid(dt.iJD)}
  if(z==="julianday"){if(idx>1||dt.raw===undefined||!dt.validJD)return false;delete dt.raw;return true}
  if(z==="unixepoch"){if(idx>1||dt.raw===undefined)return false;dt.iJD=UNIX_EPOCH+BigInt(Math.round(dt.raw*1000));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}
- if(z==="auto"){if(idx>1)return false;if(dt.raw===undefined)return true;if(dt.validJD){delete dt.raw;return true}if(dt.raw>=-210866760000&&dt.raw<=253402300799){dt.iJD=UNIX_EPOCH+BigInt(Math.round(dt.raw*1000));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}return false}
  let f=fields(dt.iJD);if(z==="start of day"){dt.iJD=jdFromYmd(f.year,f.month,f.day)!;return true}if(z==="start of month"){dt.iJD=jdFromYmd(f.year,f.month,1)!;return true}if(z==="start of year"){dt.iJD=jdFromYmd(f.year,1,1)!;return true}
  if(z.startsWith("weekday ")){const n=parseNumber(z.slice(8));if(n===null||n<0||n>=7||!Number.isInteger(n))return false;const current=Number(divFloor(dt.iJD+129600000n,DAY)%7n);dt.iJD+=BigInt((n-current+7)%7)*DAY;return true}
  if(z==="localtime"){if(dt.isLocal)return true;dt.iJD=localJulian(dt.iJD,env);dt.isUtc=false;dt.isLocal=true;return true}

@@ -3304,8 +3304,8 @@ preflighted.
 The implementation preserves INTEGER `unixepoch`, REAL `julianday`/subsecond
 results, NULL invalid/range branches, source modifier ordering, parsed invalid-day state, and independently authoritative iJD/YMD/HMS cache state:
 time-only 24:00 formats normalized iJD, while timezone-free full-date 24:00 retains
-parsed YMD/HMS until a source branch clears them. `subsec` preserves the caches;
-numeric modifiers and `ceiling`/`floor` clear them; `Z` and zero offsets retain
+parsed YMD/HMS until a source branch clears them. `subsec` and no-op `auto`
+preserve the caches; numeric modifiers and `ceiling`/`floor` clear them; `Z` and zero offsets retain
 fields, while a nonzero timezone clears and recomputes them. This is semantic state,
 not a formatter-only hour flag. The implementation also preserves the inclusive
 iJD range. `strftime` scans charge shared
