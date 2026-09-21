@@ -563,3 +563,11 @@ NULL remains NULL. JSON text and JSONB carry SQLite's internal JSON subtype acro
 expression composition but the public value remains the documented TEXT/BLOB
 value. Malformed JSON is a `JSQLiteError` with `kind:"sqlite"`; statement work,
 result-byte, cancellation and deadline controls apply normally.
+
+### JSON scalar functions
+
+Prepared SELECT expressions support SQLite JSON scalar inspection, constructors,
+mutation/merge patch, and `->`/`->>` operators through the ordinary public
+Statement/Fetch value and `columnType` contract. JSON values are represented as
+TEXT with private subtype chaining; JSONB is SQLite JSONB in BLOB values. No host
+function registration or PostgreSQL JSONB interpretation is involved.

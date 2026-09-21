@@ -24,7 +24,7 @@ import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
-import { jsonEachRows, JSON_EACH_COLUMNS, jsonExtract, jsonNodeFromSqlValue, jsonTextResult, jsonValid, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, type JsonNode } from "./json.ts";
+import { jsonArrayLength, jsonArrow, jsonConstruct, jsonEachRows, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, type JsonNode } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -1355,7 +1355,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
   // a child comparison may otherwise be mistaken for the outer AND/OR.
   const directWords=n.children.flatMap(child=>child.kind==="terminal"&&child.value?[child.value.text.toUpperCase()]:[]);
   const op=sig.includes(" IS NOT ")?"IS NOT":directWords[0]??t.find(token=>["+","-","*","/","%","||","=","==","!=","<>","<",">","<=",">=","IS","AND","OR"].includes(token.text.toUpperCase()))?.text.toUpperCase();
-  if(op&&["+","-","*","/","%","||","=","==","!=","<>","<",">","<=",">=","IS","IS NOT","AND","OR"].includes(op))return{kind:"binary",op,left:expressionFromReduction(all[0]!),right:expressionFromReduction(all[1]!)}
+  if(op&&["+","-","*","/","%","||","->","->>","=","==","!=","<>","<",">","<=",">=","IS","IS NOT","AND","OR"].includes(op))return (op==="->"||op==="->>")?{kind:"call",name:op==="->"?"json_arrow":"json_arrow_sql",args:[expressionFromReduction(all[0]!),expressionFromReduction(all[1]!)]}:{kind:"binary",op,left:expressionFromReduction(all[0]!),right:expressionFromReduction(all[1]!)}
  }
  if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
  if(sig==="expr ::= expr COLLATE ID|STRING"){const name=sqliteAsciiFold(t.at(-1)!.text);if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${t.at(-1)!.text}`,{code:1});return{kind:"collate",value:expressionFromReduction(all[0]!),collation:name};}
@@ -2811,10 +2811,18 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
   const result=name==="json"?jsonTextResult(node):jsonbMemResult(a[0]!,node);
   checkSize(valueBytes(result));return result;
  }
- if(name==="json_extract"){
-  const result=jsonExtract(a[0]!,a.slice(1),units=>{charge(units);control?.check()});
+ if(name==="json_extract"||name==="jsonb_extract"){
+  const result=(name==="json_extract"?jsonExtract:jsonbExtract)(a[0]!,a.slice(1),units=>{charge(units);control?.check()});
   checkSize(valueBytes(result));return result;
  }
+ if(name==="json_arrow"||name==="json_arrow_sql")return jsonArrow(a[0]!,a[1]!,name==="json_arrow_sql",units=>{charge(units);control?.check()});
+ if(name==="json_type"){return jsonType(a[0]!,a[1],units=>{charge(units);control?.check()})}
+ if(name==="json_array_length"){return jsonArrayLength(a[0]!,a[1],units=>{charge(units);control?.check()})}
+ if(name==="json_error_position")return jsonErrorPosition(a[0]!);
+ if(name==="json_quote")return jsonQuote(a[0]!);
+ if(name==="json_array"||name==="json_object"){const result=jsonConstruct(name==="json_array"?"array":"object",a);checkSize(valueBytes(result));return result}
+ if(name==="json_insert"||name==="json_replace"||name==="json_set"||name==="json_remove"){const result=jsonEdit(a[0]!,a.slice(1),name.slice(5) as "insert"|"replace"|"set"|"remove",units=>{charge(units);control?.check()});checkSize(valueBytes(result));return result}
+ if(name==="json_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()});checkSize(valueBytes(result));return result}
  if(name==="json_valid"){
   if(a[0]!.initialStorageClass==="null")return out;
   let flags=1;

@@ -576,3 +576,7 @@ and post-error lifecycle. The scalar, aggregate and table focused files cover
 `json_extract`, empty aggregate finals and `json_each`. Native comparison uses the
 manifest-verified SQLite 3.53.4 CLI built by `tools/oracle/build.sh`; it is bounded
 evidence for these cases, not a claim for later unimplemented JSON consumers.
+
+- JSON scalar public-path coverage: `test/conformance/json-scalar-full.test.mjs`
+  covers type/length/error detection, quote/array/object subtype consumption,
+  insert/replace/set/remove/patch, append paths, duplicate labels and arrows.

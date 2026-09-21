@@ -84,7 +84,11 @@ const jsonEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
  definition("json",[1],withFlags("subtype"),true),
  definition("jsonb",[1],C,true),
  definition("json_valid",[1,2],C,true),
- definition("json_extract",[],withFlags("subtype"),true,2),
+ definition("json_extract",[],withFlags("subtype"),true,2),definition("jsonb_extract",[],withFlags("subtype"),true,2),
+ definition("json_type",[1,2],C,true),definition("json_array_length",[1,2],C,true),definition("json_error_position",[1],C,true),
+ definition("json_quote",[1],withFlags("subtype"),true),definition("json_array",[],withFlags("subtype"),true,0),definition("json_object",[],withFlags("subtype"),true,0),
+ definition("json_insert",[],withFlags("subtype"),true,3),definition("json_replace",[],withFlags("subtype"),true,3),definition("json_set",[],withFlags("subtype"),true,3),definition("json_remove",[],withFlags("subtype"),true,1),definition("json_patch",[2],withFlags("subtype"),true),
+ definition("json_arrow",[2],withFlags("subtype"),true),definition("json_arrow_sql",[2],C,true),
 ]);
 const byName = new Map([...entries,...dateEntries,...mathEntries,...jsonEntries].map(entry=>[entry.name,entry] as const));
 export const builtinFunctionRegistry: readonly BuiltinFunctionDefinition[] = entries;

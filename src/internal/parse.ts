@@ -34,7 +34,7 @@ export interface ParseResult{readonly statement:ParsedStatement|null;readonly ta
 export class SqlParseError extends Error{}
 export class SqlUnsupportedError extends Error{}
 const tokenKindNames:Partial<Record<SqlToken["kind"],keyof typeof tokenIds>>={id:"ID",integer:"INTEGER",float:"FLOAT",string:"STRING",blob:"BLOB",variable:"VARIABLE"};
-const punctuationNames:Readonly<Record<string,keyof typeof tokenIds>>={";":"SEMI","(":"LP",")":"RP",",":"COMMA","=":"EQ","==":"EQ","!=":"NE","<>":"NE",">":"GT","<=":"LE","<":"LT",">=":"GE","+":"PLUS","-":"MINUS","*":"STAR","/":"SLASH","%":"REM","||":"CONCAT","&":"BITAND","|":"BITOR","~":"BITNOT","<<":"LSHIFT",">>":"RSHIFT",".":"DOT"};
+const punctuationNames:Readonly<Record<string,keyof typeof tokenIds>>={";":"SEMI","(":"LP",")":"RP",",":"COMMA","=":"EQ","==":"EQ","!=":"NE","<>":"NE",">":"GT","<=":"LE","<":"LT",">=":"GE","+":"PLUS","-":"MINUS","*":"STAR","/":"SLASH","%":"REM","||":"CONCAT","->":"PTR","->>":"PTR","&":"BITAND","|":"BITOR","~":"BITNOT","<<":"LSHIFT",">>":"RSHIFT",".":"DOT"};
 function byteToCodeUnit(sql:string,byte:number){let b=0,i=0;for(const s of sql){if(b===byte)return i;b+=new TextEncoder().encode(s).length;i+=s.length;}if(b===byte)return i;throw Error("token ended inside UTF-8 scalar");}
 function terminal(t:SqlToken):number|undefined{if(t.kind==="keyword"){const name=keywordTable.get(t.text.toUpperCase())as keyof typeof tokenIds|undefined;return name===undefined?undefined:tokenIds[name];}const name=tokenKindNames[t.kind]??punctuationNames[t.text];return name===undefined?undefined:tokenIds[name];}
 /** Port of tokenize.c getToken()/analyze{Window,Over,Filter}Keyword(). */

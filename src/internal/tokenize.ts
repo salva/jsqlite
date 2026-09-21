@@ -47,7 +47,7 @@ export function tokenize(bytes: Uint8Array): readonly SqlToken[] {
     if (c===58||c===64||c===36||c===35) { i++; let n=0; while(i<bytes.length){if(id(bytes[i]??-1)){i++;n++;continue;}if(bytes[i]===58&&bytes[i+1]===58){i+=2;continue;}if(n>0&&bytes[i]===40){i++;while(i<bytes.length&&!([32,9,10,12,13,41].includes(bytes[i]!)))i++;if(bytes[i]===41)i++;else{push("illegal",a,i);break;}continue;}break;} if(out.at(-1)?.startByte!==a)push(n?"variable":"illegal",a,i); continue; }
     if (c===0xef&&bytes[i+1]===0xbb&&bytes[i+2]===0xbf){i+=3;push("space",a,i);continue;}
     if (id(c) && !digit(c)) { i++; while(id(bytes[i]??-1))i++; const text=decode(bytes,a,i); push(keyword(text)?"keyword":"id",a,i); continue; }
-    if (",;()+-*/%=<>.!|&~".includes(String.fromCharCode(c))) { i++; const n=bytes[i]; if(c===60&&(n===61||n===62||n===60))i++;else if(c===62&&(n===61||n===62))i++;else if((c===33||c===61)&&n===61)i++;else if(c===124&&n===124)i++;push(c===33&&i===a+1?"illegal":"punct",a,i); continue; }
+    if (",;()+-*/%=<>.!|&~".includes(String.fromCharCode(c))) { i++; const n=bytes[i]; if(c===45&&n===62){i++;if(bytes[i]===62)i++;}else if(c===60&&(n===61||n===62||n===60))i++;else if(c===62&&(n===61||n===62))i++;else if((c===33||c===61)&&n===61)i++;else if(c===124&&n===124)i++;push(c===33&&i===a+1?"illegal":"punct",a,i); continue; }
     i++; push("illegal",a,i);
   }
   out.push(Object.freeze({kind:"eof",startByte:i,endByte:i,text:""})); return Object.freeze(out);

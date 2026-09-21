@@ -136,5 +136,36 @@ export function jsonExtract(value:Mem,paths:readonly Mem[],charge:(n:number)=>vo
  if(paths.length===1)return found[0]===undefined?out:scalarResult(found[0]);
  return jsonTextResult({kind:"array",values:found.map(node=>node??{kind:"null"})});
 }
+export function jsonbExtract(value:Mem,paths:readonly Mem[],charge:(n:number)=>void=()=>{}):Mem{const result=jsonExtract(value,paths,charge);return result.initialStorageClass==="text"&&result.subtypeValue()===74?jsonbResult(parseJsonMem(result,true,charge)):result}
 
 export function jsonbMemResult(value:Mem,node:JsonNode):Mem{if(value.initialStorageClass!=="blob")return jsonbResult(node);const bytes=value.blobValue();if(validJsonb(bytes,true)!==bytes.length)throw malformed();const out=new Mem();out.setBlob(bytes);return out}
+
+export function jsonArrow(value:Mem,path:Mem,sql:boolean,charge:(n:number)=>void=()=>{}):Mem{const out=new Mem();if(value.initialStorageClass==="null"||path.initialStorageClass==="null")return out;let p=path.textValue();if(!p.startsWith("$"))p=/^\d+$/.test(p)?`$[${p}]`:`$.${p}`;const node=jsonLookup(parseJsonMem(value,true,charge),p);if(!node)return out;return sql?scalarResult(node):jsonTextResult(node)}
+
+export function jsonQuote(value:Mem):Mem{return jsonTextResult(jsonNodeFromSqlValue(value))}
+export function jsonConstruct(kind:"array"|"object",values:readonly Mem[]):Mem{
+ if(kind==="array")return jsonTextResult({kind:"array",values:values.map(jsonNodeFromSqlValue)});
+ if(values.length%2)throw new JSQLiteError("sqlite","json_object() labels must be TEXT",{code:1});
+ const entries:(readonly[string,JsonNode])[]=[];for(let i=0;i<values.length;i+=2){const key=values[i]!;if(key.initialStorageClass==="null")throw new JSQLiteError("sqlite","json_object() labels must be TEXT",{code:1});entries.push([key.textValue(),jsonNodeFromSqlValue(values[i+1]!)])}return jsonTextResult({kind:"object",entries});
+}
+const jsonTypeName=(node:JsonNode):string=>node.kind==="number"?(/^-?\d+$/.test(canonicalNumber(node.raw))?"integer":"real"):node.kind;
+export function jsonType(value:Mem,path?:Mem,charge:(n:number)=>void=()=>{}):Mem{const out=new Mem();if(value.initialStorageClass==="null"||path?.initialStorageClass==="null")return out;const root=parseJsonMem(value,true,charge),node=path?jsonLookup(root,path.textValue()):root;if(node)out.setText(te.encode(jsonTypeName(node)),"utf-8");return out}
+export function jsonArrayLength(value:Mem,path?:Mem,charge:(n:number)=>void=()=>{}):Mem{const out=new Mem();if(value.initialStorageClass==="null"||path?.initialStorageClass==="null")return out;const root=parseJsonMem(value,true,charge),node=path?jsonLookup(root,path.textValue()):root;if(!node)return out;out.setInt64(BigInt(node.kind==="array"?node.values.length:0));return out}
+export function jsonErrorPosition(value:Mem):Mem{const out=new Mem();if(value.initialStorageClass==="null"){out.setNull();return out}try{parseJsonMem(value,true);out.setInt64(0n)}catch{out.setInt64(1n)}return out}
+
+type PathPart={kind:"key";key:string}|{kind:"index";index:number|"append"};
+function pathParts(path:string):PathPart[]{if(!path.startsWith("$"))throw badPath(path);const parts:PathPart[]=[];let i=1;while(i<path.length){if(path[i]==="."){i++;if(path[i]==='"'){const start=i++;while(i<path.length&&path[i]!=='"'){if(path[i]==="\\")i++;i++}if(path[i]!== '"')throw badPath(path);i++;const n=new Parser(path.slice(start,i),false,()=>{}).parse();if(n.kind!=="string")throw badPath(path);parts.push({kind:"key",key:n.value})}else{const start=i;while(i<path.length&&!".[".includes(path[i]!))i++;if(start===i)throw badPath(path);parts.push({kind:"key",key:path.slice(start,i)})}}else if(path[i]==="["){const end=path.indexOf("]",i+1);if(end<0)throw badPath(path);const p=path.slice(i+1,end);if(p==="#")parts.push({kind:"index",index:"append"});else if(/^\d+$/.test(p))parts.push({kind:"index",index:Number(p)});else throw badPath(path);i=end+1}else throw badPath(path)}return parts}
+function editNode(root:JsonNode,parts:readonly PathPart[],value:JsonNode|undefined,mode:"set"|"insert"|"replace"|"remove"):JsonNode{
+ if(!parts.length)return mode==="insert"?root:value??{kind:"null"};const part=parts[0]!,rest=parts.slice(1);
+ if(part.kind==="key"){
+  if(root.kind!=="object")return root;const index=root.entries.findIndex(([k])=>k===part.key),entries=[...root.entries];
+  if(index<0){if(mode==="replace"||mode==="remove")return root;if(rest.length)return root;entries.push([part.key,value??{kind:"null"}])}
+  else if(!rest.length){if(mode==="insert")return root;if(mode==="remove")entries.splice(index,1);else entries[index]=[part.key,value??{kind:"null"}]}
+  else entries[index]=[part.key,editNode(entries[index]![1],rest,value,mode)];return{kind:"object",entries};
+ }
+ if(root.kind!=="array")return root;const values=[...root.values],index=part.index==="append"?values.length:part.index;
+ if(index===values.length&&!rest.length&&mode!=="replace"&&mode!=="remove")values.push(value??{kind:"null"});else if(index<values.length){if(!rest.length){if(mode==="insert")return root;if(mode==="remove")values.splice(index,1);else values[index]=value??{kind:"null"}}else values[index]=editNode(values[index]!,rest,value,mode)}return{kind:"array",values};
+}
+export function jsonEdit(value:Mem,args:readonly Mem[],mode:"set"|"insert"|"replace"|"remove",charge:(n:number)=>void=()=>{}):Mem{if(value.initialStorageClass==="null"){const out=new Mem();return out}let root=parseJsonMem(value,true,charge);const stride=mode==="remove"?1:2;if(args.length%stride)throw new JSQLiteError("sqlite",`json_${mode}() needs an odd number of arguments`,{code:1});for(let i=0;i<args.length;i+=stride){if(args[i]!.initialStorageClass==="null"){const out=new Mem();return out}root=editNode(root,pathParts(args[i]!.textValue()),mode==="remove"?undefined:jsonNodeFromSqlValue(args[i+1]!),mode)}return jsonTextResult(root)}
+function mergePatch(target:JsonNode,patch:JsonNode):JsonNode{if(patch.kind!=="object")return patch;const entries=target.kind==="object"?[...target.entries]:[];for(const [key,p] of patch.entries){let i=entries.findIndex(([k])=>k===key);if(p.kind==="null"){while(i>=0){entries.splice(i,1);i=entries.findIndex(([k])=>k===key)}continue}const merged=mergePatch(i>=0?entries[i]![1]:{kind:"null"},p);if(i>=0)entries[i]=[key,merged];else entries.push([key,merged])}return{kind:"object",entries}}
+export function jsonPatch(target:Mem,patch:Mem,charge:(n:number)=>void=()=>{}):Mem{const out=new Mem();if(target.initialStorageClass==="null"||patch.initialStorageClass==="null")return out;return jsonTextResult(mergePatch(parseJsonMem(target,true,charge),parseJsonMem(patch,true,charge)))}

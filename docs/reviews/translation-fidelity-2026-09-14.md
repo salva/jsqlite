@@ -863,3 +863,11 @@ representation, JSON5 canonicalization, JSONB bytes/validation, subtype handoff 
 resource/lifecycle tests are now present. Mutation functions and the full virtual-
 table/path surface remain later-consumer gaps; this revision does not award them
 credit.
+
+### Revision 2026-09-21 — JSON scalar finding
+
+The earlier JSON scalar absence is partially closed by [[card:card-r-b]]: the
+normal parser/compiler/VDBE/public column path now owns inspection, constructors,
+copy-on-write mutation, merge patch and arrows on the private ordered representation.
+The audit must still treat exhaustive error-position offsets and full malformed
+path/JSONB corpus parity as open evidence gaps, not inferred compatibility.

@@ -3380,3 +3380,16 @@ mutation/path/table consumers remain separate work and must reuse this owner.
 Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys, exact
 JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and
 subtype behavior; public Fetch tests add work/output/depth and statement cleanup.
+
+### JSON scalar completion (2026-09-21, [[card:card-r-b]])
+
+The scalar JSON registration and normal expression/VDBE path now translate pinned
+`src/json.c` inspection (`json_type`, `json_array_length`, `json_error_position`),
+construction (`json_quote`, `json_array`, `json_object`), mutation
+(`json_insert`, `json_replace`, `json_set`, `json_remove`), RFC-7396 merge patch,
+and `->`/`->>` lowering. These operate on the ordered private `JsonNode` tree,
+copy on edit, preserve duplicate-key order and JSON subtype value arguments, and
+charge parsing/result work through statement controls. `test/conformance/json-scalar-full.test.mjs`
+exercises the public prepared-statement path. Remaining conformance risk is exact
+error-position offsets beyond the currently covered malformed-at-start case and
+full upstream path/error corpus breadth; this is not a blanket compatibility claim.
