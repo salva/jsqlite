@@ -566,3 +566,13 @@ are compared through public Fetch execution under UTF-8, UTF-16LE, and UTF-16BE
 with exact SQLite storage classes. Six clock/timezone/resource lifecycle contracts
 remain separately reported seam evidence. These bounded counts do not claim full
 `date.c` corpus compatibility.
+
+## JSON foundation ([[card:card-r-a]])
+
+`test/conformance/json-foundation.test.mjs` covers public Fetch JSON/JSON5
+canonicalization, duplicate labels, exact JSONB bytes, BLOB/nonminimal input,
+malformed/truncated/depth branches, NULL/subtype composition, work/result limits
+and post-error lifecycle. The scalar, aggregate and table focused files cover
+`json_extract`, empty aggregate finals and `json_each`. Native comparison uses the
+manifest-verified SQLite 3.53.4 CLI built by `tools/oracle/build.sh`; it is bounded
+evidence for these cases, not a claim for later unimplemented JSON consumers.

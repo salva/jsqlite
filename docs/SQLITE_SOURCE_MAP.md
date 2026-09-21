@@ -1502,3 +1502,12 @@ IEEE-754 evidence for both signed-int64 endpoints through all four preserving
 rounding names and representative unary/binary REAL wrappers. Finite transcendental
 bit-level identity beyond the captured host/profile remains a documented libm
 portability limit rather than a cross-engine guarantee.
+
+## JSON foundation — [[card:card-r-a]]
+
+| Pinned SQLite 3.53.4 source | TypeScript owner | Evidence |
+|---|---|---|
+| `src/json.c` JSONB constants/header sizing, `jsonbPayloadSize`, `jsonbValidityCheck` | `src/internal/json.ts` byte encoder/decoder/validator | `test/conformance/json-foundation.test.mjs` malformed, truncated, nonminimal and exact-hex cases |
+| `src/json.c` `JsonParse`/`JsonNode`, `jsonParseFuncArg`, `jsonTranslateTextToBlob`, `jsonReturnString` | ordered `JsonNode`, parser, renderer, `json`/`jsonb` handoff | foundation/scalar public Fetch tests and pinned 3.53.4 CLI capture |
+| `src/json.c` `jsonValidFunc`, `jsonExtractFunc`, aggregate steps/finals and `jsonEach*` read-only scan | scalar/aggregate VDBE dispatch and bounded table producer | JSON focused conformance tests |
+| `src/vdbe.c` subtype copy/move and `src/expr.c` subtype consumers | existing `Mem` subtype field and Function/PureFunc result lifetime | subtype/composition and reset/finalize assertions |

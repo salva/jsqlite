@@ -24,6 +24,7 @@ import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
+import { jsonEachRows, JSON_EACH_COLUMNS, jsonExtract, jsonNodeFromSqlValue, jsonTextResult, jsonValid, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, type JsonNode } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -2319,6 +2320,15 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
+  // json.c's eponymous-only json_each module, translated as an internal
+  // table-valued producer rather than exposing host module registration.
+  if(select.from.items.length===1&&select.from.items[0]!.tableName.toLowerCase()==="json_each"&&select.from.tokens[1]?.text==="("){
+    if(select.result.length!==1||select.result[0]!.tokens.length!==1||select.result[0]!.tokens[0]!.text!=="*"||select.where||select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasLimit)throw new JSQLiteError("unsupported","this json_each composition is not implemented",{unsupportedClassification:"temporary"});
+    const argument=select.from.tokens.slice(2,-1);if(argument.length!==1||argument[0]!.kind!=="string")throw new JSQLiteError("unsupported","this json_each argument is not implemented",{unsupportedClassification:"temporary"});
+    const input=new Mem();input.setText(new TextEncoder().encode(decodeString(argument[0]!.text)),"utf-8");const rows=jsonEachRows(input);const ops:Op[]=[];let registers=JSON_EACH_COLUMNS.length;
+    for(const row of rows){for(let i=0;i<row.length;i++){const value=row[i]!;switch(value.initialStorageClass){case"null":ops.push({code:"Null",p2:i+1});break;case"integer":ops.push({code:"Integer",p1:value.integerValue(),p2:i+1});break;case"real":ops.push({code:"Real",p1:value.realValue(),p2:i+1});break;case"text":ops.push({code:"String",p1:value.textValue(),p2:i+1});break;case"blob":ops.push({code:"Blob",p1:value.blobValue(),p2:i+1});break}}ops.push({code:"ResultRow",p1:1,p2:row.length})}ops.push({code:"Halt"});
+    return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(JSON_EACH_COLUMNS.map(name=>Object.freeze({name,declaredType:null,database:null,table:"json_each",origin:name}))),parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  }
   // Route a compound owner before treating its select-level first-arm carrier
   // as a standalone derived source, which would silently discard later arms.
   if(select.hasCompound){rejectUnsupportedSelectClauses(select, true);return compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileJoinedUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);}
@@ -2795,6 +2805,25 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  const workBytes=(bytes:number)=>{if(bytes>0)charge(Math.ceil(bytes/256))},checkpoint=(index:number)=>{if((index&255)===0){charge(1);control?.check()}};
  if(["julianday","unixepoch","date","time","datetime","strftime","timediff","current_time","current_date","current_timestamp"].includes(name))return evaluateDateTime(name,a,encoding,control?.now??(()=>BigInt(Date.now())),control?.dateTimeEnvironment??defaultDateTimeEnvironment,control);
  if(isMathFunction(name))return evaluateMathFunction(name,a,encoding);
+ if(name==="json"||name==="jsonb"){
+  if(a[0]!.initialStorageClass==="null")return out;
+  const node=parseJsonMem(a[0]!,true,units=>{charge(units);control?.check()});
+  const result=name==="json"?jsonTextResult(node):jsonbMemResult(a[0]!,node);
+  checkSize(valueBytes(result));return result;
+ }
+ if(name==="json_extract"){
+  const result=jsonExtract(a[0]!,a.slice(1),units=>{charge(units);control?.check()});
+  checkSize(valueBytes(result));return result;
+ }
+ if(name==="json_valid"){
+  if(a[0]!.initialStorageClass==="null")return out;
+  let flags=1;
+  if(a.length===2){
+   if(a[1]!.initialStorageClass==="null")return out;
+   flags=Number(a[1]!.integerValue());
+  }
+  out.setInt64(jsonValid(a[0]!,flags,units=>{charge(units);control?.check()})?1n:0n);return out;
+ }
  if(name==="likely"||name==="unlikely"||name==="likelihood")return a[0]!;
  if(name==="subtype"){out.setInt64(BigInt(a[0]!.subtypeValue()));return out}
  if(name==="sqlite_version")return scalarText(SQLITE_VERSION);
@@ -2897,6 +2926,7 @@ interface NthValueCtx {nStep:bigint;value:Mem|null}
 interface LastValueCtx {nVal:bigint;value:Mem|null}
 interface ExtremaCtx {values:Mem[];bytes:number;inverseCapable:boolean}
 interface ConcatCtx {values:{text:string;separator:string;bytes:number}[];bytes:number}
+interface JsonAggregateCtx {items:{key:string|null;value:JsonNode;bytes:number}[];bytes:number}
 const emptySum=():SumCtx=>({rSum:0,rErr:0,iSum:0n,cnt:0n,approx:false,ovrfl:false});
 const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Object.freeze({
  // window.c:row_numberStep/row_numberValue use an int64 aggregate context.
@@ -2930,11 +2960,18 @@ const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Obj
  total:{name:"total",arities:[1],create:emptySum,step:sumStep,inverse:sumInverse,value:c=>sumResult(c,"total"),final:c=>sumResult(c,"total")},
  min:extremaDefinition("min"),max:extremaDefinition("max"),
  group_concat:concatDefinition("group_concat"),string_agg:concatDefinition("string_agg"),
+ json_group_array:jsonAggregateDefinition("json_group_array"),jsonb_group_array:jsonAggregateDefinition("jsonb_group_array"),
+ json_group_object:jsonAggregateDefinition("json_group_object"),jsonb_group_object:jsonAggregateDefinition("jsonb_group_object"),
 });
 function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:c=>({values:[],bytes:0,inverseCapable:c.inverseCapable}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return false;const state=c.state(),bytes=valueBytes(value);if(!state.inverseCapable&&state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}let at=0;while(at<state.values.length&&(name==="min"?compareMem(state.values[at]!,next,c.collation)<=0:compareMem(state.values[at]!,next,c.collation)>=0))at++;state.values.splice(at,0,next);state.bytes+=bytes;return at===0},inverse:(c,a)=>{const value=a[0],state=c.currentState();if(!value||value.initialStorageClass==="null"||!state)return;if(!state.inverseCapable)throw new JSQLiteError("internal",`${name} inverse without inverse-capable state`);const at=state.values.findIndex(candidate=>compareMem(candidate,value,c.collation)===0);if(at<0)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const [removed]=state.values.splice(at,1),bytes=valueBytes(removed!);removed!.release();state.bytes-=bytes;c.budget.release(bytes)},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
 function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",",state=c.state(),prefix=state.values.length?separator:"",bytes=new TextEncoder().encode(prefix+text).byteLength;if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.values.push({text,separator:prefix,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:(c,a)=>{if(!a[0]||a[0]!.initialStorageClass==="null")return;const state=c.currentState();if(!state?.values.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.values.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes);if(state.values.length){const first=state.values[0]!,separatorBytes=new TextEncoder().encode(first.separator).byteLength;first.separator="";first.bytes-=separatorBytes;state.bytes-=separatorBytes;c.budget.release(separatorBytes)}},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.values.length=0}}
 function aggregateText(input:Mem):string{const copy=new Mem();copy.copyFrom(input);if(copy.initialStorageClass!=="text")copy.stringify("utf-8");return copy.textValue()}
 function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.values.length)out.setText(new TextEncoder().encode(state.values.map(value=>value.separator+value.text).join("")),"utf-8");c.setResult(out)}
+function jsonAggregateDefinition(name:"json_group_array"|"jsonb_group_array"|"json_group_object"|"jsonb_group_object"):AggregateDefinition<JsonAggregateCtx>{
+ const object=name.endsWith("object"),binary=name.startsWith("jsonb_");
+ const result=(c:AggregateFunctionContext<JsonAggregateCtx>):void=>{const items=c.currentState()?.items??[];const node:JsonNode=object?{kind:"object",entries:items.filter(x=>x.key!==null).map(x=>[x.key!,x.value] as const)}:{kind:"array",values:items.map(x=>x.value)};const out=binary?jsonbResult(node):jsonTextResult(node);const size=out.initialStorageClass==="blob"?out.blobValue().length:new TextEncoder().encode(out.textValue()).length;if(size>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.setResult(out)};
+ return{name,arities:object?[2]:[1],create:()=>({items:[],bytes:0}),step:(c,a)=>{let key:string|null=null;if(object){const label=a[0]!;if(label.initialStorageClass!=="null")key=aggregateText(label)}const value=jsonNodeFromSqlValue(a[object?1:0]!);const bytes=new TextEncoder().encode((key===null?"":key)+renderJson(value)).length,state=c.state();if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.items.push({key,value,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:c=>{const state=c.currentState();if(!state?.items.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.items.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes)},value:result,final:result,cleanup:s=>s.items.length=0};
+}
 class AggregateContext<State> implements AggregateFunctionContext<State>{
  readonly #result=new FunctionContext();
  readonly cell:Mem;readonly definition:AggregateDefinition<State>;readonly encoding:DatabaseEncoding;readonly collation:BuiltinCollation;readonly maxResultBytes:number;readonly budget:PrivateStateByteBudget;readonly inverseCapable:boolean;

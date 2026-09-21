@@ -3360,3 +3360,23 @@ record the pinned INTEGER-to-double conversion, REAL payloads, and domain NULL.
 `math-manifest.test.py` enforces those types and IEEE-754 payloads in every
 encoding so this coverage cannot silently disappear. Commands: `npm run typecheck` and
 `node --experimental-strip-types test/conformance/run-math-cases-ts.mjs`.
+
+### JSON/JSONB representation foundation (2026-09-21, [[card:card-r-a]])
+
+`src/internal/json.ts` translates the pinned 3.53.4 `src/json.c` JSONB type/header
+layout, text/JSON5 recursive descent, canonical renderer, `json_valid` flag split,
+and `JsonParse`-shaped ordered tree. Objects are ordered entry arrays, not host
+objects, so duplicate labels survive; numbers retain source spelling until the
+same JSON5 canonicalization boundary. JSON text travels as `Mem` subtype 74 and
+JSONB as BLOB subtype 74 through existing copy/move/release rules. Parsing and
+JSONB descent are charged through statement control, depth is capped at 1000, and
+result bytes use the connection length limit. Host `JSON.parse/stringify` is not
+used. Browser-safe `Uint8Array`, `BigInt`, and `TextEncoder/Decoder` replace C
+buffers without changing the serialized bytes.
+
+The coherent public tranche is `json`, `jsonb`, `json_valid`, `json_extract`, JSON
+array/object aggregates, and the bounded read-only `json_each` route. Later JSON
+mutation/path/table consumers remain separate work and must reuse this owner.
+Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys, exact
+JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and
+subtype behavior; public Fetch tests add work/output/depth and statement cleanup.

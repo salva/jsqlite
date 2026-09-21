@@ -77,7 +77,16 @@ const mathEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
  M("acosh",[1]),M("asinh",[1]),M("atanh",[1]),M("sqrt",[1]),
  M("radians",[1]),M("degrees",[1]),M("pi",[0]),
 ]);
-const byName = new Map([...entries,...dateEntries,...mathEntries].map(entry=>[entry.name,entry] as const));
+// json.c:sqlite3RegisterJsonFunctions. Keep the initial tranche narrow: this
+// representation owner implements conversion and validation, and later JSON
+// consumers can reuse it rather than inventing another representation.
+const jsonEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
+ definition("json",[1],withFlags("subtype"),true),
+ definition("jsonb",[1],C,true),
+ definition("json_valid",[1,2],C,true),
+ definition("json_extract",[],withFlags("subtype"),true,2),
+]);
+const byName = new Map([...entries,...dateEntries,...mathEntries,...jsonEntries].map(entry=>[entry.name,entry] as const));
 export const builtinFunctionRegistry: readonly BuiltinFunctionDefinition[] = entries;
 export function builtinFunction(name:string):BuiltinFunctionDefinition|undefined{return byName.get(name);}
 export function builtinFunctionAccepts(definition:BuiltinFunctionDefinition,argc:number):boolean{

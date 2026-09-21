@@ -854,3 +854,12 @@ assertions plus 11 exact `src/date.c` source-control assertions. Together with t
 result-class and nine range companions this is 40 cases, independently captured as
 120 typed native observations and compared through public Fetch execution in all
 three encodings. This remains bounded evidence, not exhaustive `date.c` equivalence.
+
+### Revision 2026-09-21 — JSON foundation
+
+The earlier absence finding is superseded for the bounded `json`, `jsonb`,
+`json_valid`, `json_extract`, JSON aggregate and `json_each` tranche. Source-derived
+representation, JSON5 canonicalization, JSONB bytes/validation, subtype handoff and
+resource/lifecycle tests are now present. Mutation functions and the full virtual-
+table/path surface remain later-consumer gaps; this revision does not award them
+credit.

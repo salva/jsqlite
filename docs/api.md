@@ -552,3 +552,14 @@ only at 1,007,616 bytes and SHA-256
 with source-ID-verified SQLite 3.53.4 read-only behavior. This is not a new
 public schema-introspection API, does not expose `sqlite_schema` through SQL, and does
 not add write-time constraint enforcement.
+
+## JSON built-ins
+
+The read-only SQL surface currently includes `json(X)`, `jsonb(X)`,
+`json_valid(X[,flags])`, `json_extract(X,path,...)`, JSON array/object aggregates,
+and the bounded `json_each(X)` table route. Results follow SQLite storage classes:
+canonical JSON is TEXT, JSONB is `Uint8Array`/BLOB, validity is INTEGER, and SQL
+NULL remains NULL. JSON text and JSONB carry SQLite's internal JSON subtype across
+expression composition but the public value remains the documented TEXT/BLOB
+value. Malformed JSON is a `JSQLiteError` with `kind:"sqlite"`; statement work,
+result-byte, cancellation and deadline controls apply normally.
