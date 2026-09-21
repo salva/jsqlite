@@ -102,7 +102,10 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
   // inner term: that incorrectly rejects the pinned aggregate-over-derived-join
   // route even though flattening only splices the inner SrcList into the parent.
   const directProjection=!!select&&select.result.every(expr=>expr.tokens.length===1&&["id","keyword"].includes(expr.tokens[0]!.kind));
-  const safe=!!select&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(!aliases.length||select.from.items.length===1&&directProjection);
+  // select.c:flattenSubquery restriction (25): window SELECTs retain their
+  // generated Select owner and are consumed through a subquery destination.
+  const hasWindow=!!select&&select.result.some(expr=>{const visit=(part:LemonValue<SqlToken>):boolean=>part.kind==='reduction'&&(part.signature.startsWith('over_clause ::= OVER')||part.children.some(visit));return !!expr.reduction&&visit(expr.reduction)});
+  const safe=!!select&&!hasWindow&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(!aliases.length||select.from.items.length===1&&directProjection);
   if(!safe){
    // parse.y's SrcItem owns the generated Select when flattenSubquery is
    // ineligible. Preserve it for sqlite3Select's materialization destination.

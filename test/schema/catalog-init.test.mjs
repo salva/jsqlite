@@ -196,3 +196,49 @@ test("public Chinook capture loads retained foreign keys and representative rows
     const statement=connection.prepare("SELECT Title FROM Album WHERE AlbumId=1").statement;assert.equal(await statement.step(),"row");assert.equal(statement.column(0),"For Those About To Rock We Salute You");statement.finalize();connection.close();
   });
 });
+
+test("derived window outputs remain source columns across filtering, reset, and rebind", async () => {
+  // Extend the one digest-bound public capture rather than introducing a
+  // second acquisition contract for the same floating upstream artifact.
+  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
+  if(!path)return;
+  const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
+  const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
+  await withImage(image,"Chinook-window-derived.sqlite",async connection=>{
+    const statement=connection.prepare("SELECT * FROM (SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track) WHERE rk<=?1").statement;statement.bind(1,3n);
+    const first=[];while(await statement.step()==="row")first.push([statement.column(0),statement.column(1)]);
+    assert.deepEqual(first,[["Through a Looking Glass",1n],["Occupation / Precipice",2n],["The Young Lords",3n]]);
+    statement.reset();statement.bind(1,1n);assert.equal(await statement.step(),"row");assert.deepEqual([statement.column(0),statement.column(1)],["Through a Looking Glass",1n]);assert.equal(await statement.step(),"done");statement.finalize();connection.close();
+  });
+});
+
+test("derived window output scope is encoding-independent", async () => {
+  for(const name of ["encoding-utf8.db","encoding-utf16le.db","encoding-utf16be.db"]){
+    await withFixture(name,async connection=>{
+      const statement=connection.prepare("SELECT * FROM (SELECT a,row_number() OVER (ORDER BY c DESC) AS rk FROM t1) WHERE rk<=?1").statement;statement.bind(1,1n);
+      assert.equal(await statement.step(),"row");assert.deepEqual([statement.column(0),statement.column(1)],["one",1n]);assert.equal(await statement.step(),"done");statement.finalize();connection.close();
+    });
+  }
+});
+
+test("window outer LIMIT/OFFSET executes in the VDBE output handoff", async () => {
+  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
+  if(!path)return;
+  const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
+  const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
+  await withImage(image,"Chinook-window-limit.sqlite",async connection=>{
+    const statement=connection.prepare("SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track LIMIT ?1 OFFSET ?2").statement;
+    statement.bind(1,5n);statement.bind(2,0n);const first=[];while(await statement.step()==="row")first.push([statement.column(0),statement.column(1)]);
+    assert.deepEqual(first,[["Through a Looking Glass",1n],["Occupation / Precipice",2n],["The Young Lords",3n],["The Man With Nine Lives",4n],["Dave",5n]]);
+    statement.reset();statement.bind(1,2n);statement.bind(2,1n);const offset=[];while(await statement.step()==="row")offset.push([statement.column(0),statement.column(1)]);assert.deepEqual(offset,[["Occupation / Precipice",2n],["The Young Lords",3n]]);
+    statement.reset();statement.bind(1,0n);statement.bind(2,0n);assert.equal(await statement.step(),"done");
+    statement.reset();statement.bind(1,-1n);statement.bind(2,3500n);const tail=[];while(await statement.step()==="row")tail.push([statement.column(0),statement.column(1)]);assert.deepEqual(tail,[["A Statistic",3501n],["Now Sports",3502n],["É Uma Partida De Futebol",3503n]]);
+    statement.finalize();connection.close();
+  });
+});
+
+test("window LIMIT/OFFSET handoff is encoding-independent", async () => {
+  for(const name of ["encoding-utf8.db","encoding-utf16le.db","encoding-utf16be.db"]){await withFixture(name,async connection=>{
+    const statement=connection.prepare("SELECT a,row_number() OVER (ORDER BY c DESC) AS rk FROM t1 LIMIT ?1 OFFSET ?2").statement;statement.bind(1,1n);statement.bind(2,0n);assert.equal(await statement.step(),"row");assert.deepEqual([statement.column(0),statement.column(1)],["one",1n]);assert.equal(await statement.step(),"done");statement.finalize();connection.close();
+  });}
+});

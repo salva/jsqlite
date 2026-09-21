@@ -925,3 +925,7 @@ The review-v9 shared-foundation finding is corrected: `jsonArgIsJsonb` now
 classifies recognized JSONB and non-JSONB document BLOBs follow
 `jsonParseFuncArg` tag-20240123-a text parsing. Public tests keep ordinary BLOB
 constructor/aggregate values rejected.
+
+### Window outer LIMIT/OFFSET handoff (revision 2026-09-21, [[card:card-o-b-g]])
+
+The executable window path previously allocated SQLite-style LIMIT/OFFSET registers but applied them only while draining an outer ORDER sorter. Without outer ORDER BY, `ResultRow` bypassed both offset consumption and `DecrJumpZero`, so `LIMIT 5` emitted all 3,503 Chinook tracks. The VDBE output handoff now applies `IfPos` before `ResultRow`, `DecrJumpZero` after it, and patches LIMIT-zero/exhaustion directly to the coroutine drain, matching select.c's destination-loop ownership rather than slicing host results. The digest-bound 1,007,616-byte Chinook capture (`sha256 7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`) matches pinned SQLite 3.53.4 first rows: Through a Looking Glass rank 1 through Dave rank 5. Permanent public tests cover parameter reset/rebind, LIMIT 0, negative LIMIT, OFFSET, cleanup, and all three encodings. Outer ORDER remains on its existing sorter drain; legal derived rank filtering remains in the ordinary derived-source owner, while same-scope alias legality remains resolver-owned.
