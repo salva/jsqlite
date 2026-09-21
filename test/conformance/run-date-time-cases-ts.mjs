@@ -27,7 +27,7 @@ for(const [encoding,file] of Object.entries(names)){
    const {statement:column}=db.prepare("SELECT datetime(id,'unixepoch') FROM users ORDER BY id");
    try{const columnRows=[];while(await column.step()==='row')columnRows.push(column.column(0));assert.deepEqual(columnRows,['1970-01-01 00:00:01','1970-01-01 00:00:02','1970-01-01 00:00:03']);}finally{column.finalize()}
    const {statement:formats}=db.prepare("SELECT strftime('%d|%e|%f|%F|%G|%g|%H|%k|%I|%l|%j|%J|%m|%M|%p|%P|%R|%s|%S|%T|%u|%w|%U|%V|%W|%Y|%%','2021-01-03 13:04:05.125','subsec'),strftime('%F','2000-01-01','+1 day')");
-   try{assert.equal(await formats.step(),'row');assert.equal(formats.column(0),'03| 3|05.125|2021-01-03|2020|20|13|13|01| 1|004|2459218.044503761|01|04|PM|pm|13:04|1609679045.125|05|13:04:05|7|0|01|53|00|2021|%');assert.equal(formats.column(1),'2000-01-02')}finally{formats.finalize()}
+   try{assert.equal(await formats.step(),'row');assert.equal(formats.column(0),'03| 3|05.125|2021-01-03|2020|20|13|13|01| 1|003|2459218.044503761|01|04|PM|pm|13:04|1609679045.125|05|13:04:05|7|0|01|53|00|2021|%');assert.equal(formats.column(1),'2000-01-02')}finally{formats.finalize()}
    // strftime's first argument is the format, not a time-value. These ordinary
    // format-first cases guard the date.c strftimeFunc argv+1 dispatch boundary.
    const {statement:formatFirst}=db.prepare("SELECT strftime('%Y','2000-01-02'),strftime('%Y-%m-%d','2024-02-29','+1 year','floor')");
@@ -43,13 +43,15 @@ for(const [encoding,file] of Object.entries(names)){
    const {statement:parser}=db.prepare("SELECT datetime('12:34'),datetime('12:34Z'),datetime('12:34 +14:59'),datetime('12:34 +15:00'),datetime('2000-01-01T12:34'),datetime('2000-01-01    12:34'),datetime('2000-01-01t12:34'),datetime('12:34:56.9999','subsec')");
    try{assert.equal(await parser.step(),'row');assert.deepEqual(Array.from({length:8},(_,i)=>parser.column(i)),['2000-01-01 12:34:00','2000-01-01 12:34:00','1999-12-31 21:35:00',null,'2000-01-01 12:34:00','2000-01-01 12:34:00',null,'2000-01-01 12:34:56.999'])}finally{parser.finalize()}
    const {statement:hour24}=db.prepare("SELECT date('24:00'),time('24:00'),datetime('24:00'),strftime('%F %H:%M','24:00'),datetime('24:00','subsec'),datetime('24:00','+0 days'),datetime('24:00','start of day')");
-   try{assert.equal(await hour24.step(),'row');assert.deepEqual(Array.from({length:7},(_,i)=>hour24.column(i)),['2000-01-02','24:00:00','2000-01-02 24:00:00','2000-01-02 24:00','2000-01-02 24:00:00.000','2000-01-02 00:00:00','2000-01-01 00:00:00'])}finally{hour24.finalize()}
+   try{assert.equal(await hour24.step(),'row');assert.deepEqual(Array.from({length:7},(_,i)=>hour24.column(i)),['2000-01-02','00:00:00','2000-01-02 00:00:00','2000-01-02 00:00','2000-01-02 00:00:00.000','2000-01-02 00:00:00','2000-01-02 00:00:00'])}finally{hour24.finalize()}
    const {statement:ordering}=db.prepare("SELECT datetime(0,'auto','+1 day'),datetime(0,'+1 day','auto'),datetime(0,'unixepoch','unixepoch'),datetime(2451544.5,'julianday','+1 day'),datetime(2451544.5,'+1 day','julianday')");
    try{assert.equal(await ordering.step(),'row');assert.deepEqual(Array.from({length:5},(_,i)=>ordering.column(i)),['-4713-11-25 12:00:00',null,null,'2000-01-02 00:00:00',null])}finally{ordering.finalize()}
    const {statement:invalidDay}=db.prepare("SELECT date('2023-02-31'),date('2023-02-31','floor'),date('2024-02-31','floor'),date('2023-04-31','floor'),date('2023-02-31','ceiling'),date('2023-02-31','start of month')");
    try{assert.equal(await invalidDay.step(),'row');assert.deepEqual(Array.from({length:6},(_,i)=>invalidDay.column(i)),['2023-03-03','2023-02-28','2024-02-29','2023-04-30','2023-03-03','2023-02-01'])}finally{invalidDay.finalize()}
    const {statement:numericMods}=db.prepare("SELECT datetime('2000-01-01','1e2 days'),datetime('2000-01-01','24 hours'),datetime('2000-01-01','1e10 seconds'),datetime('2000-01-01','0.5 month'),datetime('2000-01-01','-0.5 month'),datetime('2000-01-01','0.5 year'),datetime('2000-01-01','-0.5 year'),datetime('2000-01-01','5373485 days')");
    try{assert.equal(await numericMods.step(),'row');assert.deepEqual(Array.from({length:8},(_,i)=>numericMods.column(i)),['2000-04-10 00:00:00','2000-01-02 00:00:00','2316-11-20 17:46:40','2000-01-16 00:00:00','1999-12-17 00:00:00','2000-07-01 12:00:00','1999-07-02 12:00:00',null])}finally{numericMods.finalize()}
+   const {statement:datedHour24}=db.prepare("SELECT date('2000-01-01 24:00:00'),time('2000-01-01 24:00:00'),datetime('2000-01-01 24:00:00'),strftime('%F %T','2000-01-01 24:00:00'),datetime('2000-01-01 24:00:00','subsec'),datetime('2000-01-01 24:00:00','+0 days'),datetime('2000-01-01 24:00:00+01:00')");
+   try{const expected=['2000-01-01','24:00:00','2000-01-01 24:00:00','2000-01-01 24:00:00','2000-01-01 24:00:00.000','2000-01-02 00:00:00','2000-01-01 23:00:00'];for(let execution=0;execution<2;execution++){assert.equal(await datedHour24.step(),'row');assert.deepEqual(Array.from({length:7},(_,i)=>datedHour24.columnType(i)),Array(7).fill('text'));assert.deepEqual(Array.from({length:7},(_,i)=>datedHour24.column(i)),expected);assert.equal(await datedHour24.step(),'done');if(execution===0)datedHour24.reset()}}finally{datedHour24.finalize()}
    const {statement:blobYears}=db.prepare("SELECT date(x'323030302D30312D3031'),date(x'626F677573'),strftime('%Y|%F|%G|%g','-0001-01-01'),strftime('%Y|%F','0000-01-01')");
    try{assert.equal(await blobYears.step(),'row');assert.deepEqual(Array.from({length:4},(_,i)=>blobYears.column(i)),['2000-01-01',null,'-001|-001-01-01|-002|-2','0000|0000-01-01'])}finally{blobYears.finalize()}
    const {statement:clockMods}=db.prepare("SELECT datetime('2000-01-01','+24:00'),datetime('2000-01-01','+24:00:01'),datetime('2000-01-01','+25:00'),datetime('2000-01-01','+01:60'),datetime('2000-01-01','+01:02:60'),datetime('2000-01-01','+01:02:03.9999'),datetime('2000-01-01','-00:00:00.0006'),datetime('2000-01-01','+1:02')");
@@ -59,5 +61,5 @@ for(const [encoding,file] of Object.entries(names)){
   }finally{db.close()}
  }finally{server.close()}
 }
-assert.equal(passed,87);
+assert.equal(passed,120);
 console.log(JSON.stringify({outcome:'pass',nativeOracleObservations:passed,encodings:3}));

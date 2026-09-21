@@ -3269,11 +3269,12 @@ and tests-first accounting are in
 is pinned to `src/date.c` in SQLite 3.53.4 and to `sqlite3StmtCurrentTime` in
 `src/vdbeapi.c`; it does not substitute JavaScript `Date` parsing/formatting for
 SQLite algorithms. `test/conformance/cases/stage3-date-time.spec.json` declares 18 exact, body-hashed
-upstream assertions plus two result-class and nine range companions across three
-database encodings. Six concrete clock/timezone contracts have SQL, injected
+upstream assertions and 11 exact `src/date.c` source-control assertions for the
+24:00 cache-retain/invalidate branches, plus two result-class and nine range
+companions across three database encodings. Six concrete clock/timezone contracts have SQL, injected
 responses, lifecycle/call-count expectations, typed outcomes, and an executable
-public production seam runner. Native capture validates all 87 typed observations
-but remains reference-only; public TypeScript execution now carries 18/18 selected
+public production seam runner. Native capture validates all 120 typed observations
+but remains reference-only; public TypeScript execution now carries 29/29 selected
 assertion credit as recorded in the execution revision below. The range
 contract preserves signed output years: parser/`computeJD` accepts -4713..9999,
 final iJD is 0..464269060799999, year 0000 is valid, and callbacks format negative
@@ -3301,16 +3302,21 @@ apply; `strftime` scans checkpoint work/cancellation and every TEXT result is si
 preflighted.
 
 The implementation preserves INTEGER `unixepoch`, REAL `julianday`/subsecond
-results, NULL invalid/range branches, source modifier ordering, parsed invalid-day
-and 24-hour field state, and inclusive iJD range. `strftime` scans charge shared
+results, NULL invalid/range branches, source modifier ordering, parsed invalid-day state, and independently authoritative iJD/YMD/HMS cache state:
+time-only 24:00 formats normalized iJD, while timezone-free full-date 24:00 retains
+parsed YMD/HMS until a source branch clears them. `subsec` preserves the caches;
+numeric modifiers and `ceiling`/`floor` clear them; `Z` and zero offsets retain
+fields, while a nonzero timezone clears and recomputes them. This is semantic state,
+not a formatter-only hour flag. The implementation also preserves the inclusive
+iJD range. `strftime` scans charge shared
 work so cancellation/deadline checks happen within variable format input, and all
 TEXT callbacks use the VDBE output-size preflight. Public Fetch evidence is in
-`run-date-time-cases-ts.mjs` (87 stored typed native observations across all three
+`run-date-time-cases-ts.mjs` (120 stored typed native observations across all three
 encodings plus branch/composition/parameter/column/reset checks) and
 `run-date-time-seams-ts.mjs` (clock/timezone call counts, reset/error lifecycle,
 and output/work limits). These selected vectors are not a blanket compatibility
-claim; the immutable manifest denominator is reconciled at 18/18 only for those
-selected, exactly typed upstream assertions.
+claim; the manifest denominator is reconciled at 29/29: 18 body-hashed upstream
+assertions plus 11 pinned `date.c` source-control assertions for 24:00 state.
 
 ### Ordinary math function tests-first decision
 

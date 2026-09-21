@@ -1440,22 +1440,23 @@ result ceiling, alongside retained excessive emitting-width failures.
 
 > Historical design checkpoint: the planning/0-of-18 statements in the original
 > handoff are superseded by the current execution mapping immediately below. Current
-> bounded accounting is 18/18 selected upstream assertions; two result companions,
+> bounded accounting is 29/29 selected assertions: 18 body-hashed upstream and
+> 11 pinned `date.c` 24:00 source-control branches; two result companions,
 > nine boundaries, and six seam contracts remain zero-credit evidence.
 
 | Pinned source owner | Translation/integration owner | Evidence and status |
 | --- | --- | --- |
 | `src/date.c:DateTime`, `parseYyyyMmDd`, `parseHhMmSs`, `computeJD`, `computeYMD_HMS`, `parseModifier`, `isDate` | Historical plan for the private date module, exact bigint iJD, independent source flags, shared Mem coercion, and FunctionContext results | Superseded by “Date/time scalar execution” below; retained as design provenance |
-| `src/date.c:sqlite3RegisterDateTimeFunctions`, output callbacks; `src/parse.y:term` CURRENT_* keywords | Historical integration plan for the existing registry/resolver and VDBE Function lowering | Superseded below; current public TS credit is 18/18 selected assertions, with companion/boundary/seam categories still zero-credit |
+| `src/date.c:sqlite3RegisterDateTimeFunctions`, output callbacks; `src/parse.y:term` CURRENT_* keywords | Historical integration plan for the existing registry/resolver and VDBE Function lowering | Superseded below; current public TS credit is 29/29 selected assertions (18 body-hashed upstream and 11 source-control), with companion/boundary/seam categories separate |
 | `src/vdbeapi.c:sqlite3StmtCurrentTime`; VFS current time | Connection environment plus execution-owned lazy statement cache | One injected sample per execution across rows/subqueries/yields/aliases; reset resamples; prepare does not sample |
 | `src/date.c:osLocaltime`, `toLocaltime`, localtime/utc modifier branches | Injectable `localFieldsAtUnixSecond` host boundary; source equivalent-year remap and UTC fixed-point loop remain translated | Exact local outcomes require injection; ambient browser timezone/tzdata is explicitly host-dependent; provider failure is `local time unavailable` |
-| `test/date.test`, `test/timediff1.test` selected literal assertions | Historical capture/manifest plan | Current evidence is 29 selected cases × 3 encodings = 87 typed observations; 18/18 selected assertions are public TS credit, while six implemented seam contracts and native capture remain zero-credit evidence |
+| `test/date.test`, `test/timediff1.test` selected literals; `src/date.c` 24:00 cache control | Manifest/capture/public execution | Current evidence is 40 selected cases × 3 encodings = 120 typed observations; 29/29 selected assertions are public TS credit (18 body-hashed upstream plus 11 exact source-control assertions), while six implemented seam contracts and native capture remain separate evidence |
 
 ### Date/time scalar execution ([[card:card-q-a-b]])
 
 | Pinned SQLite 3.53.4 owner | TypeScript owner | Evidence |
 |---|---|---|
-| `src/date.c` `DateTime`, `computeJD`, `computeYMD`, `computeHMS`, `parseYyyyMmDd`, `parseHhMmSs`, `parseModifier`, `isDate` | `src/internal/date-time.ts` bigint iJD/flags, parser/calendar/modifier pipeline | `run-date-time-cases-ts.mjs`, 87 typed observations × UTF-8/UTF-16LE/UTF-16BE plus branch vectors |
+| `src/date.c` `DateTime`, `computeJD`, `computeYMD`, `computeHMS`, `clearYMD_HMS_TZ`, `parseYyyyMmDd`, `parseHhMmSs`, `parseModifier`, `isDate` | `src/internal/date-time.ts` bigint iJD plus independently authoritative parsed YMD/HMS caches, parser/calendar/modifier pipeline | `run-date-time-cases-ts.mjs`, 120 typed observations across UTF-8/UTF-16LE/UTF-16BE; exact full-date/time direct and `strftime`, `subsec`, numeric/ceiling invalidation, Z/zero/nonzero timezone neighbors, and reset lifecycle |
 | `src/date.c` `dateFunc`, `timeFunc`, `datetimeFunc`, `juliandayFunc`, `unixepochFunc`, `strftimeFunc`, `timediffFunc`, registration table | `src/internal/functions.ts` registrations; `src/internal/vdbe.ts` shared Function/PureFunc lowering/dispatch; `date-time.ts` callbacks | parameter, column, composition, reset and CURRENT_* public Fetch checks |
 | `src/vdbeapi.c:sqlite3StmtCurrentTime`; `src/date.c:localtimeOffset` | execution-owned cached clock and private `DateTimeEnvironment` local-field adapter | `run-date-time-seams-ts.mjs` lazy/stable/resample, provider calls/failure, saved-error lifecycle |
 | `sqlite3StrAccumInit(...SQLITE_LIMIT_LENGTH)` in `strftimeFunc` and VDBE interruption | shared `ScalarControl.charge/checkSize` passed into date-time execution | seam output-limit and strftime work-limit/reset/reuse checks |
@@ -1471,7 +1472,7 @@ host callback API, parallel evaluator, native/WASM path, or `Date.parse` is used
 |---|---|
 | `isDate` non-numeric `sqlite3_value_text`; `parseDateOrTime` initial `subsec`/`subsecond` | `date-time.ts:textArg/parse`; cross-encoding public BLOB and lazy clock/reset checks |
 | `toLocaltime` 1970..2038 direct branch, equivalent-year mapping, `osLocaltime` failure | `date-time.ts:localJulian`; deterministic mapped provider input plus null/throw/invalid-field SQLite-error lifecycle |
-| `strftimeFunc` `%Y`, `%F`, `%G`, `%g` signed integer formatting | `date-time.ts:format`; public negative/year-zero exact TEXT checks across three encodings |
+| `strftimeFunc` `%Y`, `%F`, `%G`, `%g` signed integer formatting; `DateTime` simultaneous validJD/validYMD/validHMS and cache invalidation | `date-time.ts:displayFields/apply`; public negative/year-zero formatting and 11 exact 24:00 retain/recompute source-control assertions across three encodings |
 | VDBE interrupt checks during `strftimeFunc` scan | shared `DateTimeControl.charge`; public AbortSignal identity/reset/finalize check |
 
 ### Ordinary math functions — tests-first mapping

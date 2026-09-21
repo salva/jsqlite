@@ -553,3 +553,16 @@ and result storage class. `capture-math.py` pins source/profile and
 uses only the public API and requires **22/22** TS credit (66/66 observations).
 Finite transcendental payloads are observations of this host libm, not a claim that
 all supported hosts return identical last bits.
+
+## Date/time selected accounting
+
+The date/time slice uses the same exact-result and public-path rules above. Its
+current declared denominator is 29/29: 18 body-hashed assertions from pinned
+`test/date.test`/`test/timediff1.test` plus 11 exact `src/date.c` source-control
+assertions for simultaneous JD/YMD/HMS authority and 24:00 cache invalidation.
+Two result-class companions and nine range boundaries are outside that denominator.
+The 40 declared cases produce 120 independently captured native observations and
+are compared through public Fetch execution under UTF-8, UTF-16LE, and UTF-16BE
+with exact SQLite storage classes. Six clock/timezone/resource lifecycle contracts
+remain separately reported seam evidence. These bounded counts do not claim full
+`date.c` corpus compatibility.

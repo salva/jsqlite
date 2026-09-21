@@ -10,11 +10,11 @@
     ]
   },
   "scope": {
-    "denominatorAssertions": 18,
-    "selectedCases": 29,
-    "nativeObservations": 87,
-    "tsCredit": 18,
-    "rule": "Literal assertions selected from pinned test/date.test and test/timediff1.test. Each assertion passes public TypeScript Fetch execution under UTF-8, UTF-16le, and UTF-16be with exact typed comparison; native observations remain the independently captured reference.",
+    "denominatorAssertions": 29,
+    "selectedCases": 40,
+    "nativeObservations": 120,
+    "tsCredit": 29,
+    "rule": "Denominator: 18 literal body-hashed assertions selected from pinned test/date.test and test/timediff1.test plus 11 exact source-control assertions for pinned src/date.c 24:00 cache branches. Every assertion passes public TypeScript Fetch execution under UTF-8, UTF-16le, and UTF-16be with exact typed comparison; native observations remain independently captured reference evidence.",
     "registrations": [
       "julianday/-1",
       "unixepoch/-1",
@@ -581,6 +581,226 @@
       "credit": "zero-credit-source-boundary",
       "expectedTyped": {
         "type": "null"
+      }
+    },
+    {
+      "id": "date-hour24-direct-date",
+      "source": "src/date.c:dateFunc retains validYMD",
+      "sql": "SELECT date('2000-01-01 24:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "dateFunc retains validYMD"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d3031",
+        "value": "2000-01-01"
+      }
+    },
+    {
+      "id": "date-hour24-direct-time",
+      "source": "src/date.c:timeFunc retains validHMS",
+      "sql": "SELECT time('2000-01-01 24:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "timeFunc retains validHMS"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "32343a30303a3030",
+        "value": "24:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-direct-datetime",
+      "source": "src/date.c:datetimeFunc retains validYMD/validHMS",
+      "sql": "SELECT datetime('2000-01-01 24:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "datetimeFunc retains validYMD/validHMS"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a3030",
+        "value": "2000-01-01 24:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-strftime-fields",
+      "source": "src/date.c:strftimeFunc computeYMD_HMS retains validYMD/validHMS",
+      "sql": "SELECT strftime('%F %T','2000-01-01 24:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "strftimeFunc computeYMD_HMS retains validYMD/validHMS"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a3030",
+        "value": "2000-01-01 24:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-strftime-derived",
+      "source": "src/date.c:strftimeFunc retained fields plus iJD-derived calendar branches",
+      "sql": "SELECT strftime('%F %T|%j|%w|%W|%U|%V|%G','2000-01-01 24:00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "strftimeFunc retained fields plus iJD-derived calendar branches"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a30307c3030317c307c30307c30317c35327c31393939",
+        "value": "2000-01-01 24:00:00|001|0|00|01|52|1999"
+      }
+    },
+    {
+      "id": "date-hour24-subsec-retains",
+      "source": "src/date.c:parseModifier subsec does not clear fields",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','subsec')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "parseModifier subsec does not clear fields"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a30302e303030",
+        "value": "2000-01-01 24:00:00.000"
+      }
+    },
+    {
+      "id": "date-hour24-numeric-clears",
+      "source": "src/date.c:parseModifier numeric clearYMD_HMS_TZ",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','+0 days')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "parseModifier numeric clearYMD_HMS_TZ"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30322030303a30303a3030",
+        "value": "2000-01-02 00:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-ceiling-clears",
+      "source": "src/date.c:parseModifier ceiling clearYMD_HMS_TZ",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','ceiling')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "parseModifier ceiling clearYMD_HMS_TZ"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30322030303a30303a3030",
+        "value": "2000-01-02 00:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-z-retains",
+      "source": "src/date.c:parseTimezone Z sets UTC without nonzero tz cache clear",
+      "sql": "SELECT datetime('2000-01-01 24:00:00Z')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "parseTimezone Z sets UTC without nonzero tz cache clear"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a3030",
+        "value": "2000-01-01 24:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-zero-offset-retains",
+      "source": "src/date.c:parseTimezone zero offset sets UTC without nonzero tz cache clear",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+00:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "parseTimezone zero offset sets UTC without nonzero tz cache clear"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032343a30303a3030",
+        "value": "2000-01-01 24:00:00"
+      }
+    },
+    {
+      "id": "date-hour24-offset-clears",
+      "source": "src/date.c:computeJD nonzero timezone clears YMD/HMS",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+01:00')",
+      "encodings": [
+        "UTF-8",
+        "UTF-16le",
+        "UTF-16be"
+      ],
+      "credit": "source-control-assertion",
+      "sourceAssertion": {
+        "path": "src/date.c",
+        "branch": "computeJD nonzero timezone clears YMD/HMS"
+      },
+      "expectedTyped": {
+        "type": "text",
+        "utf8Hex": "323030302d30312d30312032333a30303a3030",
+        "value": "2000-01-01 23:00:00"
       }
     }
   ],

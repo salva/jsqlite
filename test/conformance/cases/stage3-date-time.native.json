@@ -6,12 +6,12 @@
     "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
     "manifest": "reference/sqlite/manifest.json",
     "manifestSha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
-    "specSha256": "19eba64fda397ee5498191e362ade34e679e95d3e300897e37d3009060cf211b"
+    "specSha256": "b5e009306eed3b637c4e59ec0dfcb8793da083260e5c89037abf97aca4691858"
   },
   "counts": {
-    "denominatorAssertions": 18,
-    "selectedCases": 29,
-    "observations": 87,
+    "denominatorAssertions": 29,
+    "selectedCases": 40,
+    "observations": 120,
     "tsCredit": 0
   },
   "observations": [
@@ -990,6 +990,402 @@
       "row": [
         {
           "type": "null"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-date",
+      "encoding": "UTF-8",
+      "sql": "SELECT date('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d3031",
+          "value": "2000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-date",
+      "encoding": "UTF-16le",
+      "sql": "SELECT date('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d3031",
+          "value": "2000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-date",
+      "encoding": "UTF-16be",
+      "sql": "SELECT date('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d3031",
+          "value": "2000-01-01"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-time",
+      "encoding": "UTF-8",
+      "sql": "SELECT time('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32343a30303a3030",
+          "value": "24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-time",
+      "encoding": "UTF-16le",
+      "sql": "SELECT time('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32343a30303a3030",
+          "value": "24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-time",
+      "encoding": "UTF-16be",
+      "sql": "SELECT time('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "32343a30303a3030",
+          "value": "24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-datetime",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-datetime",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-direct-datetime",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-fields",
+      "encoding": "UTF-8",
+      "sql": "SELECT strftime('%F %T','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-fields",
+      "encoding": "UTF-16le",
+      "sql": "SELECT strftime('%F %T','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-fields",
+      "encoding": "UTF-16be",
+      "sql": "SELECT strftime('%F %T','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-derived",
+      "encoding": "UTF-8",
+      "sql": "SELECT strftime('%F %T|%j|%w|%W|%U|%V|%G','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30307c3030317c307c30307c30317c35327c31393939",
+          "value": "2000-01-01 24:00:00|001|0|00|01|52|1999"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-derived",
+      "encoding": "UTF-16le",
+      "sql": "SELECT strftime('%F %T|%j|%w|%W|%U|%V|%G','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30307c3030317c307c30307c30317c35327c31393939",
+          "value": "2000-01-01 24:00:00|001|0|00|01|52|1999"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-strftime-derived",
+      "encoding": "UTF-16be",
+      "sql": "SELECT strftime('%F %T|%j|%w|%W|%U|%V|%G','2000-01-01 24:00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30307c3030317c307c30307c30317c35327c31393939",
+          "value": "2000-01-01 24:00:00|001|0|00|01|52|1999"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-subsec-retains",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','subsec')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30302e303030",
+          "value": "2000-01-01 24:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-subsec-retains",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','subsec')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30302e303030",
+          "value": "2000-01-01 24:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-subsec-retains",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','subsec')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a30302e303030",
+          "value": "2000-01-01 24:00:00.000"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-numeric-clears",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','+0 days')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-numeric-clears",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','+0 days')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-numeric-clears",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','+0 days')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-ceiling-clears",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','ceiling')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-ceiling-clears",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','ceiling')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-ceiling-clears",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00','ceiling')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30322030303a30303a3030",
+          "value": "2000-01-02 00:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-z-retains",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00Z')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-z-retains",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00Z')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-z-retains",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00Z')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-zero-offset-retains",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-zero-offset-retains",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-zero-offset-retains",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+00:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032343a30303a3030",
+          "value": "2000-01-01 24:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-offset-clears",
+      "encoding": "UTF-8",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+01:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032333a30303a3030",
+          "value": "2000-01-01 23:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-offset-clears",
+      "encoding": "UTF-16le",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+01:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032333a30303a3030",
+          "value": "2000-01-01 23:00:00"
+        }
+      ]
+    },
+    {
+      "id": "date-hour24-offset-clears",
+      "encoding": "UTF-16be",
+      "sql": "SELECT datetime('2000-01-01 24:00:00+01:00')",
+      "row": [
+        {
+          "type": "text",
+          "utf8Hex": "323030302d30312d30312032333a30303a3030",
+          "value": "2000-01-01 23:00:00"
         }
       ]
     }

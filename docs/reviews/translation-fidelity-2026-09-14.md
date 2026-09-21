@@ -837,3 +837,16 @@ The public TypeScript runner matches 66/66 observations. This revision strengthe
 the claimed evidence; it does not widen the implementation scope or erase the
 documented ECMAScript-Math/C-libm last-bit portability limit for finite
 transcendentals.
+
+## Revision 2026-09-21 — date/time 24:00 cache-state correction
+
+The prior date/time revisions did not cover the pinned distinction between
+simultaneously valid JD, YMD, and HMS state. The translation no longer uses a lone
+hour-24 marker: timezone-free full-date input retains independent parsed YMD/HMS,
+time-only input uses normalized iJD, and modifier/timezone branches clear caches
+where pinned `computeJD`, `clearYMD_HMS_TZ`, `parseModifier`, and `isDate` do.
+The declared bounded denominator is now 29/29: the existing 18 body-hashed upstream
+assertions plus 11 exact `src/date.c` source-control assertions. Together with two
+result-class and nine range companions this is 40 cases, independently captured as
+120 typed native observations and compared through public Fetch execution in all
+three encodings. This remains bounded evidence, not exhaustive `date.c` equivalence.

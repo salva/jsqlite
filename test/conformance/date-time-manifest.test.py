@@ -9,12 +9,13 @@ spec_path = ROOT / 'test/conformance/cases/stage3-date-time.spec.json'
 spec = json.loads(spec_path.read_text())
 manifest = json.loads((ROOT / 'reference/sqlite/manifest.json').read_text())
 assert spec['source']['sourceId'] == manifest['sqliteSourceId']
-assert spec['scope']['denominatorAssertions'] == 18 and spec['scope']['selectedCases'] == 29
-assert len(spec['cases']) == 29 and len(spec['adaptations']) == 6
+assert spec['scope']['denominatorAssertions'] == 29 and spec['scope']['selectedCases'] == 40
+assert len(spec['cases']) == 40 and len(spec['adaptations']) == 6
 upstream = [c for c in spec['cases'] if 'upstreamAssertion' in c]
-assert len(upstream) == 18 and sum(c.get('credit') == 'zero-credit-companion' for c in spec['cases']) == 2
+source_control = [c for c in spec['cases'] if c.get('credit') == 'source-control-assertion']
+assert len(upstream) == 18 and len(source_control) == 11 and sum(c.get('credit') == 'zero-credit-companion' for c in spec['cases']) == 2
 assert sum(c.get('credit') == 'zero-credit-source-boundary' for c in spec['cases']) == 9
-assert spec['scope']['tsCredit'] == 18 and len({c['id'] for c in spec['cases']}) == 29
+assert spec['scope']['tsCredit'] == 29 and len({c['id'] for c in spec['cases']}) == 40
 for case in spec['cases']:
     assert case['sql'].startswith('SELECT ')
     assert case['encodings'] == ['UTF-8', 'UTF-16le', 'UTF-16be'] and 'expectedTyped' in case
@@ -135,8 +136,8 @@ native = json.loads((ROOT / 'test/conformance/cases/stage3-date-time.native.json
 assert native['kind'] == 'native-reference-only-no-ts-credit'
 assert native['source']['sourceId'] == spec['source']['sourceId']
 assert native['source']['specSha256'] == hashlib.sha256(spec_path.read_bytes()).hexdigest()
-assert native['counts'] == {'denominatorAssertions': 18, 'selectedCases': 29, 'observations': 87, 'tsCredit': 0}
+assert native['counts'] == {'denominatorAssertions': 29, 'selectedCases': 40, 'observations': 120, 'tsCredit': 0}
 expected = {(case['id'], encoding): (case['sql'], case['expectedTyped']) for case in spec['cases'] for encoding in case['encodings']}
 actual = {(item['id'], item['encoding']): (item['sql'], item.get('row', [None])[0]) for item in native['observations']}
 assert actual == expected
-print('date/time manifest: 18 exact upstream assertions, 2 zero-credit result companions, 9 zero-credit boundaries, 6 statically validated seam contracts, 87 oracle observations, TS credit 18/18')
+print('date/time manifest: 18 exact upstream assertions, 11 exact date.c source-control assertions, 2 zero-credit result companions, 9 zero-credit boundaries, 6 statically validated seam contracts, 120 oracle observations, TS credit 29/29')
