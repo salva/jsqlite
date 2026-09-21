@@ -1514,3 +1514,12 @@ portability limit rather than a cross-engine guarantee.
 
 - `src/json.c:jsonTypeFunc,jsonArrayLengthFunc,jsonErrorFunc,jsonArrayFunc,jsonObjectFunc,jsonRemoveFunc,jsonReplaceFunc,jsonPatchFunc,jsonExtractFunc,jsonLookupStep` → `src/internal/json.ts` scalar inspection/construction/copy-on-write edit/merge-patch/path and `src/internal/vdbe.ts` registration dispatch; public cases in `test/conformance/json-scalar-full.test.mjs` ([[card:card-r-b]]).
 - `src/parse.y` `PTR` expression plus `src/json.c` `->`/`->>` registrations → tokenizer `PTR`, expression lowering to private JSON callbacks, and VDBE scalar result shaping.
+
+## JSON aggregate functions ([[card:card-r-c]], 2026-09-21)
+
+| Pinned SQLite 3.53.4 source | TypeScript owner | Public evidence |
+| --- | --- | --- |
+| `src/json.c`: `jsonArrayStep`, `jsonArrayCompute`, `jsonArrayValue`, `jsonArrayFinal` | `src/internal/vdbe.ts`: `jsonAggregateDefinition` array branch; `src/internal/json.ts`: `jsonNodeFromSqlValue`, render/JSONB encoder | `test/conformance/json-aggregate-paths.test.mjs` empty, typed, subtype, grouped, window, limit/lifecycle cases |
+| `src/json.c`: `jsonObjectStep`, `jsonObjectCompute`, `jsonObjectValue`, `jsonObjectFinal` | same definition object branch; ordered entry nodes preserve duplicate labels | same public Fetch suite |
+| `src/json.c`: `jsonGroupInverse`; `WAGGREGATE` rows near 5700 | definition `inverse` plus shared `AggInverse`/`AggValue`/`AggFinal` and `AggregateContext` cleanup | sliding `ROWS 2 PRECEDING`, reset/finalize/admission tests |
+| `src/func.c`, `src/vdbe.c`: aggregate context/result ownership | existing `FunctionContext`, aggregate `Mem`, private-state budget | aggregate sum regression and standard aggregate/window suites |

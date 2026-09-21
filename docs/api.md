@@ -571,3 +571,15 @@ mutation/merge patch, and `->`/`->>` operators through the ordinary public
 Statement/Fetch value and `columnType` contract. JSON values are represented as
 TEXT with private subtype chaining; JSONB is SQLite JSONB in BLOB values. No host
 function registration or PostgreSQL JSONB interpretation is involved.
+
+### JSON aggregates
+
+The built-in aggregate/window surface includes `json_group_array(X)`,
+`json_group_object(NAME,X)`, `jsonb_group_array(X)`, and
+`jsonb_group_object(NAME,X)`. Text forms return canonical JSON text; JSONB forms
+return SQLite JSONB as `Uint8Array`. Empty inputs return the appropriate empty
+container rather than NULL. JSON-producing subtype values embed structurally,
+ordinary SQL text is quoted, ordinary BLOB values fail, and duplicate object
+labels/order follow SQLite. They use the same operation limits, cancellation,
+reset/finalize lifecycle, and represented window-frame support as other built-in
+aggregates.

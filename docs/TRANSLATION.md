@@ -3393,3 +3393,24 @@ charge parsing/result work through statement controls. `test/conformance/json-sc
 exercises the public prepared-statement path. Remaining conformance risk is exact
 error-position offsets beyond the currently covered malformed-at-start case and
 full upstream path/error corpus breadth; this is not a blanket compatibility claim.
+
+### JSON aggregate translation (2026-09-21, [[card:card-r-c]])
+
+The four pinned 3.53.4 `WAGGREGATE` registrations (`json_group_array`,
+`json_group_object`, and their `jsonb_` forms) now use the shared VDBE
+`AggregateContext`/`Mem` owner.  `jsonArrayStep`, `jsonObjectStep`, their
+value/final callbacks, and `jsonGroupInverse` are represented by ordered JSON-node
+state: ordinary SQL text is quoted, subtype 74 text/JSONB is embedded, NULL and
+64-bit numeric classes are retained, ordinary BLOB raises SQLite's diagnostic,
+and object duplicates remain ordered.  Text results are canonical JSON; binary
+results use the translated SQLite JSONB encoder.  Empty aggregates produce
+`[]`/`{}` and JSONB `0B`/`0C`.
+
+This is an ordinary browser-safe representation adaptation, not an algorithm
+substitution: node arrays replace `JsonString` byte splicing while preserving
+step order and removing exactly the oldest entry on inverse.  The reason is that
+`Mem` and the existing JSON parser already own encoding-independent JSON nodes;
+public source-based tests cover duplicate labels, subtype embedding, exact JSONB,
+sliding windows, cleanup, and limits.  Retained bytes are charged to
+`PrivateStateByteBudget`; final/reset/finalize use the common exactly-once cleanup
+path. No host JSON parser/stringifier or native registration is used.

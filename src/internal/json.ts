@@ -45,7 +45,7 @@ function validJsonb(b:Uint8Array,deep:boolean,at=0,depth=0):number{const h=jsonb
 export function parseJsonMem(value:Mem,json5=true,charge:(n:number)=>void=()=>{}):JsonNode{if(value.initialStorageClass==="null")throw malformed();if(value.initialStorageClass==="blob"){const b=value.blobValue(),decoded=decodeJsonbAt(b,0,0,charge);if(decoded.end!==b.length)throw malformed();return decoded.node}return new Parser(value.textValue(),json5,charge).parse()}
 export function jsonValid(value:Mem,flags:number,charge:(n:number)=>void=()=>{}):boolean{if(flags<1||flags>15)throw new JSQLiteError("sqlite","FLAGS parameter to json_valid() must be between 1 and 15",{code:1});try{if(value.initialStorageClass==="blob"){const b=value.blobValue();return ((flags&4)!==0&&validJsonb(b,false)===b.length)||((flags&8)!==0&&validJsonb(b,true)===b.length)}if((flags&3)===0)return false;new Parser(value.textValue(),(flags&2)!==0,charge).parse();return true}catch{return false}}
 export function jsonTextResult(node:JsonNode):Mem{const out=new Mem();out.setText(te.encode(renderJson(node)),"utf-8");out.setSubtype(74);return out}
-export function jsonbResult(node:JsonNode):Mem{const out=new Mem();out.setBlob(encodeJsonb(node));return out}
+export function jsonbResult(node:JsonNode):Mem{const out=new Mem();out.setBlob(encodeJsonb(node));out.setSubtype(74);return out}
 
 function decodeJsonbUnchecked(b:Uint8Array,at=0,depth=0):{node:JsonNode;next:number}{
  const decoded=decodeJsonbAt(b,at,depth,()=>{});return{node:decoded.node,next:decoded.end}

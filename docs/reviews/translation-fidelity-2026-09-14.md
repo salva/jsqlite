@@ -871,3 +871,14 @@ normal parser/compiler/VDBE/public column path now owns inspection, constructors
 copy-on-write mutation, merge patch and arrows on the private ordered representation.
 The audit must still treat exhaustive error-position offsets and full malformed
 path/JSONB corpus parity as open evidence gaps, not inferred compatibility.
+
+### Revision 2026-09-21 — JSON aggregate finding superseded ([[card:card-r-c]])
+
+The baseline absence finding for JSON aggregates is no longer current. All four
+3.53.4 registrations are implemented internally (not delegated to native/host
+JSON), including text/JSONB output, subtype-sensitive arguments, duplicate/order
+preservation, empty groups, grouped execution, represented inverse windows, byte
+limits, and shared aggregate cleanup. Credit is supported by
+`test/conformance/json-aggregate-paths.test.mjs` and the source map above. This
+revision does not claim unsupported window shapes or unrelated JSON virtual-table
+features.
