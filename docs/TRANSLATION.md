@@ -3613,6 +3613,78 @@ truthful scan remains eligible. The same `PhysicalRowidIndex` and `KeyInfo`
 identities flow through selection, seek-key unpack/comparison, index cursor open,
 termination, covering-column selection, rowid extraction, and deferred seek.
 
+
+### Index-term affinity and collation eligibility
+
+W2 does not treat a syntactically shaped comparison as a seek constraint until a
+single planner helper proves it compatible with the next physical index field.
+This ports the term scan in `src/where.c:whereScanInit`/`whereScanNext` (485-521
+and the affinity/collation branch around 386-422), called by
+`whereLoopAddBtreeIndex` at 3220 (term scan initialization around 3290), together
+with `src/expr.c:sqlite3CompareAffinity` (342), `comparisonAffinity` (364),
+`sqlite3IndexAffinityOk` (387), `sqlite3BinaryCompareCollSeq` (424), and
+`sqlite3ExprCompareCollSeq` (452). It is part of candidate admission, before cost
+or lowering, and returns either a complete immutable seek decision or “not usable
+for this index field”; it never weakens a residual predicate.
+
+The helper consumes the resolved `Expression` operands and exact
+`PhysicalIndexField`/`KeyInfo` term. Term analysis first orients the indexed
+column on the left and reverses `<`, `<=`, `>`, or `>=` when commuting. It retains
+a `commuted` provenance bit corresponding to `EP_Commuted`: effective collation
+is computed in original SQL operand order even after canonical orientation.
+Derived/transitive terms undergo the same check independently; compatibility is
+not inherited from their parent.
+
+Affinity follows the pinned decision, not JavaScript value types. Resolve each
+operand's expression affinity (column declaration, CAST, or no affinity), combine
+it exactly as `sqlite3CompareAffinity`/`comparisonAffinity` do, then apply
+`sqlite3IndexAffinityOk`: no-affinity/BLOB-class comparisons are eligible;
+TEXT comparison affinity is eligible only for a TEXT-affinity index field; and a
+numeric comparison affinity is eligible only for an INTEGER, REAL, or NUMERIC
+field. The field affinity comes from the identity-matched resolved `ColumnNode`,
+not from a bound value or `KeyInfo` collation term. `IS NULL` follows
+`whereScanNext` and bypasses the ordinary affinity/collation compatibility test;
+planner-IN remains gated, so `indexInAffinityOk` is mapped but not admitted in W2.
+
+Collation then follows `sqlite3BinaryCompareCollSeq`: explicit COLLATE on the
+original left operand wins, then explicit COLLATE on the original right, then the
+left operand's resolved/default collation, then the right's, finally BINARY.
+The resulting resolved built-in collation must equal the candidate field's exact
+`KeyInfo` collation (SQLite name comparison is case-insensitive). DESC and NULL
+sort metadata remain separate `KeyInfo` facts; they do not repair a collation or
+affinity mismatch. Unknown/unregistered collations, lost explicit-collation
+provenance, an unresolved operand affinity, ambiguous column identity, or a
+mismatch excludes that term from the equality/range prefix. No later residual
+check can make an unsafe seek complete because a seek may already have omitted
+rows. If `INDEXED BY` cannot be honored by an admitted full index scan plus
+residuals, or depends on such an unproved seek decision, preparation rejects the
+whole statement as temporary unsupported before cursor/program publication;
+unforced planning simply omits that term/candidate and retains a truthful scan.
+
+The TypeScript owner must reuse, then consolidate rather than fork, current
+`src/internal/vdbe.ts:expressionAffinity`, `expressionCollation`,
+`explicitCollation`, and `binaryCollation`; resolved column affinity/collation
+comes from `resolve.ts`/`schema.ts`. The seek-key lowerer applies the decision's
+comparison affinity through `Mem.applyAffinity` exactly as the current comparison
+opcodes do, and packed-key comparison uses the same identity-bearing `KeyInfo`
+and `compareMem`. Residual evaluation uses those same owners. This prevents a new
+planner evaluator or host coercion from diverging from execution.
+
+High-risk behavior is therefore explicit. Against a numeric index, numeric-looking
+TEXT is converted by numeric affinity while non-numeric TEXT remains TEXT; BLOB
+is not parsed or textified by numeric affinity and remains BLOB for storage-class
+ordering. Against a TEXT index, an INTEGER or REAL operand is text-affinitized
+before seek and residual comparison. INTEGER and REAL retain the shared numeric
+comparison rules, including exact integer/real boundaries. Ordinary `=`, `IS`,
+and ranges involving NULL retain the existing NULL truth/ordering behavior;
+`IS NULL` may seek the NULL key, while `= NULL`/ordered comparisons cannot be
+invented as matches. Collation applies only to TEXT; BLOB byte order and NULL
+ordering come from shared `compareMem`/record comparison. Tests must pair each
+selected seek with the residual result for numeric-looking/non-numeric TEXT,
+INTEGER/REAL boundary values, BLOB, and NULL, plus explicit/default BINARY,
+NOCASE, and RTRIM cases in both operand orientations and supported database
+encodings.
+
 `SourceMask` uses `bigint` dense bits mapped once from resolver cursor identities.
 This is the ordinary TS representation adaptation of `WhereMaskSet`/SQLite's
 64-bit `Bitmask`, not an algorithm substitution. Admission still enforces the
