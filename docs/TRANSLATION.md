@@ -3388,7 +3388,7 @@ TypeScript table machinery and exposed through the ordinary Fetch statement API;
 this is not host registration. `json_tree` recursively walks the ordered node tree
 depth-first and retains canonical JSONB byte offsets for id/parent; parameters,
 reset, rooted scans, hidden `json`/`root` reads, and JSONB container BLOB results
-have direct public evidence. RIGHT/FULL mixed joins and advanced grouped aggregate shapes remain
+have direct public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
 atomic typed temporary unsupported. Scalar mutation/path consumers are described
 below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,
 exact JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and

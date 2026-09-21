@@ -864,7 +864,7 @@ Source-derived representation, JSON5 canonicalization, JSONB bytes/validation,
 subtype handoff and resource/lifecycle tests are now present. The recursive
 producer translates depth-first traversal and JSONB-offset id/parent shaping, with
 pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input,
-JSONB-container, ORDER/LIMIT/OFFSET, and JSON-to-JSON/physical-left correlation and grouped aggregate public evidence. RIGHT/FULL mixed joins and advanced grouped aggregates,
+JSONB-container, ORDER/LIMIT/OFFSET, and JSON-to-JSON/physical-left correlation and grouped aggregate/HAVING public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers,
 and the full virtual-table/path corpus remain gaps; this revision does not award
 them credit.
 

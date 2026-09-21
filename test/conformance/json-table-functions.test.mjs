@@ -176,3 +176,8 @@ test('physical rows correlate into JSON table arguments',async()=>{
   const bridge=await startFixtureServer(fixtureRoot);let db,statement;
   try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select4-t1`));statement=db.prepare(`SELECT t1.n, j.atom FROM t1 JOIN json_each('[1,' || t1.n || ']') AS j ON j.atom=t1.n`).statement;const rows=[];while(await statement.step()==='row')rows.push([statement.columnInteger(0),statement.columnInteger(1)]);assert.ok(rows.length>0);assert.ok(rows.every(([left,right])=>left===right));}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
 });
+
+test('grouped JSON table aggregates apply HAVING after finalization',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);let db,statement;
+  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));statement=db.prepare(`SELECT type, count(*) AS n FROM json_each(?1) GROUP BY type HAVING count(*) > 1`).statement;statement.bind(1,'[1,2,"x",4]');assert.equal(await statement.step(),'row');assert.deepEqual([statement.columnText(0),statement.columnInteger(1)],['integer',3n]);assert.equal(await statement.step(),'done');}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+});
