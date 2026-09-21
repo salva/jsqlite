@@ -2324,9 +2324,25 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
   // json.c's eponymous-only JSON table cursors.  Inputs are evaluated by the
   // ordinary expression VM, then xFilter-shaped state is owned by the statement.
+  const jsonNames=new Set(["json_each","json_tree","jsonb_each","jsonb_tree"]);
+  if(select.from.items.length===2&&select.from.items.every(item=>jsonNames.has(item.tableName.toLowerCase()))){
+    if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this correlated JSON table composition is not implemented",{unsupportedClassification:"temporary"});
+    const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()},ops:Op[]=[];let registers=0;const allocate=()=>++registers;
+    const starts=[0,0],bind=(tree:Expression,available:number):Expression=>{
+      if(tree.kind==="column"){
+        const parts=tree.name.split('.'),name=parts.at(-1)!,qualified=parts.length>1?parts.at(-2)!:null;const candidates=select.from.items.slice(0,available).flatMap((item,index)=>qualified&&!sqliteIdentifierEqual(qualified,item.alias??item.tableName)?[]:[[index,JSON_TABLE_COLUMNS.findIndex(column=>sqliteIdentifierEqual(column,name))] as const]).filter(([,column])=>column>=0);
+        if(candidates.length!==1)throw new JSQLiteError("sqlite",candidates.length?`ambiguous column name: ${tree.name}`:`no such column: ${tree.name}`,{code:1});return{kind:"register",index:starts[candidates[0]![0]]!+candidates[0]![1]};
+      }
+      if(tree.kind==="unary")return{...tree,value:bind(tree.value,available)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,available),right:bind(tree.right,available)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bind(tree.value,available)};if(tree.kind==="call")return{...tree,args:tree.args.map(value=>bind(value,available))};return tree;
+    };
+    const open=(index:number):{rewind:number;loop:number}=>{const item=select.from.items[index]!,args=item.arguments;if(!args||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported","this JSON table argument is not implemented",{unsupportedClassification:"temporary"});const input=compileExpressionTree(bind(expressionFromReduction(args[0]!.reduction!),index),ops,allocate,parameters),root=args[1]?.reduction?compileExpressionTree(bind(expressionFromReduction(args[1].reduction),index),ops,allocate,parameters):undefined;starts[index]=registers+1;registers+=JSON_TABLE_COLUMNS.length;const rewind=ops.length;ops.push({code:"JsonTableRewind",p1:index,input,...(root===undefined?{}:{root}),recursive:item.tableName.toLowerCase().endsWith("tree"),binaryContainers:item.tableName.toLowerCase().startsWith("jsonb_"),rowStart:starts[index]!,p2:0});return{rewind,loop:ops.length};};
+    const outer=open(0),inner=open(1);let skip:number|null=null;if(select.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(select.where.reduction),2),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+    const outputs=select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported","this correlated JSON projection is not implemented",{unsupportedClassification:"temporary"});return compileExpressionTree(bind(expressionFromReduction(result.reduction),2),ops,allocate,parameters)}),outputStart=registers+1;for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}ops.push({code:"ResultRow",p1:outputStart,p2:outputs.length});const innerNext=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=innerNext;ops.push({code:"JsonTableNext",p1:1,rowStart:starts[1]!,p2:inner.loop});const outerNext=ops.length;(ops[inner.rewind] as {p2:number}).p2=outerNext;ops.push({code:"JsonTableNext",p1:0,rowStart:starts[0]!,p2:outer.loop});const halt=ops.length;(ops[outer.rewind] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  }
   const jsonTableName=select.from.items.length===1?select.from.items[0]!.tableName.toLowerCase():"";
   if(jsonTableName==="json_each"||jsonTableName==="json_tree"||jsonTableName==="jsonb_each"||jsonTableName==="jsonb_tree"){
-    if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
+    if(select.hasGroupBy||select.hasHaving||select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
     const source=select.from.items[0]!,args=source.arguments;
     if(args===null||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported",`this ${jsonTableName} argument is not implemented`,{unsupportedClassification:"temporary"});
     const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()},ops:Op[]=[];let registers=0;const allocate=()=>++registers;
@@ -2347,18 +2363,29 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       if(tree.kind==="case")return{...tree,operand:tree.operand&&bindColumns(tree.operand),pairs:tree.pairs.map(([x,y])=>[bindColumns(x),bindColumns(y)]),otherwise:tree.otherwise&&bindColumns(tree.otherwise)};
       return tree;
     };
+    const sorter=select.hasOrderBy?1:null;
+    if(sorter!==null)ops.push({code:"SorterOpen",p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:select.orderBy.length,keyFieldCount:select.orderBy.length,terms:select.orderBy.map(term=>({collation:collation(expressionFromReduction(term.expr.reduction!)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}))})});
     const rewind=ops.length;ops.push({code:"JsonTableRewind",p1:0,input,...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,p2:0});
     const loop=ops.length;let predicateJump:number|null=null;
     if(select.where?.reduction){const predicate=compileExpressionTree(bindColumns(expressionFromReduction(select.where.reduction)),ops,allocate,parameters,undefined,true);predicateJump=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     const star=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==="*";
     const outputs=star?JSON_EACH_COLUMNS.map((_,i)=>rowStart+i):select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported",`this ${jsonTableName} projection is not implemented`,{unsupportedClassification:"temporary"});return compileExpressionTree(bindColumns(expressionFromReduction(result.reduction)),ops,allocate,parameters)});
-    let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
-    ops.push({code:"ResultRow",p1:outputs[0]!,p2:outputs.length});
-    // ResultRow requires a contiguous range. Copy arbitrary expression results.
-    const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);
-    if(!contiguous){const resultStart=registers+1;for(const value of outputs){registers++;ops.splice(ops.length-1,0,{code:"Copy",p1:value,p2:registers});}(ops.at(-1) as {p1:number}).p1=resultStart;}
-    let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
-    const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    // ResultRow and sorter payloads require contiguous registers.
+    const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);let outputStart=outputs[0]!;
+    if(!contiguous){outputStart=registers+1;for(const value of outputs){registers++;ops.push({code:"Copy",p1:value,p2:registers});}}
+    if(sorter!==null){
+      const keys=select.orderBy.map(term=>{const tree=expressionFromReduction(term.expr.reduction!);if(tree.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(outputs.length))return outputs[Number(tree.value)-1]!;if(tree.kind==="column"){const alias=select.result.findIndex(result=>result.alias&&sqliteIdentifierEqual(result.alias,tree.name));if(alias>=0)return outputs[alias]!;}return compileExpressionTree(bindColumns(tree),ops,allocate,parameters);});
+      const keyStart=registers+1;for(const key of keys){registers++;ops.push({code:"Copy",p1:key,p2:registers});}
+      ops.push({code:"SorterInsert",p1:sorter,keyStart,keyCount:keys.length,payload:outputStart,payloadCount:outputs.length});
+    }else{
+      let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
+      ops.push({code:"ResultRow",p1:outputStart,p2:outputs.length});
+      let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
+      const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    }
+    if(sorter!==null){
+      const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:outputStart,count:outputs.length});let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}ops.push({code:"ResultRow",p1:outputStart,p2:outputs.length});let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}const advance=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:"SorterNext",p1:sorter,p2:sort+1});const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    }
     const names=star?[...JSON_EACH_COLUMNS]:select.result.map(expressionName);
     return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(names.map((name,i)=>Object.freeze({name:select.result[i]?.alias??name,declaredType:null,database:null,table:jsonTableName,origin:star?name:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }

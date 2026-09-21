@@ -129,3 +129,27 @@ test('json table cursor composes with LIMIT and OFFSET',async()=>{
     assert.equal(await statement.step(),'done');
   }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
 });
+
+test('json table cursor composes with ORDER BY expressions',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);
+  let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+    statement=db.prepare(`SELECT atom AS n, fullkey FROM json_tree(?1, '$.items') WHERE atom IS NOT NULL ORDER BY n DESC LIMIT 2`).statement;
+    statement.bind(1,'{"items":[3,7,5]}');
+    const rows=[]; while(await statement.step()==='row') rows.push([statement.columnInteger(0),statement.columnText(1)]);
+    assert.deepEqual(rows,[[7n,'$.items[1]'],[5n,'$.items[2]']]);
+  }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
+});
+
+test('JSON table sources correlate left-to-right in ordinary composition',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);
+  let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+    statement=db.prepare(`SELECT outer.fullkey, inner.atom FROM json_each(?1) AS outer, json_each(outer.value) AS inner WHERE inner.atom > 3`).statement;
+    statement.bind(1,'[[1,4],[5]]');
+    const rows=[];while(await statement.step()==='row')rows.push([statement.columnText(0),statement.columnInteger(1)]);
+    assert.deepEqual(rows,[['$[0]',4n],['$[1]',5n]]);
+  }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
+});
