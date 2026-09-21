@@ -3532,8 +3532,18 @@ interface WhereClause { readonly split: "and"|"or"; readonly terms: readonly Whe
   readonly outer: WhereClause|null; }
 
 type LogicalEstimate = bigint; // SQLite LogEst units; no 32-bit coercion
+interface PhysicalIndexField {
+  readonly role: "declared"|"rowid-tail"; readonly column: ColumnNode|null;
+  readonly collation: BuiltinCollation; readonly descending: boolean;
+  readonly nullsLarge: boolean;
+}
+interface PhysicalRowidIndex {
+  readonly index: IndexNode; readonly fields: readonly PhysicalIndexField[];
+  readonly declaredFieldCount: number; readonly rowidField: number;
+  readonly keyInfo: KeyInfo;
+}
 interface BtreeCapability {
-  readonly index: IndexNode|null; readonly keyInfo: KeyInfo|null;
+  readonly index: IndexNode|null; readonly physicalIndex: PhysicalRowidIndex|null;
   readonly equalityPrefix: readonly WhereTerm[]; readonly lower: WhereTerm|null;
   readonly upper: WhereTerm|null; readonly constrainedFields: number;
   readonly orderTermsSatisfied: number; readonly reverse: boolean;
@@ -3555,8 +3565,9 @@ interface WhereLevel { readonly loop: WhereLoop; readonly sourceOrdinal: number;
 
 `Expression`, `ColumnBinding`, and `ResolvedSource` refer to resolved object
 identity, not reparsed text. `BtreeCapability.index` is the exact frozen
-`IndexNode` linked from its `TableNode`; `keyInfo` is one exact immutable
-`KeyInfo` built once from that physical index's complete key layout and encoding.
+`IndexNode` linked from its `TableNode`; `physicalIndex` and its `keyInfo` are the
+one exact immutable descriptors built once from that physical index's complete
+key layout and encoding.
 Selection, unpack, compare, cursor open, and deferred table lookup must retain
 those identities and reject structurally-equal substitution. A capability records
 an equality prefix followed by at most one lower/upper range on the next key term;
@@ -3564,6 +3575,43 @@ no skipped leading column is implied. `orderTermsSatisfied`, direction, and
 covering are independently derived facts—not consequences of “uses index”.
 Covering must include every column needed by result, residual predicates, join,
 ORDER/GROUP/DISTINCT, and lowering; otherwise `needsTableLookup` is true.
+
+The W2 schema-to-physical-key owner is one `physicalRowidIndex(IndexNode,
+DatabaseEncoding)` construction performed while the immutable schema graph is
+published, not in candidate or opcode callers. It maps
+`sqliteInt.h:Index.nKeyCol/nColumn/aiColumn/aSortOrder/azColl` and
+`KeyInfo.nKeyField/nAllField` through `build.c:sqlite3KeyInfoOfIndex` (5653).
+For the initially admitted ordinary rowid index, `IndexNode.terms` are exactly the
+declared fields and one implicit final `rowid-tail` field is appended; therefore
+`declaredFieldCount = IndexNode.terms.length`, `rowidField` is that count, and
+`KeyInfo.totalFieldCount` is declared count plus one. The tail is the sole source
+for `IdxRowid`/deferred table positioning and is also available as rowid for a
+covering read; it is not a declared index column. Ordinary table columns are
+covering only if an identity-matched declared field stores that column.
+
+Each declared field copies its resolved built-in collation and DESC bit; the
+descriptor carries the database encoding. The rowid tail is BINARY, ASC, and
+`nullsLarge=false`. SQLite's index `KEYINFO_ORDER_BIGNULL` assertion means W2
+admits no declared index NULLS-order flag; unknown collations, expressions, or
+any metadata that does not determine these fields are gated before candidates.
+For a non-UNIQUE index, or a UNIQUE index with any nullable declared key field,
+`KeyInfo.keyFieldCount = totalFieldCount`, so the rowid tie-break is part of full
+record ordering. This preserves SQLite UNIQUE semantics: NULL in a declared key
+does not collapse distinct rows, and the appended rowid orders them. Only a
+UNIQUE index whose every declared field is a simple `NOT NULL` column has
+`keyFieldCount = declaredFieldCount`; its rowid remains an auxiliary packed field
+(`nAllField`) but is excluded from key equality. Seek prefix/range admission is
+still bounded by `declaredFieldCount`, never by the implicit tail.
+
+W2 rejects the whole index descriptor before candidate generation if it cannot
+prove exactly that rowid-table layout: non-rowid tables; physically ambiguous
+terms; expression/partial/unknown automatic-index
+terms; unsupported collation or index NULL-order metadata; a missing/unexpected
+rowid suffix; or field/count/encoding disagreement. A forced ambiguous index is
+temporary unsupported for the statement; an unforced one is unavailable while a
+truthful scan remains eligible. The same `PhysicalRowidIndex` and `KeyInfo`
+identities flow through selection, seek-key unpack/comparison, index cursor open,
+termination, covering-column selection, rowid extraction, and deferred seek.
 
 `SourceMask` uses `bigint` dense bits mapped once from resolver cursor identities.
 This is the ordinary TS representation adaptation of `WhereMaskSet`/SQLite's
@@ -3611,6 +3659,22 @@ supported sqlite_stat1 values and refine costs; STAT4 samples stay gated until t
 `analyze.c` sample decode/probe path and matching KeyInfo comparisons are ported.
 IN-loop, OR/multi-index, skip-scan, automatic-index construction, and expression
 or partial-index implication each require their own later source/test tranche.
+
+
+W1/W2 have a statement-wide RIGHT/FULL admission boundary. Before term creation,
+candidate generation, cursor allocation, or partial planner lowering, any SELECT
+statement containing a RIGHT or FULL join is dispatched unchanged to the current
+source-order compiler; no SELECT core or nested part of that statement uses the
+new path solver. This is a supported fallback, not a rejection and not a claim
+that generic provenance models right-join execution. The current compiler remains
+the owner of matched-rowid tracking, physical-left NULL rows, unmatched-right
+second pass, ON-versus-WHERE placement, and reset/error cleanup. Planner admission
+requires a separate later tranche mapping `whereInt.h:WhereRightJoin` and
+`WhereLevel.pRJ`, `where.c`'s `bFirstPastRJ` barriers and setup/end branches around
+7393-7422/7540-7550/7726-7731, and `wherecode.c` matched-set and
+`sqlite3WhereRightJoinLoop` branches around 2740-2946. Until then,
+`nullRowRegister` covers admitted LEFT-join lowering only and an N-best path can
+never reorder a RIGHT/FULL query.
 
 Absent statistics use pinned default LogEst estimates from the same
 `whereLoopAddBtree*` branches; never infer cardinality by eagerly decoding the
@@ -3690,3 +3754,7 @@ prerequisites/path order; ORDER/DISTINCT sorter elision; reset/rebind/error clea
 and every atomic gate above. Add path-local corruption tests showing unrelated
 subtrees remain untouched. Program-shape tests must prove the selected lowering,
 while oracle results prove behavior; neither alone is compatibility evidence.
+The fallback boundary also requires matched and unmatched RIGHT and FULL cases,
+ON-versus-WHERE filtering, nested joins/subqueries, and reset/error cleanup to
+prove dispatch leaves the current source-order machinery unchanged; these are
+fallback regressions, not planner-credit tests.

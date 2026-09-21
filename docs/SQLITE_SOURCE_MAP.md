@@ -1537,6 +1537,8 @@ representation and staged admission contract”. No public API changes.
 |---|---|---|---|
 | Clause split, term provenance, prerequisite masks, derived terms | `src/whereInt.h:WhereClause,WhereTerm,WhereMaskSet`; `src/whereexpr.c:exprAnalyze` (1121), `sqlite3WhereSplit` (1599), outer-join branches 506-507 and 1187-1197 | Resolved expressions/source order in `parse.ts`/`resolve.ts`; no shared term model | ON/WHERE/USING outer-join truth, correlated prerequisites, bigint-mask tests |
 | B-tree candidate generation and dominance | `src/where.c:whereLoopInsert` (2832), `whereLoopAddBtreeIndex` (3220), `whereLoopAddBtree` (4004) | `schema.ts:IndexNode`; current `vdbe.ts` scan-only lowering | rowid then ordinary-index equality/range/composite-prefix candidates; forced-index atomic gates |
+| Physical rowid-index descriptor and exact identity | `src/sqliteInt.h:Index.nKeyCol/nColumn/aiColumn/aSortOrder/azColl`, `KeyInfo.nKeyField/nAllField`, `XN_ROWID`; `src/build.c:sqlite3KeyInfoOfIndex` (5653); `src/vdbe.c` `OP_Column`, `OP_IdxRowid`/`OP_DeferredSeek` (6708), `OP_Idx*` (6827) | `schema.ts:IndexNode.terms` currently describes declared terms only; `comparison.ts:KeyInfo` already enforces immutable identity and key/all counts | one schema-publication `PhysicalRowidIndex`: declared fields plus implicit rowid tail, encoding/collation/DESC/NULL policy, UNIQUE-null key-count rule; same identities across candidates/open/unpack/compare/covering/rowid/deferred seek; ambiguous layouts gated atomically |
+| RIGHT/FULL initial planner boundary | `src/whereInt.h:WhereRightJoin`, `WhereLevel.pRJ`; `src/where.c:bFirstPastRJ` and branches 7393-7422, 7540-7550, 7726-7731; `src/wherecode.c` matched-set and `sqlite3WhereRightJoinLoop` around 2740-2946 | current `vdbe.ts` source-order compiler owns match tracking, physical-left NULL rows and unmatched-right pass; proposed planner has no equivalent state | W1/W2 statement-wide dispatch to unchanged source-order compiler before planner work; matched/unmatched RIGHT/FULL, ON/WHERE, nested, reset/error fallback regressions; later planning requires its own mapped tranche |
 | N-best join path and order/distinct facts | `src/whereInt.h:WhereLoop,WherePath`; `src/where.c:wherePathSolver` (5835); `sqlite3WhereIsDistinct` (62), `sqlite3WhereIsOrdered` (74); `src/select.c` consumers around 8304-8308, 8543-8545 | source-order nested scan; existing typed sorter/DISTINCT and complete `KeyInfo` | deterministic cost/tie/path tests; only complete-path proof may elide sorter/distinct work |
 | Level/code ownership | `src/whereInt.h:WhereLevel`; `src/wherecode.c:codeEqualityTerm` (803), `sqlite3WhereCodeOneLoopStart` (1466); `src/where.c:sqlite3WhereBegin` (6829), `sqlite3WhereEnd` (7520) | VDBE labels/cursors/null-row/lifecycle exist but are not planner-owned | scan, rowid seek, index seek/termination, reverse, covering, deferred-seek program shapes and cleanup |
 | Physical seek and key semantics | `src/btree.c:sqlite3BtreeTableMoveto` (5805), `sqlite3BtreeIndexMoveto` (6036); seek/index/deferred-seek cases in `src/vdbe.c`; `src/sqliteInt.h:KeyInfo` | path-local `btree.ts`; shared Mem/comparison and identity-bearing `KeyInfo` | typed key boundaries plus off-path/selected-path corruption; exact IndexNode/KeyInfo identity |
@@ -1546,7 +1548,10 @@ representation and staged admission contract”. No public API changes.
 Representation choices are ordinary TypeScript adaptations: immutable objects and
 arrays for source structs/lists, `bigint` for dense masks and logical LogEst/stat
 values, and labels for VDBE addresses. They retain upstream candidate/path/lowering
-algorithms; no exceptional substitution is proposed. Existing eager decoded-tree
+algorithms; no exceptional substitution is proposed. W1/W2 do not claim that the
+reduced `WhereLevel` translates `WhereRightJoin`: a statement containing RIGHT or
+FULL uses the existing source-order compiler atomically until that source model is
+mapped. Existing eager decoded-tree
 restoration, native runtime backends, writes, eval, API/registration changes, and
 product-scope changes are explicitly absent.
 
