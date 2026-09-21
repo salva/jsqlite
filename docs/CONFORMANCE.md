@@ -591,3 +591,9 @@ evidence for these cases, not a claim for later unimplemented JSON consumers.
 - Public scalar mutation evidence covers leading/middle/trailing NULL-path skips,
   root-removal SQL NULL/stop semantics, `[#-0]`, in-range and out-of-range
   `[#-N]`, array insertion distinctions, and exact JSONB result bytes.
+
+`json-blob-document.test.mjs` pins the 3.53.4 tag-20240123-a distinction through
+public Fetch: text-BLOB documents, ambiguous JSONB-looking prefixes, malformed
+text, valid JSONB neighbors, NULL, validation flags, extraction/edit, each/tree,
+metadata/storage classes, and saved-error lifecycle, while constructors retain the
+ordinary-BLOB-value error.

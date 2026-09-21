@@ -918,3 +918,10 @@ Review v6 findings 1–4 are corrected in the shared mutation owner: NULL pair s
 root-removal SQL NULL/stop, and mutation/removal `[#-N]` branches now follow the
 pinned routines for TEXT and JSONB. Public tests distinguish storage metadata and
 exact JSONB bytes. Remaining corpus breadth is not claimed as exhaustive parity.
+
+### Revision 2026-09-21 — BLOB document compatibility
+
+The review-v9 shared-foundation finding is corrected: `jsonArgIsJsonb` now
+classifies recognized JSONB and non-JSONB document BLOBs follow
+`jsonParseFuncArg` tag-20240123-a text parsing. Public tests keep ordinary BLOB
+constructor/aggregate values rejected.

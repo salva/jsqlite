@@ -3460,3 +3460,14 @@ path/value pairs for set/insert/replace/array-insert without disturbing later
 pairs; root removal returns SQL NULL and stops sequential removal; and `[#-N]`
 resolves from array end (including `#-0` append, out-of-range no-op, and
 array-insert-before distinctions). Malformed neighboring path syntax still errors.
+
+#### Ordinary BLOB document compatibility (2026-09-21 correction)
+
+The shared document parser now translates `json.c:jsonArgIsJsonb` and
+`jsonParseFuncArg` tag-20240123-a: a BLOB recognized by the SQLite JSONB header,
+size, and small ambiguous-prefix deep check remains JSONB; any other BLOB document
+falls through to UTF-8 text conversion and JSON/JSON5 parsing. `json_valid` applies
+text flags 1/2 only after that classification and JSONB flags 4/8 only to recognized
+JSONB. This compatibility is limited to document arguments. Constructors and
+aggregates still reject an ordinary BLOB value with `JSON cannot hold BLOB values`,
+as `jsonFunctionArgToBlob`/`jsonAppendSqlValue` require.

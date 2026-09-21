@@ -607,3 +607,8 @@ typed temporary-unsupported error rather than an approximation.
 JSON mutation paths follow SQLite sequencing: NULL path/value pairs are skipped
 for insert/replace/set/array-insert; root `$` removal returns SQL NULL and stops;
 and valid `[#-N]` addresses from array end (`#-0` is the append position).
+
+JSON document arguments retain SQLite's compatibility treatment for BLOB input:
+recognized JSONB is parsed as binary; a non-JSONB BLOB is interpreted as UTF-8 JSON
+text. This does not make BLOB a JSON value type—passing an ordinary BLOB as a value
+to `json_array`, `json_object`, or JSON aggregates remains an SQLite error.
