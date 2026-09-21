@@ -3412,9 +3412,15 @@ construction (`json_quote`, `json_array`, `json_object`), mutation
 and `->`/`->>` lowering. These operate on the ordered private `JsonNode` tree,
 copy on edit, preserve duplicate-key order and JSON subtype value arguments, and
 charge parsing/result work through statement controls. `test/conformance/json-scalar-full.test.mjs`
-exercises the public prepared-statement path. Remaining conformance risk is exact
-error-position offsets beyond the currently covered malformed-at-start case and
-full upstream path/error corpus breadth; this is not a blanket compatibility claim.
+exercises the public prepared-statement path. JSONB edit output also preserves
+decoded source label encodings and follows `jsonLookupStep` when a path creates an
+object member: unescaped labels use `JSONB_TEXTRAW`, while escaped quoted labels
+retain `JSONB_TEXT5` payload spelling. This is a direct translation needed because
+canonical tree re-encoding with `JSONB_TEXT` is observably byte-different; the
+public suite pins constructor, set, patch, and array-insert bytes against 3.53.4.
+Remaining conformance risk is broader exact error-position, quoted-path, numeric
+boundary, and malformed-path corpus breadth; this is not a blanket compatibility
+claim.
 
 ### JSON aggregate translation (2026-09-21, [[card:card-r-c]])
 
