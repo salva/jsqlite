@@ -112,22 +112,41 @@ function scalarResult(node:JsonNode):Mem{
 
 
 export const JSON_EACH_COLUMNS=Object.freeze(["key","value","type","atom","id","parent","fullkey","path"] as const);
+export const JSON_TABLE_COLUMNS=Object.freeze([...JSON_EACH_COLUMNS,"json","root"] as const);
 
 /** src/json.c JsonEachCursor/jsonEachColumn, non-recursive xFilter/xNext slice.
  * IDs are offsets in SQLite's canonical JSONB parse image, not ordinals. */
-export function jsonEachRows(value:Mem,charge:(n:number)=>void=()=>{}):readonly (readonly Mem[])[]{
+export function jsonEachRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{return jsonTableRows(value,false,charge,rootPath,binaryContainers)}
+export function jsonTreeRows(value:Mem,charge:(n:number)=>void=()=>{},rootPath="$",binaryContainers=false):readonly (readonly Mem[])[]{return jsonTableRows(value,true,charge,rootPath,binaryContainers)}
+
+/** src/json.c JsonEachCursor/jsonEachFilter/jsonEachNext/jsonEachColumn traversal.
+ * The recursive mode retains JSONB byte offsets as ids and parent ids. */
+function jsonTableRows(value:Mem,recursive:boolean,charge:(n:number)=>void,rootPath:string,binaryContainers:boolean):readonly (readonly Mem[])[]{
  if(value.initialStorageClass==="null")return Object.freeze([]);
- const root=value.initialStorageClass==="blob"?(()=>{const b=value.blobValue(),decoded=decodeJsonbUnchecked(b);if(decoded.next!==b.length)throw malformed();return decoded.node})():parseJsonMem(value,true,charge);
+ const document=value.initialStorageClass==="blob"?(()=>{const b=value.blobValue(),decoded=decodeJsonbUnchecked(b);if(decoded.next!==b.length)throw malformed();return decoded.node})():parseJsonMem(value,true,charge);
+ const selected=jsonLookup(document,rootPath);if(selected===undefined)return Object.freeze([]);
  const size=(node:JsonNode):number=>encodeJsonb(node).length;
+ let selectedId=0;
+ const locate=(node:JsonNode,id:number):boolean=>{if(node===selected){selectedId=id;return true}let offset=id+1;if(node.kind==="array")for(const child of node.values){if(locate(child,offset))return true;offset+=size(child)}else if(node.kind==="object")for(const [label,child] of node.entries){if(locate(child,offset))return true;offset+=encodeJsonb({kind:"string",value:label}).length+size(child)}return false};locate(document,0);
+ const root=selected;
  const text=(s:string):Mem=>{const m=new Mem();m.setText(te.encode(s),"utf-8");return m};
  const integer=(n:bigint):Mem=>{const m=new Mem();m.setInt64(n);return m};
  const nil=():Mem=>{const m=new Mem();m.setNull();return m};
+ const valueResult=(node:JsonNode):Mem=>node.kind==="array"||node.kind==="object"?(binaryContainers?jsonbResult(node):jsonTextResult(node)):scalarResult(node);
  const type=(node:JsonNode):string=>node.kind==="true"||node.kind==="false"?node.kind:node.kind==="number"?(/^-?\d+$/.test(canonicalNumber(node.raw))?"integer":"real"):node.kind;
- const row=(key:Mem,node:JsonNode,id:number,fullkey:string):readonly Mem[]=>Object.freeze([key,scalarResult(node),text(type(node)),node.kind==="array"||node.kind==="object"?nil():scalarResult(node),integer(BigInt(id)),nil(),text(fullkey),text("$")]);
- if(root.kind!=="array"&&root.kind!=="object")return Object.freeze([row(nil(),root,0,"$")]);
- const rows:(readonly Mem[])[]=[];let offset=1;
- if(root.kind==="array")for(let i=0;i<root.values.length;i++){const node=root.values[i]!;rows.push(row(integer(BigInt(i)),node,offset,`$[${i}]`));offset+=size(node)}
- else for(const [key,node] of root.entries){const label=encodeJsonb({kind:"string",value:key});const id=offset;const simple=/^[A-Za-z][A-Za-z0-9]*$/.test(key);rows.push(row(text(key),node,id,simple?`$.${key}`:`$.${quote(key)}`));offset+=label.length+size(node)}
+ const row=(key:Mem,node:JsonNode,id:number,parent:number|null,fullkey:string,path:string):readonly Mem[]=>Object.freeze([key,valueResult(node),text(type(node)),node.kind==="array"||node.kind==="object"?nil():scalarResult(node),integer(BigInt(id)),parent===null?nil():integer(BigInt(parent)),text(fullkey),text(path),value,text(rootPath)]);
+ const rows:(readonly Mem[])[]=[];
+ const walk=(node:JsonNode,id:number,parent:number|null,key:Mem,fullkey:string,path:string):void=>{
+  rows.push(row(key,node,id,parent,fullkey,path));if(!recursive)return;
+  let offset=id+1;
+  if(node.kind==="array")for(let i=0;i<node.values.length;i++){const child=node.values[i]!,childPath=`${fullkey}[${i}]`;walk(child,offset,id,integer(BigInt(i)),childPath,fullkey);offset+=size(child)}
+  else if(node.kind==="object")for(const [label,child] of node.entries){const labelBytes=encodeJsonb({kind:"string",value:label}),childId=offset,childPath=/^[A-Za-z][A-Za-z0-9]*$/.test(label)?`${fullkey}.${label}`:`${fullkey}.${quote(label)}`;walk(child,childId,id,text(label),childPath,fullkey);offset+=labelBytes.length+size(child)}
+ };
+ if(recursive){walk(root,selectedId,null,nil(),rootPath,rootPath);return Object.freeze(rows)}
+ if(root.kind!=="array"&&root.kind!=="object")return Object.freeze([row(nil(),root,selectedId,null,rootPath,rootPath)]);
+ let offset=selectedId+1;
+ if(root.kind==="array")for(let i=0;i<root.values.length;i++){const node=root.values[i]!;rows.push(row(integer(BigInt(i)),node,offset,null,`${rootPath}[${i}]`,rootPath));offset+=size(node)}
+ else for(const [key,node] of root.entries){const label=encodeJsonb({kind:"string",value:key});const id=offset;const simple=/^[A-Za-z][A-Za-z0-9]*$/.test(key);rows.push(row(text(key),node,id,null,simple?`${rootPath}.${key}`:`${rootPath}.${quote(key)}`,rootPath));offset+=label.length+size(node)}
  return Object.freeze(rows);
 }
 

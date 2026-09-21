@@ -567,11 +567,16 @@ JSON is a `JSQLiteError` with `kind:"sqlite"`; statement work, result-byte,
 cancellation and deadline controls apply normally.
 
 The current table-valued surface is intentionally narrower than SQLite's module:
-only `SELECT * FROM json_each('<string literal>')` is admitted, exposing its eight
-visible columns through the ordinary Fetch metadata/value contract. A second root
-argument, parameters or expression arguments, projection/filter/join/order/group/
-limit compositions, hidden columns, `jsonb_each`, `json_tree`, and `jsonb_tree`
-are typed temporary unsupported, not compatibility credit.
+The internal `json_each`, `json_tree`, `jsonb_each`, and `jsonb_tree` table sources
+accept one or two scalar-expression arguments through the ordinary Fetch
+metadata/value contract. Visible expression projection and WHERE are admitted;
+`json` and `root` may be read explicitly but remain absent from `*`. The recursive
+`json_tree` producer follows
+pinned depth-first JSONB-offset id/parent shaping; current direct evidence is the
+pinned scalar-root `fullkey` case. A second root argument, parameters or expression
+arguments, filter/join/order/group/limit compositions, hidden columns,
+`jsonb_each`, and `jsonb_tree` are typed temporary unsupported, not compatibility
+credit.
 
 ### JSON scalar functions
 

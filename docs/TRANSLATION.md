@@ -3380,12 +3380,15 @@ used. Browser-safe `Uint8Array`, `BigInt`, and `TextEncoder/Decoder` replace C
 buffers without changing the serialized bytes.
 
 The coherent public tranche is `json`, `jsonb`, `json_valid`, `json_extract`, JSON
-array/object aggregates, and one bounded read-only table route:
-`SELECT * FROM json_each('<string literal>')`. Its eight visible columns are
-produced by an internal/native TypeScript table producer and exposed through the
-ordinary Fetch statement API; this is not host registration. Root-argument,
-parameter/expression-input, projection/filter/join/order/group/limit and hidden-
-column `json_each` shapes, plus `jsonb_each`, `json_tree`, and `jsonb_tree`, remain
+array/object aggregates, and bounded read-only table routes:
+`json_each`, `json_tree`, `jsonb_each`, and `jsonb_tree` with one or two
+ordinary scalar-expression arguments, visible expression projections and WHERE.
+Their runtime statement-owned filter/next state is produced by internal/native
+TypeScript table machinery and exposed through the ordinary Fetch statement API;
+this is not host registration. `json_tree` recursively walks the ordered node tree
+depth-first and retains canonical JSONB byte offsets for id/parent; parameters,
+reset, rooted scans, hidden `json`/`root` reads, and JSONB container BLOB results
+have direct public evidence. Joins/correlation and ORDER/GROUP/LIMIT shapes remain
 atomic typed temporary unsupported. Scalar mutation/path consumers are described
 below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,
 exact JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and

@@ -24,7 +24,7 @@ import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
-import { jsonArrayLength, jsonArrow, jsonConstruct, jsonEachRows, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, type JsonNode } from "./json.ts";
+import { jsonArrayLength, jsonArrow, jsonConstruct, jsonEachRows, jsonTreeRows, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 export {sqlite3WindowRewrite};
@@ -99,6 +99,8 @@ type Op =
   | { readonly code: "Subtract"; readonly p1: number; readonly p2: number; readonly p3: number }
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number; readonly p2?: number }
+  | { readonly code: "JsonTableRewind"; readonly p1:number; readonly input:number; readonly root?:number; readonly recursive:boolean; readonly binaryContainers:boolean; readonly rowStart:number; readonly p2:number }
+  | { readonly code: "JsonTableNext"; readonly p1:number; readonly rowStart:number; readonly p2:number }
   | { readonly code: "SorterOpen"; readonly p1:number; readonly keyInfo:KeyInfo }
   | { readonly code: "SorterInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly payload:number; readonly payloadCount:number; readonly topN?:number }
   | { readonly code: "SorterSort"; readonly p1:number; readonly emptyJump:number }
@@ -2320,14 +2322,42 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
 export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
-  // json.c's eponymous-only json_each module, translated as an internal
-  // table-valued producer rather than exposing host module registration.
-  if(select.from.items.length===1&&select.from.items[0]!.tableName.toLowerCase()==="json_each"&&select.from.tokens[1]?.text==="("){
-    if(select.result.length!==1||select.result[0]!.tokens.length!==1||select.result[0]!.tokens[0]!.text!=="*"||select.where||select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasLimit)throw new JSQLiteError("unsupported","this json_each composition is not implemented",{unsupportedClassification:"temporary"});
-    const argument=select.from.tokens.slice(2,-1);if(argument.length!==1||argument[0]!.kind!=="string")throw new JSQLiteError("unsupported","this json_each argument is not implemented",{unsupportedClassification:"temporary"});
-    const input=new Mem();input.setText(new TextEncoder().encode(decodeString(argument[0]!.text)),"utf-8");const rows=jsonEachRows(input);const ops:Op[]=[];let registers=JSON_EACH_COLUMNS.length;
-    for(const row of rows){for(let i=0;i<row.length;i++){const value=row[i]!;switch(value.initialStorageClass){case"null":ops.push({code:"Null",p2:i+1});break;case"integer":ops.push({code:"Integer",p1:value.integerValue(),p2:i+1});break;case"real":ops.push({code:"Real",p1:value.realValue(),p2:i+1});break;case"text":ops.push({code:"String",p1:value.textValue(),p2:i+1});break;case"blob":ops.push({code:"Blob",p1:value.blobValue(),p2:i+1});break}}ops.push({code:"ResultRow",p1:1,p2:row.length})}ops.push({code:"Halt"});
-    return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(JSON_EACH_COLUMNS.map(name=>Object.freeze({name,declaredType:null,database:null,table:"json_each",origin:name}))),parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  // json.c's eponymous-only JSON table cursors.  Inputs are evaluated by the
+  // ordinary expression VM, then xFilter-shaped state is owned by the statement.
+  const jsonTableName=select.from.items.length===1?select.from.items[0]!.tableName.toLowerCase():"";
+  if(jsonTableName==="json_each"||jsonTableName==="json_tree"||jsonTableName==="jsonb_each"||jsonTableName==="jsonb_tree"){
+    if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasLimit||select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
+    const source=select.from.items[0]!,args=source.arguments;
+    if(args===null||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported",`this ${jsonTableName} argument is not implemented`,{unsupportedClassification:"temporary"});
+    const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()},ops:Op[]=[];let registers=0;const allocate=()=>++registers;
+    const input=compileExpressionTree(expressionFromReduction(args[0]!.reduction!),ops,allocate,parameters);
+    const root=args.length===2?compileExpressionTree(expressionFromReduction(args[1]!.reduction!),ops,allocate,parameters):undefined;
+    const rowStart=registers+1;registers+=JSON_TABLE_COLUMNS.length;
+    const bindColumns=(tree:Expression):Expression=>{
+      if(tree.kind==="column"){
+        const name=tree.name.split('.').at(-1)!,index=JSON_TABLE_COLUMNS.findIndex(column=>sqliteIdentifierEqual(column,name));
+        if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} column is not implemented`,{unsupportedClassification:"temporary"});
+        return {kind:"register",index:rowStart+index};
+      }
+      if(tree.kind==="unary")return{...tree,value:bindColumns(tree.value)};
+      if(tree.kind==="binary")return{...tree,left:bindColumns(tree.left),right:bindColumns(tree.right)};
+      if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bindColumns(tree.value)};
+      if(tree.kind==="call")return{...tree,args:tree.args.map(bindColumns)};
+      if(tree.kind==="case")return{...tree,operand:tree.operand&&bindColumns(tree.operand),pairs:tree.pairs.map(([x,y])=>[bindColumns(x),bindColumns(y)]),otherwise:tree.otherwise&&bindColumns(tree.otherwise)};
+      return tree;
+    };
+    const rewind=ops.length;ops.push({code:"JsonTableRewind",p1:0,input,...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,p2:0});
+    const loop=ops.length;let predicateJump:number|null=null;
+    if(select.where?.reduction){const predicate=compileExpressionTree(bindColumns(expressionFromReduction(select.where.reduction)),ops,allocate,parameters,undefined,true);predicateJump=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+    const star=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==="*";
+    const outputs=star?JSON_EACH_COLUMNS.map((_,i)=>rowStart+i):select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported",`this ${jsonTableName} projection is not implemented`,{unsupportedClassification:"temporary"});return compileExpressionTree(bindColumns(expressionFromReduction(result.reduction)),ops,allocate,parameters)});
+    ops.push({code:"ResultRow",p1:outputs[0]!,p2:outputs.length});
+    // ResultRow requires a contiguous range. Copy arbitrary expression results.
+    const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);
+    if(!contiguous){const resultStart=registers+1;for(const value of outputs){registers++;ops.splice(ops.length-1,0,{code:"Copy",p1:value,p2:registers});}(ops.at(-1) as {p1:number}).p1=resultStart;}
+    const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    const names=star?[...JSON_EACH_COLUMNS]:select.result.map(expressionName);
+    return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(names.map((name,i)=>Object.freeze({name:select.result[i]?.alias??name,declaredType:null,database:null,table:jsonTableName,origin:star?name:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
   // Route a compound owner before treating its select-level first-arm carrier
   // as a standalone derived source, which would silently discard later arms.
@@ -3015,6 +3045,7 @@ export class VdbeStatement implements Statement {
   #rowStart = 0;
   #rowCount = 0;
   #cursors = new Map<number, TableScanCursor>();
+  #jsonCursors = new Map<number,{rows:readonly (readonly Mem[])[];index:number}>();
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
   // Aggregate programs can retain a decoded row after Next moves the btree
@@ -3068,6 +3099,20 @@ export class VdbeStatement implements Statement {
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
+          case "JsonTableRewind": {
+            const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!.initialStorageClass==="null"?null:this.#registers[op.root]!.textValue();
+            const charge=(units:number)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}};
+            const rows=root===null?Object.freeze([]):op.recursive?jsonTreeRows(input,charge,root,op.binaryContainers):jsonEachRows(input,charge,root,op.binaryContainers);
+            const cursor={rows,index:0};this.#jsonCursors.set(op.p1,cursor);
+            if(rows.length===0){this.#pc=op.p2;break;}
+            for(let i=0;i<rows[0]!.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(rows[0]![i]!);
+            break;
+          }
+          case "JsonTableNext": {
+            const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","advance on unopened JSON table cursor");cursor.index++;
+            if(cursor.index<cursor.rows.length){const row=cursor.rows[cursor.index]!;for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);this.#pc=op.p2;}
+            break;
+          }
           case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
           case "WindowCheck": {
             const value=this.#registers[op.p1]!,message=`frame ${op.boundary} offset must be a non-negative ${op.numeric?"number":"integer"}`;
@@ -3252,7 +3297,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();this.#borrow.invalidate();

@@ -858,12 +858,15 @@ three encodings. This remains bounded evidence, not exhaustive `date.c` equivale
 ### Revision 2026-09-21 — JSON foundation
 
 The earlier absence finding is superseded only for the bounded `json`, `jsonb`,
-`json_valid`, `json_extract`, JSON aggregate and literal-only `SELECT * FROM
-json_each(...)` tranche. Source-derived
-representation, JSON5 canonicalization, JSONB bytes/validation, subtype handoff and
-resource/lifecycle tests are now present. General/rooted/composed `json_each`, its
-hidden columns, `jsonb_each`, `json_tree`, `jsonb_tree`, and the full virtual-
-table/path corpus remain gaps; this revision does not award them credit.
+`json_valid`, `json_extract`, JSON aggregate, literal `SELECT * FROM
+json_each(...)`, and runtime expression/root/WHERE and JSONB table-function tranche.
+Source-derived representation, JSON5 canonicalization, JSONB bytes/validation,
+subtype handoff and resource/lifecycle tests are now present. The recursive
+producer translates depth-first traversal and JSONB-offset id/parent shaping, with
+pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input and JSONB-container public evidence. Join/correlation/
+join/order/group/limit forms, hidden columns, `jsonb_each`, `jsonb_tree`, and the
+full virtual-table/path corpus remain gaps; this revision does not award them
+credit.
 
 ### Revision 2026-09-21 — JSON scalar finding
 
