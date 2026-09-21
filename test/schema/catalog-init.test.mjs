@@ -157,15 +157,16 @@ test("index DDL table links use SQLite ASCII identifier comparison", async () =>
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained", async () => {
-  const ddl = `CREATE TABLE p(id PRIMARY KEY);
+test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained in every encoding", async () => {
+  for (const encoding of ["UTF-8", "UTF-16le", "UTF-16be"]) {
+  const ddl = `PRAGMA encoding=${JSON.stringify(encoding)}; CREATE TABLE p(id PRIMARY KEY);
     CREATE TABLE t(a TEXT PRIMARY KEY CHECK(length(a)>0), b,
       CONSTRAINT ck CHECK(a<>b),
       CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES p(id,other)
       ON DELETE CASCADE ON UPDATE SET NULL DEFERRABLE INITIALLY DEFERRED) WITHOUT ROWID`;
   const dir = await mkdtemp(join(tmpdir(), "jsqlite-schema-constraint-"));
   try {
-    const path = join(dir, "constraint.db");
+    const path = join(dir, `constraint-${encoding}.db`);
     await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
     await withImage(new Uint8Array(await readFile(path)), "constraint.db", async connection => {
       const schema=loadSchemaGraph(connection),p=schema.tables.get("p"),t=schema.tables.get("t");assert.ok(p&&t);
@@ -177,9 +178,13 @@ test("WITHOUT ROWID and generated CHECK/foreign-key schema metadata are retained
       assert.ok(Object.isFrozen(t.checks)&&Object.isFrozen(t.foreignKeys)&&Object.isFrozen(p.referencedBy));connection.close();
     });
   } finally { await rm(dir, { recursive: true, force: true }); }
+  }
 });
 
 test("public Chinook capture loads retained foreign keys and representative rows", async () => {
+  // Floating acquisition URL is provenance only. Acceptance is bound to the
+  // exact size and SHA-256 below, not to the mutable branch name:
+  // https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite
   const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
   if(!path)return;
   const image=new Uint8Array(await readFile(path));

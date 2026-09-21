@@ -495,7 +495,11 @@ links. Catalog names are keyed and linked by the shared ASCII-only helper in
 Current bounded construction supports ordinary column declarations; ordered default-expression indexes; not-null (including `build.c`'s implicit NOT NULL for WITHOUT ROWID primary-key columns), unique, collation and primary-key column metadata; generated expressions with stored/virtual state; explicit-index uniqueness/origin and per-term collation/sort/null-order metadata; views; and WITHOUT ROWID declared-primary-key storage mapping. CHECK and REFERENCES/FOREIGN KEY declarations are retained from generated reductions as ordered immutable read-schema nodes, including expression/source, local/referenced columns, linked target tables, actions, and deferral metadata (`parse.y`, `build.c:sqlite3AddCheckConstraint/sqlite3CreateForeignKey`). Automatic indexes beyond supported primary-key layouts, triggers, virtual tables, and further recognized grammar consumers
 report explicit temporary unsupported errors; malformed row shape/type/text/root/link/DDL reports schema
 corruption. They are backlog, not permanent exclusions, and are never silently
-skipped. The loader does not execute user DDL and does not reopen or copy the
+skipped. The all-encoding rich-constraint path is checked by both the immutable
+TS loader and the source-ID-verified pinned 3.53.4 library. The public Chinook
+Fetch fixture is provenance-bound to 1,007,616 bytes and SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`;
+its floating GitHub URL is not itself compatibility evidence. The loader does not execute user DDL and does not reopen or copy the
 connection storage owner.
 
 ## Stage 3 internal Mem core (implemented)

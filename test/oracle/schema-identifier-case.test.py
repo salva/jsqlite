@@ -32,17 +32,28 @@ for encoding in ("UTF-8", "UTF-16le", "UTF-16be"):
         execute(db, f'''PRAGMA encoding="{encoding}";
           CREATE TABLE "Ä"("Ö" INTEGER PRIMARY KEY, "ö" TEXT);
           CREATE INDEX "IÄ" ON "Ä"("ö");
-          CREATE TABLE "ä"(x); CREATE INDEX "iä" ON "ä"(x);''')
+          CREATE TABLE "ä"(x); CREATE INDEX "iä" ON "ä"(x);
+          CREATE TABLE parent(id PRIMARY KEY, other);
+          CREATE TABLE child(a CHECK(length(a)>0), b,
+            CONSTRAINT ck CHECK(a<>b),
+            CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES parent(id,other)
+            ON DELETE CASCADE ON UPDATE SET NULL DEFERRABLE INITIALLY DEFERRED);''')
         assert execute(db, "SELECT type,name,tbl_name FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY rowid") == [
-            ("table", "Ä", "Ä"), ("index", "IÄ", "Ä"), ("table", "ä", "ä"), ("index", "iä", "ä")]
+            ("table", "Ä", "Ä"), ("index", "IÄ", "Ä"), ("table", "ä", "ä"), ("index", "iä", "ä"),
+            ("table", "parent", "parent"), ("table", "child", "child")]
+        assert execute(db, "SELECT \"from\",\"table\",\"to\",on_update,on_delete FROM pragma_foreign_key_list('child') ORDER BY seq") == [
+            ("a", "parent", "id", "SET NULL", "CASCADE"), ("b", "parent", "other", "SET NULL", "CASCADE")]
+        assert execute(db, "SELECT sql FROM sqlite_schema WHERE name='child'")[0][0].find("CHECK(length(a)>0)") >= 0
         assert lib.sqlite3_stricmp("IÄ".encode(), "iÄ".encode()) == 0
         assert lib.sqlite3_stricmp("Ä".encode(), "ä".encode()) != 0
         if encoding == "UTF-8":
             assert execute(db, "SELECT unicode(CAST(x'FF8080' AS TEXT)), unicode(CAST(x'FD8080' AS TEXT))") == [("65533", "4096")]
         assert lib.sqlite3_close(db) == 0
-print("pinned oracle schema identifiers: ASCII folds and non-ASCII case variants remain distinct in UTF-8/16le/16be")
+print("pinned oracle schema identifiers and CHECK/FK metadata: UTF-8/16le/16be agree; ASCII folds and non-ASCII case variants remain distinct")
 
 chinook = pathlib.Path(os.environ.get("SAIVAGE_CARD_WORK_ROOT", "")) / "chinook-fixture/Chinook_Sqlite.sqlite"
+# Public acquisition provenance (floating URL; acceptance is bound to size/hash):
+# https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite
 if chinook.is_file():
     import hashlib
     assert chinook.stat().st_size == 1007616

@@ -545,6 +545,10 @@ credit: 21 cases run against each of UTF-8, UTF-16LE and UTF-16BE fixtures.
 
 Schema initialization used by the read pipeline retains generated-parser CHECK and
 REFERENCES/FOREIGN KEY declarations (ordered expressions/source, local and referenced
-columns, target-table identity links, actions, and deferral state). This is not a new
+columns, target-table identity links, actions, and deferral state). The same graph is
+validated in all three database encodings; a public Chinook Fetch capture is accepted
+only at 1,007,616 bytes and SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`, then compared
+with source-ID-verified SQLite 3.53.4 read-only behavior. This is not a new
 public schema-introspection API, does not expose `sqlite_schema` through SQL, and does
 not add write-time constraint enforcement.
