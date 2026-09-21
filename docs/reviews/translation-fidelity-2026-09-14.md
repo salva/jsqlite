@@ -939,3 +939,58 @@ Commands: source-ID-checked ctypes SQLite public-C comparison and TypeScript pub
 ### Window outer LIMIT/OFFSET handoff (revision 2026-09-21, [[card:card-o-b-g]])
 
 The executable window path previously allocated SQLite-style LIMIT/OFFSET registers but applied them only while draining an outer ORDER sorter. Without outer ORDER BY, `ResultRow` bypassed both offset consumption and `DecrJumpZero`, so `LIMIT 5` emitted all 3,503 Chinook tracks. The VDBE output handoff now applies `IfPos` before `ResultRow`, `DecrJumpZero` after it, and patches LIMIT-zero/exhaustion directly to the coroutine drain, matching select.c's destination-loop ownership rather than slicing host results. The digest-bound 1,007,616-byte Chinook capture (`sha256 7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`) matches pinned SQLite 3.53.4 first rows: Through a Looking Glass rank 1 through Dave rank 5. Permanent public tests cover parameter reset/rebind, LIMIT 0, negative LIMIT, OFFSET, cleanup, and all three encodings. Outer ORDER remains on its existing sorter drain; legal derived rank filtering remains in the ordinary derived-source owner, while same-scope alias legality remains resolver-owned.
+
+### Current lead 6/7 fidelity evidence (revision 2026-09-21, verification HEAD `a8f1583cce6288573725fab4c23375180c11f559`, [[card:card-o-b-h]])
+
+This revision consolidates the two preceding findings without changing their
+accepted implementation. The floating public Chinook URL was used only to acquire
+the already-bound fixture: all public-Fetch acceptance used the identical
+1,007,616 bytes and SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`.
+The independent native command loaded the manifest-pinned SQLite 3.53.4 library,
+printed `sqlite3_libversion()` and exact `sqlite3_sourceid()`
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`,
+and then ran the same bound queries through SQLite's public C API. Its retained
+capture is `work:///cards/card-o-b-g/processes/proc-c1632ba5c7e9/stdout.log`.
+
+Before repair, the no-outer-ORDER query `... row_number() ... LIMIT 5` returned
+all **3,503** Track rows in TypeScript versus native's **5**. The source-shaped
+outer destination handoff in implementation/test commit
+`8a0bb5d68c775094b46eeaae62a868edf77ea12b` now yields native's first row
+`Through a Looking Glass`, rank 1, and rows through `Dave`, rank 5. `LIMIT 0`,
+negative LIMIT, OFFSET, parameter reset/rebind, finalize/cleanup, and physical
+UTF-8, UTF-16LE, and UTF-16BE fixtures cover the neighboring branches. The direct
+handoff is `IfPos` before `ResultRow` and `DecrJumpZero` after it, with zero and
+exhaustion patched to coroutine drain; the existing ordered path keeps its sorter
+destination. This follows the pinned `select.c` destination-loop ownership and is
+not host row slicing.
+
+The second defect had treated outer `rk` as though it were an illegal same-SELECT
+alias. The correction preserves linked `NameContext` scope and derived output
+column identity: same-SELECT `WHERE rk<=?1` and `GROUP BY Name HAVING rk<=?1`
+still fail at prepare, before Statement publication, with exact native diagnostic
+`misuse of aliased window function rk`, while the parent SELECT may legally filter,
+order, and limit the derived `rk`. At the initial `8a0bb5d` checkpoint that legal
+outer ORDER/LIMIT form still failed with `no such table: (subquery)`; commit
+`4a93878a3f675d58aa33891271752901199f9868` corrected parent predicate, sorter,
+and LIMIT/OFFSET destination ownership. The specialized route is gated by
+`selectHasWindow(derived.select)`, so the adjacent unsupported ordinary-derived
+shape remains an atomic rejection rather than accidental runtime expansion.
+
+Recorded verification commands were the source-ID-checked native ctypes/public-C
+probe and public-Fetch probe; `npm run typecheck`; the catalog/resolver gate
+(19/19); `npm run test:conformance:subquery-view:ts` (192/192);
+`npm run test:conformance:window`; `npm run test:conformance:window:native` with
+pinned-library byte comparison; `npm run test:package-boundary`; and
+`git diff --check`. The focused direct/derived gate also passed 4/4 and the
+parser/window compiler/execution gate 59/59. The accepted implementation verification HEAD is the revision named above. The
+unrelated CTE failures previously reported as `complex compound table arms are not
+implemented` were not part of these passing commands and are not claimed fixed.
+
+Accounting is truthfully unchanged: the immutable lead manifest has **29 declared,
+0 TypeScript attempted, 0 credited, and 29 unattempted**. These permanent public
+and source-based regressions verify the repaired integration branches but do not
+promote those entries or claim arbitrary derived queries, exhaustive window
+composition/frame equivalence, or full SQLite compatibility. The documented CTE
+composition gaps and Finding 5's CHECK/FK read-schema result (without write
+enforcement) also remain unchanged.
