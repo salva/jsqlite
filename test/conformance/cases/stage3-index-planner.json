@@ -1,0 +1,1890 @@
+{
+  "schema": "jsqlite-index-planner-capture/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "upstreamAnchors": [
+    {
+      "id": "up-index3-2.2",
+      "path": "test/index3.test",
+      "assertion": "index3-2.2",
+      "setup": "index3-2.1",
+      "expected": [
+        [
+          5
+        ]
+      ]
+    },
+    {
+      "id": "where-loop-btree",
+      "path": "src/where.c",
+      "symbol": "whereLoopAddBtreeIndex"
+    },
+    {
+      "id": "where-code-loop",
+      "path": "src/wherecode.c",
+      "symbol": "sqlite3WhereCodeOneLoopStart"
+    },
+    {
+      "id": "where-code-equality",
+      "path": "src/wherecode.c",
+      "symbol": "codeEqualityTerm"
+    }
+  ],
+  "fixture": {
+    "path": "test/conformance/fixtures/index-planner.db",
+    "bytes": 3072,
+    "sha256": "29fbcb4ebfc8adcd2d4f836ac2df15cca5fdd912eacaf37786c0417f1c05c84c",
+    "headerPageSize": 512,
+    "schema": [
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "69785f61625f64657363"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74"
+        },
+        {
+          "type": "integer",
+          "value": "5"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "43524541544520494e4445582069785f61625f64657363204f4e207428612c206220434f4c4c415445204e4f43415345204445534329"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "69785f63"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74"
+        },
+        {
+          "type": "integer",
+          "value": "6"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "43524541544520494e4445582069785f63204f4e2074286329"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "696e646578"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "73716c6974655f6175746f696e6465785f745f31"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74"
+        },
+        {
+          "type": "integer",
+          "value": "3"
+        },
+        {
+          "type": "text",
+          "utf8Hex": ""
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "7461626c65"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74"
+        },
+        {
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "435245415445205441424c45207428696420494e5445474552205052494d415259204b45592c206120494e54454745522c2062205445585420434f4c4c415445204e4f434153452c2063205245414c2c207061796c6f616420544558542c20746167205445585420554e4951554529"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "utf8Hex": "7461626c65"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "75"
+        },
+        {
+          "type": "integer",
+          "value": "4"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "435245415445205441424c452075286b20494e5445474552205052494d415259204b45592c206e6f7465205445585429"
+        }
+      ]
+    ],
+    "indexXinfo": {
+      "ix_ab_desc": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "61"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "4e4f43415345"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "ix_c": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "63"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      "sqlite_autoindex_t_1": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "746167"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "-1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42494e415259"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    }
+  },
+  "privateCounterContract": {
+    "scope": "per execution; reset to zero before each binding run",
+    "fields": [
+      "plannerCandidates",
+      "plannerPaths",
+      "indexSeeks",
+      "indexNext",
+      "tableSeeks",
+      "tableNext",
+      "residualTests",
+      "sorterRows"
+    ],
+    "rule": "counts are path-local events, not elapsed time; candidate/path counters are bounded by declared planner limits; cursor counters count successful movement attempts; residualTests counts executed residual predicates; sorterRows is zero only when complete ordering is proven"
+  },
+  "cases": [
+    {
+      "id": "rowid-equality",
+      "coverage": [
+        "rowid",
+        "equality"
+      ],
+      "sql": "SELECT id,c FROM t WHERE id=?1",
+      "bindings": [
+        4
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            4
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4012000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INTEGER PRIMARY KEY (rowid=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 3,
+              "p3": 3
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 11
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "rowid-range-desc",
+      "coverage": [
+        "rowid",
+        "range",
+        "ordering-satisfied"
+      ],
+      "sql": "SELECT id FROM t WHERE id>?1 AND id<=?2 ORDER BY id DESC",
+      "bindings": [
+        2,
+        6
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            2,
+            6
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INTEGER PRIMARY KEY (rowid>? AND rowid<?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekLE",
+              "p1": 0,
+              "p2": 10,
+              "p3": 1
+            },
+            {
+              "opcode": "Prev",
+              "p1": 0,
+              "p2": 5,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 31
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "index-equality",
+      "coverage": [
+        "explicit-index",
+        "equality",
+        "covering"
+      ],
+      "sql": "SELECT a,b FROM t WHERE a=?1 ORDER BY b DESC",
+      "bindings": [
+        1
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_ab_desc (a=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 25
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "index-composite-prefix-range",
+      "coverage": [
+        "explicit-index",
+        "left-prefix",
+        "range",
+        "declared-collation",
+        "desc"
+      ],
+      "sql": "SELECT id,b FROM t WHERE a=?1 AND b>=?2 COLLATE NOCASE ORDER BY b DESC",
+      "bindings": [
+        1,
+        "alpha"
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            1,
+            "alpha"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_ab_desc (a=? AND b>?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 10,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 24
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "index-null",
+      "coverage": [
+        "null",
+        "covering"
+      ],
+      "sql": "SELECT id,a,b FROM t WHERE a=?1 AND b IS NULL",
+      "bindings": [
+        1
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_ab_desc (a=? AND b=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 0,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 16
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "order-unsatisfied-fallback",
+      "coverage": [
+        "ordering-unsatisfied",
+        "fallback-sorter"
+      ],
+      "sql": "SELECT id,b FROM t WHERE a>=?1 ORDER BY payload",
+      "bindings": [
+        1
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "67616d6d61"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "64656c7461"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX ix_ab_desc (a>?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 2,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 4,
+              "p3": 2
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 8,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 22,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 1,
+            "vmSteps": 85
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "covering-index",
+      "coverage": [
+        "covering"
+      ],
+      "sql": "SELECT a,b FROM t WHERE a=?1",
+      "bindings": [
+        2
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "67616d6d61"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_ab_desc (a=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 11,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 11,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 19
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "deferred-table-lookup",
+      "coverage": [
+        "table-lookup",
+        "deferred-seek"
+      ],
+      "sql": "SELECT payload FROM t WHERE a=?1",
+      "bindings": [
+        2
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7035"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7034"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX ix_ab_desc (a=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 1,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 4,
+              "p3": 2
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 20
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "parameter-reset-rebind",
+      "coverage": [
+        "parameter",
+        "reset",
+        "rebind",
+        "real-class"
+      ],
+      "sql": "SELECT id,typeof(c),c FROM t WHERE c>=?1 ORDER BY c",
+      "bindingRuns": [
+        [
+          4.5
+        ],
+        [
+          6.0
+        ]
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            4.5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4012000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4014000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4019000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_c (c>?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 42
+          }
+        },
+        {
+          "bindings": [
+            6.0
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4019000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ix_c (c>?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 26
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "residual-predicate",
+      "coverage": [
+        "residual"
+      ],
+      "sql": "SELECT id FROM t WHERE a=?1 AND length(payload)=?2 ORDER BY id",
+      "bindings": [
+        1,
+        2
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            1,
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX ix_ab_desc (a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 2,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 4,
+              "p3": 3
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 8,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 23,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 6
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 1,
+            "vmSteps": 53
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "left-join-on-provenance",
+      "coverage": [
+        "left-join",
+        "on-provenance"
+      ],
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
+      "bindings": [
+        "u8"
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            "u8"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INTEGER PRIMARY KEY (rowid<?)",
+            "SEARCH u USING INTEGER PRIMARY KEY (rowid=?) LEFT-JOIN"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 22,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 42
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "left-join-where-safety",
+      "coverage": [
+        "left-join",
+        "where-safety"
+      ],
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id WHERE t.id<=2 AND u.note=?1 ORDER BY t.id",
+      "bindings": [
+        "u8"
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            "u8"
+          ],
+          "rows": [],
+          "eqp": [
+            "SEARCH t USING INTEGER PRIMARY KEY (rowid<?)",
+            "SEARCH u USING INTEGER PRIMARY KEY (rowid=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 16,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 24
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "up-index3-2.2",
+      "coverage": [
+        "upstream-assertion",
+        "implicit-autoindex",
+        "nocase"
+      ],
+      "sql": "SELECT id FROM t WHERE tag=?1",
+      "bindings": [
+        "tag1"
+      ],
+      "expectedRows": [
+        [
+          1
+        ]
+      ],
+      "nativeRuns": [
+        {
+          "bindings": [
+            "tag1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX sqlite_autoindex_t_1 (tag=?)"
+          ],
+          "cursorProgram": [
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 9,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 1,
+              "p2": 9,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            }
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 11
+          }
+        }
+      ],
+      "ts": {
+        "disposition": "attempted-zero-credit",
+        "attempted": [
+          "openFixture",
+          "prepare",
+          "stepAll"
+        ],
+        "unattempted": [
+          "assertPrivatePlan",
+          "assertCursorWork"
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "atomicGates": [
+    {
+      "id": "gate-without-rowid",
+      "feature": "WITHOUT ROWID",
+      "setup": [
+        "CREATE TABLE wr(a TEXT PRIMARY KEY,b) WITHOUT ROWID"
+      ],
+      "sql": "SELECT b FROM wr WHERE a=?1",
+      "ts": {
+        "disposition": "unattempted-atomic-zero-credit",
+        "attempted": [],
+        "unattempted": [
+          "prepare"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "gate-partial-index",
+      "feature": "partial index",
+      "setup": [
+        "CREATE TABLE p(a,b)",
+        "CREATE INDEX p_a ON p(a) WHERE b IS NOT NULL"
+      ],
+      "sql": "SELECT b FROM p WHERE a=?1 AND b IS NOT NULL",
+      "ts": {
+        "disposition": "unattempted-atomic-zero-credit",
+        "attempted": [],
+        "unattempted": [
+          "prepare"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "gate-expression-index",
+      "feature": "expression index",
+      "setup": [
+        "CREATE TABLE e(a,b)",
+        "CREATE INDEX e_lower ON e(lower(a))"
+      ],
+      "sql": "SELECT b FROM e WHERE lower(a)=?1",
+      "ts": {
+        "disposition": "unattempted-atomic-zero-credit",
+        "attempted": [],
+        "unattempted": [
+          "prepare"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "gate-sqlite-stat-choice",
+      "feature": "sqlite_stat-driven choice",
+      "setup": [
+        "CREATE TABLE s(a,b)",
+        "CREATE INDEX s_a ON s(a)",
+        "ANALYZE"
+      ],
+      "sql": "SELECT b FROM s WHERE a=?1",
+      "ts": {
+        "disposition": "unattempted-atomic-zero-credit",
+        "attempted": [],
+        "unattempted": [
+          "prepare"
+        ],
+        "credit": false
+      }
+    },
+    {
+      "id": "gate-index-backed-in",
+      "feature": "index-backed IN",
+      "setup": [],
+      "sql": "SELECT payload FROM t WHERE a IN (?1,?2)",
+      "ts": {
+        "disposition": "unattempted-atomic-zero-credit",
+        "attempted": [],
+        "unattempted": [
+          "prepare"
+        ],
+        "credit": false
+      }
+    }
+  ],
+  "accounting": {
+    "pinnedCaptures": 13,
+    "attemptedPublicTsAssertions": 13,
+    "companions": 0,
+    "atomicUnattemptedGaps": 5,
+    "tsCreditedCases": 0
+  }
+}

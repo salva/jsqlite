@@ -3752,7 +3752,32 @@ and composite-prefix neighbors; collation, DESC and NULL order; covering versus
 deferred seek; outer-join ON versus WHERE placement and empty/null rows; join
 prerequisites/path order; ORDER/DISTINCT sorter elision; reset/rebind/error cleanup;
 and every atomic gate above. Add path-local corruption tests showing unrelated
-subtrees remain untouched. Program-shape tests must prove the selected lowering,
+subtrees remain untouched.
+
+#### Executable persistent-index planner boundary ([[card:card-s-a-b]])
+
+`test/conformance/cases/stage3-index-planner.spec.json` and its pinned capture now
+make W1/W2 a tests-first, zero-credit executable contract. The 512-byte immutable
+fixture is created only by manifest-pinned SQLite 3.53.4, reopened read-only for
+capture, and records exact schema root pages plus `index_xinfo`, including the
+`sqlite_autoindex_t_1` identity for `UNIQUE(tag)`. Thirteen native cases cover
+rowid and explicit/implicit persistent-index equality/range, composite prefixes,
+NOCASE/NULL/DESC, satisfied and unsatisfied ordering, covering versus
+`DeferredSeek`, reset/rebind expectations, REAL class, residual predicates, and
+LEFT JOIN ON/WHERE provenance. The source-derived anchor `test/index3.test` cases
+`index3-2.1`/`index3-2.2` is retained alongside `whereLoopAddBtreeIndex`,
+`codeEqualityTerm`, and `sqlite3WhereCodeOneLoopStart`.
+
+Native `EXPLAIN QUERY PLAN`, selected VDBE cursor opcodes, and `sqlite3_stmt_status`
+are capture evidence only. The TS contract requires per-execution private counters
+starting at zero for candidates, paths, index/table seeks and movement, residual
+tests, and sorter rows; elapsed time is never a counter. Machine accounting keeps
+all 13 attempted public assertions at zero TS credit and separately records five
+unattempted atomic gates: WITHOUT ROWID, partial indexes, expression indexes,
+sqlite_stat-driven choice, and index-backed IN. No wrong partial plan may prepare.
+The capture/validator and one public attempted assertion add no runtime planner,
+public API, or extension-registration change.
+. Program-shape tests must prove the selected lowering,
 while oracle results prove behavior; neither alone is compatibility evidence.
 The fallback boundary also requires matched and unmatched RIGHT and FULL cases,
 ON-versus-WHERE filtering, nested joins/subqueries, and reset/error cleanup to

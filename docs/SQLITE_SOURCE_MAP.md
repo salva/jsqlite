@@ -1562,3 +1562,11 @@ lifecycle; and revision-labeled audit findings 3/6/8/9/10. Documentation-only
 checks for this draft are recorded in the card status. Runtime/oracle checks are
 deferred to the implementing consumer because this card intentionally changes no
 runtime.
+
+### Persistent index planner — executable zero-credit boundary ([[card:card-s-a-b]])
+
+| Pinned source | Project evidence | Status |
+|---|---|---|
+| `test/index3.test:index3-2.1/index3-2.2`; `src/where.c:whereLoopAddBtreeIndex`; `src/wherecode.c:codeEqualityTerm`, `sqlite3WhereCodeOneLoopStart` | `test/conformance/cases/stage3-index-planner.spec.json`, pinned `.json`, `capture-index-planner.py`, `recapture-index-planner.py`, `index-planner-manifest.test.py`, `run-index-planner-ts.mjs` | 13 manifest-pinned native captures; attempted public TS assertions remain 0 credit pending planner/private-counter implementation |
+| `build.c:sqlite3KeyInfoOfIndex`; `pragma.c:index_xinfo`; `vdbe.c` seek/index/deferred-seek opcodes | committed 512-byte `test/conformance/fixtures/index-planner.db`, exact digest/schema roots/explicit and `sqlite_autoindex_t_1` xinfo, native EQP/VDBE/work capture | fixture setup is pinned proof; host SQLite setup is not accepted |
+| `where.c`/`wherecode.c` deferred branches for WITHOUT ROWID, partial/expression indexes, stat choice, and IN loops | five separately machine-accounted atomic gates in the same capture | unattempted, zero credit; no partial plan may prepare |
