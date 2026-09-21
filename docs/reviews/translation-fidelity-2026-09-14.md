@@ -994,3 +994,73 @@ promote those entries or claim arbitrary derived queries, exhaustive window
 composition/frame equivalence, or full SQLite compatibility. The documented CTE
 composition gaps and Finding 5's CHECK/FK read-schema result (without write
 enforcement) also remain unchanged.
+
+### Window accounting and admission reconciliation (revision 2026-09-22, [[card:card-o-b-h]])
+
+Accepted review `record:///review.md?card=card-o-b&v=15` found that the preceding
+lead 6/7 revision incorrectly presented one historical denominator as overall
+current window accounting. The implementation facts, Chinook identity, native
+capture, defects, repairs, commits, diagnostics, and focused coverage recorded
+there remain current; only its final global-accounting implication is superseded.
+The three non-interchangeable denominators are:
+
+1. **Historical architecture manifest:** immutable `stage3-window` has 29
+   parser/resolver/rewrite/allocation declarations and remains **0/29 TypeScript
+   attempted by design**. It is architecture provenance, not current frame-runtime
+   accounting.
+2. **Aggregate-window execution:** the 44-declaration contract has 43 executable
+   cases and one source-only private-controls declaration. Current public result is
+   **43/43 executable**, including **25/25 source-credit**, plus the separate
+   no-credit private-controls validator **1/1**.
+3. **Special built-ins:** the 43-declaration contract has 41 executable cases and
+   two source-only safety/atomic-rejection companions. Current result is **41/41
+   executable plus 2/2 source-only**. The TS runner's reported **42/42 tests** is
+   41 public declaration tests plus one accounting test over all 43 declarations;
+   it is not a 42-case executable denominator.
+
+Current prepare may publish only the represented aggregate-window and eleven
+special-built-in shapes mapped in the living guide/source map. Their represented
+join, grouping, subquery, CTE/recursive, compound, outer filter/ORDER and
+LIMIT/OFFSET compositions execute through the VDBE frame/callback and result
+handoff. Residual unrepresented frame, expression, and composition shapes reject
+atomically during prepare; the source-only gates verify rejection and connection
+reuse. This bounded surface is not exhaustive SQLite window compatibility.
+Historical “CodeStep absent/all windows reject” passages are retained only as
+explicitly superseded checkpoints.
+
+The lead 6/7 evidence remains exact: digest-bound Chinook is 1,007,616 bytes with
+SHA-256 `7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`;
+pinned SQLite is 3.53.4/source ID
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`;
+and the retained native public-C capture is
+`work:///cards/card-o-b-g/processes/proc-c1632ba5c7e9/stdout.log`. Before
+`8a0bb5d68c775094b46eeaae62a868edf77ea12b`, outer `LIMIT 5` incorrectly emitted
+3,503 rows; native and repaired TS start with `Through a Looking Glass`, rank 1.
+Commit `4a93878a3f675d58aa33891271752901199f9868` repaired derived `rk` parent scope,
+ORDER and destination ownership while retaining exact same-SELECT WHERE/HAVING
+`misuse of aliased window function rk` prepare diagnostics. Commit
+`a8f1583cce6288573725fab4c23375180c11f559` integrated the evidence. Coverage
+retains all encodings, LIMIT 0/negative/OFFSET, outer filter/ORDER, parameters,
+reset/rebind/finalize, the specialized `selectHasWindow` gate, and the ordinary-
+derived negative discriminator. Finding 5's CHECK/FK read-schema-only result and
+the documented unrelated CTE `complex compound table arms are not implemented`
+gaps remain unchanged.
+
+Reconciliation verification used an identity-checked pinned library and fixture,
+then ran `npm run typecheck`; `npm run test:parser`; historical window manifest and
+native recapture; aggregate-window manifest plus public/private/rewrite/publication
+suite (**96/96**, executable contract **43/43**, source-only **1/1**); special
+manifest/native recapture/public runner (**42/42**, meaning 41 declarations plus
+one accounting test) and source-only suite (**2/2**); aggregate regressions
+(**5/5**, including the 34/34 public matrix); subquery/view regressions
+(**192/192**, including the ordinary-derived negative discriminator); CTE
+architecture; package boundary; docs check; and `git diff --check`. The focused
+Chinook catalog/lead suite passed **13/13** against the exact fixture, including
+same-scope diagnostics, outer filtering/ORDER, LIMIT 0/negative/OFFSET,
+reset/rebind/finalize, and all-encoding companions. The applicable CTE execution
+run was **36/39**: only the same three UTF-8/UTF-16LE/UTF-16BE ordinary-CTE
+composition cases failed with the already documented `complex compound table arms
+are not implemented`; they are reported as an unchanged boundary, not a passing
+CTE gate. Full integrated output is
+`work:///cards/card-o-b-h/processes/proc-2c2216ab6a7f/stdout.log`; focused Chinook
+output is `work:///cards/card-o-b-h/processes/proc-64a095df49ba/stdout.log`.

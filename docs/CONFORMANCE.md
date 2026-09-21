@@ -15,6 +15,8 @@ There are three intentionally separate kinds of evidence:
 
 ## Window functions tests-before-port gate ([[card:card-o-a-b]])
 
+This is the immutable historical parser/resolver/rewrite/allocation denominator, not overall current window-runtime accounting; the aggregate and special execution denominators later in this document are separate and supersede its runtime status for represented shapes.
+
 `test/conformance/cases/stage3-window.spec.json` declares a bounded **29-case**
 window slice: **10 exact upstream assertions** and **19 source-based/local
 no-credit companions**. `stage3-window.json` is the immutable native expectation.
@@ -397,12 +399,12 @@ and recursive execution, diagnostics, encodings, typed rows/metadata, compositio
 resource/control behavior, and lifecycle; those observations are not added to the
 native denominator or upstream-credit count.
 
-### Window rewrite implementation accounting ([[card:card-o-b-f]], 2026-09-18)
+### Window rewrite implementation accounting ([[card:card-o-b-f]], 2026-09-18; historical checkpoint)
 
-The immutable `stage3-window` manifest remains unchanged: 29 declared entries, 28 native executions, 10 upstream credits, and all 29 TypeScript entries unattempted/zero-credit. Source-based `test/conformance/window-rewrite.test.mjs` is deliberately outside that credit denominator. It covers rewrite graph/lifting/sort-copy behavior, selective aggregate-depth repair, exact prepare-time ORDER aggregate misuse, and scalar/table atomic publication gates. Frame runtime remains unsupported, so these tests do not promote any manifest case.
+The frame-runtime statement in this checkpoint is superseded by the current execution sections below. The immutable `stage3-window` manifest remains unchanged: 29 declared entries, 28 native executions, 10 upstream credits, and all 29 TypeScript entries unattempted/zero-credit. Source-based `test/conformance/window-rewrite.test.mjs` is deliberately outside that credit denominator. It covers rewrite graph/lifting/sort-copy behavior, selective aggregate-depth repair, exact prepare-time ORDER aggregate misuse, and scalar/table atomic publication gates. Frame runtime remains unsupported, so these tests do not promote any manifest case.
 
 
-Window setup evidence added by [[card:card-o-b-g]] does not change the immutable denominator: exactly 29 declared entries, 0 TypeScript attempts, and 0 TypeScript credits. The compiler-level source test inspects emitted setup operations, register/cursor identity, compatible sharing, nested ownership, and the existing atomic public gates; it does not execute a frame or manifest case. Its public architecture gate runs two prepare outcomes in each immutable encoding fixture (UTF-8, UTF-16LE, UTF-16BE): exact pre-rewrite `misuse of aggregate: sum()` precedence and temporary unsupported atomic rejection followed by connection reuse. These 6 prepare assertions remain source/architecture evidence outside the execution-credit denominator.
+At that historical setup-only checkpoint, window setup evidence added by [[card:card-o-b-g]] does not change the immutable denominator: exactly 29 declared entries, 0 TypeScript attempts, and 0 TypeScript credits. The compiler-level source test inspects emitted setup operations, register/cursor identity, compatible sharing, nested ownership, and the existing atomic public gates; it does not execute a frame or manifest case. Its public architecture gate runs two prepare outcomes in each immutable encoding fixture (UTF-8, UTF-16LE, UTF-16BE): exact pre-rewrite `misuse of aggregate: sum()` precedence and temporary unsupported atomic rejection followed by connection reuse. These 6 prepare assertions remain source/architecture evidence outside the execution-credit denominator.
 
 ### Aggregate-window execution contract matrix
 
