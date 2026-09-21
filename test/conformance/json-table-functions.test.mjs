@@ -153,3 +153,16 @@ test('JSON table sources correlate left-to-right in ordinary composition',async(
     assert.deepEqual(rows,[['$[0]',4n],['$[1]',5n]]);
   }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
 });
+
+test('JSON table scan feeds ordinary aggregate consumers',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);
+  let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+    statement=db.prepare(`SELECT count(*), sum(atom), group_concat(key, ':') FROM json_each(?1) WHERE atom >= 2`).statement;
+    statement.bind(1,'{"a":1,"b":2,"c":4}');
+    assert.equal(await statement.step(),'row');
+    assert.deepEqual([statement.columnInteger(0),statement.columnInteger(1),statement.columnText(2)],[2n,6n,'b:c']);
+    assert.equal(await statement.step(),'done');
+  }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
+});

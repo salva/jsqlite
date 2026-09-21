@@ -168,6 +168,8 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
         failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
       }
       const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
+      const jsonTableAggregate = aggregate&&!selected.hasGroupBy&&!selected.hasHaving&&selected.from.items.length===1&&
+        ["json_each","json_tree","jsonb_each","jsonb_tree"].includes(selected.from.items[0]!.tableName.toLowerCase());
       // window.c:sqlite3WindowRewrite performs its own aggregate analysis and
       // ORDER BY misuse validation before mutating the SELECT. Do not let the
       // ordinary aggregate-shape admission gate bypass that phase.
@@ -176,7 +178,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       const recursiveEncoding = this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be";
       const program = recursiveOwner!==null
         ? (compileRecursiveWindowSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits) ?? compileMultipleRecursiveCtes(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows) ?? compileRecursiveCteSelect(selected, recursiveEncoding, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits, this.#maxRows))
-        : aggregate&&!window
+        : aggregate&&!window&&!jsonTableAggregate
         ? compileAggregateSelect(selected, schema, btreeFromConnection(this, this.#btreeLimits), this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes, this.#limits.privateStateLimits)
         : selected.from.items.length || selected.where
         ? compileTableSelect(
