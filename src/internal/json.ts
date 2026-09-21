@@ -134,7 +134,6 @@ export function openJsonTableCursor(value:Mem,recursive:boolean,charge:(n:number
   const parseBytes=parseUnits*64;
   const text=(x:string)=>{const m=new Mem();m.setText(te.encode(x),"utf-8");return m},integer=(x:bigint)=>{const m=new Mem();m.setInt64(x);return m},nil=()=>{const m=new Mem();m.setNull();return m};
   const size=(node:JsonNode)=>{const bounds=jsonbBounds.get(node);return bounds?bounds.end-bounds.start:encodeJsonb(node).length};
-  const offset=(node:JsonNode,fallback:number)=>jsonbBounds.get(node)?.start??fallback;
   let selectedId=0,selectedValueAt=0;
   const valueStart=(node:JsonNode,fallback:number)=>jsonbBounds.get(node)?.start??fallback;
   const contentStart=(node:JsonNode,at:number)=>at+(jsonbBounds.get(node)?jsonbSize(value.blobValue(),at)!.header:1);
