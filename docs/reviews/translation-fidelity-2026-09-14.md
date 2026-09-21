@@ -863,10 +863,10 @@ json_each(...)`, and runtime expression/root/WHERE and JSONB table-function tran
 Source-derived representation, JSON5 canonicalization, JSONB bytes/validation,
 subtype handoff and resource/lifecycle tests are now present. The recursive
 producer translates depth-first traversal and JSONB-offset id/parent shaping, with
-pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input and JSONB-container public evidence. Join/correlation/
-join/order/group/limit forms, hidden columns, `jsonb_each`, `jsonb_tree`, and the
-full virtual-table/path corpus remain gaps; this revision does not award them
-credit.
+pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input,
+JSONB-container, and LIMIT/OFFSET public evidence. Join/correlation, ORDER/GROUP,
+and the full virtual-table/path corpus remain gaps; this revision does not award
+them credit.
 
 ### Revision 2026-09-21 — JSON scalar finding
 

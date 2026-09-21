@@ -2326,12 +2326,13 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // ordinary expression VM, then xFilter-shaped state is owned by the statement.
   const jsonTableName=select.from.items.length===1?select.from.items[0]!.tableName.toLowerCase():"";
   if(jsonTableName==="json_each"||jsonTableName==="json_tree"||jsonTableName==="jsonb_each"||jsonTableName==="jsonb_tree"){
-    if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasLimit||select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
+    if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
     const source=select.from.items[0]!,args=source.arguments;
     if(args===null||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported",`this ${jsonTableName} argument is not implemented`,{unsupportedClassification:"temporary"});
     const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()},ops:Op[]=[];let registers=0;const allocate=()=>++registers;
     const input=compileExpressionTree(expressionFromReduction(args[0]!.reduction!),ops,allocate,parameters);
     const root=args.length===2?compileExpressionTree(expressionFromReduction(args[1]!.reduction!),ops,allocate,parameters):undefined;
+    const limit=computeLimitRegisters(select,ops,allocate,parameters);
     const rowStart=registers+1;registers+=JSON_TABLE_COLUMNS.length;
     const bindColumns=(tree:Expression):Expression=>{
       if(tree.kind==="column"){
@@ -2351,11 +2352,13 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     if(select.where?.reduction){const predicate=compileExpressionTree(bindColumns(expressionFromReduction(select.where.reduction)),ops,allocate,parameters,undefined,true);predicateJump=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     const star=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==="*";
     const outputs=star?JSON_EACH_COLUMNS.map((_,i)=>rowStart+i):select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported",`this ${jsonTableName} projection is not implemented`,{unsupportedClassification:"temporary"});return compileExpressionTree(bindColumns(expressionFromReduction(result.reduction)),ops,allocate,parameters)});
+    let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
     ops.push({code:"ResultRow",p1:outputs[0]!,p2:outputs.length});
     // ResultRow requires a contiguous range. Copy arbitrary expression results.
     const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);
     if(!contiguous){const resultStart=registers+1;for(const value of outputs){registers++;ops.splice(ops.length-1,0,{code:"Copy",p1:value,p2:registers});}(ops.at(-1) as {p1:number}).p1=resultStart;}
-    const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;ops.push({code:"Halt"});
+    let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
+    const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;ops.push({code:"Halt"});
     const names=star?[...JSON_EACH_COLUMNS]:select.result.map(expressionName);
     return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(names.map((name,i)=>Object.freeze({name:select.result[i]?.alias??name,declaredType:null,database:null,table:jsonTableName,origin:star?name:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }

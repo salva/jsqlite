@@ -116,3 +116,16 @@ test('jsonb_tree exposes hidden inputs and binary container values',async()=>{
     assert.equal(await statement.step(),'done');
   }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
 });
+
+test('json table cursor composes with LIMIT and OFFSET',async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);
+  let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
+    statement=db.prepare(`SELECT fullkey FROM json_tree(?1, '$.items') LIMIT 1 OFFSET 1`).statement;
+    statement.bind(1,'{"items":[3,5]}');
+    assert.equal(await statement.step(),'row');
+    assert.equal(statement.columnText(0),'$.items[0]');
+    assert.equal(await statement.step(),'done');
+  }finally{try{statement?.finalize()}catch{} db?.closeDeferred();await closeServer(bridge.server);}
+});

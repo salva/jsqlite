@@ -569,14 +569,13 @@ cancellation and deadline controls apply normally.
 The current table-valued surface is intentionally narrower than SQLite's module:
 The internal `json_each`, `json_tree`, `jsonb_each`, and `jsonb_tree` table sources
 accept one or two scalar-expression arguments through the ordinary Fetch
-metadata/value contract. Visible expression projection and WHERE are admitted;
+metadata/value contract. Visible expression projection, WHERE, and LIMIT/OFFSET are admitted;
 `json` and `root` may be read explicitly but remain absent from `*`. The recursive
 `json_tree` producer follows
-pinned depth-first JSONB-offset id/parent shaping; current direct evidence is the
-pinned scalar-root `fullkey` case. A second root argument, parameters or expression
-arguments, filter/join/order/group/limit compositions, hidden columns,
-`jsonb_each`, and `jsonb_tree` are typed temporary unsupported, not compatibility
-credit.
+pinned depth-first JSONB-offset id/parent shaping. Direct public evidence includes
+scalar-root `fullkey`, rooted parameter scans and reset, hidden columns, JSONB
+container values, and LIMIT/OFFSET. Join/correlation and ORDER/GROUP compositions
+remain typed temporary unsupported, not compatibility credit.
 
 ### JSON scalar functions
 
