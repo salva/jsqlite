@@ -3451,3 +3451,12 @@ failure state rather than a placeholder. JSONB construction/edit production rows
 use the shared ordered tree and SQLite JSONB encoder. The production registration
 inventory also confirms `json_pretty` arities 1/2; those rows are registered but
 atomically return typed temporary-unsupported until the pretty renderer is ported.
+
+### JSON mutation control-flow correction (2026-09-21, [[card:card-r-b]])
+
+The shared TEXT/JSONB mutation owner now follows pinned
+`jsonInsertIntoBlob`/`jsonRemoveFunc`/`jsonLookupStep`: NULL paths skip complete
+path/value pairs for set/insert/replace/array-insert without disturbing later
+pairs; root removal returns SQL NULL and stops sequential removal; and `[#-N]`
+resolves from array end (including `#-0` append, out-of-range no-op, and
+array-insert-before distinctions). Malformed neighboring path syntax still errors.

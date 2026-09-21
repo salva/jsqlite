@@ -603,3 +603,7 @@ JSONB scalar output names `jsonb_array`, `jsonb_object`, `jsonb_insert`,
 `jsonb_array_insert` return SQLite JSONB BLOBs; `json_array_insert` returns JSON
 TEXT. `json_pretty` is recognized at arities 1 and 2 but currently fails with a
 typed temporary-unsupported error rather than an approximation.
+
+JSON mutation paths follow SQLite sequencing: NULL path/value pairs are skipped
+for insert/replace/set/array-insert; root `$` removal returns SQL NULL and stops;
+and valid `[#-N]` addresses from array end (`#-0` is the append position).

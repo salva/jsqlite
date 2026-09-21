@@ -911,3 +911,10 @@ explicitly registered temporary unsupported at both pinned arities. Focused publ
 coverage now discriminates non-leading positions, duplicate/root/sequential edit,
 array insertion, and JSONB BLOB result branches; exhaustive corpus parity remains
 a test-evidence limitation rather than an implementation claim.
+
+### Revision 2026-09-21 — mutation branch correction
+
+Review v6 findings 1–4 are corrected in the shared mutation owner: NULL pair skip,
+root-removal SQL NULL/stop, and mutation/removal `[#-N]` branches now follow the
+pinned routines for TEXT and JSONB. Public tests distinguish storage metadata and
+exact JSONB bytes. Remaining corpus breadth is not claimed as exhaustive parity.

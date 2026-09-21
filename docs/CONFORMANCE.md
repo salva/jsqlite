@@ -588,3 +588,6 @@ evidence for these cases, not a claim for later unimplemented JSON consumers.
 - Scalar review corpus includes non-leading parser positions, duplicate lookup,
   root/sequential edits, array insertion, and public BLOB metadata for JSONB
   constructor/edit/patch rows.
+- Public scalar mutation evidence covers leading/middle/trailing NULL-path skips,
+  root-removal SQL NULL/stop semantics, `[#-0]`, in-range and out-of-range
+  `[#-N]`, array insertion distinctions, and exact JSONB result bytes.

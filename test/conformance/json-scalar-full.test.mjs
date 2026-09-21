@@ -15,6 +15,10 @@ test('JSON scalar constructors, inspection, mutation and patch use public VDBE p
  assert.deepEqual(await query(db,`SELECT '{"a":[1,2]}' -> 'a','{"a":[1,2]}' ->> '$.a[1]'`),['[1,2]',2n]);
  assert.deepEqual(await query(db,`SELECT json_extract('{"a":1,"a":2}','$.a'),json_set('{"a":{}}','$.a.b',1,'$.a.c',2),json_replace('1','$',2),json_remove('[0,1,2]','$[1]')`),[1n,'{"a":{"b":1,"c":2}}','2','[0,2]']);
  assert.deepEqual(await query(db,`SELECT json_array_insert('[0,2]','$[1]',1),json_array_insert('[0]','$[#]',1)`),['[0,1,2]','[0,1]']);
+ assert.deepEqual(await query(db,`SELECT json_set('{}',NULL,1,'$.a',2,NULL,3),json_insert('{}',NULL,1,'$.a',2),json_replace('{"a":1}',NULL,8,'$.a',2),json_array_insert('[0]',NULL,8,'$[#]',1)`),['{"a":2}','{"a":2}','{"a":2}','[0,1]']);
+ assert.deepEqual(await typed(db,`SELECT json_remove('[0,1]',char(36),'$[0]'),jsonb_remove(jsonb('[0,1]'),char(36),'$[0]')`),[['null',null],['null',null]]);
+ assert.deepEqual(await query(db,`SELECT json_set('[0,1,2]','$[#-0]',9),json_set('[0,1,2]','$[#-1]',9),json_set('[0,1,2]','$[#-4]',9),json_remove('[0,1,2]','$[#-3]'),json_array_insert('[0,1,2]','$[#-1]',9)`),['[0,1,2,9]','[0,1,9]','[0,1,2]','[1,2]','[0,1,9,2]']);
+ assert.deepEqual(await query(db,`SELECT hex(jsonb_set(jsonb('[0,1,2]'),'$[#-1]',9)),hex(jsonb_array_insert(jsonb('[0,1,2]'),'$[#-1]',9)),hex(jsonb_remove(jsonb('[0,1,2]'),'$[#-1]')),hex(jsonb_set(jsonb('{}'),NULL,1,'$.a',2))`),['6B133013311339','8B1330133113391332','4B13301331','4C1A611332']);
  const blobs=await typed(db,`SELECT jsonb_array(1,json('{"x":2}')),jsonb_object('a',1),jsonb_set(jsonb('{"a":1}'),'$.b',2),jsonb_patch(jsonb('{"a":1}'),'{"b":2}'),jsonb_array_insert(jsonb('[0,2]'),'$[1]',1),jsonb_set(jsonb('{"a":1}'),'$."b"',2),jsonb_set(jsonb('{"a":1}'),'$."b\\\\n"',2)`);
  assert.deepEqual(blobs.map(x=>x[0]),['blob','blob','blob','blob','blob','blob','blob']);assert.ok(blobs.every(([,v])=>v instanceof Uint8Array));
  // Pinned 3.53.4 jsonArrayFunc/jsonObjectFunc/jsonSetFunc/jsonPatchFunc bytes:
