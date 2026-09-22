@@ -3591,10 +3591,27 @@ interface PhysicalRowidIndex {
   readonly declaredFieldCount: number; readonly rowidField: number;
   readonly keyInfo: KeyInfo;
 }
+type SeekComparisonMode =
+  | { readonly kind: "comparison"; readonly affinity: MemAffinity }
+  | { readonly kind: "is-null" }; // no RHS affinity/key register
+interface IndexConstraintAdmission {
+  readonly term: WhereTerm; // exact clause-owned identity
+  readonly physicalIndex: PhysicalRowidIndex;
+  readonly fieldOrdinal: number;
+  readonly field: PhysicalIndexField; // === physicalIndex.fields[fieldOrdinal]
+  readonly keyInfoTerm: KeyInfo["terms"][number]; // exact term identity at fieldOrdinal
+  readonly operator: WhereOperator; // canonical indexed-left operator
+  readonly originalIndexedOperand: "left"|"right";
+  readonly comparison: SeekComparisonMode;
+  readonly collation: BuiltinCollation; // validated effective comparison collation
+  readonly bound: "equality"|"lower-inclusive"|"lower-exclusive"|
+                  "upper-inclusive"|"upper-exclusive";
+}
 interface BtreeCapability {
   readonly index: IndexNode|null; readonly physicalIndex: PhysicalRowidIndex|null;
-  readonly equalityPrefix: readonly WhereTerm[]; readonly lower: WhereTerm|null;
-  readonly upper: WhereTerm|null; readonly constrainedFields: number;
+  readonly equalityPrefix: readonly IndexConstraintAdmission[];
+  readonly lower: IndexConstraintAdmission|null;
+  readonly upper: IndexConstraintAdmission|null; readonly constrainedFields: number;
   readonly orderTermsSatisfied: number; readonly reverse: boolean;
   readonly covering: boolean; readonly needsTableLookup: boolean;
 }
@@ -3620,7 +3637,23 @@ key layout and encoding.
 Selection, unpack, compare, cursor open, and deferred table lookup must retain
 those identities and reject structurally-equal substitution. A capability records
 an equality prefix followed by at most one lower/upper range on the next key term;
-no skipped leading column is implied. `orderTermsSatisfied`, direction, and
+no skipped leading column is implied. Each array/bound member is the immutable
+admission result, not a bare term. Candidate construction creates it once after
+all affinity/collation and physical-identity checks. The `WhereLoop` and selected
+`WherePath` retain that same object unchanged, and lowering consumes it without
+rerunning eligibility or deriving field association from array position.
+`field`, `keyInfoTerm`, and `physicalIndex` use exact object identity; construction
+asserts their ordinal correspondence. `operator` is the post-commutation,
+indexed-left operator, while `originalIndexedOperand` preserves orientation for
+audit/debugging and prevents original-order collation from being reconstructed.
+`bound` is stored explicitly so DESC traversal affects cursor direction, not the
+semantic lower/upper test. Equality includes `eq` and admitted `is`; `is-null`
+has no RHS coercion and may only carry `bound: "equality"`. For ordinary
+comparisons, the stored `MemAffinity` is the pinned comparison affinity—not merely
+the index column affinity—and the stored collation is the already validated
+original-order result. `WhereLoop.terms` remains the residual/usage term set; it
+is not the lowering contract.
+`orderTermsSatisfied`, direction, and
 covering are independently derived facts—not consequences of “uses index”.
 Covering must include every column needed by result, residual predicates, join,
 ORDER/GROUP/DISTINCT, and lowering; otherwise `needsTableLookup` is true.
@@ -3673,8 +3706,11 @@ and the affinity/collation branch around 386-422), called by
 with `src/expr.c:sqlite3CompareAffinity` (342), `comparisonAffinity` (364),
 `sqlite3IndexAffinityOk` (387), `sqlite3BinaryCompareCollSeq` (424), and
 `sqlite3ExprCompareCollSeq` (452). It is part of candidate admission, before cost
-or lowering, and returns either a complete immutable seek decision or “not usable
-for this index field”; it never weakens a residual predicate.
+or lowering, and returns either the `IndexConstraintAdmission` above or “not
+usable for this index field”; it never weakens a residual predicate. Construction
+is the sole owner of effective affinity, collation, orientation, field/KeyInfo
+identity, and bound classification; later phases may validate invariants but may
+not recompute or replace those facts.
 
 The helper consumes the resolved `Expression` operands and exact
 `PhysicalIndexField`/`KeyInfo` term. Term analysis first orients the indexed
