@@ -4012,3 +4012,29 @@ executions (Chinook plus UTF-8/UTF-16LE/UTF-16BE synthetic fixtures), including
 comments, Unicode, whitespace, repeated prepare, reset, error phase/code/message/
 identity and finalize handling. SQL input is still a JavaScript string adapted to
 UTF-8 bytes; alternate SQL input encodings are not proved.
+
+#### Encoding, affinity, and private-counter completion ([[card:card-s-a-b]])
+
+The executable W1/W2 boundary now builds three separate databases with pinned
+SQLite 3.53.4 after setting `PRAGMA encoding` before schema creation: UTF-8,
+UTF-16le, and UTF-16be. Each is reopened read-only and independently records its
+encoding, SHA-256, bytes, 512-byte page size, schema roots, and complete
+`index_xinfo`; recapture compares all physical bytes and typed observations. The
+23-case matrix runs in every encoding (69 pinned captures/public attempts), adding
+neighboring INTEGER/REAL/TEXT affinity probes for numeric-looking and non-numeric
+TEXT, BLOB, numeric-to-TEXT, NULL, commuted operands, explicit RHS NOCASE, and a
+BINARY mismatch fallback. Rows, storage classes, EQP access shape, and encoding
+invariance are machine checked at zero TS credit.
+
+Every case now carries private `exact` or bounded `min`/`max` expectations for
+planner candidates/paths, index and table work, residual tests, and sorter rows,
+plus a mandatory fresh-zero start for every binding run. These expectations make
+covering access require zero table seeks, deferred access require table work,
+proved order require zero sorter rows, fallback sorting require nonzero sorter
+rows, residual cases require residual activity, and reset/rebind prohibit carried
+work. Native stmt-status remains corroborating capture evidence, not a substitute
+for future TypeScript private counters. Credit remains zero until both public rows
+and these private invariants pass; no public API is added.
+
+Later shared integrations `o53a127`, `m18e3a345`, `n5e1df973`, `a3268c13`, and
+`b50b2a59` are regression requirements only and confer no index-planner credit.

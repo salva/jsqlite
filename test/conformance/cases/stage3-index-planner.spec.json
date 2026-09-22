@@ -38,7 +38,7 @@
     "CREATE TABLE t(id INTEGER PRIMARY KEY, a INTEGER, b TEXT COLLATE NOCASE, c REAL, payload TEXT, tag TEXT UNIQUE)",
     "CREATE INDEX ix_ab_desc ON t(a, b COLLATE NOCASE DESC)",
     "CREATE INDEX ix_c ON t(c)",
-    "INSERT INTO t VALUES(1,1,'Alpha',1.0,'p1','tag1'),(2,1,'beta',2.5,'p2','tag2'),(3,1,NULL,3.0,'p3','tag3'),(4,2,'ALPHA',4.5,'p4','tag4'),(5,2,'gamma',5.0,'p5','tag5'),(6,3,'delta',6.25,'p6','tag6'),(7,NULL,'zeta',7.0,'p7','tag7')",
+    "INSERT INTO t VALUES(1,1,'Alpha',1.0,'p1','tag1'),(2,1,'beta',2.5,'p2','tag2'),(3,1,NULL,3.0,'p3','tag3'),(4,2,'ALPHA',4.5,'p4','tag4'),(5,2,'gamma',5.0,'p5','tag5'),(6,3,'delta',6.25,'p6','tag6'),(7,NULL,'zeta',7.0,'p7','tag7'),(8,10,'123',10.0,'p8','tag8'),(9,-2,'omega',-2.25,'p9','tag9')",
     "CREATE TABLE up_t1(a, b, c, d, e, PRIMARY KEY(a), UNIQUE(b COLLATE nocase DESC))",
     "CREATE INDEX up_t1c ON up_t1('c')",
     "CREATE INDEX up_t1d ON up_t1('d' COLLATE binary ASC)",
@@ -56,7 +56,28 @@
       "sql": "SELECT id,c FROM t WHERE id=?1",
       "bindings": [
         4
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "rowid-range-desc",
@@ -69,7 +90,28 @@
       "bindings": [
         2,
         6
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "index-equality",
@@ -81,7 +123,28 @@
       "sql": "SELECT a,b FROM t WHERE a=?1 ORDER BY b DESC",
       "bindings": [
         1
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "index-composite-prefix-range",
@@ -96,7 +159,28 @@
       "bindings": [
         1,
         "alpha"
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "index-null",
@@ -107,7 +191,28 @@
       "sql": "SELECT id,a,b FROM t WHERE a=?1 AND b IS NULL",
       "bindings": [
         1
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "order-unsatisfied-fallback",
@@ -118,7 +223,28 @@
       "sql": "SELECT id,b FROM t WHERE a>=?1 ORDER BY payload",
       "bindings": [
         1
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "min": 1
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "covering-index",
@@ -128,7 +254,28 @@
       "sql": "SELECT a,b FROM t WHERE a=?1",
       "bindings": [
         2
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "deferred-table-lookup",
@@ -139,7 +286,28 @@
       "sql": "SELECT payload FROM t WHERE a=?1",
       "bindings": [
         2
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "parameter-reset-rebind",
@@ -157,7 +325,28 @@
         [
           6.0
         ]
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "residual-predicate",
@@ -168,7 +357,28 @@
       "bindings": [
         1,
         2
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 1
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "left-join-on-provenance",
@@ -179,7 +389,28 @@
       "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
       "bindings": [
         "u8"
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 1
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "left-join-where-safety",
@@ -190,7 +421,28 @@
       "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id WHERE t.id<=2 AND u.note=?1 ORDER BY t.id",
       "bindings": [
         "u8"
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 1
+        },
+        "freshEachRun": true
+      }
     },
     {
       "id": "up-index3-2.2",
@@ -205,7 +457,358 @@
         [
           5
         ]
-      ]
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-integer-text-positive",
+      "coverage": [
+        "affinity",
+        "integer",
+        "numeric-looking-text"
+      ],
+      "sql": "SELECT id,typeof(a),a FROM t WHERE a=?1 ORDER BY id",
+      "bindings": [
+        "2"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-integer-text-negative",
+      "coverage": [
+        "affinity",
+        "integer",
+        "non-numeric-text"
+      ],
+      "sql": "SELECT id FROM t WHERE a=?1",
+      "bindings": [
+        "not-a-number"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-integer-blob-negative",
+      "coverage": [
+        "affinity",
+        "integer",
+        "blob"
+      ],
+      "sql": "SELECT id FROM t WHERE a=?1",
+      "bindings": [
+        {
+          "type": "blob",
+          "hex": "32"
+        }
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-text-numeric-positive",
+      "coverage": [
+        "affinity",
+        "text",
+        "numeric-to-text"
+      ],
+      "sql": "SELECT id,typeof(b),b FROM t WHERE b=?1",
+      "bindings": [
+        123
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-real-text-positive",
+      "coverage": [
+        "affinity",
+        "real",
+        "numeric-looking-text"
+      ],
+      "sql": "SELECT id,typeof(c),c FROM t WHERE c=?1",
+      "bindings": [
+        "5"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-real-text-negative",
+      "coverage": [
+        "affinity",
+        "real",
+        "non-numeric-text"
+      ],
+      "sql": "SELECT id FROM t WHERE c=?1",
+      "bindings": [
+        "five"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "affinity-real-null",
+      "coverage": [
+        "affinity",
+        "real",
+        "null"
+      ],
+      "sql": "SELECT id,typeof(c) FROM t WHERE c IS NULL",
+      "bindings": [],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "orientation-commuted-integer",
+      "coverage": [
+        "affinity",
+        "operand-orientation"
+      ],
+      "sql": "SELECT id FROM t WHERE ?1=a ORDER BY id",
+      "bindings": [
+        "2"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "exact": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "orientation-rhs-nocase",
+      "coverage": [
+        "collation",
+        "operand-orientation",
+        "explicit-collate"
+      ],
+      "sql": "SELECT id,b FROM t WHERE ?1 COLLATE NOCASE=b ORDER BY id",
+      "bindings": [
+        "alpha"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 1
+        },
+        "tableSeeks": {
+          "min": 1
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 0
+        },
+        "freshEachRun": true
+      }
+    },
+    {
+      "id": "collation-binary-mismatch",
+      "coverage": [
+        "collation",
+        "negative-neighbor",
+        "scan-fallback"
+      ],
+      "sql": "SELECT id,b FROM t WHERE b=?1 COLLATE BINARY ORDER BY id",
+      "bindings": [
+        "alpha"
+      ],
+      "privateExpected": {
+        "plannerCandidates": {
+          "min": 1
+        },
+        "plannerPaths": {
+          "min": 1
+        },
+        "indexSeeks": {
+          "min": 0
+        },
+        "tableSeeks": {
+          "min": 0
+        },
+        "sorterRows": {
+          "exact": 0
+        },
+        "residualTests": {
+          "min": 1
+        },
+        "freshEachRun": true
+      }
     }
   ],
   "atomicGates": [
@@ -250,6 +853,20 @@
       "feature": "index-backed IN",
       "setup": [],
       "sql": "SELECT payload FROM t WHERE a IN (?1,?2)"
+    }
+  ],
+  "encodingVariants": [
+    {
+      "id": "utf8",
+      "pragma": "UTF-8"
+    },
+    {
+      "id": "utf16le",
+      "pragma": "UTF-16le"
+    },
+    {
+      "id": "utf16be",
+      "pragma": "UTF-16be"
     }
   ]
 }
