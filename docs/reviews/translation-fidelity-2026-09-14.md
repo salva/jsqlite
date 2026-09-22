@@ -1347,3 +1347,22 @@ SQL byte spans for unaliased computed names; preserve alias priority and direct
 resolved-column naming. Exact evidence, limitations, and source mappings are in
 `docs/research/card-i-a-chinook-b1-b5.md` and
 `test/conformance/cases/audit-chinook-b1-b5.json`. All evidence remains zero credit.
+
+### Revision 2026-09-22 — B1/B5 implemented and independently hardened
+
+The prior B1 prepare-rejection and B5 source-span-loss findings are superseded.
+Current generated reductions retain structured BETWEEN operands and exact original
+UTF-8 expression slices. VDBE lowering follows `expr.c:exprCodeBetween` with one lhs
+register, native lower/upper order, shared affinity/CollSeq, NULL/NOT semantics and
+distinct projection/predicate control. Exact span naming preserves aliases and does
+not regress resolved direct qualified columns. Inspection finds no token parser,
+range evaluator, native/WASM/eval runtime or host registration.
+
+The corrected public classifier counts exact expected step errors and lazy values,
+requires error phase/code/message, first-error object identity, reset/finalize
+behavior, and repeats every prepare. It now reports 56/56 semantic matches, zero
+credit, across hash-pinned Chinook and three synthetic encodings. A TS structural
+check proves one Function destination register feeds both comparisons; the separate
+native-only development function probe remains oracle evidence only. SQL arrives as
+a JavaScript string and is adapted to UTF-8 source bytes, so alternate SQL input
+encodings remain unproved.

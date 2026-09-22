@@ -1585,3 +1585,11 @@ runtime.
 | Pinned source behavior | TypeScript route | Evidence |
 |---|---|---|
 | `select.c` CTE SrcItem resolution and ephemeral materialization precede ordinary table consumption; residual represented owners do not become schema names | `compileDerivedProducer` compiles the grouped source-0 producer into a typed VDBE sorter and consumes it with one ordinary schema table; `compileTableSelect` rejects unhandled derived owners before schema lookup | `cte-chinook-lead.test.mjs`: exact `Title`,`n` metadata and three typed rows through public Fetch, plus connection reuse, in UTF-8/UTF-16LE/UTF-16BE. Python SQLite 3.45.1 supplied comparison rows only; no pinned-native 3.53.4 credit is claimed. |
+
+## `BETWEEN` and result-name span mapping (2026-09-22)
+
+| Project owner/evidence | Pinned owner | Current bounded mapping |
+|---|---|---|
+| `parse.ts`, `resolve.ts`, `vdbe.ts` | `parse.y` `expr ::= expr between_op expr AND expr`; `expr.c:exprCodeBetween`, `sqlite3ExprCodeTarget`, `sqlite3ExprIfTrue/False` | Structured generated reduction; lhs register evaluated once; lower then upper shared comparisons preserve affinity, CollSeq, NULL/NOT and target-vs-predicate control. No token parser or range evaluator. |
+| exact `ExprNode.sourceText` and compiled column metadata | `select.c:sqlite3GenerateColumnNames`, `sqlite3DbSpanDup` | Unaliased computed expressions use the original UTF-8 source slice; aliases win and resolved direct columns use their column names. |
+| `audit-chinook-b1-b5*`, `between-lowering.test.mjs` | Exact pinned public results and development-only one-call function probe | 22 cases/56 executions, zero credit; typed rows, ordered names, repeated prepare/reset, expected errors and lifecycle. Native function registration is oracle-only, not public API. |

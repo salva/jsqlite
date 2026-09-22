@@ -3940,3 +3940,25 @@ Chinook digest, followed by connection reuse. The separately obtained Python
 SQLite 3.45.1 result is comparison evidence, not pinned-native 3.53.4 credit.
 Represented derived/CTE graphs outside translated consumers still reject with a
 typed temporary error before retained lexical names can leak into schema lookup.
+
+### `BETWEEN` and exact result spans (2026-09-22 revision)
+
+Generated `expr ::= expr between_op expr AND expr` reductions now produce a
+structured expression; no token parser or range evaluator is used. Lowering follows
+pinned `src/expr.c:exprCodeBetween`: evaluate the lhs into one register, compare
+`lhs>=lower` then `lhs<=upper` with the shared affinity and CollSeq owners, combine
+with SQL three-valued AND, and apply NOT afterward. Projection follows
+`sqlite3ExprCodeTarget` operand order (the upper operand is evaluated even after a
+false lower result); predicate control may jump on a decisive false lower result.
+A structural test verifies one Function and reuse of its destination register by
+both comparisons without exposing a host-function API. The development-only C
+probe remains the independent native one-call oracle and earns no TS credit.
+
+Unaliased computed output names retain the exact UTF-8 byte slice from the original
+SQL through generated reductions. AS remains authoritative, while resolved direct
+columns retain the column name rather than a qualified source slice, matching
+`select.c:sqlite3GenerateColumnNames`. The 22-case audit compares 56 public
+executions (Chinook plus UTF-8/UTF-16LE/UTF-16BE synthetic fixtures), including
+comments, Unicode, whitespace, repeated prepare, reset, error phase/code/message/
+identity and finalize handling. SQL input is still a JavaScript string adapted to
+UTF-8 bytes; alternate SQL input encodings are not proved.

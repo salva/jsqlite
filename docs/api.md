@@ -625,3 +625,14 @@ subject to the statement's work/private-state and lifecycle controls. Other
 represented derived/CTE compositions that no translated consumer accepts remain
 atomic prepare-time temporary gaps (`this derived CTE composition is not
 implemented`), rather than being misreported as missing schema tables.
+
+### `BETWEEN` and computed result names (2026-09-22)
+
+The admitted expression surface includes scalar and predicate `BETWEEN`/`NOT
+BETWEEN` with SQLite comparison affinity, collation and three-valued NULL behavior.
+The lhs is evaluated once; observable lower/upper evaluation follows the applicable
+projection or predicate control path. Unaliased computed columns report the exact
+original SQL expression slice, including spacing/comments/Unicode; `AS` wins, and
+a direct qualified column reports its resolved column name. This does not add host
+function registration. SQL is supplied as a JavaScript string; the implementation's
+UTF-8 source-byte adaptation is the tested contract, not alternate SQL encodings.
