@@ -1632,3 +1632,15 @@ independent masks, and outer safety. `planWhere` source masks now retain the ful
 prefix through a LEFT nullable RHS for subsequent INNER/CROSS sources, matching
 the admitted flat three-source join-order branches; tests cover nullable-side
 references and both operand spellings.
+
+Immutable-review correction maps comparison admission to
+`expr.c:sqlite3CompareAffinity`/`sqlite3IndexAffinityOk`, explicitly separating
+literal storage class from expression affinity. Candidate construction now maps
+the admitted `whereScan*`/`whereLoopAddBtreeIndex` proposal behavior by emitting
+all leading equality alternatives and next-field lower/upper pairs (including
+rowid forms), each with exact identities and prerequisite masks, before solver
+dominance. Multi-source `WherePath.orderTermsSatisfied` is intentionally zero
+until complete `wherePathSatisfiesOrder` path state is ported; local capability
+order facts remain non-authoritative for sorter removal. Cross-encoding affinity,
+text-order-invariant alternatives, and inner-restart order tests enforce these
+boundaries without claiming W3 execution.

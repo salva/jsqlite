@@ -4161,3 +4161,32 @@ Term prerequisites are unioned with these barriers. Production three-source test
 cover `a LEFT JOIN b JOIN c ON b.k=c.k` and `a LEFT JOIN b CROSS JOIN c`, proving
 that `c` cannot cross `b` and that the nullable-side commuted term requires `b`.
 Nested/unrepresented RIGHT/FULL shapes remain on statement-wide fallback.
+
+### W1/W2 immutable-review correction: affinity, alternatives, and global order (2026-09-22)
+
+Admission now follows pinned `expr.c:sqlite3CompareAffinity` and
+`sqlite3IndexAffinityOk`: literal runtime storage class is not expression
+affinity. A column compared with a literal uses the column affinity; two
+column-affinity operands use NUMERIC if either is numeric and otherwise no
+(BLOB) comparison affinity. No-affinity comparisons are index-compatible,
+TEXT comparison affinity requires a TEXT index, and NUMERIC comparison affinity
+requires a numeric index. Collation remains an independent exact gate. Tests run
+positive and negative cases in both orientations through each UTF encoding and
+retain exact selected admission/descriptor identity; this is planning metadata,
+not encoded-key execution evidence.
+
+`btreeLoops` now proposes every admitted equality alternative at each complete
+leading-prefix position and every applicable lower/upper pair on the next field.
+Rowid equality and range alternatives follow the same rule. Each loop retains its
+own exact admissions and prerequisite union; deterministic dependency-first
+proposal order and normal path dominance replace prior first-term selection.
+Constant and column RHS alternatives, forced indexes, LEFT barriers, and reversed
+WHERE text order are covered by production tests.
+
+Until the applicable multi-source `wherePathSatisfiesOrder` state machine is
+translated completely, `WherePath.orderTermsSatisfied` is conservatively zero
+for every multi-source path. Per-loop capability order remains a local physical
+fact only and cannot authorize global sorter elision. Single-source equality-
+fixed and reverse order facts remain published. Tests prove the inner-restart
+negative, mixed-source/reverse negative, and single-source positive; dominance
+therefore never favors a local inner-loop order as global order.
