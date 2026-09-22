@@ -3859,3 +3859,31 @@ The fallback boundary also requires matched and unmatched RIGHT and FULL cases,
 ON-versus-WHERE filtering, nested joins/subqueries, and reset/error cleanup to
 prove dispatch leaves the current source-order machinery unchanged; these are
 fallback regressions, not planner-credit tests.
+
+### Revision 2026-09-22 — aggregate scalar composition and joined correlated EXISTS
+
+Two later composition gaps were in the VDBE splice, not in SQL parsing or host-side
+fallbacks. For a no-FROM parent, an aggregate scalar child is now compiled through
+`compileAggregateSelect` and its complete child register/cursor ownership is
+relocated before its `ResultRow` destination is replaced. This follows
+`expr.c:sqlite3CodeSubselect`/`SRT_Mem`: each child has a disjoint destination,
+NULL initialization and first-row transfer while sharing the parent VM lifecycle.
+The admitted child-opcode audit covers the register operands emitted by scalar and
+aggregate plans (`AggStep` arguments/accumulator, `AggFinal`, `AggValue`,
+`AggInverse`, scalar sources/destinations, comparisons, functions, result and
+index keys) and table read positioning (`OpenRead`, `Rewind`, `Next`, `Column`,
+`Rowid`, `NullRow`). Aggregate plans needing other cursor families remain behind
+the existing shape gates rather than receiving partial relocation.
+
+For an aggregate outer consumer, a correlated `EXISTS` with a two-table equality
+join now follows the parent-Parse ownership of `sqlite3CodeSubselect` and the
+bounded probe shape selected by pinned `where.c`. The inner join-key and qualifying
+correlation-key ephemeral indexes are materialized under `Once` only because they
+are independent of the outer row; the outer correlation probe is after that guard
+and reruns for every aggregate input row. This set-probe optimization is limited
+to SQL `=`/`==`: NULL-safe `IS` remains on the generic correlated loop so an
+outer NULL can match an inner NULL. This avoids the incorrect Cartesian
+work profile without widening the admitted join shape. Tests cover all database
+encodings, independent/correlated destinations, metadata, reset, work limits,
+first-error cleanup and restored operation admission, including the `IS NULL`
+discriminator.

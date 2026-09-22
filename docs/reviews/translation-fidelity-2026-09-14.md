@@ -1195,3 +1195,70 @@ result remains 36/39, with the three encoding variants still rejected as
 `complex compound table arms are not implemented`; no broader Stage 3, arbitrary
 CTE, exhaustive window, or root-completion claim follows. Finding 5 is unchanged:
 CHECK/FK support is **read-schema retention only**, without write enforcement.
+
+### Revision 2026-09-22 — B2 zero-source derived aggregate audit
+
+The digest-bound public Fetch reproduction on the 1,007,616-byte Chinook image
+(SHA-256 `7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`)
+prepared `SELECT count(*) FROM (SELECT 1 AS x)`. Before this repair, prepare
+failed with `no such table: (subquery)`. A freshly built oracle asserted the
+manifest SQLite 3.53.4 source ID and returned one `count(*)` column with INTEGER
+row `1`.
+
+Root cause was the aggregate compiler's bounded flatten route requiring one
+producer FROM term. Pinned `select.c:flattenSubquery` restriction (7) explicitly
+forbids flattening a zero-source producer; `sqlite3Select` therefore retains the
+derived destination/control handoff (tags `select-0482`/`select-0488`) before the
+parent `SRT_Accumulator`. `compileZeroSourceDerivedCount` now performs that
+narrow destination composition in one VDBE program: each producer `ResultRow`
+feeds parent `AggStep`, producer termination transfers to `AggFinal`, and no host
+rows or recursive Statement are introduced. Shapes needing producer-column
+registers remain at their existing atomic gate.
+
+Permanent public-Fetch coverage is the B2 test in
+`test/conformance/expression-subquery-chinook.test.mjs`; it checks exact row,
+metadata, reset, finalize, and restored admission. This revision is delivered with
+the integrated A1/B2/B4 expression-subquery change.
+
+### Revision 2026-09-22 — A1 aggregate scalar destination composition
+
+Exact public Fetch reproduction on the digest-bound Chinook image prepared
+`SELECT (SELECT count(*) FROM Genre),(SELECT count(*) FROM MediaType)`. Before
+correction the aggregate child reached ordinary scalar lowering and failed with
+`internal execution-only expression reached scalar lowering`; incomplete operand
+relocation also allowed child register/cursor destinations to alias. The fresh
+manifest-built SQLite 3.53.4 oracle returns INTEGER row `[25,5]`.
+
+Root cause was `compileScalarSelect` always selecting the table compiler and then
+splicing a child Program without relocating every operand used by admitted
+aggregate plans. Pinned `expr.c:sqlite3CodeSubselect` emits `SRT_Mem` into the same
+Parse/VDBE with disjoint `nMem`/`nTab` ownership. `src/internal/vdbe.ts` now chooses
+the aggregate compiler, relocates the audited register, aggregate-accumulator,
+index-key and table-cursor operands, and replaces only the child row destination.
+`expression-subquery-chinook.test.mjs` and
+`expression-subquery-composition.test.mjs` prove two/three independent children,
+correlated children, metadata, reset, destination isolation and all encodings.
+
+### Revision 2026-09-22 — B4 aggregate consumer with joined correlated EXISTS
+
+Exact public Fetch reproduction prepared `SELECT count(*) FROM Track t WHERE
+EXISTS(SELECT 1 FROM InvoiceLine il JOIN Invoice i ON
+i.InvoiceId=il.InvoiceId WHERE il.TrackId=t.TrackId)`. The initial aggregate gate
+rejected it; the first direct nested-loop translation then exceeded the default
+shared work limit. The fresh manifest-built SQLite 3.53.4 oracle returns INTEGER
+`1984` on the identical SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15` image.
+
+Pinned `expr.c:sqlite3CodeSubselect` keeps correlated work in the parent VDBE and
+suppresses `Once` for outer-dependent evaluation, while `where.c` probes the
+inner equality join instead of enumerating its Cartesian product. The correction
+materializes only outer-independent join/correlation keys under `Once` and places
+the Track probe after its target for per-row rerun. The generic admitted path and
+atomic typed gates are unchanged. Public Chinook plus three-encoding small-fixture
+tests cover duplicates/empty outer matches, multiple outer rows, metadata, reset,
+default and failing work budgets, first-error cleanup and restored admission.
+A post-integration review found that initially admitting `IS` to the ephemeral
+IN-style key probe lost NULL-safe equality. The optimized branch is now restricted
+to `=`/`==`; `IS` uses the generic correlated loop. An exact all-encoding public
+regression verifies that an outer NULL matches the joined inner NULL, as pinned
+SQLite does.
