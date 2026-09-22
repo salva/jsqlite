@@ -4,10 +4,50 @@ import http from 'node:http';
 import path from 'node:path';
 import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
+import {lowerOrdinaryCtes} from '../../src/internal/cte.ts';
+import {parseSql} from '../../src/internal/parse.ts';
+import {btreeFromStorage} from '../../src/internal/btree.ts';
+import {loadSchemaGraph} from '../../src/internal/schema.ts';
+import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
+import {compileTableSelect,programOpcodeNames} from '../../src/internal/vdbe.ts';
 
 const here=path.dirname(new URL(import.meta.url).pathname);
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
 const generated=path.join(here,'../fixtures/generations',current.generationId,'generated');
+
+test('ordinary CTE hints select the production coroutine/materialization routes',()=>{
+  const storage=ImmutableStorage.open(fs.readFileSync(path.join(generated,'subquery-utf8.db')));
+  const owner={[storageOwner]:storage};
+  const opcodes=sql=>{
+    const parsed=parseSql(sql);assert.equal(parsed.statement?.kind,'select');
+    const lowered=lowerOrdinaryCtes(parsed.statement);assert.ok(lowered);
+    return programOpcodeNames(compileTableSelect(lowered,loadSchemaGraph(owner),btreeFromStorage(storage),100));
+  };
+  try{
+    const unhinted=opcodes('WITH q(x) AS (VALUES(8)) SELECT x FROM q');
+    assert.ok(unhinted.includes('InitCoroutine'),'eligible one-use unhinted CTE takes tag-select-0482');
+    assert.ok(!unhinted.includes('OpenEphemeral'),'eligible one-use unhinted CTE is not materialized');
+
+    const repeatedUnhinted=opcodes('WITH q(x) AS (VALUES(8)) SELECT a.x FROM q AS a JOIN q AS b ON a.x=b.x');
+    assert.equal(repeatedUnhinted.filter(op=>op==='OpenEphemeral').length,1,'repeated unhinted CTE is filled once');
+    assert.equal(repeatedUnhinted.filter(op=>op==='OpenDup').length,1,'repeated unhinted CTE reuses its fill through OpenDup');
+    assert.ok(!repeatedUnhinted.includes('InitCoroutine'),'repeated unhinted use disables the coroutine route');
+
+    const eligible=opcodes('WITH q(x) AS NOT MATERIALIZED (VALUES(8)) SELECT x FROM q');
+    assert.ok(eligible.includes('InitCoroutine'),'NOT MATERIALIZED permits tag-select-0482');
+    assert.ok(!eligible.includes('OpenEphemeral'),'eligible coroutine is not materialized');
+
+    const forced=opcodes('WITH q(x) AS MATERIALIZED (VALUES(8)) SELECT x FROM q');
+    assert.ok(!forced.includes('InitCoroutine'),'M10d_Yes prevents tag-select-0482');
+    assert.ok(forced.includes('OpenEphemeral'),'MATERIALIZED uses statement-private storage');
+    assert.ok(forced.includes('IdxInsert'),'MATERIALIZED fills the private cursor');
+
+    const repeatedHint=opcodes('WITH q(x) AS NOT MATERIALIZED (VALUES(8)) SELECT x FROM q UNION ALL SELECT x FROM q');
+    assert.equal(repeatedHint.filter(op=>op==='InitCoroutine').length,2,'M10d_No permits each repeated arm to remain a coroutine');
+    assert.ok(!repeatedHint.includes('OpenEphemeral'),'M10d_No overrides the repeated-use materialization heuristic when no other coroutine condition prevents it');
+    assert.ok(!repeatedHint.includes('OpenDup'),'non-materialized repeated uses have independent coroutine state');
+  }finally{storage.close();}
+});
 
 async function serve(body){
   const server=http.createServer((_request,response)=>{
@@ -25,12 +65,23 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} exec
   let statement;
   try{
     db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
-    for(const [sql,name,expected] of [
-      ['WITH q(x) AS (VALUES(7)) SELECT x FROM q','x',[7n]],
-      ['WITH q(x) AS NOT MATERIALIZED (VALUES(8)) SELECT x FROM q','x',[8n]],
-      ['WITH RECURSIVE q(x) AS (VALUES(9)) SELECT x FROM q','x',[9n]],
-      ['WITH q(x) AS (SELECT a FROM t1) SELECT x FROM q','x',[1n,3n,5n,7n]],
+    for(const {id=null,source=null,assertion=null,phase=null,sql,name,expected} of [
+      {sql:'WITH q(x) AS (VALUES(7)) SELECT x FROM q',name:'x',expected:[7n]},
+      {sql:'WITH q(x) AS NOT MATERIALIZED (VALUES(8)) SELECT x FROM q',name:'x',expected:[8n]},
+      {sql:'WITH RECURSIVE q(x) AS (VALUES(9)) SELECT x FROM q',name:'x',expected:[9n]},
+      {sql:'WITH q(x) AS (SELECT a FROM t1) SELECT x FROM q',name:'x',expected:[1n,3n,5n,7n]},
+      // Public read-only-fixture adaptations of the five pinned upstream
+      // lexical discriminators. Keep each source assertion independently
+      // identified so one passing branch cannot stand in for another.
+      {id:'with1-3.4',source:'test/with1.test',assertion:'3.4',phase:'rows',sql:'WITH q(x) AS (VALUES(1)), q2 AS (WITH q(x) AS (VALUES(2)) SELECT x FROM q) SELECT x FROM q2',name:'x',expected:[2n]},
+      {id:'with1-3.5',source:'test/with1.test',assertion:'3.5',phase:'rows',sql:'WITH q(x) AS (VALUES(3)), q2 AS (WITH unused(y) AS (VALUES(4)) SELECT x FROM q) SELECT x FROM q2',name:'x',expected:[3n]},
+      {id:'with2-1.6',source:'test/with2.test',assertion:'1.6',phase:'rows',sql:'WITH x1(a) AS (SELECT a FROM t1), x2 AS (WITH unused(y) AS (VALUES(4)) SELECT a FROM x1) SELECT a FROM x2',name:'a',expected:[1n,3n,5n,7n]},
+      {id:'with2-1.7',source:'test/with2.test',assertion:'1.7',phase:'rows',sql:'WITH q2 AS (WITH q(x) AS (VALUES(4)) SELECT x FROM q) SELECT x FROM q2',name:'x',expected:[4n]},
+      {id:'with2-1.8',source:'test/with2.test',assertion:'1.8',phase:'rows',sql:'WITH q2 AS (WITH t1(a) AS (VALUES(99)) SELECT a FROM main.t1) SELECT a FROM q2',name:'a',expected:[1n,3n,5n,7n]},
     ]){
+      if(id!==null){assert.equal(`${source.replace(/^test\//,'').replace(/\.test$/,'')}-${assertion}`,id);assert.equal(phase,'rows');}
+      // Obtaining the statement proves successful prepare before typed row/DONE
+      // observations for each independently identified upstream discriminator.
       statement=db.prepare(sql).statement;
       assert.equal(statement.columnCount,1);
       assert.equal(statement.columnMetadata(0).name,name);

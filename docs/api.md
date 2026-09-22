@@ -410,7 +410,11 @@ Singular Fetch admits the captured scalar subquery, EXISTS, IN/NOT IN, and corre
 
 `prepare()` admits the represented ordinary, non-recursive WITH forms exercised by
 the conformance suite, including aliases, multiple declarations, repeated
-references, and `AS MATERIALIZED` / `AS NOT MATERIALIZED` planning hints. Rows,
+references, and `AS MATERIALIZED` / `AS NOT MATERIALIZED` planning hints. For
+represented FROM-owned nested SELECTs, lexical lookup is innermost-first, falls
+back to an outer WITH frame, and ignores CTE names for `main.`-qualified sources;
+these prepare successfully and return typed rows/metadata in every supported
+database encoding. Rows,
 metadata, errors, reset/finalize, cancellation, yielding, and limits use the same
 statement/VDBE contract as the underlying SELECT route. This is not unrestricted
 WITH support: represented derived/view ownership (with stored-view scope isolation),

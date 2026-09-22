@@ -57,7 +57,8 @@ function derivedFrom(root:SelectNode,index:number,producer:SelectNode,cte:CteNod
   const item=root.from.items[index]!;if(item.on||item.using||item.indexedBy||item.notIndexed)return null;
   const tokens=root.from.tokens,alias=item.alias??cte.name;
   const items=Object.freeze([Object.freeze({...item,alias})]);
-  const from=Object.freeze(Object.assign([...tokens],{items,tokens,derived:Object.freeze({index,select:producer,alias,cte,use,materialization:cte.materialization})})) as SourceList;
+  const cteSource=Object.freeze({index,select:producer,alias,use,materialization:cte.materialization});
+  const from=Object.freeze(Object.assign([...tokens],{items,tokens,derived:Object.freeze({index,select:producer,alias}),cteDerived:Object.freeze([cteSource])})) as SourceList;
   return Object.freeze({...root,from,with:null});
 }
 

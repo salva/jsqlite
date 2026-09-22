@@ -2602,7 +2602,18 @@ Public evidence currently covers all three database encodings for scalar/VALUES
 and table-backed producers, multiple declarations, repeated references, aliases,
 ordinary use under the RECURSIVE scope marker, both materialization hints, WITH
 owned by represented derived SELECTs and persisted views, mixed table/CTE CROSS
-JOIN, grouped aggregation, and UNION ALL with a scalar arm. Persisted-view lowering
+JOIN, grouped aggregation, and UNION ALL with a scalar arm. The nested derived
+matrix directly covers `with1.test` 3.4/3.5 and the applicable `with2.test`
+1.6/1.7/1.8 semantics: inner shadowing, outer-frame fallback, nested ownership,
+and `main.` qualification bypassing CTE lookup, with typed rows and metadata in
+UTF-8/UTF-16LE/UTF-16BE. These five public cases are read-only-fixture
+adaptations of the pinned assertions rather than relabeled native executions. A
+focused production-opcode discriminator shows eligible one-use unhinted and
+`AS NOT MATERIALIZED` owners taking the coroutine route, repeated unhinted use
+taking one ephemeral fill plus `OpenDup`, repeated compound-arm `AS NOT
+MATERIALIZED` taking independent coroutine routes, and `AS MATERIALIZED` taking
+ephemeral fill; the hint remains subject to all other coroutine eligibility
+rules. Persisted-view lowering
 uses a fresh lexical scope, so caller CTEs do not capture stored view bodies.
 At the ordinary-only checkpoint, recursive queue execution was not yet admitted:
 pre-lowering self-reference recognition returned exact temporary prepare error

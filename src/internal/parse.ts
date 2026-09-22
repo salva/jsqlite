@@ -19,7 +19,8 @@ export type JoinFlags=Readonly<{inner:boolean;cross:boolean;natural:boolean;left
 export type SourceItem=Readonly<{databaseName:string|null;tableName:string;arguments:readonly ExprNode[]|null;alias:string|null;indexedBy:string|null;notIndexed:boolean;on:ExprNode|null;using:readonly string[]|null;joinFromLeft:JoinFlags;leftOfRightJoin:boolean;cursorId:null;table:null}>;
 type FlattenedDerived=Readonly<{select:SelectNode}>;
 export type DerivedSource=Readonly<{index:number;select:SelectNode;alias:string|null}>;
-export type CteDerivedSource=Readonly<{index:number;select:SelectNode;alias:string;use:object;materialization:CteMaterialization}>;
+export type CteUseCarrier={readonly nUse:number};
+export type CteDerivedSource=Readonly<{index:number;select:SelectNode;alias:string;use:CteUseCarrier;materialization:CteMaterialization}>;
 export type SourceList=readonly SqlToken[]&Readonly<{items:readonly SourceItem[];tokens:readonly SqlToken[];flattenedDerived?:FlattenedDerived;derived?:DerivedSource;cteDerived?:readonly CteDerivedSource[]}>;
 export type SelectArm={readonly result:readonly ExprNode[];readonly from:SourceList;readonly where:ExprNode|null;readonly hasDistinct:boolean;readonly hasGroupBy:boolean;readonly hasHaving:boolean;readonly origin:"select"|"values";readonly valuesRows:readonly (readonly ExprNode[])[]|null;readonly operatorFromPrior:CompoundOperator|null;readonly prior:number|null;readonly next:number|null};
 export type SelectNode={readonly kind:"select";readonly result:readonly ExprNode[];readonly from:SourceList;readonly where:ExprNode|null;readonly groupBy:readonly ExprNode[];readonly having:ExprNode|null;readonly orderBy:readonly OrderTermNode[];readonly windowNames:readonly string[];readonly windowDefinitions:readonly WindowDefinitionNode[];readonly limit:ExprNode|null;readonly offset:ExprNode|null;readonly hasDistinct:boolean;readonly hasGroupBy:boolean;readonly hasHaving:boolean;readonly hasOrderBy:boolean;readonly hasLimit:boolean;readonly hasCompound:boolean;readonly hasValues:boolean;readonly hasSubquery:boolean;readonly with:WithClause|null;readonly arms:readonly SelectArm[];readonly tokens:readonly SqlToken[]};
@@ -105,7 +106,11 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
   // select.c:flattenSubquery restriction (25): window SELECTs retain their
   // generated Select owner and are consumed through a subquery destination.
   const hasWindow=!!select&&select.result.some(expr=>{const visit=(part:LemonValue<SqlToken>):boolean=>part.kind==='reduction'&&(part.signature.startsWith('over_clause ::= OVER')||part.children.some(visit));return !!expr.reduction&&visit(expr.reduction)});
-  const safe=!!select&&!hasWindow&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(!aliases.length||select.from.items.length===1&&directProjection);
+  // Upstream resolves the generated Select while its pWith frame is pushed,
+  // before flattenSubquery can splice its SrcList. This parser otherwise
+  // flattens eagerly, so retain WITH owners until lowerOrdinaryCtes() performs
+  // the equivalent innermost-first searchWith resolution.
+  const safe=!!select&&!select.with&&!hasWindow&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(!aliases.length||select.from.items.length===1&&directProjection);
   if(!safe){
    // parse.y's SrcItem owns the generated Select when flattenSubquery is
    // ineligible. Preserve it for sqlite3Select's materialization destination.
