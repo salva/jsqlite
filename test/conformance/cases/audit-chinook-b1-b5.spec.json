@@ -1,0 +1,31 @@
+{
+  "schema":"jsqlite-chinook-b1-b5-spec/1",
+  "sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "chinook":{"sha256":"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15","manifest":"test/fixtures/public/chinook.json"},
+  "setup":["CREATE TABLE t(id INTEGER PRIMARY KEY,n NUMERIC,r REAL,s TEXT COLLATE NOCASE)","INSERT INTO t VALUES(1,5,5.0,'bbb'),(2,10,10.0,'BBB'),(3,11,11.5,NULL),(4,NULL,NULL,'zzz')","CREATE TABLE names(first TEXT,last TEXT)","INSERT INTO names VALUES('Zoë','雪'),('A','B')"],
+  "cases":[
+    {"id":"b1-between","fixture":"chinook","sql":"SELECT count(*) FROM Invoice WHERE Total BETWEEN 5 AND 10"},
+    {"id":"b1-not-between","fixture":"chinook","sql":"SELECT count(*) FROM Invoice WHERE Total NOT BETWEEN 5 AND 10"},
+    {"id":"between-projection","fixture":"synthetic","sql":"SELECT id,n BETWEEN 5 AND 10,n NOT BETWEEN 5 AND 10 FROM t ORDER BY id"},
+    {"id":"null-lhs-bounds","fixture":"synthetic","sql":"SELECT NULL BETWEEN 1 AND 2,1 BETWEEN NULL AND 2,1 BETWEEN 0 AND NULL,NULL NOT BETWEEN 1 AND 2"},
+    {"id":"equal-reversed","fixture":"synthetic","sql":"SELECT 5 BETWEEN 5 AND 5,5 BETWEEN 6 AND 4,5 NOT BETWEEN 6 AND 4"},
+    {"id":"mixed-classes","fixture":"synthetic","sql":"SELECT 5 BETWEEN 4.5 AND 5.5,typeof(5 BETWEEN 4.5 AND 5.5),'5' BETWEEN 4 AND 6,5 BETWEEN '4' AND '6'"},
+    {"id":"affinity-columns","fixture":"synthetic","sql":"SELECT id,n BETWEEN '5' AND '10',r BETWEEN '5' AND '10' FROM t ORDER BY id"},
+    {"id":"collation-explicit","fixture":"synthetic","sql":"SELECT 'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase,('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase,s BETWEEN 'aaa' AND 'ccc' FROM t ORDER BY id"},
+    {"id":"parameters-projection","fixture":"synthetic","sql":"SELECT ?1 BETWEEN ?2 AND ?3,?1 NOT BETWEEN ?2 AND ?3","bindings":[7,5,10]},
+    {"id":"parameters-where","fixture":"synthetic","sql":"SELECT id,r,typeof(r) FROM t WHERE n BETWEEN ?1 AND ?2 ORDER BY id","bindings":[5,10]},
+    {"id":"where-null-3vl","fixture":"synthetic","sql":"SELECT id FROM t WHERE n BETWEEN 5 AND NULL ORDER BY id"},
+    {"id":"where-control","fixture":"synthetic","sql":"SELECT id FROM t WHERE id=1 OR n BETWEEN 9 AND 10 ORDER BY id"},
+    {"id":"between-error-lhs","fixture":"synthetic","sql":"SELECT abs(-9223372036854775808) BETWEEN 0 AND 1"},
+    {"id":"between-lazy-upper","fixture":"synthetic","sql":"SELECT 0 BETWEEN 1 AND abs(-9223372036854775808)"},
+    {"id":"between-required-upper","fixture":"synthetic","sql":"SELECT 1 BETWEEN 1 AND abs(-9223372036854775808)"},
+    {"id":"b5-spaced","fixture":"chinook","sql":"SELECT e1 . FirstName || ' manages ' || e2 . FirstName FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId"},
+    {"id":"b5-unspaced","fixture":"chinook","sql":"SELECT e1.FirstName||' manages '||e2.FirstName FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId"},
+    {"id":"b5-alias","fixture":"chinook","sql":"SELECT e1.FirstName||' manages '||e2.FirstName AS manager_line FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId"},
+    {"id":"name-comments-spacing","fixture":"synthetic","sql":"SELECT first /* left */ || '-' || last,first||'-'||last FROM names ORDER BY rowid"},
+    {"id":"name-punctuation-unicode","fixture":"synthetic","sql":"SELECT '雪:' || first || '!' FROM names ORDER BY rowid"},
+    {"id":"name-duplicates","fixture":"synthetic","sql":"SELECT first||last,first||last,first||last AS named FROM names ORDER BY rowid"},
+    {"id":"qualified-column-name","fixture":"synthetic","sql":"SELECT names.first, names . last FROM names ORDER BY rowid"}
+  ],
+  "nativeOnly":[{"id":"e_expr-13.1.2","sql":"SELECT x() BETWEEN 5 AND 15","expected":{"calls":1,"value":1}},{"id":"e_expr-13.1.4","sql":"SELECT x() BETWEEN 5 AND 5","expected":{"calls":1,"value":1}}]
+}

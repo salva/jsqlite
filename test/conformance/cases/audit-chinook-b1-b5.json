@@ -1,0 +1,2060 @@
+{
+  "schema": "jsqlite-chinook-b1-b5/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "credit": 0,
+  "executions": [
+    {
+      "encoding": "UTF-8",
+      "id": "b1-between",
+      "fixture": "chinook",
+      "sql": "SELECT count(*) FROM Invoice WHERE Total BETWEEN 5 AND 10",
+      "native": {
+        "columns": [
+          "count(*)"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "115"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "b1-not-between",
+      "fixture": "chinook",
+      "sql": "SELECT count(*) FROM Invoice WHERE Total NOT BETWEEN 5 AND 10",
+      "native": {
+        "columns": [
+          "count(*)"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "297"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "between-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN 5 AND 10,n NOT BETWEEN 5 AND 10 FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN 5 AND 10",
+          "n NOT BETWEEN 5 AND 10"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "between-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN 5 AND 10,n NOT BETWEEN 5 AND 10 FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN 5 AND 10",
+          "n NOT BETWEEN 5 AND 10"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "between-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN 5 AND 10,n NOT BETWEEN 5 AND 10 FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN 5 AND 10",
+          "n NOT BETWEEN 5 AND 10"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "null-lhs-bounds",
+      "fixture": "synthetic",
+      "sql": "SELECT NULL BETWEEN 1 AND 2,1 BETWEEN NULL AND 2,1 BETWEEN 0 AND NULL,NULL NOT BETWEEN 1 AND 2",
+      "native": {
+        "columns": [
+          "NULL BETWEEN 1 AND 2",
+          "1 BETWEEN NULL AND 2",
+          "1 BETWEEN 0 AND NULL",
+          "NULL NOT BETWEEN 1 AND 2"
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "null-lhs-bounds",
+      "fixture": "synthetic",
+      "sql": "SELECT NULL BETWEEN 1 AND 2,1 BETWEEN NULL AND 2,1 BETWEEN 0 AND NULL,NULL NOT BETWEEN 1 AND 2",
+      "native": {
+        "columns": [
+          "NULL BETWEEN 1 AND 2",
+          "1 BETWEEN NULL AND 2",
+          "1 BETWEEN 0 AND NULL",
+          "NULL NOT BETWEEN 1 AND 2"
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "null-lhs-bounds",
+      "fixture": "synthetic",
+      "sql": "SELECT NULL BETWEEN 1 AND 2,1 BETWEEN NULL AND 2,1 BETWEEN 0 AND NULL,NULL NOT BETWEEN 1 AND 2",
+      "native": {
+        "columns": [
+          "NULL BETWEEN 1 AND 2",
+          "1 BETWEEN NULL AND 2",
+          "1 BETWEEN 0 AND NULL",
+          "NULL NOT BETWEEN 1 AND 2"
+        ],
+        "rows": [
+          [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "equal-reversed",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 5 AND 5,5 BETWEEN 6 AND 4,5 NOT BETWEEN 6 AND 4",
+      "native": {
+        "columns": [
+          "5 BETWEEN 5 AND 5",
+          "5 BETWEEN 6 AND 4",
+          "5 NOT BETWEEN 6 AND 4"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "equal-reversed",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 5 AND 5,5 BETWEEN 6 AND 4,5 NOT BETWEEN 6 AND 4",
+      "native": {
+        "columns": [
+          "5 BETWEEN 5 AND 5",
+          "5 BETWEEN 6 AND 4",
+          "5 NOT BETWEEN 6 AND 4"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "equal-reversed",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 5 AND 5,5 BETWEEN 6 AND 4,5 NOT BETWEEN 6 AND 4",
+      "native": {
+        "columns": [
+          "5 BETWEEN 5 AND 5",
+          "5 BETWEEN 6 AND 4",
+          "5 NOT BETWEEN 6 AND 4"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "mixed-classes",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 4.5 AND 5.5,typeof(5 BETWEEN 4.5 AND 5.5),'5' BETWEEN 4 AND 6,5 BETWEEN '4' AND '6'",
+      "native": {
+        "columns": [
+          "5 BETWEEN 4.5 AND 5.5",
+          "typeof(5 BETWEEN 4.5 AND 5.5)",
+          "'5' BETWEEN 4 AND 6",
+          "5 BETWEEN '4' AND '6'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "mixed-classes",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 4.5 AND 5.5,typeof(5 BETWEEN 4.5 AND 5.5),'5' BETWEEN 4 AND 6,5 BETWEEN '4' AND '6'",
+      "native": {
+        "columns": [
+          "5 BETWEEN 4.5 AND 5.5",
+          "typeof(5 BETWEEN 4.5 AND 5.5)",
+          "'5' BETWEEN 4 AND 6",
+          "5 BETWEEN '4' AND '6'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "mixed-classes",
+      "fixture": "synthetic",
+      "sql": "SELECT 5 BETWEEN 4.5 AND 5.5,typeof(5 BETWEEN 4.5 AND 5.5),'5' BETWEEN 4 AND 6,5 BETWEEN '4' AND '6'",
+      "native": {
+        "columns": [
+          "5 BETWEEN 4.5 AND 5.5",
+          "typeof(5 BETWEEN 4.5 AND 5.5)",
+          "'5' BETWEEN 4 AND 6",
+          "5 BETWEEN '4' AND '6'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "696e7465676572"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "affinity-columns",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN '5' AND '10',r BETWEEN '5' AND '10' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN '5' AND '10'",
+          "r BETWEEN '5' AND '10'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "affinity-columns",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN '5' AND '10',r BETWEEN '5' AND '10' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN '5' AND '10'",
+          "r BETWEEN '5' AND '10'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "affinity-columns",
+      "fixture": "synthetic",
+      "sql": "SELECT id,n BETWEEN '5' AND '10',r BETWEEN '5' AND '10' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "id",
+          "n BETWEEN '5' AND '10'",
+          "r BETWEEN '5' AND '10'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "collation-explicit",
+      "fixture": "synthetic",
+      "sql": "SELECT 'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase,('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase,s BETWEEN 'aaa' AND 'ccc' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase",
+          "('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase",
+          "s BETWEEN 'aaa' AND 'ccc'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "collation-explicit",
+      "fixture": "synthetic",
+      "sql": "SELECT 'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase,('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase,s BETWEEN 'aaa' AND 'ccc' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase",
+          "('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase",
+          "s BETWEEN 'aaa' AND 'ccc'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "collation-explicit",
+      "fixture": "synthetic",
+      "sql": "SELECT 'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase,('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase,s BETWEEN 'aaa' AND 'ccc' FROM t ORDER BY id",
+      "native": {
+        "columns": [
+          "'bbb' BETWEEN 'AAA' AND 'CCC' COLLATE nocase",
+          "('bbb' BETWEEN 'AAA' AND 'CCC') COLLATE nocase",
+          "s BETWEEN 'aaa' AND 'ccc'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "parameters-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT ?1 BETWEEN ?2 AND ?3,?1 NOT BETWEEN ?2 AND ?3",
+      "bindings": [
+        7,
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "?1 BETWEEN ?2 AND ?3",
+          "?1 NOT BETWEEN ?2 AND ?3"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "parameters-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT ?1 BETWEEN ?2 AND ?3,?1 NOT BETWEEN ?2 AND ?3",
+      "bindings": [
+        7,
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "?1 BETWEEN ?2 AND ?3",
+          "?1 NOT BETWEEN ?2 AND ?3"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "parameters-projection",
+      "fixture": "synthetic",
+      "sql": "SELECT ?1 BETWEEN ?2 AND ?3,?1 NOT BETWEEN ?2 AND ?3",
+      "bindings": [
+        7,
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "?1 BETWEEN ?2 AND ?3",
+          "?1 NOT BETWEEN ?2 AND ?3"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "parameters-where",
+      "fixture": "synthetic",
+      "sql": "SELECT id,r,typeof(r) FROM t WHERE n BETWEEN ?1 AND ?2 ORDER BY id",
+      "bindings": [
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "id",
+          "r",
+          "typeof(r)"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4014000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4024000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "parameters-where",
+      "fixture": "synthetic",
+      "sql": "SELECT id,r,typeof(r) FROM t WHERE n BETWEEN ?1 AND ?2 ORDER BY id",
+      "bindings": [
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "id",
+          "r",
+          "typeof(r)"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4014000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4024000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "parameters-where",
+      "fixture": "synthetic",
+      "sql": "SELECT id,r,typeof(r) FROM t WHERE n BETWEEN ?1 AND ?2 ORDER BY id",
+      "bindings": [
+        5,
+        10
+      ],
+      "native": {
+        "columns": [
+          "id",
+          "r",
+          "typeof(r)"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4014000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4024000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "where-null-3vl",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE n BETWEEN 5 AND NULL ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "where-null-3vl",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE n BETWEEN 5 AND NULL ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "where-null-3vl",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE n BETWEEN 5 AND NULL ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "where-control",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE id=1 OR n BETWEEN 9 AND 10 ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "where-control",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE id=1 OR n BETWEEN 9 AND 10 ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "where-control",
+      "fixture": "synthetic",
+      "sql": "SELECT id FROM t WHERE id=1 OR n BETWEEN 9 AND 10 ORDER BY id",
+      "native": {
+        "columns": [
+          "id"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "between-error-lhs",
+      "fixture": "synthetic",
+      "sql": "SELECT abs(-9223372036854775808) BETWEEN 0 AND 1",
+      "native": {
+        "columns": [
+          "abs(-9223372036854775808) BETWEEN 0 AND 1"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "between-error-lhs",
+      "fixture": "synthetic",
+      "sql": "SELECT abs(-9223372036854775808) BETWEEN 0 AND 1",
+      "native": {
+        "columns": [
+          "abs(-9223372036854775808) BETWEEN 0 AND 1"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "between-error-lhs",
+      "fixture": "synthetic",
+      "sql": "SELECT abs(-9223372036854775808) BETWEEN 0 AND 1",
+      "native": {
+        "columns": [
+          "abs(-9223372036854775808) BETWEEN 0 AND 1"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "between-lazy-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 0 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "0 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "between-lazy-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 0 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "0 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "between-lazy-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 0 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "0 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "between-required-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 1 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "1 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "between-required-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 1 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "1 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "between-required-upper",
+      "fixture": "synthetic",
+      "sql": "SELECT 1 BETWEEN 1 AND abs(-9223372036854775808)",
+      "native": {
+        "columns": [
+          "1 BETWEEN 1 AND abs(-9223372036854775808)"
+        ],
+        "error": {
+          "phase": "step",
+          "code": 1,
+          "message": "integer overflow"
+        },
+        "resetCode": 1
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "b5-spaced",
+      "fixture": "chinook",
+      "sql": "SELECT e1 . FirstName || ' manages ' || e2 . FirstName FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId",
+      "native": {
+        "columns": [
+          "e1 . FirstName || ' manages ' || e2 . FirstName"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204e616e6379"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204a616e65"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204d61726761726574"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573205374657665"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204d69636861656c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e6167657320526f62657274"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e61676573204c61757261"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "b5-unspaced",
+      "fixture": "chinook",
+      "sql": "SELECT e1.FirstName||' manages '||e2.FirstName FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId",
+      "native": {
+        "columns": [
+          "e1.FirstName||' manages '||e2.FirstName"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204e616e6379"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204a616e65"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204d61726761726574"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573205374657665"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204d69636861656c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e6167657320526f62657274"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e61676573204c61757261"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "b5-alias",
+      "fixture": "chinook",
+      "sql": "SELECT e1.FirstName||' manages '||e2.FirstName AS manager_line FROM Employee e1 JOIN Employee e2 ON e2.ReportsTo=e1.EmployeeId ORDER BY e2.EmployeeId",
+      "native": {
+        "columns": [
+          "manager_line"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204e616e6379"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204a616e65"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573204d61726761726574"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4e616e6379206d616e61676573205374657665"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "416e64726577206d616e61676573204d69636861656c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e6167657320526f62657274"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4d69636861656c206d616e61676573204c61757261"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "name-comments-spacing",
+      "fixture": "synthetic",
+      "sql": "SELECT first /* left */ || '-' || last,first||'-'||last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first /* left */ || '-' || last",
+          "first||'-'||last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "name-comments-spacing",
+      "fixture": "synthetic",
+      "sql": "SELECT first /* left */ || '-' || last,first||'-'||last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first /* left */ || '-' || last",
+          "first||'-'||last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "name-comments-spacing",
+      "fixture": "synthetic",
+      "sql": "SELECT first /* left */ || '-' || last,first||'-'||last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first /* left */ || '-' || last",
+          "first||'-'||last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab2de99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "412d42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "name-punctuation-unicode",
+      "fixture": "synthetic",
+      "sql": "SELECT '\u96ea:' || first || '!' FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "'\u96ea:' || first || '!'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a5a6fc3ab21"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a4121"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "name-punctuation-unicode",
+      "fixture": "synthetic",
+      "sql": "SELECT '\u96ea:' || first || '!' FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "'\u96ea:' || first || '!'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a5a6fc3ab21"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a4121"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "name-punctuation-unicode",
+      "fixture": "synthetic",
+      "sql": "SELECT '\u96ea:' || first || '!' FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "'\u96ea:' || first || '!'"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a5a6fc3ab21"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "e99baa3a4121"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "name-duplicates",
+      "fixture": "synthetic",
+      "sql": "SELECT first||last,first||last,first||last AS named FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first||last",
+          "first||last",
+          "named"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "name-duplicates",
+      "fixture": "synthetic",
+      "sql": "SELECT first||last,first||last,first||last AS named FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first||last",
+          "first||last",
+          "named"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "name-duplicates",
+      "fixture": "synthetic",
+      "sql": "SELECT first||last,first||last,first||last AS named FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first||last",
+          "first||last",
+          "named"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3abe99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "4142"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-8",
+      "id": "qualified-column-name",
+      "fixture": "synthetic",
+      "sql": "SELECT names.first, names . last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first",
+          "last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "e99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "41"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "id": "qualified-column-name",
+      "fixture": "synthetic",
+      "sql": "SELECT names.first, names . last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first",
+          "last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "e99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "41"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "id": "qualified-column-name",
+      "fixture": "synthetic",
+      "sql": "SELECT names.first, names . last FROM names ORDER BY rowid",
+      "native": {
+        "columns": [
+          "first",
+          "last"
+        ],
+        "rows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "5a6fc3ab"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "e99baa"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "41"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "42"
+            }
+          ]
+        ],
+        "resetCode": 0
+      }
+    }
+  ]
+}

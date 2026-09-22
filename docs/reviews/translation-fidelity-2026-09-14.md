@@ -1330,3 +1330,20 @@ upstream-credit assertions + 2 no-credit companions / 21 pinned-native encoding
 executions**. The same-denominator 39 public observations, wrapper test totals,
 internal opcode/lifecycle checks, A2 observations, companions, and pinned-native
 executions are not added to or substituted for one another.
+
+## Revision evidence — Chinook B1/B5 (2026-09-22, [[card:card-i-a]])
+
+A source-ID-checked 22-case/56-execution lane reproduces B1 as an unimplemented
+generated-BETWEEN admission/lowering boundary: pinned Chinook returns counts 115
+and 297, while public TS rejects BETWEEN/NOT BETWEEN at prepare. Native assertions
+`e_expr-13.1.2` and `.4` pin one lhs evaluation. B5 is narrower: public TS matches
+the spaced expression name but incorrectly reuses it for the unspaced statement,
+and replaces comment bytes with spaces instead of preserving exact expression
+span. Alias, punctuation/Unicode, duplicate expression names, and qualified direct
+columns pass selected neighbors. Direct `je.value` is therefore expected to be
+`value`, not the source expression span; JSON table-function support is separate.
+Do not infer a formatter defect or general naming failure. Preserve original UTF-8
+SQL byte spans for unaliased computed names; preserve alias priority and direct
+resolved-column naming. Exact evidence, limitations, and source mappings are in
+`docs/research/card-i-a-chinook-b1-b5.md` and
+`test/conformance/cases/audit-chinook-b1-b5.json`. All evidence remains zero credit.
