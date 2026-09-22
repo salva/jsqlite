@@ -24,7 +24,9 @@ export interface BtreeCapability {readonly index:IndexNode|null;readonly physica
 export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index";readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation}
-export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly neededColumns:ReadonlySet<ColumnNode>;readonly orderBy:readonly OrderRequirement[]}
+export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
+export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
+export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[]}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
 const freeze=<T>(value:T):Readonly<T>=>Object.freeze(value);
 export function sourceBit(ordinal:number):SourceMask {if(!Number.isSafeInteger(ordinal)||ordinal<0)throw new RangeError("invalid source ordinal");return 1n<<BigInt(ordinal)}
@@ -45,10 +47,14 @@ export function admitIndexConstraint(term:WhereTerm,physical:PhysicalRowidIndex,
  const admission=freeze({term,physicalIndex:physical,fieldOrdinal,field,keyInfoTerm,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison,bound:bound(term.operator)});byOrdinal.set(fieldOrdinal,admission);return admission;
 }
 function orderContribution(physical:PhysicalRowidIndex,prefix:number,order:readonly OrderRequirement[],ordinal:number):{count:number;reverse:boolean}{
- const relevant=order.filter(item=>item.sourceOrdinal===ordinal);if(!relevant.length)return {count:0,reverse:false};let direction:boolean|null=null,count=0;
- for(let i=0;i<relevant.length;i++){const field=physical.fields[prefix+i],wanted=relevant[i]!;if(!field||field.column!==wanted.column||field.collation!==wanted.collation)break;const reverse=field.descending!==wanted.descending;if(direction!==null&&direction!==reverse)break;direction=reverse;count++;}return {count,reverse:direction??false};
+ const relevant=order.filter(item=>item.sourceOrdinal===ordinal);if(!relevant.length)return {count:0,reverse:false};let direction:boolean|null=null,count=0,requested=0;
+ // wherePathSatisfiesOrder: equality-fixed leading fields satisfy matching
+ // ORDER terms without imposing scan direction. ORDER may also begin after them.
+ while(requested<relevant.length&&requested<prefix){const field=physical.fields[requested]!,wanted=relevant[requested]!;if(field.column!==wanted.column||field.collation!==wanted.collation)break;requested++;count++;}
+ let fieldOrdinal=prefix;
+ for(;requested<relevant.length;requested++,fieldOrdinal++){const field=physical.fields[fieldOrdinal],wanted=relevant[requested]!;if(!field||field.column!==wanted.column||field.collation!==wanted.collation)break;const reverse=field.descending!==wanted.descending;if(direction!==null&&direction!==reverse)break;direction=reverse;count++;}return {count,reverse:direction??false};
 }
-function capability(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,needed:ReadonlySet<ColumnNode>,order:readonly OrderRequirement[]):BtreeCapability|null {
+function capability(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,needed:ReadonlySet<NeededColumn>,order:readonly OrderRequirement[]):BtreeCapability|null {
  const physical=index.physical;if(!physical)return null;const equality:IndexConstraintAdmission[]=[];let lower:IndexConstraintAdmission|null=null,upper:IndexConstraintAdmission|null=null;
  for(let field=0;field<physical.declaredFieldCount;field++){
   const admissions=terms.map(term=>admitIndexConstraint(term,physical,field)).filter((item):item is IndexConstraintAdmission=>item!==null);
@@ -56,7 +62,7 @@ function capability(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,ne
   lower=admissions.find(item=>item.bound.startsWith("lower"))??null;upper=admissions.find(item=>item.bound.startsWith("upper"))??null;break;
  }
  const constrained=equality.length+(lower||upper?1:0),ordering=orderContribution(physical,equality.length,order,ordinal);
- const covering=[...needed].every(column=>physical.fields.some(field=>field.role==="declared"&&field.column===column));
+ const covering=[...needed].every(need=>need===ROWID_NEEDED?physical.fields.some(field=>field.role==="rowid-tail"):physical.fields.some(field=>field.role==="declared"&&field.column===need));
  return freeze({index,physicalIndex:physical,equalityPrefix:Object.freeze(equality),lower,upper,constrainedFields:constrained,orderTermsSatisfied:ordering.count,reverse:ordering.reverse,covering,needsTableLookup:!covering,rowidEquality:null,rowidLower:null,rowidUpper:null});
 }
 /** whereLoopAddBtree's deterministic no-stat candidate subset. */
@@ -64,11 +70,12 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(options.forcedIndex&&options.notIndexed)throw new WherePlanningUnsupportedError("INDEXED BY and NOT INDEXED conflict");
  if(options.forcedIndex&&options.forcedIndex.table!==source.table)throw new WherePlanningUnsupportedError("forced index does not belong to source table");
  if(options.forcedIndex&&!options.forcedIndex.physical)throw new WherePlanningUnsupportedError(`unsupported physical index layout: ${options.forcedIndex.name}`);
- const own=clause.terms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:0n,capability:null,kind:"table-scan",setupCost:0n,runCost:66n,outputRows:66n,terms:Object.freeze(own)});
+ const sourcePrereq=options.sourcePrereq??0n;
+ const own=clause.terms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:null,kind:"table-scan",setupCost:0n,runCost:66n,outputRows:66n,terms:Object.freeze(own)});
  const loops:WhereLoop[]=[];if(!options.forcedIndex)loops.push(scan);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null");const rowEq=rowid.find(term=>term.operator==="eq"||term.operator==="is"),rowLower=rowid.find(term=>term.operator==="gt"||term.operator==="ge"),rowUpper=rowid.find(term=>term.operator==="lt"||term.operator==="le");
- if(!options.forcedIndex&&(rowEq||rowLower||rowUpper)){const make=(term:WhereTerm|undefined):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null;const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x);const cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:0,reverse:false,covering:true,needsTableLookup:false,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});loops.push(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,0n),capability:cap,kind:"rowid",setupCost:0n,runCost:rowEq?20n:40n,outputRows:rowEq?0n:40n,terms:Object.freeze(own)}));}
- if(!options.notIndexed)for(const index of source.table.indexes){if(options.forcedIndex&&index!==options.forcedIndex)continue;const cap=capability(index,own,sourceOrdinal,options.neededColumns,options.orderBy);if(!cap)continue;if(!options.forcedIndex&&cap.constrainedFields===0&&cap.orderTermsSatisfied===0)continue;const prereq=own.filter(term=>cap.equalityPrefix.some(a=>a.term===term)||cap.lower?.term===term||cap.upper?.term===term).reduce((mask,term)=>mask|term.prereqRight,0n);const reduction=BigInt(cap.equalityPrefix.length*12+(cap.lower||cap.upper?6:0));loops.push(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",setupCost:0n,runCost:66n-reduction+(cap.needsTableLookup?4n:0n),outputRows:66n-reduction,terms:Object.freeze(own)}));}
+ if(!options.forcedIndex&&(rowEq||rowLower||rowUpper)){const make=(term:WhereTerm|undefined):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null;const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x);const rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED);const cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:0,reverse:false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});loops.push(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",setupCost:0n,runCost:rowEq?20n:40n,outputRows:rowEq?0n:40n,terms:Object.freeze(own)}));}
+ if(!options.notIndexed)for(const index of source.table.indexes){if(options.forcedIndex&&index!==options.forcedIndex)continue;const cap=capability(index,own,sourceOrdinal,options.neededColumns,options.orderBy);if(!cap)continue;if(!options.forcedIndex&&cap.constrainedFields===0&&cap.orderTermsSatisfied===0)continue;const prereq=own.filter(term=>cap.equalityPrefix.some(a=>a.term===term)||cap.lower?.term===term||cap.upper?.term===term).reduce((mask,term)=>mask|term.prereqRight,sourcePrereq);const reduction=BigInt(cap.equalityPrefix.length*12+(cap.lower||cap.upper?6:0));loops.push(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",setupCost:0n,runCost:66n-reduction+(cap.needsTableLookup?4n:0n),outputRows:66n-reduction,terms:Object.freeze(own)}));}
  if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
 function loopOrder(a:WhereLoop,b:WhereLoop):number {return a.runCost<b.runCost?-1:a.runCost>b.runCost?1:a.kind.localeCompare(b.kind)||a.sourceOrdinal-b.sourceOrdinal}
@@ -77,7 +84,8 @@ export function logEstAdd(a:LogicalEstimate,b:LogicalEstimate):LogicalEstimate {
 function pathKey(path:WherePath):string{return path.loops.map(x=>`${x.sourceOrdinal}:${x.kind}:${x.capability?.index?.name??""}`).join("|")}
 /** Admitted wherePathSolver translation: retain up to mxChoice N-best paths at
  * every depth, applying ready-mask/cost/row/order dominance before truncation. */
-export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=Math.min(12,sourceCount+1)):WherePath {
+export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCount<=1?1:sourceCount===2?5:12;}
+export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount)):WherePath {
  let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:0})];
  for(let depth=0;depth<sourceCount;depth++){const next:WherePath[]=[];for(const path of paths)for(const group of candidates)for(const loop of [...group].sort(loopOrder)){const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;const cap=loop.capability,run=logEstAdd(loop.setupCost,loop.runCost+path.rows),cost=logEstAdd(path.cost,run),ready=path.ready|bit,ordered=(path.orderTermsSatisfied??0)+(cap?.orderTermsSatisfied??0);const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(cap?.reverse?bit:0n),rows:path.rows+loop.outputRows,cost,unsortedCost:cost,orderTermsSatisfied:ordered});const dominated=next.some(old=>old.ready===ready&&old.cost<=cost&&old.rows<=proposal.rows&&(old.orderTermsSatisfied??0)>=ordered);if(dominated)continue;for(let i=next.length-1;i>=0;i--){const old=next[i]!;if(old.ready===ready&&cost<=old.cost&&proposal.rows<=old.rows&&ordered>=(old.orderTermsSatisfied??0))next.splice(i,1);}next.push(proposal);}paths=next.sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b))).slice(0,maxChoices);}
  const full=(1n<<BigInt(sourceCount))-1n,best=paths.filter(path=>path.ready===full).sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b)))[0];if(!best)throw new WherePlanningUnsupportedError("no usable WHERE path");return best;
@@ -108,12 +116,17 @@ export function analyzeWhere(resolved:ResolvedSelect):WhereAnalysis {
  return freeze({clause:whereClause(terms),plannerEligible:true,fallback:null});
 }
 
-export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<ColumnNode>[];readonly orderBy:readonly OrderRequirement[]}
+export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[]}
 export interface WherePlanSelection {readonly analysis:WhereAnalysis;readonly path:WherePath|null}
 /** Publish the lowering handoff without asking a caller to reconstruct either
  * term eligibility or INDEXED BY/NOT INDEXED gates. */
 export function planWhere(resolved:ResolvedSelect,request:WherePlanRequest):WherePlanSelection {
- const analysis=analyzeWhere(resolved);if(!analysis.plannerEligible)return freeze({analysis,path:null});
- const groups=resolved.sources.map((source,ordinal)=>{const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy});});
+ // RIGHT/FULL is statement-wide fallback and never participates in W1/W2.
+ const hasRightFull=resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin);if(hasRightFull){const analysis=analyzeWhere(resolved);return freeze({analysis,path:null});}
+ // WITHOUT ROWID physical PK/suffix and lowering are not represented. Reject
+ // the entire participating statement before constructing terms/candidates.
+ const unsupported=resolved.sources.find(source=>source.table.withoutRowid);if(unsupported)throw new WherePlanningUnsupportedError(`WITHOUT ROWID planning is not implemented: ${unsupported.table.name}`);
+ const analysis=analyzeWhere(resolved);
+ let leftBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{if(source.joinFromLeft.left)leftBarrier=(1n<<BigInt(ordinal))-1n;const sourcePrereq=leftBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy});});
  return freeze({analysis,path:wherePathSolver(groups,resolved.sources.length)});
 }

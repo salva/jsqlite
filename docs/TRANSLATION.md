@@ -4103,3 +4103,35 @@ composite neighbors, typed literals and NULL admission, order/reverse,
 covering/deferred facts, forced/NOT INDEXED gates, LEFT prerequisites, N-best
 LogEst selection, and unchanged RIGHT/FULL dispatch. This remains no public
 69-attempt execution credit.
+
+### W1/W2 review correction: barriers, choice widths, ordering, and layout preflight (2026-09-22)
+
+The immutable handoff now carries a source-level prerequisite mask on every scan,
+rowid, and explicit-index loop. `planWhere` derives a conservative LEFT boundary
+from source order: the RHS and subsequent sources cannot become ready before all
+sources to the left of the applicable LEFT boundary. Term-derived prerequisites
+are unioned with that barrier for both operand orientations and for WHERE- and
+ON-driven candidates. RIGHT/FULL continues to return the unchanged statement-wide
+fallback before W1/W2 publication.
+
+The admitted `wherePathSolver` width policy now follows pinned `where.c`: 1 path
+for one source, 5 for two, and 12 for three or more (the star-query 18-path
+extension is outside this admitted subset). Its same-ready-mask cost/row/order
+dominance and deterministic bounded insertion are tested with competing,
+equal/dominated, truncated, and prerequisite-delayed candidates.
+
+Ordering now accounts for requested leading fields fixed by equality before
+matching the remaining physical fields and scan direction. Required coverage is
+`NeededColumn`, which explicitly distinguishes `ROWID_NEEDED` from declared
+column identity; the immutable physical rowid tail can therefore prove an
+INTEGER PRIMARY KEY/rowid-only read covering. `planWhere` also preflights all
+participating tables and atomically rejects WITHOUT ROWID before analysis or
+candidate publication because its primary-key/suffix layout and lowering are not
+yet represented.
+
+Production tests connect each UTF-8, UTF-16LE, and UTF-16BE schema descriptor to
+resolved analysis, exact admission identity, candidate capability, and selected
+path. They distinguish numeric-looking/nonnumeric TEXT and NOCASE orientation,
+INTEGER/REAL boundary-neighbor literals, BLOB, ordinary `= NULL` and `IS NULL`,
+composite prefix/order direction, and rowid-tail coverage. These are planning
+contract tests only; no storage execution or public 69-attempt credit is claimed.

@@ -1612,3 +1612,14 @@ INTEGER PRIMARY KEY rowid equality/range and forced-full/NOT INDEXED branches.
 one-state simplification and map `util.c:sqlite3LogEstAdd`,
 `where.c:whereLoopInsert`, and `wherePathSolver`. RIGHT/FULL still dispatches to
 the unchanged source-order fallback; W3 lowering remains uncredited.
+
+W1/W2 review correction maps LEFT source-order loop prerequisites to the
+`whereexpr.c:exprAnalyze` outer-ON barrier and carries them through all
+`btreeLoops` shapes. `wherePathChoiceWidth` maps admitted `where.c:wherePathSolver`
+widths 1/5/12 (excluding the star-query 18-width extension), with bounded
+same-ready-mask cost/rows/order dominance. Equality-fixed ORDER accounting maps
+the corresponding `wherePathSatisfiesOrder` behavior; `ROWID_NEEDED` maps coverage
+to the immutable physical rowid tail. Statement preflight rejects participating
+WITHOUT ROWID layouts before W1/W2 publication. Encoding-specific tests now run
+analysis through exact admission/candidate/selected-path identity rather than
+checking detached descriptors.

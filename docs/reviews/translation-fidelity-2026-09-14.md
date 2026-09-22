@@ -1398,3 +1398,13 @@ and translated bigint LogEst N-best/dominance solving. The initial
 one-state-per-ready-mask implementation is superseded rather than justified as an
 exception. Focused source-based tests verify these facts; runtime seek lowering
 and the 69 public credits remain absent.
+
+The accepted parent review's five W1/W2 findings are corrected: every generated
+loop carries applicable LEFT source-order prerequisites; admitted solver widths
+are pinned 1/5/12 with adversarial dominance/truncation evidence; all three
+encodings are connected through production analysis/admission/candidate/path
+identity tests; equality-fixed ORDER fields and explicit rowid-tail coverage are
+represented; and participating WITHOUT ROWID statements reject atomically before
+publication. RIGHT/FULL fallback and zero public execution credit remain
+unchanged. The 18-choice star-query extension and W3 lowering remain outside this
+admitted tranche.
