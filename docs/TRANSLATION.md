@@ -2619,7 +2619,26 @@ The bounded recursive route translates SQLite 3.53.4 `select.c:generateWithRecur
 
 Queue/history values are copied `Mem` cells and share `PrivateStateByteBudget`, entry/key/byte/work/row limits and statement cancellation/deadline checkpoints. VM PC/register/cursor state survives async yield; halt/error/reset/finalize close private cursors and release budget. Public stress covers 20,000 iterations, reset/rebind, finalize, output-row and queue/history entry/key/aggregate-byte limits, work-limit, pre-abort, cancellation delivered during a real VM yield, deadline, first-error retention, and connection reuse.
 
-Represented scope is deliberately narrower than SQLite: source-free setup arms, direct single recursive source arms with scalar WHERE/results, FIFO/distinct/priority queues and recursive LIMIT/OFFSET. The outer destination supports direct projection, one source-free scalar-derived inner join, and a bounded cross join of distinct recursive declarations when every producer column is projected directly; that multi-owner route materializes each iterative VDBE producer into statement-private stable payload sorters (with no value-comparison key) and may apply a represented output ORDER BY over direct projected columns, including explicit BINARY/NOCASE/RTRIM collation, direction, and NULL policy. Other joins, recursive subqueries, views, grouped consumers, reused recursive declarations, expression projections in the multi-owner route, and broader compounds reject temporarily because their underlying source/destination compiler routes are untranslated—not because recursive evaluation is approximated.
+Represented scope is deliberately narrower than SQLite: source-free setup arms,
+direct single recursive source arms with scalar WHERE/results,
+FIFO/distinct/priority queues and recursive LIMIT/OFFSET. The outer destination
+supports direct projection, one source-free scalar-derived inner join, and a
+bounded cross join of distinct recursive declarations when every producer column
+is projected directly; that multi-owner route materializes each iterative VDBE
+producer into statement-private stable payload sorters (with no value-comparison
+key) and may apply a represented output ORDER BY over direct projected columns,
+including explicit BINARY/NOCASE/RTRIM collation, direction, and NULL policy. The
+admitted aggregate-consumer boundary is exact: one outer, ungrouped
+`sum(<direct recursive-output column>)` over one recursive CTE is lowered by
+`compileRecursiveAggregateSelect`, which keeps the iterative queue producer and
+replaces its output destination with VDBE `AggStep`/`AggFinal`; public Fetch
+coverage verifies `sum(x)` = INTEGER 55 and metadata across
+UTF-8/UTF-16LE/UTF-16BE. This does not admit arbitrary grouped recursion. Other
+joins, recursive subqueries, views, outer `GROUP BY`/`HAVING`, aggregate
+expressions or modifiers beyond that direct `sum` boundary, reused recursive
+declarations, expression projections in the multi-owner route, and broader
+compounds reject temporarily because their underlying source/destination compiler
+routes are untranslated—not because recursive evaluation is approximated.
 
 Recursive evidence accounting (2026-09-18): `stage3-recursive-cte.spec.json` adds 5 exact upstream assertions (`with2-1.14`, `with1-5.6.1`, `with1-7.5`, `with1-16.1`, `with1-16.2`) and 2 no-credit companions (LIMIT/OFFSET plus multi-owner explicit-collation/NULL ordering), recaptured with pinned 3.53.4 across three encodings: 21/21 native executions. Internal opcode/queue tests are not upstream credit. Public tests separately execute UNION history, priority ORDER, LIMIT/OFFSET, typed INTEGER rows, metadata, prepare diagnostics, lifecycle and controls; the all-encoding matrix is 3 encodings × 4 behaviors = 12/12 public observations.
 

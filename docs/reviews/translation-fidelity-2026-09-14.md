@@ -1283,3 +1283,11 @@ atomically before schema expansion. Public Fetch regression covers exact
 TypeScript results are execution credit. The independent Python oracle used
 SQLite 3.45.1, so it is comparison evidence only and not pinned-native 3.53.4
 credit.
+
+### Revision 2026-09-22 — A2 CTE scope/composition and recursive aggregate admission ([[card:card-n-a2]])
+
+Current implementation evidence supersedes the earlier implication that every grouped/aggregate recursive consumer is rejected. Ordinary WITH scope supports the represented statement-local nesting/shadowing, aliases, multiple/reused declarations, joins/subqueries/views, and bounded grouped producer composition. The recursive aggregate addition is narrower: `compileRecursiveAggregateSelect` admits exactly one outer **ungrouped** `sum(direct recursive-output column)` over one recursive CTE and feeds the iterative queue producer into VDBE `AggStep`/`AggFinal`. It does not evaluate recursion or aggregation in host JavaScript.
+
+Evidence is deliberately partitioned. Implementation/public evidence is `test/conformance/recursive-cte-aggregate.test.mjs`: three public Fetch observations (UTF-8, UTF-16LE, UTF-16BE), each with prepare success, metadata `sum(x)`, one INTEGER 55, then DONE. The current integrated CTE/affected-compound lane passed 75/75, but that aggregate test count is regression evidence rather than upstream credit. Existing recursive native evidence remains 5 selected upstream assertions plus 2 no-credit companions across three encodings (21 native executions); A2 adds no pinned-native assertion and does not alter that denominator. The whole-project 48-suite/163-test result is likewise regression evidence, not public CTE or native credit.
+
+Residual temporary gaps include outer GROUP BY/HAVING over recursive output, aggregate functions/modifiers/expressions beyond direct `sum(column)`, multiple or reused recursive aggregate owners, recursive joins/subqueries/views outside represented routes, expression projection in the multi-owner path, and broader compounds. These are untranslated source/destination compositions and must reject atomically; they are not product exclusions or evidence of approximate recursion.

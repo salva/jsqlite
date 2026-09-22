@@ -393,11 +393,18 @@ remain atomic temporary gaps; this is not unrestricted recursive-WITH credit.
 `stage3-recursive-cte.spec.json` and its capture contain **5 upstream-credit
 assertions + 2 no-credit companions**, executed against pinned SQLite 3.53.4 in
 UTF-8, UTF-16LE, and UTF-16BE for **21 pinned native encoding executions**. Native
-upstream credit and companion evidence remain separate. The public affected CTE
-suite is also separate evidence: its **39/39** observations cover bounded ordinary
-and recursive execution, diagnostics, encodings, typed rows/metadata, composition,
-resource/control behavior, and lifecycle; those observations are not added to the
-native denominator or upstream-credit count.
+upstream credit and companion evidence remain separate. Public/internal evidence
+remains separate from that native denominator. At the current committed integration
+checkpoint, the focused CTE plus affected-compound command passed **75/75** tests
+(including A2 `sum(x)` and the grouped ordinary CTE/base-table composition in all
+three encodings), with zero failures, skips, or cancellations. Those 75 are test-run
+observations, not 75 upstream cases and not an additional native denominator. The
+parent review separately reported **48 suites / 163 tests**, but that whole-suite
+total is regression evidence only and is not relabeled public CTE credit. A2
+contributes three public encoding observations; the B3 grouped-composition
+discriminator contributes three public encoding observations. Internal
+opcode/lifecycle assertions and no-credit companions remain non-native and
+non-upstream.
 
 ### Window rewrite implementation accounting ([[card:card-o-b-f]], 2026-09-18; historical checkpoint)
 
