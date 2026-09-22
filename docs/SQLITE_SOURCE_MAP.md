@@ -1623,3 +1623,12 @@ to the immutable physical rowid tail. Statement preflight rejects participating
 WITHOUT ROWID layouts before W1/W2 publication. Encoding-specific tests now run
 analysis through exact admission/candidate/selected-path identity rather than
 checking detached descriptors.
+
+Renewed W1/W2 correction maps `whereexpr.c:exprAnalyze` `EP_OuterON`/
+`extraRight`: preserved-side LEFT-ON terms remain residual and are excluded from
+capabilities. The both-indexable-column branch now creates exact parent/virtual
+commuted-child identities with reversed operators, original-order collation,
+independent masks, and outer safety. `planWhere` source masks now retain the full
+prefix through a LEFT nullable RHS for subsequent INNER/CROSS sources, matching
+the admitted flat three-source join-order branches; tests cover nullable-side
+references and both operand spellings.

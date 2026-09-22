@@ -1408,3 +1408,12 @@ represented; and participating WITHOUT ROWID statements reject atomically before
 publication. RIGHT/FULL fallback and zero public execution credit remain
 unchanged. The 18-choice star-query extension and W3 lowering remain outside this
 admitted tranche.
+
+Renewed review findings are corrected: LEFT-ON preserved-side equality/range
+terms (rowid and explicit index) cannot drive; both-column comparisons publish
+identity-linked virtual commuted children with independent prerequisites and
+outer safety; and three-source LEFT followed by INNER/CROSS retains the nullable
+RHS in later source barriers. Production analysis/candidate/path tests contrast
+ON versus WHERE, both operand spellings, safe RHS admission, and nullable-side
+references. These remain planner-contract facts with zero public execution
+credit.

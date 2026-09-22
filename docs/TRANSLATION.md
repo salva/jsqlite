@@ -4135,3 +4135,29 @@ path. They distinguish numeric-looking/nonnumeric TEXT and NOCASE orientation,
 INTEGER/REAL boundary-neighbor literals, BLOB, ordinary `= NULL` and `IS NULL`,
 composite prefix/order direction, and rowid-tail coverage. These are planning
 contract tests only; no storage execution or public 69-attempt credit is claimed.
+
+### W1/W2 renewed-review correction: outer-ON admission and virtual commutation (2026-09-22)
+
+Production analysis now translates the applicable `whereexpr.c:exprAnalyze`
+`EP_OuterON`/`extraRight` rule. A LEFT-ON term whose indexed operand belongs to a
+source before the join RHS is retained as a residual but has `mayDrive=false`, so
+it cannot enter that preserved source's rowid or explicit-index capability.
+Equivalent WHERE terms remain eligible, and right-side LEFT-ON constraints remain
+eligible with the preserved source in their prerequisite mask.
+
+When both comparison operands are indexable columns, analysis now publishes the
+source-derived virtual commuted child. The parent owns the child's exact id and
+the child owns the exact parent id; the child has `derived/commuted` provenance,
+canonical reversed range operator, original-expression collation, independent
+RHS prerequisite mask, and independently evaluated outer safety. Thus either SQL
+operand spelling exposes the same safe nullable/RHS physical field admission,
+while the original preserved-side LEFT-ON orientation cannot drive.
+
+For the admitted flat join subset, source-order prerequisites now implement the
+verified three-source rule: once a LEFT boundary is encountered, its nullable RHS
+and all later INNER/CROSS sources retain the complete prefix through that nullable
+RHS; an explicit CROSS boundary similarly retains its complete left prefix.
+Term prerequisites are unioned with these barriers. Production three-source tests
+cover `a LEFT JOIN b JOIN c ON b.k=c.k` and `a LEFT JOIN b CROSS JOIN c`, proving
+that `c` cannot cross `b` and that the nullable-side commuted term requires `b`.
+Nested/unrepresented RIGHT/FULL shapes remain on statement-wide fallback.
