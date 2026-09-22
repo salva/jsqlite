@@ -1262,3 +1262,24 @@ IN-style key probe lost NULL-safe equality. The optimized branch is now restrict
 to `=`/`==`; `IS` uses the generic correlated loop. An exact all-encoding public
 regression verifies that an outer NULL matches the joined inner NULL, as pinned
 SQLite does.
+
+### Revision 2026-09-22 — B3 ordinary CTE grouped-producer lead
+
+External B3 lead on the Chinook digest
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`
+reproduced a prepare-time `no such table: top` leak for a grouped, ordered,
+limited CTE consumed by a join. Lexical lowering correctly retained one shared
+`CteUse` and attached the producer as source 0; the mixed-derived compiler lacked
+that producer/consumer shape and incorrectly continued into schema lookup of the
+retained lexical name.
+
+Production now has a bounded source-0/two-source route: the existing aggregate
+compiler writes typed producer rows into a VDBE sorter, then the same program
+opens the ordinary table, evaluates the represented join and result expressions,
+and applies the supported outer ordering. Unhandled represented owners reject
+atomically before schema expansion. Public Fetch regression covers exact
+`Title`,`n` metadata and typed rows (`Greatest Hits`/57, `Minha Historia`/34,
+`Unplugged`/30), connection reuse, and UTF-8/UTF-16LE/UTF-16BE. Those public
+TypeScript results are execution credit. The independent Python oracle used
+SQLite 3.45.1, so it is comparison evidence only and not pinned-native 3.53.4
+credit.

@@ -3887,3 +3887,19 @@ work profile without widening the admitted join shape. Tests cover all database
 encodings, independent/correlated destinations, metadata, reset, work limits,
 first-error cleanup and restored operation admission, including the `IS NULL`
 discriminator.
+
+### Ordinary WITH B3 bounded materialization route (2026-09-22)
+
+A grouped, ordered, limited CTE producer consumed as source 0 of a two-source
+ordinary join now uses a bounded materialization route after lexical CTE lowering.
+The existing aggregate compiler produces typed rows into a VDBE sorter; the same
+program opens the ordinary schema table, evaluates the represented join predicate
+and result expressions, and applies the single supported outer `ORDER BY` term.
+No nested statement or host-row evaluator is introduced, and existing work,
+private-state, cancellation, reset, and connection lifecycle controls remain the
+owners. `test/conformance/cte-chinook-lead.test.mjs` proves exact public metadata
+and typed rows through Fetch in UTF-8, UTF-16LE, and UTF-16BE on the asserted
+Chinook digest, followed by connection reuse. The separately obtained Python
+SQLite 3.45.1 result is comparison evidence, not pinned-native 3.53.4 credit.
+Represented derived/CTE graphs outside translated consumers still reject with a
+typed temporary error before retained lexical names can leak into schema lookup.

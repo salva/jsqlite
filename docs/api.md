@@ -612,3 +612,12 @@ JSON document arguments retain SQLite's compatibility treatment for BLOB input:
 recognized JSONB is parsed as binary; a non-JSONB BLOB is interpreted as UTF-8 JSON
 text. This does not make BLOB a JSON value type—passing an ordinary BLOB as a value
 to `json_array`, `json_object`, or JSON aggregates remains an SQLite error.
+
+The bounded represented shape consisting of a grouped/ordered/limited CTE producer
+as source 0, joined to one ordinary schema table, executes through the public
+Fetch path. It preserves typed values and metadata and supports one represented
+outer `ORDER BY` term. The producer is materialized within the same VDBE and is
+subject to the statement's work/private-state and lifecycle controls. Other
+represented derived/CTE compositions that no translated consumer accepts remain
+atomic prepare-time temporary gaps (`this derived CTE composition is not
+implemented`), rather than being misreported as missing schema tables.
