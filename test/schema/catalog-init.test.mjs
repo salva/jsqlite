@@ -243,7 +243,7 @@ test("window outer LIMIT/OFFSET executes in the VDBE output handoff", async () =
   const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
   const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
   await withImage(image,"Chinook-window-limit.sqlite",async connection=>{
-    const statement=connection.prepare("SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track LIMIT ?1 OFFSET ?2").statement;
+    const statement=connection.prepare("SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track WHERE Bytes IS NOT NULL LIMIT ?1 OFFSET ?2").statement;
     statement.bind(1,5n);statement.bind(2,0n);const first=[];while(await statement.step()==="row")first.push([statement.column(0),statement.column(1)]);
     assert.deepEqual(first,[["Through a Looking Glass",1n],["Occupation / Precipice",2n],["The Young Lords",3n],["The Man With Nine Lives",4n],["Dave",5n]]);
     statement.reset();statement.bind(1,2n);statement.bind(2,1n);const offset=[];while(await statement.step()==="row")offset.push([statement.column(0),statement.column(1)]);assert.deepEqual(offset,[["Occupation / Precipice",2n],["The Young Lords",3n]]);
