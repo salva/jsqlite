@@ -2237,7 +2237,8 @@
               "max": 4
             },
             "sorterRows": {
-              "exact": 0
+              "min": 1,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -5976,7 +5977,8 @@
               "max": 4
             },
             "sorterRows": {
-              "exact": 0
+              "min": 1,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -9715,7 +9717,8 @@
               "max": 4
             },
             "sorterRows": {
-              "exact": 0
+              "min": 1,
+              "max": 2
             },
             "freshEachRun": true
           },

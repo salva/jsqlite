@@ -4201,9 +4201,10 @@ rather than repeating affinity, collation, constraint-admission, physical-index,
 operations lowers rowid equality/ranges and persistent explicit/implicit rowid
 indexes, including composite equality prefixes, a following range, reverse
 movement, covering reads, and deferred table lookup. Residual tests are emitted
-after required cursor positioning. Multi-source order remains zero except for
-the complete narrow proof that an ordered first loop followed only by exact
-rowid lookups (at most one row per outer row) preserves that order.
+after required cursor positioning. Every multi-source path publishes zero global
+ordering until the complete pinned `wherePathSatisfiesOrder` state machine is
+translated; lowering therefore retains the sorter even when a narrower local
+argument might establish order for one shape.
 
 This is a direct page-local B-tree/Mem/KeyInfo translation; no host/native/eval
 substitution or runtime auto-index construction is used. Each binding execution

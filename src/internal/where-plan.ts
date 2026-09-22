@@ -90,20 +90,12 @@ function loopOrder(a:WhereLoop,b:WhereLoop):number {return a.runCost<b.runCost?-
 /** Exact port of util.c:sqlite3LogEstAdd for bigint LogEst units. */
 export function logEstAdd(a:LogicalEstimate,b:LogicalEstimate):LogicalEstimate {const x=[10n,10n,9n,9n,8n,8n,7n,7n,7n,6n,6n,6n,5n,5n,5n,4n,4n,4n,4n,3n,3n,3n,3n,3n,3n,2n,2n,2n,2n,2n,2n,2n];if(a<b)return logEstAdd(b,a);const d=a-b;if(d>49n)return a;if(d>31n)return a+1n;return a+x[Number(d)]!;}
 function pathKey(path:WherePath):string{return path.loops.map(x=>`${x.sourceOrdinal}:${x.kind}:${x.capability?.index?.name??""}`).join("|")}
-function retainedPathOrder(sourceCount:number,path:WherePath,capability:BtreeCapability|null):number {
- const local=capability?.orderTermsSatisfied??0;
- if(sourceCount===1||path.loops.length===0)return local;
- // An exact rowid lookup emits at most one row for each already-ordered outer
- // row. Every other added loop can disturb that order until the general
- // wherePathSatisfiesOrder state machine is translated.
- return (path.orderTermsSatisfied??0)>0&&capability?.rowidEquality!==null?path.orderTermsSatisfied??0:0;
-}
 /** Admitted wherePathSolver translation: retain up to mxChoice N-best paths at
  * every depth, applying ready-mask/cost/row/order dominance before truncation. */
 export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCount<=1?1:sourceCount===2?5:12;}
 export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount)):WherePath {
  let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:0})];
- for(let depth=0;depth<sourceCount;depth++){const next:WherePath[]=[];for(const path of paths)for(const group of candidates)for(const loop of [...group].sort(loopOrder)){const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;const cap=loop.capability,run=logEstAdd(loop.setupCost,loop.runCost+path.rows),cost=logEstAdd(path.cost,run),ready=path.ready|bit,ordered=retainedPathOrder(sourceCount,path,cap);const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(cap?.reverse?bit:0n),rows:path.rows+loop.outputRows,cost,unsortedCost:cost,orderTermsSatisfied:ordered});const dominated=next.some(old=>old.ready===ready&&old.cost<=cost&&old.rows<=proposal.rows&&(old.orderTermsSatisfied??0)>=ordered);if(dominated)continue;for(let i=next.length-1;i>=0;i--){const old=next[i]!;if(old.ready===ready&&cost<=old.cost&&proposal.rows<=old.rows&&ordered>=(old.orderTermsSatisfied??0))next.splice(i,1);}next.push(proposal);}paths=next.sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b))).slice(0,maxChoices);}
+ for(let depth=0;depth<sourceCount;depth++){const next:WherePath[]=[];for(const path of paths)for(const group of candidates)for(const loop of [...group].sort(loopOrder)){const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;const cap=loop.capability,run=logEstAdd(loop.setupCost,loop.runCost+path.rows),cost=logEstAdd(path.cost,run),ready=path.ready|bit,ordered=sourceCount===1?(cap?.orderTermsSatisfied??0):0;const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(cap?.reverse?bit:0n),rows:path.rows+loop.outputRows,cost,unsortedCost:cost,orderTermsSatisfied:ordered});const dominated=next.some(old=>old.ready===ready&&old.cost<=cost&&old.rows<=proposal.rows&&(old.orderTermsSatisfied??0)>=ordered);if(dominated)continue;for(let i=next.length-1;i>=0;i--){const old=next[i]!;if(old.ready===ready&&cost<=old.cost&&proposal.rows<=old.rows&&ordered>=(old.orderTermsSatisfied??0))next.splice(i,1);}next.push(proposal);}paths=next.sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b))).slice(0,maxChoices);}
  const full=(1n<<BigInt(sourceCount))-1n,best=paths.filter(path=>path.ready===full).sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b)))[0];if(!best)throw new WherePlanningUnsupportedError("no usable WHERE path");return best;
 }
 
