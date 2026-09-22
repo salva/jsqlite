@@ -3592,8 +3592,9 @@ interface PhysicalRowidIndex {
   readonly keyInfo: KeyInfo;
 }
 type SeekComparisonMode =
-  | { readonly kind: "comparison"; readonly affinity: MemAffinity }
-  | { readonly kind: "is-null" }; // no RHS affinity/key register
+  | { readonly kind: "comparison"; readonly affinity: MemAffinity;
+      readonly collation: BuiltinCollation } // validated effective term collation
+  | { readonly kind: "is-null" }; // no RHS affinity or effective term collation
 interface IndexConstraintAdmission {
   readonly term: WhereTerm; // exact clause-owned identity
   readonly physicalIndex: PhysicalRowidIndex;
@@ -3603,7 +3604,6 @@ interface IndexConstraintAdmission {
   readonly operator: WhereOperator; // canonical indexed-left operator
   readonly originalIndexedOperand: "left"|"right";
   readonly comparison: SeekComparisonMode;
-  readonly collation: BuiltinCollation; // validated effective comparison collation
   readonly bound: "equality"|"lower-inclusive"|"lower-exclusive"|
                   "upper-inclusive"|"upper-exclusive";
 }
@@ -3649,10 +3649,13 @@ audit/debugging and prevents original-order collation from being reconstructed.
 `bound` is stored explicitly so DESC traversal affects cursor direction, not the
 semantic lower/upper test. Equality includes `eq` and admitted `is`; `is-null`
 has no RHS coercion and may only carry `bound: "equality"`. For ordinary
-comparisons, the stored `MemAffinity` is the pinned comparison affinity—not merely
-the index column affinity—and the stored collation is the already validated
-original-order result. `WhereLoop.terms` remains the residual/usage term set; it
-is not the lowering contract.
+comparisons, `comparison.affinity` is the pinned comparison affinity—not merely
+the index column affinity—and `comparison.collation` is the already validated
+original-order term result. For `comparison.kind === "is-null"`, neither fact
+exists: the exact `field` and `keyInfoTerm` still own packed-key ordering, but
+candidate construction and lowering must not fabricate an effective term
+collation from that physical metadata or apply RHS affinity. `WhereLoop.terms`
+remains the residual/usage term set; it is not the lowering contract.
 `orderTermsSatisfied`, direction, and
 covering are independently derived facts—not consequences of “uses index”.
 Covering must include every column needed by result, residual predicates, join,
@@ -3749,10 +3752,13 @@ unforced planning simply omits that term/candidate and retains a truthful scan.
 The TypeScript owner must reuse, then consolidate rather than fork, current
 `src/internal/vdbe.ts:expressionAffinity`, `expressionCollation`,
 `explicitCollation`, and `binaryCollation`; resolved column affinity/collation
-comes from `resolve.ts`/`schema.ts`. The seek-key lowerer applies the decision's
-comparison affinity through `Mem.applyAffinity` exactly as the current comparison
-opcodes do, and packed-key comparison uses the same identity-bearing `KeyInfo`
-and `compareMem`. Residual evaluation uses those same owners. This prevents a new
+comes from `resolve.ts`/`schema.ts`. For `comparison` mode the seek-key lowerer applies the decision's affinity
+through `Mem.applyAffinity` exactly as the current comparison opcodes do; for
+`is-null` mode it constructs the NULL key without RHS coercion or term-collation
+selection. Packed-key comparison in both modes uses the same identity-bearing
+`KeyInfo` and `compareMem`, so physical field collation remains available without
+being mislabeled as effective term collation. Residual evaluation uses those same
+owners. This prevents a new
 planner evaluator or host coercion from diverging from execution.
 
 High-risk behavior is therefore explicit. Against a numeric index, numeric-looking
