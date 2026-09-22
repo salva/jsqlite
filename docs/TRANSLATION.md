@@ -3438,7 +3438,12 @@ nonminimal headers); `id`/`parent` therefore use the input parse-image offsets a
 `jsonb_*` container values slice the original representation rather than canonical
 re-encoding. Text input continues to use its canonical internal JSONB offsets.
 Parameters, reset, rooted scans, hidden `json`/`root` reads, and JSONB container
-BLOB results have direct public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
+BLOB results have direct public evidence. Result metadata follows pinned
+`select.c:sqlite3GenerateColumnNames`/`generateColumnTypes`: a resolved direct JSON
+virtual column (qualified, unqualified, or COLLATE-wrapped) reports its underlying
+column name and `main`/function/origin fields, unless an explicit alias wins;
+computed results retain their exact source span and null origins. Duplicate result
+names remain positional. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
 atomic typed temporary unsupported. Scalar mutation/path consumers are described
 below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,
 exact JSONB hex, nonminimal headers, malformed/truncated validation, NULL/BLOB and

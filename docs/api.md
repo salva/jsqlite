@@ -575,7 +575,11 @@ The current table-valued surface is intentionally narrower than SQLite's module:
 The internal `json_each`, `json_tree`, `jsonb_each`, and `jsonb_tree` table sources
 accept one or two scalar-expression arguments through the ordinary Fetch
 metadata/value contract. Visible expression projection, WHERE, ORDER/LIMIT/OFFSET, grouped aggregate projection/HAVING, physical-left correlation, and two-source left-to-right JSON correlation are admitted;
-`json` and `root` may be read explicitly but remain absent from `*`. The recursive
+`json` and `root` may be read explicitly but remain absent from `*`. A direct JSON
+source column reports the underlying column name (rather than its SQL qualifier),
+`database: "main"`, the eponymous function table name, and its origin; an explicit
+alias overrides the result name. Computed expression names preserve their SQL
+source text and have null source metadata. The recursive
 `json_tree` producer follows
 pinned depth-first JSONB-offset id/parent shaping. Direct public evidence includes
 scalar-root `fullkey`, rooted parameter scans and reset, hidden columns, JSONB

@@ -903,6 +903,19 @@ cleanup. This does not claim generalized virtual-table planning, event-loop yiel
 inside one synchronous parse, or the unsupported compositions listed in the
 living guide.
 
+### Revision 2026-09-22 — JSON table result metadata correction ([[card:card-r-d]])
+
+The earlier table-function tranche left qualified direct projections named from
+their SQL span (for example `je.value`) instead of the resolved virtual column
+(`value`). The JSON-specific lowering routes now retain bound result trees through
+metadata production and apply pinned `select.c:sqlite3GenerateColumnNames` rules:
+alias first, otherwise the underlying direct-column name and source fields;
+computed expressions keep exact source spans and null origins. Public UTF-8,
+UTF-16LE and UTF-16BE tests cover all eight visible fields, duplicate names,
+COLLATE, aliases, comments/spacing, wildcard and correlated sources, plus lifecycle.
+This is a metadata correction only and does not widen the documented composition
+surface or expose module registration.
+
 ### Revision 2026-09-21 — scalar review corrections
 
 Finding 1's placeholder error position and finding 4's missing JSONB/edit

@@ -10,6 +10,26 @@ async function closeServer(server){
   await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
 }
 
+const metadata=statement=>Array.from({length:statement.columnCount},(_,index)=>statement.columnMetadata(index));
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`JSON table resolved-column metadata matches pinned short-name rules in ${encoding}`,async()=>{
+  const bridge=await startFixtureServer(fixtureRoot);let db,statement;
+  try{
+    db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/encoding-${encoding}`));
+    statement=db.prepare(`SELECT je.key,je.value,je.type,je.atom,je.id,je.parent,je.fullkey,je.path,je.value AS renamed,je.value,je.value+0, je.value /* kept */ + 0 FROM json_each('[1]') AS je`).statement;
+    assert.deepEqual(metadata(statement).map(column=>column.name),['key','value','type','atom','id','parent','fullkey','path','renamed','value','je.value+0','je.value /* kept */ + 0']);
+    assert.deepEqual(metadata(statement).slice(0,10).map(column=>[column.declaredType,column.database,column.table,column.origin]),[
+      ...['key','value','type','atom','id','parent','fullkey','path'].map(name=>[null,'main','json_each',name]),
+      [null,'main','json_each','value'],[null,'main','json_each','value'],
+    ]);
+    assert.deepEqual(metadata(statement).slice(10).map(column=>[column.declaredType,column.database,column.table,column.origin]),[[null,null,null,null],[null,null,null,null]]);
+    assert.equal(await statement.step(),'row');assert.equal(await statement.step(),'done');statement.reset();assert.equal(await statement.step(),'row');statement.finalize();statement=undefined;
+    statement=db.prepare(`SELECT * FROM json_tree('[1]')`).statement;assert.deepEqual(metadata(statement).map(column=>column.name),['key','value','type','atom','id','parent','fullkey','path']);assert.equal(await statement.step(),'row');statement.finalize();statement=undefined;
+    statement=db.prepare(`SELECT je.value COLLATE NOCASE, je.value+0 AS computed FROM json_each('[1]') AS je`).statement;assert.deepEqual(metadata(statement).map(column=>[column.name,column.database,column.table,column.origin]),[['value','main','json_each','value'],['computed',null,null,null]]);statement.finalize();statement=undefined;
+    statement=db.prepare(`SELECT leftj.value, rightj.value AS child FROM json_each('[[1]]') AS leftj, json_each(leftj.value) AS rightj`).statement;assert.deepEqual(metadata(statement).map(column=>[column.name,column.table,column.origin]),[['value','json_each','value'],['child','json_each','value']]);statement.finalize();statement=undefined;
+  }finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+});
+
 // Pinned SQLite 3.53.4 test/json101.test json101-15.100. This public-path
 // reproducer also establishes the eight visible json_each columns and their
 // SQLite storage classes; json/root are hidden and therefore absent from *.
