@@ -1595,3 +1595,11 @@ runtime.
 | exact `ExprNode.sourceText` and compiled column metadata | `select.c:sqlite3GenerateColumnNames`, `sqlite3DbSpanDup` | Unaliased computed expressions use the original UTF-8 source slice; aliases win and resolved direct columns use their column names. |
 | `audit-chinook-b1-b5*`, `between-lowering.test.mjs` | Exact pinned public results and development-only one-call function probe | 22 cases/56 executions, zero credit; typed rows, ordered names, repeated prepare/reset, expected errors and lifecycle. Native function registration is oracle-only, not public API. |
 | Physical encoding/affinity executable completion | `src/where.c:whereScanNext`; `src/expr.c:sqlite3CompareAffinity`, `sqlite3IndexAffinityOk`, `sqlite3BinaryCompareCollSeq`; `src/whereexpr.c:exprCommute`; `test/index3.test:index3-2.1/2.2` | three physical UTF-8/UTF-16le/UTF-16be fixtures and 23 cases each in `stage3-index-planner.json`; typed affinity/collation/orientation neighbors, EQP/VDBE evidence, exact roots/xinfo/hashes; all eight private counters have per-case exact/bounded invariants, with non-vacuous claimed-path movement and exact-zero forbidden work | 69 pinned captures and public attempts, 0 TS credit; five atomic gaps unchanged |
+
+### W1/W2 WHERE foundation delivery ([[card:card-s-b-a-a-a-a]], 2026-09-22)
+
+| Pinned owner | Current production owner | Verified boundary |
+|---|---|---|
+| `build.c:sqlite3KeyInfoOfIndex`; `sqliteInt.h:Index` physical fields | `schema.ts:physicalRowidIndex`, `IndexNode.physical` | One immutable rowid-tail descriptor and KeyInfo per admitted schema index; unsupported layouts publish `null` atomically |
+| `whereexpr.c:exprAnalyze/sqlite3WhereSplit`; `where.c:whereScan*`, `whereLoopAddBtreeIndex`, `whereLoopAddBtree` | `where-plan.ts:WhereClause`, `admitIndexConstraint`, `btreeLoops` | Exact cached admission identities, leading equality plus next-field range, affinity/collation/IS-NULL gates, covering/order/reverse, forced/unforced behavior |
+| `where.c:whereLoopInsert`, `wherePathSolver`; `whereInt.h:WhereLoop/WherePath` | `where-plan.ts:WhereLoop`, `wherePathSolver` | Bigint masks/estimates, prerequisites, deterministic best-per-ready-mask no-stat path; opcode lowering remains unmapped/uncredited |

@@ -5,6 +5,7 @@ import { storageOwner, type StorageOwnerCarrier } from "./storage.ts";
 import { type SqlToken } from "./tokenize.ts";
 import { decodeSqliteText } from "./utf.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
+import { KeyInfo, type BuiltinCollation } from "./comparison.ts";
 
 /** A malformed sqlite_schema row or declaration. */
 export class SchemaFormatError extends Error {
@@ -62,7 +63,11 @@ export interface IndexNode {
   readonly terms: readonly IndexTerm[];
   readonly unique: boolean;
   readonly origin: "create" | "primary-key";
+  /** Immutable packed-key identity, built exactly once with the schema. */
+  readonly physical: PhysicalRowidIndex | null;
 }
+export interface PhysicalIndexField { readonly role:"declared"|"rowid-tail"; readonly column:ColumnNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
+export interface PhysicalRowidIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly keyInfo:KeyInfo }
 export interface ViewNode {
   readonly kind: "view";
   readonly name: string;
@@ -152,6 +157,26 @@ function readonlyMap<K, V>(source: Map<K, V>): ReadonlyMap<K, V> {
     [Symbol.iterator]: () => source[Symbol.iterator](),
   });
   return view;
+}
+
+function builtinCollation(name:string|null):BuiltinCollation|null {
+  const folded=sqliteAsciiFold(name??"binary");
+  return folded==="binary"||folded==="nocase"||folded==="rtrim"?folded:null;
+}
+/** build.c:sqlite3KeyInfoOfIndex for the admitted ordinary rowid layout.
+ * Unsupported layouts return null atomically, before candidate publication. */
+export function physicalRowidIndex(index:IndexNode,encoding:DatabaseEncoding):PhysicalRowidIndex|null {
+  if(index.table.withoutRowid)return null;
+  const fields:PhysicalIndexField[]=[];
+  for(const term of index.terms){
+    const collation=builtinCollation(term.collation??term.column?.collation??null);
+    if(!term.column||term.expression||term.nulls!==null||!collation)return null;
+    fields.push(Object.freeze({role:"declared",column:term.column,collation,descending:term.descending,nullsLarge:false}));
+  }
+  fields.push(Object.freeze({role:"rowid-tail",column:null,collation:"binary",descending:false,nullsLarge:false}));
+  const allNotNull=index.unique&&index.terms.every(term=>term.column?.notNull===true);
+  const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:allNotNull?index.terms.length:fields.length,terms:fields.map(field=>Object.freeze({collation:field.collation,desc:field.descending,nullsLarge:false}))});
+  return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:index.terms.length,keyInfo});
 }
 
 export class SchemaGraph {
@@ -255,7 +280,8 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
           throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
         }
         const terms: readonly IndexTerm[] = Object.freeze(primary.map(column => Object.freeze({ column, expression: null, expressionSql: null, descending: false, collation: column.collation, nulls: null })));
-        const index: IndexNode = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key" };
+        const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key", physical:null } as unknown as IndexNode;
+        (index as {physical:PhysicalRowidIndex|null}).physical=physicalRowidIndex(index,database.encoding);
         table.indexes.push(index); indexes.set(folded, Object.freeze(index));
         continue;
       }
@@ -269,7 +295,8 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
         if (simple !== null && !column) malformed(`index refers to unknown column ${simple}`);
         return Object.freeze({ column, expression: column ? null : term.expr, expressionSql: column ? null : tokens.map(token => token.text).join(" "), descending: term.descending, collation: term.collation, nulls: term.nulls });
       }));
-      const index: IndexNode = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, table, terms, unique: ddl.indexUnique, origin: "create" };
+      const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, table, terms, unique: ddl.indexUnique, origin: "create", physical:null } as unknown as IndexNode;
+      (index as {physical:PhysicalRowidIndex|null}).physical=physicalRowidIndex(index,database.encoding);
       table.indexes.push(index); indexes.set(folded, Object.freeze(index));
     } else if (item.type === "view") {
       if (item.rootPage !== 0 || item.sql === null) malformed(`invalid view ${item.name}`);

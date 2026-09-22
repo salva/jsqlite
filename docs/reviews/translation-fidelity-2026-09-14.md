@@ -1381,3 +1381,13 @@ check proves one Function destination register feeds both comparisons; the separ
 native-only development function probe remains oracle evidence only. SQL arrives as
 a JavaScript string and is adapted to UTF-8 source bytes, so alternate SQL input
 encodings remain unproved.
+
+### 2026-09-22 W1/W2 WHERE foundation revision
+
+The prior current-system finding that no shared WHERE representation or physical
+index identity existed is now partly superseded. `where-plan.ts` implements the
+immutable term/admission/loop/path foundation and `schema.ts` owns one physical
+rowid-index/KeyInfo descriptor per admitted index. Focused identity and gate tests
+pass. Runtime remains scan-only: persistent-index seek/deferred-seek lowering and
+its counters are still absent, so the 69-attempt executable boundary remains zero
+credit and this revision is not a public compatibility claim.

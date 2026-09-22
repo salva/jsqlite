@@ -4045,3 +4045,31 @@ private invariants pass; no public API is added.
 
 Later shared integrations `o53a127`, `m18e3a345`, `n5e1df973`, `a3268c13`, and
 `b50b2a59` are regression requirements only and confer no index-planner credit.
+
+### W1/W2 immutable planner foundation implementation (2026-09-22, [[card:card-s-b-a-a-a-a]])
+
+`src/internal/where-plan.ts` now owns the shared immutable term/admission/loop/path
+contract and `schema.ts:physicalRowidIndex` constructs the sole ordinary rowid
+index descriptor and `KeyInfo` while publishing the schema graph. Candidate
+admission retains exact term, physical descriptor, field, and KeyInfo-term
+identities (including cached admission identity), original operand orientation,
+comparison affinity/collation or the distinct IS-NULL mode, and semantic bound.
+The bounded `whereLoopAddBtree` translation admits complete leading equality
+prefixes plus lower/upper bounds on only the next field, derives direction/order
+and covering independently, excludes an unforced unproved layout while retaining
+the truthful scan, and rejects a forced unproved/unusable layout before a path is
+published. The bigint prerequisite solver keeps one deterministic best path per
+ready mask using no-stat LogEst-shaped costs.
+
+This is deliberately the W1/W2 production foundation, not W3 lowering credit.
+`vdbe.ts` remains the unchanged source-order scan compiler, so RIGHT/FULL bypass
+this model and retain their existing fallback. No seek/deferred-seek opcode or
+private index-work counter is claimed, and the executable 69-attempt artifact
+therefore remains 0 credited pending the separate lowering owner. The TypeScript
+module uses immutable objects, bigint masks/estimates, and a WeakMap admission
+identity cache as browser-safe representations of the pinned structs and linked
+candidate ownership; it does not substitute an algorithm or evaluate SQL.
+Focused source-shaped tests cover descriptor/admission identity, composite
+prefix/range, commuted orientation, collation/affinity exclusion, IS NULL,
+ASC/DESC reverse contribution, covering, forced/unforced gates, bigint
+prerequisites, and deterministic path selection.
