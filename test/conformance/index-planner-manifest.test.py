@@ -37,12 +37,36 @@ class Contract(unittest.TestCase):
  def test_private_invariants_and_zero_credit_accounting(self):
   self.assertEqual(self.x['accounting'],{'encodingVariants':3,'pinnedCaptures':69,'attemptedPublicTsAssertions':69,'companions':0,'atomicUnattemptedGaps':5,'tsCreditedCases':0})
   fields=set(self.x['privateCounterContract']['fields'])
+  self.assertEqual(fields,{'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows'})
+  index_seek={'index-equality','index-composite-prefix-range','index-null','order-unsatisfied-fallback','covering-index','deferred-table-lookup','parameter-reset-rebind','residual-predicate','up-index3-2.2','affinity-integer-text-positive','affinity-integer-text-negative','affinity-integer-blob-negative','affinity-real-text-positive','affinity-real-text-negative','affinity-real-null','orientation-commuted-integer'}
+  index_advance={'index-equality','index-composite-prefix-range','order-unsatisfied-fallback','covering-index','deferred-table-lookup','parameter-reset-rebind','residual-predicate','affinity-integer-text-positive','orientation-commuted-integer'}
+  table_seek={'rowid-equality','rowid-range-desc','order-unsatisfied-fallback','deferred-table-lookup','residual-predicate','left-join-on-provenance','left-join-where-safety','up-index3-2.2','affinity-real-text-positive'}
+  table_advance={'rowid-range-desc','left-join-on-provenance','left-join-where-safety','orientation-rhs-nocase','collation-binary-mismatch'}
+  covering={'index-equality','index-composite-prefix-range','index-null','covering-index','parameter-reset-rebind','affinity-integer-text-positive','affinity-integer-text-negative','affinity-integer-blob-negative','orientation-commuted-integer'}
+  index_full_scan={'affinity-text-numeric-positive'}
+  table_full_scan={'orientation-rhs-nocase','collation-binary-mismatch'}
+  sorter={'order-unsatisfied-fallback','residual-predicate','affinity-integer-text-positive','orientation-commuted-integer'}
+  def lower(e): return e.get('exact',e.get('min'))
+  def upper(e): return e.get('exact',e.get('max'))
+  def zero(e): return e=={'exact':0}
   for v in self.x['variants']:
    for c in v['cases']:
-    self.assertTrue({'plannerCandidates','plannerPaths','indexSeeks','tableSeeks','sorterRows','residualTests'}<=c['privateExpected'].keys());self.assertTrue(c['privateExpected']['freshEachRun']);self.assertFalse(c['ts']['credit'])
-    for name,e in c['privateExpected'].items():
-     if name=='freshEachRun':continue
-     self.assertIn(name,fields);self.assertEqual(len(set(e)&{'exact','min','max'}),1)
+    e=c['privateExpected']; cid=c['id']
+    self.assertEqual(set(e),fields|{'freshEachRun'},cid);self.assertIs(e['freshEachRun'],True);self.assertFalse(c['ts']['credit'])
+    for name in fields:
+     bound=e[name];self.assertTrue(set(bound) in ({'exact'},{'min'},{'min','max'}),f'{cid}/{name}')
+     self.assertIsInstance(lower(bound),int);self.assertGreaterEqual(lower(bound),0)
+     if upper(bound) is not None:self.assertGreaterEqual(upper(bound),lower(bound))
+    self.assertGreaterEqual(lower(e['plannerCandidates']),1);self.assertGreaterEqual(lower(e['plannerPaths']),1)
+    if cid in index_seek:self.assertGreaterEqual(lower(e['indexSeeks']),1,cid)
+    if cid in index_advance:self.assertGreaterEqual(lower(e['indexNext']),1,cid)
+    if cid in table_seek:self.assertGreaterEqual(lower(e['tableSeeks']),1,cid)
+    if cid in table_advance:self.assertGreaterEqual(lower(e['tableNext']),1,cid)
+    if cid in covering:self.assertTrue(zero(e['tableSeeks']) and zero(e['tableNext']),cid)
+    if cid in index_full_scan:self.assertTrue(zero(e['indexSeeks']) and zero(e['tableSeeks']) and zero(e['tableNext']),cid);self.assertGreaterEqual(lower(e['indexNext']),1,cid)
+    if cid in table_full_scan:self.assertTrue(zero(e['indexSeeks']) and zero(e['indexNext']) and zero(e['tableSeeks']),cid);self.assertGreaterEqual(lower(e['tableNext']),1,cid)
+    if cid in sorter:self.assertGreaterEqual(lower(e['sorterRows']),1,cid)
+    elif 'ordering-satisfied' in c['coverage'] or 'covering' in c['coverage']:self.assertTrue(zero(e['sorterRows']),cid)
     for r in c['nativeRuns']:self.assertTrue(r['countersStartAtZero'])
   self.assertEqual(len(self.x['atomicGates']),5);self.assertTrue(all(not g['ts']['credit'] and not g['ts']['attempted'] for g in self.x['atomicGates']))
 if __name__=='__main__':unittest.main()

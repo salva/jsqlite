@@ -688,16 +688,23 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -778,16 +785,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "tableNext": {
+              "min": 3,
+              "max": 4
+            },
+            "residualTests": {
+              "exact": 0
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -888,16 +903,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1023,16 +1046,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1146,16 +1177,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1267,16 +1306,26 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 6,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 0
+              "min": 7,
+              "max": 7
             },
-            "sorterRows": {
-              "min": 1
+            "tableNext": {
+              "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 7,
+              "max": 9
             },
             "freshEachRun": true
           },
@@ -1474,16 +1523,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1596,16 +1653,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 1
+              "min": 2,
+              "max": 2
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1723,16 +1789,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 5
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -1992,16 +2066,27 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
-              "min": 0
+              "min": 3,
+              "max": 3
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 1
+              "min": 3,
+              "max": 3
+            },
+            "sorterRows": {
+              "min": 3,
+              "max": 3
             },
             "freshEachRun": true
           },
@@ -2144,16 +2229,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -2265,16 +2359,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -2371,16 +2474,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -2478,16 +2590,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -2646,16 +2767,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -2745,16 +2874,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -2844,16 +2981,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "min": 8,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "min": 1,
+              "max": 9
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -2967,16 +3112,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -3090,16 +3244,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -3184,16 +3346,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -3283,16 +3453,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -3411,16 +3590,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -3528,16 +3715,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 9,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -4256,16 +4451,23 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -4346,16 +4548,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "tableNext": {
+              "min": 3,
+              "max": 4
+            },
+            "residualTests": {
+              "exact": 0
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -4456,16 +4666,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -4591,16 +4809,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -4714,16 +4940,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -4835,16 +5069,26 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 6,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 0
+              "min": 7,
+              "max": 7
             },
-            "sorterRows": {
-              "min": 1
+            "tableNext": {
+              "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 7,
+              "max": 9
             },
             "freshEachRun": true
           },
@@ -5042,16 +5286,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -5164,16 +5416,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 1
+              "min": 2,
+              "max": 2
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -5291,16 +5552,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 5
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -5560,16 +5829,27 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
-              "min": 0
+              "min": 3,
+              "max": 3
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 1
+              "min": 3,
+              "max": 3
+            },
+            "sorterRows": {
+              "min": 3,
+              "max": 3
             },
             "freshEachRun": true
           },
@@ -5712,16 +5992,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -5833,16 +6122,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -5939,16 +6237,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6046,16 +6353,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -6214,16 +6530,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6313,16 +6637,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6412,16 +6744,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "min": 8,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "min": 1,
+              "max": 9
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6535,16 +6875,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6658,16 +7007,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6752,16 +7109,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -6851,16 +7216,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -6979,16 +7353,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -7096,16 +7478,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 9,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -7824,16 +8214,23 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -7914,16 +8311,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "tableNext": {
+              "min": 3,
+              "max": 4
+            },
+            "residualTests": {
+              "exact": 0
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -8024,16 +8429,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -8159,16 +8572,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -8282,16 +8703,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -8403,16 +8832,26 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 6,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 0
+              "min": 7,
+              "max": 7
             },
-            "sorterRows": {
-              "min": 1
+            "tableNext": {
+              "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 7,
+              "max": 9
             },
             "freshEachRun": true
           },
@@ -8610,16 +9049,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -8732,16 +9179,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
-              "min": 1
+              "min": 2,
+              "max": 2
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -8859,16 +9315,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 5
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -9128,16 +9592,27 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 2,
+              "max": 3
             },
             "tableSeeks": {
-              "min": 0
+              "min": 3,
+              "max": 3
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 1
+              "min": 3,
+              "max": 3
+            },
+            "sorterRows": {
+              "min": 3,
+              "max": 3
             },
             "freshEachRun": true
           },
@@ -9280,16 +9755,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -9401,16 +9885,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "min": 2,
+              "max": 4
+            },
+            "tableNext": {
+              "min": 1,
+              "max": 2
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 4
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },
@@ -9507,16 +10000,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -9614,16 +10116,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -9782,16 +10293,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -9881,16 +10400,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -9980,16 +10507,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "min": 8,
+              "max": 9
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "min": 1,
+              "max": 9
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -10103,16 +10638,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -10226,16 +10770,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -10320,16 +10872,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 0,
+              "max": 1
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "exact": 0
             },
             "freshEachRun": true
           },
@@ -10419,16 +10979,25 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "min": 1,
+              "max": 1
+            },
+            "indexNext": {
+              "min": 1,
+              "max": 2
             },
             "tableSeeks": {
               "exact": 0
             },
-            "sorterRows": {
+            "tableNext": {
               "exact": 0
             },
             "residualTests": {
-              "min": 0
+              "exact": 0
+            },
+            "sorterRows": {
+              "min": 2,
+              "max": 2
             },
             "freshEachRun": true
           },
@@ -10547,16 +11116,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 1
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 2,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 0
             },
             "freshEachRun": true
           },
@@ -10664,16 +11241,24 @@
               "min": 1
             },
             "indexSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "indexNext": {
+              "exact": 0
             },
             "tableSeeks": {
-              "min": 0
+              "exact": 0
+            },
+            "tableNext": {
+              "min": 8,
+              "max": 9
+            },
+            "residualTests": {
+              "min": 9,
+              "max": 9
             },
             "sorterRows": {
               "exact": 0
-            },
-            "residualTests": {
-              "min": 1
             },
             "freshEachRun": true
           },

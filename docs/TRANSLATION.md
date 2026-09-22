@@ -4027,14 +4027,21 @@ BINARY mismatch fallback. Rows, storage classes, EQP access shape, and encoding
 invariance are machine checked at zero TS credit.
 
 Every case now carries private `exact` or bounded `min`/`max` expectations for
-planner candidates/paths, index and table work, residual tests, and sorter rows,
-plus a mandatory fresh-zero start for every binding run. These expectations make
-covering access require zero table seeks, deferred access require table work,
-proved order require zero sorter rows, fallback sorting require nonzero sorter
-rows, residual cases require residual activity, and reset/rebind prohibit carried
-work. Native stmt-status remains corroborating capture evidence, not a substitute
-for future TypeScript private counters. Credit remains zero until both public rows
-and these private invariants pass; no public API is added.
+all eight declared counters: planner candidates/paths, index seeks/movement,
+table seeks/movement, residual tests, and sorter rows, plus a mandatory fresh-zero
+start for every binding run. Bounds describe semantic fixture cardinality rather
+than native statement-status counts. They require non-vacuous seek and movement
+for rowid/index equality, range, composite-prefix, ordering, covering, deferred,
+and reset/rebind claims; exact zero forbids the opposite cursor or sorter where
+that work is not allowed. Full index/table fallback cases instead require bounded
+movement without a seek. These expectations make covering access require zero
+table work, deferred access require table seeks, proved order require zero sorter
+rows, fallback sorting require nonzero sorter rows, residual cases require
+residual activity, and reset/rebind prohibit carried work. The validator requires
+every field and independently rejects vacuous access-claim expectations. Native
+stmt-status remains corroborating capture evidence, not a substitute for future
+TypeScript private counters. Credit remains zero until both public rows and these
+private invariants pass; no public API is added.
 
 Later shared integrations `o53a127`, `m18e3a345`, `n5e1df973`, `a3268c13`, and
 `b50b2a59` are regression requirements only and confer no index-planner credit.
