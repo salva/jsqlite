@@ -911,8 +911,10 @@ their SQL span (for example `je.value`) instead of the resolved virtual column
 metadata production and apply pinned `select.c:sqlite3GenerateColumnNames` rules:
 alias first, otherwise the underlying direct-column name and source fields;
 computed expressions keep exact source spans and null origins. Public UTF-8,
-UTF-16LE and UTF-16BE tests cover all eight visible fields, duplicate names,
-COLLATE, aliases, comments/spacing, wildcard and correlated sources, plus lifecycle.
+UTF-16LE and UTF-16BE tests cover all eight visible fields plus hidden `json`/`root`
+declared-type distinctions across each/tree and text/JSONB variants, duplicate names,
+COLLATE, aliases, comments/spacing, wildcard and correlated sources, mixed physical
+source metadata, plus lifecycle.
 This is a metadata correction only and does not widen the documented composition
 surface or expose module registration.
 

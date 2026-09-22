@@ -3442,7 +3442,10 @@ BLOB results have direct public evidence. Result metadata follows pinned
 `select.c:sqlite3GenerateColumnNames`/`generateColumnTypes`: a resolved direct JSON
 virtual column (qualified, unqualified, or COLLATE-wrapped) reports its underlying
 column name and `main`/function/origin fields, unless an explicit alias wins;
-computed results retain their exact source span and null origins. Duplicate result
+computed results retain their exact source span and null origins. The visible fields
+have null declared type, while hidden `json`/`root` retain SQLite's empty declared-
+type string; physical-left direct fields keep their own declared/origin metadata.
+Duplicate result
 names remain positional. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers remain
 atomic typed temporary unsupported. Scalar mutation/path consumers are described
 below. Pinned-oracle evidence includes JSON5 canonical spellings, duplicate keys,

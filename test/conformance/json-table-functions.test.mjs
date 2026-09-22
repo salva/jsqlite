@@ -27,6 +27,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`JSON table resolved-col
     statement=db.prepare(`SELECT * FROM json_tree('[1]')`).statement;assert.deepEqual(metadata(statement).map(column=>column.name),['key','value','type','atom','id','parent','fullkey','path']);assert.equal(await statement.step(),'row');statement.finalize();statement=undefined;
     statement=db.prepare(`SELECT je.value COLLATE NOCASE, je.value+0 AS computed FROM json_each('[1]') AS je`).statement;assert.deepEqual(metadata(statement).map(column=>[column.name,column.database,column.table,column.origin]),[['value','main','json_each','value'],['computed',null,null,null]]);statement.finalize();statement=undefined;
     statement=db.prepare(`SELECT leftj.value, rightj.value AS child FROM json_each('[[1]]') AS leftj, json_each(leftj.value) AS rightj`).statement;assert.deepEqual(metadata(statement).map(column=>[column.name,column.table,column.origin]),[['value','json_each','value'],['child','json_each','value']]);statement.finalize();statement=undefined;
+    for(const name of ['json_each','json_tree','jsonb_each','jsonb_tree']){const input=name.startsWith('jsonb_')?`jsonb('[1]')`:`'[1]'`;statement=db.prepare(`SELECT j.key,j.value,j.type,j.atom,j.id,j.parent,j.fullkey,j.path,j.json,j.root FROM ${name}(${input}) AS j`).statement;assert.deepEqual(metadata(statement).map(column=>[column.name,column.declaredType,column.database,column.table,column.origin]),[...['key','value','type','atom','id','parent','fullkey','path'].map(column=>[column,null,'main',name,column]),['json','','main',name,'json'],['root','','main',name,'root']]);statement.finalize();statement=undefined;}
   }finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
 });
 
@@ -194,7 +195,7 @@ test('JSON table scan feeds grouped aggregate consumers',async()=>{
 
 test('physical rows correlate into JSON table arguments',async()=>{
   const bridge=await startFixtureServer(fixtureRoot);let db,statement;
-  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select4-t1`));statement=db.prepare(`SELECT t1.n, j.atom FROM t1 JOIN json_each('[1,' || t1.n || ']') AS j ON j.atom=t1.n`).statement;const rows=[];while(await statement.step()==='row')rows.push([statement.columnInteger(0),statement.columnInteger(1)]);assert.ok(rows.length>0);assert.ok(rows.every(([left,right])=>left===right));}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select4-t1`));statement=db.prepare(`SELECT t1.n, j.atom FROM t1 JOIN json_each('[1,' || t1.n || ']') AS j ON j.atom=t1.n`).statement;assert.deepEqual(metadata(statement),[{name:'n',declaredType:'INT',database:'main',table:'t1',origin:'n'},{name:'atom',declaredType:null,database:'main',table:'json_each',origin:'atom'}]);const rows=[];while(await statement.step()==='row')rows.push([statement.columnInteger(0),statement.columnInteger(1)]);assert.ok(rows.length>0);assert.ok(rows.every(([left,right])=>left===right));}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
 });
 
 test('grouped JSON table aggregates apply HAVING after finalization',async()=>{

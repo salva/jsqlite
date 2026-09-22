@@ -579,7 +579,10 @@ metadata/value contract. Visible expression projection, WHERE, ORDER/LIMIT/OFFSE
 source column reports the underlying column name (rather than its SQL qualifier),
 `database: "main"`, the eponymous function table name, and its origin; an explicit
 alias overrides the result name. Computed expression names preserve their SQL
-source text and have null source metadata. The recursive
+source text and have null source metadata. The eight visible fields have no declared
+SQL type; the hidden `json` and `root` fields preserve SQLite's empty declared-type
+string. Mixed physical/JSON joins retain each direct source column's own declared
+and origin metadata. The recursive
 `json_tree` producer follows
 pinned depth-first JSONB-offset id/parent shaping. Direct public evidence includes
 scalar-root `fullkey`, rooted parameter scans and reset, hidden columns, JSONB
