@@ -1080,3 +1080,90 @@ finalization, and UTF-8/UTF-16LE/UTF-16BE coverage without adding another fixtur
 acquisition or duplicating the CHECK/FK fixture owner. The implementation remains
 commits `8a0bb5d` and `4a93878`; this revision adds a durable independent oracle
 gate and sharpens the exact-query regression only. Finding 5 is unchanged.
+
+### Operator lead 6/7 committed-evidence update (revision 2026-09-22, verification HEAD `b33c59fd2ed640bb0d6d594aebe35d906746b322`, [[card:card-o-b-h]])
+
+This revision records the operator commits now present in the project and
+supersedes only the earlier work-root-only description of the lead gates. The
+public acquisition contract is `test/fixtures/public/chinook.json`: URL
+`https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite`, exactly **1,007,616 bytes**, SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`.
+The URL is provenance and may float; byte count plus full digest are acceptance.
+`node tools/fetch-chinook.mjs "$SAIVAGE_CARD_WORK_ROOT/chinook-fixture/Chinook_Sqlite.sqlite"`
+performs Fetch and refuses an identity mismatch.
+
+The oracle remains manifest-pinned SQLite **3.53.4**, source ID
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+The durable native lead-7 command is:
+
+```sh
+python3 test/conformance/window-derived-scope-native.py \
+  --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so" \
+  --database "$SAIVAGE_CARD_WORK_ROOT/chinook-fixture/Chinook_Sqlite.sqlite"
+```
+
+It verifies library/source ID and fixture identity before using SQLite's public C
+API. The earlier lead-6 public-C capture command's retained output is
+`work:///cards/card-o-b-g/processes/proc-c1632ba5c7e9/stdout.log`: version/source
+ID, `Through a Looking Glass|1` through `Dave|5`, LIMIT-0 count 0, and OFFSET
+neighbors ranks 2 and 3. Before repair the same no-outer-ORDER public query emitted
+**3,503** TS rows versus native **5**; the correct first row is **Through a Looking
+Glass**, rank **1**.
+
+The runtime ownership repair began in
+`8a0bb5d68c775094b46eeaae62a868edf77ea12b` and is now durably hardened by
+`b6d98313c7c41f4f7cc49d48379e0fa1f6fe5e83`: one `emitOuterResult` lowering
+owns both direct and sorter drains, emits `IfPos` before `ResultRow` and
+`DecrJumpZero` after it, and routes LIMIT zero/exhaustion to the appropriate drain.
+This is the pinned `select.c` destination handoff, not host slicing. The same
+commit added the project-owned fixture contract/fetcher and sharpened the public
+predicate-bearing lead case (`WHERE Bytes IS NOT NULL`). Permanent lead-6 cases
+are `test/schema/catalog-init.test.mjs` tests **window outer LIMIT/OFFSET executes
+in the VDBE output handoff** and **window LIMIT/OFFSET handoff is
+encoding-independent**. Together they cover positive LIMIT/OFFSET, LIMIT 0,
+negative LIMIT (including the 3,503-row tail), parameters, reset/rebind,
+finalize/connection cleanup, and physical UTF-8/UTF-16LE/UTF-16BE fixtures.
+
+The scope repair in `4a93878a3f675d58aa33891271752901199f9868`
+preserves linked `NameContext` and derived output-column identity while compiling
+parent predicate, typed ORDER sorter, and LIMIT/OFFSET in one VDBE program. It
+corrects the prior false same-scope treatment and the intermediate `no such table:
+(subquery)` failure. The specialized admission remains gated by
+`selectHasWindow(derived.select)`; the neighboring ordinary-derived shape still
+rejects atomically. Commit
+`b33c59fd2ed640bb0d6d594aebe35d906746b322` made the exact public
+`WHERE rk<=5` case and independent public-C oracle durable. Same-SELECT
+`WHERE rk<=?1` and `GROUP BY Name HAVING rk<=?1` each still fail during prepare,
+publish no statement, and retain the exact diagnostic
+`misuse of aliased window function rk`; a parent SELECT may filter/order/limit
+`rk`. Permanent lead-7 paths are
+`test/conformance/window-derived-scope-native.py` and the
+`test/schema/catalog-init.test.mjs` tests **exact derived window lead treats rk as
+an outer source column**, **derived window filtering retains parent ORDER BY and
+LIMIT ownership**, and **derived window output scope is encoding-independent**.
+They retain outer filter/ORDER, parameter reset/rebind in neighboring coverage,
+repeat-after-reset, finalize/cleanup, and all three encodings without duplicating
+the fixture.
+
+The implementation/test sequence is therefore
+`8a0bb5d68c775094b46eeaae62a868edf77ea12b`,
+`4a93878a3f675d58aa33891271752901199f9868`, integration evidence
+`a8f1583cce6288573725fab4c23375180c11f559`, durable lead-6 gate/runtime hardening
+`b6d98313c7c41f4f7cc49d48379e0fa1f6fe5e83`, and durable lead-7 oracle
+`b33c59fd2ed640bb0d6d594aebe35d906746b322`. The current native-oracle plus public
+13/13 rerun is retained at
+`work:///cards/card-o-b-h/processes/proc-696d50e13ac1/stdout.log`; the full
+post-reconciliation execution log remains
+`work:///cards/card-o-b-h/processes/proc-2c2216ab6a7f/stdout.log`.
+
+Accounting remains three separate denominators: historical architecture manifest
+**0/29 TS by design**; aggregate windows **43/43 executable**, **25/25
+source-credit**, plus source-only private-controls **1/1**; special built-ins
+**41/41 executable plus 2/2 source-only** (the runner's 42/42 is 41 executable
+case tests plus one denominator test). This evidence does not expand that bounded
+surface. The known CTE execution result remains **36/39**, with only the three
+encoding variants failing `complex compound table arms are not implemented`.
+Finding 5 remains CHECK/FK **read-schema retention only**, without write
+enforcement. Cross-checking `docs/TRANSLATION.md`, `docs/SQLITE_SOURCE_MAP.md`, and
+`docs/api.md` found no contradictory current admission, ownership, or API claim;
+no changes to those documents are required.
