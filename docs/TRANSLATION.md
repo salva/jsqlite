@@ -4073,3 +4073,33 @@ Focused source-shaped tests cover descriptor/admission identity, composite
 prefix/range, commuted orientation, collation/affinity exclusion, IS NULL,
 ASC/DESC reverse contribution, covering, forced/unforced gates, bigint
 prerequisites, and deterministic path selection.
+
+### W1/W2 correction: production analysis, rowid loops, and N-best solver (2026-09-22)
+
+The foundation now includes a production `analyzeWhere(ResolvedSelect)` owner for
+the admitted `sqlite3WhereSplit`/`exprAnalyze` subset. It splits AND terms from
+WHERE and ON reductions, uses resolver-owned column identities, canonically
+commutes indexed RHS operands while preserving original orientation and
+original-order collation, computes bigint prerequisite masks, and records LEFT ON
+provenance/residual safety. Any RIGHT/FULL source returns a statement-wide
+`right-full` fallback before terms or candidates are published.
+
+`btreeLoops` now proposes INTEGER PRIMARY KEY/rowid equality and range loops,
+honors NOT INDEXED, allows a forced supported index's full scan, atomically rejects
+forced unsupported/conflicting layouts, and omits unconstrained unforced indexes
+unless they prove requested order. Covering includes the caller's complete needed
+column identity set, so missing projection/residual/order needs retain deferred
+table lookup.
+
+The earlier one-state-per-ready-mask solver has been replaced, not retained as an
+exception. The admitted translation ports `sqlite3LogEstAdd` exactly in bigint
+units and keeps bounded N-best paths at each depth, applying ready-mask,
+cost/rows/order dominance before deterministic truncation, following
+`whereLoopInsert` and `wherePathSolver`. Statistics, OR/IN, skip-scan, automatic
+indexes, and opcode lowering remain outside this tranche; the fixed no-stat loop
+estimates are intentionally the documented admitted input to the translated path
+algorithm. Focused tests exercise production parsing/resolution, rowid and
+composite neighbors, typed literals and NULL admission, order/reverse,
+covering/deferred facts, forced/NOT INDEXED gates, LEFT prerequisites, N-best
+LogEst selection, and unchanged RIGHT/FULL dispatch. This remains no public
+69-attempt execution credit.

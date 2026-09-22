@@ -1603,3 +1603,12 @@ runtime.
 | `build.c:sqlite3KeyInfoOfIndex`; `sqliteInt.h:Index` physical fields | `schema.ts:physicalRowidIndex`, `IndexNode.physical` | One immutable rowid-tail descriptor and KeyInfo per admitted schema index; unsupported layouts publish `null` atomically |
 | `whereexpr.c:exprAnalyze/sqlite3WhereSplit`; `where.c:whereScan*`, `whereLoopAddBtreeIndex`, `whereLoopAddBtree` | `where-plan.ts:WhereClause`, `admitIndexConstraint`, `btreeLoops` | Exact cached admission identities, leading equality plus next-field range, affinity/collation/IS-NULL gates, covering/order/reverse, forced/unforced behavior |
 | `where.c:whereLoopInsert`, `wherePathSolver`; `whereInt.h:WhereLoop/WherePath` | `where-plan.ts:WhereLoop`, `wherePathSolver` | Bigint masks/estimates, prerequisites, deterministic best-per-ready-mask no-stat path; opcode lowering remains unmapped/uncredited |
+
+W1/W2 correction: `where-plan.ts:analyzeWhere` now maps the admitted
+`sqlite3WhereSplit`/`exprAnalyze` production path (resolved identity, commutation,
+original-order collation, prerequisites, LEFT provenance); `btreeLoops` maps
+INTEGER PRIMARY KEY rowid equality/range and forced-full/NOT INDEXED branches.
+`logEstAdd` and the bounded N-best/dominance path set replace the former
+one-state simplification and map `util.c:sqlite3LogEstAdd`,
+`where.c:whereLoopInsert`, and `wherePathSolver`. RIGHT/FULL still dispatches to
+the unchanged source-order fallback; W3 lowering remains uncredited.

@@ -1391,3 +1391,10 @@ rowid-index/KeyInfo descriptor per admitted index. Focused identity and gate tes
 pass. Runtime remains scan-only: persistent-index seek/deferred-seek lowering and
 its counters are still absent, so the 69-attempt executable boundary remains zero
 credit and this revision is not a public compatibility claim.
+
+The W1/W2 revision is corrected to include production resolved-expression term
+analysis, INTEGER PRIMARY KEY rowid candidates, strict forced/NOT INDEXED gates,
+and translated bigint LogEst N-best/dominance solving. The initial
+one-state-per-ready-mask implementation is superseded rather than justified as an
+exception. Focused source-based tests verify these facts; runtime seek lowering
+and the 69 public credits remain absent.

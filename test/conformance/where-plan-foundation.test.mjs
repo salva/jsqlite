@@ -27,5 +27,5 @@ test('affinity/collation, null and forced/unforced gates are atomic',()=>{
 });
 
 test('path solver obeys bigint prerequisites and deterministic selection',()=>{
- const {source}=fixture(),other={...source,cursorId:1};const mk=(s,n,prereq,cost)=>Object.freeze({source:s,sourceOrdinal:n,prereq,capability:null,kind:'table-scan',setupCost:0n,runCost:cost,outputRows:1n,terms:Object.freeze([])});const first=mk(source,0,0n,5n),dependent=mk(other,1,sourceBit(0),1n);const path=wherePathSolver([[first],[dependent]],2);assert.deepEqual(path.loops,[first,dependent]);assert.equal(path.ready,3n);assert.equal(path.cost,7n);
+ const {source}=fixture(),other={...source,cursorId:1};const mk=(s,n,prereq,cost)=>Object.freeze({source:s,sourceOrdinal:n,prereq,capability:null,kind:'table-scan',setupCost:0n,runCost:cost,outputRows:1n,terms:Object.freeze([])});const first=mk(source,0,0n,5n),dependent=mk(other,1,sourceBit(0),1n);const path=wherePathSolver([[first],[dependent]],2);assert.deepEqual(path.loops,[first,dependent]);assert.equal(path.ready,3n);assert.equal(path.cost,25n);
 });
