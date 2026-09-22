@@ -1064,3 +1064,19 @@ are not implemented`; they are reported as an unchanged boundary, not a passing
 CTE gate. Full integrated output is
 `work:///cards/card-o-b-h/processes/proc-2c2216ab6a7f/stdout.log`; focused Chinook
 output is `work:///cards/card-o-b-h/processes/proc-64a095df49ba/stdout.log`.
+
+### Durable lead 7 oracle gate (revision 2026-09-22, [[card:card-o-b-a]])
+
+The lead 7 evidence is now project-owned rather than dependent on a work-root-only
+probe. `test/conformance/window-derived-scope-native.py` checks the loaded public-C
+library against `reference/sqlite/manifest.json`, checks the fetched Chinook bytes
+against `test/fixtures/public/chinook.json`, and captures both prepare failures and
+the legal outer result. Pinned 3.53.4 reports `misuse of aliased window function
+rk` during prepare, with no statement published, for same-SELECT WHERE and HAVING;
+the parent derived query prepares and returns ranks 5 through 1 under outer ORDER.
+The existing public Fetch test now spells the exact requested `WHERE rk<=5` query;
+neighboring permanent cases retain parameter reset/rebind, outer ORDER/LIMIT,
+finalization, and UTF-8/UTF-16LE/UTF-16BE coverage without adding another fixture
+acquisition or duplicating the CHECK/FK fixture owner. The implementation remains
+commits `8a0bb5d` and `4a93878`; this revision adds a durable independent oracle
+gate and sharpens the exact-query regression only. Finding 5 is unchanged.

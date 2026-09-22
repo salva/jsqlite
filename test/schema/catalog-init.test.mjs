@@ -197,7 +197,7 @@ test("public Chinook capture loads retained foreign keys and representative rows
   });
 });
 
-test("derived window outputs remain source columns across filtering, reset, and rebind", async () => {
+test("exact derived window lead treats rk as an outer source column", async () => {
   // Extend the one digest-bound public capture rather than introducing a
   // second acquisition contract for the same floating upstream artifact.
   const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
@@ -207,10 +207,10 @@ test("derived window outputs remain source columns across filtering, reset, and 
   await withImage(image,"Chinook-window-derived.sqlite",async connection=>{
     assert.throws(()=>connection.prepare("SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track WHERE rk<=?1"),error=>error?.message==="misuse of aliased window function rk");
     assert.throws(()=>connection.prepare("SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track GROUP BY Name HAVING rk<=?1"),error=>error?.message==="misuse of aliased window function rk");
-    const statement=connection.prepare("SELECT * FROM (SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track) WHERE rk<=?1").statement;statement.bind(1,3n);
+    const statement=connection.prepare("SELECT * FROM (SELECT Name,row_number() OVER (ORDER BY Bytes DESC) AS rk FROM Track) WHERE rk<=5").statement;
     const first=[];while(await statement.step()==="row")first.push([statement.column(0),statement.column(1)]);
-    assert.deepEqual(first,[["Through a Looking Glass",1n],["Occupation / Precipice",2n],["The Young Lords",3n]]);
-    statement.reset();statement.bind(1,1n);assert.equal(await statement.step(),"row");assert.deepEqual([statement.column(0),statement.column(1)],["Through a Looking Glass",1n]);assert.equal(await statement.step(),"done");statement.finalize();connection.close();
+    assert.deepEqual(first,[["Through a Looking Glass",1n],["Occupation / Precipice",2n],["The Young Lords",3n],["The Man With Nine Lives",4n],["Dave",5n]]);
+    statement.reset();const again=[];while(await statement.step()==="row")again.push([statement.column(0),statement.column(1)]);assert.deepEqual(again,first);statement.finalize();connection.close();
   });
 });
 
