@@ -2469,6 +2469,13 @@ git diff --check
 sha256sum test/conformance/cases/stage3-subquery-view-companions.spec.json
 ```
 
+That negative grep was a contextual guard for the then-closed **subquery/view**
+architecture handoff: it prevented its 39 future cases from being mislabeled as
+native or TypeScript credit. It is not a current prohibition on the separate CTE
+execution harness's subsequently verified 39/39 public observations; the final CTE
+fidelity-audit reconciliation records that denominator and supersedes the older
+36/39 CTE checkpoints.
+
 The validator result was 46 native captures, 15 literal prepare-valid closed
 companions, and 0 TypeScript credit; typecheck and all 27 parser tests passed.
 A separate attempt to feed these future cases through the current TypeScript

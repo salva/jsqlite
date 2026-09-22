@@ -7,10 +7,12 @@ import { lowerOrdinaryCtes } from "./cte.ts";
 
 /**
  * Pre-compilation walk of every Select owner currently reachable by select.c's
- * expansion/lowering routes.  This is deliberately an admission walk, not CTE
- * resolution: until With/CteUse lowering exists, discovering any WITH is enough.
- * Object identity sets make malformed/shared semantic graphs and recursive view
- * references finite without changing immutable parser or schema ownership.
+ * expansion/lowering routes. Relation-owned WITH/CteUse graphs are lowered before
+ * this residual admission walk; discovering a WITH here identifies an
+ * expression-owned or nested owner not represented by those lowering routes and
+ * rejects it atomically. Object identity sets make malformed/shared semantic
+ * graphs and recursive view references finite without changing immutable parser
+ * or schema ownership.
  */
 export function selectGraphContainsWith(root: SelectNode, schema: SchemaGraph): boolean {
   const selects = new Set<SelectNode>();

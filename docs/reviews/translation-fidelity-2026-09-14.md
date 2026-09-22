@@ -1058,7 +1058,8 @@ architecture; package boundary; docs check; and `git diff --check`. The focused
 Chinook catalog/lead suite passed **13/13** against the exact fixture, including
 same-scope diagnostics, outer filtering/ORDER, LIMIT 0/negative/OFFSET,
 reset/rebind/finalize, and all-encoding companions. The applicable CTE execution
-run was **36/39**: only the same three UTF-8/UTF-16LE/UTF-16BE ordinary-CTE
+run was **36/39** at that checkpoint: only the same three
+UTF-8/UTF-16LE/UTF-16BE ordinary-CTE
 composition cases failed with the already documented `complex compound table arms
 are not implemented`; they are reported as an unchanged boundary, not a passing
 CTE gate. Full integrated output is
@@ -1161,7 +1162,7 @@ Accounting remains three separate denominators: historical architecture manifest
 source-credit**, plus source-only private-controls **1/1**; special built-ins
 **41/41 executable plus 2/2 source-only** (the runner's 42/42 is 41 executable
 case tests plus one denominator test). This evidence does not expand that bounded
-surface. The known CTE execution result remains **36/39**, with only the three
+surface. At that checkpoint the known CTE execution result was **36/39**, with only the three
 encoding variants failing `complex compound table arms are not implemented`.
 Finding 5 remains CHECK/FK **read-schema retention only**, without write
 enforcement. Cross-checking `docs/TRANSLATION.md`, `docs/SQLITE_SOURCE_MAP.md`, and
@@ -1191,7 +1192,7 @@ UTF-8/UTF-16LE/UTF-16BE fixtures. The native scope oracle preserves both exact
 same-SELECT diagnostics and the legal derived result.
 
 This revision records evidence for only those approved leads. The unrelated CTE
-result remains 36/39, with the three encoding variants still rejected as
+result was 36/39 at that checkpoint, with the three encoding variants still rejected as
 `complex compound table arms are not implemented`; no broader Stage 3, arbitrary
 CTE, exhaustive window, or root-completion claim follows. Finding 5 is unchanged:
 CHECK/FK support is **read-schema retention only**, without write enforcement.
@@ -1291,3 +1292,41 @@ Current implementation evidence supersedes the earlier implication that every gr
 Evidence is deliberately partitioned. Implementation/public evidence is `test/conformance/recursive-cte-aggregate.test.mjs`: three public Fetch observations (UTF-8, UTF-16LE, UTF-16BE), each with prepare success, metadata `sum(x)`, one INTEGER 55, then DONE. The current integrated CTE/affected-compound lane passed 75/75, but that aggregate test count is regression evidence rather than upstream credit. Existing recursive native evidence remains 5 selected upstream assertions plus 2 no-credit companions across three encodings (21 native executions); A2 adds no pinned-native assertion and does not alter that denominator. The whole-project 48-suite/163-test result is likewise regression evidence, not public CTE or native credit.
 
 Residual temporary gaps include outer GROUP BY/HAVING over recursive output, aggregate functions/modifiers/expressions beyond direct `sum(column)`, multiple or reused recursive aggregate owners, recursive joins/subqueries/views outside represented routes, expression projection in the multi-owner path, and broader compounds. These are untranslated source/destination compositions and must reject atomically; they are not product exclusions or evidence of approximate recursion.
+
+### Final 2026-09-22 revision — same-denominator CTE execution reconciliation ([[card:card-n]])
+
+This revision supersedes every current-looking statement above that the CTE
+execution result “remains 36/39”. The denominator is unchanged: it is the same 39
+public observations formerly run by `cte-admission.test.mjs` and
+`cte-execution.test.mjs`, not a value inferred from a 10-test focused wrapper, the
+mixed 63-test affected lane, or the earlier 75-test integration lane. The three
+former failures were exactly these test IDs:
+
+- `public utf8 composes ordinary CTEs with supported relational routes`;
+- `public utf16le composes ordinary CTEs with supported relational routes`;
+- `public utf16be composes ordinary CTEs with supported relational routes`.
+
+In each encoding the first SQL shape in that test was
+`WITH q(x) AS (SELECT a FROM t1) SELECT t2.x,q.x FROM t2 CROSS JOIN q ORDER BY 1,2`:
+a relation-owned ordinary CTE table producer composed with a base-table cross join
+and two-term output ordering. It failed during prepare as `complex compound table
+arms are not implemented`, before the two later SQL shapes in the same observation
+could execute. This identity is preserved by the retained historical log and the
+source at its then-current line 65; it is not reconstructed from wrapper totals.
+
+Commit `52740e0d72646955e52c3801849ca9462d26b28a` repaired the producer/consumer
+integration (including the ordinary CTE first-arm composition route) and added its
+focused B3/A2 coverage. Commit `61b1c96feaa18d66cbff3512d1461a84abe2b4d7`
+then preserved ordinary-WITH lexical planning and route identity on the current
+integration head. A fresh current-source rerun of the exact historical 39
+observations passes **39/39**, with zero failures, skips, or cancellations. The
+current expanded wrappers separately pass focused **10/10** and affected-lane
+**63/63**; neither wrapper establishes or changes the 39 denominator.
+
+Evidence classes remain separate. Recursive public execution contributes **12/12**
+observations within the historical 39; the narrow A2 aggregate consumer contributes
+**3** separate public encoding observations. The recursive oracle remains **5
+upstream-credit assertions + 2 no-credit companions / 21 pinned-native encoding
+executions**. The same-denominator 39 public observations, wrapper test totals,
+internal opcode/lifecycle checks, A2 observations, companions, and pinned-native
+executions are not added to or substituted for one another.
