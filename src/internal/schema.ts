@@ -269,17 +269,19 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       if (!table) malformed(`index ${item.name} refers to unknown table ${item.tableName}`);
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
       if (item.sql === null) {
-        // build.c:sqlite3CreateIndex constructs a persistent automatic index for
-        // a non-rowid PRIMARY KEY. Keep the bounded, unambiguous single-column
-        // form needed by the pinned encoding fixtures; other implicit layouts
-        // remain an atomic schema gate rather than being guessed.
-        const expected = `sqlite_autoindex_${table.name}_1`;
+        // build.c:sqlite3CreateIndex constructs persistent automatic indexes
+        // for PRIMARY KEY and UNIQUE constraints. These are existing on-disk
+        // b-trees, not OP_OpenAutoindex/runtime index construction.
         const primary = table.primaryKey;
         const rowidAlias = primary.length === 1 && primary[0]!.declaredType?.toUpperCase() === "INTEGER";
-        if (table.withoutRowid || item.name !== expected || primary.length === 0 || rowidAlias || table.columns.some(column => column.unique)) {
-          throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
-        }
-        const terms: readonly IndexTerm[] = Object.freeze(primary.map(column => Object.freeze({ column, expression: null, expressionSql: null, descending: false, collation: column.collation, nulls: null })));
+        const ddl=parseDdl(table.sql,"create-table",table.name);
+        const implicit:readonly (readonly IndexTerm[])[]=[
+          ...(!rowidAlias&&primary.length?[Object.freeze(primary.map(column=>Object.freeze({column,expression:null,expressionSql:null,descending:false,collation:column.collation,nulls:null})) as IndexTerm[])]:[]),
+          ...table.columns.filter(column=>column.unique).map(column=>Object.freeze([Object.freeze({column,expression:null,expressionSql:null,descending:false,collation:column.collation,nulls:null}) as IndexTerm])),
+          ...ddl.tableUniqueTerms.map(unique=>Object.freeze(unique.map(term=>{const tokens=term.expr.tokens,simple=tokens.length===1?identifier(tokens[0]):null,column=simple===null?null:table.columns.find(candidate=>sqliteIdentifierEqual(candidate.name,simple))??null;if(!column)throw new SchemaUnsupportedError(`expression UNIQUE index is not implemented: ${item.name}`);return Object.freeze({column,expression:null,expressionSql:null,descending:term.descending,collation:term.collation??column.collation,nulls:term.nulls});}))),
+        ];
+        const prefix=`sqlite_autoindex_${table.name}_`,ordinal=item.name.startsWith(prefix)?Number(item.name.slice(prefix.length)):NaN,terms=implicit[ordinal-1];
+        if(table.withoutRowid||!Number.isSafeInteger(ordinal)||ordinal<1||!terms)throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
         const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key", physical:null } as unknown as IndexNode;
         (index as {physical:PhysicalRowidIndex|null}).physical=physicalRowidIndex(index,database.encoding);
         table.indexes.push(index); indexes.set(folded, Object.freeze(index));
@@ -290,7 +292,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       if (ddl.tableName === null || !sqliteIdentifierEqual(ddl.tableName, item.tableName)) malformed(`index ${item.name} has mismatched table name`);
       const terms = Object.freeze(ddl.indexTerms.map(term => {
         const tokens = term.expr.tokens;
-        const simple = tokens.length === 1 ? identifier(tokens[0]) : null;
+        const simple = tokens.length === 1 && (tokens[0]!.kind === "id" || tokens[0]!.kind === "keyword") ? identifier(tokens[0]) : null;
         const column = simple === null ? null : table.columns.find(candidate => sqliteIdentifierEqual(candidate.name, simple)) ?? null;
         if (simple !== null && !column) malformed(`index refers to unknown column ${simple}`);
         return Object.freeze({ column, expression: column ? null : term.expr, expressionSql: column ? null : tokens.map(token => token.text).join(" "), descending: term.descending, collation: term.collation, nulls: term.nulls });
