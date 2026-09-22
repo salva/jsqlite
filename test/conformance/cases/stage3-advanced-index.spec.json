@@ -1,0 +1,299 @@
+{
+  "schema": "jsqlite-advanced-index-spec/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "execution": {
+    "nativeSupported": true,
+    "publicTsAttempted": false,
+    "publicTsCredited": false,
+    "temporaryTsRejection": "unsupported/temporary",
+    "readOnlyCapture": true
+  },
+  "upstreamAnchors": [
+    {
+      "path": "src/where.c",
+      "symbols": [
+        "whereLoopAddBtreeIndex",
+        "whereUsablePartialIndex",
+        "wherePathSolver"
+      ]
+    },
+    {
+      "path": "src/whereexpr.c",
+      "symbols": [
+        "sqlite3WhereExprUsage",
+        "exprAnalyze"
+      ]
+    },
+    {
+      "path": "src/wherecode.c",
+      "symbols": [
+        "sqlite3WhereCodeOneLoopStart",
+        "codeEqualityTerm"
+      ]
+    },
+    {
+      "path": "src/btree.c",
+      "symbols": [
+        "sqlite3BtreeIndexMoveto",
+        "sqlite3BtreeTableMoveto"
+      ]
+    },
+    {
+      "path": "src/build.c",
+      "symbols": [
+        "sqlite3CreateIndex",
+        "convertToWithoutRowidTable"
+      ]
+    },
+    {
+      "path": "src/analyze.c",
+      "symbols": [
+        "sqlite3AnalysisLoad"
+      ]
+    },
+    {
+      "path": "src/expr.c",
+      "symbols": [
+        "sqlite3ExprCompare",
+        "sqlite3ExprImpliesExpr"
+      ]
+    },
+    {
+      "path": "test/without_rowid1.test",
+      "assertion": "WITHOUT ROWID primary/secondary lookup provenance"
+    },
+    {
+      "path": "test/index6.test",
+      "assertion": "partial-index implication provenance"
+    },
+    {
+      "path": "test/indexexpr1.test",
+      "assertion": "expression-index identity provenance"
+    },
+    {
+      "path": "test/in4.test",
+      "assertion": "index-backed IN provenance"
+    }
+  ],
+  "setup": [
+    "PRAGMA page_size=512",
+    "CREATE TABLE wr(a TEXT COLLATE NOCASE,b INTEGER,c REAL,payload TEXT,PRIMARY KEY(a,b)) WITHOUT ROWID",
+    "CREATE INDEX wr_c ON wr(c)",
+    "INSERT INTO wr VALUES('Alpha',1,1.0,'w1'),('alpha',2,2.5,'w2'),('beta',1,3.0,'w3'),('gamma',2,5.0,'w4')",
+    "CREATE TABLE p(id INTEGER PRIMARY KEY,a INTEGER,b TEXT,c REAL)",
+    "CREATE INDEX p_live ON p(a,b) WHERE c IS NOT NULL",
+    "INSERT INTO p VALUES(1,1,'x',1.0),(2,1,'y',NULL),(3,2,'z',2.5),(4,3,'q',3.0)",
+    "CREATE TABLE e(id INTEGER PRIMARY KEY,a TEXT,b INTEGER)",
+    "CREATE INDEX e_expr ON e(lower(a),b+1)",
+    "INSERT INTO e VALUES(1,'Alpha',4),(2,'BETA',5),(3,'alpha',6)",
+    "CREATE TABLE m(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER)",
+    "CREATE INDEX m_abc ON m(a,b,c)",
+    "INSERT INTO m VALUES(1,1,1,1),(2,1,2,2),(3,1,3,3),(4,2,2,4),(5,3,3,5)"
+  ],
+  "cases": [
+    {
+      "id": "wr-primary-exact",
+      "sql": "SELECT a,b,typeof(c),c,payload FROM wr WHERE a=?1 AND b=?2",
+      "bindings": [
+        "ALPHA",
+        2
+      ],
+      "requiresPlan": "PRIMARY KEY"
+    },
+    {
+      "id": "wr-primary-prefix",
+      "sql": "SELECT a,b,payload FROM wr WHERE a=?1 ORDER BY b",
+      "bindings": [
+        "alpha"
+      ],
+      "requiresPlan": "PRIMARY KEY"
+    },
+    {
+      "id": "wr-secondary-suffix",
+      "sql": "SELECT a,b,typeof(c),c FROM wr WHERE c>=?1 ORDER BY c,a,b",
+      "bindings": [
+        2.5
+      ],
+      "requiresPlan": "wr_c"
+    },
+    {
+      "id": "partial-implied",
+      "sql": "SELECT id,b FROM p WHERE a=?1 AND c IS NOT NULL ORDER BY b",
+      "bindings": [
+        1
+      ],
+      "requiresPlan": "p_live"
+    },
+    {
+      "id": "partial-not-implied",
+      "sql": "SELECT id,b FROM p WHERE a=?1 ORDER BY b",
+      "bindings": [
+        1
+      ],
+      "forbidsPlan": "p_live"
+    },
+    {
+      "id": "expression-identical",
+      "sql": "SELECT id,a,b FROM e WHERE lower(a)=?1 AND b+1=?2 ORDER BY id",
+      "bindings": [
+        "alpha",
+        5
+      ],
+      "requiresPlan": "e_expr"
+    },
+    {
+      "id": "expression-mismatch",
+      "sql": "SELECT id,a FROM e WHERE upper(a)=?1 AND b+1=?2 ORDER BY id",
+      "bindings": [
+        "ALPHA",
+        5
+      ],
+      "forbidsPlan": "e_expr"
+    },
+    {
+      "id": "index-backed-in",
+      "sql": "SELECT id,a,b FROM m WHERE a IN (?1,?2) ORDER BY a,b,id",
+      "bindings": [
+        1,
+        3
+      ],
+      "requiresPlan": "m_abc"
+    },
+    {
+      "id": "composite-equality-two-ranges",
+      "sql": "SELECT id,a,b,c FROM m WHERE a=?1 AND b>=?2 AND b<=?3 AND c>?4 ORDER BY b,c",
+      "bindings": [
+        1,
+        1,
+        3,
+        1
+      ],
+      "requiresPlan": "m_abc"
+    },
+    {
+      "id": "multiple-range-neighbor",
+      "sql": "SELECT id,a,b,c FROM m WHERE a>=?1 AND b>=?2 ORDER BY a,b,c",
+      "bindings": [
+        1,
+        2
+      ],
+      "requiresPlan": "m_abc"
+    }
+  ],
+  "lifecycle": {
+    "case": "wr-primary-exact",
+    "firstBindings": [
+      "ALPHA",
+      2
+    ],
+    "secondBindings": [
+      "beta",
+      1
+    ],
+    "expectedFirstRows": [
+      [
+        {
+          "type": "text",
+          "utf8Hex": "616c706861"
+        },
+        {
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7265616c"
+        },
+        {
+          "type": "real",
+          "ieee754be": "4004000000000000"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7732"
+        }
+      ]
+    ],
+    "expectedSecondRows": [
+      [
+        {
+          "type": "text",
+          "utf8Hex": "62657461"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7265616c"
+        },
+        {
+          "type": "real",
+          "ieee754be": "4008000000000000"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7733"
+        }
+      ]
+    ],
+    "resetRequired": true,
+    "clearAndRebindRequired": true,
+    "finalizeRequired": true
+  },
+  "encodingVariants": [
+    {
+      "id": "utf8",
+      "pragma": "UTF-8"
+    },
+    {
+      "id": "utf16le",
+      "pragma": "UTF-16le"
+    },
+    {
+      "id": "utf16be",
+      "pragma": "UTF-16be"
+    }
+  ],
+  "errorCases": [
+    {
+      "id": "prepare-syntax",
+      "sql": "SELECT FROM wr",
+      "phase": "prepare",
+      "errorCode": 1,
+      "connectionReusable": true
+    },
+    {
+      "id": "length-limit-runtime",
+      "sql": "SELECT length(?1)",
+      "phase": "runtime",
+      "limit": {
+        "category": "SQLITE_LIMIT_LENGTH",
+        "id": 0,
+        "value": 32
+      },
+      "binding": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "errorCode": 18,
+      "connectionReusable": true
+    }
+  ],
+  "corruptionCases": {
+    "index": "wr_c",
+    "selectedSql": "SELECT a,b FROM wr INDEXED BY wr_c WHERE c>=2.5",
+    "offPathSql": "SELECT payload FROM wr WHERE a='Alpha' AND b=1",
+    "selectedErrorCode": 11,
+    "offPathRows": [
+      [
+        {
+          "type": "text",
+          "utf8Hex": "7731"
+        }
+      ]
+    ]
+  }
+}

@@ -1651,3 +1651,14 @@ boundaries without claiming W3 execution.
 |---|---|---|
 | `src/where.c:sqlite3WhereBegin`, `sqlite3WhereEnd`; `src/wherecode.c:codeEqualityTerm`, `sqlite3WhereCodeOneLoopStart` | `src/internal/where-plan.ts`, `src/internal/vdbe.ts`; `test/conformance/run-index-planner-ts.mjs` | Selected immutable rowid/index capabilities lower to table/index seek, range termination, direction, residual, covering, deferred-seek, and loop-end control. Every multi-source path conservatively publishes zero global order until the complete pinned `wherePathSatisfiesOrder` state machine is translated. |
 | `src/vdbe.c` seek/`Idx*`/`DeferredSeek`/`Column`/rowid traversal cases | `src/internal/vdbe.ts`; `stage3-index-planner.spec.json` and pinned capture | Page-local B-tree movement and `Mem`/`KeyInfo` comparisons serve explicit and persistent implicit rowid indexes. 69/69 public-route executions enforce rows/errors and exactly eight private counter fields. No exceptional algorithm substitution. |
+
+## Advanced-index tests-first mapping
+
+| Contract | Pinned owners/assertions | Disposition |
+|---|---|---|
+| WITHOUT ROWID composite PK/secondary suffix | `build.c:convertToWithoutRowidTable`, `btree.c:sqlite3BtreeIndexMoveto`, `test/without_rowid1.test` | Three encodings native captured; TS temporary unsupported |
+| Partial implication | `where.c:whereUsablePartialIndex`, `expr.c:sqlite3ExprImpliesExpr`, `test/index6.test` | Positive/negative EQP neighbors captured |
+| Expression identity | `where.c:whereLoopAddBtreeIndex`, `expr.c:sqlite3ExprCompare`, `test/indexexpr1.test` | Identical/mismatch neighbors captured |
+| IN/composite ranges | `where.c:whereLoopAddBtreeIndex/wherePathSolver`, `wherecode.c:codeEqualityTerm`, `test/in4.test` | IN, bounded and multiple-range neighbors captured |
+
+Machine contract/capture/validator are `stage3-advanced-index.spec.json`, `stage3-advanced-index.json`, and `advanced-index-manifest.test.py`. Captures include native lifecycle/error/reuse, statement-status bounded-work, and selected-index-root corruption/off-path isolation evidence. Source SHA-256 prefixes are `where.c e96a8fea`, `whereexpr.c a6dc7d0f`, `wherecode.c 496fd3fb`, `btree.c c0982890`, `build.c c7154980`, `analyze.c d015f3d7`, and `expr.c 363e581d`. This is 30 native captures and 0 TS attempted/credited, not runtime implementation or algorithm substitution.

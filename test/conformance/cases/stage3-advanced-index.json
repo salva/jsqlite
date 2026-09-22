@@ -1,0 +1,3754 @@
+{
+  "schema": "jsqlite-advanced-index-capture/1",
+  "source": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "manifest": "reference/sqlite/manifest.json"
+  },
+  "producer": {
+    "script": "test/conformance/capture-advanced-index.py",
+    "identityCheckedBeforeSetup": true,
+    "reopenedReadOnly": true
+  },
+  "accounting": {
+    "encodingVariants": 3,
+    "nativeCasesPerEncoding": 10,
+    "pinnedNativeCaptures": 30,
+    "attemptedPublicTsAssertions": 0,
+    "tsCreditedCases": 0
+  },
+  "variants": [
+    {
+      "id": "utf8",
+      "encoding": "UTF-8",
+      "fixture": {
+        "path": "test/conformance/fixtures/advanced-index-utf8.db",
+        "bytes": 5632,
+        "sha256": "46ff3f0710cd51e58a910b8f3776fa8263ba804d67b800e16514ea69abe1885a",
+        "headerPageSize": 512,
+        "schema": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206528696420494e5445474552205052494d415259204b45592c6120544558542c6220494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "655f65787072"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820655f65787072204f4e2065286c6f7765722861292c622b3129"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206d28696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220494e54454745522c6320494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d5f616263"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45207028696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220544558542c63205245414c29"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "705f6c697665"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820705f6c697665204f4e207028612c62292057484552452063204953204e4f54204e554c4c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c452077722861205445585420434f4c4c415445204e4f434153452c6220494e54454745522c63205245414c2c7061796c6f616420544558542c5052494d415259204b455928612c62292920574954484f555420524f574944"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "77725f63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e4445582077725f63204f4e207772286329"
+            }
+          ]
+        ],
+        "indexXinfo": {
+          "sqlite_autoindex_wr_1": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "wr_c": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "p_live": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "e_expr": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "m_abc": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      },
+      "cases": [
+        {
+          "id": "wr-primary-exact",
+          "sql": "SELECT a,b,typeof(c),c,payload FROM wr WHERE a=?1 AND b=?2",
+          "bindings": [
+            "ALPHA",
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=? AND b=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 20
+          }
+        },
+        {
+          "id": "wr-primary-prefix",
+          "sql": "SELECT a,b,payload FROM wr WHERE a=?1 ORDER BY b",
+          "bindings": [
+            "alpha"
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 22
+          }
+        },
+        {
+          "id": "wr-secondary-suffix",
+          "sql": "SELECT a,b,typeof(c),c FROM wr WHERE c>=?1 ORDER BY c,a,b",
+          "bindings": [
+            2.5
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4008000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "67616d6d61"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4014000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING COVERING INDEX wr_c (c>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 37
+          }
+        },
+        {
+          "id": "partial-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 AND c IS NOT NULL ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH p USING INDEX p_live (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 17
+          }
+        },
+        {
+          "id": "partial-not-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "79"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN p",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 3,
+            "sortOperations": 1,
+            "vmSteps": 40
+          }
+        },
+        {
+          "id": "expression-identical",
+          "sql": "SELECT id,a,b FROM e WHERE lower(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "alpha",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH e USING INDEX e_expr (<expr>=? AND <expr>=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 19
+          }
+        },
+        {
+          "id": "expression-mismatch",
+          "sql": "SELECT id,a FROM e WHERE upper(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "ALPHA",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN e"
+          ],
+          "work": {
+            "fullscanSteps": 2,
+            "sortOperations": 0,
+            "vmSteps": 31
+          }
+        },
+        {
+          "id": "index-backed-in",
+          "sql": "SELECT id,a,b FROM m WHERE a IN (?1,?2) ORDER BY a,b,id",
+          "bindings": [
+            1,
+            3
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=?)",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 4,
+            "vmSteps": 122
+          }
+        },
+        {
+          "id": "composite-equality-two-ranges",
+          "sql": "SELECT id,a,b,c FROM m WHERE a=?1 AND b>=?2 AND b<=?3 AND c>?4 ORDER BY b,c",
+          "bindings": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=? AND b>? AND b<?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 39
+          }
+        },
+        {
+          "id": "multiple-range-neighbor",
+          "sql": "SELECT id,a,b,c FROM m WHERE a>=?1 AND b>=?2 ORDER BY a,b,c",
+          "bindings": [
+            1,
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 46
+          }
+        }
+      ],
+      "lifecycle": {
+        "firstRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "616c706861"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4004000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7732"
+            }
+          ]
+        ],
+        "resetCode": 0,
+        "clearBindingsCode": 0,
+        "secondRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "62657461"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4008000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7733"
+            }
+          ]
+        ],
+        "finalizeCode": 0
+      },
+      "errors": [
+        {
+          "id": "prepare-syntax",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "near \"FROM\": syntax error",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "length-limit-runtime",
+          "prepareCode": 0,
+          "stepCode": null,
+          "errorCode": 18,
+          "message": "string or blob too big",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      ],
+      "corruption": {
+        "fixture": {
+          "path": "test/conformance/fixtures/advanced-index-utf8-corrupt-wr-c.db",
+          "bytes": 5632,
+          "sha256": "3803fa4447a370692a3ac5b5b3a8a5f28483a3a401813611613f558d0849b60a",
+          "damagedRootPage": 3
+        },
+        "offPathRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7731"
+            }
+          ]
+        ],
+        "selectedErrorCode": 11,
+        "selectedMessage": "database disk image is malformed"
+      }
+    },
+    {
+      "id": "utf16le",
+      "encoding": "UTF-16le",
+      "fixture": {
+        "path": "test/conformance/fixtures/advanced-index-utf16le.db",
+        "bytes": 6144,
+        "sha256": "5867b6af1a64b0ca87671bf2d5a21793fef4f15477507bea3aaf82d4ada16861",
+        "headerPageSize": 512,
+        "schema": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206528696420494e5445474552205052494d415259204b45592c6120544558542c6220494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "655f65787072"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820655f65787072204f4e2065286c6f7765722861292c622b3129"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206d28696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220494e54454745522c6320494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d5f616263"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45207028696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220544558542c63205245414c29"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "705f6c697665"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820705f6c697665204f4e207028612c62292057484552452063204953204e4f54204e554c4c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c452077722861205445585420434f4c4c415445204e4f434153452c6220494e54454745522c63205245414c2c7061796c6f616420544558542c5052494d415259204b455928612c62292920574954484f555420524f574944"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "77725f63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e4445582077725f63204f4e207772286329"
+            }
+          ]
+        ],
+        "indexXinfo": {
+          "sqlite_autoindex_wr_1": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "wr_c": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "p_live": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "e_expr": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "m_abc": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      },
+      "cases": [
+        {
+          "id": "wr-primary-exact",
+          "sql": "SELECT a,b,typeof(c),c,payload FROM wr WHERE a=?1 AND b=?2",
+          "bindings": [
+            "ALPHA",
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=? AND b=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 20
+          }
+        },
+        {
+          "id": "wr-primary-prefix",
+          "sql": "SELECT a,b,payload FROM wr WHERE a=?1 ORDER BY b",
+          "bindings": [
+            "alpha"
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 22
+          }
+        },
+        {
+          "id": "wr-secondary-suffix",
+          "sql": "SELECT a,b,typeof(c),c FROM wr WHERE c>=?1 ORDER BY c,a,b",
+          "bindings": [
+            2.5
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4008000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "67616d6d61"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4014000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING COVERING INDEX wr_c (c>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 37
+          }
+        },
+        {
+          "id": "partial-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 AND c IS NOT NULL ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH p USING INDEX p_live (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 17
+          }
+        },
+        {
+          "id": "partial-not-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "79"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN p",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 3,
+            "sortOperations": 1,
+            "vmSteps": 40
+          }
+        },
+        {
+          "id": "expression-identical",
+          "sql": "SELECT id,a,b FROM e WHERE lower(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "alpha",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH e USING INDEX e_expr (<expr>=? AND <expr>=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 19
+          }
+        },
+        {
+          "id": "expression-mismatch",
+          "sql": "SELECT id,a FROM e WHERE upper(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "ALPHA",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN e"
+          ],
+          "work": {
+            "fullscanSteps": 2,
+            "sortOperations": 0,
+            "vmSteps": 31
+          }
+        },
+        {
+          "id": "index-backed-in",
+          "sql": "SELECT id,a,b FROM m WHERE a IN (?1,?2) ORDER BY a,b,id",
+          "bindings": [
+            1,
+            3
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=?)",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 4,
+            "vmSteps": 122
+          }
+        },
+        {
+          "id": "composite-equality-two-ranges",
+          "sql": "SELECT id,a,b,c FROM m WHERE a=?1 AND b>=?2 AND b<=?3 AND c>?4 ORDER BY b,c",
+          "bindings": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=? AND b>? AND b<?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 39
+          }
+        },
+        {
+          "id": "multiple-range-neighbor",
+          "sql": "SELECT id,a,b,c FROM m WHERE a>=?1 AND b>=?2 ORDER BY a,b,c",
+          "bindings": [
+            1,
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 46
+          }
+        }
+      ],
+      "lifecycle": {
+        "firstRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "616c706861"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4004000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7732"
+            }
+          ]
+        ],
+        "resetCode": 0,
+        "clearBindingsCode": 0,
+        "secondRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "62657461"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4008000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7733"
+            }
+          ]
+        ],
+        "finalizeCode": 0
+      },
+      "errors": [
+        {
+          "id": "prepare-syntax",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "near \"FROM\": syntax error",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "length-limit-runtime",
+          "prepareCode": 0,
+          "stepCode": null,
+          "errorCode": 18,
+          "message": "string or blob too big",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      ],
+      "corruption": {
+        "fixture": {
+          "path": "test/conformance/fixtures/advanced-index-utf16le-corrupt-wr-c.db",
+          "bytes": 6144,
+          "sha256": "5ce7850bb7d5e6c782afaf19650d6913b1e5029a289172c63bcafad8ebf64db0",
+          "damagedRootPage": 3
+        },
+        "offPathRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7731"
+            }
+          ]
+        ],
+        "selectedErrorCode": 11,
+        "selectedMessage": "database disk image is malformed"
+      }
+    },
+    {
+      "id": "utf16be",
+      "encoding": "UTF-16be",
+      "fixture": {
+        "path": "test/conformance/fixtures/advanced-index-utf16be.db",
+        "bytes": 6144,
+        "sha256": "5324641b86cd174b3495e8eda750bb84534537f9f72180981a2fcf7e35b1b9db",
+        "headerPageSize": 512,
+        "schema": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206528696420494e5445474552205052494d415259204b45592c6120544558542c6220494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "655f65787072"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820655f65787072204f4e2065286c6f7765722861292c622b3129"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206d28696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220494e54454745522c6320494e544547455229"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d5f616263"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6d"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45207028696420494e5445474552205052494d415259204b45592c6120494e54454745522c6220544558542c63205245414c29"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "705f6c697665"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "70"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e44455820705f6c697665204f4e207028612c62292057484552452063204953204e4f54204e554c4c"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c452077722861205445585420434f4c4c415445204e4f434153452c6220494e54454745522c63205245414c2c7061796c6f616420544558542c5052494d415259204b455928612c62292920574954484f555420524f574944"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "77725f63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7772"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e4445582077725f63204f4e207772286329"
+            }
+          ]
+        ],
+        "indexXinfo": {
+          "sqlite_autoindex_wr_1": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "wr_c": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4e4f43415345"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "p_live": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "e_expr": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "-2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "m_abc": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "61"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "63"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      },
+      "cases": [
+        {
+          "id": "wr-primary-exact",
+          "sql": "SELECT a,b,typeof(c),c,payload FROM wr WHERE a=?1 AND b=?2",
+          "bindings": [
+            "ALPHA",
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=? AND b=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 20
+          }
+        },
+        {
+          "id": "wr-primary-prefix",
+          "sql": "SELECT a,b,payload FROM wr WHERE a=?1 ORDER BY b",
+          "bindings": [
+            "alpha"
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7732"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING PRIMARY KEY (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 22
+          }
+        },
+        {
+          "id": "wr-secondary-suffix",
+          "sql": "SELECT a,b,typeof(c),c FROM wr WHERE c>=?1 ORDER BY c,a,b",
+          "bindings": [
+            2.5
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "616c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4008000000000000"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "67616d6d61"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7265616c"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4014000000000000"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH wr USING COVERING INDEX wr_c (c>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 37
+          }
+        },
+        {
+          "id": "partial-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 AND c IS NOT NULL ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH p USING INDEX p_live (a=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 17
+          }
+        },
+        {
+          "id": "partial-not-implied",
+          "sql": "SELECT id,b FROM p WHERE a=?1 ORDER BY b",
+          "bindings": [
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "78"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "79"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN p",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 3,
+            "sortOperations": 1,
+            "vmSteps": 40
+          }
+        },
+        {
+          "id": "expression-identical",
+          "sql": "SELECT id,a,b FROM e WHERE lower(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "alpha",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH e USING INDEX e_expr (<expr>=? AND <expr>=?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 19
+          }
+        },
+        {
+          "id": "expression-mismatch",
+          "sql": "SELECT id,a FROM e WHERE upper(a)=?1 AND b+1=?2 ORDER BY id",
+          "bindings": [
+            "ALPHA",
+            5
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN e"
+          ],
+          "work": {
+            "fullscanSteps": 2,
+            "sortOperations": 0,
+            "vmSteps": 31
+          }
+        },
+        {
+          "id": "index-backed-in",
+          "sql": "SELECT id,a,b FROM m WHERE a IN (?1,?2) ORDER BY a,b,id",
+          "bindings": [
+            1,
+            3
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=?)",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 4,
+            "vmSteps": 122
+          }
+        },
+        {
+          "id": "composite-equality-two-ranges",
+          "sql": "SELECT id,a,b,c FROM m WHERE a=?1 AND b>=?2 AND b<=?3 AND c>?4 ORDER BY b,c",
+          "bindings": [
+            1,
+            1,
+            3,
+            1
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a=? AND b>? AND b<?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 39
+          }
+        },
+        {
+          "id": "multiple-range-neighbor",
+          "sql": "SELECT id,a,b,c FROM m WHERE a>=?1 AND b>=?2 ORDER BY a,b,c",
+          "bindings": [
+            1,
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH m USING COVERING INDEX m_abc (a>?)"
+          ],
+          "work": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 46
+          }
+        }
+      ],
+      "lifecycle": {
+        "firstRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "616c706861"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4004000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7732"
+            }
+          ]
+        ],
+        "resetCode": 0,
+        "clearBindingsCode": 0,
+        "secondRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "62657461"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7265616c"
+            },
+            {
+              "type": "real",
+              "ieee754be": "4008000000000000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7733"
+            }
+          ]
+        ],
+        "finalizeCode": 0
+      },
+      "errors": [
+        {
+          "id": "prepare-syntax",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "near \"FROM\": syntax error",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "length-limit-runtime",
+          "prepareCode": 0,
+          "stepCode": null,
+          "errorCode": 18,
+          "message": "string or blob too big",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      ],
+      "corruption": {
+        "fixture": {
+          "path": "test/conformance/fixtures/advanced-index-utf16be-corrupt-wr-c.db",
+          "bytes": 6144,
+          "sha256": "ea8a0120cd1d2ff0961722016264f3d3191958da9cd748dfe9181f1baf51bcb4",
+          "damagedRootPage": 3
+        },
+        "offPathRows": [
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7731"
+            }
+          ]
+        ],
+        "selectedErrorCode": 11,
+        "selectedMessage": "database disk image is malformed"
+      }
+    }
+  ]
+}

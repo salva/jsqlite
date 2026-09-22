@@ -43,7 +43,9 @@
     "test:conformance:special-window": "python3 test/conformance/special-window-contract-manifest.test.py",
     "test:conformance:special-window:native": "python3 test/conformance/capture-special-window.py --library $SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so --spec test/conformance/cases/stage3-special-window.spec.json --output $SAIVAGE_CARD_WORK_ROOT/special-window-recapture.json && cmp test/conformance/cases/stage3-special-window.json $SAIVAGE_CARD_WORK_ROOT/special-window-recapture.json",
     "test:conformance:special-window:ts": "node --experimental-strip-types --test test/conformance/run-special-window-ts.mjs",
-    "test:conformance:cte:manifest": "python3 test/conformance/cte-architecture-manifest.test.py"
+    "test:conformance:cte:manifest": "python3 test/conformance/cte-architecture-manifest.test.py",
+    "test:conformance:advanced-index:manifest": "python3 test/conformance/advanced-index-manifest.test.py",
+    "test:conformance:advanced-index:native": "python3 test/conformance/recapture-advanced-index.py --library $SAIVAGE_CARD_WORK_ROOT/advanced-index-build/libsqlite3.so --output $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json && cmp test/conformance/cases/stage3-advanced-index.json $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json"
   },
   "devDependencies": {
     "typescript": "5.9.3"

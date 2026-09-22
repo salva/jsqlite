@@ -616,3 +616,7 @@ invariant for the eight production-private counters exposed only by the test
 adapter. `index-planner-manifest.test.py` validates pinned source identity,
 captures, accounting, and credit; five unsupported atomic setup gates remain
 explicitly unattempted and receive no credit.
+
+## Advanced-index native-only tranche
+
+The advanced-index contract contributes **30 pinned native captures** (10 cases across three encodings) and **0 public TS attempts / 0 TS credits** without changing ordinary-index 69/69. Validate with `npm run test:conformance:advanced-index:manifest`; recapture with `npm run test:conformance:advanced-index:native`. It covers WITHOUT ROWID primary/secondary layout and lookups, partial implication neighbors, expression identity neighbors, index-backed IN, and composite/multiple ranges. Native captures additionally execute reset/clear/rebind/finalize, prepare and configured-length-limit errors followed by connection reuse, statement-status bounded-work counters, and selected-root corruption with an off-path primary lookup isolation neighbor. Advanced TS remains atomic temporary unsupported.
