@@ -2940,6 +2940,21 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  }
  if(!aggregateShapeSupported(select))throw new JSQLiteError("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
  let table:TableNode|undefined;
+ // resolve.c:resolveSelectStep resolves GROUP BY result-column ordinals before
+ // aggregate code generation. The aggregate lowering below has its own bound
+ // expression form, but it must not bypass resolver diagnostics (notably 0 or
+ // an in-range signed 32-bit ordinal beyond the result width).
+ try { expandAndResolveSelect(select,schema); }
+ catch(error){
+  if(error instanceof NameResolutionError){
+   // Keep the aggregate SELECT public diagnostic produced by this compiler
+   // route. resolve.c's WHERE aggregate misuse is surfaced by the pinned
+   // public oracle as "misuse of aggregate: name()".
+   const misuse=/^misuse of aggregate function (.+\(\))$/.exec(error.message);
+   throw new JSQLiteError("sqlite",misuse&&select.where?`misuse of aggregate: ${misuse[1]}`:error.message,{code:1});
+  }
+  throw error;
+ }
  const aggregateSources=select.from.items.map((item,cursor)=>{const name=sqlName(item.tableName),found=schema.tables.get(sqliteAsciiFold(name));if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.withoutRowid||found.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});return{item,table:found,cursor:select.from.items.length===1?0:cursor+3,base:0}});let sourceWidth=0;for(const source of aggregateSources){source.base=sourceWidth;sourceWidth+=source.table.columns.length;}if(aggregateSources.length===1)table=aggregateSources[0]!.table;
  const resolve=(e:Expression):Expression=>{if(e.kind==="column"){if(!aggregateSources.length)throw new JSQLiteError("sqlite",`no such column: ${e.name}`,{code:1});const parts=e.name.split('.').map(sqlName),name=parts.at(-1)!,candidates=aggregateSources.flatMap(source=>{if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,source.item.alias??source.table.name))return[];const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));return at<0?[]:[{source,at}]});if(candidates.length!==1)throw new JSQLiteError("sqlite",candidates.length?`ambiguous column name: ${e.name}`:`no such column: ${e.name}`,{code:1});const {source,at}=candidates[0]!;e.index=isIntegerPrimaryKeyAlias(source.table,at)?-1:at;e.cursor=source.cursor;e.payloadIndex=source.base+at;e.affinity=affinityOf(source.table.columns[at]!.declaredType??"");const c=sqliteAsciiFold(source.table.columns[at]!.collation??"binary");if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${c}`,{code:1});e.collation=c;return e}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=resolve(e.value);else if(e.kind==="binary"){e.left=resolve(e.left);e.right=resolve(e.right)}else if(e.kind==="call")e.args=e.args.map(resolve);else if(e.kind==="aggregate"){e.args=e.args.map(resolve);if(e.filter)e.filter=resolve(e.filter);e.orderBy=e.orderBy.map(term=>({...term,expression:resolve(term.expression)}));}else if(e.kind==="case"){if(e.operand)e.operand=resolve(e.operand);e.pairs=e.pairs.map(([a,b])=>[resolve(a),resolve(b)]);if(e.otherwise)e.otherwise=resolve(e.otherwise)}return e};
  const rawTrees=select.result.map(x=>expressionFromReduction(x.reduction!));
