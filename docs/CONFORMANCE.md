@@ -606,3 +606,13 @@ public Fetch: text-BLOB documents, ambiguous JSONB-looking prefixes, malformed
 text, valid JSONB neighbors, NULL, validation flags, extraction/edit, each/tree,
 metadata/storage classes, and saved-error lifecycle, while constructors retain the
 ordinary-BLOB-value error.
+
+### Persistent-index planner/lowering matrix (W1/W2)
+
+`test/conformance/run-index-planner-ts.mjs` executes all 23 pinned cases through
+the public fixture/open/prepare/bind/step API for UTF-8, UTF-16LE, and UTF-16BE.
+All 69 executions require exact public rows/errors and every exact/min/max
+invariant for the eight production-private counters exposed only by the test
+adapter. `index-planner-manifest.test.py` validates pinned source identity,
+captures, accounting, and credit; five unsupported atomic setup gates remain
+explicitly unattempted and receive no credit.

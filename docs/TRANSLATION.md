@@ -4190,3 +4190,27 @@ fact only and cannot authorize global sorter elision. Single-source equality-
 fixed and reverse order facts remain published. Tests prove the inner-restart
 negative, mixed-source/reverse negative, and single-source positive; dominance
 therefore never favors a local inner-loop order as global order.
+
+### W1/W2 selected-path lowering (2026-09-23)
+
+Production `compileTableSelect` now consumes the immutable `planWhere` selection
+rather than repeating affinity, collation, constraint-admission, physical-index,
+`KeyInfo`, or ordering decisions. The admitted translation of pinned
+`where.c:sqlite3WhereBegin/sqlite3WhereEnd`,
+`wherecode.c:codeEqualityTerm/sqlite3WhereCodeOneLoopStart`, and VDBE B-tree
+operations lowers rowid equality/ranges and persistent explicit/implicit rowid
+indexes, including composite equality prefixes, a following range, reverse
+movement, covering reads, and deferred table lookup. Residual tests are emitted
+after required cursor positioning. Multi-source order remains zero except for
+the complete narrow proof that an ordered first loop followed only by exact
+rowid lookups (at most one row per outer row) preserves that order.
+
+This is a direct page-local B-tree/Mem/KeyInfo translation; no host/native/eval
+substitution or runtime auto-index construction is used. Each binding execution
+has exactly eight production-private physical-work counters, freshly zeroed and
+cleared with mutable cursor/key state on reset; they are intentionally absent
+from the public API. The pinned public matrix now credits 23 cases in each of
+UTF-8, UTF-16LE, and UTF-16BE (69 executions), including exact/min/max private
+invariants. The REAL-affinity positive case expects no table seek because pinned
+EQP and VDBE use covering `ix_c` (`IdxRowid` and index `Column`, with no table
+cursor), matching the selected covering identity.

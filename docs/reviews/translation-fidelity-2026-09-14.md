@@ -1417,3 +1417,14 @@ RHS in later source barriers. Production analysis/candidate/path tests contrast
 ON versus WHERE, both operand spellings, safe RHS admission, and nullable-side
 references. These remain planner-contract facts with zero public execution
 credit.
+
+## Revision 2026-09-23 — W1/W2 selected-path execution evidence
+
+The earlier audit statement that W1/W2 was planning-only is superseded for the
+admitted rowid and persistent rowid-index tranche. Production now consumes the
+selected immutable path/capability/admission/physical-index/KeyInfo identities
+and executes equality, range, direction, covering, and deferred-table paths.
+The three-encoding public matrix credits 69/69 row/error and private physical
+work assertions. RIGHT/FULL fallback and unsupported atomic gates remain as
+previously scoped. This does not claim general `wherePathSatisfiesOrder`,
+WITHOUT ROWID, expression/partial indexes, writes, or runtime auto-indexes.

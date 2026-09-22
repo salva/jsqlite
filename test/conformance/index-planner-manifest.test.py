@@ -34,13 +34,13 @@ class Contract(unittest.TestCase):
    self.assertEqual(rows['affinity-integer-blob-negative'],[]);self.assertEqual(rows['affinity-real-text-negative'],[])
    self.assertTrue(any('ix_ab_desc' in q for q in cases['orientation-commuted-integer']['nativeRuns'][0]['eqp']))
    self.assertFalse(any('ix_ab_desc' in q for q in cases['collation-binary-mismatch']['nativeRuns'][0]['eqp']))
- def test_private_invariants_and_zero_credit_accounting(self):
-  self.assertEqual(self.x['accounting'],{'encodingVariants':3,'pinnedCaptures':69,'attemptedPublicTsAssertions':69,'companions':0,'atomicUnattemptedGaps':5,'tsCreditedCases':0})
+ def test_private_invariants_and_ts_credit_accounting(self):
+  self.assertEqual(self.x['accounting'],{'encodingVariants':3,'pinnedCaptures':69,'attemptedPublicTsAssertions':69,'companions':0,'atomicUnattemptedGaps':5,'tsCreditedCases':69})
   fields=set(self.x['privateCounterContract']['fields'])
   self.assertEqual(fields,{'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows'})
   index_seek={'index-equality','index-composite-prefix-range','index-null','order-unsatisfied-fallback','covering-index','deferred-table-lookup','parameter-reset-rebind','residual-predicate','up-index3-2.2','affinity-integer-text-positive','affinity-integer-text-negative','affinity-integer-blob-negative','affinity-real-text-positive','affinity-real-text-negative','affinity-real-null','orientation-commuted-integer'}
   index_advance={'index-equality','index-composite-prefix-range','order-unsatisfied-fallback','covering-index','deferred-table-lookup','parameter-reset-rebind','residual-predicate','affinity-integer-text-positive','orientation-commuted-integer'}
-  table_seek={'rowid-equality','rowid-range-desc','order-unsatisfied-fallback','deferred-table-lookup','residual-predicate','left-join-on-provenance','left-join-where-safety','up-index3-2.2','affinity-real-text-positive'}
+  table_seek={'rowid-equality','rowid-range-desc','order-unsatisfied-fallback','deferred-table-lookup','residual-predicate','left-join-on-provenance','left-join-where-safety','up-index3-2.2'}
   table_advance={'rowid-range-desc','left-join-on-provenance','left-join-where-safety','orientation-rhs-nocase','collation-binary-mismatch'}
   covering={'index-equality','index-composite-prefix-range','index-null','covering-index','parameter-reset-rebind','affinity-integer-text-positive','affinity-integer-text-negative','affinity-integer-blob-negative','orientation-commuted-integer'}
   index_full_scan={'affinity-text-numeric-positive'}
@@ -52,7 +52,7 @@ class Contract(unittest.TestCase):
   for v in self.x['variants']:
    for c in v['cases']:
     e=c['privateExpected']; cid=c['id']
-    self.assertEqual(set(e),fields|{'freshEachRun'},cid);self.assertIs(e['freshEachRun'],True);self.assertFalse(c['ts']['credit'])
+    self.assertEqual(set(e),fields|{'freshEachRun'},cid);self.assertIs(e['freshEachRun'],True);self.assertTrue(c['ts']['credit']);self.assertEqual(c['ts']['unattempted'],[])
     for name in fields:
      bound=e[name];self.assertTrue(set(bound) in ({'exact'},{'min'},{'min','max'}),f'{cid}/{name}')
      self.assertIsInstance(lower(bound),int);self.assertGreaterEqual(lower(bound),0)

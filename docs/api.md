@@ -643,3 +643,12 @@ original SQL expression slice, including spacing/comments/Unicode; `AS` wins, an
 a direct qualified column reports its resolved column name. This does not add host
 function registration. SQL is supplied as a JavaScript string; the implementation's
 UTF-8 source-byte adaptation is the tested contract, not alternate SQL encodings.
+
+### WHERE planning implementation note
+
+The existing prepared-statement API is unchanged. Persistent-index selection and
+its eight execution-work counters are implementation-private; counter access is
+limited to the conformance adapter and is not exported by the package. Reset,
+rebind, finalize, deadline, cancellation, row/work/output limits, and deferred
+close retain their documented public behavior while the immutable selected plan
+and bindings are retained as applicable.

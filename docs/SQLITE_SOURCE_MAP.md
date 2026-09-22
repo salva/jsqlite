@@ -1644,3 +1644,10 @@ until complete `wherePathSatisfiesOrder` path state is ported; local capability
 order facts remain non-authoritative for sorter removal. Cross-encoding affinity,
 text-order-invariant alternatives, and inner-restart order tests enforce these
 boundaries without claiming W3 execution.
+
+### W1/W2 production lowering completion (2026-09-23)
+
+| Pinned SQLite 3.53.4 owner | TypeScript owner / evidence | Status |
+|---|---|---|
+| `src/where.c:sqlite3WhereBegin`, `sqlite3WhereEnd`; `src/wherecode.c:codeEqualityTerm`, `sqlite3WhereCodeOneLoopStart` | `src/internal/where-plan.ts`, `src/internal/vdbe.ts`; `test/conformance/run-index-planner-ts.mjs` | Selected immutable rowid/index capabilities lower to table/index seek, range termination, direction, residual, covering, deferred-seek, and loop-end control. Multi-source order is retained only for ordered outer plus exact-rowid singleton inner loops. |
+| `src/vdbe.c` seek/`Idx*`/`DeferredSeek`/`Column`/rowid traversal cases | `src/internal/vdbe.ts`; `stage3-index-planner.spec.json` and pinned capture | Page-local B-tree movement and `Mem`/`KeyInfo` comparisons serve explicit and persistent implicit rowid indexes. 69/69 public-route executions enforce rows/errors and exactly eight private counter fields. No exceptional algorithm substitution. |

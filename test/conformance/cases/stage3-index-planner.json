@@ -752,17 +752,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -871,17 +870,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1011,17 +1009,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1146,17 +1143,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1275,17 +1271,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1493,17 +1488,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1622,17 +1616,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -1751,17 +1744,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2035,17 +2027,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2198,17 +2189,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2328,17 +2318,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2439,17 +2428,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2558,17 +2546,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2735,17 +2722,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2839,17 +2825,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -2949,17 +2934,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3080,17 +3064,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3120,8 +3103,7 @@
               "max": 1
             },
             "tableSeeks": {
-              "min": 1,
-              "max": 1
+              "exact": 0
             },
             "tableNext": {
               "exact": 0
@@ -3212,17 +3194,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3316,17 +3297,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3422,17 +3402,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3558,17 +3537,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3683,17 +3661,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -3787,17 +3764,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         }
       ]
@@ -4515,17 +4491,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -4634,17 +4609,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -4774,17 +4748,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -4909,17 +4882,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5038,17 +5010,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5256,17 +5227,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5385,17 +5355,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5514,17 +5483,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5798,17 +5766,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -5961,17 +5928,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6091,17 +6057,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6202,17 +6167,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6321,17 +6285,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6498,17 +6461,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6602,17 +6564,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6712,17 +6673,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6843,17 +6803,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -6883,8 +6842,7 @@
               "max": 1
             },
             "tableSeeks": {
-              "min": 1,
-              "max": 1
+              "exact": 0
             },
             "tableNext": {
               "exact": 0
@@ -6975,17 +6933,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -7079,17 +7036,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -7185,17 +7141,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -7321,17 +7276,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -7446,17 +7400,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -7550,17 +7503,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         }
       ]
@@ -8278,17 +8230,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -8397,17 +8348,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -8537,17 +8487,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -8672,17 +8621,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -8801,17 +8749,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9019,17 +8966,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9148,17 +9094,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9277,17 +9222,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9561,17 +9505,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9724,17 +9667,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9854,17 +9796,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -9965,17 +9906,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10084,17 +10024,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10261,17 +10200,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10365,17 +10303,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10475,17 +10412,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10606,17 +10542,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10646,8 +10581,7 @@
               "max": 1
             },
             "tableSeeks": {
-              "min": 1,
-              "max": 1
+              "exact": 0
             },
             "tableNext": {
               "exact": 0
@@ -10738,17 +10672,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10842,17 +10775,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -10948,17 +10880,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -11084,17 +11015,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -11209,17 +11139,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         },
         {
@@ -11313,17 +11242,16 @@
             }
           ],
           "ts": {
-            "disposition": "attempted-zero-credit",
+            "disposition": "credited",
             "attempted": [
               "openFixture",
               "prepare",
-              "stepAll"
-            ],
-            "unattempted": [
+              "stepAll",
               "assertPrivatePlan",
               "assertCursorWork"
             ],
-            "credit": false
+            "unattempted": [],
+            "credit": true
           }
         }
       ]
@@ -11433,6 +11361,6 @@
     "attemptedPublicTsAssertions": 69,
     "companions": 0,
     "atomicUnattemptedGaps": 5,
-    "tsCreditedCases": 0
+    "tsCreditedCases": 69
   }
 }
