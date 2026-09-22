@@ -1167,3 +1167,31 @@ Finding 5 remains CHECK/FK **read-schema retention only**, without write
 enforcement. Cross-checking `docs/TRANSLATION.md`, `docs/SQLITE_SOURCE_MAP.md`, and
 `docs/api.md` found no contradictory current admission, ownership, or API claim;
 no changes to those documents are required.
+
+### Revision 2026-09-22 — approved window leads 6/7 at `09b1ae99da9a557377602324c35ef50d954bf257`
+
+Current-HEAD revalidation confirms the two bounded repairs. Lead 6 keeps outer
+LIMIT/OFFSET in the shared VDBE destination handoff: `IfPos` precedes
+`ResultRow`, `DecrJumpZero` follows it, and zero/exhaustion returns to the
+coroutine drain for direct and sorted output. There is no host-row slicing. Lead
+7 keeps a derived window alias such as `rk` in the producer's output scope, so a
+parent SELECT may filter, order, and limit it; the same alias in its defining
+SELECT's WHERE or HAVING remains an atomic prepare-time failure with exact text
+`misuse of aliased window function rk` and no published Statement.
+
+Acceptance is bound to the 1,007,616-byte Chinook image with SHA-256
+`7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`.
+An independently built manifest-pinned SQLite 3.53.4 library reported source ID
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+Native public-C and public Fetch checks agree on no-outer-ORDER `LIMIT 5`: first
+row `Through a Looking Glass`, rank 1, exactly five rows ending with `Dave`, rank
+5. Focused public evidence also covers LIMIT 0, negative LIMIT, OFFSET, outer
+filter/order, parameters, reset/rebind, cleanup, legal derived `rk`, and physical
+UTF-8/UTF-16LE/UTF-16BE fixtures. The native scope oracle preserves both exact
+same-SELECT diagnostics and the legal derived result.
+
+This revision records evidence for only those approved leads. The unrelated CTE
+result remains 36/39, with the three encoding variants still rejected as
+`complex compound table arms are not implemented`; no broader Stage 3, arbitrary
+CTE, exhaustive window, or root-completion claim follows. Finding 5 is unchanged:
+CHECK/FK support is **read-schema retention only**, without write enforcement.
