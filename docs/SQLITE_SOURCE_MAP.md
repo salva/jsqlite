@@ -1675,3 +1675,7 @@ Machine contract/capture/validator are `stage3-advanced-index.spec.json`, `stage
 | `btree.ts:IndexCursor` | `btree.c:sqlite3BtreeIndexMoveto`, `btreeNext`, `btreePrevious` | Retained-path lazy seek/movement; selected corruption fails and unrelated malformed subtrees remain untouched. |
 
 The advanced manifest now records 30 attempted public row assertions and 18 credited encoding/case pairs: `wr-primary-exact`, `wr-primary-prefix`, `wr-secondary-suffix`, `index-backed-in`, `composite-equality-two-ranges`, and `multiple-range-neighbor`. Four partial/expression cases remain `unattempted`/zero selected-access credit for [[card:card-s-c-c]]. The focused non-covering `wr_c` case is additional source-backed coverage, not an invented native capture.
+
+#### WITHOUT ROWID secondary remapping correction (2026-09-23)
+
+`schema.ts:physicalIndex` now maps every primary `KeyInfo` term to an immutable selected-secondary record ordinal by exact column plus PK collation. `vdbe.ts:DeferredIndexSeek` gathers those ordinals in PK order. This translates pinned `wherecode.c:2171-2185` without assuming SQLite's deduplicated PK fields form a contiguous suffix. Native-generated all-encoding fixtures and public exact-counter tests cover mixed declared/auxiliary, reordered/interspersed, no-suffix, and collation-duplicate layouts. See immutable review `record:///review.md?card=card-s-c-b&v=3`.

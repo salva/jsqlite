@@ -97,3 +97,32 @@ test('WITHOUT ROWID non-covering secondary performs primary BLOBKEY lookup in ev
     }finally{try{statement.finalize()}catch{}}
   });
 });
+
+
+test('WITHOUT ROWID secondary primary-key remapping handles declared, reordered, suffix-free, and collation-duplicate fields',async()=>{
+  // Pinned wherecode.c:2171-2185 uses the selected index's PK column mapping,
+  // not a contiguous suffix. PK (a DESC,b DESC) also exercises descending and
+  // the mixed case selects a NULL secondary term.
+  const shapes=[
+    ['wr_map_mixed','SELECT payload FROM wr_map INDEXED BY wr_map_mixed WHERE a=?1 AND c IS NULL',['Alpha'],'m-null'],
+    ['wr_map_reordered','SELECT payload FROM wr_map INDEXED BY wr_map_reordered WHERE b=?1 AND c=?2',[2n,2.5],'m-target'],
+    ['wr_map_all','SELECT payload FROM wr_map INDEXED BY wr_map_all WHERE b=?1 AND c=?2 AND a=?3',[2n,2.5,'ALPHA'],'m-target'],
+    ['wr_map_collation','SELECT payload FROM wr_map INDEXED BY wr_map_collation WHERE a=?1 COLLATE BINARY AND c=?2',['alpha',2.5],'m-target'],
+  ];
+  for(const [encoding,file] of Object.entries(fixtures))await withFixture(file,async db=>{
+    for(const [id,sql,bindings,expected] of shapes){
+      const statement=db.prepare(sql).statement;
+      try{
+        bindings.forEach((value,index)=>statement.bind(index+1,value));
+        assert.equal(await statement.step(),'row',`${encoding}/${id}/row`);
+        assert.equal(statement.column(0),expected,`${encoding}/${id}/payload`);
+        assert.equal(await statement.step(),'done',`${encoding}/${id}/done`);
+        const accounting=privateAccounting(statement);
+        assert.equal(accounting.indexSeeks,1,`${encoding}/${id}/secondary seek`);
+        assert.equal(accounting.tableSeeks,1,`${encoding}/${id}/primary seek`);
+        assert.equal(accounting.tableNext,0,`${encoding}/${id}/no primary scan`);
+        assert.equal(accounting.residualTests,0,`${encoding}/${id}/no fallback`);
+      }finally{try{statement.finalize()}catch{}}
+    }
+  });
+});

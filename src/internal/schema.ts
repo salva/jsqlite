@@ -69,7 +69,7 @@ export interface IndexNode {
   readonly physical: PhysicalIndex | null;
 }
 export interface PhysicalIndexField { readonly role:"declared"|"primary-key-suffix"|"stored-column"|"rowid-tail"; readonly column:ColumnNode|null; readonly expression:ExprNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
-export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly keyInfo:KeyInfo }
+export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; /** Exact secondary-record field ordinal for each primary KeyInfo term, in PK order. */ readonly primaryKeyFields:readonly number[]; readonly keyInfo:KeyInfo }
 /** Historical name retained for internal consumers that construct synthetic
  * rowid schemas. The represented physical descriptor now also covers WITHOUT
  * ROWID indexes. */
@@ -180,6 +180,7 @@ export function physicalIndex(index:IndexNode,encoding:DatabaseEncoding):Physica
   }
   if(index.table.withoutRowid){
     const isPrimary=index.origin==="primary-key";
+    let primaryKeyFields:readonly number[]=Object.freeze([]);
     if(isPrimary){
       // build.c:convertToWithoutRowidTable makes the PK b-tree the table and
       // appends every non-key column to its record in declared-column order.
@@ -201,14 +202,27 @@ export function physicalIndex(index:IndexNode,encoding:DatabaseEncoding):Physica
         if(fields.some(field=>field.column===term.column&&field.collation===collation))continue;
         fields.push(Object.freeze({role:"primary-key-suffix",column:term.column,expression:null,collation,descending:term.descending,nullsLarge:false}));
       }
+      // wherecode.c:2171-2185 maps every primary-key component from the
+      // selected secondary record. Declared and auxiliary fields need not be
+      // contiguous or ordered. Match collation too, so a different-collation
+      // declared copy cannot hide the appended physical PK copy.
+      const mapped:number[]=[];
+      for(const term of primaryKeyTerms){
+        const collation=builtinCollation(term.collation??term.column?.collation??null);
+        if(!term.column||!collation)return null;
+        const ordinal=fields.findIndex(field=>field.column===term.column&&field.collation===collation);
+        if(ordinal<0)return null;
+        mapped.push(ordinal);
+      }
+      primaryKeyFields=Object.freeze(mapped);
     }
     const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:isPrimary?index.terms.length:fields.length,terms:fields.map(field=>Object.freeze({collation:field.collation,desc:field.descending,nullsLarge:false}))});
-    return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:-1,keyInfo});
+    return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:-1,primaryKeyFields,keyInfo});
   }
   fields.push(Object.freeze({role:"rowid-tail",column:null,expression:null,collation:"binary",descending:false,nullsLarge:false}));
   const allNotNull=index.unique&&index.terms.every(term=>term.column?.notNull===true);
   const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:allNotNull?index.terms.length:fields.length,terms:fields.map(field=>Object.freeze({collation:field.collation,desc:field.descending,nullsLarge:false}))});
-  return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:index.terms.length,keyInfo});
+  return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:index.terms.length,primaryKeyFields:Object.freeze([]),keyInfo});
 }
 
 /** Compatibility entrypoint for rowid-only callers. New lowering should use

@@ -106,6 +106,12 @@
     "CREATE TABLE wr(a TEXT COLLATE NOCASE,b INTEGER,c REAL,payload TEXT,PRIMARY KEY(a,b)) WITHOUT ROWID",
     "CREATE INDEX wr_c ON wr(c)",
     "INSERT INTO wr VALUES('Alpha',1,1.0,'w1'),('alpha',2,2.5,'w2'),('beta',1,3.0,'w3'),('gamma',2,5.0,'w4')",
+    "CREATE TABLE wr_map(a TEXT COLLATE NOCASE,b INTEGER,c REAL,payload TEXT,PRIMARY KEY(a DESC,b DESC)) WITHOUT ROWID",
+    "CREATE INDEX wr_map_mixed ON wr_map(a,c)",
+    "CREATE INDEX wr_map_reordered ON wr_map(b,c)",
+    "CREATE INDEX wr_map_all ON wr_map(b,c,a)",
+    "CREATE INDEX wr_map_collation ON wr_map(a COLLATE BINARY,c)",
+    "INSERT INTO wr_map VALUES('Alpha',1,NULL,'m-null'),('alpha',2,2.5,'m-target'),('beta',1,3.0,'m-beta'),('gamma',2,5.0,'m-gamma')",
     "CREATE TABLE p(id INTEGER PRIMARY KEY,a INTEGER,b TEXT,c REAL)",
     "CREATE INDEX p_live ON p(a,b) WHERE c IS NOT NULL",
     "INSERT INTO p VALUES(1,1,'x',1.0),(2,1,'y',NULL),(3,2,'z',2.5),(4,3,'q',3.0)",
@@ -1108,5 +1114,47 @@
       ],
       "textSha256": "0c4c1d3083877b726a26442b6c3dc1282b521d09073a4ba53880781a03e07a67"
     }
-  }
+  },
+  "secondaryPrimaryKeyMappingCases": [
+    {
+      "id": "mixed-declared-auxiliary",
+      "index": "wr_map_mixed",
+      "physicalPkFields": [
+        0,
+        2
+      ],
+      "sql": "SELECT payload FROM wr_map INDEXED BY wr_map_mixed WHERE a=?1 AND c IS NULL",
+      "expectedPayload": "m-null"
+    },
+    {
+      "id": "reordered-interspersed",
+      "index": "wr_map_reordered",
+      "physicalPkFields": [
+        2,
+        0
+      ],
+      "sql": "SELECT payload FROM wr_map INDEXED BY wr_map_reordered WHERE b=?1 AND c=?2",
+      "expectedPayload": "m-target"
+    },
+    {
+      "id": "all-pk-declared-no-suffix",
+      "index": "wr_map_all",
+      "physicalPkFields": [
+        2,
+        0
+      ],
+      "sql": "SELECT payload FROM wr_map INDEXED BY wr_map_all WHERE b=?1 AND c=?2 AND a=?3",
+      "expectedPayload": "m-target"
+    },
+    {
+      "id": "collation-duplicate",
+      "index": "wr_map_collation",
+      "physicalPkFields": [
+        2,
+        3
+      ],
+      "sql": "SELECT payload FROM wr_map INDEXED BY wr_map_collation WHERE a=?1 COLLATE BINARY AND c=?2",
+      "expectedPayload": "m-target"
+    }
+  ]
 }

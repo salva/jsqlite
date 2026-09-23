@@ -21,7 +21,7 @@ def main():
   if d.sqlite3_open_v2(str(f).encode(),mod.C.byref(db),mod.SQLITE_OPEN_READONLY,None)!=mod.OK:raise RuntimeError('readonly reopen')
   try:
    schema=mod.query(d,db,"SELECT type,name,tbl_name,rootpage,sql FROM sqlite_schema WHERE rootpage>0 ORDER BY name")[0]
-   xinfo={name:mod.query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ('sqlite_autoindex_wr_1','wr_c','p_live','e_expr','m_abc','ov_k_payload')}
+   xinfo={name:mod.query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ('sqlite_autoindex_wr_1','wr_c','wr_map_mixed','wr_map_reordered','wr_map_all','wr_map_collation','p_live','e_expr','m_abc','ov_k_payload')}
    cases=[]
    for c in spec['cases']:
     rows=mod.query(d,db,c['sql'],c['bindings'])[0];eqp=mod.explain(d,db,'EXPLAIN QUERY PLAN ',c['sql'],c['bindings'])

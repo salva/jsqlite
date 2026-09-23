@@ -20,6 +20,18 @@ class AdvancedIndexContract(unittest.TestCase):
    x=v['fixture']['indexXinfo'];self.assertEqual([int(r[1]['value']) for r in x['sqlite_autoindex_wr_1']],[0,1,2,3]);self.assertEqual([int(r[1]['value']) for r in x['wr_c']],[2,0,1]);self.assertEqual([int(r[1]['value']) for r in x['e_expr'][:2]],[-2,-2])
    rows={c['id']:c['rows'] for c in v['cases']};self.assertEqual(rows,baseline or rows);baseline=rows
    self.assertEqual(rows['wr-secondary-suffix'][0][2],{'type':'text','utf8Hex':'7265616c'})
+ def test_without_rowid_secondary_pk_mapping_shapes(self):
+  self.assertEqual([c['id'] for c in self.s['secondaryPrimaryKeyMappingCases']],['mixed-declared-auxiliary','reordered-interspersed','all-pk-declared-no-suffix','collation-duplicate'])
+  for v in self.c['variants']:
+   roots={text(r[1]) for r in v['fixture']['schema']};self.assertTrue({'wr_map','wr_map_mixed','wr_map_reordered','wr_map_all','wr_map_collation'}<=roots)
+   x=v['fixture']['indexXinfo']
+   # cid sequences prove native SQLite's mixed/reordered/no-suffix and
+   # different-collation appended-copy physical layouts.
+   self.assertEqual([int(r[1]['value']) for r in x['wr_map_mixed']],[0,2,1])
+   self.assertEqual([int(r[1]['value']) for r in x['wr_map_reordered']],[1,2,0])
+   self.assertEqual([int(r[1]['value']) for r in x['wr_map_all']],[1,2,0])
+   self.assertEqual([int(r[1]['value']) for r in x['wr_map_collation']],[0,2,0,1])
+  self.assertEqual([c['physicalPkFields'] for c in self.s['secondaryPrimaryKeyMappingCases']],[[0,2],[2,0],[2,0],[2,3]])
  def test_positive_and_negative_plan_neighbors(self):
   for v in self.c['variants']:
    cases={c['id']:c for c in v['cases']}
