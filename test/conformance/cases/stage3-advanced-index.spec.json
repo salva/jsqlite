@@ -165,7 +165,15 @@
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 1
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "wr-primary-exact"
     },
@@ -214,7 +222,15 @@
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 2
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "wr-primary-prefix"
     },
@@ -245,8 +261,8 @@
             "exact": 1
           },
           "indexNext": {
-            "min": 3,
-            "max": 4
+            "min": 2,
+            "max": 3
           },
           "tableSeeks": {
             "exact": 0
@@ -264,7 +280,15 @@
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 3
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "wr-secondary-suffix"
     },
@@ -294,7 +318,8 @@
             "exact": 1
           },
           "indexNext": {
-            "exact": 0
+            "min": 0,
+            "max": 1
           },
           "tableSeeks": {
             "exact": 0
@@ -312,7 +337,15 @@
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 1
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "partial-implied"
     },
@@ -348,20 +381,29 @@
             "exact": 0
           },
           "tableNext": {
-            "min": 1,
-            "max": 2
+            "min": 3,
+            "max": 4
           },
           "residualTests": {
-            "exact": 3
+            "exact": 4
           },
           "sorterRows": {
-            "exact": 0
+            "exact": 2
           },
           "inProbes": {
-            "exact": 2
+            "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 2
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter",
+          "fullScanCardinality": 4
+        }
       },
       "provenanceId": "partial-not-implied"
     },
@@ -393,10 +435,11 @@
             "exact": 1
           },
           "indexNext": {
-            "exact": 0
+            "min": 0,
+            "max": 1
           },
           "tableSeeks": {
-            "exact": 2
+            "exact": 1
           },
           "tableNext": {
             "exact": 0
@@ -408,10 +451,18 @@
             "exact": 0
           },
           "inProbes": {
-            "exact": 2
+            "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 1
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "expression-identical"
     },
@@ -448,20 +499,29 @@
             "exact": 0
           },
           "tableNext": {
-            "min": 1,
-            "max": 2
+            "min": 2,
+            "max": 3
           },
           "residualTests": {
-            "exact": 2
+            "exact": 3
           },
           "sorterRows": {
             "exact": 0
           },
           "inProbes": {
-            "exact": 3
+            "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 1
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter",
+          "fullScanCardinality": 3
+        }
       },
       "provenanceId": "expression-mismatch"
     },
@@ -494,7 +554,7 @@
           },
           "indexNext": {
             "min": 2,
-            "max": 3
+            "max": 4
           },
           "tableSeeks": {
             "exact": 0
@@ -506,13 +566,22 @@
             "exact": 0
           },
           "sorterRows": {
-            "exact": 0
+            "exact": 4
           },
           "inProbes": {
-            "exact": 0
+            "exact": 2
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 4
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter",
+          "distinctInRhsProbes": 2
+        }
       },
       "provenanceId": "index-backed-in"
     },
@@ -555,17 +624,24 @@
             "exact": 0
           },
           "residualTests": {
-            "exact": 0
+            "exact": 3
           },
           "sorterRows": {
-            "min": 3,
-            "max": 4
+            "exact": 0
           },
           "inProbes": {
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 2
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "composite-equality-two-ranges"
     },
@@ -596,8 +672,8 @@
             "exact": 1
           },
           "indexNext": {
-            "min": 3,
-            "max": 4
+            "min": 4,
+            "max": 5
           },
           "tableSeeks": {
             "exact": 0
@@ -606,17 +682,24 @@
             "exact": 0
           },
           "residualTests": {
-            "exact": 0
+            "exact": 5
           },
           "sorterRows": {
-            "min": 3,
-            "max": 4
+            "exact": 0
           },
           "inProbes": {
             "exact": 0
           }
         },
-        "freshEachRun": true
+        "freshEachRun": true,
+        "derivation": {
+          "returnedRows": {
+            "exact": 4
+          },
+          "movementConvention": "Next counts successful row-to-row movement; max may include one terminal boundary probe per scan or IN probe",
+          "residualConvention": "tests count visited candidate rows, not emitted rows",
+          "sorterConvention": "rows inserted into sorter"
+        }
       },
       "provenanceId": "multiple-range-neighbor"
     }

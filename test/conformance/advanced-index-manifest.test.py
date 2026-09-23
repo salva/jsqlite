@@ -37,12 +37,22 @@ class AdvancedIndexContract(unittest.TestCase):
    if pv['kind']=='upstream-test-assertion':self.assertRegex(block,r'(do_execsql_test|do_test)\s+'+re.escape(pv['assertionId'])+r'\s*\{')
  def test_future_private_access_contract_is_complete_and_uncredited(self):
   required={'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows','inProbes'}
-  seen=set()
+  seen=set();captured={c['id']:c for c in self.c['variants'][0]['cases']}
   for case in self.s['cases']:
    p=case['futurePrivateExpected'];self.assertEqual((p['status'],p['credit'],p['freshEachRun']),('unattempted',0,True));self.assertTrue(p['selectedRoot']);self.assertTrue(p['cursorRoles']);self.assertIn(p['accessMode'],{'covering','deferred-base','base-scan'});self.assertEqual(set(p['counters']),required)
    for name,bound in p['counters'].items():
     self.assertIn(set(bound),[{'exact'},{'min'},{'min','max'}]);self.assertTrue(all(isinstance(v,int) and v>=0 for v in bound.values()));lo=bound.get('min',bound.get('exact'));hi=bound.get('max',bound.get('exact',lo));self.assertLessEqual(lo,hi)
    self.assertGreater(p['counters']['plannerCandidates'].get('min',0),0);self.assertGreater(p['counters']['plannerPaths'].get('min',0),0);seen.add((p['selectedRoot'],p['accessMode']))
+   is_in=bool(re.search(r'\bIN\s*\(',case['sql'],re.I));probes=p['counters']['inProbes']
+   if is_in:
+    rhs=case['sql'].split(' IN (',1)[1].split(')',1)[0];distinct=len(set(re.findall(r'\?\d+',rhs)));self.assertGreater(distinct,0);self.assertEqual(probes,{'exact':distinct});self.assertEqual(p['derivation']['distinctInRhsProbes'],distinct);self.assertEqual(p['counters']['indexSeeks'],{'exact':distinct})
+   else:self.assertEqual(probes,{'exact':0})
+   returned=len(captured[case['id']]['rows']);self.assertEqual(p['derivation']['returnedRows'],{'exact':returned})
+   if p['accessMode']=='base-scan':
+    cardinality=p['derivation']['fullScanCardinality'];self.assertGreater(cardinality,returned);self.assertEqual(p['counters']['residualTests'],{'exact':cardinality});self.assertEqual(p['counters']['tableNext'],{'min':cardinality-1,'max':cardinality})
+   if p['accessMode']=='covering':self.assertEqual((p['counters']['tableSeeks'],p['counters']['tableNext']),({'exact':0},{'exact':0}))
+   if p['accessMode']=='deferred-base':self.assertEqual(p['counters']['tableSeeks'],{'exact':returned})
+   has_sort='USE TEMP B-TREE' in ' '.join(captured[case['id']]['eqp']);sort_min=p['counters']['sorterRows'].get('exact',p['counters']['sorterRows'].get('min',0));self.assertGreaterEqual(sort_min,returned if has_sort else 0)
   self.assertGreaterEqual(len(seen),7);self.assertEqual(self.c['accounting']['attemptedPublicTsAssertions'],0);self.assertEqual(self.c['accounting']['tsCreditedCases'],0)
  def test_native_work_lifecycle_errors_and_corruption(self):
   for v in self.c['variants']:
