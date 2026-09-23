@@ -175,7 +175,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "wr-primary-exact"
+      "provenanceId": "wr-primary-exact",
+      "provenanceRationale": {
+        "inheritedBehavior": "WITHOUT ROWID key lookup and declared primary-key ordering",
+        "localCaptureEstablishes": "local typed exact-key row and selected PRIMARY KEY plan across encodings"
+      }
     },
     {
       "id": "wr-primary-prefix",
@@ -232,7 +236,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "wr-primary-prefix"
+      "provenanceId": "wr-primary-prefix",
+      "provenanceRationale": {
+        "inheritedBehavior": "WITHOUT ROWID primary-key prefix traversal",
+        "localCaptureEstablishes": "local prefix cardinality/order and typed rows"
+      }
     },
     {
       "id": "wr-secondary-suffix",
@@ -290,7 +298,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "wr-secondary-suffix"
+      "provenanceId": "wr-secondary-suffix",
+      "provenanceRationale": {
+        "inheritedBehavior": "WITHOUT ROWID secondary/primary representation behavior",
+        "localCaptureEstablishes": "local wr_c composite-PK suffix xinfo and covering rows"
+      }
     },
     {
       "id": "partial-implied",
@@ -347,7 +359,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "partial-implied"
+      "provenanceId": "partial-implied",
+      "provenanceRationale": {
+        "inheritedBehavior": "partial-index admissibility for implied predicates",
+        "localCaptureEstablishes": "local positive plan and typed row"
+      }
     },
     {
       "id": "partial-not-implied",
@@ -405,7 +421,11 @@
           "fullScanCardinality": 4
         }
       },
-      "provenanceId": "partial-not-implied"
+      "provenanceId": "partial-not-implied",
+      "provenanceRationale": {
+        "inheritedBehavior": "partial-index rejection when predicate is not implied",
+        "localCaptureEstablishes": "local negative neighbor full scan/cardinality"
+      }
     },
     {
       "id": "expression-identical",
@@ -464,7 +484,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "expression-identical"
+      "provenanceId": "expression-identical",
+      "provenanceRationale": {
+        "inheritedBehavior": "expression-index matching for structurally identical expressions",
+        "localCaptureEstablishes": "local two-expression selected plan and deferred lookup"
+      }
     },
     {
       "id": "expression-mismatch",
@@ -523,7 +547,11 @@
           "fullScanCardinality": 3
         }
       },
-      "provenanceId": "expression-mismatch"
+      "provenanceId": "expression-mismatch",
+      "provenanceRationale": {
+        "inheritedBehavior": "expression-index non-match for different expression structure",
+        "localCaptureEstablishes": "local upper/lower mismatch full scan"
+      }
     },
     {
       "id": "index-backed-in",
@@ -583,7 +611,11 @@
           "distinctInRhsProbes": 2
         }
       },
-      "provenanceId": "index-backed-in"
+      "provenanceId": "index-backed-in",
+      "provenanceRationale": {
+        "inheritedBehavior": "IN-loop index lookup behavior",
+        "localCaptureEstablishes": "local two distinct RHS probes, selected m_abc plan and order"
+      }
     },
     {
       "id": "composite-equality-two-ranges",
@@ -643,7 +675,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "composite-equality-two-ranges"
+      "provenanceId": "composite-equality-two-ranges",
+      "provenanceRationale": {
+        "inheritedBehavior": "wherecode equality-prefix rule: only the immediately following index column admits inequality bounds; later range remains residual",
+        "localCaptureEstablishes": "local a equality plus bounded b range, residual c range, exact typed rows/order/plan/work"
+      }
     },
     {
       "id": "multiple-range-neighbor",
@@ -701,7 +737,11 @@
           "sorterConvention": "rows inserted into sorter"
         }
       },
-      "provenanceId": "multiple-range-neighbor"
+      "provenanceId": "multiple-range-neighbor",
+      "provenanceRationale": {
+        "inheritedBehavior": "where.c admits the first range at nEq=0 and records bottom/top range state; subsequent column range is not an additional search prefix",
+        "localCaptureEstablishes": "local a range selected on m_abc, b range residual, exact typed rows/order/work"
+      }
     }
   ],
   "lifecycle": {
@@ -944,24 +984,69 @@
       "textSha256": "8149f4d69db655fbd36a3b8bd10918806410d081b32034fa47437f998f273e19"
     },
     "composite-equality-two-ranges": {
-      "kind": "upstream-test-assertion",
-      "path": "test/in4.test",
-      "assertionId": "in4-3.21",
+      "kind": "source-range",
+      "path": "src/wherecode.c",
+      "label": "equality prefix, immediately-following usable range, and later non-usable range",
       "lineRange": [
-        167,
-        169
+        1821,
+        1846
       ],
-      "textSha256": "4eb7d203f00f521cc586bfaf123aa1996592def4979257b796d81a0f3f132db8"
+      "textSha256": "cbaf71489242594e94cc454089de8657435043392105d048fa5614297ececc22",
+      "category": "composite-range",
+      "owners": [
+        "whereLoopAddBtreeIndex",
+        "sqlite3WhereCodeOneLoopStart"
+      ],
+      "branchMarkers": [
+        "left-most columns",
+        "right-most column can be an inequality",
+        "z<10 term"
+      ],
+      "neighborTests": [
+        {
+          "path": "test/index3.test",
+          "role": "adjacent range behavior only; local capture establishes adapted shape"
+        }
+      ]
     },
     "multiple-range-neighbor": {
-      "kind": "upstream-test-assertion",
-      "path": "test/in4.test",
-      "assertionId": "in4-3.22",
+      "kind": "source-range",
+      "path": "src/where.c",
+      "label": "range admission after equality prefix or with zero equalities",
       "lineRange": [
-        170,
-        172
+        3255,
+        3269
       ],
-      "textSha256": "1e320c9877136778491dc48fae84b34ab95d25bcd9f8d41ab495d211d82d3b23"
+      "textSha256": "4e230a9a1066b093e1354729ae94d85b6671deb8acaad51686d8aae91328fd21",
+      "category": "composite-range",
+      "owners": [
+        "whereLoopAddBtreeIndex",
+        "sqlite3WhereCodeOneLoopStart"
+      ],
+      "branchMarkers": [
+        "WO_GT",
+        "WO_GE",
+        "nEq"
+      ],
+      "neighborTests": [
+        {
+          "path": "test/index3.test",
+          "role": "adjacent range behavior only; local capture establishes adapted shape"
+        }
+      ],
+      "additionalRangeBranch": {
+        "path": "src/where.c",
+        "lineRange": [
+          3427,
+          3456
+        ],
+        "textSha256": "e3a0a4ee1f7055e42f98a07165769e17902ea354b2220c1cde13e7f5602b1b17",
+        "branchMarkers": [
+          "WHERE_COLUMN_RANGE",
+          "WHERE_BTM_LIMIT",
+          "WHERE_TOP_LIMIT"
+        ]
+      }
     },
     "lifecycle-reset-rebind-finalize": {
       "kind": "source-range",

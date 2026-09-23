@@ -35,6 +35,18 @@ class AdvancedIndexContract(unittest.TestCase):
   for pid,pv in self.s['exactProvenance'].items():
    source=(UP/pv['path']).read_text().splitlines(True);a,b=pv['lineRange'];block=''.join(source[a-1:b]);self.assertEqual(hashlib.sha256(block.encode()).hexdigest(),pv['textSha256'],pid)
    if pv['kind']=='upstream-test-assertion':self.assertRegex(block,r'(do_execsql_test|do_test)\s+'+re.escape(pv['assertionId'])+r'\s*\{')
+   if pv.get('category')=='composite-range':
+    self.assertTrue({'whereLoopAddBtreeIndex','sqlite3WhereCodeOneLoopStart'}<=set(pv['owners']));self.assertGreaterEqual(len(pv['branchMarkers']),3)
+    for marker in pv['branchMarkers']:self.assertIn(marker,block)
+    extra=pv.get('additionalRangeBranch')
+    if extra:
+     lines=(UP/extra['path']).read_text().splitlines(True);a,b=extra['lineRange'];more=''.join(lines[a-1:b]);self.assertEqual(hashlib.sha256(more.encode()).hexdigest(),extra['textSha256'])
+     for marker in extra['branchMarkers']:self.assertIn(marker,more)
+  for case in self.s['cases']:
+   r=case['provenanceRationale'];self.assertGreater(len(r['inheritedBehavior']),20);self.assertGreater(len(r['localCaptureEstablishes']),20)
+   if 'range' in case.get('coverage',[]) or case['id'] in {'composite-equality-two-ranges','multiple-range-neighbor'}:
+    pv=self.s['exactProvenance'][case['provenanceId']]
+    if case['id'] in {'composite-equality-two-ranges','multiple-range-neighbor'}:self.assertEqual(pv.get('category'),'composite-range');self.assertEqual(pv['kind'],'source-range');self.assertNotEqual(pv['path'],'test/in4.test')
  def test_future_private_access_contract_is_complete_and_uncredited(self):
   required={'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows','inProbes'}
   seen=set();captured={c['id']:c for c in self.c['variants'][0]['cases']}
