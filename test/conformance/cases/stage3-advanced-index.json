@@ -23,8 +23,8 @@
       "encoding": "UTF-8",
       "fixture": {
         "path": "test/conformance/fixtures/advanced-index-utf8.db",
-        "bytes": 5632,
-        "sha256": "46ff3f0710cd51e58a910b8f3776fa8263ba804d67b800e16514ea69abe1885a",
+        "bytes": 9216,
+        "sha256": "cb6bac917151c2a7a671700c7c61d59018a9b9a8e2d28db837794a019b2b3b91",
         "headerPageSize": 512,
         "schema": [
           [
@@ -113,6 +113,50 @@
             {
               "type": "text",
               "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206f7628696420494e5445474552205052494d415259204b45592c6b20544558542c7061796c6f6164205445585429"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f765f6b5f7061796c6f6164"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206f765f6b5f7061796c6f6164204f4e206f76286b2c7061796c6f616429"
             }
           ],
           [
@@ -651,6 +695,85 @@
                 "value": "0"
               }
             ]
+          ],
+          "ov_k_payload": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6b"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
           ]
         }
       },
@@ -1241,34 +1364,91 @@
               }
             ]
           ]
+        },
+        {
+          "id": "variable-limit-index-in",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "variable number must be between ?1 and ?1",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
         }
       ],
-      "corruption": {
-        "fixture": {
-          "path": "test/conformance/fixtures/advanced-index-utf8-corrupt-wr-c.db",
-          "bytes": 5632,
-          "sha256": "3803fa4447a370692a3ac5b5b3a8a5f28483a3a401813611613f558d0849b60a",
-          "damagedRootPage": 3
-        },
-        "offPathRows": [
-          [
-            {
-              "type": "text",
-              "utf8Hex": "7731"
-            }
+      "corruptions": [
+        {
+          "id": "selected-secondary-root-page",
+          "pageKind": "btree-root",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf8-corrupt-selected-secondary-root-page.db",
+            "bytes": 9216,
+            "sha256": "68184685038e88893445d404d3bce0858d3b52d6432071c93f919fa430b155be",
+            "selectedRootPage": 3,
+            "damagedPage": 3
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
           ]
-        ],
-        "selectedErrorCode": 11,
-        "selectedMessage": "database disk image is malformed"
-      }
+        },
+        {
+          "id": "selected-index-overflow-page",
+          "pageKind": "overflow",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf8-corrupt-selected-index-overflow-page.db",
+            "bytes": 9216,
+            "sha256": "de77dd660b1f55fd070d33932d5d54252371ff5e9a9816c97e5089664f9b858d",
+            "selectedRootPage": 13,
+            "damagedPage": 14
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "utf16le",
       "encoding": "UTF-16le",
       "fixture": {
         "path": "test/conformance/fixtures/advanced-index-utf16le.db",
-        "bytes": 6144,
-        "sha256": "5867b6af1a64b0ca87671bf2d5a21793fef4f15477507bea3aaf82d4ada16861",
+        "bytes": 12288,
+        "sha256": "0c72273b6ef2671d190e08769f72d8712bb9f0236287d5878563de380a99f6ea",
         "headerPageSize": 512,
         "schema": [
           [
@@ -1357,6 +1537,50 @@
             {
               "type": "text",
               "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206f7628696420494e5445474552205052494d415259204b45592c6b20544558542c7061796c6f6164205445585429"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f765f6b5f7061796c6f6164"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206f765f6b5f7061796c6f6164204f4e206f76286b2c7061796c6f616429"
             }
           ],
           [
@@ -1874,6 +2098,85 @@
               {
                 "type": "integer",
                 "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "ov_k_payload": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6b"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
               },
               {
                 "type": "integer",
@@ -2485,34 +2788,91 @@
               }
             ]
           ]
+        },
+        {
+          "id": "variable-limit-index-in",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "variable number must be between ?1 and ?1",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
         }
       ],
-      "corruption": {
-        "fixture": {
-          "path": "test/conformance/fixtures/advanced-index-utf16le-corrupt-wr-c.db",
-          "bytes": 6144,
-          "sha256": "5ce7850bb7d5e6c782afaf19650d6913b1e5029a289172c63bcafad8ebf64db0",
-          "damagedRootPage": 3
-        },
-        "offPathRows": [
-          [
-            {
-              "type": "text",
-              "utf8Hex": "7731"
-            }
+      "corruptions": [
+        {
+          "id": "selected-secondary-root-page",
+          "pageKind": "btree-root",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf16le-corrupt-selected-secondary-root-page.db",
+            "bytes": 12288,
+            "sha256": "0743f3baf6f54bb2c5819f0ebf0928fff9b2b49c7e19d97643f9971622a8eeb3",
+            "selectedRootPage": 3,
+            "damagedPage": 3
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
           ]
-        ],
-        "selectedErrorCode": 11,
-        "selectedMessage": "database disk image is malformed"
-      }
+        },
+        {
+          "id": "selected-index-overflow-page",
+          "pageKind": "overflow",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf16le-corrupt-selected-index-overflow-page.db",
+            "bytes": 12288,
+            "sha256": "5b6191d3f62ebc12c524cfac1d430d0b63d0fdb24e0801429d0d261b527a14e7",
+            "selectedRootPage": 14,
+            "damagedPage": 16
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ]
+        }
+      ]
     },
     {
       "id": "utf16be",
       "encoding": "UTF-16be",
       "fixture": {
         "path": "test/conformance/fixtures/advanced-index-utf16be.db",
-        "bytes": 6144,
-        "sha256": "5324641b86cd174b3495e8eda750bb84534537f9f72180981a2fcf7e35b1b9db",
+        "bytes": 12288,
+        "sha256": "3ba36c10978dda0ae4c6ef3f79206f639156efb32bcb048811ab92d9d9f8a392",
         "headerPageSize": 512,
         "schema": [
           [
@@ -2601,6 +2961,50 @@
             {
               "type": "text",
               "utf8Hex": "43524541544520494e444558206d5f616263204f4e206d28612c622c6329"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "7461626c65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "435245415445205441424c45206f7628696420494e5445474552205052494d415259204b45592c6b20544558542c7061796c6f6164205445585429"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "utf8Hex": "696e646578"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f765f6b5f7061796c6f6164"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6f76"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "43524541544520494e444558206f765f6b5f7061796c6f6164204f4e206f76286b2c7061796c6f616429"
             }
           ],
           [
@@ -3118,6 +3522,85 @@
               {
                 "type": "integer",
                 "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "-1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          "ov_k_payload": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "6b"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7061796c6f6164"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "42494e415259"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
               },
               {
                 "type": "integer",
@@ -3729,26 +4212,83 @@
               }
             ]
           ]
+        },
+        {
+          "id": "variable-limit-index-in",
+          "prepareCode": 1,
+          "stepCode": null,
+          "errorCode": 1,
+          "message": "variable number must be between ?1 and ?1",
+          "reuseRows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
         }
       ],
-      "corruption": {
-        "fixture": {
-          "path": "test/conformance/fixtures/advanced-index-utf16be-corrupt-wr-c.db",
-          "bytes": 6144,
-          "sha256": "ea8a0120cd1d2ff0961722016264f3d3191958da9cd748dfe9181f1baf51bcb4",
-          "damagedRootPage": 3
-        },
-        "offPathRows": [
-          [
-            {
-              "type": "text",
-              "utf8Hex": "7731"
-            }
+      "corruptions": [
+        {
+          "id": "selected-secondary-root-page",
+          "pageKind": "btree-root",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf16be-corrupt-selected-secondary-root-page.db",
+            "bytes": 12288,
+            "sha256": "2869cebae9b2311e3d63574d343c9326e82c6c6f2eae3723046c7b4c6a1703a2",
+            "selectedRootPage": 3,
+            "damagedPage": 3
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "7731"
+              }
+            ]
           ]
-        ],
-        "selectedErrorCode": 11,
-        "selectedMessage": "database disk image is malformed"
-      }
+        },
+        {
+          "id": "selected-index-overflow-page",
+          "pageKind": "overflow",
+          "fixture": {
+            "path": "test/conformance/fixtures/advanced-index-utf16be-corrupt-selected-index-overflow-page.db",
+            "bytes": 12288,
+            "sha256": "322757b981b86a71ef1a54b4bf2cc2e74a4f3ab0fd374fb1cf07bc403e08b497",
+            "selectedRootPage": 14,
+            "damagedPage": 16
+          },
+          "offPathRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ],
+          "selectedErrorCode": 11,
+          "selectedMessage": "database disk image is malformed",
+          "reuseRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "71"
+              }
+            ]
+          ]
+        }
+      ]
     }
   ]
 }

@@ -77,6 +77,28 @@
     {
       "path": "test/in4.test",
       "assertion": "index-backed IN provenance"
+    },
+    {
+      "path": "src/btree.c",
+      "symbols": [
+        "accessPayload",
+        "getOverflowPage"
+      ],
+      "assertion": "selected index overflow-chain payload traversal and corruption"
+    },
+    {
+      "path": "src/main.c",
+      "symbols": [
+        "sqlite3_limit"
+      ],
+      "assertion": "configured SQLITE_LIMIT_VARIABLE_NUMBER branch"
+    },
+    {
+      "path": "src/expr.c",
+      "symbols": [
+        "SQLITE_LIMIT_VARIABLE_NUMBER"
+      ],
+      "assertion": "host parameter number limit enforcement"
     }
   ],
   "setup": [
@@ -92,7 +114,10 @@
     "INSERT INTO e VALUES(1,'Alpha',4),(2,'BETA',5),(3,'alpha',6)",
     "CREATE TABLE m(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER)",
     "CREATE INDEX m_abc ON m(a,b,c)",
-    "INSERT INTO m VALUES(1,1,1,1),(2,1,2,2),(3,1,3,3),(4,2,2,4),(5,3,3,5)"
+    "INSERT INTO m VALUES(1,1,1,1),(2,1,2,2),(3,1,3,3),(4,2,2,4),(5,3,3,5)",
+    "CREATE TABLE ov(id INTEGER PRIMARY KEY,k TEXT,payload TEXT)",
+    "CREATE INDEX ov_k_payload ON ov(k,payload)",
+    "INSERT INTO ov VALUES(1,'needle',printf('%01200d',1)),(2,'other','small')"
   ],
   "cases": [
     {
@@ -280,20 +305,60 @@
       "binding": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "errorCode": 18,
       "connectionReusable": true
+    },
+    {
+      "id": "variable-limit-index-in",
+      "sql": "SELECT id FROM m WHERE a IN (?1,?2)",
+      "phase": "prepare",
+      "limit": {
+        "category": "SQLITE_LIMIT_VARIABLE_NUMBER",
+        "id": 9,
+        "value": 1
+      },
+      "errorCode": 1,
+      "connectionReusable": true
     }
   ],
-  "corruptionCases": {
-    "index": "wr_c",
-    "selectedSql": "SELECT a,b FROM wr INDEXED BY wr_c WHERE c>=2.5",
-    "offPathSql": "SELECT payload FROM wr WHERE a='Alpha' AND b=1",
-    "selectedErrorCode": 11,
-    "offPathRows": [
-      [
-        {
-          "type": "text",
-          "utf8Hex": "7731"
-        }
+  "corruptionCases": [
+    {
+      "index": "wr_c",
+      "selectedSql": "SELECT a,b FROM wr INDEXED BY wr_c WHERE c>=2.5",
+      "offPathSql": "SELECT payload FROM wr WHERE a='Alpha' AND b=1",
+      "selectedErrorCode": 11,
+      "offPathRows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "7731"
+          }
+        ]
+      ],
+      "id": "selected-secondary-root-page",
+      "pageKind": "btree-root",
+      "sourceOwners": [
+        "btree.c:moveToRoot",
+        "btree.c:getAndInitPage"
       ]
-    ]
-  }
+    },
+    {
+      "id": "selected-index-overflow-page",
+      "index": "ov_k_payload",
+      "selectedSql": "SELECT payload FROM ov INDEXED BY ov_k_payload WHERE k='needle'",
+      "offPathSql": "SELECT b FROM p WHERE id=4",
+      "selectedErrorCode": 11,
+      "offPathRows": [
+        [
+          {
+            "type": "text",
+            "utf8Hex": "71"
+          }
+        ]
+      ],
+      "pageKind": "overflow",
+      "sourceOwners": [
+        "btree.c:accessPayload",
+        "btree.c:getOverflowPage"
+      ]
+    }
+  ]
 }

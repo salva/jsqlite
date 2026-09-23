@@ -16,7 +16,7 @@ class AdvancedIndexContract(unittest.TestCase):
   self.assertEqual([(v['id'],v['encoding']) for v in self.c['variants']],[('utf8','UTF-8'),('utf16le','UTF-16le'),('utf16be','UTF-16be')]);baseline=None
   for v in self.c['variants']:
    raw=(ROOT/v['fixture']['path']).read_bytes();self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest(),int.from_bytes(raw[16:18],'big')),(v['fixture']['bytes'],v['fixture']['sha256'],512))
-   roots={text(r[1]):int(r[3]['value']) for r in v['fixture']['schema']};self.assertTrue({'wr','wr_c','p_live','e_expr','m_abc'}<=roots.keys())
+   roots={text(r[1]):int(r[3]['value']) for r in v['fixture']['schema']};self.assertTrue({'wr','wr_c','p_live','e_expr','m_abc','ov','ov_k_payload'}<=roots.keys())
    x=v['fixture']['indexXinfo'];self.assertEqual([int(r[1]['value']) for r in x['sqlite_autoindex_wr_1']],[0,1,2,3]);self.assertEqual([int(r[1]['value']) for r in x['wr_c']],[2,0,1]);self.assertEqual([int(r[1]['value']) for r in x['e_expr'][:2]],[-2,-2])
    rows={c['id']:c['rows'] for c in v['cases']};self.assertEqual(rows,baseline or rows);baseline=rows
    self.assertEqual(rows['wr-secondary-suffix'][0][2],{'type':'text','utf8Hex':'7265616c'})
@@ -42,7 +42,12 @@ class AdvancedIndexContract(unittest.TestCase):
    for expected in self.s['errorCases']:
     got=errors[expected['id']];self.assertEqual(got['errorCode'],expected['errorCode']);self.assertEqual(got['reuseRows'],[[{'type':'integer','value':'4'}]])
     self.assertEqual(got['prepareCode']==0,expected['phase']=='runtime')
-   corruption=v['corruption'];raw=(ROOT/corruption['fixture']['path']).read_bytes();self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(corruption['fixture']['bytes'],corruption['fixture']['sha256']))
-   self.assertEqual(corruption['offPathRows'],self.s['corruptionCases']['offPathRows']);self.assertEqual(corruption['selectedErrorCode'],self.s['corruptionCases']['selectedErrorCode']);self.assertIn('malformed',corruption['selectedMessage'])
+   self.assertEqual(set(errors),{e['id'] for e in self.s['errorCases']});self.assertEqual({e['limit']['category'] for e in self.s['errorCases'] if 'limit' in e},{'SQLITE_LIMIT_LENGTH','SQLITE_LIMIT_VARIABLE_NUMBER'})
+   self.assertEqual(len(v['corruptions']),2);self.assertEqual({c['pageKind'] for c in v['corruptions']},{'btree-root','overflow'})
+   expected={c['id']:c for c in self.s['corruptionCases']}
+   for corruption in v['corruptions']:
+    want=expected[corruption['id']];raw=(ROOT/corruption['fixture']['path']).read_bytes();self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(corruption['fixture']['bytes'],corruption['fixture']['sha256']))
+    self.assertEqual(corruption['offPathRows'],want['offPathRows']);self.assertEqual(corruption['reuseRows'],want['offPathRows']);self.assertEqual(corruption['selectedErrorCode'],want['selectedErrorCode']);self.assertIn('malformed',corruption['selectedMessage'])
+    if corruption['pageKind']=='overflow':self.assertNotEqual(corruption['fixture']['damagedPage'],corruption['fixture']['selectedRootPage'])
 
 if __name__=='__main__':unittest.main()

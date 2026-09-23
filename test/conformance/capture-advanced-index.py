@@ -21,7 +21,7 @@ def main():
   if d.sqlite3_open_v2(str(f).encode(),mod.C.byref(db),mod.SQLITE_OPEN_READONLY,None)!=mod.OK:raise RuntimeError('readonly reopen')
   try:
    schema=mod.query(d,db,"SELECT type,name,tbl_name,rootpage,sql FROM sqlite_schema WHERE rootpage>0 ORDER BY name")[0]
-   xinfo={name:mod.query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ('sqlite_autoindex_wr_1','wr_c','p_live','e_expr','m_abc')}
+   xinfo={name:mod.query(d,db,f"PRAGMA index_xinfo('{name}')")[0] for name in ('sqlite_autoindex_wr_1','wr_c','p_live','e_expr','m_abc','ov_k_payload')}
    cases=[]
    for c in spec['cases']:
     rows=mod.query(d,db,c['sql'],c['bindings'])[0];eqp=mod.explain(d,db,'EXPLAIN QUERY PLAN ',c['sql'],c['bindings'])
@@ -44,7 +44,9 @@ def main():
     if 'limit' in ec: prior=d.sqlite3_limit(db,ec['limit']['id'],ec['limit']['value'])
     est=C.c_void_p();prepare=d.sqlite3_prepare_v2(db,ec['sql'].encode(),-1,C.byref(est),None);step=None
     if prepare==mod.OK:
-     bindRaw=ec['binding'].encode();bindCode=d.sqlite3_bind_text(est,1,bindRaw,len(bindRaw),mod.TRANSIENT)
+     bindCode=mod.OK
+     if 'binding' in ec:
+      bindRaw=ec['binding'].encode();bindCode=d.sqlite3_bind_text(est,1,bindRaw,len(bindRaw),mod.TRANSIENT)
      if bindCode==mod.OK:step=d.sqlite3_step(est);code=step
      else:step=None;code=bindCode
      d.sqlite3_finalize(est)
@@ -55,17 +57,33 @@ def main():
     errors.append({'id':ec['id'],'prepareCode':prepare,'stepCode':step,'errorCode':code,'message':message,'reuseRows':reuse})
    variants.append({'id':variant['id'],'encoding':variant['pragma'],'fixture':{'path':str(f.relative_to(ROOT)),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'headerPageSize':int.from_bytes(raw[16:18],'big'),'schema':schema,'indexXinfo':xinfo},'cases':cases,'lifecycle':lifecycle,'errors':errors})
   finally:d.sqlite3_close(db)
-  # Corrupt only the selected secondary-index root page. The primary-key query
-  # must remain isolated; forcing the damaged index must report SQLITE_CORRUPT.
-  roots={mod.text(r[1]):int(r[3]['value']) for r in schema};cf=pathlib.Path(a.fixture_root)/f"advanced-index-{variant['id']}-corrupt-wr-c.db";shutil.copyfile(f,cf);damaged=bytearray(cf.read_bytes());off=(roots[spec['corruptionCases']['index']]-1)*512;damaged[off]=0;cf.write_bytes(damaged)
-  cdb=C.c_void_p();assert d.sqlite3_open_v2(str(cf).encode(),C.byref(cdb),mod.SQLITE_OPEN_READONLY,None)==mod.OK
-  try:
-   offRows=mod.query(d,cdb,spec['corruptionCases']['offPathSql'])[0];selectedCode=mod.OK;selectedMessage=''
-   try:mod.query(d,cdb,spec['corruptionCases']['selectedSql'])
-   except RuntimeError:
-    selectedCode=d.sqlite3_errcode(cdb);selectedMessage=d.sqlite3_errmsg(cdb).decode()
-   variants[-1]['corruption']={'fixture':{'path':str(cf.relative_to(ROOT)),'bytes':len(damaged),'sha256':hashlib.sha256(damaged).hexdigest(),'damagedRootPage':roots[spec['corruptionCases']['index']]},'offPathRows':offRows,'selectedErrorCode':selectedCode,'selectedMessage':selectedMessage}
-  finally:d.sqlite3_close(cdb)
+  # Produce two distinct malformed selected-page companions: a secondary
+  # b-tree root and an overflow page reached while reading an indexed payload.
+  roots={mod.text(r[1]):int(r[3]['value']) for r in schema};corruptions=[]
+  def varint(buf,pos):
+   value=0
+   for n in range(9):
+    b=buf[pos+n]
+    if n==8:return (value<<8)|b,9
+    value=(value<<7)|(b&127)
+    if b<128:return value,n+1
+  for cc in spec['corruptionCases']:
+   cf=pathlib.Path(a.fixture_root)/f"advanced-index-{variant['id']}-corrupt-{cc['id']}.db";shutil.copyfile(f,cf);damaged=bytearray(cf.read_bytes());root=roots[cc['index']];damagedPage=root
+   if cc['pageKind']=='btree-root':damaged[(root-1)*512]=0
+   else:
+    page=(root-1)*512;hdr=0 if root!=1 else 100;cellptr=int.from_bytes(damaged[page+hdr+8:page+hdr+10],'big');cell=page+cellptr;payload,nvar=varint(damaged,cell);usable=512;maxLocal=((usable-12)*64)//255-23;minLocal=((usable-12)*32)//255-23;local=minLocal+(payload-minLocal)%(usable-4)
+    if local>maxLocal:local=minLocal
+    overflow=int.from_bytes(damaged[cell+nvar+local:cell+nvar+local+4],'big');assert overflow>0;damagedPage=overflow;damaged[(overflow-1)*512:(overflow-1)*512+4]=(0).to_bytes(4,'big')
+   cf.write_bytes(damaged);cdb=C.c_void_p();assert d.sqlite3_open_v2(str(cf).encode(),C.byref(cdb),mod.SQLITE_OPEN_READONLY,None)==mod.OK
+   try:
+    offRows=mod.query(d,cdb,cc['offPathSql'])[0];selectedCode=mod.OK;selectedMessage=''
+    try:mod.query(d,cdb,cc['selectedSql'])
+    except RuntimeError:
+     selectedCode=d.sqlite3_errcode(cdb);selectedMessage=d.sqlite3_errmsg(cdb).decode()
+    reuse=mod.query(d,cdb,cc['offPathSql'])[0]
+    corruptions.append({'id':cc['id'],'pageKind':cc['pageKind'],'fixture':{'path':str(cf.relative_to(ROOT)),'bytes':len(damaged),'sha256':hashlib.sha256(damaged).hexdigest(),'selectedRootPage':root,'damagedPage':damagedPage},'offPathRows':offRows,'selectedErrorCode':selectedCode,'selectedMessage':selectedMessage,'reuseRows':reuse})
+   finally:d.sqlite3_close(cdb)
+  variants[-1]['corruptions']=corruptions
  out={'schema':'jsqlite-advanced-index-capture/1','source':spec['source'],'producer':{'script':'test/conformance/capture-advanced-index.py','identityCheckedBeforeSetup':True,'reopenedReadOnly':True},'accounting':{'encodingVariants':3,'nativeCasesPerEncoding':len(spec['cases']),'pinnedNativeCaptures':3*len(spec['cases']),'attemptedPublicTsAssertions':0,'tsCreditedCases':0},'variants':variants}
  pathlib.Path(a.output).write_text(json.dumps(out,indent=2)+'\n')
 if __name__=='__main__':main()
