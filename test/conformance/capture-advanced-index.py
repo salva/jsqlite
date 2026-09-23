@@ -42,7 +42,7 @@ def main():
    for ec in spec['errorCases']:
     prior=None
     if 'limit' in ec: prior=d.sqlite3_limit(db,ec['limit']['id'],ec['limit']['value'])
-    est=C.c_void_p();prepare=d.sqlite3_prepare_v2(db,ec['sql'].encode(),-1,C.byref(est),None);step=None
+    est=C.c_void_p();prepare=d.sqlite3_prepare_v2(db,ec['sql'].encode(),-1,C.byref(est),None);bindCode=None;step=None
     if prepare==mod.OK:
      bindCode=mod.OK
      if 'binding' in ec:
@@ -54,7 +54,8 @@ def main():
     message=d.sqlite3_errmsg(db).decode()
     if prior is not None:d.sqlite3_limit(db,ec['limit']['id'],prior)
     reuse=mod.query(d,db,'SELECT count(*) FROM wr')[0]
-    errors.append({'id':ec['id'],'prepareCode':prepare,'stepCode':step,'errorCode':code,'message':message,'reuseRows':reuse})
+    phase='prepare' if prepare!=mod.OK else ('bind' if bindCode!=mod.OK else 'step')
+    errors.append({'id':ec['id'],'phase':phase,'prepareCode':prepare,'bindCode':bindCode,'stepCode':step,'errorCode':code,'message':message,'reuseRows':reuse})
    variants.append({'id':variant['id'],'encoding':variant['pragma'],'fixture':{'path':str(f.relative_to(ROOT)),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'headerPageSize':int.from_bytes(raw[16:18],'big'),'schema':schema,'indexXinfo':xinfo},'cases':cases,'lifecycle':lifecycle,'errors':errors})
   finally:d.sqlite3_close(db)
   # Produce two distinct malformed selected-page companions: a secondary

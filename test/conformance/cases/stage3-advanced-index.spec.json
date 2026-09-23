@@ -127,7 +127,47 @@
         "ALPHA",
         2
       ],
-      "requiresPlan": "PRIMARY KEY"
+      "requiresPlan": "PRIMARY KEY",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "sqlite_autoindex_wr_1",
+        "cursorRoles": [
+          "without-rowid-primary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "exact": 0
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "wr-primary-exact"
     },
     {
       "id": "wr-primary-prefix",
@@ -135,7 +175,48 @@
       "bindings": [
         "alpha"
       ],
-      "requiresPlan": "PRIMARY KEY"
+      "requiresPlan": "PRIMARY KEY",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "sqlite_autoindex_wr_1",
+        "cursorRoles": [
+          "without-rowid-primary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "min": 1,
+            "max": 2
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "wr-primary-prefix"
     },
     {
       "id": "wr-secondary-suffix",
@@ -143,7 +224,49 @@
       "bindings": [
         2.5
       ],
-      "requiresPlan": "wr_c"
+      "requiresPlan": "wr_c",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "wr_c",
+        "cursorRoles": [
+          "secondary",
+          "without-rowid-primary-suffix"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "min": 3,
+            "max": 4
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "wr-secondary-suffix"
     },
     {
       "id": "partial-implied",
@@ -151,7 +274,47 @@
       "bindings": [
         1
       ],
-      "requiresPlan": "p_live"
+      "requiresPlan": "p_live",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "p_live",
+        "cursorRoles": [
+          "secondary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "exact": 0
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "partial-implied"
     },
     {
       "id": "partial-not-implied",
@@ -159,7 +322,48 @@
       "bindings": [
         1
       ],
-      "forbidsPlan": "p_live"
+      "forbidsPlan": "p_live",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "p",
+        "cursorRoles": [
+          "base-table"
+        ],
+        "accessMode": "base-scan",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 0
+          },
+          "indexNext": {
+            "exact": 0
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "min": 1,
+            "max": 2
+          },
+          "residualTests": {
+            "exact": 3
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 2
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "partial-not-implied"
     },
     {
       "id": "expression-identical",
@@ -168,7 +372,48 @@
         "alpha",
         5
       ],
-      "requiresPlan": "e_expr"
+      "requiresPlan": "e_expr",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "e_expr",
+        "cursorRoles": [
+          "expression-index",
+          "base-table"
+        ],
+        "accessMode": "deferred-base",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "exact": 0
+          },
+          "tableSeeks": {
+            "exact": 2
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 2
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "expression-identical"
     },
     {
       "id": "expression-mismatch",
@@ -177,7 +422,48 @@
         "ALPHA",
         5
       ],
-      "forbidsPlan": "e_expr"
+      "forbidsPlan": "e_expr",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "e",
+        "cursorRoles": [
+          "base-table"
+        ],
+        "accessMode": "base-scan",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 0
+          },
+          "indexNext": {
+            "exact": 0
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "min": 1,
+            "max": 2
+          },
+          "residualTests": {
+            "exact": 2
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 3
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "expression-mismatch"
     },
     {
       "id": "index-backed-in",
@@ -186,7 +472,49 @@
         1,
         3
       ],
-      "requiresPlan": "m_abc"
+      "requiresPlan": "m_abc",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "m_abc",
+        "cursorRoles": [
+          "in-loop",
+          "secondary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 2
+          },
+          "indexNext": {
+            "min": 2,
+            "max": 3
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "exact": 0
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "index-backed-in"
     },
     {
       "id": "composite-equality-two-ranges",
@@ -197,7 +525,49 @@
         3,
         1
       ],
-      "requiresPlan": "m_abc"
+      "requiresPlan": "m_abc",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "m_abc",
+        "cursorRoles": [
+          "secondary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "min": 2,
+            "max": 3
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "min": 3,
+            "max": 4
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "composite-equality-two-ranges"
     },
     {
       "id": "multiple-range-neighbor",
@@ -206,7 +576,49 @@
         1,
         2
       ],
-      "requiresPlan": "m_abc"
+      "requiresPlan": "m_abc",
+      "futurePrivateExpected": {
+        "status": "unattempted",
+        "credit": 0,
+        "selectedRoot": "m_abc",
+        "cursorRoles": [
+          "secondary"
+        ],
+        "accessMode": "covering",
+        "counters": {
+          "plannerCandidates": {
+            "min": 1
+          },
+          "plannerPaths": {
+            "min": 1
+          },
+          "indexSeeks": {
+            "exact": 1
+          },
+          "indexNext": {
+            "min": 3,
+            "max": 4
+          },
+          "tableSeeks": {
+            "exact": 0
+          },
+          "tableNext": {
+            "exact": 0
+          },
+          "residualTests": {
+            "exact": 0
+          },
+          "sorterRows": {
+            "min": 3,
+            "max": 4
+          },
+          "inProbes": {
+            "exact": 0
+          }
+        },
+        "freshEachRun": true
+      },
+      "provenanceId": "multiple-range-neighbor"
     }
   ],
   "lifecycle": {
@@ -269,7 +681,8 @@
     ],
     "resetRequired": true,
     "clearAndRebindRequired": true,
-    "finalizeRequired": true
+    "finalizeRequired": true,
+    "provenanceId": "lifecycle-reset-rebind-finalize"
   },
   "encodingVariants": [
     {
@@ -291,12 +704,13 @@
       "sql": "SELECT FROM wr",
       "phase": "prepare",
       "errorCode": 1,
-      "connectionReusable": true
+      "connectionReusable": true,
+      "provenanceId": "prepare-syntax"
     },
     {
-      "id": "length-limit-runtime",
+      "id": "length-limit-bind",
       "sql": "SELECT length(?1)",
-      "phase": "runtime",
+      "phase": "bind",
       "limit": {
         "category": "SQLITE_LIMIT_LENGTH",
         "id": 0,
@@ -304,7 +718,8 @@
       },
       "binding": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "errorCode": 18,
-      "connectionReusable": true
+      "connectionReusable": true,
+      "provenanceId": "length-limit-bind"
     },
     {
       "id": "variable-limit-index-in",
@@ -316,7 +731,8 @@
         "value": 1
       },
       "errorCode": 1,
-      "connectionReusable": true
+      "connectionReusable": true,
+      "provenanceId": "variable-limit-index-in"
     }
   ],
   "corruptionCases": [
@@ -338,7 +754,8 @@
       "sourceOwners": [
         "btree.c:moveToRoot",
         "btree.c:getAndInitPage"
-      ]
+      ],
+      "provenanceId": "selected-secondary-root-page"
     },
     {
       "id": "selected-index-overflow-page",
@@ -358,7 +775,170 @@
       "sourceOwners": [
         "btree.c:accessPayload",
         "btree.c:getOverflowPage"
-      ]
+      ],
+      "provenanceId": "selected-index-overflow-page"
     }
-  ]
+  ],
+  "exactProvenance": {
+    "wr-primary-exact": {
+      "kind": "upstream-test-assertion",
+      "path": "test/without_rowid1.test",
+      "assertionId": "without_rowid1-1.1",
+      "lineRange": [
+        44,
+        47
+      ],
+      "textSha256": "092e7ec6e9b41481d8f00eb0bb70fdd0d0385103de20156c3cc6b9ac94dd845c"
+    },
+    "wr-primary-prefix": {
+      "kind": "upstream-test-assertion",
+      "path": "test/without_rowid1.test",
+      "assertionId": "without_rowid1-1.2",
+      "lineRange": [
+        48,
+        51
+      ],
+      "textSha256": "a3c57024892cb3c3e186459b64b818fe4196e1947c852b883f8991aa2645b7f3"
+    },
+    "wr-secondary-suffix": {
+      "kind": "upstream-test-assertion",
+      "path": "test/without_rowid1.test",
+      "assertionId": "without_rowid1-1.22",
+      "lineRange": [
+        71,
+        74
+      ],
+      "textSha256": "e3ab396c0198923e1c88ac11b5811c32adacd2ff839e6ea4350405d41e082f0f"
+    },
+    "partial-implied": {
+      "kind": "upstream-test-assertion",
+      "path": "test/index6.test",
+      "assertionId": "index6-1.1.1",
+      "lineRange": [
+        43,
+        45
+      ],
+      "textSha256": "31857db9b366da80db4d77b73b71044597529bb5f90a4206bcad1b040c74dfec"
+    },
+    "partial-not-implied": {
+      "kind": "upstream-test-assertion",
+      "path": "test/index6.test",
+      "assertionId": "index6-1.7",
+      "lineRange": [
+        74,
+        76
+      ],
+      "textSha256": "0f1bba18d71a3a8fea96efeb687c144195d9b31e4c8339e4160dc251a12e09b9"
+    },
+    "expression-identical": {
+      "kind": "upstream-test-assertion",
+      "path": "test/indexexpr1.test",
+      "assertionId": "indexexpr1-110eqp",
+      "lineRange": [
+        33,
+        36
+      ],
+      "textSha256": "e64a8e353a238684c37b38550f315b54fcfa055617b71c0c9050feaecafa4791"
+    },
+    "expression-mismatch": {
+      "kind": "upstream-test-assertion",
+      "path": "test/indexexpr1.test",
+      "assertionId": "indexexpr1-120eqp",
+      "lineRange": [
+        40,
+        43
+      ],
+      "textSha256": "6ba6eee5b2ff249818c6ee9668454f2e1cd8cfc7c5f337ae6cd21d1f3b97ec43"
+    },
+    "index-backed-in": {
+      "kind": "upstream-test-assertion",
+      "path": "test/in4.test",
+      "assertionId": "in4-1.1",
+      "lineRange": [
+        17,
+        23
+      ],
+      "textSha256": "8149f4d69db655fbd36a3b8bd10918806410d081b32034fa47437f998f273e19"
+    },
+    "composite-equality-two-ranges": {
+      "kind": "upstream-test-assertion",
+      "path": "test/in4.test",
+      "assertionId": "in4-3.21",
+      "lineRange": [
+        167,
+        169
+      ],
+      "textSha256": "4eb7d203f00f521cc586bfaf123aa1996592def4979257b796d81a0f3f132db8"
+    },
+    "multiple-range-neighbor": {
+      "kind": "upstream-test-assertion",
+      "path": "test/in4.test",
+      "assertionId": "in4-3.22",
+      "lineRange": [
+        170,
+        172
+      ],
+      "textSha256": "1e320c9877136778491dc48fae84b34ab95d25bcd9f8d41ab495d211d82d3b23"
+    },
+    "lifecycle-reset-rebind-finalize": {
+      "kind": "source-range",
+      "path": "src/vdbeapi.c",
+      "label": "sqlite3_reset/finalize API ordering",
+      "lineRange": [
+        730,
+        790
+      ],
+      "textSha256": "f27df275bdcefd40e9b52491099312c4ae5aa054b58cb08bc53775c752cba176"
+    },
+    "prepare-syntax": {
+      "kind": "source-range",
+      "path": "src/prepare.c",
+      "label": "prepare error propagation",
+      "lineRange": [
+        930,
+        970
+      ],
+      "textSha256": "47167583428484b1556a23c071abf6f0a7167f7deb313a370706d3e63f32a063"
+    },
+    "variable-limit-index-in": {
+      "kind": "source-range",
+      "path": "src/expr.c",
+      "label": "host parameter limit enforcement",
+      "lineRange": [
+        1335,
+        1360
+      ],
+      "textSha256": "e630a8c1beed11ea989417bfd57e4e0b5f71a84e10f87faf0a872f2dd5a26ba1"
+    },
+    "selected-secondary-root-page": {
+      "kind": "source-range",
+      "path": "src/btree.c",
+      "label": "moveToRoot selected btree page initialization",
+      "lineRange": [
+        4860,
+        4930
+      ],
+      "textSha256": "411cb5691a3438069d07f5a458a72df05a79e6851c0db5505f0d332f44995f75"
+    },
+    "selected-index-overflow-page": {
+      "kind": "source-range",
+      "path": "src/btree.c",
+      "label": "accessPayload overflow traversal",
+      "lineRange": [
+        5160,
+        5260
+      ],
+      "textSha256": "e4619659f11de6f80389376e30815a2ee115aa1e2faf0c77357b6b5c3a99d266"
+    },
+    "length-limit-bind": {
+      "kind": "source-range",
+      "path": "src/vdbeapi.c",
+      "label": "binding length limit enforcement",
+      "lineRange": [
+        1680,
+        1725
+      ],
+      "textSha256": "0c4c1d3083877b726a26442b6c3dc1282b521d09073a4ba53880781a03e07a67"
+    }
+  }
 }

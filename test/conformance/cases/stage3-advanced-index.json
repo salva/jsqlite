@@ -1337,7 +1337,9 @@
       "errors": [
         {
           "id": "prepare-syntax",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "near \"FROM\": syntax error",
@@ -1351,8 +1353,10 @@
           ]
         },
         {
-          "id": "length-limit-runtime",
+          "id": "length-limit-bind",
+          "phase": "bind",
           "prepareCode": 0,
+          "bindCode": 18,
           "stepCode": null,
           "errorCode": 18,
           "message": "string or blob too big",
@@ -1367,7 +1371,9 @@
         },
         {
           "id": "variable-limit-index-in",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "variable number must be between ?1 and ?1",
@@ -2761,7 +2767,9 @@
       "errors": [
         {
           "id": "prepare-syntax",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "near \"FROM\": syntax error",
@@ -2775,8 +2783,10 @@
           ]
         },
         {
-          "id": "length-limit-runtime",
+          "id": "length-limit-bind",
+          "phase": "bind",
           "prepareCode": 0,
+          "bindCode": 18,
           "stepCode": null,
           "errorCode": 18,
           "message": "string or blob too big",
@@ -2791,7 +2801,9 @@
         },
         {
           "id": "variable-limit-index-in",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "variable number must be between ?1 and ?1",
@@ -4185,7 +4197,9 @@
       "errors": [
         {
           "id": "prepare-syntax",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "near \"FROM\": syntax error",
@@ -4199,8 +4213,10 @@
           ]
         },
         {
-          "id": "length-limit-runtime",
+          "id": "length-limit-bind",
+          "phase": "bind",
           "prepareCode": 0,
+          "bindCode": 18,
           "stepCode": null,
           "errorCode": 18,
           "message": "string or blob too big",
@@ -4215,7 +4231,9 @@
         },
         {
           "id": "variable-limit-index-in",
+          "phase": "prepare",
           "prepareCode": 1,
+          "bindCode": null,
           "stepCode": null,
           "errorCode": 1,
           "message": "variable number must be between ?1 and ?1",

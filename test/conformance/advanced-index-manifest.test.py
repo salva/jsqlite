@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hashlib,json,pathlib,unittest
+import hashlib,json,pathlib,re,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[2];SPEC=ROOT/'test/conformance/cases/stage3-advanced-index.spec.json';CAP=ROOT/'test/conformance/cases/stage3-advanced-index.json';MAN=ROOT/'reference/sqlite/manifest.json';UP=ROOT/'reference/sqlite/sqlite-src-3530400'
 def text(c):return bytes.fromhex(c['utf8Hex']).decode()
 class AdvancedIndexContract(unittest.TestCase):
@@ -29,6 +29,21 @@ class AdvancedIndexContract(unittest.TestCase):
     if 'forbidsPlan' in c:self.assertNotIn(c['forbidsPlan'],plan,c['id'])
    self.assertNotEqual(cases['partial-implied']['rows'],cases['partial-not-implied']['rows'])
    self.assertNotEqual(cases['expression-identical']['rows'],cases['expression-mismatch']['rows'])
+ def test_exact_per_case_and_companion_provenance(self):
+  required={c['provenanceId'] for c in self.s['cases']}|{self.s['lifecycle']['provenanceId']}|{e['provenanceId'] for e in self.s['errorCases']}|{c['provenanceId'] for c in self.s['corruptionCases']}
+  self.assertEqual(required,set(self.s['exactProvenance']))
+  for pid,pv in self.s['exactProvenance'].items():
+   source=(UP/pv['path']).read_text().splitlines(True);a,b=pv['lineRange'];block=''.join(source[a-1:b]);self.assertEqual(hashlib.sha256(block.encode()).hexdigest(),pv['textSha256'],pid)
+   if pv['kind']=='upstream-test-assertion':self.assertRegex(block,r'(do_execsql_test|do_test)\s+'+re.escape(pv['assertionId'])+r'\s*\{')
+ def test_future_private_access_contract_is_complete_and_uncredited(self):
+  required={'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows','inProbes'}
+  seen=set()
+  for case in self.s['cases']:
+   p=case['futurePrivateExpected'];self.assertEqual((p['status'],p['credit'],p['freshEachRun']),('unattempted',0,True));self.assertTrue(p['selectedRoot']);self.assertTrue(p['cursorRoles']);self.assertIn(p['accessMode'],{'covering','deferred-base','base-scan'});self.assertEqual(set(p['counters']),required)
+   for name,bound in p['counters'].items():
+    self.assertIn(set(bound),[{'exact'},{'min'},{'min','max'}]);self.assertTrue(all(isinstance(v,int) and v>=0 for v in bound.values()));lo=bound.get('min',bound.get('exact'));hi=bound.get('max',bound.get('exact',lo));self.assertLessEqual(lo,hi)
+   self.assertGreater(p['counters']['plannerCandidates'].get('min',0),0);self.assertGreater(p['counters']['plannerPaths'].get('min',0),0);seen.add((p['selectedRoot'],p['accessMode']))
+  self.assertGreaterEqual(len(seen),7);self.assertEqual(self.c['accounting']['attemptedPublicTsAssertions'],0);self.assertEqual(self.c['accounting']['tsCreditedCases'],0)
  def test_native_work_lifecycle_errors_and_corruption(self):
   for v in self.c['variants']:
    # Every successful statement has bounded native counters and a selected-path
@@ -41,7 +56,9 @@ class AdvancedIndexContract(unittest.TestCase):
    errors={e['id']:e for e in v['errors']}
    for expected in self.s['errorCases']:
     got=errors[expected['id']];self.assertEqual(got['errorCode'],expected['errorCode']);self.assertEqual(got['reuseRows'],[[{'type':'integer','value':'4'}]])
-    self.assertEqual(got['prepareCode']==0,expected['phase']=='runtime')
+    self.assertEqual(got['phase'],expected['phase']);self.assertEqual(got['stepCode'],None)
+    if expected['phase']=='bind':self.assertEqual((got['prepareCode'],got['bindCode']),(0,expected['errorCode']))
+    if expected['phase']=='prepare':self.assertNotEqual(got['prepareCode'],0);self.assertIsNone(got['bindCode'])
    self.assertEqual(set(errors),{e['id'] for e in self.s['errorCases']});self.assertEqual({e['limit']['category'] for e in self.s['errorCases'] if 'limit' in e},{'SQLITE_LIMIT_LENGTH','SQLITE_LIMIT_VARIABLE_NUMBER'})
    self.assertEqual(len(v['corruptions']),2);self.assertEqual({c['pageKind'] for c in v['corruptions']},{'btree-root','overflow'})
    expected={c['id']:c for c in self.s['corruptionCases']}
