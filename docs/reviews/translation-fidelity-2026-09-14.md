@@ -1459,3 +1459,63 @@ The correction gives the coroutine a stable producer-output range, copies each a
 Public focused coverage now spans all three database encodings, multirow/multicolumn payloads, parameters, NULL/INTEGER/REAL/TEXT/BLOB, ORDER plus OFFSET/LIMIT, reset/rerun, private sorter bytes, cancellation, first-error retention, cleanup, and restored admission: 8 declared / 8 attempted / 8 passed. The exact compound public gate remains 22 declared / 22 attempted / 22 passed / 22 credited. Parser/typecheck/package checks and affected coroutine lifecycle checks pass. A pre-existing three-encoding test named `materialized producer and outer sorter share private bytes` still fails unchanged at clean HEAD and with `maxPrivateBytes:1`: its query is now compiled as nested coroutines with no sorter opcodes, so its expected sorter-byte rejection is stale rather than a C2 regression. It is not waived or edited here because that concurrent route/test owner must replace it with a composition that actually owns simultaneous private cursors.
 
 Broader expression runners currently fail independently with `key-000001` versus expected `min` on aggregate coverage; this C2 patch does not touch aggregate selection. Relational private lifecycle is 18/18. These failures are reported rather than credited or hidden.
+### Revision 2026-09-23 C2 implementation-owner correction ([[card:card-j-d-b-a-c]])
+
+This revision supersedes only the stale test-status statements in the preceding C2
+entry; it preserves that entry as the original defect and repair provenance. The
+two public discriminators, compared independently with pinned SQLite 3.53.4, were:
+
+- `SELECT * FROM (VALUES(1),(2),(3))`: the reported and reproduced pre-fix
+  TypeScript result was `[[1n],[1n],[1n]]`; pinned SQLite and current TypeScript
+  produce `[[1n],[2n],[3n]]`.
+- `SELECT * FROM (VALUES(1,'a'),(2,'b')) ORDER BY 1 DESC`: the reported and
+  reproduced pre-fix TypeScript result was `[[1n,"a"],[1n,"a"]]`; pinned SQLite
+  and current TypeScript produce `[[2n,"b"],[1n,"a"]]`.
+
+The generated reduction was not incomplete: every structured VALUES row remained
+in `SelectArm.valuesRows`. The divergence was destination-shaped. Each arm's
+ordinary scalar program placed its row in that arm's own `ResultRow.p1..p1+p2`
+register range. The derived coroutine rewrite replaced each `ResultRow` with a
+`Yield`, while its consumer always reread the first fixed register range. Thus
+resumption reached every arm but repeatedly exposed the first payload. In pinned
+`select.c`, `multiSelectValues` walks the linked VALUES terms and invokes
+`selectInnerLoop` with the caller's `SelectDest`; the destination contract, not a
+token reconstruction or row post-processor, owns the row lifetime.
+
+Commit `52e01dd2cff043911ddc6cc249f349b4ce627693` repaired that owner by allocating
+one stable coroutine output register range, copying each actual `ResultRow` range
+there before `Yield`, and making the consumer read that range. Because one child
+instruction can expand to N copies plus a yield, it also introduced explicit
+old-PC/new-PC relocation. Commit `e39d2799797556d8851bc7cb40028c935b283e73`
+completed the implementation-owner correction: address-only embedded-program
+relocation now covers the represented jump/empty-target variants while preserving
+coroutine zero sentinels, and the related derived scan, residual, reset, budget,
+cleanup, and admission paths have focused coverage. Review-only successor
+`386826dc0509ff6d2db611fa4f9bbdcb7d098314` changes no implementation.
+
+Current implementation-owner verification is exact but bounded. The derived C2
+suite passes 9/9 across its focused payload, encoding, parameter, ORDER/LIMIT,
+reset, budget, cancellation, first-error, cleanup, and admission cases. The public
+compound gate passes 22 declared / 22 attempted / 22 passed / 22 credited. The
+full subquery/view target passes 192/192, including the corrected materialized
+private-byte fixture (it orders by non-rowid `b`, so the asserted inner sorter
+actually exists), coroutine lifecycle, correlation, view, and derived routes. The
+selected relational private lifecycle target passes 18/18, and the expression
+bounded runner passes all six named resource/cleanup checks. Current focused log:
+`work:///cards/card-j-d-b-a-c/processes/proc-34f50420dbf9/stdout.log`; current
+192/192 log: `work:///cards/card-j-d-b-a-c/processes/proc-61c976094530/stdout.log`;
+current lifecycle/resource logs:
+`work:///cards/card-j-d-b-a-c/processes/proc-e6e786b77edf/stdout.log` and
+`work:///cards/card-j-d-b-a-c/processes/proc-ae4e914ba0e1/stdout.log`. Original
+RED and pinned-native evidence remains at
+`work:///cards/card-j-d-b-a-c/processes/proc-6eff29cf73a3/stdout.log` and
+`work:///cards/card-j-d-b-a-c/processes/proc-e11dcf542077/stdout.log`.
+
+This is not general compound or derived-table compatibility. The finite typed
+producer remains the documented browser/TypeScript substitution for the admitted
+slice, not SQLite's general resumable merge stack. Unsafe table-derived scan/order
+shapes still reject atomically, and unrepresented compound compositions involving
+general joins, subqueries, aggregates, windows, CTEs, views, or unsupported
+storage shapes remain outside this bounded owner unless admitted by their own
+separately tested routes. No fallback evaluator, token reparsing, partial-arm
+execution, or main-database write is claimed.
