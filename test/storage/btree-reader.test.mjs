@@ -258,6 +258,21 @@ test("table and index seek descend only through the selected pages", async (t) =
     assert.deepEqual(indexTuple(cursor.payload(), database.encoding), target);
   });
 
+  await t.test("index movement after seek remains page-local", () => {
+    // btree.c:sqlite3BtreeNext increments the current page cell when possible
+    // and otherwise follows only the retained ancestor path. It must not restart
+    // a whole-tree traversal and fault-touch an unrelated leftmost subtree.
+    const root = databasePageOffset(image, 3);
+    const firstCell = readU16(image, root + 12);
+    const leftmost = readU32(image, root + firstCell);
+    const database = openBtreeDatabase(corruptPageType(image, leftmost));
+    const cursor = database.indexCursor(3);
+    const target = ["key-001900", 1900n, 1900n];
+    assert.equal(cursor.seek((payload) => compareTuple(indexTuple(payload, database.encoding), target), "ge"), true);
+    assert.equal(cursor.next(), true);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), ["key-001901", 1901n, 1901n]);
+  });
+
   await t.test("a malformed selected index child still reports corruption", () => {
     const root = databasePageOffset(image, 3);
     const firstCell = readU16(image, root + 12);

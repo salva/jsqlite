@@ -14,8 +14,8 @@
     "encodingVariants": 3,
     "nativeCasesPerEncoding": 10,
     "pinnedNativeCaptures": 30,
-    "attemptedPublicTsAssertions": 0,
-    "tsCreditedCases": 0
+    "attemptedPublicTsAssertions": 30,
+    "tsCreditedCases": 18
   },
   "variants": [
     {

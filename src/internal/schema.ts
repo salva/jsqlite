@@ -48,6 +48,7 @@ export interface TableNode {
   readonly indexes: IndexNode[];
   readonly withoutRowid: boolean;
   readonly primaryKey: readonly ColumnNode[];
+  readonly primaryKeyTerms: readonly IndexTerm[];
   readonly storageKey: readonly ColumnNode[];
   readonly checks: readonly CheckConstraintNode[];
   readonly foreignKeys: readonly ForeignKeyNode[];
@@ -63,11 +64,16 @@ export interface IndexNode {
   readonly terms: readonly IndexTerm[];
   readonly unique: boolean;
   readonly origin: "create" | "primary-key";
+  readonly partialWhere: ExprNode | null;
   /** Immutable packed-key identity, built exactly once with the schema. */
-  readonly physical: PhysicalRowidIndex | null;
+  readonly physical: PhysicalIndex | null;
 }
-export interface PhysicalIndexField { readonly role:"declared"|"rowid-tail"; readonly column:ColumnNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
-export interface PhysicalRowidIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly keyInfo:KeyInfo }
+export interface PhysicalIndexField { readonly role:"declared"|"primary-key-suffix"|"stored-column"|"rowid-tail"; readonly column:ColumnNode|null; readonly expression:ExprNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
+export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly keyInfo:KeyInfo }
+/** Historical name retained for internal consumers that construct synthetic
+ * rowid schemas. The represented physical descriptor now also covers WITHOUT
+ * ROWID indexes. */
+export type PhysicalRowidIndex = PhysicalIndex;
 export interface ViewNode {
   readonly kind: "view";
   readonly name: string;
@@ -163,20 +169,52 @@ function builtinCollation(name:string|null):BuiltinCollation|null {
   const folded=sqliteAsciiFold(name??"binary");
   return folded==="binary"||folded==="nocase"||folded==="rtrim"?folded:null;
 }
-/** build.c:sqlite3KeyInfoOfIndex for the admitted ordinary rowid layout.
- * Unsupported layouts return null atomically, before candidate publication. */
-export function physicalRowidIndex(index:IndexNode,encoding:DatabaseEncoding):PhysicalRowidIndex|null {
-  if(index.table.withoutRowid)return null;
+/** build.c:sqlite3KeyInfoOfIndex and convertToWithoutRowidTable for admitted
+ * rowid and WITHOUT ROWID layouts. Unsupported layouts return null atomically. */
+export function physicalIndex(index:IndexNode,encoding:DatabaseEncoding):PhysicalIndex|null {
   const fields:PhysicalIndexField[]=[];
   for(const term of index.terms){
     const collation=builtinCollation(term.collation??term.column?.collation??null);
-    if(!term.column||term.expression||term.nulls!==null||!collation)return null;
-    fields.push(Object.freeze({role:"declared",column:term.column,collation,descending:term.descending,nullsLarge:false}));
+    if((!term.column&&!term.expression)||term.nulls!==null||!collation)return null;
+    fields.push(Object.freeze({role:"declared",column:term.column,expression:term.expression,collation,descending:term.descending,nullsLarge:false}));
   }
-  fields.push(Object.freeze({role:"rowid-tail",column:null,collation:"binary",descending:false,nullsLarge:false}));
+  if(index.table.withoutRowid){
+    const isPrimary=index.origin==="primary-key";
+    if(isPrimary){
+      // build.c:convertToWithoutRowidTable makes the PK b-tree the table and
+      // appends every non-key column to its record in declared-column order.
+      for(const column of index.table.columns)if(!fields.some(field=>field.column===column))fields.push(Object.freeze({role:"stored-column",column,expression:null,collation:"binary",descending:false,nullsLarge:false}));
+    }else{
+      // build.c:isDupColumn/convertToWithoutRowidTable replace the rowid tail
+      // with each PK term not already represented by the same column and
+      // collation. sqlite3CreateIndex copies that PK term's collation and sort
+      // direction into the physical suffix (not the bare column defaults).
+      // Production schema graphs always publish primaryKeyTerms. Keep the
+      // column-derived fallback for older compiler tests and transient schema
+      // producers, which predate preservation of PK collation/direction. It is
+      // deliberately unable to invent metadata absent from those producers;
+      // persisted schemas take the exact terms above.
+      const primaryKeyTerms=index.table.primaryKeyTerms??Object.freeze(index.table.primaryKey.map(column=>Object.freeze({column,expression:null,expressionSql:null,descending:false,collation:column.collation,nulls:null}) as IndexTerm));
+      for(const term of primaryKeyTerms){
+        const collation=builtinCollation(term.collation??term.column?.collation??null);
+        if(!term.column||term.expression||term.nulls!==null||!collation)return null;
+        if(fields.some(field=>field.column===term.column&&field.collation===collation))continue;
+        fields.push(Object.freeze({role:"primary-key-suffix",column:term.column,expression:null,collation,descending:term.descending,nullsLarge:false}));
+      }
+    }
+    const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:isPrimary?index.terms.length:fields.length,terms:fields.map(field=>Object.freeze({collation:field.collation,desc:field.descending,nullsLarge:false}))});
+    return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:-1,keyInfo});
+  }
+  fields.push(Object.freeze({role:"rowid-tail",column:null,expression:null,collation:"binary",descending:false,nullsLarge:false}));
   const allNotNull=index.unique&&index.terms.every(term=>term.column?.notNull===true);
   const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:allNotNull?index.terms.length:fields.length,terms:fields.map(field=>Object.freeze({collation:field.collation,desc:field.descending,nullsLarge:false}))});
   return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:index.terms.length,keyInfo});
+}
+
+/** Compatibility entrypoint for rowid-only callers. New lowering should use
+ * physicalIndex so WITHOUT ROWID layouts are not accidentally excluded. */
+export function physicalRowidIndex(index:IndexNode,encoding:DatabaseEncoding):PhysicalIndex|null {
+  return index.table.withoutRowid?null:physicalIndex(index,encoding);
 }
 
 export class SchemaGraph {
@@ -250,17 +288,29 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       const declaredPrimary = ddl.primaryKey.length ? ddl.primaryKey : ddl.columns.filter(column => column.primaryKey).map(column => column.name);
       const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: column.declaredType, affinity: affinity(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
       const primaryKey = Object.freeze(declaredPrimary.map(name => { const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name, name));if(!column)malformed(`primary key refers to unknown column ${name}`);return column; }));
+      const primaryKeyTerms=Object.freeze(primaryKey.map((column,index)=>{const declared=ddl.primaryKeyTerms[index];return Object.freeze({column,expression:null,expressionSql:null,descending:declared?.descending??ddl.columns.find(candidate=>sqliteIdentifierEqual(candidate.name,column.name))?.primaryKeyDescending??false,collation:declared?.collation??column.collation,nulls:declared?.nulls??null}) as IndexTerm;}));
       // For WITHOUT ROWID, the declared PK is the b-tree storage key. Rowid
       // tables retain their implicit rowid key, represented by an empty list.
       const storageKey = ddl.withoutRowid ? primaryKey : Object.freeze([] as ColumnNode[]);
       const checks=Object.freeze(ddl.checks.map(check=>{const column=check.columnName===null?null:columns.find(candidate=>sqliteIdentifierEqual(candidate.name,check.columnName!))??null;if(check.columnName!==null&&!column)malformed(`CHECK refers to unknown column ${check.columnName}`);const node=Object.freeze({name:check.name,column,expr:check.expr,sql:check.tokens.map(token=>token.text).join(" ")});if(column)(column.checks as CheckConstraintNode[]).push(node);return node;}));
       for(const column of columns)Object.freeze(column.checks);
       const foreignKeys=Object.freeze(ddl.foreignKeys.map(foreign=>{if(foreign.referencedColumns&&foreign.referencedColumns.length!==foreign.columns.length)malformed("number of columns in foreign key does not match referenced columns");const links=Object.freeze(foreign.columns.map((name,index)=>{const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name,name));if(!column)malformed(`unknown column ${name} in foreign key definition`);return Object.freeze({column,referencedColumn:foreign.referencedColumns?.[index]??null});}));return {name:foreign.name,columns:links,referencedTableName:foreign.referencedTable,referencedTable:null,onDelete:foreign.onDelete,onUpdate:foreign.onUpdate,deferrable:foreign.deferrable,initiallyDeferred:foreign.initiallyDeferred,sql:foreign.tokens.map(token=>token.text).join(" ")} as ForeignKeyNode;}));
-      const table: TableNode = { kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, storageKey, checks, foreignKeys, referencedBy: [] };
+      const table: TableNode = { kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, primaryKeyTerms, storageKey, checks, foreignKeys, referencedBy: [] };
       tables.set(folded, table);
     }
   }
   for(const table of tables.values())for(const foreign of table.foreignKeys){const target=tables.get(sqliteAsciiFold(foreign.referencedTableName))??null;(foreign as {referencedTable:TableNode|null}).referencedTable=target;if(target)(target.referencedBy as ForeignKeyNode[]).push(foreign);Object.freeze(foreign);}
+  // WITHOUT ROWID PRIMARY KEY indexes have no sqlite_schema row: build.c
+  // aliases that index to the table root. Publish the immutable physical owner
+  // before secondary indexes are linked.
+  for(const table of tables.values())if(table.withoutRowid){
+    if(!table.primaryKey.length)malformed(`WITHOUT ROWID table ${table.name} has no PRIMARY KEY`);
+    const terms=table.primaryKeyTerms;
+    const name=`sqlite_autoindex_${table.name}_1`;
+    const index={kind:"index",name,tableName:table.tableName,rootPage:table.rootPage,sql:null,table,terms,unique:true,origin:"primary-key",partialWhere:null,physical:null} as unknown as IndexNode;
+    (index as {physical:PhysicalIndex|null}).physical=physicalIndex(index,database.encoding);
+    table.indexes.push(index);indexes.set(sqliteAsciiFold(name),Object.freeze(index));
+  }
   for (const item of rows) {
     const folded = sqliteAsciiFold(item.name);
     if (item.type === "table") continue;
@@ -282,13 +332,12 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
         ];
         const prefix=`sqlite_autoindex_${table.name}_`,ordinal=item.name.startsWith(prefix)?Number(item.name.slice(prefix.length)):NaN,terms=implicit[ordinal-1];
         if(table.withoutRowid||!Number.isSafeInteger(ordinal)||ordinal<1||!terms)throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
-        const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key", physical:null } as unknown as IndexNode;
-        (index as {physical:PhysicalRowidIndex|null}).physical=physicalRowidIndex(index,database.encoding);
+        const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, origin: "primary-key", partialWhere:null, physical:null } as unknown as IndexNode;
+        (index as {physical:PhysicalIndex|null}).physical=physicalIndex(index,database.encoding);
         table.indexes.push(index); indexes.set(folded, Object.freeze(index));
         continue;
       }
       const ddl = parseDdl(item.sql, "create-index", item.name);
-      if (ddl.indexWhere) throw new SchemaUnsupportedError(`partial index construction is not implemented: ${item.name}`);
       if (ddl.tableName === null || !sqliteIdentifierEqual(ddl.tableName, item.tableName)) malformed(`index ${item.name} has mismatched table name`);
       const terms = Object.freeze(ddl.indexTerms.map(term => {
         const tokens = term.expr.tokens;
@@ -297,8 +346,8 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
         if (simple !== null && !column) malformed(`index refers to unknown column ${simple}`);
         return Object.freeze({ column, expression: column ? null : term.expr, expressionSql: column ? null : tokens.map(token => token.text).join(" "), descending: term.descending, collation: term.collation, nulls: term.nulls });
       }));
-      const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, table, terms, unique: ddl.indexUnique, origin: "create", physical:null } as unknown as IndexNode;
-      (index as {physical:PhysicalRowidIndex|null}).physical=physicalRowidIndex(index,database.encoding);
+      const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, table, terms, unique: ddl.indexUnique, origin: "create", partialWhere:ddl.indexWhere, physical:null } as unknown as IndexNode;
+      (index as {physical:PhysicalIndex|null}).physical=physicalIndex(index,database.encoding);
       table.indexes.push(index); indexes.set(folded, Object.freeze(index));
     } else if (item.type === "view") {
       if (item.rootPage !== 0 || item.sql === null) malformed(`invalid view ${item.name}`);

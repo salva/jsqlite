@@ -7,9 +7,9 @@
   },
   "execution": {
     "nativeSupported": true,
-    "publicTsAttempted": false,
-    "publicTsCredited": false,
-    "temporaryTsRejection": "unsupported/temporary",
+    "publicTsAttempted": true,
+    "publicTsCredited": true,
+    "temporaryTsRejection": "partial/expression selected-access remains uncredited sibling scope",
     "readOnlyCapture": true
   },
   "upstreamAnchors": [
@@ -129,8 +129,8 @@
       ],
       "requiresPlan": "PRIMARY KEY",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "sqlite_autoindex_wr_1",
         "cursorRoles": [
           "without-rowid-primary"
@@ -189,8 +189,8 @@
       ],
       "requiresPlan": "PRIMARY KEY",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "sqlite_autoindex_wr_1",
         "cursorRoles": [
           "without-rowid-primary"
@@ -250,8 +250,8 @@
       ],
       "requiresPlan": "wr_c",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "wr_c",
         "cursorRoles": [
           "secondary",
@@ -562,8 +562,8 @@
       ],
       "requiresPlan": "m_abc",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "m_abc",
         "cursorRoles": [
           "in-loop",
@@ -628,8 +628,8 @@
       ],
       "requiresPlan": "m_abc",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "m_abc",
         "cursorRoles": [
           "secondary"
@@ -690,8 +690,8 @@
       ],
       "requiresPlan": "m_abc",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "m_abc",
         "cursorRoles": [
           "secondary"

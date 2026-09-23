@@ -7,8 +7,8 @@ class AdvancedIndexContract(unittest.TestCase):
  def setUpClass(cls):cls.s=json.loads(SPEC.read_text());cls.c=json.loads(CAP.read_text())
  def test_identity_accounting_and_provenance(self):
   m=json.loads(MAN.read_text());self.assertEqual((self.s['source']['version'],self.s['source']['sourceId']),(m['version'],m['sqliteSourceId']))
-  self.assertEqual(self.c['accounting'],{'encodingVariants':3,'nativeCasesPerEncoding':10,'pinnedNativeCaptures':30,'attemptedPublicTsAssertions':0,'tsCreditedCases':0})
-  self.assertFalse(self.s['execution']['publicTsAttempted']);self.assertFalse(self.s['execution']['publicTsCredited'])
+  self.assertEqual(self.c['accounting'],{'encodingVariants':3,'nativeCasesPerEncoding':10,'pinnedNativeCaptures':30,'attemptedPublicTsAssertions':30,'tsCreditedCases':18})
+  self.assertTrue(self.s['execution']['publicTsAttempted']);self.assertTrue(self.s['execution']['publicTsCredited'])
   for a in self.s['upstreamAnchors']:
    source=(UP/a['path']).read_text()
    for symbol in a.get('symbols',[]):self.assertIn(symbol,source)
@@ -47,11 +47,11 @@ class AdvancedIndexContract(unittest.TestCase):
    if 'range' in case.get('coverage',[]) or case['id'] in {'composite-equality-two-ranges','multiple-range-neighbor'}:
     pv=self.s['exactProvenance'][case['provenanceId']]
     if case['id'] in {'composite-equality-two-ranges','multiple-range-neighbor'}:self.assertEqual(pv.get('category'),'composite-range');self.assertEqual(pv['kind'],'source-range');self.assertNotEqual(pv['path'],'test/in4.test')
- def test_future_private_access_contract_is_complete_and_uncredited(self):
+ def test_private_access_contract_is_complete_and_scoped(self):
   required={'plannerCandidates','plannerPaths','indexSeeks','indexNext','tableSeeks','tableNext','residualTests','sorterRows','inProbes'}
   seen=set();captured={c['id']:c for c in self.c['variants'][0]['cases']}
   for case in self.s['cases']:
-   p=case['futurePrivateExpected'];self.assertEqual((p['status'],p['credit'],p['freshEachRun']),('unattempted',0,True));self.assertTrue(p['selectedRoot']);self.assertTrue(p['cursorRoles']);self.assertIn(p['accessMode'],{'covering','deferred-base','base-scan'});self.assertEqual(set(p['counters']),required)
+   p=case['futurePrivateExpected'];expected=('unattempted',0) if case['id'] in {'partial-implied','partial-not-implied','expression-identical','expression-mismatch'} else ('passing',3);self.assertEqual((p['status'],p['credit'],p['freshEachRun']),(*expected,True));self.assertTrue(p['selectedRoot']);self.assertTrue(p['cursorRoles']);self.assertIn(p['accessMode'],{'covering','deferred-base','base-scan'});self.assertEqual(set(p['counters']),required)
    for name,bound in p['counters'].items():
     self.assertIn(set(bound),[{'exact'},{'min'},{'min','max'}]);self.assertTrue(all(isinstance(v,int) and v>=0 for v in bound.values()));lo=bound.get('min',bound.get('exact'));hi=bound.get('max',bound.get('exact',lo));self.assertLessEqual(lo,hi)
    self.assertGreater(p['counters']['plannerCandidates'].get('min',0),0);self.assertGreater(p['counters']['plannerPaths'].get('min',0),0);seen.add((p['selectedRoot'],p['accessMode']))
@@ -65,7 +65,7 @@ class AdvancedIndexContract(unittest.TestCase):
    if p['accessMode']=='covering':self.assertEqual((p['counters']['tableSeeks'],p['counters']['tableNext']),({'exact':0},{'exact':0}))
    if p['accessMode']=='deferred-base':self.assertEqual(p['counters']['tableSeeks'],{'exact':returned})
    has_sort='USE TEMP B-TREE' in ' '.join(captured[case['id']]['eqp']);sort_min=p['counters']['sorterRows'].get('exact',p['counters']['sorterRows'].get('min',0));self.assertGreaterEqual(sort_min,returned if has_sort else 0)
-  self.assertGreaterEqual(len(seen),7);self.assertEqual(self.c['accounting']['attemptedPublicTsAssertions'],0);self.assertEqual(self.c['accounting']['tsCreditedCases'],0)
+  self.assertGreaterEqual(len(seen),7);self.assertEqual(self.c['accounting']['attemptedPublicTsAssertions'],30);self.assertEqual(self.c['accounting']['tsCreditedCases'],18)
  def test_native_work_lifecycle_errors_and_corruption(self):
   for v in self.c['variants']:
    # Every successful statement has bounded native counters and a selected-path

@@ -359,12 +359,14 @@ This was reproduced as a fidelity gap and was first corrected by card-owned comm
 `9ed1c0ca7eab68f18d01c7c57e9feb8a96b0e762` (with evidence follow-ups
 `fd56a284fb8607e352d028459bb877a624a52940` and
 `97916d472406df267b00e33b07a86639a581e0dd`). Table/index seek descends one selected child per interior page and keeps
-only the positioned descriptor; complete bidirectional movement triggers deferred
-full traversal only when requested. The focused mutation of page 141 now proves
-both table and index minimum seeks ignore an unrelated malformed rightmost
-subtree, while a malformed selected child still reports corruption. Existing
-seek tests retain exact/inexact GE/LE placement, and depth-limit coverage is
-charged when seek descends rather than during cursor construction.
+only the positioned descriptor. The current repair also retains the index
+ancestor/child path and translates pinned `btreeNext`/`btreePrevious`: boundary
+positioning descends one edge, while next/previous move on the current page,
+descend from an interior cell, or ascend that retained path without invoking
+`readIndex`. The focused mutations now prove table/index seeks and adjacent index
+movement ignore unrelated malformed subtrees, while malformed selected children
+still report corruption. Existing exact/inexact GE/LE, complete bidirectional
+ordering, and depth-limit coverage remain passing.
 
 The independently loaded pinned SQLite 3.53.4 library with the manifest source ID
 returned the minimum rowid from the same mutated image. Native evidence:
@@ -1662,3 +1664,14 @@ boundaries without claiming W3 execution.
 | IN/composite ranges | `where.c:whereLoopAddBtreeIndex/wherePathSolver`, `wherecode.c:codeEqualityTerm`, `test/in4.test` | IN, bounded and multiple-range neighbors captured |
 
 Machine contract/capture/validator are `stage3-advanced-index.spec.json`, `stage3-advanced-index.json`, and `advanced-index-manifest.test.py`. `exactProvenance` maps every local case and applicable companion to a pinned Tcl assertion ID or stable source range and exact text SHA-256; validation reads and hashes the archive itself. Machine-required rationale separates inherited behavior from local-capture evidence. Composite/multiple-range semantics specifically map to hashed `wherecode.c` Case 4 and `where.c:whereLoopAddBtreeIndex` branches (equality prefix, first usable range, later residual), not `in4-3.21/.22`; validator requires range category, planner/lowering owners, and branch markers, while any test citation is neighbor-only. Each case's separate `futurePrivateExpected` maps the future uncredited TS selected root/cursor roles and exact/min/max physical-work shape; it is not native stmt-status evidence. Counter semantics follow the ordinary contract (seek positions, Next moves between rows with a possible terminal probe, residual tests visited candidates, sorter rows inserted rows). Validator rules derive IN probes from distinct RHS parameters, enforce zero probes for non-IN, full-cardinality base scan/residual bounds, emitted-row deferred seeks, covering zero-table access, and sorter cardinality. Captures include native lifecycle/error/reuse, statement-status bounded-work, bind-phase LENGTH and prepare-phase VARIABLE_NUMBER configured limits, and two selected-page/off-path-isolation surfaces: `btree.c:moveToRoot/getAndInitPage` for an index root and `btree.c:accessPayload/getOverflowPage` for an indexed payload overflow chain. Source SHA-256 prefixes are `where.c e96a8fea`, `whereexpr.c a6dc7d0f`, `wherecode.c 496fd3fb`, `btree.c c0982890`, `build.c c7154980`, `analyze.c d015f3d7`, and `expr.c 363e581d`. This is 30 native captures and 0 TS attempted/credited, not runtime implementation or algorithm substitution.
+
+### Advanced index execution revision (2026-09-23, [[card:card-s-c-b-b]])
+
+| TypeScript owner | Pinned SQLite 3.53.4 owner | Evidence / boundary |
+|---|---|---|
+| `schema.ts:physicalIndex` immutable WITHOUT ROWID PK suffix fields | `build.c:convertToWithoutRowidTable`, `sqlite3CreateIndex` | Exact composite PK order/collation/direction is appended to secondary keys; three-encoding descriptor and public cases. |
+| `where-plan.ts:admitIndexConstraint/makeCapability` | `where.c:whereLoopAddBtreeIndex`, `whereexpr.c:exprAnalyze` | Exact `PhysicalIndex`/`KeyInfo` identity; residual columns remain in covering needs. Partial/expression admissibility is deliberately not credited here. |
+| `vdbe.ts` primary and deferred secondary lowering | `wherecode.c:sqlite3WhereCodeOneLoopStart`, especially 2171-2185 | Exact/prefix BLOBKEY movement and complete secondary PK-suffix lookup; all-encoding non-covering discriminator requires one primary seek. |
+| `btree.ts:IndexCursor` | `btree.c:sqlite3BtreeIndexMoveto`, `btreeNext`, `btreePrevious` | Retained-path lazy seek/movement; selected corruption fails and unrelated malformed subtrees remain untouched. |
+
+The advanced manifest now records 30 attempted public row assertions and 18 credited encoding/case pairs: `wr-primary-exact`, `wr-primary-prefix`, `wr-secondary-suffix`, `index-backed-in`, `composite-equality-two-ranges`, and `multiple-range-neighbor`. Four partial/expression cases remain `unattempted`/zero selected-access credit for [[card:card-s-c-c]]. The focused non-covering `wr_c` case is additional source-backed coverage, not an invented native capture.

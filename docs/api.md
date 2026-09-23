@@ -652,3 +652,9 @@ limited to the conformance adapter and is not exported by the package. Reset,
 rebind, finalize, deadline, cancellation, row/work/output limits, and deferred
 close retain their documented public behavior while the immutable selected plan
 and bindings are retained as applicable.
+
+### Advanced index public boundary (revision 2026-09-23)
+
+Single-table read-only SELECT admits represented ordinary secondary-index access and represented WITHOUT ROWID tables through the same public `prepare`/bind/step/reset/finalize API in UTF-8, UTF-16LE, and UTF-16BE databases. The WITHOUT ROWID subset accepts column-only composite primary keys and column-only secondary keys using built-in BINARY/NOCASE/RTRIM collations, ASC/DESC direction, and default SQLite NULL ordering. It includes exact/prefix primary traversal, secondary covering reads from appended primary-key terms, and non-covering secondary lookup of the primary BLOBKEY. Values, limits, lifecycle, and corruption errors retain the existing public contracts; no planner diagnostics are public.
+
+Partial-index implication and expression-index selected access are not part of this revision's credited boundary. Unsupported collation/NULL-order modifiers, expression/partial physical layouts, or descriptors that cannot preserve the complete key identity are not approximated: they remain excluded from selection or fail atomically as temporary unsupported. Covering access includes residual WHERE and ORDER/sorter reads, not projection alone.

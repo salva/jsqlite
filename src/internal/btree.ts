@@ -21,6 +21,13 @@ interface Page { number: number; bytes: Uint8Array; type: number; cells: number[
 interface PayloadCell { payloadLength: number; local: Uint8Array; overflowPage: number | null; pageNumber: number; cellOffset: number; }
 interface TableEntry extends PayloadCell { rowid: bigint; }
 interface IndexEntry extends PayloadCell {}
+interface IndexAncestor { pageNumber: number; childIndex: number; }
+interface IndexPosition {
+  entry: IndexEntry;
+  pageNumber: number;
+  cellIndex: number;
+  ancestors: readonly IndexAncestor[];
+}
 
 function corrupt(message: string): never { throw new BtreeFormatError(message); }
 function be16(bytes: Uint8Array, at: number): number {
@@ -200,29 +207,78 @@ export class BtreeDatabase {
     return descend(root, 0, new Set());
   }
   indexSeek(root: number, compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"):
-    { entry: IndexEntry | null; exact: boolean } {
-    const descend = (pgno: number, depth: number, path: Set<number>): { entry: IndexEntry | null; exact: boolean } => {
+    { position: IndexPosition | null; exact: boolean } {
+    const descend = (pgno: number, depth: number, path: Set<number>, ancestors: readonly IndexAncestor[]):
+      { position: IndexPosition | null; exact: boolean } => {
       if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
       if (path.has(pgno)) corrupt("b-tree cycle");
       path.add(pgno);
-      const page = this.page(pgno, [0x02, 0x0a]);
-      const cells = page.cells.map((offset) => this.#payloadCell(page, offset, false));
-      let lo = 0, hi = cells.length;
-      while (lo < hi) { const mid = (lo + hi) >>> 1; if (compareCurrentToTarget(this.payload(cells[mid]!)) < 0) lo = mid + 1; else hi = mid; }
-      if (lo < cells.length && compareCurrentToTarget(this.payload(cells[lo]!)) === 0) return { entry: cells[lo]!, exact: true };
-      if (page.type === 0x0a) {
-        const index = bias === "ge" ? lo : lo - 1;
-        return { entry: index >= 0 && index < cells.length ? cells[index]! : null, exact: false };
-      }
-      const child = lo < cells.length ? be32(page.bytes, page.cells[lo]!) : page.rightChild!;
-      const nested = descend(child, depth + 1, path);
-      path.delete(pgno);
-      if (nested.entry !== null) return nested;
-      if (bias === "ge" && lo < cells.length) return { entry: cells[lo]!, exact: false };
-      if (bias === "le" && lo > 0) return { entry: cells[lo - 1]!, exact: false };
-      return { entry: null, exact: false };
+      try {
+        const page = this.page(pgno, [0x02, 0x0a]);
+        const cells = page.cells.map((offset) => this.#payloadCell(page, offset, false));
+        const at = (cellIndex: number): IndexPosition =>
+          ({ entry: cells[cellIndex]!, pageNumber: pgno, cellIndex, ancestors });
+        let lo = 0, hi = cells.length;
+        while (lo < hi) { const mid = (lo + hi) >>> 1; if (compareCurrentToTarget(this.payload(cells[mid]!)) < 0) lo = mid + 1; else hi = mid; }
+        if (lo < cells.length && compareCurrentToTarget(this.payload(cells[lo]!)) === 0) return { position: at(lo), exact: true };
+        if (page.type === 0x0a) {
+          const index = bias === "ge" ? lo : lo - 1;
+          return { position: index >= 0 && index < cells.length ? at(index) : null, exact: false };
+        }
+        const child = lo < cells.length ? be32(page.bytes, page.cells[lo]!) : page.rightChild!;
+        const nested = descend(child, depth + 1, path, [...ancestors, { pageNumber: pgno, childIndex: lo }]);
+        if (nested.position !== null) return nested;
+        if (bias === "ge" && lo < cells.length) return { position: at(lo), exact: false };
+        if (bias === "le" && lo > 0) return { position: at(lo - 1), exact: false };
+        return { position: null, exact: false };
+      } finally { path.delete(pgno); }
     };
-    return descend(root, 0, new Set());
+    return descend(root, 0, new Set(), []);
+  }
+  indexBoundary(root: number, direction: "first" | "last"): IndexPosition | null {
+    return this.#indexBoundary(root, direction, [], new Set());
+  }
+  #indexBoundary(pgno: number, direction: "first" | "last", ancestors: readonly IndexAncestor[], path: Set<number>): IndexPosition | null {
+    if (ancestors.length >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
+    if (path.has(pgno)) corrupt("b-tree cycle");
+    path.add(pgno);
+    try {
+      const page = this.page(pgno, [0x02, 0x0a]);
+      if (page.type === 0x0a) {
+        if (page.cells.length === 0) return null;
+        const cellIndex = direction === "first" ? 0 : page.cells.length - 1;
+        return { entry: this.#payloadCell(page, page.cells[cellIndex]!, false), pageNumber: pgno, cellIndex, ancestors };
+      }
+      const childIndex = direction === "first" ? 0 : page.cells.length;
+      const child = childIndex < page.cells.length ? be32(page.bytes, page.cells[childIndex]!) : page.rightChild!;
+      return this.#indexBoundary(child, direction, [...ancestors, { pageNumber: pgno, childIndex }], path);
+    } finally { path.delete(pgno); }
+  }
+  indexMove(position: IndexPosition, direction: "next" | "previous"): IndexPosition | null {
+    const page = this.page(position.pageNumber, [0x02, 0x0a]);
+    if (position.cellIndex < 0 || position.cellIndex >= page.cells.length
+        || page.cells[position.cellIndex] !== position.entry.cellOffset) corrupt("index cursor position changed");
+    const at = (owner: Page, cellIndex: number, ancestors: readonly IndexAncestor[]): IndexPosition => ({
+      entry: this.#payloadCell(owner, owner.cells[cellIndex]!, false), pageNumber: owner.number, cellIndex, ancestors,
+    });
+    if (page.type === 0x02) {
+      const childIndex = direction === "next" ? position.cellIndex + 1 : position.cellIndex;
+      const child = childIndex < page.cells.length ? be32(page.bytes, page.cells[childIndex]!) : page.rightChild!;
+      return this.#indexBoundary(child, direction === "next" ? "first" : "last",
+        [...position.ancestors, { pageNumber: page.number, childIndex }],
+        new Set([page.number, ...position.ancestors.map((entry) => entry.pageNumber)]));
+    }
+    const adjacent = direction === "next" ? position.cellIndex + 1 : position.cellIndex - 1;
+    if (adjacent >= 0 && adjacent < page.cells.length) return at(page, adjacent, position.ancestors);
+    for (let depth = position.ancestors.length - 1; depth >= 0; depth--) {
+      const ancestor = position.ancestors[depth]!;
+      const parent = this.page(ancestor.pageNumber, [0x02]);
+      if (direction === "next" && ancestor.childIndex < parent.cells.length)
+        return at(parent, ancestor.childIndex, position.ancestors.slice(0, depth));
+      if (direction === "previous" && ancestor.childIndex > 0)
+        return at(parent, ancestor.childIndex - 1, position.ancestors.slice(0, depth));
+    }
+    return null;
   }
   private *iterateTable(pgno: number, depth: number, path: Set<number>): Generator<TableEntry> {
     if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
@@ -239,26 +295,6 @@ export class BtreeDatabase {
         yield* this.iterateTable(page.rightChild!, depth + 1, path);
       }
     } finally { path.delete(pgno); }
-  }
-  readIndex(root: number): IndexEntry[] {
-    const output: IndexEntry[] = []; const path = new Set<number>();
-    const visit = (pgno: number, depth: number): void => {
-      if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
-      if (path.has(pgno)) corrupt("b-tree cycle"); path.add(pgno);
-      const page = this.page(pgno, [0x02, 0x0a]);
-      if (page.type === 0x0a) {
-        for (const offset of page.cells) output.push(this.#payloadCell(page, offset, false));
-      } else {
-        for (const offset of page.cells) {
-          if (offset + 4 > this.usableSize) corrupt("truncated index interior cell");
-          visit(be32(page.bytes, offset), depth + 1);
-          output.push(this.#payloadCell(page, offset, false));
-        }
-        visit(page.rightChild!, depth + 1);
-      }
-      path.delete(pgno);
-    };
-    visit(root, 0); return output;
   }
   overflowPages(cell: PayloadCell): number[] {
     const pages: number[] = []; const seen = new Set<number>(); let pgno = cell.overflowPage;
@@ -370,11 +406,25 @@ export class TableScanCursor {
 }
 export class IndexCursor extends CursorBase<IndexEntry> {
   readonly #root: number;
-  constructor(database: BtreeDatabase, root: number) { super(database, () => database.readIndex(root)); this.#root = root; }
+  #indexPosition: IndexPosition | null = null;
+  constructor(database: BtreeDatabase, root: number) { super(database, () => []); this.#root = root; }
+  #set(position: IndexPosition | null): boolean {
+    this.#indexPosition = position;
+    this.setSeekEntry(position?.entry ?? null);
+    this.generation++;
+    return position !== null;
+  }
+  override first(): boolean { return this.#set(this.database.indexBoundary(this.#root, "first")); }
+  override last(): boolean { return this.#set(this.database.indexBoundary(this.#root, "last")); }
+  override next(): boolean {
+    return this.#set(this.#indexPosition === null ? null : this.database.indexMove(this.#indexPosition, "next"));
+  }
+  override previous(): boolean {
+    return this.#set(this.#indexPosition === null ? null : this.database.indexMove(this.#indexPosition, "previous"));
+  }
   seek(compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"): boolean {
     const result = this.database.indexSeek(this.#root, compareCurrentToTarget, bias);
-    this.setSeekEntry(result.entry);
-    this.generation++;
+    this.#set(result.position);
     return result.exact;
   }
 }

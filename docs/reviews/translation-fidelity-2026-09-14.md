@@ -83,6 +83,18 @@ enforcement in the read-only engine.
 
 ### 3. B-tree seek algorithm replacement
 
+**Revision 2026-09-23 ([[card:card-s-c-b-a]] retained-path movement repair): corrected for index movement as well as seek.**
+
+`IndexCursor` now retains current page/cell and ancestor child positions. Its
+first/last and next/previous operations translate the applicable
+`btreeNext`/`btreePrevious` branches by descending one boundary, moving on-page,
+descending from an interior entry, or ascending that retained path. The obsolete
+whole-index `readIndex()` traversal has been removed. A source-derived mutation
+seeks near the right edge with an unrelated malformed leftmost subtree and proves
+that adjacent movement returns the next key without fault-touching the malformed
+page. Complete bidirectional ordering, selected-path corruption, depth limits,
+owner/borrow behavior, and focused WITHOUT ROWID public execution remain green.
+
 **Revision 2026-09-15 ([[card:card-d-e]], integrated descendant of card-owned `97916d472406df267b00e33b07a86639a581e0dd`): corrected including sparse table LE ancestor fallback.**
 
 Review v12 found that the first page-local repair could return an invalid table
@@ -1428,3 +1440,9 @@ The three-encoding public matrix credits 69/69 row/error and private physical
 work assertions. RIGHT/FULL fallback and unsupported atomic gates remain as
 previously scoped. This does not claim general `wherePathSatisfiesOrder`,
 WITHOUT ROWID, expression/partial indexes, writes, or runtime auto-indexes.
+
+### Revision 2026-09-23 ([[card:card-s-c-b-b]] advanced-index acceptance scope)
+
+The historical advanced-index statement below that public TS attempted/credited was 0/0 is preserved as its baseline snapshot, but is no longer current. Public row execution now passes all 30 captured case/encoding pairs. Conformance credit is intentionally narrower: 18 represented pairs covering WITHOUT ROWID primary exact/prefix, auxiliary-PK secondary covering, index-backed IN, and ordinary composite-range neighbors. Partial/expression selected access remains zero-credit sibling scope.
+
+The repair also closes the projection-only covering hazard: residual WHERE and ORDER reads participate in capability coverage, and all-encoding ordinary/partial residual discriminators require table values when an index lacks the residual column. Represented non-covering WITHOUT ROWID secondary access performs the source-shaped complete-PK BLOBKEY lookup. Unsupported physical descriptors remain rejected/not selected rather than producing approximate rows.

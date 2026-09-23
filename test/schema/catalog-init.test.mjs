@@ -78,7 +78,7 @@ test("rich generated schema semantics publish immutable linked table/index/view 
   const dir = await mkdtemp(join(tmpdir(), "jsqlite-rich-schema-"));
   try {
     const path = join(dir, "rich.db");
-    const script = `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript('''CREATE TABLE t(a TEXT DEFAULT ('X'), b INTEGER GENERATED ALWAYS AS (length(a)) STORED, PRIMARY KEY(a)) WITHOUT ROWID; CREATE UNIQUE INDEX ix ON t(lower(a) COLLATE nocase DESC,b); CREATE VIEW v AS SELECT a, lower(b) FROM t;''')\nc.close()`;
+    const script = `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript('''CREATE TABLE t(a TEXT DEFAULT ('X'), b INTEGER GENERATED ALWAYS AS (length(a)) STORED, PRIMARY KEY(a DESC)) WITHOUT ROWID; CREATE UNIQUE INDEX ix ON t(lower(a) COLLATE nocase DESC,b); CREATE VIEW v AS SELECT a, lower(b) FROM t;''')\nc.close()`;
     await execFileP("python3", ["-c", script]);
     await withImage(new Uint8Array(await readFile(path)), "rich.db", async connection => {
       const schema = loadSchemaGraph(connection), table = schema.tables.get("t"), index = schema.indexes.get("ix"), view = schema.views.get("v");
@@ -86,7 +86,9 @@ test("rich generated schema semantics publish immutable linked table/index/view 
       assert.equal(table.withoutRowid, true);
       assert.deepEqual(table.columns.map(c => [c.name, c.declaredType, c.affinity, !!c.defaultExpr, c.defaultIndex, !!c.generatedExpr, c.generatedStorage, c.primaryKeyPosition]), [["a","TEXT","text",true,0,false,null,1],["b","INTEGER","integer",false,null,true,"stored",null]]);
       assert.deepEqual(table.primaryKey.map(c=>c.name), ["a"]); assert.equal(table.storageKey, table.primaryKey);
-      assert.equal(index.table, table); assert.equal(table.indexes[0], index); assert.equal(index.unique,true); assert.equal(index.origin,"create");
+      assert.deepEqual(table.primaryKeyTerms.map(term=>[term.column?.name,term.descending,term.collation]),[["a",true,null]]);
+      const primary=schema.indexes.get('sqlite_autoindex_t_1');assert.ok(primary?.physical);assert.equal(primary.physical.keyInfo,primary.physical.keyInfo);assert.equal(primary.physical.fields[0]?.descending,true);
+      assert.equal(index.table, table); assert.ok(table.indexes.includes(index)); assert.equal(index.unique,true); assert.equal(index.origin,"create");
       assert.deepEqual(index.terms.map(t => [t.column?.name ?? null, t.expressionSql, t.descending, t.collation, t.nulls]), [[null,"lower ( a )",true,"nocase",null],["b",null,false,null,null]]);
       assert.equal(view.select.kind, "select"); assert.deepEqual(view.select.result.map(x => x.tokens.map(t=>t.text).join(" ")), ["a","lower ( b )"]);
       assert.deepEqual(schema.objects.map(x=>x.name), ["t","ix","v"]);
@@ -99,9 +101,30 @@ test("rich generated schema semantics publish immutable linked table/index/view 
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
+test("WITHOUT ROWID secondary suffix retains the primary-key collation and direction", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "jsqlite-wr-suffix-schema-"));
+  try {
+    const path = join(dir, "suffix.db");
+    const ddl = "CREATE TABLE wr(a TEXT, b INTEGER, payload TEXT, PRIMARY KEY(a COLLATE NOCASE DESC,b)) WITHOUT ROWID; CREATE INDEX wr_payload ON wr(payload)";
+    await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
+    await withImage(new Uint8Array(await readFile(path)), "suffix.db", async connection => {
+      const index = loadSchemaGraph(connection).indexes.get("wr_payload");
+      assert.ok(index?.physical);
+      assert.deepEqual(
+        index.physical.fields.map(field => [field.role, field.column?.name ?? null, field.collation, field.descending]),
+        [
+          ["declared", "payload", "binary", false],
+          ["primary-key-suffix", "a", "nocase", true],
+          ["primary-key-suffix", "b", "binary", false],
+        ],
+      );
+      connection.close();
+    });
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 test("recognized unconsumed catalog constructs fail explicitly instead of being skipped", async () => {
   for (const [ddl, pattern] of [
-    ["CREATE TABLE t(a); CREATE INDEX ix ON t(a) WHERE a IS NOT NULL", /partial index construction/],
     ["CREATE TABLE t(a); CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END", /trigger construction/],
   ]) {
     const dir = await mkdtemp(join(tmpdir(), "jsqlite-unsupported-schema-"));
