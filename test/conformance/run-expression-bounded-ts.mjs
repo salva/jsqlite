@@ -40,8 +40,11 @@ try {
   assert.throws(()=>replace.reset(),e=>e===sizeError);replace.bind(1,"xx");assert.equal(await replace.step(),"row");assert.equal(replace.columnText(0),"01234567890123456789");replace.finalize();limited.close();
 
   // Column-origin output uses the same limit at the public VDBE path.
+  // Pin rowid-table order: these checks intentionally make the first/second
+  // fixture rows small/large. Unordered SQL may legally use a covering index,
+  // which would test planner order rather than output-size cleanup.
   const columns=await open(request("storage-p4096"),{limits:{maxResultBytes:128,maxWorkUnits:100000}});
-  const column=columns.prepare("SELECT hex(t) FROM storage_values").statement;assert.ok(column);assert.equal(await column.step(),"row");let columnError;try{await column.step()}catch(e){columnError=e}
+  const column=columns.prepare("SELECT hex(t) FROM storage_values NOT INDEXED").statement;assert.ok(column);assert.equal(await column.step(),"row");let columnError;try{await column.step()}catch(e){columnError=e}
   assert.deepEqual(errorShape(columnError),{kind:"limit",code:null,extendedCode:null,message:"string or blob too big"});assert.throws(()=>column.finalize(),e=>e===columnError);columns.close();
 
   // A real column-fed growing replace preflights identically for every supported
@@ -49,12 +52,12 @@ try {
   // remains reusable, proving failure cleanup did not poison admission/state.
   for(const fixture of ["storage-p4096","storage-p4096-utf16le","storage-p4096-utf16be"]){
     const encoded=await open(request(fixture),{limits:{maxResultBytes:128,maxWorkUnits:100000}});
-    const growing=encoded.prepare("SELECT replace(t,'0','00') FROM storage_values").statement;assert.ok(growing);
+    const growing=encoded.prepare("SELECT replace(t,'0','00') FROM storage_values NOT INDEXED").statement;assert.ok(growing);
     assert.equal(await growing.step(),"row");assert.equal(growing.columnText(0),"");
     let growingError;try{await growing.step()}catch(e){growingError=e}
     assert.deepEqual(errorShape(growingError),{kind:"limit",code:null,extendedCode:null,message:"string or blob too big"});
     assert.throws(()=>growing.finalize(),e=>e===growingError);
-    const reusable=encoded.prepare("SELECT k FROM storage_values").statement;assert.ok(reusable);assert.equal(await reusable.step(),"row");assert.equal(reusable.columnText(0),"min");reusable.finalize();encoded.close();
+    const reusable=encoded.prepare("SELECT k FROM storage_values NOT INDEXED").statement;assert.ok(reusable);assert.equal(await reusable.step(),"row");assert.equal(reusable.columnText(0),"min");reusable.finalize();encoded.close();
   }
   console.log(JSON.stringify({schema:"jsqlite-expression-bounded-ts/1",outcome:"pass",checks:["exact-work-19-20","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}));
 } finally {await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()));}

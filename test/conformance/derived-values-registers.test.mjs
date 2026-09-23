@@ -53,6 +53,27 @@ test('ordered derived multicolumn VALUES preserves each row payload',()=>withPub
   );
 }));
 
+test('table-derived producer rejects unfaithful child scan shapes atomically',()=>withPublicDb('utf8',{},async db=>{
+  assert.deepEqual(
+    await rows(db,'SELECT a,b FROM t1 WHERE a<6 ORDER BY a'),
+    [[1n,2n],[3n,4n],[5n,6n]],
+    'forward rowid upper-bound exits after the last admitted row',
+  );
+  assert.deepEqual(await rows(db,'SELECT a,b FROM t1 WHERE a>1 ORDER BY a'),[[3n,4n],[5n,6n],[7n,8n]],'forward lower-bound seek resumes through the seek cursor');
+  assert.deepEqual(
+    await rows(db,'SELECT * FROM (SELECT * FROM (SELECT a,b FROM t1 WHERE a<7) WHERE b>2) ORDER BY a'),
+    [[3n,4n],[5n,6n]],
+    'rowid bound omits only its own term and retains the flattened residual',
+  );
+  for(const sql of [
+    'SELECT * FROM (SELECT a FROM t1 ORDER BY a DESC)',
+    'SELECT * FROM (SELECT a FROM t1 ORDER BY a DESC LIMIT 2)',
+    'SELECT * FROM (SELECT a FROM t1 WHERE a>1 ORDER BY a DESC)',
+    'SELECT a FROM (SELECT a FROM t1) ORDER BY a LIMIT 1',
+  ])assert.throws(()=>db.prepare(sql),/derived table scan shape is not implemented/,sql);
+  assert.deepEqual(await rows(db,'SELECT * FROM (SELECT a FROM t1 LIMIT 2 OFFSET 1)'),[[3n],[5n]]);
+}));
+
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} derived VALUES preserves parameters, storage classes, OFFSET/LIMIT, and reset`,()=>withPublicDb(encoding,{},async db=>{
   const statement=db.prepare("SELECT * FROM (VALUES(?1,NULL,x'00',1.5),(?2,'x',x'ff',2),(?3,'z',x'7f',3)) ORDER BY 1 LIMIT 2 OFFSET 1").statement;
   try {

@@ -14,7 +14,10 @@ try {
     const db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${fixtures[i]}`));
     let read,bind;
     try {
-      read=db.prepare("SELECT k FROM storage_values").statement; assert.ok(read);
+      // This encoding check requires the fixture's rowid-table scan order; a
+      // covering-index choice is semantically legal for unordered SQL but would
+      // turn the assertion into an accidental planner-order test.
+      read=db.prepare("SELECT k FROM storage_values NOT INDEXED").statement; assert.ok(read);
       assert.equal(await read.step(),"row"); assert.equal(read.columnText(0),"min"); read.finalize(); read=null;
       bind=db.prepare("SELECT ?1").statement; assert.ok(bind); bind.bind(1,text);
       assert.equal(await bind.step(),"row"); assert.equal(bind.columnType(0),"text"); assert.equal(bind.columnText(0),text);

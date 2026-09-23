@@ -38,14 +38,14 @@ companion_hashes={
 'coroutine-cancel-inner':'e4b1e3edb3fe0852ddef716d3df6a1ae3db43dcf0f5d02a17da1a4ef4f09b39c',
 'coroutine-deadline-inner':'6be2b5dee7a655af8c3baf12b35ef3938696072d91396533e5969b21ba0ff986',
 'coroutine-work-inner':'302770afa5e60831f06c8d275fc4058bae7850781e6f7211946db32b255c7a49',
-'materialized-private-growth':'60d1a474a91287a4e9b707503f88793861bf43630b5d21e3212b2ee677a07107',
+'materialized-private-growth':'3aa4feec42cdddc3daa951f72cc059295ce32eea5df65017dbcdf2b9a3c18dc9',
 'in-set-private-growth':'343a120ea81a501e646684b0b5c4613c6162b805f78820e55f0c9c813a340933',
 'overlap-private-budget':'ee2504283111afa13e59c400ab219b06ecce0896c0984e46796937405f84c16b',
 'reset-before-first-step':'ae4046401451907bc6608fb524a9ddfeaecadf7947b259622ab55f569cf5fd63',
 'reset-after-suspension':'5abe57f24da5bb93d5e41571f8c6e832c432722cfe8c576384ac76e874f3ee4c',
 'rebind-correlated':'6af4981912373386b3624dd90b235463d4836e32cc019c74436c8ae33047077c',
 'finalize-suspended':'392d9d0d81ead84269fa1617226bf7835a85f1d64bc78632de813539611a699b',
-'first-error-cleanup':'e99d66f4cc61365e6224de9c8dd2f9856cf0cf171da890a6e2039f820cc575d3',
+'first-error-cleanup':'556930a0e020b79c5fcebbd32d6c7e9db4248bd501591fbe25766a87ed1fdb54',
 'deferred-close-suspended':'b4811dea3e51944ef06d05fd82b79ddf298a631c1fdd2d7b884a082254198bf4',
 'error-restores-admission':'653a658330b810183e149eabf03237aa76e732d99f528045b1b776f490370316'}
 assert set(companion_hashes)=={c['id'] for c in comp['cases']}

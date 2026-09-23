@@ -101,7 +101,7 @@
     {
       "id": "materialized-private-growth",
       "route": "materialize",
-      "sql": "SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 3) s ORDER BY 1,2",
+      "sql": "SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY b LIMIT 3) s ORDER BY 1,2",
       "limits": {
         "maxPrivateBytes": 31
       },
@@ -235,7 +235,7 @@
     {
       "id": "first-error-cleanup",
       "route": "materialize",
-      "sql": "SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)",
+      "sql": "SELECT * FROM (SELECT a FROM t1 ORDER BY b LIMIT 3)",
       "operations": [
         "prepare",
         "inject-inner-limit",

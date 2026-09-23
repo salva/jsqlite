@@ -131,7 +131,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} deri
 }));
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} materialized producer and outer sorter share private bytes`,()=>withPublicDb(encoding,{limits:{maxPrivateBytes:31}},async db=>{
- const statement=db.prepare('SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY a LIMIT 3) s ORDER BY 1,2').statement;
+ const statement=db.prepare('SELECT o.a,s.a FROM t1 o,(SELECT a FROM t1 ORDER BY b LIMIT 3) s ORDER BY 1,2').statement;
  await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error.kind==='limit'&&error.message==='sorter exceeds total byte limit');
  assert.throws(()=>statement.finalize(),error=>error.kind==='limit'&&error.message==='sorter exceeds total byte limit','first error survives cleanup');
  await scalarAdmission(db);
