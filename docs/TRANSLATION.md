@@ -4280,3 +4280,12 @@ formatting. Mem text conversion (therefore CAST/columnText), `quote`, and
 `printf`/`format` share this decoder; raw REAL remains a JavaScript number.
 Explicit C `sqlite3_column_text` evidence covers overflow Inf, subnormal text,
 integer-boundary REAL and `%!.17g`/`%!.20g`.
+
+#### C4 altform2 floating caller correction
+
+The common pinned `printf.c` decoder limit (`flag_altform2 ? 20 : 16`) now reaches
+fixed `%f` and exponential `%e`/`%E` as well as generic `%g`/`%G`. Altform2
+trailing-zero removal follows the shared floating branch after rendering; ordinary
+non-`!` calls and `round()` retain their existing policy. Pinned C column-text and
+public tests distinguish 20-digit decode for positive/negative, subnormal,
+exponent, width/zero/sign cases; pinned `%F` remains unsupported and emits empty.

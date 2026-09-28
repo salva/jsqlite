@@ -1708,3 +1708,10 @@ supply `iRound` and altform2 selection. Mem stringification, CAST/columnText,
 `func.c` quote, and SQL printf/format consume the same primitive. Source-ID-
 pinned native tests use C column access (not CLI rendering) for boundary,
 subnormal, Inf and altform2 outputs.
+
+#### C4 etFLOAT/etEXP altform2 callers
+
+`printf.c`'s common `sqlite3FpDecode(..., flag_altform2 ? 20 : 16)` maps through
+`fixed` and `exponential` in addition to `generic`. Source-ID-pinned/public cases
+cover `%!.20f`, pinned-unsupported `%!.20F`, `%!.20e`, and signed zero-padded
+`%!+030.20E`, while prior result/lifecycle and shared REAL accessor gates remain.

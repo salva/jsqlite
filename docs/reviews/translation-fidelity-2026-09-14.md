@@ -1553,3 +1553,10 @@ CAST/columnText, quote and formatting. The prior fixed 18-digit helper is replac
 by conversion-owned rounding and 16/20-digit decode, including exact subnormal,
 Inf and round-trip-shortening observables. Native evidence reads values through
 explicit C `sqlite3_column_text`; JavaScript/CLI display is not oracle evidence.
+
+#### Revision: C4 altform2 fixed/exponential dispatch
+
+The finding in `record:///review.md?card=card-p-b&v=16` is corrected: `%f`, `%e`
+and `%E` now pass altform2's 20-digit decoder cap and apply source trailing-zero
+removal; ordinary and round behavior is unchanged. Explicit C column-text evidence
+also records that uppercase `%F` is not a pinned conversion and emits empty.
