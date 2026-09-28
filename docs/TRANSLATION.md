@@ -4248,17 +4248,23 @@ For the admitted single-table aggregate predicate, an uncorrelated scalar subque
 Native SQLite 3.53.4 on the digest-pinned Chinook image returns `AC/DC|2` for
 `SELECT Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId) FROM
 Artist ar WHERE ar.ArtistId=1`; the public path previously rejected
-`ar.ArtistId` as a missing column. `resolve.c:lookupName` walks linked
+`ar.ArtistId` as a missing column. Pinned `resolve.c:lookupName` walks linked
 `NameContext` frames local-first, while `expr.c:sqlite3CodeSubselect` emits a
 correlated (`EP_VarSelect`) child in the parent VDBE without `OP_Once`.
 
 The semantic resolver already preserved that linked ownership. The divergence
-was later lowering: `expressionFromReduction` represents `alias.column` as one
-column node, but `compileTableSelect` handed that combined spelling to its
-source resolver as if it were an unqualified identifier. It now reconstructs
-the qualified identifier components for the same source-aware resolution path.
-Child binding therefore keeps local-first shadowing and the resolved outer
-cursor; no alias map, textual substitution, host fallback, or widened plan is
-introduced. Digest/source-ID-bound C5 coverage and all-encoding composition
-coverage exercise qualified outer WHERE filtering, two aggregate children,
-arithmetic composition, metadata, reset, empty/NULL neighbors, and lifecycle.
+was at the lowering handoff: `expressionFromReduction` represents
+`alias.column` as one column node, but `compileTableSelect` handed that combined
+spelling to its source resolver as if it were an unqualified identifier. It now
+reconstructs the qualified identifier components for the same source-aware
+resolution path. Child binding therefore keeps local-first shadowing, the
+resolved outer cursor, and parent-VDBE register/correlation ownership; no alias
+map, textual substitution, nested public statement, host fallback, or widened
+plan is introduced.
+
+Digest/source-ID-bound native and public C5 evidence preserves the exact SQL and
+`AC/DC|2` result. All-encoding composition coverage exercises qualified outer
+WHERE filtering, two aggregate children, arithmetic composition, typed metadata,
+reset, empty/NULL neighbors, lifecycle, work/private-state ownership, and cleanup.
+Correction: [[card:card-m-f-k]], commit
+`30894db664433bc3ebaba3b3467963fd34adafdc`.

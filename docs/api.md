@@ -390,10 +390,11 @@ forms complete the aggregate native-success matrix at 34/34. Execution remains a
 single public `Statement` and shares its work and private-state limits across
 producers, materializations, aggregate state, and sorters.
 
-This API boundary is not general subquery support. Scalar subqueries, general
-`EXISTS`, and `IN` are not promised here; the admitted correlated form is only the
-allocated persisted-view composition. General aggregate-over-derived and general
-compound-derived SQL are also not promised. The former blanket CTE rejection at
+This 19-case FROM-derived/view tranche does not itself imply scalar
+subqueries, general `EXISTS`, or `IN`; those forms, including admitted correlated
+expression routes, are governed only by the immediately following bounded
+expression-subquery contract and its limits. General aggregate-over-derived and
+general compound-derived SQL are also not promised. The former blanket CTE rejection at
 this boundary has been superseded by the bounded ordinary and recursive surfaces
 below. WITH shapes outside those surfaces still fail atomically during
 `prepare()`; rejection registers no statement or private execution state and

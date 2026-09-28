@@ -1682,11 +1682,20 @@ The advanced manifest now records 30 attempted public row assertions and 18 cred
 
 - `src/internal/vdbe.ts` aggregate-predicate ordered scalar producer maps pinned `expr.c:sqlite3CodeSubselect` SRT_Mem NULL initialization/Once/LIMIT-one control and `select.c` sorter destination flow into one shared Program; `test/conformance/aggregate-group-chinook-regressions.test.mjs` and `aggregate-group-lifecycle.test.mjs` cover the hash-gated result, controls, reset, UTF-8/16le/16be, and empty-to-NULL behavior.
 
-- C5 qualified correlated SELECT-list aggregate ownership: `resolve.c:lookupName`
-  (linked `NameContext.pNext`, local frame before outer frame) and
-  `expr.c:sqlite3CodeSubselect` (`EP_VarSelect` suppresses `OP_Once`, parent-VDBE
-  destination ownership) map to `resolve.ts:expandAndResolveSelect` and
-  `vdbe.ts:compileTableSelect` qualified semantic-column binding. Exact public
-  Fetch tests: `expression-subquery-chinook.test.mjs` and
-  `expression-subquery-composition.test.mjs`; pinned typed oracle:
-  `expression-subquery-chinook-native.py`.
+- C5 qualified correlated SELECT-list aggregate ownership: pinned
+  `resolve.c:lookupName` (linked `NameContext.pNext`, local frame before outer
+  frame) and `expr.c:sqlite3CodeSubselect` (`EP_VarSelect` suppresses `OP_Once`;
+  child destination/registers remain in the parent VDBE) map to
+  `resolve.ts:expandAndResolveSelect` and `vdbe.ts:compileTableSelect`. The
+  lowering handoff reconstructs qualified `alias.column` components before
+  source-aware binding, preserving the resolved outer cursor, lexical shadowing,
+  and parent-VDBE correlation ownership. The pinned observable regression is
+  `SELECT Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId) FROM
+  Artist ar WHERE ar.ArtistId=1` returning typed `AC/DC|2` rather than a missing-
+  column error. `expression-subquery-chinook-native.py`,
+  `expression-subquery-chinook.test.mjs`, and
+  `expression-subquery-composition.test.mjs` cover source identity, exact result,
+  typed metadata, UTF-8/UTF-16le/UTF-16be, qualified filtering, multiple aggregate
+  children, arithmetic, reset, empty/NULL neighbors, lifecycle, shared work/private
+  state, and cleanup. Correction: [[card:card-m-f-k]], commit
+  `30894db664433bc3ebaba3b3467963fd34adafdc`.
