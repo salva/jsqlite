@@ -24,5 +24,14 @@ for(const [encoding,file] of [['UTF-8','utf8.db'],['UTF-16le','utf16le.db'],['UT
   [['real',35.5],['real',35.5],['real',35.5]],
   [['null',null],['null',null],['null',null]],
  ]);neighbors.finalize();
+ const decoder=db.prepare("SELECT CAST(9223372036854775807+1 AS TEXT),CAST(1e308*10 AS TEXT),CAST(1e-320 AS TEXT),printf('%!.17g',1e-320),format('%!.20g',1e-320),quote(1e308*10),9223372036854775807+1,1e-320").statement;
+ assert.equal(await decoder.step(),'row');
+ assert.deepEqual(Array.from({length:6},(_,i)=>[decoder.columnType(i),decoder.column(i)]),[
+  ['text','9.2233720368547758e+18'],['text','Inf'],['text','9.9998886718268301e-321'],
+  ['text','9.9998886718268301e-321'],['text','9.99988867182683005e-321'],['text','9.0e+999'],
+ ]);
+ assert.equal(decoder.columnType(6),'real');assert.equal(decoder.column(6),9223372036854776000);assert.equal(decoder.columnText(6),'9.2233720368547758e+18');assert.equal(decoder.columnType(6),'real');assert.equal(decoder.column(6),9223372036854776000);
+ assert.equal(decoder.columnType(7),'real');assert.equal(decoder.column(7),1e-320);assert.equal(decoder.columnText(7),'9.9998886718268301e-321');assert.equal(decoder.columnType(7),'real');assert.equal(decoder.column(7),1e-320);
+ assert.equal(await decoder.step(),'done');decoder.finalize();
  const later=db.prepare('SELECT 1').statement;assert.equal(await later.step(),'row');later.finalize();db.close();
 });
