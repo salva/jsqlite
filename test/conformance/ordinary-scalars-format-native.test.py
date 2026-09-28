@@ -50,6 +50,7 @@ try:
         ("SELECT printf('%f|%0.2e|%+f|% f',1e999,1e999,-1e999,1e999)", ["Inf|9.00e+999|-Inf| Inf"]),
         ("""SELECT printf('%.999s','x'),printf('%.*s',999,''),printf('%.999q','a''b'),printf('%.*Q',999,'x'),printf('%.999w','a"b'),printf('%.2c','é')""", ["x", "", "a''b", "'x'", 'a""b', "éé"]),
         ("SELECT printf('%999n'),printf('%*n',999),printf('a%999nb'),printf('%*n%d',999,7)", ["", "", "ab", "7"]),
+        ("SELECT CAST(9223372036854775807+1 AS TEXT),CAST(1e308*10 AS TEXT),CAST(1e-320 AS TEXT),printf('%!.17g|%!.20g',1e-320,1e-320),quote(1e308*10)", ["9.2233720368547758e+18", "Inf", "9.9998886718268301e-321", "9.9998886718268301e-321|9.99988867182683005e-321", "9.0e+999"]),
     ]
     for sql, expected in cases:
         assert execute(db, sql) == expected

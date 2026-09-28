@@ -3,7 +3,7 @@
 // than delegated to host printf/Intl. C allocation is represented by bounded
 // string accumulation at the caller.
 import {JSQLiteError} from "../index.ts";
-import {Mem,sqliteRealDigits} from "./mem.ts";
+import {Mem,sqliteFpDecode} from "./mem.ts";
 import {asUtf8} from "./ordinary-scalars.ts";
 
 export interface SqliteFormatControl { readonly maxBytes:number; charge?(units:number):void; check?():void }
@@ -11,9 +11,8 @@ const utf8=new TextEncoder();
 function text(v:Mem|undefined):string|null {if(!v||v.initialStorageClass==="null")return null;return v.textValue()}
 function integer(v:Mem|undefined):bigint {return !v||v.initialStorageClass==="null"?0n:v.integerValue()}
 function real(v:Mem|undefined):number {return !v||v.initialStorageClass==="null"?0:v.realValue()}
-function decimalDigits(value:number):{negative:boolean,digits:string,exponent:number}{
- const negative=value<0||Object.is(value,-0);if(value===0)return{negative,digits:"0",exponent:0};
- const decoded=sqliteRealDigits(Math.abs(value));return{negative,digits:decoded.digits,exponent:decoded.exponent};
+function decimalDigits(value:number,iRound:number,mxRound:number):{negative:boolean,digits:string,exponent:number}{
+ const decoded=sqliteFpDecode(value,iRound,mxRound);return{negative:decoded.negative,digits:decoded.digits,exponent:decoded.exponent};
 }
 function roundedDigits(digits:string,keep:number):{digits:string,carry:boolean}{
  if(keep<0)keep=0;let out=digits.slice(0,keep).padEnd(keep,"0");
@@ -23,22 +22,21 @@ function roundedDigits(digits:string,keep:number):{digits:string,carry:boolean}{
  }
  return{digits:out,carry:false};
 }
-function fixed(value:number,precision:number,alternate:boolean):string{
+function fixed(value:number,precision:number,alternate:boolean,mxRound=16):string{
  if(!Number.isFinite(value))return value<0?"-Inf":"Inf";
- let {negative,digits,exponent}=decimalDigits(value),keep=exponent+1+precision;
- const rounded=roundedDigits(digits,keep);if(rounded.carry){exponent++;digits=rounded.digits}else digits=rounded.digits;
+ let {negative,digits,exponent}=decimalDigits(value,-precision,mxRound);
  let body:string;if(exponent>=0){const before=digits.slice(0,exponent+1).padEnd(exponent+1,"0"),after=digits.slice(exponent+1).padEnd(precision,"0");body=before+(precision||alternate?"."+after:"")}else body="0"+(precision||alternate?"."+"0".repeat(-exponent-1)+digits.padEnd(Math.max(0,precision+exponent+1),"0"):"");
  return negative?"-"+body:body;
 }
-function exponential(value:number,precision:number,alternate:boolean,upper:boolean):string{
+function exponential(value:number,precision:number,alternate:boolean,upper:boolean,mxRound=16):string{
  if(!Number.isFinite(value))return value<0?(upper?"-INF":"-Inf"):(upper?"INF":"Inf");
- let {negative,digits,exponent}=decimalDigits(value),rounded=roundedDigits(digits,precision+1);if(rounded.carry)exponent++;digits=rounded.digits;
+ let {negative,digits,exponent}=decimalDigits(value,precision+1,mxRound);
  const fraction=digits.slice(1).padEnd(precision,"0");const e=`${upper?"E":"e"}${exponent<0?"-":"+"}${Math.abs(exponent).toString().padStart(2,"0")}`;
  return(negative?"-":"")+digits[0]+(precision||alternate?"."+fraction:"")+e;
 }
 function generic(value:number,precision:number,alternate:boolean,alt2:boolean,upper:boolean):string{
  if(precision===0)precision=1;if(!Number.isFinite(value))return exponential(value,precision-1,alternate,upper).replace(/[eE].*/,"");
- const d=decimalDigits(value);let result=d.exponent<-4||d.exponent>=precision?exponential(value,precision-1,alternate||alt2,upper):fixed(value,Math.max(0,precision-d.exponent-1),alternate||alt2);
+ const d=decimalDigits(value,precision,alt2?20:16);let result=d.exponent<-4||d.exponent>=precision?exponential(value,precision-1,alternate||alt2,upper,alt2?20:16):fixed(value,Math.max(0,precision-d.exponent-1),alternate||alt2,alt2?20:16);
  if(!alternate){const split=result.search(/[eE]/),suffix=split<0?"":result.slice(split),head=split<0?result:result.slice(0,split);result=head.replace(/(\.\d*?)0+$/,"$1").replace(/\.$/,alt2?".0":"")+suffix}
  return result;
 }
@@ -71,7 +69,7 @@ export function sqliteFormat(formatValue:Mem,args:readonly Mem[],control:SqliteF
   let precision=-1;if(format[i]==="."){i++;precision=0;if(format[i]==="*"){precision=Number(BigInt.asIntN(32,integer(args[used++])));i++;if(precision<0)precision=precision>=-2147483647?-precision:-1}else {let parsed=0;while(/\d/.test(format[i]??"")){parsed=(parsed*10+Number(format[i++]))>>>0}precision=parsed&0x7fffffff}if(precision>100000000)precision=100000000}
   while(format[i]==="l")i++;const conversion=format[i++];if(!conversion)break;const arg=()=>args[used++];let rendered="",numeric=false;
   if("diuoxXr".includes(conversion)){numeric=true;const signed=conversion==="d"||conversion==="i"||conversion==="r",raw=integer(arg()),negative=signed&&raw<0n,n=signed?(negative?-raw:raw):unsigned64(raw),base=conversion==="o"?8:conversion.toLowerCase()==="x"?16:10;rendered=n.toString(base)+(conversion==="r"?ordinal(n):"");if(conversion==="X")rendered=rendered.toUpperCase();if(precision===0&&n===0n)rendered="";if(precision>rendered.length){admit(precision+3);rendered=repeat("0",precision-rendered.length)+rendered}if(comma&&conversion!=="r"&&(conversion==="d"||conversion==="i"||conversion==="u")){const groups=Math.floor((rendered.length-1)/3);admit(rendered.length+groups);let grouped="";for(let at=0;at<rendered.length;at++){if(at&&((rendered.length-at)%3===0))grouped+=",";grouped+=rendered[at]}rendered=grouped}let prefix=negative?"-":plus?"+":blank?" ":"";if(alternate&&n!==0n)prefix+=conversion==="o"?"0":conversion==="x"?"0x":conversion==="X"?"0X":"";rendered=prefix+rendered;rendered=pad(rendered,width,left,zero&&precision<0,prefix.length)
-  }else if("fFeEgG".includes(conversion)){numeric=true;const v=real(arg());let p=precision<0?6:Math.min(precision,100000);if(conversion.toLowerCase()==="g")p=Math.min(p,alt2?20:16);boundedDimension(Math.max(width,p));const upper=conversion===conversion.toUpperCase(),kind=conversion.toLowerCase();if(Number.isFinite(v)){const exponent=decimalDigits(v).exponent,temporary=kind==="f"?Math.max(exponent+1,1)+p+12:p+16;admit(Math.max(width,temporary))}if(Number.isNaN(v))rendered=zero?"null":"NaN";else if(!Number.isFinite(v)&&!zero)rendered=(v<0?"-":plus?"+":blank?" ":"")+(upper?"INF":"Inf");else if(!Number.isFinite(v)){const sign=v<0?"-":plus?"+":blank?" ":"",magnitude=kind==="e"?`9${p||alternate||alt2?"."+repeat("0",p):""}${upper?"E":"e"}+999`:kind==="g"?`9${p>1?"."+repeat("0",p-1):""}${upper?"E":"e"}+999`:`9${repeat("0",999)}${p||alternate||alt2?"."+repeat("0",p):""}`;rendered=sign+magnitude}else{rendered=kind==="f"?fixed(v,p,alternate||alt2):kind==="e"?exponential(v,p,alternate||alt2,upper):generic(v,p,alternate,alt2,upper);if(v>=0&&(plus||blank))rendered=(plus?"+":" ")+rendered}if(comma&&kind==="f"){const sign=/^[+ -]/.test(rendered)?rendered[0]:"",rest=sign?rendered.slice(1):rendered,[whole="",...tail]=rest.split("."),groups=Math.floor((whole.length-1)/3);admit(rendered.length+groups);rendered=sign+whole.replace(/\B(?=(\d{3})+(?!\d))/g,",")+(tail.length?"."+tail:"")}rendered=pad(rendered,width,left,zero,rendered[0]==="-"||rendered[0]==="+"||rendered[0]===" "?1:0)
+  }else if("fFeEgG".includes(conversion)){numeric=true;const v=real(arg());let p=precision<0?6:Math.min(precision,100000);if(conversion.toLowerCase()==="g")p=Math.min(p,alt2?20:16);boundedDimension(Math.max(width,p));const upper=conversion===conversion.toUpperCase(),kind=conversion.toLowerCase();if(Number.isFinite(v)){const exponent=decimalDigits(v,kind==="f"?-p:kind==="g"?p:p+1,alt2?20:16).exponent,temporary=kind==="f"?Math.max(exponent+1,1)+p+12:p+16;admit(Math.max(width,temporary))}if(Number.isNaN(v))rendered=zero?"null":"NaN";else if(!Number.isFinite(v)&&!zero)rendered=(v<0?"-":plus?"+":blank?" ":"")+(upper?"INF":"Inf");else if(!Number.isFinite(v)){const sign=v<0?"-":plus?"+":blank?" ":"",magnitude=kind==="e"?`9${p||alternate||alt2?"."+repeat("0",p):""}${upper?"E":"e"}+999`:kind==="g"?`9${p>1?"."+repeat("0",p-1):""}${upper?"E":"e"}+999`:`9${repeat("0",999)}${p||alternate||alt2?"."+repeat("0",p):""}`;rendered=sign+magnitude}else{rendered=kind==="f"?fixed(v,p,alternate||alt2):kind==="e"?exponential(v,p,alternate||alt2,upper):generic(v,p,alternate,alt2,upper);if(v>=0&&(plus||blank))rendered=(plus?"+":" ")+rendered}if(comma&&kind==="f"){const sign=/^[+ -]/.test(rendered)?rendered[0]:"",rest=sign?rendered.slice(1):rendered,[whole="",...tail]=rest.split("."),groups=Math.floor((whole.length-1)/3);admit(rendered.length+groups);rendered=sign+whole.replace(/\B(?=(\d{3})+(?!\d))/g,",")+(tail.length?"."+tail:"")}rendered=pad(rendered,width,left,zero,rendered[0]==="-"||rendered[0]==="+"||rendered[0]===" "?1:0)
   }else if(conversion==="s"||conversion==="z"){const s=truncate(text(arg())??"",precision,alt2);rendered=pad(s,width,left,false,0,!alt2)
   }else if(conversion==="c"){const input=text(arg())??"\0",nul=input.indexOf("\0"),s=nul<0?input:input.slice(0,nul),one=[...s][0]??"\0",count=precision>0?precision:1;admit(utf8.encode(one).length*count);rendered=repeat(one,count);rendered=pad(rendered,width,left,false,0,false)
   }else if(conversion==="q"||conversion==="Q"||conversion==="w"){const v=arg(),nullArg=!v||v.initialStorageClass==="null";let value=truncate(nullArg?(conversion==="Q"?"NULL":"(NULL)"):text(v)!,precision,alt2),quote=conversion==="w"?'"':"'",extra=0,scanned=0;for(const character of value){if(character===quote)extra++;if(++scanned>=256){scanCheckpoint(scanned);scanned=0}}scanCheckpoint(scanned);admit(utf8.encode(value).length+extra+(conversion==="Q"&&!nullArg?2:0));value=value.replaceAll(quote,quote+quote);if(conversion==="Q"&&!nullArg)value=`'${value}'`;rendered=pad(value,width,left,false,0,!alt2)

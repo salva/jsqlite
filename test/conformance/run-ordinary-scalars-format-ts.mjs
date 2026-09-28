@@ -14,10 +14,11 @@ try{
   assert.deepEqual(await row("SELECT round(2.5),round(-2.5),round(1.2345,2),round(1.0,400),round(NULL)"),[3,-3,1.23,1,null]);
   assert.deepEqual(await row("SELECT printf('%d|%lld|%.17g|%q|%Q|%w',2147483648,9223372036854775807,1.2345678901234567,'a''b','a''b','a\"b'),format('%!g',1.0/3.0)"),["2147483648|9223372036854775807|1.234567890123457|a''b|'a''b'|a\"\"b",'0.333333']);
   assert.deepEqual(await row("SELECT printf(NULL,1),printf('%d/%s/%Q',NULL,NULL,NULL)"),[null,'0//NULL']);
-  assert.deepEqual(await row("SELECT printf('%08d|%-5s|%.3s|%x|%o|%%',?1,?2,?3,?4,?4),round(?5,?6)",[12n,'xy','abcdef',255n,2.675,2n]),['00000012|xy   |abc|ff|377|%',2.68]);
+  assert.deepEqual(await row("SELECT printf('%08d|%-5s|%.3s|%x|%o|%%',?1,?2,?3,?4,?4),round(?5,?6)",[12n,'xy','abcdef',255n,2.675,2n]),['00000012|xy   |abc|ff|377|%',2.67]);
   assert.deepEqual(await row("SELECT printf('%r|%,d|abc%',1,1234567)"),['1st|1,234,567|abc%']);
   assert.deepEqual(await row("SELECT printf('[%5s][%!5s]','é','é'),printf('[%.*s]',-2,'abcd')"),['[   é][    é]','[ab]']);
   assert.deepEqual(await row("SELECT printf('%f|%0.2e|%+f|% f',1e999,1e999,-1e999,1e999)"),['Inf|9.00e+999|-Inf| Inf']);
+  assert.deepEqual(await row("SELECT CAST(9223372036854775807+1 AS TEXT),CAST(1e308*10 AS TEXT),CAST(1e-320 AS TEXT),printf('%!.17g|%!.20g',1e-320,1e-320),quote(1e308*10)"),['9.2233720368547758e+18','Inf','9.9998886718268301e-321','9.9998886718268301e-321|9.99988867182683005e-321','9.0e+999']);
   assert.deepEqual(await row("SELECT printf('%f|%0f',NULL,NULL)"),['0.000000|0.000000']);
   // The SQL formatter reads C strings: a NUL terminates both the format and
   // converted text. Dynamic width/precision consume arguments in source order.

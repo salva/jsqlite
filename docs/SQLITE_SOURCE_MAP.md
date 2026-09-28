@@ -1699,3 +1699,12 @@ The advanced manifest now records 30 attempted public row assertions and 18 cred
   children, arithmetic, reset, empty/NULL neighbors, lifecycle, shared work/private
   state, and cleanup. Correction: [[card:card-m-f-k]], commit
   `30894db664433bc3ebaba3b3467963fd34adafdc`.
+
+#### Owner C4 shared REAL decoder
+
+`util.c:sqlite3FpDecode` maps to `mem.ts:sqliteFpDecode`, including 16/20 digit
+limits and 17-digit round-trip shortening; `printf.c` etFLOAT/etEXP/etGENERIC
+supply `iRound` and altform2 selection. Mem stringification, CAST/columnText,
+`func.c` quote, and SQL printf/format consume the same primitive. Source-ID-
+pinned native tests use C column access (not CLI rendering) for boundary,
+subnormal, Inf and altform2 outputs.

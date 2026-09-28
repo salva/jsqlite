@@ -1545,3 +1545,11 @@ Public Chinook coverage checks exact metadata/result/reset plus two independent
 correlated aggregate destinations in arithmetic composition. The all-encoding
 fixture checks qualified outer filtering, count/max empty and NULL results,
 reset, admission, and the existing limit/finalize first-error lifecycle gates.
+
+#### Revision: Owner C4 shared REAL-to-text primitive
+
+C4 now uses a direct `util.c:sqlite3FpDecode` translation shared by Mem text,
+CAST/columnText, quote and formatting. The prior fixed 18-digit helper is replaced
+by conversion-owned rounding and 16/20-digit decode, including exact subnormal,
+Inf and round-trip-shortening observables. Native evidence reads values through
+explicit C `sqlite3_column_text`; JavaScript/CLI display is not oracle evidence.

@@ -4268,3 +4268,15 @@ WHERE filtering, two aggregate children, arithmetic composition, typed metadata,
 reset, empty/NULL neighbors, lifecycle, work/private-state ownership, and cleanup.
 Correction: [[card:card-m-f-k]], commit
 `30894db664433bc3ebaba3b3467963fd34adafdc`.
+
+#### Owner C4 shared REAL decoder correction
+
+`mem.ts:sqliteFpDecode` now directly owns pinned `util.c:sqlite3FpDecode` state:
+IEEE sign/special/subnormal extraction, `sqlite3Fp2Convert10`, conversion-specific
+`iRound`, ordinary 16 versus altform2 20 digit limits, carry/trailing-zero handling,
+and the 17-digit round-trip shortening decision. Its integer/BigInt decimal-to-
+binary comparison replaces the C `sqlite3AtoF` check without host number
+formatting. Mem text conversion (therefore CAST/columnText), `quote`, and
+`printf`/`format` share this decoder; raw REAL remains a JavaScript number.
+Explicit C `sqlite3_column_text` evidence covers overflow Inf, subnormal text,
+integer-boundary REAL and `%!.17g`/`%!.20g`.

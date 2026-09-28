@@ -244,44 +244,56 @@ function sqliteFp2Convert10(m: bigint, e: number, n: number): { value: bigint; e
   }
   return { value: high, exponent: -p };
 }
-export function sqliteRealDigits(value: number): { digits: string; exponent: number } {
-  const view = new DataView(new ArrayBuffer(8));
-  view.setFloat64(0, value, false);
-  const bits = view.getBigUint64(0, false);
-  let binaryExponent = Number((bits >> 52n) & 0x7ffn);
-  let mantissa = bits & 0x000fffffffffffffn;
-  if (binaryExponent === 0) {
-    const leading = 64 - mantissa.toString(2).length;
-    mantissa <<= BigInt(leading);
-    binaryExponent = -1074 - leading;
-  } else {
-    mantissa = (mantissa << 11n) | (1n << 63n);
-    binaryExponent -= 1086;
-  }
-  const decoded = sqliteFp2Convert10(mantissa, binaryExponent, 18);
-  let digits = decoded.value.toString();
-  const exponent = digits.length + decoded.exponent - 1;
-  const internalExponent = decoded.exponent;
-  let roundAt = 17;
-  if (digits[15] === "9" && digits[14] === "9") {
-    let jj = 14;
-    while (jj > 0 && digits[jj - 1] === "9") jj--;
-    const candidate = jj === 0 ? 1n : BigInt(digits.slice(0, jj)) + 1n;
-    if (value === Number(`${candidate}e${internalExponent + digits.length - jj}`)) roundAt = jj + 1;
-  } else if (exponent + 1 >= digits.length || digits.slice(13, 16) === "000") {
-    let jj = 13;
-    while (jj > 0 && digits[jj - 1] === "0") jj--;
-    const candidate = BigInt(digits.slice(0, jj));
-    if (value === Number(`${candidate}e${internalExponent + digits.length - jj}`)) roundAt = jj + 1;
-  }
-  let kept = digits.slice(0, roundAt);
-  if (digits[roundAt]! >= "5") {
-    kept = (BigInt(kept) + 1n).toString();
-    if (kept.length > roundAt) return { digits: kept, exponent: exponent + 1 };
-    kept = kept.padStart(roundAt, "0");
-  }
-  return { digits: kept.replace(/0+$/, ""), exponent };
+function compareDecimalToFloat(integer:bigint,decimalExponent:number,bits:bigint):number {
+  const exponentBits=Number((bits>>52n)&0x7ffn),fraction=bits&0xfffffffffffffn;
+  let binaryInteger:bigint,binaryExponent:number;
+  if(exponentBits===0){binaryInteger=fraction;binaryExponent=-1074}else{binaryInteger=(1n<<52n)|fraction;binaryExponent=exponentBits-1075}
+  let left=integer,right=binaryInteger;
+  if(decimalExponent>=0)left*=10n**BigInt(decimalExponent);else right*=10n**BigInt(-decimalExponent);
+  if(binaryExponent>=0)right<<=BigInt(binaryExponent);else left<<=BigInt(-binaryExponent);
+  return left<right?-1:left>right?1:0;
 }
+/** Decimal-to-binary comparison used only by sqlite3FpDecode's 17-digit
+ * shortening branch. It translates sqlite3AtoF's round-to-nearest observable
+ * without invoking host decimal parsing or formatting. */
+function decimalRoundTrips(integer:bigint,decimalExponent:number,target:number):boolean {
+  const view=new DataView(new ArrayBuffer(8));view.setFloat64(0,target,false);const targetBits=view.getBigUint64(0,false);
+  let lo=0n,hi=0x7fefffffffffffffn;
+  while(lo<hi){const mid=(lo+hi)>>1n;if(compareDecimalToFloat(integer,decimalExponent,mid)>0)lo=mid+1n;else hi=mid}
+  const upper=lo,lower=upper===0n?0n:upper-1n;
+  if(upper===lower)return targetBits===upper;
+  // Select nearest by comparing 2*decimal with the exact sum of neighbors.
+  const exponentBits=(b:bigint)=>Number((b>>52n)&0x7ffn);
+  const exact=(b:bigint):[bigint,number]=>{const e=exponentBits(b),f=b&0xfffffffffffffn;return e===0?[f,-1074]:[(1n<<52n)|f,e-1075]};
+  let [li,le]=exact(lower),[ui,ue]=exact(upper),scale=Math.min(le,ue);let sum=(li<<BigInt(le-scale))+(ui<<BigInt(ue-scale));
+  let lhs=integer*2n,rhs=sum;if(decimalExponent>=0)lhs*=10n**BigInt(decimalExponent);else rhs*=10n**BigInt(-decimalExponent);if(scale>=0)rhs<<=BigInt(scale);else lhs<<=BigInt(-scale);
+  const chosen=lhs<rhs?lower:lhs>rhs?upper:(lower&1n)===0n?lower:upper;
+  return chosen===targetBits;
+}
+export interface SqliteFpDecode {digits:string; exponent:number; negative:boolean; special:0|1|2}
+/** Direct util.c:sqlite3FpDecode translation. iRound and mxRound are the
+ * printf.c conversion-specific inputs (16 ordinary, 20 for altform2). */
+export function sqliteFpDecode(value:number,iRound:number,mxRound:number):SqliteFpDecode {
+  const negative=value<0; if(value===0)return{digits:"0",exponent:0,negative:false,special:0};
+  if(!Number.isFinite(value))return{digits:"",exponent:0,negative,special:Number.isNaN(value)?2:1};
+  const magnitude=negative?-value:value,view=new DataView(new ArrayBuffer(8));view.setFloat64(0,magnitude,false);const bits=view.getBigUint64(0,false);
+  let e=Number((bits>>52n)&0x7ffn),v=bits&0xfffffffffffffn;
+  if(e===0){const nn=64-v.toString(2).length;v<<=BigInt(nn);e=-1074-nn}else{v=(v<<11n)|(1n<<63n);e-=1086}
+  const count=iRound<=0||iRound>=18?18:iRound+1,decoded=sqliteFp2Convert10(v,e,count);let digits=decoded.value.toString(),iDP=digits.length+decoded.exponent;
+  if(iRound<=0){iRound=iDP-iRound;if(iRound===0&&digits[0]!>="5"){digits="0"+digits;iRound=1;iDP++}}
+  if(iRound>0&&(iRound<digits.length||digits.length>mxRound)){
+    iRound=Math.min(iRound,mxRound);
+    if(iRound===17){
+      if(digits[15]==="9"&&digits[14]==="9"){let j=14;while(j>0&&digits[j-1]==="9")j--;const candidate=j===0?1n:BigInt(digits.slice(0,j))+1n;if(decimalRoundTrips(candidate,decoded.exponent+digits.length-j,magnitude))iRound=j+1}
+      else if(iDP>=digits.length||digits.slice(13,16)==="000"){let j=13;while(j>0&&digits[j-1]==="0")j--;const candidate=BigInt(digits.slice(0,j));if(decimalRoundTrips(candidate,decoded.exponent+digits.length-j,magnitude))iRound=j+1}
+    }
+    if(digits[iRound]!>="5"){let rounded=(BigInt(digits.slice(0,iRound)||"0")+1n).toString();if(rounded.length>iRound){iDP++;rounded=rounded.slice(0,iRound)}digits=rounded}else digits=digits.slice(0,iRound)
+  }
+  digits=digits.replace(/0+$/,"")||"0";
+  return{digits,exponent:iDP-1,negative,special:0};
+}
+export function sqliteRealDigits(value:number):{digits:string;exponent:number}{const d=sqliteFpDecode(value,17,20);return{digits:d.digits,exponent:d.exponent}}
+
 function sqliteNumberText(numeric: Numeric): string {
   if (numeric.kind === "integer") return numeric.value.toString();
   if (numeric.kind === "int-real") return `${numeric.value}.0`;
