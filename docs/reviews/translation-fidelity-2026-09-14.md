@@ -1519,3 +1519,29 @@ general joins, subqueries, aggregates, windows, CTEs, views, or unsupported
 storage shapes remain outside this bounded owner unless admitted by their own
 separately tested routes. No fallback evaluator, token reparsing, partial-arm
 execution, or main-database write is claimed.
+
+### Revision 2026-09-22 — C5 SELECT-list correlation disproof and correction
+
+At clean code HEAD `a648bf0`, manifest-pinned SQLite 3.53.4 and the Chinook image
+SHA-256 `7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15`
+returned `["AC/DC",2]` for the qualified correlated aggregate query. The public
+Fetch path on the identical bytes instead failed prepare with typed SQLite error
+`no such column: ar.ArtistId`. This disproved complete SELECT-list correlation
+ownership despite prior C1/A1/B4 repairs.
+
+Pinned source comparison: `resolve.c:lookupName` scans the current
+`NameContext.pSrcList` and then `pNext`, establishing local-first lexical
+ownership; `expr.c:sqlite3CodeSubselect` omits `OP_Once` for `EP_VarSelect` and
+uses the parent Parse/VDBE register space. The TypeScript linked resolver already
+matched that control. `compileTableSelect` subsequently collapsed the semantic
+qualified column to a single unqualified lookup token, losing the established
+source qualification. The correction reconstructs identifier components at
+that lowering boundary and preserves existing child/outer cursor allocation.
+It does not add alias-token matching, global symbols, catches, fallbacks, or new
+shape admission.
+
+The native oracle now captures exact source ID, image digest, and typed C5 row.
+Public Chinook coverage checks exact metadata/result/reset plus two independent
+correlated aggregate destinations in arithmetic composition. The all-encoding
+fixture checks qualified outer filtering, count/max empty and NULL results,
+reset, admission, and the existing limit/finalize first-error lifecycle gates.

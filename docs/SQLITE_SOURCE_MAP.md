@@ -1681,3 +1681,12 @@ The advanced manifest now records 30 attempted public row assertions and 18 cred
 `schema.ts:physicalIndex` now maps every primary `KeyInfo` term to an immutable selected-secondary record ordinal by exact column plus PK collation. `vdbe.ts:DeferredIndexSeek` gathers those ordinals in PK order. This translates pinned `wherecode.c:2171-2185` without assuming SQLite's deduplicated PK fields form a contiguous suffix. Native-generated all-encoding fixtures and public exact-counter tests cover mixed declared/auxiliary, reordered/interspersed, no-suffix, and collation-duplicate layouts. See immutable review `record:///review.md?card=card-s-c-b&v=3`.
 
 - `src/internal/vdbe.ts` aggregate-predicate ordered scalar producer maps pinned `expr.c:sqlite3CodeSubselect` SRT_Mem NULL initialization/Once/LIMIT-one control and `select.c` sorter destination flow into one shared Program; `test/conformance/aggregate-group-chinook-regressions.test.mjs` and `aggregate-group-lifecycle.test.mjs` cover the hash-gated result, controls, reset, UTF-8/16le/16be, and empty-to-NULL behavior.
+
+- C5 qualified correlated SELECT-list aggregate ownership: `resolve.c:lookupName`
+  (linked `NameContext.pNext`, local frame before outer frame) and
+  `expr.c:sqlite3CodeSubselect` (`EP_VarSelect` suppresses `OP_Once`, parent-VDBE
+  destination ownership) map to `resolve.ts:expandAndResolveSelect` and
+  `vdbe.ts:compileTableSelect` qualified semantic-column binding. Exact public
+  Fetch tests: `expression-subquery-chinook.test.mjs` and
+  `expression-subquery-composition.test.mjs`; pinned typed oracle:
+  `expression-subquery-chinook-native.py`.

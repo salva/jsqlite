@@ -4242,3 +4242,23 @@ Pinned native fixtures and all-encoding public tests cover four non-covering lay
 ### 2026-09-23 aggregate-predicate scalar ORDER/LIMIT destination
 
 For the admitted single-table aggregate predicate, an uncorrelated scalar subquery with a one-term ordered producer and `LIMIT 1` is lowered into the same `Program`. This follows pinned `expr.c:sqlite3CodeSubselect`: initialize the SRT_Mem-equivalent destination to NULL, guard the producer with `Once`, and retain the first ordered row; the existing budgeted sorter supplies the ordered destination. Registers and private cursors are allocated from the aggregate compiler, so reset and all database encodings rebuild one statement-wide private state rather than invoking a host evaluator. The adjacent shapes remain atomic temporary prepare errors. The hash-matched Chinook oracle returns 10—not the initially reported 4—for `Track.AlbumId=(SELECT AlbumId FROM Album ORDER BY AlbumId LIMIT 1)`; public tests preserve that discrepancy plus plain, aggregate, and empty scalar controls.
+
+### Revision 2026-09-22 — C5 qualified outer ownership in SELECT-list subqueries
+
+Native SQLite 3.53.4 on the digest-pinned Chinook image returns `AC/DC|2` for
+`SELECT Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId) FROM
+Artist ar WHERE ar.ArtistId=1`; the public path previously rejected
+`ar.ArtistId` as a missing column. `resolve.c:lookupName` walks linked
+`NameContext` frames local-first, while `expr.c:sqlite3CodeSubselect` emits a
+correlated (`EP_VarSelect`) child in the parent VDBE without `OP_Once`.
+
+The semantic resolver already preserved that linked ownership. The divergence
+was later lowering: `expressionFromReduction` represents `alias.column` as one
+column node, but `compileTableSelect` handed that combined spelling to its
+source resolver as if it were an unqualified identifier. It now reconstructs
+the qualified identifier components for the same source-aware resolution path.
+Child binding therefore keeps local-first shadowing and the resolved outer
+cursor; no alias map, textual substitution, host fallback, or widened plan is
+introduced. Digest/source-ID-bound C5 coverage and all-encoding composition
+coverage exercise qualified outer WHERE filtering, two aggregate children,
+arithmetic composition, metadata, reset, empty/NULL neighbors, and lifecycle.

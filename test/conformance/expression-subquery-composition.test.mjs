@@ -14,9 +14,11 @@ async function admitted(db){const s=db.prepare('SELECT 1').statement;try{assert.
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} independent and correlated scalar aggregates keep destinations isolated`,async()=>{
  const server=await serve(encoding);let db,s;try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
-  s=db.prepare('SELECT a,(SELECT count(*) FROM t2 WHERE x=t1.a),(SELECT max(y) FROM t2 WHERE x=t1.a) FROM t1 ORDER BY a').statement;
+  s=db.prepare('SELECT a,(SELECT count(*) FROM t2 WHERE x=t1.a),(SELECT max(y) FROM t2 WHERE x=t1.a) FROM t1 WHERE t1.a>=1 ORDER BY a').statement;
   assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i).name),['a','(SELECT count(*) FROM t2 WHERE x=t1.a)','(SELECT max(y) FROM t2 WHERE x=t1.a)']);
-  assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.reset();assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.finalize();s=undefined;await admitted(db);
+  assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.reset();assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.finalize();s=undefined;
+  s=db.prepare('SELECT a,(SELECT count(*) FROM t2 WHERE x=t1.a)+(SELECT count(*) FROM t2 WHERE x=t1.a) FROM t1 WHERE t1.a=1').statement;
+  assert.deepEqual(await rows(s),[[1n,4n]],'qualified outer binding composes across independent aggregate children');s.finalize();s=undefined;await admitted(db);
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
 });
 

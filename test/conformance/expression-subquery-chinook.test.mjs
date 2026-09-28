@@ -47,6 +47,21 @@ test('A1 independent aggregate scalar subqueries own disjoint registers and curs
  try{assert.deepEqual(await all(statement),[[25n,5n,25n]],'three independent destinations do not alias');}finally{statement.finalize();}
 }));
 
+test('C5 SELECT-list aggregate subquery retains qualified outer ownership',async()=>withDb(async db=>{
+ const sql='SELECT Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId) FROM Artist ar WHERE ar.ArtistId=1';
+ let statement=db.prepare(sql).statement;
+ try{
+  assert.deepEqual(Array.from({length:2},(_,i)=>statement.columnMetadata(i)),[
+   {name:'Name',declaredType:'NVARCHAR ( 120 )',database:'main',table:'Artist',origin:'Name'},
+   {name:'(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId)',declaredType:null,database:null,table:null,origin:null},
+  ]);
+  assert.deepEqual(await all(statement),[['AC/DC',2n]]);
+  statement.reset();assert.deepEqual(await all(statement),[['AC/DC',2n]],'qualified correlation reruns after reset');
+ }finally{statement.finalize();}
+ statement=db.prepare('SELECT Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId)+(SELECT COUNT(*) FROM Album b WHERE b.ArtistId=ar.ArtistId) FROM Artist ar WHERE ar.ArtistId=1').statement;
+ try{assert.deepEqual(await all(statement),[['AC/DC',4n]],'independent correlated aggregate destinations compose');}finally{statement.finalize();}
+}));
+
 test('B4 aggregate consumer reruns the correlated inner-join EXISTS and restores admission',async()=>withDb(async db=>{
  const sql='SELECT count(*) FROM Track t WHERE EXISTS(SELECT 1 FROM InvoiceLine il JOIN Invoice i ON i.InvoiceId=il.InvoiceId WHERE il.TrackId=t.TrackId)';
  let statement=db.prepare(sql).statement;

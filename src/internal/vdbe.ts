@@ -2814,7 +2814,14 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const resolveExpression=(expression:SelectNode["result"][number],allowAlias=true):Expression=>{
     const assign=(e:Expression):Expression=>{
       if(e.kind==="column"){
-        try{e.index=resolve([{text:e.name}]);e.cursor=0;}
+        try{
+          // expressionFromReduction retains a qualified name as one semantic
+          // column node. Feed its identifier components through the same
+          // source-aware resolver as a direct Expr token sequence; otherwise
+          // `alias.column` is incorrectly searched as a literal column name.
+          const parts=e.name.split('.');
+          e.index=resolve(parts.length===2?[{text:parts[0]!},{text:'.'},{text:parts[1]!}]:[{text:e.name}]);e.cursor=0;
+        }
         catch(error){const aliases=allowAlias&&!e.name.includes('.')?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):[];if(aliases[0])return resolveExpression(aliases[0],false);throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");if(selectedPhysical&&!selectedNeedsTableLookup)e.index=storageColumn(e.index);e.cursor=0;return e;
