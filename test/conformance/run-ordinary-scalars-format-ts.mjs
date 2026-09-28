@@ -19,7 +19,7 @@ try{
   assert.deepEqual(await row("SELECT printf('[%5s][%!5s]','é','é'),printf('[%.*s]',-2,'abcd')"),['[   é][    é]','[ab]']);
   assert.deepEqual(await row("SELECT printf('%f|%0.2e|%+f|% f',1e999,1e999,-1e999,1e999)"),['Inf|9.00e+999|-Inf| Inf']);
   assert.deepEqual(await row("SELECT CAST(9223372036854775807+1 AS TEXT),CAST(1e308*10 AS TEXT),CAST(1e-320 AS TEXT),printf('%!.17g|%!.20g',1e-320,1e-320),quote(1e308*10)"),['9.2233720368547758e+18','Inf','9.9998886718268301e-321','9.9998886718268301e-321|9.99988867182683005e-321','9.0e+999']);
-  assert.deepEqual(await row("SELECT printf('%!.20f',1.0/3),printf('%!.20F',-1.0/3),printf('%!.20e',1e-320),printf('%!+030.20E',-1e20/3)"),['0.333333333333333315','','9.99988867182683005e-321','-00000003.3333333333333332E+19']);
+  assert.deepEqual(await row("SELECT printf('%!.20f',1.0/3),printf('%!.20F',-1.0/3),printf('%!.20e',1e-320),printf('%!+030.20E',-1e20/3),printf('%!.20g',1.0/3),printf('%!.20G',-1e-320),printf('%.20f|%.20e',1.0/3,1e-320)"),['0.333333333333333315','','9.99988867182683005e-321','-00000003.3333333333333332E+19','0.333333333333333315','-9.99988867182683005E-321','0.33333333333333330000|9.99988867182683000000e-321']);
   assert.deepEqual(await row("SELECT printf('%f|%0f',NULL,NULL)"),['0.000000|0.000000']);
   // The SQL formatter reads C strings: a NUL terminates both the format and
   // converted text. Dynamic width/precision consume arguments in source order.
