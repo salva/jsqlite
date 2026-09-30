@@ -898,3 +898,9 @@ at prepare (even with outer LIMIT 0). Its single aggregate row requires no
 additional outer sort; producer ORDER and aggregate argument ORDER retain
 their own ordering and limit semantics. This is not a general ORDER guarantee
 for arbitrary derived or grouped producers.
+
+Selected inner-join index access evaluates a dependent IN/range RHS only after
+its selected preceding source is positioned; LEFT/RIGHT NULL-row continuation
+retains source order. The mixed IN/range public regression is bounded to the
+represented index/outer-join shapes in three encodings, not general optimizer or
+STAT4 parity (`test/conformance/mixed-in-range-red.test.mjs`).

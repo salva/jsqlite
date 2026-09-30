@@ -2438,3 +2438,16 @@ EList alias/ordinal and source expressions, and the non-GROUP
 Pinned ctypes and public two-reset typed/preparation probes pass. Earlier
 outer-ORDER exclusion is superseded only for this route. Generic completed-
 child relocation and its structural assertion remain red.
+
+### Mixed IN/range future-RHS revision (card-s-c-d-j)
+
+The prior selected-access coverage did not prove execution of a path whose RHS
+comes from a later FROM source. Pinned read-only SQLite returns `(1,2,2)` for
+`x JOIN y INDEXED BY m_abc ON y.a IN (x.a,z.a) AND y.b>=z.b AND y.b<3
+JOIN z ON z.id=2 WHERE x.id=1`; the prior TS lowerer returned no rows despite
+planning `[x,z,y]`. Entry-only reordering produced an extra `(1,2,4)` because
+Next still advanced the source-order cursor. The current lowerer uses selected
+ordinals for inner-join entry, readiness and continuation; the three-encoding
+public test passes. LEFT/RIGHT source-order NULL continuation is not reordered.
+Private chosen-work counts, physical DESC and general forced-index boundary
+cases remain unqualified by this fix.

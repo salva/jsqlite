@@ -6434,3 +6434,18 @@ source-owned; it remains a migration gap. The captured pinned
 `aggregate30-group-concat-null-separator` and the utf8/utf16le/utf16be
 private-budget baseline/sorter/error tests in `from-subquery-routes.test.mjs`
 exercise this boundary through the public API.
+
+### Mixed IN/range future-RHS qualification (card-s-c-d-j)
+
+The selected inner-join `wherePathSolver` ordinals now drive multi-source VDBE
+loop entry, prerequisite-ready masks, and selected-cursor Next/Prev continuation.
+Before this repair the planner chose `[x,z,y]` for `y.a IN (x.a,z.a)` but the
+lowerer executed `[x,y,z]`, reading an unpositioned RHS. Reordering entry alone
+created a duplicate row when Next still advanced a source-order cursor. Compare
+pinned `where.c:wherePathSolver`, `whereexpr.c:exprAnalyze` (RHS prerequisites),
+`wherecode.c:codeEqualityTerm`/Case 4 (RHS positioning) and `sqlite3WhereEnd`
+(loop continuation). Source-order outer-join NULL-row continuation remains in
+place. `mixed-in-range-red.test.mjs` exercises the chosen dependency, competing
+first-slot range, later residual, NULL, empty and LEFT controls in three encodings.
+The observed forced non-leading-column traversal succeeds; this is not a claim
+of general forced-index, STAT4, DESC physical-index or optimizer parity.
