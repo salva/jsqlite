@@ -2451,3 +2451,11 @@ ordinals for inner-join entry, readiness and continuation; the three-encoding
 public test passes. LEFT/RIGHT source-order NULL continuation is not reordered.
 Private chosen-work counts, physical DESC and general forced-index boundary
 cases remain unqualified by this fix.
+
+Follow-up validation corrected an unrelated latent standalone SELECT register
+range off-by-one exposed by the broader join check: sorted three-source
+USING/NATURAL and RIGHT/FULL cases attempted `Copy` into a nonexistent Mem.
+The standalone allocator now reserves `count` registers from `registers+1`,
+consistent with `select.c:selectInnerLoop` and the shared builder. The 92-case
+broader join/in-range command now exits 0; its earlier 3 failing cases remain
+recorded as the pre-fix result, not erased by typecheck.

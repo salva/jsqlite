@@ -6449,3 +6449,13 @@ place. `mixed-in-range-red.test.mjs` exercises the chosen dependency, competing
 first-slot range, later residual, NULL, empty and LEFT controls in three encodings.
 The observed forced non-leading-column traversal succeeds; this is not a claim
 of general forced-index, STAT4, DESC physical-index or optimizer parity.
+
+Follow-up register correction: the standalone `compileInnerTableSelect` range
+allocator returned the second unallocated register while reserving only
+`count-1`; a one-key sorter therefore emitted `Copy` to a nonexistent Mem.
+Reserve `count` and return the old high-water mark plus one, as the shared
+`SelectProgramBuilder.range` does. Pinned `select.c:selectInnerLoop` reserves
+`pParse->nMem+1` through `+nResultCol` for result ranges; this is register
+ownership, not a SQL-specific join exception. The broader three-source
+USING/NATURAL and RIGHT/FULL sorter regression now executes without an
+undefined destination in addition to the mixed-IN reproducer.
