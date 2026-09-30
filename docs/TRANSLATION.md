@@ -4451,9 +4451,11 @@ RHS shapes still reject/replan atomically. Two-slot fixture expectations
 were checked independently with host SQLite 3.45.1; separate unsorted RHS
 cases have pinned 3.53.4 read-only comparisons. Three-slot native evidence
 is now independently frozen in `test/conformance/cases/three-in-native.json`
-by `capture-three-in.py` against the immutable advanced-index images: typed
-ordered rows, EQP, selected root/IN cursor/restart/seek VDBE, counters and
-fixture hashes/roots in UTF-8/16le/16be. `three-in-native-ts.test.mjs` compares
+by `capture-three-in.py` against the immutable advanced-index images: the
+exact existing single/rebind and LEFT SQL plus an unmatched LEFT neighbor,
+typed ordered rows, EQP, selected root/IN cursor/restart/seek VDBE, counters and
+fixture hashes/roots in UTF-8/16le/16be; both native binds execute on one
+prepared statement separated by reset/clear bindings. `three-in-native-ts.test.mjs` compares
 exact SQL via public fresh/reset/rebound calls, scan controls and selected-root
 corruption versus off-path scan isolation. The in-memory
 ordered finite `InListValue` set is a browser-safe ephemeral Btree substitution:

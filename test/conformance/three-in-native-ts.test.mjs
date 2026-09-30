@@ -25,7 +25,7 @@ for(const variant of cap.variants){
       const rows=[];while(await st.step()==='row')rows.push(Array.from({length:st.columnCount},(_,i)=>encode(st.column(i))));
       assert.deepEqual(rows,c.rows,`${name} native ordered typed rows ${JSON.stringify(c.bindings)}`);
       const work=privateAccounting(st);
-      if(name==='single'||name==='left'){
+      if(name==='single'||name.startsWith('left')){
        assert.ok(c.eqp.some(x=>x.includes('m_abc')),`${name} native selected index`);
        assert.ok(c.vdbe.filter(x=>x.opcode==='OpenEphemeral').length>=3,`${name} native per-IN RHS cursor`);
        assert.ok(c.vdbe.filter(x=>x.opcode==='Rewind').length>=3,`${name} native RHS rewind`);

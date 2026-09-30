@@ -12,12 +12,15 @@ class ThreeInFrozen(unittest.TestCase):
     self.assertEqual(hashlib.sha256((ROOT/v['fixture']).read_bytes()).hexdigest(),v['sha256'])
     self.assertGreater(v['roots']['m_abc'],0)
     self.assertGreater(v['roots']['m'],0)
-    single=v['cases']['single'];left=v['cases']['left'][0];scan=v['cases']['scan']
+    single=v['cases']['single'];left=v['cases']['left'][0];unmatched=v['cases']['left-unmatched'][0];scan=v['cases']['scan']
+    self.assertEqual(CAP['sql']['single'],'SELECT id,a,b,c FROM m INDEXED BY m_abc WHERE a IN (?1,?2,NULL) AND b IN (3,2,1) AND c IN (5,4,3,2,1,NULL)')
+    self.assertEqual(CAP['sql']['left'],'SELECT x.id,y.id FROM m x LEFT JOIN m y INDEXED BY m_abc ON y.a IN (x.a,x.a,NULL) AND y.b IN (3,2,1) AND y.c IN (5,4,3,2,1,NULL) AND y.id=x.id WHERE x.id IN (1,2,3,4,5) ORDER BY x.id,y.id')
     self.assertEqual([r['rows'] for r in single],[r['rows'] for r in scan])
     self.assertEqual([len(r['rows']) for r in single],[4,4])
     self.assertEqual(len(left['rows']),5)
-    self.assertEqual(left['rows'][-1],[{'type':'integer','value':'5'},{'type':'null'}])
-    for case in (*single,left):
+    self.assertEqual(left['rows'][-1],[{'type':'integer','value':'5'},{'type':'integer','value':'5'}])
+    self.assertEqual(unmatched['rows'][-1],[{'type':'integer','value':'5'},{'type':'null'}])
+    for case in (*single,left,unmatched):
      self.assertTrue(any('USING COVERING INDEX m_abc' in line for line in case['eqp']))
      self.assertEqual(case['counters']['fullscanSteps'],0)
      ops=[op['opcode'] for op in case['vdbe']]

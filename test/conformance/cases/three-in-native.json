@@ -3,7 +3,8 @@
   "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
   "sql": {
     "single": "SELECT id,a,b,c FROM m INDEXED BY m_abc WHERE a IN (?1,?2,NULL) AND b IN (3,2,1) AND c IN (5,4,3,2,1,NULL)",
-    "left": "SELECT x.id,y.id FROM m x LEFT JOIN m y INDEXED BY m_abc ON y.a IN (x.a,x.a,NULL) AND y.b IN (3,2,1) AND y.c IN (5,4,3,2,1,NULL) AND y.id=x.id AND y.id<>5 WHERE x.id IN (1,2,3,4,5) ORDER BY x.id,y.id",
+    "left": "SELECT x.id,y.id FROM m x LEFT JOIN m y INDEXED BY m_abc ON y.a IN (x.a,x.a,NULL) AND y.b IN (3,2,1) AND y.c IN (5,4,3,2,1,NULL) AND y.id=x.id WHERE x.id IN (1,2,3,4,5) ORDER BY x.id,y.id",
+    "left-unmatched": "SELECT x.id,y.id FROM m x LEFT JOIN m y INDEXED BY m_abc ON y.a IN (x.a,x.a,NULL) AND y.b IN (3,2,1) AND y.c IN (5,4,3,2,1,NULL) AND y.id=x.id AND y.id<>5 WHERE x.id IN (1,2,3,4,5) ORDER BY x.id,y.id",
     "scan": "SELECT id,a,b,c FROM m NOT INDEXED WHERE a IN (?1,?2,NULL) AND b IN (3,2,1) AND c IN (5,4,3,2,1,NULL)"
   },
   "variants": [
@@ -865,6 +866,506 @@
           }
         ],
         "left": [
+          {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "counters": {
+              "fullscanSteps": 0,
+              "sortOperations": 0,
+              "vmSteps": 951
+            },
+            "eqp": [
+              "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+              "SEARCH y USING COVERING INDEX m_abc (a=? AND b=? AND c=? AND rowid=?) LEFT-JOIN"
+            ],
+            "vdbe": [
+              {
+                "addr": 2,
+                "opcode": "OpenRead",
+                "p1": 0,
+                "p2": 15,
+                "p3": 0,
+                "p4": "2",
+                "p5": 0
+              },
+              {
+                "addr": 3,
+                "opcode": "OpenRead",
+                "p1": 3,
+                "p2": 17,
+                "p3": 0,
+                "p4": "k(4,,,,)",
+                "p5": 2
+              },
+              {
+                "addr": 6,
+                "opcode": "OpenEphemeral",
+                "p1": 4,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,)",
+                "p5": 0
+              },
+              {
+                "addr": 9,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 12,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 15,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 18,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 21,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 22,
+                "opcode": "NullRow",
+                "p1": 4,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 24,
+                "opcode": "Rewind",
+                "p1": 4,
+                "p2": 109,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 25,
+                "opcode": "Column",
+                "p1": 4,
+                "p2": 0,
+                "p3": 1,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 26,
+                "opcode": "IsNull",
+                "p1": 1,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 31,
+                "opcode": "OpenEphemeral",
+                "p1": 5,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 32,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 34,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 35,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 37,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 40,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 41,
+                "opcode": "Rewind",
+                "p1": 5,
+                "p2": 105,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 42,
+                "opcode": "Column",
+                "p1": 5,
+                "p2": 0,
+                "p3": 6,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 43,
+                "opcode": "IsNull",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 46,
+                "opcode": "OpenEphemeral",
+                "p1": 6,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 49,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 52,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 55,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 56,
+                "opcode": "NullRow",
+                "p1": 6,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 58,
+                "opcode": "Rewind",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 59,
+                "opcode": "Column",
+                "p1": 6,
+                "p2": 0,
+                "p3": 7,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 60,
+                "opcode": "IsNull",
+                "p1": 7,
+                "p2": 103,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 64,
+                "opcode": "OpenEphemeral",
+                "p1": 7,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 67,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 70,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 73,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 76,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 79,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 82,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 83,
+                "opcode": "NullRow",
+                "p1": 7,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 85,
+                "opcode": "Rewind",
+                "p1": 7,
+                "p2": 101,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 86,
+                "opcode": "Column",
+                "p1": 7,
+                "p2": 0,
+                "p3": 8,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 87,
+                "opcode": "IsNull",
+                "p1": 8,
+                "p2": 100,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 91,
+                "opcode": "SeekGE",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 92,
+                "opcode": "IdxGT",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 100,
+                "opcode": "Next",
+                "p1": 7,
+                "p2": 86,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 103,
+                "opcode": "Next",
+                "p1": 6,
+                "p2": 59,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 104,
+                "opcode": "Next",
+                "p1": 5,
+                "p2": 42,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 105,
+                "opcode": "IfPos",
+                "p1": 5,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 106,
+                "opcode": "NullRow",
+                "p1": 3,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 108,
+                "opcode": "Next",
+                "p1": 4,
+                "p2": 25,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              }
+            ]
+          }
+        ],
+        "left-unmatched": [
           {
             "bindings": [],
             "rows": [
@@ -3048,6 +3549,506 @@
                   "value": "5"
                 },
                 {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "counters": {
+              "fullscanSteps": 0,
+              "sortOperations": 0,
+              "vmSteps": 951
+            },
+            "eqp": [
+              "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+              "SEARCH y USING COVERING INDEX m_abc (a=? AND b=? AND c=? AND rowid=?) LEFT-JOIN"
+            ],
+            "vdbe": [
+              {
+                "addr": 2,
+                "opcode": "OpenRead",
+                "p1": 0,
+                "p2": 18,
+                "p3": 0,
+                "p4": "2",
+                "p5": 0
+              },
+              {
+                "addr": 3,
+                "opcode": "OpenRead",
+                "p1": 3,
+                "p2": 19,
+                "p3": 0,
+                "p4": "k(4,,,,)",
+                "p5": 2
+              },
+              {
+                "addr": 6,
+                "opcode": "OpenEphemeral",
+                "p1": 4,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,)",
+                "p5": 0
+              },
+              {
+                "addr": 9,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 12,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 15,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 18,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 21,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 22,
+                "opcode": "NullRow",
+                "p1": 4,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 24,
+                "opcode": "Rewind",
+                "p1": 4,
+                "p2": 109,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 25,
+                "opcode": "Column",
+                "p1": 4,
+                "p2": 0,
+                "p3": 1,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 26,
+                "opcode": "IsNull",
+                "p1": 1,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 31,
+                "opcode": "OpenEphemeral",
+                "p1": 5,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 32,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 34,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 35,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 37,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 40,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 41,
+                "opcode": "Rewind",
+                "p1": 5,
+                "p2": 105,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 42,
+                "opcode": "Column",
+                "p1": 5,
+                "p2": 0,
+                "p3": 6,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 43,
+                "opcode": "IsNull",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 46,
+                "opcode": "OpenEphemeral",
+                "p1": 6,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 49,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 52,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 55,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 56,
+                "opcode": "NullRow",
+                "p1": 6,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 58,
+                "opcode": "Rewind",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 59,
+                "opcode": "Column",
+                "p1": 6,
+                "p2": 0,
+                "p3": 7,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 60,
+                "opcode": "IsNull",
+                "p1": 7,
+                "p2": 103,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 64,
+                "opcode": "OpenEphemeral",
+                "p1": 7,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 67,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 70,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 73,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 76,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 79,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 82,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 83,
+                "opcode": "NullRow",
+                "p1": 7,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 85,
+                "opcode": "Rewind",
+                "p1": 7,
+                "p2": 101,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 86,
+                "opcode": "Column",
+                "p1": 7,
+                "p2": 0,
+                "p3": 8,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 87,
+                "opcode": "IsNull",
+                "p1": 8,
+                "p2": 100,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 91,
+                "opcode": "SeekGE",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 92,
+                "opcode": "IdxGT",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 100,
+                "opcode": "Next",
+                "p1": 7,
+                "p2": 86,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 103,
+                "opcode": "Next",
+                "p1": 6,
+                "p2": 59,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 104,
+                "opcode": "Next",
+                "p1": 5,
+                "p2": 42,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 105,
+                "opcode": "IfPos",
+                "p1": 5,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 106,
+                "opcode": "NullRow",
+                "p1": 3,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 108,
+                "opcode": "Next",
+                "p1": 4,
+                "p2": 25,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              }
+            ]
+          }
+        ],
+        "left-unmatched": [
+          {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
                   "type": "null"
                 }
               ]
@@ -5133,6 +6134,506 @@
           }
         ],
         "left": [
+          {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                }
+              ]
+            ],
+            "counters": {
+              "fullscanSteps": 0,
+              "sortOperations": 0,
+              "vmSteps": 951
+            },
+            "eqp": [
+              "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+              "SEARCH y USING COVERING INDEX m_abc (a=? AND b=? AND c=? AND rowid=?) LEFT-JOIN"
+            ],
+            "vdbe": [
+              {
+                "addr": 2,
+                "opcode": "OpenRead",
+                "p1": 0,
+                "p2": 18,
+                "p3": 0,
+                "p4": "2",
+                "p5": 0
+              },
+              {
+                "addr": 3,
+                "opcode": "OpenRead",
+                "p1": 3,
+                "p2": 19,
+                "p3": 0,
+                "p4": "k(4,,,,)",
+                "p5": 2
+              },
+              {
+                "addr": 6,
+                "opcode": "OpenEphemeral",
+                "p1": 4,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,)",
+                "p5": 0
+              },
+              {
+                "addr": 9,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 12,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 15,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 18,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 21,
+                "opcode": "IdxInsert",
+                "p1": 4,
+                "p2": 4,
+                "p3": 3,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 22,
+                "opcode": "NullRow",
+                "p1": 4,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 24,
+                "opcode": "Rewind",
+                "p1": 4,
+                "p2": 109,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 25,
+                "opcode": "Column",
+                "p1": 4,
+                "p2": 0,
+                "p3": 1,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 26,
+                "opcode": "IsNull",
+                "p1": 1,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 31,
+                "opcode": "OpenEphemeral",
+                "p1": 5,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 32,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 34,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 35,
+                "opcode": "Column",
+                "p1": 0,
+                "p2": 1,
+                "p3": 11,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 37,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 40,
+                "opcode": "IdxInsert",
+                "p1": 5,
+                "p2": 12,
+                "p3": 11,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 41,
+                "opcode": "Rewind",
+                "p1": 5,
+                "p2": 105,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 42,
+                "opcode": "Column",
+                "p1": 5,
+                "p2": 0,
+                "p3": 6,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 43,
+                "opcode": "IsNull",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 46,
+                "opcode": "OpenEphemeral",
+                "p1": 6,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 49,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 52,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 55,
+                "opcode": "IdxInsert",
+                "p1": 6,
+                "p2": 11,
+                "p3": 12,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 56,
+                "opcode": "NullRow",
+                "p1": 6,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 58,
+                "opcode": "Rewind",
+                "p1": 6,
+                "p2": 104,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 59,
+                "opcode": "Column",
+                "p1": 6,
+                "p2": 0,
+                "p3": 7,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 60,
+                "opcode": "IsNull",
+                "p1": 7,
+                "p2": 103,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 64,
+                "opcode": "OpenEphemeral",
+                "p1": 7,
+                "p2": 1,
+                "p3": 0,
+                "p4": "k(1,B)",
+                "p5": 0
+              },
+              {
+                "addr": 67,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 70,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 73,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 76,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 79,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 82,
+                "opcode": "IdxInsert",
+                "p1": 7,
+                "p2": 16,
+                "p3": 15,
+                "p4": "1",
+                "p5": 0
+              },
+              {
+                "addr": 83,
+                "opcode": "NullRow",
+                "p1": 7,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 85,
+                "opcode": "Rewind",
+                "p1": 7,
+                "p2": 101,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 86,
+                "opcode": "Column",
+                "p1": 7,
+                "p2": 0,
+                "p3": 8,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 87,
+                "opcode": "IsNull",
+                "p1": 8,
+                "p2": 100,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 91,
+                "opcode": "SeekGE",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 92,
+                "opcode": "IdxGT",
+                "p1": 3,
+                "p2": 98,
+                "p3": 6,
+                "p4": "4",
+                "p5": 0
+              },
+              {
+                "addr": 100,
+                "opcode": "Next",
+                "p1": 7,
+                "p2": 86,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 103,
+                "opcode": "Next",
+                "p1": 6,
+                "p2": 59,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 104,
+                "opcode": "Next",
+                "p1": 5,
+                "p2": 42,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 105,
+                "opcode": "IfPos",
+                "p1": 5,
+                "p2": 108,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 106,
+                "opcode": "NullRow",
+                "p1": 3,
+                "p2": 0,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              },
+              {
+                "addr": 108,
+                "opcode": "Next",
+                "p1": 4,
+                "p2": 25,
+                "p3": 0,
+                "p4": null,
+                "p5": 0
+              }
+            ]
+          }
+        ],
+        "left-unmatched": [
           {
             "bindings": [],
             "rows": [

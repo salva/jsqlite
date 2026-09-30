@@ -1689,7 +1689,8 @@ advanced-index fixtures in UTF-8/16le/16be. The original single-slot cases
 retain LEFT unmatched-once, NULL RHS, duplicate and reset checks. These tests
 are now supplemented by an independently captured pinned three-slot typed
 oracle, not general multi-IN/ORDER/statistics parity: `capture-three-in.py`
-freezes UTF-8/16le/16be read-only advanced-index fixture hashes/roots, EQP,
+freezes UTF-8/16le/16be read-only advanced-index fixture hashes/roots, exact
+existing single/rebind and LEFT SQL plus unmatched LEFT neighbor, EQP,
 VDBE per-IN cursor and composite seek instructions, typed ordered rows and
 stmt counters. `three-in-native.test.py` and `three-in-native-ts.test.mjs`
 assert source identity, native selected/scan structure and exact-SQL public

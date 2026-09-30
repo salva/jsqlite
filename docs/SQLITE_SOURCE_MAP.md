@@ -1840,11 +1840,13 @@ forced/unforced and LEFT cases. Separate UTF-8/16le/16be advanced-index tests
 exercise three selected slots, single-table rebind and joined LEFT selected
 seeks with expected IDs. The independent manifest-pinned read-only capture
 `capture-three-in.py` / `cases/three-in-native.json` now freezes those exact
-three-slot single/LEFT queries (plus NOT INDEXED scan control) for all three
+three-slot single/LEFT queries (and an extra LEFT unmatched neighbor plus
+NOT INDEXED scan control) for all three
 advanced-index encodings: fixture SHA-256, `m`/`m_abc` roots, typed ordered rows,
 EQP, relevant RHS cursor/seek VDBE operations and bounded native stmt counters.
 `three-in-native.test.py` asserts native root/cursor/scan structure;
-`three-in-native-ts.test.mjs` compares the same SQL, fresh/reset-rebound typed
+`capture-three-in.py` also steps both parameter sets on the same native prepared
+statement after reset/clear bindings; `three-in-native-ts.test.mjs` compares the same SQL, fresh/reset-rebound typed
 public rows and selected probe vs scan work, including off-path scan and
 selected-root corruption (SQLite code 11) on disposable byte mutations. This does not prove arbitrary
 multi-IN, optimizer cost, or ORDER parity. Unsupported RHS/vector shapes must
