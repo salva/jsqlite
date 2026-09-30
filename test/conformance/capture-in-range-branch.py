@@ -26,11 +26,8 @@ cases=[
 try:
  out=[]
  for dimension,disposition,sql in cases:
-  if disposition=='unsupported':
-   # The pinned source accepts vector IN; TS explicitly does not.
-   rows,counters=m.query(d,db,sql);eqp=m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,())
-  else:
-   rows,counters=m.query(d,db,sql);eqp=m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,())
+  # Capture native vector-IN rows too: TS intentionally rejects that shape.
+  rows,counters=m.query(d,db,sql);eqp=m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,())
   out.append(dict(dimension=dimension,disposition=disposition,sql=sql,fixture=str(fixture.relative_to(ROOT)),expected=rows,eqp=eqp,nativeCounters=counters))
 finally:d.sqlite3_close(db)
 result=dict(sourceId=manifest['sqliteSourceId'],fixtureSha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),cases=out)
