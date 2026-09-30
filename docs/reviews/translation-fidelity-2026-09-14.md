@@ -1560,3 +1560,687 @@ The finding in `record:///review.md?card=card-p-b&v=16` is corrected: `%f`, `%e`
 and `%E` now pass altform2's 20-digit decoder cap and apply source trailing-zero
 removal; ordinary and round behavior is unchanged. Explicit C column-text evidence
 also records that uppercase `%F` is not a pinned conversion and emits empty.
+### Revision 2026-09-29 — joined no-GROUP aggregate child checkpoint
+
+The earlier one-source-only aggregate-child gate is historical: the bounded
+no-GROUP joined accumulator now scans each source with parent-owned cursor
+allocation and emits into the parent's destination. Paired public native
+cases pass, but the five-file ownership reproducer still fails on the
+completed-child `compileScalarSelect` fallback. The latter is a current gap,
+not a prediction about the newly migrated aggregate branch. Nonaggregate
+multi-source children still require a source-owned producer before removal.
+
+**card-t-b joined-child rowid-seek revision:** A new pre-migration oracle/public
+probe for `t1.a=3` joined scalar/Exists/IN demonstrated a reachable `SeekRowid`
+producer previously rejected by the completed-child fallback. Its cursor,
+key register and exit PC are now admitted and rebased in that fallback; public
+rows/types/names/reset pass. This does not resolve the structural ownership
+finding: the nonaggregate join still produces a separate Program and is spliced.
+
+**card-t-b nonflattenable LIMIT producer/outer WHERE revision (2026-09-29):**
+Pinned `select.c:flattenSubquery` restriction (19) keeps producer LIMIT
+before outer WHERE. The bounded one-table no-ORDER/no-DISTINCT producer now
+lowers producer scan/LIMIT and substituted outer predicate into the same
+scalar/EXISTS/IN builder, decrementing producer LIMIT on outer rejection.
+Paired pinned/public `x+1 AS y FROM t2 LIMIT 1` and outer `d.y>2` typed
+NULL/0/0, names, resets pass; public pre-edit failed `no such table: d`.
+General ephemeral/coroutine, ORDER, DISTINCT and multirow outer callers remain
+red.
+
+**card-t-b COLLATE-wrapped producer ORDER revision (2026-09-29):**
+Pinned `resolve.c:resolveOrderGroupBy` skips COLLATE to bind producer
+AS-name/ordinal, retaining the wrapper during result substitution before
+`select.c:flattenSubquery` transfers ORDER. Bounded public alias/ordinal
+`x+1 AS y ORDER BY y/1 COLLATE BINARY DESC LIMIT 1` returned 4/2 versus
+pinned 10/10 pre-edit; source-ID-checked native/public typed rows, names and
+resets now pass. General NameContext and nonflattenable materialization remain
+red.
+
+**card-t-b producer ORDER ordinal before flatten transfer revision (2026-09-29):**
+Pinned `resolve.c:resolveOrderGroupBy` binds ordinals to producer EList width
+before `select.c:flattenSubquery` transfers ORDER. Bounded two-column
+producer `x AS a, x+1 AS b ORDER BY 2` previously failed on parent's
+one-column 1..1 check. Source-ID-checked native/public alias/ordinal typed
+rows, metadata and resets and `ORDER BY 3` 1..2 rejection pass after binding
+against producer width. Nonflattenable materialization remains red.
+
+**card-t-b producer ORDER AS-name before flatten transfer revision (2026-09-29):**
+Pinned `resolve.c:resolveOrderGroupBy` binds producer aliases before
+`select.c:flattenSubquery` transfers ORDER. Bounded transfer now resolves
+producer AS-names against producer EList: `x+1 AS y ORDER BY y DESC LIMIT 1`
+previously produced public 4 vs pinned 10. Source-ID-checked native/public
+alias/ordinal rows, metadata and resets pass. General NameContext and
+nonflattenable materialization remain red.
+
+**card-t-b source-permitted derived LIMIT transfer revision (2026-09-29):**
+Pinned `select.c:flattenSubquery` (13)/(14)/(19) permits producer LIMIT
+transfer only without parent LIMIT/WHERE or producer OFFSET. Bounded
+one-table caller now carries producer LIMIT plus ORDER into enclosing-builder
+scan/sorter/SRT; paired native/public rows, metadata and resets pass for
+LIMIT 0/1 and ORDER plus LIMIT 1/2. Pre-edit public `no such table: d`.
+Nonflattenable LIMIT with outer WHERE and generic completed-child relocation
+remain red.
+
+**card-t-b nonzero-source derived ORDER transfer revision (2026-09-29):**
+Pinned `select.c:flattenSubquery` permits nonaggregate/non-DISTINCT
+single-source producer ORDER without LIMIT and parent ORDER; producer ORDER
+transfers to the flattened parent before its sorter and SRT destination.
+The bounded caller now compiles this transfer in the enclosing builder.
+Source-ID-checked native/public scalar/EXISTS/IN typed rows, names and resets
+pass; initial public probe failed `no such table: d`. Producer LIMIT,
+materialized CTE/derived, and live completed-child relocation remain red.
+
+**card-t-b ORDER resolution for no-FROM derived producer revision (2026-09-29):**
+Pinned `resolve.c:resolveOrderGroupBy` resolves AS-name and integer ordinal
+against the producer EList before ordinary expression resolution. Bounded
+shared-builder ORDER keys now bind these references to result registers;
+ordinals outside result width reject at prepare with pinned error.
+Source-ID-checked native/public typed alias/ordinal rows, reset and native
+error/public post-rejection preparation pass. Generic NameContext, multirow
+sorter and live completed-child relocation remain red.
+
+**card-t-b ORDER no-FROM derived producer revision (2026-09-29):**
+A producer ORDER fell through to `no such table: d`. Pinned
+`flattenSubquery` restriction (7) retains the no-FROM producer;
+`selectInnerLoop` loads its row before `pushOntoSorter` computes keys and
+sorter LIMIT/OFFSET. The bounded shared builder now evaluates bound ORDER
+keys after the producer row and before its OFFSET; a single row has no
+comparison or multirow drain. Source-ID-checked native/public typed
+scalar/EXISTS/IN rows/names and reset pass. Multirow sorter ownership,
+general derived/CTE and live generic relocation remain red.
+
+**card-t-b DISTINCT no-FROM derived producer revision (2026-09-29):**
+A DISTINCT producer fell through to `no such table: d`. Pinned
+`flattenSubquery` restriction (7) retains no-FROM producer and `sqlite3Select`
+consults DISTINCT planning before `selectInnerLoop` emits its candidate.
+This bounded producer has at most one admitted row, so DISTINCT cannot
+suppress it; the shared builder fills its transient row and emits outer
+Mem/Exists/Set without a dedup cursor. Source-ID-checked native/public typed
+rows/names and reset pass. ORDER, multirow DISTINCT and live generic
+relocation remain red.
+
+**card-t-b multi-column no-FROM derived producer revision (2026-09-29):**
+The one-column branch previously fell through to `no such table: d` for a
+multi-column producer. Pinned `flattenSubquery` restriction (7) retains it;
+`selectInnerLoop` fills its result row before the outer WHERE/result, and
+`resolveExprStep` binds transient names. The bounded shared builder now
+allocates producer row registers, fills them on an admitted row and binds
+outer WHERE/result into those registers before Mem/Exists/Set. Source-ID-
+checked native/public typed rows/names and reset pass. Wider derived/CTE,
+ORDER and live generic relocation remain red.
+
+**card-t-b outer expression on zero-source derived column child revision (2026-09-29):**
+Previously `d.n+1` in the outer result over a no-FROM producer fell through
+to `no such table: d`. Pinned `resolveExprStep` binds transient columns
+throughout the result and `selectInnerLoop` evaluates it only after producer
+admission. The bounded shared-builder child substitutes the producer
+reduction into its outer result and emits Mem/Exists/Set after its gates;
+unbound columns reject before ops. Source-ID-checked native/public typed
+rows/names and reset pass. Independent ORDER, wider derived shapes and live
+completed-child relocation keep the global structural assertion red.
+
+**card-t-b outer WHERE on zero-source derived column child revision (2026-09-29):**
+The no-FROM producer with outer WHERE previously fell through to `no such
+table: d`. Pinned `flattenSubquery` restriction (7) retains the producer,
+`resolveExprStep` binds its transient column, and `selectInnerLoop` evaluates
+the outer predicate only after producer row admission. The shared-builder
+child now substitutes that binding and gates Mem/Exists/Set before outer
+OFFSET. Source-ID-checked native/public typed rows/names and reset pass;
+independent outer ORDER and live generic relocation remain, leaving the
+global structural assertion red.
+
+**card-t-b nested outer LIMIT on zero-source derived column child revision (2026-09-29):**
+The no-FROM producer's caller formerly rejected outer LIMIT/OFFSET by falling
+through to `no such table: d`. Pinned `sqlite3Select` initializes the outer
+limit ahead of the producer and `selectInnerLoop` offsets the outer row event.
+The shared-builder child now owns both limit boundaries and Mem/Exists/Set.
+Source-ID-checked native/public typed rows, suppressed producer/caller and
+reset pass. Outer WHERE/ORDER and generic completed-child relocation remain;
+the global structural assertion is red.
+
+**card-t-b zero-source derived column child revision (2026-09-29):** Pinned
+`flattenSubquery` restriction (7) leaves the no-FROM producer unflattened.
+A bounded direct derived-column expression child now feeds Mem/Exists/Set in
+the enclosing builder with producer WHERE/LIMIT/OFFSET; formerly the public
+route failed `no such table: d`. Source-ID-checked native/public value,
+empty producer, types/names and reset pass. Wider derived shapes and live
+completed-child relocation still remain, so the global structural assertion
+is red.
+
+**card-t-b zero-source derived count child revision (2026-09-29):** Pinned
+`flattenSubquery` restriction (7) prevents flattening a no-FROM producer.
+The child `count(*)` destination previously went through a completed scalar
+producer rewrite; a bounded parent-owned branch now emits producer candidate
+and count finalization into the enclosing builder and Mem/Exists/Set. Paired
+native/public one/zero candidate and producer LIMIT/OFFSET, names/types and
+reset pass. Top-level compatibility rewrite remains; other nonflattenable
+shapes and generic completed-child relocation remain unproven and the global
+structural assertion is red.
+
+**card-t-b ungrouped aggregate ORDER revision (2026-09-29):** Pinned
+native/public `ORDER BY count(*) DESC` and projected alias cases pass count,
+empty-input, LIMIT/OFFSET, Mem/Exists/Set and reset. `aggregateShapeSupported`
+previously rejected the one-row accumulator despite existing parent-owned
+finalization/destination; bounded projected-result ORDER identity is admitted
+without a sorter. Independent ORDER expressions and remaining relocation are
+still unproven; global structural assertion remains red.
+
+**card-t-b ordered grouped key revision (2026-09-29):** Source-ID-checked
+pinned/public descending grouped-derived and view cases now pass typed rows,
+metadata and two resets. Prior public prepare rejection for `ORDER BY d.x
+DESC` was an aggregate shape/producer ownership gap: ORDER used a saved GROUP
+key not projected into the result. The grouped result sorter now consumes
+that key after finalization, retaining its enclosing destination. This is
+bounded identity admission, not arbitrary ORDER expression parity. The
+completed-child fallback still fails the global structural assertion.
+
+**card-t-b flattenable grouped child revision (2026-09-29):** The scalar
+caller now routes admitted simple derived/immutable view GROUP BY expression
+children through the aggregate producer's existing parent-preserving
+flattening recursion. Source-ID-checked pinned/native and public paired
+empty/HAVING/LIMIT and view-group cases pass with typed rows, metadata and
+resets. Oracle-accepted ordered derived grouping exposed a preexisting
+`aggregateShapeSupported` admission boundary and is not claimed supported.
+The completed-child fallback remains for other reachable plans and the full
+structural assertion still fails.
+
+**card-t-b grouped-child destination checkpoint (2026-09-29):** Direct
+physical-table GROUP BY scalar/Exists/IN children now call the aggregate
+producer with the enclosing builder and destination. Existing source-ID-checked
+pinned/native and public paired grouped empty/HAVING/DISTINCT/LIMIT cases pass
+with typed rows/names and two reset cycles; bounded ownership assertion passes.
+Derived/view and other remaining completed-child fallback consumers are not
+migrated: the full scalar-child structural assertion still fails. No broad
+compatibility or index parity is inferred.
+
+**card-t-b joined-child builder checkpoint (2026-09-29):** The preceding
+rowid-seek fallback finding remains historical for that path: nonaggregate
+joined scalar/Exists/IN now calls the joined producer with the enclosing
+builder and destination rather than splicing its Program. Native/public paired
+probe passes, as does the new bounded ownership assertion. The original
+structural assertion still detects the *remaining* completed-child fallback;
+this revision does not claim all scalar-child ownership or broad index parity.
+
+**card-t-b ordered nonflattenable producer checkpoint (2026-09-29):**
+Pinned `select.c:flattenSubquery` restriction (19) prevents outer WHERE
+from preceding a producer LIMIT. The bounded single-result one-table ORDER
+producer now sorts/top-N limits before testing outer WHERE on sorted payload
+in the enclosing builder; native/public paired LIMIT 1 rejected and LIMIT 2
+accepted second row show NULL/0/0 and 4/1/1 with names and two resets.
+Earlier unbounded sorter/scan-time outer predicate yielded wrong results.
+Global completed-child relocation structural assertion remains failing;
+other producer/consumer shapes and broad resource parity are not established.
+
+**card-t-b multi-column ORDER producer / single selected payload revision (2026-09-29):**
+The previous guard rejected a width-two producer even when the caller
+selected one of its EList values and the producer ORDER key was resolvable
+against its own EList. Compared `select.c:flattenSubquery` restriction (19)
+and `resolve.c:resolveOrderGroupBy`: keep producer ORDER binding separate
+from the selected materialized payload. Paired pinned/public width-two
+ORDER BY 2 LIMIT 2 with `d.a` and `d.b`, outer filters, scalar/EXISTS/IN,
+typed values, names and two resets now pass. This does not materialize the
+other producer columns for arbitrary outer expressions. The structural
+completed-child relocation assertion is still red.
+
+**card-t-b cross-column ordered producer revision (2026-09-29):**
+Rechecked pinned `select.c:flattenSubquery` (19), `generateSortTail` and
+`expr.c:sqlite3CodeSubselect`: the outer predicate on a nonselected column
+cannot read the scan cursor during sorter drain. The bounded one-table
+producer now retains needed direct columns in its sorter payload and evaluates
+the predicate after producer LIMIT, before Mem/Exists/Set. Source-ID-checked
+paired `d.b` output / `d.a<9` filter yields typed 4/1/1, names and two
+resets. The first public attempt rejected substituted-column binding; the
+producer NameContext does not own those outer reductions. Generic completed-
+child relocation still fails the structural test; this does not establish
+full derived/CTE materialization, OFFSET, unsupported atomicity or budget
+parity. Follow-up: the sorted-drain rewrite now walks CASE operand, WHEN,
+THEN and ELSE, matching its scan-time column collector and pinned
+`expr.c:TK_CASE` evaluation tree. Source-ID-checked/public CASE-over-`d.a`
+with selected `d.b` returns typed 4/1/1 and two resets; the structural
+relocation assertion remains red. Subsequent branch audit found the same
+producer sorter was bounded only when the outer WHERE existed. Pinned
+`select.c:pushOntoSorter` bounds by producer LIMIT(+OFFSET) regardless of
+outer filtering; unfiltered `SorterInsert` now uses the producer capacity too.
+Source-ID-checked/public direct scalar/EXISTS/IN ORDER BY x DESC LIMIT 2
+returns typed 9/1/1 with names/two resets; full resource-limit parity and
+completed-child migration remain unverified.
+
+Revision (card-t-b, ordered producer OFFSET): admitting the one-table
+LIMIT/OFFSET + outer WHERE path exposed a second sorted-drain divergence:
+SRT_Mem kept iterating after the first accepted row and overwrote it (2
+rather than pinned 4 for LIMIT 2 OFFSET 1). `expr.c:sqlite3CodeSubselect`
+caps Mem/Exists to one while retaining OFFSET; the destination now stops
+at its first post-filter row and Set continues draining. Source-ID-checked
+native/public paired LIMIT 2/1 OFFSET 1 cases return typed 4/1/1 with
+metadata and two resets. Generic completed-child relocation and full
+transient source materialization remain open; the structural test remains red.
+
+Revision (card-t-b, unsorted producer destination): `select.c:selectInnerLoop`
+continues producer LIMIT across rows, but `expr.c:sqlite3CodeSubselect`
+limits Mem/Exists to their first accepted result. A LIMIT 3 derived producer
+with post-WHERE exposed public 4 instead of pinned 2: the unsorted branch
+kept overwriting Mem. The bounded no-sort Mem/Exists destination now exits
+at its first accepted outer row; Set still drains. Source-ID-checked paired
+LIMIT 3, LIMIT 3 OFFSET 1, LIMIT 1 OFFSET 1 compare typed 2/1/1, 4/1/1,
+NULL/0/0, names and two resets. The completed-child structural assertion
+and full transient materialization remain open.
+
+Revision (card-t-b, independent producer scalar expression): pinned
+`resolve.c` does not bind nested SELECT columns in the producer's
+NameContext; `expr.c:sqlite3ExprCodeTarget/sqlite3CodeSubselect` emits its
+own nested scalar destination into the same Parse/Vdbe. The one-table
+producer binder previously rejected scalar subqueries before its expression
+compiler could call the existing enclosing-builder nested producer. A
+source-ID-checked native/public ORDER BY `(SELECT 1)` producer with
+scalar/EXISTS/IN now compares typed 1/1/0, metadata and two resets. This
+bounded path does not establish general correlated producer expressions;
+the next source-first `x IN (SELECT 4)` producer test binds only its left
+operand in the producer NameContext and compiles its RHS with the existing
+`expr.c:sqlite3CodeSubselect` enclosing-builder callback. Native/public
+outer Mem/Exists/Set compare typed NULL/0/0 and positive-match
+`x IN (SELECT 1)` typed 1/1/1, metadata and two resets.
+General correlated RHS remains unestablished; completed-child relocation
+structural test remains red.
+
+Correlated scalar-producer IN RHS checkpoint (card-t-b, 2026-09-29): a
+source-ID-checked pinned-native/public `x IN (SELECT x)` probe initially
+returned public 3/0/0 vs native 9/1/0. Producer-side `resolve.c` NameContext
+column ownership is now carried to `expr.c`-shaped no-FROM RHS lowering in
+`vdbe.ts`; the paired public differential passes with metadata and resets.
+This is bounded immediate physical-source correlation only. The full
+completed-child relocation structural test remains red; no general correlated
+SELECT parity is claimed.
+
+Correlated RHS WHERE follow-up (card-t-b): the first correlated IN checkpoint
+carried the RHS projection's outer cursor but not its WHERE test. Pinned-native
+`x IN (SELECT x WHERE x>1)` typed 9/1/0 vs pre-repair public 9/1/1. The same
+resolved owner is now used for both phases of the bounded no-FROM RHS; paired
+public test passes. This neither removes completed-Program relocation nor
+establishes arbitrary correlated expression/NameContext parity.
+
+Revision (card-t-b, correlated function-argument probe): pinned source-ID
+checked `x IN (SELECT abs(x) WHERE abs(x)>1)` under a one-table producer
+returns typed 9/1/0 for scalar/EXISTS/IN, versus 3/0/0 before the new
+argument binding. The bounded exprlist binding now passes paired public rows,
+metadata and two resets. This is not a general correlation or SELECT compiler
+parity claim; the completed-child relocation structural assertion remains red.
+
+#### One-source scalar scan follow-up (card-t-b, bounded)
+
+The prior one-source fast path could fall through to completed-child opcode
+relocation when result or ORDER lowering failed. The shared enclosing scan
+builder now accepts this nonaggregate one-source branch in addition to joins;
+source-ID-checked paired two-key ORDER/limit/offset Mem/Exists/Set cases pass
+publicly with typed values, names and resets. This does not retire the still
+reachable generic relocation fallback or establish general SELECT parity.
+
+Revision card-t-b grouped LEFT JOIN: earlier simple-group admission rejected
+LEFT while the grouped builder's nested scan also omitted the `wherecode.c`
+NULL-extension transition. That combination left a supported scalar producer
+at a temporary prepare failure. The grouped scan now produces the unmatched
+right row into its sorter and enclosing SRT destination; paired source-ID-checked
+cases cover matched/unmatched typed counts. This does not retire completed-child
+relocation for other producer shapes or certify generalized outer-join parity.
+
+Revision card-t-b after-ON grouped LEFT: `count(*)` hid a NULL-row control
+flow defect; synthetic rows re-entered the physical ON predicate, incorrectly
+rejecting unmatched groups for `count(t2.x)` and post-join `WHERE t2.x IS NULL`.
+Source-first paired nullable-right and ON-rejection cases reproduce and now
+match after rerouting the synthetic continuation past ON. This does not clear
+the unrelated scalar completed-child relocation assertion.
+
+Revision card-t-b grouped ORDER-only expressions: previously grouped scalar
+Mem/Exists/Set rejected `ORDER BY count(*)+1` even though pinned SQLite
+resolves and analyzes this ORDER expression in the same AggInfo as the result.
+Grouped builder now resolves and lowers the independent key before stepping,
+then evaluates it from finalized accumulator and saved group payload. Paired
+count expression, source-column expression and ORDER-only `sum(y)` cases pass
+with limits/offset, names and resets; generic completed-child relocation
+continues to fail the focused structural assertion. No whole-engine parity.
+
+Revision (card-t-b unordered table-backed UNION ALL IN): the earlier
+compound expression-subquery rejection has a bounded exception for unlimited
+unordered nonaggregate table-backed IN/Set arms, emitted into the enclosing
+builder per pinned `select.c:multiSelect` TK_ALL and `expr.c:sqlite3CodeSubselect`.
+Source-first paired public typed hit/miss and reset pass; generic completed-child
+relocation and other compound destinations still fail compiler ownership.
+
+Revision (card-t-b compound Mem/Exists): unordered unlimited table-backed
+UNION ALL now forwards a single enclosing Mem/Exists destination across arms.
+The Mem found flag preserves first-row NULL vs no-row; typed public differential
+first/empty-left/NULL and reset pass against pinned SQLite. Completed-child
+relocation still remains in the generic scalar fallback; do not infer full
+SELECT compiler ownership from this branch.
+
+Revision (card-t-b mixed UNION ALL): the previously table-backed-only
+Mem/Exists/Set branch now consumes simple no-FROM arms in the same enclosing
+builder/destination. Public differential mixed-arm first/empty/NULL cases
+pass. The structural completed-child relocation check remains red; this
+bounded change is not a full compiler migration.
+
+Revision (card-t-b left no-FROM compound): inspecting only the rightmost
+SELECT `from` incorrectly routed left constant/right table UNION ALL through
+the constant/no-FROM child. Classification now checks every arm, matching
+pinned `multiSelect`'s chain walk. Paired native/public typed first and
+NULL-first cases pass; the generic completed-child relocation check remains
+red.
+
+Revision (card-t-b mixed no-FROM WHERE): mixed-arm admission previously rejected
+a no-FROM arm with WHERE although upstream `sqlite3WhereBegin` rejects its
+candidate before `selectInnerLoop` emits. Arm-local predicate and false jump
+now precede projection/destination, tested against pinned source-ID through
+public scalar/EXISTS/IN with empty and NULL-first cases. Structural generic
+relocation remains a live failure, not an accepted exception.
+
+Revision (card-t-b all-no-FROM WHERE): even after mixed-arm WHERE lowering,
+the earlier simple no-FROM classification intercepted two no-FROM arms with
+WHERE. Deferred that compound to the shared builder. Paired source-ID/public
+WHERE 0 and NULL-first WHERE 1 typed Mem/Exists/Set cases now pass. Generic
+completed-child relocation remains a failing structural criterion.
+
+Card-t-b independent ungrouped ORDER revision: source-ID-checked native/public
+`count(*) FROM t2 ORDER BY sum(x)` scalar/EXISTS/IN and LIMIT 0 now match
+with ORDER-only AggInfo lowering. The generic completed-child opcode relocation
+is still present and the structural assertion remains red (19/20 focused).
+This updates the earlier independent ORDER exclusion, not the whole compiler
+ownership finding.
+
+#### card-t-b zero-source aggregate child routing (revision, 2026-09-30)
+
+Pinned 3.53.4 `select.c` tag-select-0820 and `expr.c:sqlite3CodeSubselect`
+contradict routing a no-FROM aggregate result through ordinary expression
+lowering: no-FROM count/sum failed at execution there. The aggregate producer
+now receives the enclosing destination and emits its single finalized row,
+including count zero when WHERE rejects the candidate. Source-ID-checked native
+and typed public checks cover scalar/EXISTS/IN, LIMIT 0, names and reset. This
+does not retire the generic completed-child relocation or establish full
+compiler ownership; the focused structural assertion remains red.
+
+#### card-t-b HAVING admission follow-up (revision, 2026-09-30)
+
+The prior no-FROM aggregate child entry still excluded HAVING despite its
+producer's existing finalize-then-HAVING branch. Pinned `select.c:sqlite3Select`
+tag-select-0820 checks HAVING after `finalizeAggFunctions` and before
+`selectInnerLoop`; `expr.c:sqlite3CodeSubselect` consumes the same destination.
+The entry now admits this bounded slice. Source-ID-checked native/public typed
+cases cover false HAVING, false WHERE plus HAVING, LIMIT 0 and two resets.
+Focused 19/20 remains red only for generic completed-child relocation; no
+claim of completed compiler migration.
+
+#### card-t-b zero-source aggregate ORDER admission (revision, 2026-09-30)
+
+After the HAVING admission, the scalar child entry still rejected independent
+ORDER for no-FROM aggregates despite the producer's existing AggInfo register
+allocation. Pinned `select.c:sqlite3Select` tag-select-0820 produces a single
+accumulator row; `resolve.c:resolveSelectStep` still diagnoses invalid ORDER
+ordinals. Source-ID-checked pinned native versus public typed Mem/Exists/Set
+and LIMIT 0/HAVING/WHERE cases match across two resets. Generic child opcode
+relocation and the structural assertion remain red; no whole-engine parity
+claim follows from the bounded public differential.
+
+Card-t-b revision — zero-source nonaggregate independent ORDER: the earlier
+no-FROM scalar gate required an ORDER projection match and rejected valid
+`ORDER BY 8+0`. Pinned `resolve.c:resolveSelectStep` validates every term
+before `select.c:sqlite3Select` emits the one candidate into the enclosing
+Mem/Exists/Set destination. The bounded child now resolves all keys before
+emission, retaining ordinal/name errors at prepare; public pinned cases test
+typed rows, metadata, reset/finalize and errors. This does not resolve the
+remaining generic completed-child relocation or its structural test failure.
+
+Card-t-b revision — zero-source grouped child: earlier scalar routing rejected
+GROUP BY without FROM even though the grouped aggregate producer already owns
+sorter/accumulator and destination construction. Pinned `select.c:sqlite3Select`
+grouped WhereBegin admits one row only on true WHERE. The grouped producer now
+routes false WHERE to SorterSort instead of an absent `Next` and the expression
+child invokes it in its enclosing builder. Source-first public comparisons cover
+typed scalar/EXISTS/IN values, LIMIT 0, names, reset/finalize. The generic
+completed-child relocation and its structural failure remain unresolved.
+
+Card-t-b revision — outer LIMIT/OFFSET on bounded zero-source derived count:
+the parent-owned aggregate producer previously rejected outer limit and
+fell through to an alias-as-table error. Pinned `select.c:sqlite3Select`
+computes the limiter at each SELECT entry: inner limit gates input to count,
+outer limit gates its final destination. Parent builder now owns both. Source-
+first public scalar/EXISTS/IN typed/name/reset comparisons pass; structural
+completed-child relocation assertion still fails and broader derived aggregate
+migration is pending.
+
+Card-t-b revision — HAVING on nonflattenable zero-source derived count: the
+parent producer previously rejected HAVING and misresolved the derived alias
+as a schema table. Pinned select.c tag-select-0820 finalizes count before
+HAVING and publishes only accepted rows. Bounded parent-owned translation
+now uses the finalized register and existing expression lowering; native-first
+public typed/reset cases pass. General derived aggregate source and generic
+completed-child relocation remain open.
+
+Card-t-b revision — pinned resolve.c validates ORDER terms before the
+ungrouped aggregate's sorter is suppressed in select.c. Parent-owned
+zero-source derived count with HAVING resolves ORDER keys against a transient
+derived-result schema, including qualified/unqualified derived column names,
+and SQLite prepare errors in the enclosing compiler. That schema is only a
+resolution adaptation; general materialized derived aggregates are not
+migrated. Generic completed-child relocation remains.
+
+Card-t-b continuation — pinned select.c tag-select-0820 counts only
+WHERE-accepted derived rows, finalizes on empty input and applies HAVING after
+finalization. The parent-owned one-candidate zero-source derived count now
+resolves outer WHERE on the transient derived result and evaluates it after
+inner producer gates, before AggStep. Invalid WHERE names and aggregate misuse
+are preparation errors even with LIMIT 0. Native/public typed/reset/error
+comparison passes; materialized derived scans and generic splice remain red.
+
+Card-t-b continuation — the one-candidate derived-count producer previously
+assumed a one-column row, contradicting pinned select.c projection and
+sqlite3ColumnsFromExprList. It now evaluates all producer projections and binds
+outer WHERE to their individual registers under resolve.c's unique transient
+names. Source-ID native/public two-column, duplicate-name, empty/LIMIT,
+HAVING and error probes pass; this is not materialized table-derived aggregate
+support and the generic relocation remains red.
+
+Card-t-b continuation — zero-source derived count previously rejected inner
+ORDER and fell through to nonexistent physical table `d`. Pinned resolve.c
+validates ORDER before select.c sorts: the at-most-one producer candidate needs
+validation but no runtime sorter. Parent builder now admits that bounded
+producer. Native/public typed/reset/ordinal/name-error tests pass; generic
+completed-child relocation and multirow materialization remain red.
+
+Card-t-b continuation — inner DISTINCT was previously excluded from the
+parent-owned zero-source derived count and attempted physical lookup of the
+transient alias. Pinned selectInnerLoop only suppresses a result already seen;
+one no-FROM candidate cannot repeat. The bounded parent producer now admits
+DISTINCT and still validates inner ORDER/columns at prepare. Native/public
+Mem/Exists/Set typed/reset/error probes pass; multirow DISTINCT and completed
+child relocation are not resolved.
+
+Card-t-b continuation — bounded zero-source derived accumulator previously
+counted only row cardinality (`count(*)`); pinned func.c countStep distinguishes
+NULL arguments from zero-argument count. Parent builder now supplies one bound
+`count(expr)` argument through AggStep and resolves derived names at prepare;
+matching HAVING uses finalized output. Source-ID native/public NULL,
+Mem/Exists/Set, reset and error comparisons pass. Different HAVING aggregates,
+materialized multirow derived production and generic relocation remain red.
+
+Card-t-b continuation — previous count(expr) route reused only projected
+aggregate in HAVING and incorrectly treated another count argument as
+unsupported. Pinned select.c AggInfo collects result and HAVING identities
+before stepping; bounded parent builder now allocates, steps and finalizes each
+distinct count on accepted one-candidate rows. Native/public NULL, mixed
+HAVING, empty input, Mem/Exists/Set/reset/error cases pass. Non-count variants,
+multirow materialization and generic completed-child relocation remain red.
+
+Card-t-b continuation — the parent-owned one-candidate derived count branch
+now admits one-argument DISTINCT count and tracks it separately from ordinary
+count in result/HAVING. Pinned select.c uses a distinct ephemeral set before
+AggStep; at most one accepted producer row cannot duplicate an earlier key.
+Native/public NULL, mixed HAVING, empty input, Mem/Exists/Set and preparation
+error probes pass. Multirow distinct and generic completed-child relocation
+remain red.
+
+Card-t-b continuation — bounded derived count previously rejected FILTER
+aggregates and fell back to nonexistent physical derived alias. Pinned
+select.c:updateAccumulator gates each AggInfo entry before argument/distinct/
+step, so parent builder now emits per-count FILTER and preserves separate
+FILTER-aware HAVING identities. Native/public NULL, mixed DISTINCT/FILTER,
+LIMIT 0, Mem/Exists/Set, reset and prepare-error probes pass. Materialized
+multirow derived sources and completed-child relocation remain red.
+
+Card-t-b continuation — parent-owned one-candidate derived count now admits
+aggregate ORDER keys with an argument. Source select.c:updateAccumulator
+would sort before stepping; at most one accepted count argument cannot be
+reordered, though ORDER keys are bound/coded and distinct ORDER identities
+retained. Native/public NULL, FILTER/HAVING, empty input, Mem/Exists/Set and
+prepare errors pass. Multirow ordered aggregate and completed-child relocation
+remain red.
+
+Card-t-b continuation — parent-owned one-candidate derived accumulator no
+longer hardcodes count for result/HAVING: it emits sum/avg/total using the
+translated aggregate VM and keeps names in identity. Native/public typed
+INTEGER/REAL/NULL, empty input, mixed HAVING, FILTER/DISTINCT, Mem/Exists/IN,
+reset and invalid names pass. Generic completed-child relocation and multirow
+materialization still red.
+
+Card-t-b continuation — one-candidate parent-owned derived aggregate now
+also dispatches min/max result and HAVING through translated VM extrema with
+argument collation, unlike prior hardcoded count/numeric name list. Native/
+public integer/text/NULL, empty producer, FILTER/HAVING, Mem/Exists/IN,
+reset and preparation error cases pass. Multirow materialization and the
+generic completed-child relocation structural failure remain red.
+
+Card-t-b continuation — single-event derived accumulator now retains a full
+argument vector and routes group_concat/string_agg through existing VM
+aggregate implementations. Native/public TEXT/NULL, empty, two-argument,
+FILTER/DISTINCT/ORDER, mixed HAVING, Mem/Exists/IN, reset and prepare errors
+pass. Completed-child relocation and multirow derived sorting still red.
+
+Card-t-b continuation — parent-owned one-candidate derived accumulator now
+resolves a GROUP BY on the no-FROM inner producer and emits its zero/one group
+through the existing row gates. Pinned native/public typed Mem/Exists/IN,
+WHERE-eliminated group, ORDER/LIMIT, outer HAVING, reset and GROUP BY name/
+ordinal/misuse errors pass. Inner HAVING, multirow grouping and completed-child
+relocation remain red.
+
+Card-t-b next continuation — a nonaggregate HAVING over a single-candidate
+no-FROM GROUP BY derived source is resolved at prepare and filters its projected
+group before producer OFFSET and outer aggregate step. Source-ID native/public
+accepted/rejected/NULL, typed Mem/Exists/IN, OFFSET, two reset cycles and
+missing-name error comparisons pass. Inner aggregate HAVING, multirow grouping
+and completed-child relocation remain red.
+
+Card-t-b continuation — the no-FROM one-group derived producer has a distinct
+inner count(*) accumulator for aggregate HAVING, finalized before HAVING,
+producer OFFSET and outer AggStep. Source-ID native/public accepted/rejected,
+WHERE-empty group, typed Mem/Exists/IN, mixed predicate, ORDER/LIMIT/OFFSET,
+reset and missing-column errors pass. Other inner aggregate functions and
+multirow grouping, plus completed-child relocation, remain unmigrated.
+
+Card-t-b continuation — distinct inner HAVING aggregate registers now carry
+FILTER, argument vectors, AggStep and AggFinal for the single-candidate
+no-FROM GROUP BY producer. Native/public typed count(expr), FILTER/DISTINCT,
+numeric/extrema/string NULL/collation, Mem/Exists/IN, reset and name-error
+probes pass. Multirow aggregation, aggregate ORDER and completed-child
+relocation remain unaddressed by this bounded migration.
+
+Card-t-b continuation — inner HAVING aggregates on a single-candidate
+no-FROM grouped producer bind ORDER keys before argument/step, retaining
+prepare-time invalid-key errors even with LIMIT 0. Native/public typed
+ordered string/numeric, NULL, IN and reset checks pass. This is not a
+multirow aggregate sorter or removal of completed-child relocation.
+
+Revision (card-t-b, multirow count): a nonaggregate ordinary-table derived
+producer feeding uncorrelated `count(*)` now uses parent-owned scan/sorter
+row events, LIMIT/OFFSET and finalization instead of attempting to open its
+alias as a physical table. Pinned oracle/public cases cover the bounded
+composition. General materialized derived iteration and the scalar fallback's
+completed-child relocation remain open; the structural SELECT assertion still
+fails. This revision does not update other baseline predictions by inference.
+
+#### card-t-b multirow projected-argument revision (2026-09-30)
+Previously the bounded ordered/limited multirow derived producer fed only
+`count(*)`. Its result-register destination now steps a directly resolved
+projected derived column for count/sum/avg/total; pinned oracle and public
+INTEGER/REAL/NULL, LIMIT 0 name error, IN and reset probes agree. Streaming
+is limited to this single-pass consumer; other materialization and completed-
+child relocation remain red. Focused 19/20 and broad SELECT 33/34 still fail
+the pre-existing completed-child structural assertion, not the new typed cases.
+
+#### card-t-b multirow extrema revision (2026-09-30)
+The bounded ordered/limited multirow projected-column consumer now also
+steps `min/max` with the aggregate argument's collation, using the same
+parent-owned destination. Pinned source ID/native and public probes agree
+on INTEGER/NULL, IN/EXISTS, LIMIT 0 invalid names, names and reset. This is
+not multirow group or sorter ownership. Focused 19/20 and SELECT 33/34 still
+fail the earlier completed-child relocation structural assertion.
+
+#### card-t-b expression-argument collation correction
+A new pinned oracle/public case found the bounded derived aggregate argument
+binder lost implicit collation when rewriting a projected column to a register:
+RTRIM `max(d.z)` returned `q ` instead of pinned `q`. Selecting collation
+from the unlowered argument and resolved projected descriptor repairs the
+bounded branch; expression `d.z||''` remains BINARY and explicit COLLATE
+wins. Public focused and broad SELECT checks still retain only the existing
+completed-child relocation structural failure (19/20, 33/34); general
+SELECT compiler ownership is not inferred.
+
+#### card-t-b bounded derived FILTER revision
+`select.c:updateAccumulator` checks FILTER (false or NULL) before coding the
+argument and stepping. The derived-row `aggregate-expression` destination now
+codes that row gate; count(*) without arguments also uses it, retiring the
+unused `count-step`/`aggregate-step` variants. Pinned/public typed FILTER,
+empty, invalid name and reset cases pass. Focused SELECT 19/20, broad 33/34
+still fail only the generic completed-child relocation structural check;
+full SELECT compiler ownership and materialization are not inferred.
+
+#### card-t-b bounded derived DISTINCT revision
+The single-pass derived aggregate destination now follows pinned
+`resetAccumulator`/`updateAccumulator`/`codeDistinct`: argument-collated
+per-statement ephemeral cursor, FILTER before argument, duplicate gate before
+AggStep. Pinned/public typed, RTRIM, FILTER, LIMIT 0 name error, Mem/IN/
+EXISTS, and two reset cycles pass. Focused SELECT 19/20 and broad 33/34
+still fail only the pre-existing completed-child relocation structural check;
+no general aggregate sorter or SELECT ownership follows from this revision.
+
+#### card-t-b bounded multirow derived aggregate ORDER revision
+Pinned `resetAccumulator`/`updateAccumulator`/`finalizeAggFunctions` order
+sorter sequence now maps into the single-pass uncorrelated derived-row
+aggregate destination: producer gate, FILTER, key, argument, DISTINCT,
+insert, drain/AggStep/AggFinal. Source-ID/public typed ORDER/FILTER/
+DISTINCT, empty, Mem/IN/EXISTS, LIMIT 0 key error, metadata and two reset
+cycles pass. This is only a single-argument bounded producer, not general
+aggregate ORDER or full SELECT compiler ownership. Completed-child
+relocation structural assertion remains red (focused 19/20, broad 33/34).
+
+Card-t-b continuation — single-argument group_concat of multirow derived
+producer now consumes the same parent-owned aggregate ORDER row destination
+as sum/count, with default separator. Native/public ORDER, FILTER/DISTINCT,
+empty and IN probes pass. Two-argument string aggregation and generic
+completed-child relocation remain open; focused structural assertion red.
+
+Card-t-b revision — preceding one-argument-only derived-row ORDER mapping
+now uses a vector of aggregate arguments, matching select.c's `nArg` sorter
+payload/drain and func.c's separator argument. Pinned/public two-cycle
+string_agg/group_concat separator, FILTER, NULL, IN and bad-second-name
+probes pass. This supersedes the bounded two-argument exclusion, not the
+remaining generic completed-child relocation structural failure.
+
+Card-t-b revision — bounded uncorrelated derived-row aggregate destination
+gates outer WHERE before aggregate FILTER and step (pinned `select.c` non-GROUP
+`sqlite3WhereBegin`/`updateAccumulator`). Source-ID oracle and public two-reset
+typed/invalid-name cases pass. Earlier exclusion of outer WHERE for this route
+is superseded. Generic completed-child relocation remains live and structural
+assertion red. The preceding two-argument exclusion is likewise superseded
+for this bounded route by the argument-vector revision.
+
+Card-t-b revision — bounded derived-row aggregate consumer now owns an outer
+limiter distinct from producer LIMIT/OFFSET: source `select.c` tag-select-0650
+precedes scan and `selectInnerLoop` emits post-finalization. Pinned oracle and
+public typed/reset/error probes pass. Earlier outer-limit exclusion is
+superseded only for this route. Generic completed-child fallback and its
+structural assertion remain red.
+
+Card-t-b revision — the existing bounded derived-row aggregate destination
+now admits outer ORDER binding: pinned `resolve.c:resolveOrderGroupBy` checks
+EList alias/ordinal and source expressions, and the non-GROUP
+`select.c:sqlite3Select` finalization emits one row, without a second sorter.
+Pinned ctypes and public two-reset typed/preparation probes pass. Earlier
+outer-ORDER exclusion is superseded only for this route. Generic completed-
+child relocation and its structural assertion remain red.

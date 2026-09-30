@@ -659,3 +659,238 @@ and bindings are retained as applicable.
 Single-table read-only SELECT admits represented ordinary secondary-index access and represented WITHOUT ROWID tables through the same public `prepare`/bind/step/reset/finalize API in UTF-8, UTF-16LE, and UTF-16BE databases. The WITHOUT ROWID subset accepts column-only composite primary keys and column-only secondary keys using built-in BINARY/NOCASE/RTRIM collations, ASC/DESC direction, and default SQLite NULL ordering. It includes exact/prefix primary traversal, secondary covering reads from appended primary-key terms, and non-covering secondary lookup of the primary BLOBKEY using exact PK-term-to-record-field mapping (including mixed declared/auxiliary, reordered, suffix-free, and collation-duplicate layouts). Values, limits, lifecycle, and corruption errors retain the existing public contracts; no planner diagnostics are public.
 
 Partial-index implication and expression-index selected access are not part of this revision's credited boundary. Unsupported collation/NULL-order modifiers, expression/partial physical layouts, or descriptors that cannot preserve the complete key identity are not approximated: they remain excluded from selection or fail atomically as temporary unsupported. Covering access includes residual WHERE and ORDER/sorter reads, not projection alone.
+
+Bounded SELECT implementation note (card-t-b): unordered unlimited
+nonaggregate table-backed `UNION ALL` RHS of `IN` is admitted via a shared
+Set destination. This does not promise general compound scalar/EXISTS, ordered
+or limited compound SELECT support; unsupported preparation remains subject to
+normal error handling.
+
+The same bounded unordered unlimited nonaggregate table-backed UNION ALL
+producer also supports scalar and EXISTS expression destinations, including a
+NULL first scalar row. This does not extend support to general ordered/limited
+compound expression subqueries.
+
+The bounded unordered unlimited UNION ALL scalar/EXISTS/IN expression shape
+may mix table-backed arms with simple no-FROM single-row arms. General
+compound expression support remains outside this bounded contract.
+
+For the bounded mixed unordered unlimited UNION ALL expression shape,
+no-FROM arms may precede table-backed arms. Mem/EXISTS keep the first
+accepted row, including NULL, while IN/Set collects both arms.
+
+In the bounded unordered unlimited mixed UNION ALL expression subset, a
+no-FROM arm's represented WHERE may reject that arm's single candidate before
+projection. The next arm then supplies the first Mem/EXISTS row, or IN/Set
+collects all accepted values. No general compound guarantee follows.
+
+The bounded unordered, unlimited UNION ALL expression subset also accepts
+represented WHERE on all no-FROM arms: a rejected candidate does not evaluate
+its projection or occupy the first-row scalar/EXISTS destination. This does not
+extend the supported ordered/limited or set-operator subset.
+
+SELECT compiler checkpoint (card-t-b): ungrouped aggregate expression children
+with independent `ORDER BY` aggregates use the same Mem/Exists/Set destination
+as projected aggregate children; the single result row has no sort order to
+apply. This does not extend compound/window SELECT admission or guarantee
+completion of the internal compiler migration.
+
+Zero-source aggregate expression subqueries (`count(*)`, `sum(1)` and
+false-WHERE count in the tested scalar/EXISTS/IN positions) compile into the
+parent VM's Mem/Exists/Set destination; false WHERE still produces one
+aggregate row. LIMIT 0 suppresses publication. This is not a guarantee for
+ordered, grouped or compound aggregate expression subqueries.
+
+In the bounded unordered ungrouped no-FROM aggregate expression child,
+HAVING tests the finalized aggregate before Mem/Exists/Set publication:
+false HAVING yields NULL/0/no IN entry; false WHERE still finalizes `count(*)`
+as zero. Ordered/grouped/compound variants remain outside this guarantee.
+
+For the bounded ungrouped no-FROM aggregate expression child, independent
+ORDER BY aggregates are resolved and evaluated in the accumulator context;
+one output row needs no sorting. Invalid ordinal resolution remains a
+prepare-time error. This does not extend independent ORDER behavior to
+ordinary nonaggregate no-FROM children.
+
+In the bounded no-FROM nonaggregate expression child, independent ORDER BY
+expressions are resolved even though the sole candidate cannot be reordered.
+Invalid ordinals and unknown names fail during prepare (including LIMIT 0);
+valid independent keys preserve scalar/EXISTS/IN destinations. This does not
+extend admission to multirow ordered compounds or retire the remaining
+completed-child program splice.
+
+For the bounded zero-source GROUP BY expression child, a WHERE-accepted
+candidate forms one group; a rejected candidate forms none. Scalar/EXISTS/IN
+and LIMIT 0 retain the enclosing destination's usual NULL/0/set semantics.
+This does not imply general grouped compound or window support.
+
+For the admitted zero-source derived `count(*)` expression child, outer
+LIMIT/OFFSET filters its final aggregate row independently of the derived
+source's LIMIT/OFFSET filtering its input. LIMIT 0 yields NULL for scalar and
+0 for EXISTS/IN. General derived aggregate support is not implied.
+
+For the admitted zero-source derived `count(*)` scalar/EXISTS/IN child,
+`HAVING count(*)` predicates filter the finalized row, including the empty
+input count 0. Outer LIMIT/OFFSET applies separately. This does not promise
+general derived-table aggregate HAVING support.
+
+The bounded scalar/EXISTS/IN zero-source derived count(*) child resolves
+ORDER BY expressions, result aliases, valid ordinals and qualified or
+unqualified derived-result columns before preparing its one aggregate result;
+invalid ordinals/names fail prepare even under LIMIT 0. This does not imply
+general derived-table materialization or multirow sorted aggregates.
+
+For the bounded zero-source derived `count(*)` child, outer WHERE can filter
+the derived row (including a qualified derived-result column) before counting;
+no accepted row still finalizes count to zero before HAVING and outer LIMIT.
+Invalid derived names and aggregate use in WHERE fail preparation even under
+LIMIT 0. This does not promise general materialized derived aggregates.
+
+The bounded no-FROM derived producer of scalar/EXISTS/IN `count(*)` may
+project multiple named columns; outer WHERE can bind each column (including
+SQLite's deduplicated `:1` name) before counting the single accepted row.
+This is not a general multirow derived-table aggregate.
+
+A bounded one-candidate no-FROM derived `count(*)` producer can carry inner
+ORDER BY expressions, aliases and ordinals; invalid names and ordinals fail
+prepare even under LIMIT 0. This does not implement ordering of multirow
+derived aggregates.
+
+A bounded no-FROM DISTINCT derived producer can feed the scalar/EXISTS/IN
+count(*) destination: at most one projected row reaches the outer accumulator.
+This does not cover multirow DISTINCT or materialized derived aggregation.
+
+In the bounded one-candidate no-FROM derived producer, `count(expr)` counts
+the candidate only when its bound derived-result argument is non-NULL;
+`count(*)` counts any accepted row. Unknown result columns fail prepare even
+under LIMIT 0. Distinct/filter variants and unrelated HAVING aggregates are
+not promised by this route.
+
+The bounded one-candidate derived count path can evaluate different `count`
+arguments in HAVING independently (for example count(x) versus count(y));
+these do not alias the projected count. Other aggregate families, DISTINCT
+aggregate arguments and general materialized derived sources are not covered.
+
+For a derived no-FROM producer with at most one candidate, count(DISTINCT x)
+obeys count(x)'s NULL rule and can coexist with an ordinary count in HAVING.
+This is not a multirow distinct-aggregate contract.
+
+On the bounded one-candidate derived count route, FILTER predicates gate each
+aggregate separately, before its argument and AggStep; unknown result columns
+and nested aggregate FILTERs fail at preparation even under LIMIT 0. This does
+not promise multirow derived FILTER/DISTINCT execution.
+
+On the one-candidate derived count route, aggregate ORDER keys resolve and
+execute after FILTER, before count's argument; a single accepted row needs no
+sorter. Invalid ORDER column or nested aggregate still fails preparation under
+LIMIT 0. No general ordered-aggregate claim follows from this route.
+
+The bounded derived no-FROM numeric aggregate route preserves sum/avg/total
+empty-input distinctions: sum and avg return NULL, total returns REAL zero.
+It retains SQLite INTEGER versus REAL for nonempty numeric inputs, without a
+general materialized-derived aggregate guarantee.
+
+On the bounded no-FROM derived one-candidate route, min/max return the
+non-NULL argument with its type and NULL on empty or NULL input, including
+argument collation binding. This does not establish general multirow derived
+extrema support.
+
+The bounded one-candidate derived route also admits group_concat(value[,separator])
+and string_agg(value,separator): NULL/empty values finalize to NULL and a
+non-NULL single value retains TEXT. Multirow derived aggregation is not
+covered by this route.
+
+The bounded one-candidate derived producer may have a GROUP BY: a rejected
+no-FROM input yields no group, while an accepted input yields one. GROUP BY
+names and ordinals are validated at prepare even with LIMIT 0; inner HAVING
+and general multirow grouping remain separate unsupported compositions.
+
+For the bounded single-candidate derived GROUP BY composition, a nonaggregate
+inner HAVING filters its one possible group before OFFSET and outer aggregate
+consumption. Invalid inner names fail preparation even with LIMIT 0. This
+does not admit inner aggregate HAVING or multirow grouped materialization.
+
+The bounded no-FROM derived GROUP BY composition supports inner HAVING
+`count(*)` over its zero/one group. Rejected input creates no group; an accepted
+group finalizes its own count before HAVING and producer OFFSET. This does not
+extend inner aggregate HAVING to other functions or multirow materialization.
+
+Within the bounded one-candidate derived GROUP BY composition, inner HAVING
+can use supported count(expr), numeric, extrema and string aggregates; their
+own FILTER/arguments/finalization precede HAVING and producer OFFSET. This
+is not a general multirow GROUP BY or aggregate-ORDER implementation.
+
+Inner HAVING aggregate ORDER keys are validated and evaluated in the bounded
+no-FROM single-group derived composition. With at most one candidate, their
+sort order cannot change a result; multirow aggregate ORDER is not implied.
+
+A bounded uncorrelated scalar `count(*)` over an ordered/limited ordinary-table
+nonaggregate derived SELECT now feeds the enclosing statement's destination;
+its producer LIMIT/OFFSET determine the integer cardinality, including zero.
+EXISTS of that aggregate is true for its finalized result row and IN compares
+the typed integer. This does not imply support for arbitrary materialized
+subqueries or aggregate arguments over their projected columns.
+
+For bounded scalar aggregate subqueries over an ordered/limited ordinary-table
+projection, direct `count(column)`, `sum(column)`, `avg(column)` and
+`total(column)`, `min(column)` and `max(column)` accept a projected derived column, returning SQLite typed
+INTEGER/REAL/NULL as applicable. Missing derived columns fail preparation even
+with LIMIT 0. This does not promise arbitrary derived aggregate expressions,
+outer predicates or general multirow materialization.
+
+For the bounded uncorrelated derived-row scalar aggregate route, supported
+single-argument count/sum/avg/total/min/max can evaluate expressions over
+projected derived columns after producer ORDER/LIMIT/OFFSET; invalid projected
+names fail at prepare, including when LIMIT is zero. This is not a general
+materialized derived-table or nested-subquery argument guarantee.
+
+In that bounded uncorrelated derived-row aggregate route, a non-nested FILTER
+may refer to projected derived columns; false and NULL FILTER rows skip the
+argument and aggregate step. Invalid FILTER column names fail preparation
+including with producer LIMIT 0. This does not extend the route to nested
+FILTER subqueries, DISTINCT or aggregate ORDER BY.
+
+The bounded derived-row scalar aggregate route also accepts a single DISTINCT
+argument for count/sum/avg/total/min/max, optionally with a non-nested FILTER;
+duplicates compare under the argument collation after producer ORDER/LIMIT.
+This does not guarantee aggregate ORDER BY or arbitrary materialized producers.
+
+The same bounded scalar derived-row route accepts aggregate ORDER BY for
+single-argument count/sum/avg/total/min/max. The producer first applies its
+own ORDER/LIMIT/OFFSET; the aggregate then sorts accepted arguments after
+FILTER and optional DISTINCT and finalizes even for zero accepted rows.
+ORDER key names fail at prepare under producer LIMIT 0. This is not general
+aggregate ORDER or a guarantee for string_agg/group_concat.
+
+Bounded SELECT compilation note: uncorrelated `group_concat(x ORDER BY y)`
+over an ordinary-table, non-grouped derived row producer uses the enclosing
+sorter/aggregate destination, including FILTER and DISTINCT and the default
+comma separator. This is not a general derived-table or two-argument string
+aggregation guarantee. Preparation errors and reset/finalize remain statement
+owned; see the scalar-child conformance probes.
+
+The same bounded uncorrelated derived-row consumer also accepts
+`group_concat(value,separator ORDER BY key)` and
+`string_agg(value,separator ORDER BY key)` with optional non-nested FILTER;
+DISTINCT still requires exactly one argument. Both arguments bind at prepare
+(including producer LIMIT 0). This supersedes the earlier two-argument
+exclusion for this bounded route, not for all derived or grouped SELECTs.
+
+For that same bounded uncorrelated derived-row aggregate route, a non-nested
+outer WHERE over projected columns gates candidate rows after producer
+ORDER/LIMIT/OFFSET and before aggregate FILTER/ORDER/DISTINCT. Invalid outer
+WHERE column names fail at prepare even with producer LIMIT 0; this is not a
+general materialized derived-table or correlated-WHERE guarantee.
+
+For this same bounded derived-row aggregate consumer, an outer LIMIT/OFFSET
+is independent of the producer's LIMIT/OFFSET: outer LIMIT 0 or OFFSET 1
+suppresses the sole aggregate row in scalar, EXISTS and IN destinations. Names
+still bind at prepare, including with LIMIT 0. This does not extend support
+to arbitrary derived/grouped aggregate shapes.
+
+For the bounded uncorrelated ordinary-table derived-row aggregate destination,
+outer ORDER BY aliases, ordinals and projected-column expressions are checked
+at prepare (even with outer LIMIT 0). Its single aggregate row requires no
+additional outer sort; producer ORDER and aggregate argument ORDER retain
+their own ordering and limit semantics. This is not a general ORDER guarantee
+for arbitrary derived or grouped producers.

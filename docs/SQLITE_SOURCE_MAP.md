@@ -1715,3 +1715,12 @@ subnormal, Inf and altform2 outputs.
 `fixed` and `exponential` in addition to `generic`. Source-ID-pinned/public cases
 cover `%!.20f`, pinned-unsupported `%!.20F`, `%!.20e`, and signed zero-padded
 `%!+030.20E`, while prior result/lifecycle and shared REAL accessor gates remain.
+### Derived aggregate count bridge ownership (revision)
+
+`src/select.c:sqlite3Select` aggregate input event and `src/func.c:groupConcatStep`
+argument consumption map to `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+(count-only completed-producer fallback) and `compileCompoundDerivedAggregate`
+(argument-bearing compound row consumer). The former must not claim non-count
+aggregates: `test/conformance/from-subquery-routes.test.mjs` checks the captured
+`stage3-subquery-view` group-concat result and sorter budget in three encodings.
+Completed-child relocation in both paths still requires migration.

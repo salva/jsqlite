@@ -1176,6 +1176,64 @@ they do not increase TS compatibility credit. Exact upstream entries additionall
 carry literal assertion and preceding setup anchors, which the validator binds to
 the pinned source before the native declared SQL is run.
 
+### FROM-less SRT_Set producer in enclosing scalar SELECT
+
+`expr.c:sqlite3CodeSubselect` sets up the SRT_Set ephemeral cursor in the
+parent Parse/Vdbe; `select.c:selectInnerLoop` inserts each RHS row before
+`expr.c:sqlite3ExprCodeIN` probes it. The no-FROM, no-clause single-result
+RHS now uses the same `SelectProgramBuilder` cursor and register allocator as
+its scalar caller; no completed child Program or opcode relocation is involved.
+The direct no-FROM and direct one-table IN producer now pass each one-column
+row to `emitSelectDestination({kind:"set"})`; its `IdxInsert` implementation
+uses the existing ephemeral cursor (a typed VM representation of SRT_Set's
+MakeRecord/IdxInsert, not a new IN evaluator). Neither the producer's LIMIT
+order nor the outer probe changes. The non-direct child splice is still red.
+`InSet` remains the VM's typed ephemeral membership/NULL adaptation. The
+one-row FROM-less producer now also admits LIMIT 0/1 in the same enclosing
+builder: initialize Mem/Exists before the child LIMIT, open SRT_Set before
+its zero guard, skip only RHS expression/insertion on zero, and always
+execute the outer probe. The pinned `select.c:computeLimitRegisters` guard
+and `expr.c:sqlite3CodeSubselect` destination initialization determine that
+ordering. OFFSET is now admitted for this same one-row no-FROM producer:
+`select.c:codeOffset` emits `IfPos` before SRT_Mem/Exists/Set, decrementing
+only a positive offset and skipping the sole candidate without evaluating its
+projection; LIMIT 0 still bypasses OFFSET and the destination. The enclosing
+builder retains the set cursor and outer `InSet` probe. Pinned source-ID/public
+`select-scalar-child-native.py` / `.test.mjs` pair OFFSET 0/1 with LIMIT 0/1
+across scalar, EXISTS and IN, typed rows, metadata and two reset/finalize
+cycles. This does not migrate any other child splice. The child's IN comparison now
+uses `expr.c:sqlite3CompareAffinity`/`comparisonAffinity` to derive its
+membership affinity from the LHS and RHS expression, rather than defaulting
+to BLOB: a cast-numeric RHS matches text `'1'` to integer 1, whereas two
+unaffine literals do not coerce. `InSet` uses the same cursor, initialized
+before the child LIMIT guard. Public
+and pinned probes in `select-scalar-child-native.py` / `.test.mjs` compare
+INTEGER hits and misses, NULL RHS, names, two iterations and finalize. More
+complex RHS producers and the table/aggregate child relocation remain open;
+this is not evidence of general subquery parity. The completed-child splice
+still fails the structural reproducer.
+
+### Correlated child SELECT LIMIT correction (bounded, not compiler completion)
+
+Pinned `expr.c:sqlite3CodeSubselect` initializes SRT_Mem to NULL or SRT_Exists
+to integer 0 before calling `sqlite3Select`; an existing LIMIT 0 is retained
+instead of replaced with LIMIT 1. In the current table-backed expression child
+producer (`src/internal/vdbe.ts:compileTableSelect`), the previously ignored
+child LIMIT yielded a value/1 for correlated LIMIT 0. The parent Vdbe now emits
+`computeLimitRegisters` before the child scan and routes its zero branch past
+scan/result production, retaining the initialization. For SRT_Set, pinned
+`select.c:selectInnerLoop` inserts each selected row and the LIMIT counter
+advances only for inserted results, not every source row. The correlated IN
+producer now decrements after insertion and exits before the next scan row;
+the previous zero guard alone left `LIMIT 1` indistinguishable from no limit.
+This is a shared VM budget
+and register adaptation, not a replacement for the still-live scalar child
+completed-Program splice. Pinned/public paired tests in
+`test/conformance/select-scalar-child-native.py` and `.test.mjs` compare types,
+rows, names, and reset/finalize. Other pre-existing LIMIT semantics (including
+OFFSET and the splice route) require producer-specific coverage; the structural
+migration is still red.
+
 ### Implemented no-FROM scalar and parameter VM tranche
 
 The first prepared-SELECT design is now implemented for bounded no-FROM integer
@@ -3870,6 +3928,14 @@ Unsupported gates run before opening cursors or emitting a partial program. This
 keeps malformed/corrupt distinct from valid-but-temporary unsupported and prevents
 fallback from violating `INDEXED BY`/`NOT INDEXED` promises.
 
+The unforced joined IN fallback now excludes unsupported index candidates by ordinal in `planWhere`, not by cloning a resolved source. The latter broke exact column-use/source identity (`invalid source ordinal` at prepare). A review-derived all-encoding unhinted-versus-`NOT INDEXED` test checks fresh/partial-step/reset NULL rebind, typed rows, zero selected seeks and positive scan movement. This preserves pinned `where.c` source ownership under loop exclusion and leaves `wherecode.c:codeEqualityTerm` per-IN selected probes unimplemented; see source map and audit.
+
+The joined reverse `ORDER BY y.b DESC` review neighbor retains its sorter deliberately: `wherePathSolver` does not prove ORDER for multi-source paths, so local reversible index order is not a global ORDER proof. All-encoding fresh/reset tests check correct typed rows, selected movement, and retained sorter; physical reverse traversal and future joined ORDER-proof work remain unclaimed (source map and audit).
+
+Joined selected equality-prefix `IN` is currently an executable-plan gate: pinned `src/wherecode.c:codeEqualityTerm/sqlite3WhereCodeOneLoopStart` requires per-value index restarts, while the joined lowerer cannot emit them. Forced selection rejects atomically at prepare; unforced selection replans without that source's index instead of claiming selected-access counters or ORDER satisfaction for a broad `IndexRewind`. Review-derived all-encoding admission, scan/reset and parameter/NULL-rebind tests cover this temporary unsupported boundary; no pinned selected IN credit is claimed (see source map and mutable audit).
+
+The joined residual `IN` operand is resolved through the same source-aware recursion as other expressions: pinned `src/resolve.c:resolveExprStep` resolves operands in their owning NameContext before `src/expr.c:sqlite3ExprCodeIN` evaluates the left value. The all-encoding forced-index and scan joined `y.b IN (1,3)` fresh/reset regression now returns the typed rows rather than reading `x.b` at cursor zero; this does not prove joined selected IN-prefix restart or exact counters (see source map and mutable audit).
+
 ### Lowering and lifecycle contract
 
 Lower selected levels using the control branches in
@@ -4289,3 +4355,1875 @@ trailing-zero removal follows the shared floating branch after rendering; ordina
 non-`!` calls and `round()` retain their existing policy. Pinned C column-text and
 public tests distinguish 20-digit decode for positive/negative, subnormal,
 exponent, width/zero/sign cases; pinned `%F` remains unsupported and emits empty.
+#### Table RHS IN affinity follow-up (card-t-b)
+For a finished table-child SRT_Set splice still admitted by the scalar caller,
+`expr.c:comparisonAffinity` reads the **RHS result expression** (not its
+result-column declared type). The latter is NULL for CAST projections, so the
+old `affinityOf(declaredType ?? "")` incorrectly chose BLOB. The bounded caller
+now uses the same `comparisonAffinity` primitive as its parent-owned no-FROM
+child, sourcing the RHS expression reduction. The pinned/public paired
+`CAST(x AS INTEGER)` and `CAST(x AS TEXT)` table-child test covers types,
+metadata, reset and finalize. This corrects affinity only; the table/aggregate
+child completed-Program relocation remains and the structural reproducer is red.
+
+#### Parent-owned aggregate child forwarding across flattening (card-t-b, partial)
+`expr.c:sqlite3CodeSubselect` invokes `sqlite3Select` in the enclosing Parse/Vdbe;
+`select.c:flattenSubquery` and view expansion must not turn that caller into a
+standalone Program. `compileAggregateSelect` now forwards its parent builder,
+ops, parameters and Mem/Exists/Set destination through bounded derived and
+immutable-view flattening recursion. This preserves the same destination and
+register/cursor allocator if the flattened query reaches the no-GROUP producer.
+This does not migrate compound/group/zero-source aggregate routes or remaining
+table children: completed-child relocation remains live and the unfiltered
+structural reproducer is red. Pinned/public `select-scalar-child-native.py` /
+`.test.mjs` now pair bounded derived aggregate children across scalar, EXISTS
+and IN destinations: four-row count, filtered count, LIMIT/OFFSET NULL,
+typed names, and two reset/finalize cycles. The prior qualified `d.x`
+predicate failure was traced to the aggregate flattening column-name map:
+it used fabricated `column1` for unaliased `SELECT x`, whereas ordinary
+flattening and `select.c:substExpr` address the resolved result column.
+`compileAggregateSelect` now uses the result expression name before
+substituting the qualified predicate. The pinned/public qualified case now
+passes alongside the unqualified variant. This only repairs the bounded
+flattened one-table aggregate path; it is not evidence of general child
+compiler ownership.
+
+#### Direct table-child destination tranche (card-t-b, in progress)
+`src/internal/vdbe.ts:compileScalarSelect` now sends one bounded table-child
+producer and its scalar/Exists/IN consuming caller into the enclosing builder:
+a resolved direct column or rowid of one ordinary table, no WHERE, sort,
+DISTINCT, group, compound, OFFSET or window. `resolve.c:NameContext`/
+`expandAndResolveSelect` supplies the direct result and table; `select.c:
+sqlite3Select`/`selectInnerLoop` positions `OpenRead`/`Rewind`/`Next`, writes
+the Mem/Exists/Set destination inside the loop, and applies child LIMIT before
+scanning. `expr.c:sqlite3CodeSubselect` initializes Mem/Exists before the
+child and opens the SRT_Set cursor before the LIMIT-zero guard; the outer
+`InSet` always probes. The TS VM retains its async scan and ephemeral Mem
+adaptations. Pinned/public paired cases cover first row, zero and nonzero
+LIMIT, sibling cursors, typed NULL/INTEGER, metadata and two reset/finalize
+cycles. Other table and aggregate children still use completed-Program opcode
+relocation; this tranche does not pass the scalar-child structural test or
+establish general SELECT compilation parity.
+
+The direct table-child producer additionally consumes a resolved single-table
+WHERE predicate in its parent loop. `resolve.c:NameContext` column-use identity
+binds each predicate leaf to the already allocated child cursor; `IfNot`
+skips rejected rows to `Next` *before* SRT_Mem/Exists/Set and child LIMIT
+accounting (`select.c:selectInnerLoop`, `where.c:sqlite3WhereCodeOneLoopStart`).
+The emitter rejects unrepresented predicate AST ownership instead of running
+unbound expressions. Pinned/public cases in the scalar-child pair exercise
+WHERE with LIMIT 0/1 and multiple destination kinds. This does not replace
+the other aggregate/correlated completed-child splice. A bounded single-key
+ORDER BY direct table child now inserts key/payload into a sorter while the
+WHERE loop scans, then drains to Mem/Exists/Set before applying the child's
+LIMIT (`select.c:selectInnerLoop` / `pushOntoSorter` / `generateSortTail`,
+`expr.c:sqlite3CodeSubselect`). Only a resolved ordinal, result alias, or
+simple source-column key is admitted by this parent-owned path; other keys
+still fall through to the pre-existing completed-child route. Paired pinned
+source-ID/public probes cover descending and ascending keys, LIMIT 0/1/2,
+sibling destination isolation, typed rows, names, two resets and finalize.
+This is not evidence that the remaining aggregate/table splice is removable;
+the unfiltered structural reproducer still fails on that splice.
+
+#### Aggregate-parent IN child destination/limit (card-t-b, partial)
+`expr.c:sqlite3CodeRhsOfIN` creates an ephemeral SRT_Set destination in the
+parent Vdbe, and `select.c:selectInnerLoop` inserts rows after OFFSET and
+LIMIT-zero gating. The bounded aggregate-parent one-table direct-column IN
+child now applies `computeLimitRegisters` before its scan and emits each
+eligible cell through `emitSelectDestination({kind:'set'})`, before probing
+with the aggregate parent's left operand. Paired pinned-source-ID and public
+`select-scalar-child-native.py`/`.test.mjs` compare `count(*)-3` against
+LIMIT 0/1/1 OFFSET 1 with typed results, metadata, reset and finalize.
+This does not migrate scalar-child completed-Program relocation or general
+aggregate child production; the structural reproducer remains red.
+
+#### Aggregate-parent EXISTS LIMIT guard (card-t-b, partial)
+`expr.c:sqlite3CodeSubselect` initializes SRT_Exists to zero, retains a
+preexisting zero limit when capping the child at one row, then invokes
+`sqlite3Select` in the parent Vdbe; `select.c:selectInnerLoop` does not set
+Exists until an eligible row survives OFFSET. The separate aggregate-parent
+`compileAggregateSubquery` path now emits its child LIMIT guard after result
+initialization and before opening child cursors, and skips matching rows for
+OFFSET. Source-ID-checked `select-scalar-child-native.py` and public
+`select-scalar-child.test.mjs` pair LIMIT 0/1/1 OFFSET 4 inside a count(*)
+parent, including metadata and two reset iterations. This repairs one
+previously unsupported child composition, **not** aggregate/table child
+program ownership: completed-child relocation in the scalar-parent path and
+other separate aggregate-parent lowering remain; structural ownership is red.
+
+#### Child aggregate classification boundary (card-t-b, partial)
+`resolve.c:resolveExprStep` walks `TK_SELECT`, `TK_EXISTS`, and the SELECT RHS
+of `TK_IN` in a child NameContext; the `TK_IN` left expression still belongs
+to the enclosing context. `selectHasAggregate` now prunes the child while
+visiting that left expression, matching `resolveSelectStep`'s `NC_HasAgg`
+ownership rather than allowing a child count to route its parent through the
+aggregate producer. `select-aggregate-ownership.test.mjs` checks all four
+syntactic boundaries; the paired source-ID/public scalar-child count/EXISTS/IN
+case checks rows, types, metadata and resets. The aggregate producer now
+lowers IN-left (and IN-list/BETWEEN) aggregate expressions through its shared
+AggInfo register entries before compiling the IN probe, rather than passing
+an execution-only aggregate directly to scalar code. The pinned/public
+`count(*) IN (SELECT x FROM t2)` case compares typed results, names, two resets
+and finalize. This is not child-program ownership parity: completed-child
+relocation remains, and further aggregate expression forms need differential
+coverage before claiming them broadly.
+
+#### GROUP BY child destination ownership (card-t-b, bounded)
+
+Pinned `expr.c:sqlite3CodeSubselect` initializes SRT_Mem/Exists/Set and calls
+`select.c:sqlite3Select` in the enclosing Parse. In `select.c` the grouping
+sorter feeds `selectInnerLoop` on each completed group; HAVING rejects before
+SRT emission, OFFSET skips groups, LIMIT stops after emitted groups. The
+one-source `simpleGroupShape` child now calls
+`compileAggregateSelect` with the scalar parent's builder, ops, parameters
+and destination. Its sorter cursor comes from the builder, group projection
+uses the producer's reserved output range rather than fixed register 1, and
+its finish jumps return to the caller rather than emitting a child Halt or
+freezing the caller ops. The caller allocates the Once guard and IN set/probe.
+Pinned source-ID/public `select-scalar-child-native.py` / `.test.mjs` pair
+HAVING, OFFSET, LIMIT 0 and Mem/Exists/Set typed rows, metadata and two
+executions/reset/finalize. The group's result DISTINCT cursor now allocates
+from the enclosing builder, and `Found`/`IdxInsert` consume the reserved
+projection range instead of the completed program's fixed register 1. This
+preserves SQLite `selectInnerLoop` ordering: HAVING, result DISTINCT, OFFSET,
+then destination/LIMIT. Pinned/public paired DISTINCT-group probes cover
+OFFSET/LIMIT and filtered Mem/Exists/Set with reset. Before this change the
+finished-child audit rejected OpenEphemeral/Found/IdxInsert; after allocating
+the cursor but before correcting its key range, a scalar result was NULL
+rather than the pinned INTEGER. The earlier public attempt rejected `OffsetLimit,
+AggReset, CompareGroup` during finished-Program relocation. This bounded
+producer now also owns the bounded result sorter: allocate its cursor in
+the enclosing builder, insert reserved projection registers as keys/payload,
+drain into that register range, and emit to the caller's Mem/Exists/Set
+destination after OFFSET; LIMIT counts only emitted rows. Pinned/public
+`ORDER BY count(*) DESC` paired tests cover LIMIT 0/1 OFFSET 1 and all three
+destinations with typed rows, names and reset. Previously the finished-child
+opcode audit rejected OffsetLimit/AggReset/CompareGroup. This does not
+establish arbitrary ORDER expressions, multi-source group or
+remaining table-child ownership; the structural test is still red.
+
+#### Bounded immutable-view scalar child (card-t-b)
+
+Pinned `select.c:sqlite3Select` expands views and `flattenSubquery` splices a
+single underlying SrcList; `build.c:sqlite3ViewGetColumnNames` names exposed
+columns before substitution; `expr.c:sqlite3CodeSubselect` consumes the
+result through the enclosing Mem/Exists/Set destination. The scalar child
+caller now reuses `flattenImmutableView` for an eligible single-source view
+before entering its parent-owned direct scan (including the view's predicate,
+outer WHERE, ORDER and LIMIT). A single-source view alias is an exposed
+NameContext qualifier, not a reason to forbid flattening: substitution uses
+the alias for qualified leaves while the view-visible column mapping still
+comes from `build.c:sqlite3ViewGetColumnNames`. The view restrictions otherwise
+remain those of the existing flattening helper. No completed child Program
+is used on this route; nonflattenable view children stay with the audited
+fallback. Paired `select-scalar-child-native.py` / `.test.mjs` cover named/
+inferred view columns with and without aliases, qualified projections,
+WHERE, ORDER, LIMIT/OFFSET and LIMIT zero, typed rows, metadata and reset.
+This does not resolve the remaining structural ownership failure.
+
+#### Bounded derived scalar child flattening (card-t-b)
+
+`select.c:flattenSubquery` replaces a transient source with its underlying
+SrcList and substitutes result expressions before `sqlite3Select` invokes
+`selectInnerLoop`; `expr.c:sqlite3CodeSubselect` retains the enclosing
+Mem/Exists/Set destination. The scalar caller now applies the existing
+immutable derived substitution to bounded single-source derived scalar/EXISTS/IN children with resolved transient columns,
+no-inner-sort/limit/distinct/group/window, combining inner and outer
+predicates before handing the flattened tree back to the parent-owned direct
+scan compiler. The substitution owner now reads Lemon qualified-column leaves
+rather than assuming immediate `nm` terminals, and synchronizes the ExprNode
+token carrier with substituted reductions: `resolve.c`'s direct NameContext
+binding reads tokens before the expression walker. Thus scan cursor, sorter,
+registers, LIMIT and destination stay in one builder; no completed child
+Program is published for this branch. Paired `select-scalar-child-native.py` /
+`.test.mjs` cover qualified and unqualified projection/WHERE/ORDER, scalar
+OFFSET, EXISTS, IN, combined predicates, LIMIT zero, typed names and reset.
+More complex/nonflattenable derived producers retain the fallback. The
+structural ownership assertion remains red for other producers.
+
+#### Ordered constant set child (card-t-b)
+
+Pinned `select.c:multiSelect` routes an ordered set compound through
+`multiSelectByMerge`, where `multiSelectByMergeKeyInfo` keeps ORDER collation
+and direction distinct from set duplicate comparison; `expr.c:sqlite3CodeSubselect`
+uses the enclosing Mem/Exists/Set destination. For bounded one-column
+constant set arms with a single resolved result-column ORDER term, the
+parent-owned typed set cursor applies UNION/EXCEPT/INTERSECT first, then its
+sorted drain inserts surviving values into the parent-owned ORDER sorter.
+The latter drains through the existing destination and LIMIT/OFFSET path.
+These budgeted async cursors replace the two upstream coroutines only in this
+finite no-source branch; no general merge equivalence is claimed. Paired
+`select-scalar-child-native.py` / `.test.mjs` cover descending alias, ascending
+NULL/offset, empty intersection, LIMIT zero, INTEGER/NULL names and reset.
+Ordered mixed set/ALL and source-backed producers retain the fallback.
+
+#### Mixed set-prefix / UNION ALL child (card-t-b)
+
+`select.c:multiSelect` hands a set-operation prefix to the merge path,
+then reuses its destination and LIMIT/OFFSET registers for subsequent
+unordered UNION ALL arms. The bounded single-column no-source child now drains
+its typed set cursor *before* compiling trailing ALL rows, sharing the same
+parent-owned Mem/Exists/Set and LIMIT/OFFSET registers. Stop jumps target the
+end of the whole child, not merely the end of the set drain, so scalar and
+EXISTS do not overwrite an already delivered result. This also preserves
+empty-prefix and LIMIT-zero transitions. Paired pinned/public
+`select-scalar-child-native.py` / `.test.mjs` cases cover these branches,
+INTEGER/NULL, names and resets. Ordered set and source-backed children still
+use the fallback; the structural ownership check remains red.
+
+#### Bounded constant set-compound scalar child (card-t-b)
+
+Pinned `select.c:multiSelect` dispatches UNION/EXCEPT/INTERSECT to
+`multiSelectByMerge` and sends sorted distinct candidates through the shared
+`SelectDest` from `expr.c:sqlite3CodeSubselect`. A finite single-column,
+no-source, unordered set-compound child now allocates two typed ephemeral
+cursors in the enclosing builder: UNION inserts/replaces, EXCEPT deletes,
+INTERSECT retains the second cursor's keys, and the sorted first cursor
+feeds Mem/Exists/Set after OFFSET/LIMIT. The existing async ephemeral cursor
+is the browser adaptation for pinned merge coroutines; source comparison
+and paired pinned/public scalar/Exists/IN, INTEGER/NULL, duplicates, LIMIT 0,
+metadata and reset cases are in `select-scalar-child-native.py` / `.test.mjs`.
+Ordered/mixed set children and source-backed arms retain the audited fallback;
+structural ownership is not yet complete.
+
+#### Bounded ordered constant compound child (card-t-b)
+
+Pinned `select.c:multiSelectByMerge` sorts compound arms before sending rows
+through the shared `SelectDest`; `expr.c:sqlite3CodeSubselect` supplies
+Mem/Exists/Set and initializes the scalar result before production. For
+single-column constant UNION ALL arms with one resolved result-column ORDER
+term, the existing budgeted typed sorter is a browser/async adaptation to
+merge's two-coroutine cursor protocol: each arm's key equals its payload,
+and sorted rows are drained into the enclosing builder's destination after
+OFFSET, with LIMIT-zero guarding production. This does not generalize to
+source-backed arms, multiple keys, set operators, or arbitrary ORDER terms.
+Pinned/public `select-scalar-child-native.py` / `.test.mjs` compare alias
+DESC and ordinal ASC, INTEGER/NULL, names, scalar/Exists/IN and two resets.
+The remaining completed-Program splice still fails structural ownership.
+
+#### Constant compound LIMIT-zero error order (card-t-b)
+
+Pinned `select.c:multiSelect` unordered UNION ALL propagates the shared limit
+to its left arm and tests `iLimit` before compiling the right arm; a zero
+LIMIT skips offset coercion. The bounded compound scalar child now requests
+`computeLimitRegisters`' compound-zero-before-offset ordering, unlike the
+single-row no-FROM/VALUES route. The pinned oracle returns NULL/INTEGER 0
+for `LIMIT 0 OFFSET 'bad'` rather than a datatype mismatch; public paired
+scalar/IN test checks that order across resets. This is a control-flow
+correction in the existing parent-owned producer, not completion of general
+compound ownership.
+
+#### Constant UNION ALL child producer (card-t-b, bounded)
+
+Pinned `select.c:multiSelect` unordered UNION ALL branch runs left and right
+SELECT arms into the same `SelectDest` with shared LIMIT registers; the
+`expr.c:sqlite3CodeSubselect` Mem/Exists/Set consumer supplies the destination.
+The bounded no-FROM, single-column, non-aggregate/non-window UNION ALL arm
+sequence now consumes the existing parent-owned constant-row production path
+used for VALUES, rather than compiling a child Program for relocation. Source
+order and destination early stop are preserved for Mem/Exists, and Set inserts
+all candidates before IN probing. Pinned/public
+`select-scalar-child-native.py` / `.test.mjs` compare INTEGER/NULL, metadata
+and two reset/finalize cycles. This does not establish table-backed/ordered
+compound ownership or replace the remaining live audited fallback; structural
+ownership is still red.
+
+#### VALUES scalar-child producer (card-t-b, bounded)
+
+Pinned `select.c:multiSelectValues` emits each constant row through
+`selectInnerLoop` to the supplied destination; scalar `expr.c:sqlite3CodeSubselect`
+adds a one-row limit while `SRT_Set` retains all qualifying rows. The bounded
+single-column VALUES child now builds its rows in the enclosing builder with
+parent-owned registers, optional set cursor, Once guard, and Mem/Exists/Set
+result destination. The scalar/Exists path stops after its first candidate;
+the IN path inserts each candidate and probes only after production. The
+pinned/public `select-scalar-child-native.py` / `.test.mjs` pair checks typed
+INTEGER and NULL results, metadata and two reset/finalize cycles. This does
+not migrate general compounds or table-backed VALUES consumers; audited
+completed-child relocation still has live users and structural ownership is
+red.
+
+#### One-source CASE projection child (card-t-b, bounded)
+
+Pinned `expr.c:sqlite3ExprCodeTarget` TK_CASE compiles its optional base
+once, then WHEN tests and THEN results in order, followed by ELSE and an
+end label; `resolve.c:resolveExprStep` resolves its column references in the
+child NameContext. The bounded one-source child binder now descends those
+CASE reductions in the same operand/pair/ELSE order, binding each column to
+its parent-builder cursor before `compileExpressionTree` emits the branches
+and the result reaches DISTINCT/sorter/SRT destination. Previously the binder
+rejected CASE wholesale and OFFSET could enter completed-child relocation.
+Pinned source-ID/public `select-scalar-child-native.py` / `.test.mjs` compare
+searched and simple CASE as scalar, EXISTS and IN children with typed rows,
+metadata and two reset/finalize cycles. This is not migration of nested
+subqueries in CASE or of multi-source child producers; structural ownership
+remains red.
+
+#### One-source arbitrary result ORDER key (card-t-b, bounded)
+
+Pinned `resolve.c:resolveOrderGroupBy` first checks alias/ordinal/equal result
+expression and then resolves an unmatched ORDER term as an ordinary expression;
+`select.c:selectInnerLoop` inserts a separately computed sorter key with the
+projected payload before the destination on sorter drain. A bounded one-source
+child with a distinct ORDER expression now binds that key against its resolved
+child NameContext and compiles it into the enclosing builder's registers before
+sorter insertion. It does not replace the projection with the sort key. The
+pinned/public `select-scalar-child-native.py` / `.test.mjs` pair verifies
+`SELECT x+2 ... ORDER BY x*2 DESC LIMIT/OFFSET` consumed as Mem/Exists/Set,
+including typed values, names and two reset/finalize cycles. Arbitrary
+multi-source, derived and compound children still use the audited fallback;
+structural ownership remains red.
+
+#### One-source result-expression ORDER child (card-t-b, bounded)
+
+Collated one-source projections no longer fall through solely because the
+expression has a COLLATE reduction. Pinned `resolve.c:resolveExprStep` and
+`expr.c:sqlite3ExprCodeTarget` (`TK_COLLATE`) keep the collation wrapper while
+compiling its operand; the resolved column use may be attached to that wrapper
+rather than the inner ID reduction. The bounded child binder passes that use
+down to the operand, leaving the typed projection and DISTINCT/sorter/SRT
+sequence in the enclosing builder. Pinned source-ID/public paired
+`select-scalar-child-native.py` / `.test.mjs` cases cover INTEGER and CAST TEXT
+collated projections, DISTINCT, result ORDER, LIMIT/OFFSET, IN, names and two
+reset/finalize cycles. This is not migration of arbitrary collated ORDER or
+multi-source children; the structural completed-child fallback is still present.
+
+Pinned `resolve.c:resolveOrderGroupBy` first recognizes output aliases and
+ordinals and subsequently compares ORDER expressions with result expressions;
+`select.c:selectInnerLoop` constructs the result and sorter key before the
+SRT destination, applying DISTINCT before the sorter, then OFFSET on drain.
+The enclosing builder's one-source child now routes alias/ordinal/equal
+result-expression ORDER through its resolved projection register as sorter
+key, while a direct source-column ORDER keeps its own typed key. DISTINCT
+reuses its result register for the sorter payload; no completed child Program
+is relocated in this bounded path. The remaining arbitrary ORDER-expression
+path is not migrated. Pinned/public `select-scalar-child-native.py` and
+`.test.mjs` compare `x+1` result ORDER by expression/ordinal/alias with
+DISTINCT, LIMIT zero, OFFSET, scalar/IN/EXISTS, names, typed rows and two
+reset/finalize cycles. Prior to this change these expressions fell into the
+OffsetLimit relocation rejection. Structural ownership remains red.
+
+#### One-source expression-projection scalar child (card-t-b, bounded)
+
+Pinned `resolve.c:NameContext` binds projected and predicate column uses in
+one child scope; `select.c:selectInnerLoop` loads the projected expression
+before result DISTINCT (when present), checks duplicates before OFFSET,
+then inserts into the sorter or emits SRT_Mem/Exists/Set. The direct
+one-source child producer now binds the result expression through its
+resolved column uses instead of requiring `item.columnIndex`, and calls
+`compileExpressionTree` in its own cursor/register builder; DISTINCT uses
+that typed result register for both key and downstream payload, avoiding
+reevaluation. The one-key ORDER route still requires a resolved column or
+ordinal; other ORDER expressions fall back to the existing producer. Pinned
+source-ID/public `select-scalar-child-native.py`/`.test.mjs` compare `x+1`
+through WHERE, DISTINCT, descending ORDER, LIMIT 0/1/2, OFFSET,
+Mem/Exists/Set, types, names and two resets/finalize. Before this change
+OFFSET sent these children to completed-Program relocation and the opcode
+audit rejected OffsetLimit. This does not migrate other table/compound/derived
+children; structural ownership remains red.
+
+#### Interim nested multi-source OFFSET/LIMIT register preservation (card-t-b)
+
+`select.c:computeLimitRegisters` allocates `iLimit`, `iOffset`, then the
+combined register in one Parse; `vdbe.c:OP_OffsetLimit` reads both and writes
+that combined register. The still-live completed-child relocation in
+`compileScalarSelect` previously rejected `OffsetLimit`, so an otherwise
+admitted two-source expression child with OFFSET failed prepare. Pending
+migration of the multi-source compiler into the enclosing builder, its
+interim explicit relocation now includes all three register operands. This
+is **not** a source-faithful replacement for child Program relocation and
+must be removed with that fallback, not treated as a technical exception.
+Pinned/public `select-scalar-child-native.py` / `.test.mjs` compare join
+predicate, ORDER/LIMIT/OFFSET and Mem/Exists/Set values, names and two
+reset/finalize cycles. The public differential failed with `unsupported
+(OffsetLimit)` before this change; the structural ownership test still fails.
+
+#### Bounded multi-source grouped child destination (card-t-b)
+
+Pinned `select.c:sqlite3Select` GROUP BY feeds `selectInnerLoop`'s SRT_Mem,
+SRT_Exists or SRT_Set in the same Parse as `expr.c:sqlite3CodeSubselect`.
+`compileAggregateSelect` already allocates grouped multi-source cursors,
+sorter and result registers from an optional enclosing builder. Its scalar
+child caller previously restricted that shared-builder route to one source;
+a bounded two-source grouped child instead reached completed-Program opcode
+relocation (whose limited opcode vocabulary could reject it). That caller now
+uses the existing builder and destination for supported multi-source groups.
+Paired pinned/public `select-scalar-child-native.py` / `.test.mjs` cover an
+inner join predicate, grouped count, HAVING, ORDER/LIMIT/OFFSET, empty groups,
+LIMIT zero before OFFSET NULL, typed Mem/Exists/Set rows and two resets. This
+is not general join or grouped ownership and the remaining fallback and
+structural red check are not waived.
+
+#### One-candidate no-FROM child ORDER ownership (card-t-b, bounded)
+
+Pinned `resolve.c:resolveOrderGroupBy` maps a result alias/ordinal to the
+result expression; `select.c:sqlite3Select` / `selectInnerLoop` sends one
+qualifying candidate to `expr.c:sqlite3CodeSubselect`'s Mem/Exists/Set.
+The parent-owned no-FROM child now accepts one ORDER key that resolves to
+its sole result (alias, ordinal or equal expression). Sorting one candidate
+cannot change destination delivery; WHERE rejection precedes delivery and
+LIMIT/OFFSET retains its earlier guard. An independent or multiple ORDER key
+remains unsupported rather than silently dropping expression errors. Paired
+source-ID/public `select-scalar-child-native.py` / `.test.mjs` cover typed
+scalar/EXISTS/IN alias and ordinal keys, descending key, WHERE false,
+LIMIT/OFFSET, metadata and two resets. This adds no completed child Program,
+but other child shapes still relocate one and the structural gate remains red.
+
+#### One-source child LIMIT-zero setup (card-t-b, bounded)
+
+Pinned `select.c:sqlite3Select` invokes `computeLimitRegisters` before
+`sqlite3WhereBegin`, `selectInnerLoop` and its Mem/Exists/Set destination.
+`computeLimitRegisters` emits the zero-count jump before generating OFFSET
+coercion, even for a noncompound table child. The enclosing-builder
+single-source child previously used the late-zero branch and raised a
+`datatype mismatch` for `LIMIT 0 OFFSET NULL`. Its existing parent-owned
+cursor/register and destination producer now consumes the shared primitive's
+early-zero branch; false/NULL WHERE, ORDER and scan operations remain after
+the guard. The same source ordering applies to bounded scalar, table,
+aggregate, recursive and compound callers: the former
+`compoundZeroBeforeOffset` switch and late-zero path were a translation
+divergence, not a compound exception. Paired pinned/public
+`select-scalar-child-native.py` / `.test.mjs` check aliased view child
+scalar/EXISTS/IN and top-level no-FROM/table (including nested child)
+LIMIT zero and OFFSET NULL, types, names and two resets. This does not remove
+the completed-child fallback or establish untested cross-shape parity.
+
+#### Zero-source child WHERE candidate (card-t-b, bounded)
+
+Pinned `select.c:sqlite3Select` emits `computeLimitRegisters` before the
+nonaggregate `sqlite3WhereBegin` / `selectInnerLoop` path. A zero-source WHERE
+is a predicate of the one candidate, before `selectInnerLoop`'s OFFSET and
+SRT_Mem/Exists/Set delivery. `expr.c:sqlite3CodeSubselect` initializes the
+Mem/Exists destination and owns the IN set in the enclosing Parse/Vdbe.
+The one-row child branch now compiles a WHERE predicate into its parent
+builder and branches over candidate evaluation/insertion when false or NULL;
+LIMIT remains initialized before WHERE, the IN probe remains after child
+production. The one-candidate branch now uses the pinned
+`computeLimitRegisters` integer-zero early exit *before* OFFSET coercion;
+this is not applied to all SELECT routes. This is not a general no-FROM SELECT
+WHERE compiler. Paired `select-scalar-child-native.py` / `.test.mjs` compare
+typed NULL/INTEGER, names, scalar/EXISTS/IN, LIMIT 0/OFFSET NULL, and two
+resets. The initial public test failed with datatype mismatch because the
+TS no-FROM child computed OFFSET NULL before its LIMIT-zero branch; after
+correcting the branch order it passes the pinned case. Remaining
+completed-child relocation still fails the structural ownership assertion.
+
+#### No-FROM child result DISTINCT (card-t-b, bounded)
+
+Pinned `select.c:selectInnerLoop` applies result DISTINCT before OFFSET/SRT;
+for the single-candidate no-FROM child there cannot be a duplicate. The
+existing parent-owned one-row producer therefore admits DISTINCT without
+opening a redundant ephemeral, preserving its LIMIT-zero guard, OFFSET and
+Mem/Exists/Set emission. `expr.c:sqlite3CodeSubselect` keeps the destination
+in the enclosing Vdbe. Pinned source-ID/public paired `select-scalar-child`
+probes cover LIMIT 0/1, OFFSET 0/1, typed NULL/INTEGER, names and two resets.
+Before this change its shape gate rejected DISTINCT at prepare. This does not
+migrate remaining multi-row/compound/derived child production; the structural
+reproducer is still red.
+
+#### Direct one-table child result DISTINCT (card-t-b, bounded)
+
+Pinned `select.c:sqlite3Select` opens result DISTINCT's ephemeral in the
+same Parse and `selectInnerLoop` checks `Found`/`IdxInsert` before OFFSET;
+`generateSortTail` applies OFFSET when sorting. `expr.c:sqlite3CodeSubselect`
+keeps Mem/Exists/Set destinations in that Parse. The direct-column,
+one-table child producer now admits result DISTINCT: it allocates a cursor
+from the enclosing builder, reads the typed projected column once for the
+DISTINCT key after WHERE, branches duplicates to Next without consuming
+LIMIT/OFFSET, and retains its existing sorted drain and destinations.
+Pinned source-ID/public `select-scalar-child-native.py` / `.test.mjs` pair
+unsorted and descending-sorted duplicates, WHERE, LIMIT 0/1/2, OFFSET,
+Mem/Exists/Set types, names and two reset/finalize cycles. Before migration
+its completed-child relocation audit rejected OffsetLimit/OpenEphemeral/
+Found/IdxInsert. This is not general expression projection or table-child
+ownership; the structural reproducer remains red.
+
+#### Direct one-table child OFFSET ownership (card-t-b, bounded)
+
+Pinned `select.c:selectInnerLoop` invokes `codeOffset` (`OP_IfPos`, decrement
+by 1) after a qualifying WHERE row but before projection when no sorter; the
+sort tail applies OFFSET when ORDER BY is present. In `compileScalarSelect`'s
+existing direct one-table child producer, `computeLimitRegisters` now owns
+OFFSET in the enclosing builder: an `IfPos` skips qualifying rows before
+Mem/Exists/Set emission and a sorter-drain `IfPos` skips sorted rows. Both
+advance to the same Next/SorterNext transition without consuming LIMIT;
+LIMIT 0 still exits before scanning. Pinned source-ID/public paired
+`select-scalar-child-native.py` / `.test.mjs` cover unsorted WHERE + OFFSET,
+single-key sorted OFFSET and LIMIT 0 OFFSET across Mem/Exists/Set, with typed
+rows, names and two executions/reset/finalize. Previously the `!nested.offset`
+caller gate sent these children to completed-Program relocation and rejected
+`OffsetLimit`. This is only the direct one-table producer; other admitted
+child producers still relocate Programs and the unfiltered structural test
+remains red.
+
+#### Aggregate-parent child cursor ownership (card-t-b, subsequent bounded attempt)
+Pinned `expr.c:sqlite3CodeSubselect` and `select.c:sqlite3Select` compile a nested
+SELECT into the enclosing Parse/Vdbe; `selectInnerLoop` consumes its destination
+before the enclosing program is published. The aggregate-parent EXISTS, IN,
+and scalar one-table child paths in `compileAggregateSubquery` now allocate
+child cursors through the enclosing `SelectProgramBuilder` rather than starting
+at an arbitrary cursor 1000. Until the aggregate parent's source/sorter/modifier
+cursors are all allocated by the builder, `reserveCursorsThrough` advances the
+builder over their fixed live range before the child compiles. This is a
+transitional ownership boundary, not a claim that the child producer is shared
+with the scalar-parent compiler. Paired pinned/public `select-scalar-child` tests
+include an aggregate parent with simultaneous WHERE EXISTS and result IN child,
+checking typed row, metadata, two executions and finalize. Scalar-parent
+completed aggregate/table child Program relocation remains and the unfiltered
+structural ownership test still fails; no compatibility claim follows.
+
+#### No-GROUP aggregate result DISTINCT in enclosing child (card-t-b, bounded)
+
+Pinned `src/select.c:sqlite3Select` opens result DISTINCT's ephemeral before
+aggregate final output; `selectInnerLoop` checks `Found`/`IdxInsert` before
+OFFSET and SRT destination. `expr.c:sqlite3CodeSubselect` provides Mem/Exists/Set
+in the enclosing Vdbe. The one-source/no-ORDER aggregate shape now admits
+result DISTINCT; the producer allocates its ephemeral through the parent
+builder and checks its reserved output range after `AggFinal`/HAVING, before
+OFFSET/SRT. A duplicate branches past emission. Pinned source-ID/public
+`select-scalar-child-native.py` / `.test.mjs` compare LIMIT 0/1 OFFSET 1,
+empty filtered count, typed rows/names and two reset/finalize cycles. This
+is result DISTINCT, not `count(DISTINCT ...)` accumulator modification; other
+child shapes still relocate completed Programs and the structural check remains
+red.
+
+### No-GROUP aggregate child LIMIT (partial SELECT ownership repair)
+
+Pinned `src/select.c:computeLimitRegisters` gates the accumulator producer before
+scan, while `selectInnerLoop` emits SRT_Mem/SRT_Exists/SRT_Set only for a produced
+row; `src/expr.c:sqlite3CodeSubselect` initializes scalar/exists destinations
+before invoking that producer. `compileAggregateSelect` previously excluded
+no-GROUP aggregates with LIMIT/OFFSET at its shape gate. It now allocates the
+limit registers before scan/steps, patches the zero branch to halt, and skips
+one final row on a positive OFFSET. Paired pinned/public scalar, exists, and IN
+aggregate-child probes in `select-scalar-child-native.py` / `.test.mjs` cover
+LIMIT 0 and filtered empty inputs with typed rows, names and reset. This does
+not migrate the completed child Program splice into the enclosing builder; the
+structural ownership test remains red. It also does not establish general
+aggregate LIMIT/parameter/cross-shape parity.
+
+### Joined no-GROUP aggregate children (card-t-b, bounded subsequent producer)
+
+Pinned `src/select.c:sqlite3Select` (no-GROUP branch around `sqlite3WhereBegin`,
+`updateAccumulator`, `sqlite3WhereEnd`, `finalizeAggFunctions`) scans the joined
+SrcList before final delivery via `selectInnerLoop`; `src/expr.c:sqlite3CodeSubselect`
+initializes Mem/Exists/Set in the enclosing Vdbe. The parent-builder no-GROUP
+aggregate route now allocates one cursor per source and nests Rewind/Next;
+ON rejection advances its join depth, WHERE rejection advances the innermost
+cursor, and finalization runs once even for empty input. This is the existing
+aggregate accumulator producer rather than relocation of a completed child.
+The paired pinned/public `select-scalar-child-native.py` / `.test.mjs` cases
+exercise joined scalar/Exists/IN, empty groups, HAVING, LIMIT-zero OFFSET-NULL,
+typed columns and two reset/finalize cycles. The newly added extended cases
+were written after the producer change and do not demonstrate pre-migration
+coverage. The structural ownership reproducer still fails: nonaggregate
+multi-source and other child producers retain completed-Program relocation.
+Do not remove that fallback until its admitted consumers share parent allocation.
+
+### Joined child rowid seek in the interim producer (card-t-b, subsequent evidence)
+
+The pre-migration pinned/public paired scalar/Exists/IN join probe with
+`t1.a=3` exposed an admitted `wherecode.c` rowid-equality loop that the
+completed-child fallback rejected at prepare (`SeekRowid`). In the interim
+splice, `SeekRowid.p1` is a cursor, `key` a register and `p2` an exit
+address; all three must be rebased, unlike `OffsetLimit`'s three register
+operands. The paired case checks typed results, names and two reset/finalize
+cycles; the ordinary joined predicate case checks the same destinations.
+This is preservation of a formerly rejected path, **not** a parent-owned
+joined producer. Pinned `src/select.c:sqlite3Select`/`selectInnerLoop` consumes
+`wherecode.c`'s seek in the same Parse/Vdbe and emits SRT_Mem/Exists/Set;
+`src/expr.c:sqlite3CodeSubselect` owns the caller destination. Next migration
+must make `compileInnerTableSelect` allocate its source/index/sorter cursors and
+result registers in the caller builder and deliver the destination at the
+scan/sorter drain (including LIMIT/OFFSET and empty exits), then audit remaining
+reachable fallback consumers before removing relocation. The new rowid-seek
+probe is pre-migration evidence for that move, not general index parity.
+
+### Nonflattenable ordered LIMIT producer, outer WHERE (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (19) forbids folding an
+outer WHERE before a LIMIT-bearing producer. `selectInnerLoop` feeds the
+producer sorter, and `generateSortTail` drains its bounded ORDER/LIMIT before
+the caller tests outer WHERE and writes Mem/Exists/Set. The bounded one-table
+single-result producer now reuses the enclosing builder's sorter and payload;
+source ORDER AS-name/ordinal binds against the producer result before drain,
+and the outer predicate reads the materialized result register (never a
+cursor left after source scan). Sorted producer LIMIT uses a bounded top-N
+capacity on insert and decrements on *every drained row*, including rows
+rejected by outer WHERE. Source-ID-checked paired typed scalar/EXISTS/IN,
+metadata and two resets pass with DESC LIMIT 2, alias ORDER, and a rejected
+highest row. The pre-edit public preparation failed `no such table: d`;
+during repair an unbounded sorter and a pre-sort outer predicate returned
+incorrect rows, corrected at the owning scan/drain transitions. This slice
+requires the consumer result to match one materialized producer expression;
+a producer may project additional columns when its ORDER key is still
+resolvable against the producer EList before the caller consumes that one
+column. Paired source-ID/public `x AS a, x+1 AS b ORDER BY 2 DESC LIMIT 2`
+cases cover both `d.a` and `d.b` with an outer filter, typed scalar/EXISTS/IN,
+names and two resets. A follow-up source-ID-checked case selects `d.b`
+while filtering on `d.a`: the producer scan now carries each required direct
+column as a contiguous extra sorter payload register, and the sorted drain
+binds the predicate to those registers before Mem/Exists/Set. This matches
+`select.c:generateSortTail` keeping row data until the consumer and restriction
+(19) keeping the outer predicate after producer LIMIT. Direct-column binding
+of substituted reductions is limited to the single resolved producer source;
+no host row evaluator or completed-Program relocation is introduced for this
+path. The test compares typed 4/1/1, names and two resets; before this repair
+preparation rejected `nested source expression binding is not implemented`.
+The bounded sorter contract also applies when the derived consumer has no
+outer predicate: `select.c:pushOntoSorter` bounds insertion by the producer's
+LIMIT(+OFFSET), not by the presence of an outer WHERE. The one-table scalar
+producer now supplies its existing `computeLimitRegisters` capacity to
+`SorterInsert` on both filtered and unfiltered paths; Mem/Exists/Set still
+consume the sorted drain in the enclosing Parse. Pinned/public `SELECT x FROM
+t2 ORDER BY x DESC LIMIT 2` as scalar/EXISTS/IN returns typed 9/1/1,
+metadata and two resets. This does not remove the live generic completed-child
+fallback or establish general resource-limit parity.
+
+`select.c:generateSortTail` applies producer OFFSET before the caller
+predicate, while `expr.c:sqlite3CodeSubselect` caps Mem/Exists to the first
+accepted row even when the producer's pre-existing LIMIT is greater than one
+(and keeps the OFFSET). The bounded one-table ordered LIMIT producer now
+admits OFFSET in the same shared sorter/drain path. At the sorted destination,
+Mem/Exists exit after the first post-filter row independently of the producer
+LIMIT counter; Set drains and decrements that counter. Source-ID-checked
+native/public `x AS a, x+1 AS b ORDER BY 2 DESC LIMIT 2 OFFSET 1`
+(and LIMIT 1 OFFSET 1) with an outer `d.a<9` compares typed 4/1/1,
+metadata and two resets. The initial admission-only probe returned 2 instead
+of native 4: Mem was overwriting its first accepted row with the next drain
+row. Repairing that destination stop, rather than changing the predicate or
+sort key, restores the caller's one-row contract. The generic completed-child
+fallback remains live and the structural regression remains red.
+
+An independent scalar expression in the admitted one-table producer's
+projection, WHERE or ORDER BY is now compiled by its own `compileSubquery`
+callback in the enclosing Parse/Vdbe rather than being rejected during
+producer-column binding. `resolve.c` gives that expression its own
+NameContext; the producer binder must not descend into its SELECT and
+mistake nested columns for source columns. `expr.c:sqlite3ExprCodeTarget`
+and `sqlite3CodeSubselect` own the nested destination, initialization and
+once/reset behavior. Pinned-source-ID/public scalar/EXISTS/IN cases with
+`ORDER BY (SELECT 1) DESC LIMIT 2` return typed 1/1/0, names and two resets.
+This does not authorize arbitrary correlated expressions. The producer
+binder now binds only the left expression of a nested IN to the producer's
+NameContext, leaving the RHS SELECT to `expr.c:sqlite3CodeSubselect` and its
+existing enclosing-builder callback. Pinned/public `x IN (SELECT 4)` with
+outer Mem/Exists/Set returns typed NULL/0/0, names and two resets;
+a complementary `x IN (SELECT 1)` producer returns typed 1/1/1,
+preventing the all-empty outcome from masking a lost left binding. General
+correlated RHS and transient source binding remain unestablished.
+The completed-child fallback and structural regression remain open.
+
+The same destination stop contract applies to the unsorted producer path:
+`select.c:selectInnerLoop` decrements the producer LIMIT after result events,
+while `expr.c:sqlite3CodeSubselect` caps Mem/Exists after their first accepted
+outer row. Previously the non-sorter path with a post-producer predicate
+continued writing Mem until producer LIMIT was exhausted; pinned/public
+`x AS a, x+1 AS b LIMIT 3` with `d.a>0` exposed 4 instead of native 2.
+The shared no-sort stop now exits Mem/Exists on the first accepted row;
+rejected rows still advance and consume the producer LIMIT and Set continues
+through the producer rows. Paired pinned/public LIMIT 3, LIMIT 3 OFFSET 1,
+and LIMIT 1 OFFSET 1 compare typed scalar/EXISTS/IN (including a null/0/0
+case), names and two resets. This repairs the bounded caller, not general
+materialized transient sources.
+
+This is not a full multi-column derived table: DISTINCT,
+other producer shapes, general NameContext and limits/atomicity parity remain
+open; the generic completed-child fallback is still live.
+
+The sorted-drain predicate now also translates the `expr.c:TK_CASE` child
+walk: the producer scan carries direct columns from WHEN/THEN/ELSE in its
+sorter payload, and the drain replaces *each* occurrence with the matching
+register before compiling the outer WHERE. Previously only collection walked
+CASE, leaving a CASE child bound to the exhausted scan cursor. The pinned
+source-ID/public paired `CASE WHEN d.a<9 THEN d.a ELSE 99 END<9` case over
+`d.b` with DESC LIMIT 2 returns typed 4/1/1, names and two resets. This
+repairs payload binding, not general CASE or a full transient table.
+
+### Nonflattenable one-table LIMIT producer with outer WHERE (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (19) forbids moving a
+LIMIT producer's outer WHERE into its scan: the producer must consume LIMIT
+before the outer filter. `selectInnerLoop` applies producer WHERE, OFFSET,
+then LIMIT to each produced row before outer WHERE and Mem/Exists/Set. The
+bounded one-table no-ORDER/non-DISTINCT scalar/EXISTS/IN caller now keeps
+producer and substituted outer predicates distinct while lowering into the
+same enclosing builder; the producer's limit counter decrements even when
+the outer predicate rejects its row. This is not general ephemeral/coroutine
+materialization: it applies only when the transient expressions bind to one
+ordinary table with an admitted one-column consumer. An expression result
+`x+1 AS y FROM t2 LIMIT 1` followed by `d.y>2` failed public prepare
+(`no such table: d`) before the repair; source-ID-checked native/public
+scalar NULL, EXISTS 0, IN 0, metadata and two resets pass after. Producer
+ORDER, DISTINCT, multirow outer consumers, and general NameContext remain
+unmigrated. No independent evaluator or child Program is invoked.
+
+### COLLATE-wrapped producer ORDER references (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:resolveOrderGroupBy` uses
+`sqlite3ExprSkipCollateAndLikely` to bind AS-names and integer ordinals
+through explicit COLLATE, then `sqlite3ResolveOrderGroupBy` replaces the
+underlying reference with its producer result expression while preserving
+the outer collation. The bounded `src/select.c:flattenSubquery` ORDER
+transfer now follows this order: unwrap COLLATE for producer EList binding,
+replace the referenced reduction, and preserve the COLLATE carrier before
+the enclosing parent's sorter consumes it. Before repair, `x+1 AS y ORDER
+BY y COLLATE BINARY DESC LIMIT 1` returned public 4 versus pinned 10 and
+`ORDER BY 1 COLLATE BINARY` returned public 2 versus pinned 10. Paired
+source-ID-checked native/public typed rows, names and two resets pass. This
+does not establish general ORDER NameContext or nonflattenable materialization.
+
+### Producer ORDER ordinal before flatten transfer (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:resolveOrderGroupBy` resolves integer ordinals against
+producer EList width before `src/select.c:flattenSubquery` moves the ORDER
+list to its parent. The bounded transfer formerly passed `ORDER BY 2` from
+a two-column producer to a one-column parent, failing with a 1..1 error.
+It now checks producer width and replaces an admitted ordinal with its
+producer result expression before parent substitution/sorter compilation.
+Paired source-ID-checked native/public `x AS a, x+1 AS b ORDER BY 2` and
+`ORDER BY b` typed rows, metadata and resets pass; native/public `ORDER BY
+3` against width two rejects at prepare with the pinned diagnostic. This
+is not general multi-column derived materialization.
+
+### Producer ORDER AS-name before flatten transfer (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:resolveOrderGroupBy` binds producer ORDER AS-names to
+its EList before `src/select.c:flattenSubquery` transfers ORDER to the parent
+and clears `iOrderByCol`. Previously `SELECT d.y FROM (SELECT x+1 AS y FROM
+t2 ORDER BY y DESC LIMIT 1) d` returned 4 instead of pinned 10: the
+transferred `y` was not bound to producer `x+1`. The bounded transfer now
+resolves producer AS-names against producer result expressions before parent
+substitution; the parent sorter then compares the translated result
+expression. Source-ID-checked native/public paired alias and ordinal,
+rows/types/names and two resets pass. General ORDER NameContext or
+multi-column parent projections are not established.
+
+### Source-permitted nonzero-source derived LIMIT transfer (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restrictions (13), (14), (19)
+forbid producer LIMIT with parent LIMIT, producer OFFSET, or parent WHERE,
+respectively. When none applies, its transfer moves producer LIMIT onto the
+parent before `selectInnerLoop` and sorter drain. The bounded one-table
+scalar/EXISTS/IN caller now transfers LIMIT together with producer ORDER
+into its enclosing-builder scan/destination. Source-ID-checked paired native
+and public rows, types, names and two resets pass for LIMIT 0/1 and ORDER
+plus LIMIT 1/2; the pre-edit public probe failed `no such table: d`.
+This does not flatten a producer LIMIT past an outer WHERE or replace
+nonflattenable multirow materialization; that remains a live gap.
+
+### Nonzero-source derived ORDER transfer (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restrictions (7), (11), (19)
+permit a single-source, nonaggregate, non-DISTINCT producer with ORDER and
+without LIMIT to flatten into an unordered parent. The transfer zeroes the
+producer's result-list order references and installs its ORDER list on the
+parent; `selectInnerLoop` then feeds the parent's sorter and Mem/Exists/Set.
+The bounded caller now carries that producer ORDER into the substituted
+single-source SELECT and recursively compiles it through the enclosing
+builder's already translated scan/sorter path. An outer ORDER still blocks
+this transfer. Paired source-ID-checked native/public scalar/EXISTS/IN rows,
+metadata and two resets pass for the ordered one-table producer; the first
+public probe failed `no such table: d`. No claim is made for LIMIT-bearing
+producer materialization or general CTE/derived multirow ownership.
+
+### ORDER term resolution for no-FROM derived producer (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:resolveOrderGroupBy` resolves producer ORDER terms
+against the producer result list: explicit AS-name first, integer ordinal
+second (with prepare-time range error), then ordinary NameContext expression.
+The bounded singleton producer now maps alias and ordinal to its transient
+result registers before evaluating its ORDER keys; out-of-range ordinals
+reject before publishing a statement with pinned message. The prior
+literal-as-value treatment passed a singleton row by coincidence and did
+not represent the resolver contract. Paired source-ID-checked native/public
+alias/ordinal typed rows and two resets, plus native error/public atomicity
+cases for 0 and 3 against width 2 pass. This does not establish general
+multirow ORDER or all NameContext error behavior.
+
+### ORDER no-FROM derived producer (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) retains the producer;
+`selectInnerLoop` loads its result row and `pushOntoSorter` computes ORDER
+keys before sorter LIMIT/OFFSET and the outer row consumer. For a no-FROM
+producer at most one row reaches the sorter: key comparisons and a multirow
+drain cannot occur. The bounded caller now binds ORDER keys to producer
+result registers, evaluates them once after the candidate result and before
+producer OFFSET, then consumes the same transient row through outer WHERE,
+OFFSET and Mem/Exists/Set. This is a singleton register representation of
+the C sorter; multirow ORDER still requires its actual sorter and drain.
+Paired source-ID-checked native/public typed scalar/EXISTS/IN rows,
+absent candidates, names and two resets pass. General derived/CTE ORDER
+and generic relocation remain open.
+
+### DISTINCT no-FROM derived producer (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) retains this
+producer; `sqlite3Select` plans DISTINCT with `sqlite3WhereBegin` and
+`selectInnerLoop` consults the resulting DISTINCT mode before emitting its
+row. With no FROM, WHERE/LIMIT/OFFSET can admit at most one candidate;
+DISTINCT cannot suppress that candidate. The bounded producer/caller now
+accepts DISTINCT, fills its transient result registers once per admitted row
+and consumes the outer Mem/Exists/Set as before without a redundant dedup
+cursor. This is not a general DISTINCT substitution: multirow producers
+still require upstream dedup planning. Paired source-ID-checked native/public
+typed scalar/EXISTS/IN rows, absent candidates, names and two resets pass.
+ORDER and general derived/CTE, and generic relocation remain open.
+
+### Multi-column no-FROM derived producer row (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) retains a no-FROM
+producer even when it exposes multiple columns; `selectInnerLoop` populates
+producer result registers before the outer WHERE, result and destination.
+`src/resolve.c:resolveExprStep` binds the transient source names, and
+`src/expr.c:sqlite3CodeSubselect` retains Mem/Exists/Set in one Parse.
+The previous one-column branch fell through to `no such table: d` for
+`SELECT d.b FROM (SELECT 7 a, 8 b LIMIT 1) d`. The bounded branch now
+allocates producer result registers through the enclosing builder, evaluates
+each producer expression once on an admitted row, binds outer result and
+WHERE column references to those registers, and emits the outer destination
+only after its predicate and OFFSET. Paired source-ID-checked native/public
+scalar/EXISTS/IN typed rows/names, absent producers, expression over two
+columns and two resets pass. General derived/CTE relations, independent
+ORDER and generic completed-child relocation remain open. This is register
+binding in lieu of C's ephemeral row cursor for a one-row no-FROM producer;
+producer row values and ordering are retained, not a general alternative
+materializer.
+
+### Outer expression on zero-source derived column child (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:resolveExprStep` binds column references throughout
+an outer result expression in its NameContext; `src/select.c:flattenSubquery`
+restriction (7) retains the no-FROM producer, whose `selectInnerLoop` row
+event precedes outer result evaluation and destination. The previously
+bounded branch admitted only a direct derived-column projection and fell
+through to `no such table: d` for `d.n+1`. Its caller now substitutes the
+transient producer reduction throughout the outer result expression and
+lowers that result after producer and outer WHERE/OFFSET gates into the same
+Mem/Exists/Set. An unresolved column is rejected before emitting operations;
+this is not general derived materialization. Paired source-ID-checked
+native/public scalar/EXISTS/IN value, absent producer, typed names/rows and
+reset pass. Independent ORDER and wider producer shapes, as well as live
+generic completed-child relocation, remain unresolved.
+
+### Outer WHERE on zero-source derived column child (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) retains the
+no-FROM producer; `selectInnerLoop` gates its result event before the outer
+SELECT evaluates WHERE. `src/resolve.c:resolveExprStep` binds the outer
+qualified column in its NameContext to the transient producer column;
+`src/expr.c:sqlite3CodeSubselect` consumes Mem/Exists/Set in one Parse.
+The bounded child previously rejected an outer predicate and attempted to
+resolve the derived alias as a physical table. Its caller now substitutes the
+transient column in the outer WHERE reduction and emits its predicate after
+producer suppression, before outer OFFSET and destination. Source-ID-checked
+native/public scalar/EXISTS/IN cases cover matched/rejected and absent
+producer candidates, typed names/rows and reset. Independent outer ORDER and
+wider derived producers remain outside this branch; completed-child relocation
+and its global structural assertion remain red.
+
+### Nested outer LIMIT on zero-source derived column child (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:sqlite3Select` initializes each SELECT's LIMIT before
+entering its source; `selectInnerLoop` applies OFFSET to each SELECT's own row
+event, and `src/expr.c:sqlite3CodeSubselect` calls the outer SELECT using the
+same Parse/Vdbe destination. The bounded no-FROM derived-column producer
+already emits its inner candidate, but the outer LIMIT/OFFSET previously
+fell through to a physical-table lookup (`no such table: d`). Its caller now
+allocates outer LIMIT before producer LIMIT, gates producer absence first,
+and applies outer OFFSET before emitting Mem/Exists/Set; both zero-limit jumps
+leave destination defaults intact. Paired source-ID-checked native/public
+scalar/EXISTS/IN cases cover inner and outer skipped candidates, names/types
+and two resets. Independent outer WHERE/ORDER and general derived materialization
+remain unimplemented; the global completed-child relocation assertion is red.
+
+### Nonflattenable zero-source derived column child (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) retains a FROM
+producer with no source; `selectInnerLoop` only supplies a row to the outer
+SELECT after its WHERE/LIMIT/OFFSET, while `src/expr.c:sqlite3CodeSubselect`
+allocates Mem/Exists/Set in the enclosing Parse. The scalar child previously
+fell through physical-table resolution (`no such table: d`) rather than
+feeding its derived column into the destination. A bounded single-result,
+no-source producer now emits WHERE/OFFSET, its value and the outer
+Mem/Exists/Set in the enclosing builder, then probes IN after the Once
+boundary. A direct derived-column projection alone is admitted; independent
+outer WHERE/ORDER/LIMIT, producer compound/window/aggregate and wider derived
+relations remain outside this branch. Paired source-ID-checked native/public
+value, empty candidate, producer LIMIT/OFFSET, typed metadata and two resets
+pass. This does not remove the generic completed-child fallback; its live
+consumers still require migrations.
+
+### Nonflattenable zero-source derived count child (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:flattenSubquery` restriction (7) leaves a FROM subselect
+with no source unflattened. Its one-row `selectInnerLoop` result event feeds
+the enclosing count accumulator even when WHERE, LIMIT or OFFSET suppresses
+that event; `src/expr.c:sqlite3CodeSubselect` keeps Mem/Exists/Set in the same
+Parse/Vdbe. The existing top-level `compileZeroSourceDerivedCount` built a
+complete scalar producer and rewrote its ResultRow/Halt into AggStep/branches.
+Passing the parent builder/destination into this bounded producer now emits
+the zero-source WHERE/OFFSET and result event into that builder, finalizes
+count even with no event, then emits the caller's destination. Source-ID-checked
+native/public cases cover one/zero candidate, producer LIMIT/OFFSET,
+Mem/Exists/Set, names/types, and two resets. Top-level compatibility bridge
+remains until its callers migrate; this is only count(*) cardinality, not a
+new derived-column producer. The reachable generic finished-child fallback
+and global structural failure remain.
+
+### Single-row aggregate ORDER admission (card-t-b, 2026-09-29)
+
+Pinned `src/expr.c:sqlite3CodeSubselect` initializes SRT_Mem/Exists/Set and
+calls `sqlite3Select` within the same Parse; `src/select.c:sqlite3Select`
+finalizes the ungrouped accumulator once before its destination and LIMIT
+exit. The TS producer already shares that builder/destination and implements
+LIMIT/OFFSET and empty-input finalization, but `aggregateShapeSupported`
+rejected even `ORDER BY count(*) DESC` / `ORDER BY` its result alias. A
+single ungrouped result row needs no sorter. Admit only ORDER terms bound to
+a projected result in `simpleUngroupedAggregateOrder`, retaining existing
+window/compound and independent ORDER-expression exclusions. Source-ID-checked
+native/public scalar, EXISTS and IN probes cover count, empty source,
+LIMIT/OFFSET, typed values, names and two resets. This is not general aggregate
+ORDER parity or completion of expression-child ownership; nonflattenable
+sources and the completed-child fallback still require producer/caller work.
+
+### Ordered grouped child key ownership (card-t-b, 2026-09-29)
+
+After simple derived/view flattening, `GROUP BY d.x ORDER BY d.x DESC`
+retains an ORDER expression that is not a projected aggregate result. The
+previous `aggregateShapeSupported` gate rejected it even though the grouped
+producer already has a result sorter and SRT destination drain. Pinned
+`src/select.c:sqlite3Select` sorts after group finalization, using the group
+key even when it is not in the result list; `src/expr.c:sqlite3CodeSubselect`
+keeps Mem/Exists/Set in the enclosing Parse/Vdbe. The resolver/aggregate
+producer now admits a bound GROUP-key identity as an ORDER key and copies its
+saved group register into the result-sorter key range, alongside projected
+ORDER results. HAVING rejection, DISTINCT, LIMIT/OFFSET and destination
+emission remain at the existing group/sorter drain. Paired source-ID-checked
+native/public cases cover derived/view grouped aggregate ordering, descending
+keys not in the result, LIMIT/OFFSET, empty and two reset/finalize cycles.
+This does not admit arbitrary ORDER expressions, nonflattenable producers or
+all grouped plans. The finished-child fallback and global structural failure
+remain live.
+
+### Flattenable grouped derived/view child checkpoint (card-t-b, 2026-09-29)
+
+The grouped-child destination call now also admits a simple flattenable
+single-source derived table or immutable view. Pinned `src/select.c:flattenSubquery`
+substitutes producer expressions before `sqlite3Select` drives the grouped
+accumulator, and `src/expr.c:sqlite3CodeSubselect` keeps SRT_Mem/Exists/Set in
+its enclosing Parse/Vdbe. `compileAggregateSelect` already passes the parent
+builder and destination through both flattening recursions; its scalar caller
+now uses that path rather than the finished-child splice. New source-ID-checked
+pinned/native and public paired cases cover derived empty/HAVING/LIMIT/OFFSET,
+view grouping, typed rows/names and two reset/finalize cycles. The oracle's
+`ORDER BY d.x DESC` and `ORDER BY count(*) DESC` candidates initially exposed
+an `aggregateShapeSupported` admission limit after flattening. This revision
+moves group-key identity and aggregate-result ordering into the grouped
+producer's result sorter (see checkpoint above), not arbitrary ORDER
+expressions. Nonflattenable derived/CTE and remaining fallback consumers
+still need migration; the global structural assertion remains red.
+
+### Grouped scalar child destination checkpoint (card-t-b, 2026-09-29)
+
+Pinned `src/expr.c:sqlite3CodeSubselect` passes SRT_Mem/Exists/Set to
+`src/select.c:sqlite3Select` within the same Parse/Vdbe; grouped rows are
+emitted after group-boundary/final accumulator handling, including HAVING,
+DISTINCT, sorter drain, LIMIT and OFFSET exits. The bounded physical-table
+GROUP BY scalar/EXISTS/IN caller now passes its builder and destination to
+`compileAggregateSelect` rather than relocating its finished program. The
+producer already shares registers/cursors and emits destinations at both group
+and sorted drain. The existing paired pinned/public grouped cases exercise
+empty groups, offsets, DISTINCT and HAVING, typed rows/names and two reset
+cycles; this does not establish derived/view or all grouped shape ownership.
+The completed-child relocation remains live for those and other reachable
+plans; the full structural assertion remains red. No new execution algorithm
+was substituted.
+
+### Joined nonaggregate child builder checkpoint (card-t-b, 2026-09-29)
+
+Pinned `src/select.c:sqlite3Select` / `selectInnerLoop` and
+`src/expr.c:sqlite3CodeSubselect` keep the joined WHERE loop and SRT_Mem,
+SRT_Exists or SRT_Set in one Parse/Vdbe. `compileScalarSelect` now passes its
+shared builder, parameters and destination to `compileInnerTableSelect` for
+nonaggregate multi-source children. The producer reserves a contiguous result
+range, source/index/sorter cursors and temporary registers in that builder,
+including the sorter drain, and patches its own LIMIT and first-row exits to
+the enclosing continuation rather than emitting Halt. `expandAndResolveSelect`
+uses the builder cursor base so resolved column cursor IDs stay intact. This
+reuses the existing nested join/WHERE/index producer rather than a second
+SQL-text evaluator. The pre-migration paired native/public joined rowid-seek
+and non-seek cases check typed rows, metadata and reset/finalize twice. This
+is **not** complete SELECT ownership: the remaining completed-child splice for
+nonflattenable derived/aggregate or other reachable plans still needs a
+consumer audit and migration, and the full scalar-child structural test is red.
+No broad index or encoding parity is inferred.
+
+### Correlated IN in a one-table scalar producer (card-t-b, 2026-09-29)
+
+Pinned `src/resolve.c:lookupName` increments the inner NameContext reference
+when a nested SELECT resolves a column from its parent; `resolveExprStep`
+marks the expression `EP_VarSelect`. `src/expr.c:sqlite3CodeSubselect` emits
+`OP_Once` only when this flag is absent. For the bounded no-FROM RHS of an
+IN predicate inside the one-table scalar producer, `expandAndResolveSelect`
+records the RHS column-use owner and `compileScalarSelect` now carries its
+cursor, index, affinity and collation into RHS expression lowering. The RHS
+set is built at the predicate's position in the producer scan, not hoisted
+into a once-per-statement child. This fixes the pinned-source-ID/public
+`x IN (SELECT x)` scalar/EXISTS/IN discriminator (typed 9/1/0, metadata and
+two resets); the previous public result was 3/0/0. Only immediate references
+to the physical producer source in this bounded RHS are bound here; other
+correlation depths and transient-source references still require their owning
+NameContext lowering. The generic completed-child relocation and its structural
+test remain red; this checkpoint is not complete SELECT compiler ownership.
+
+#### Correlated no-FROM RHS WHERE owner (card-t-b, follow-up)
+
+The earlier correlated `x IN (SELECT x)` probe only exercised the nested
+result expression. A source-ID-checked pinned 3.53.4 probe with
+`x IN (SELECT x WHERE x>1)` in a one-table scalar producer discriminates
+WHERE ownership: scalar/EXISTS/IN returns typed 9/1/0; before this repair the
+public result was 9/1/1. Pinned `src/resolve.c:lookupName` attributes both
+nested result and WHERE columns to the immediate outer NameContext;
+`src/expr.c:sqlite3CodeSubselect` enters the correlated producer at each
+predicate evaluation, and `src/select.c:sqlite3Select` tests WHERE before
+SRT_Set. `compileScalarSelect` now binds the no-FROM child WHERE using the
+same resolved column-use map as its result, before compiling the predicate
+for both SRT_Set and Mem/Exists. Literal/independent RHSs do not gain an outer
+cursor. This does not implement general correlated subqueries, arbitrary
+nested expression forms or remove the completed-child relocation fallback.
+
+### Correlated no-FROM function arguments (bounded SELECT child)
+
+Pinned `src/resolve.c:lookupName` resolves column uses beneath function
+arguments against the enclosing NameContext; `sqlite3ResolveExprNames` walks
+function expression lists. `src/expr.c:sqlite3ExprCodeTarget` codes those
+arguments before the call, while `src/select.c:sqlite3Select` evaluates the
+no-FROM RHS WHERE before its Set/Mem destination. In the admitted one-table
+producer, `compileScalarSelect` now carries resolved column ownership through
+`exprlist` argument reductions for both no-FROM child projection and WHERE,
+not just direct columns/unary/binary expressions. This preserves the native
+`x IN (SELECT abs(x) WHERE abs(x)>1)` scalar/EXISTS/IN typed 9/1/0 and
+metadata across two resets (paired `select-scalar-child` harnesses). It does
+not establish arbitrary correlated trees/depths or eliminate the remaining
+completed-child relocation in another reachable shape.
+
+### One-source scalar scan destination (bounded follow-up, card-t-b)
+
+In pinned `src/expr.c:sqlite3CodeSubselect`, Mem/Exists/Set calls
+`sqlite3Select` with the *enclosing* Parse and Vdbe. Pinned
+`src/select.c:selectInnerLoop` loads the producer result and sends it to that
+SRT destination, including on sorter drain; it does not compile a completed
+child Program and renumber its control graph. `src/resolve.c:lookupName` owns
+result and ORDER references before coding; `src/vdbeaux.c:sqlite3VdbeAddOp3`
+appends into the same Vdbe. When the bespoke one-source scalar fast path
+cannot consume an ORDER/result expression, the nonaggregate one-source guard
+now passes the resolved producer to `compileInnerTableSelect` with the parent
+`SelectProgramBuilder` and Mem/Exists/Set destination (previously only joins
+used that path). The paired source-ID-checked native/public
+`select-scalar-child-native.py` / `.test.mjs` include two-key ORDER, LIMIT 0,
+OFFSET and typed Mem/Exists/Set values, names and resets. This is a guard
+expansion, **not** completion of the compiler: the completed-child relocation
+fallback remains reachable for other shapes, and broader one-source coverage,
+unsupported atomicity and cross-encoding parity are not established by these
+cases. Do not delete the fallback without migrating those consumers.
+
+Grouped LEFT JOIN scalar producer (bounded card-t-b repair): pinned
+`src/select.c:sqlite3Select` GROUP BY sorter receives rows from
+`src/where.c:sqlite3WhereBegin`/`src/wherecode.c:sqlite3WhereEnd`, including
+one NULL-extended row for an unmatched right source; `src/expr.c:sqlite3CodeSubselect`
+retains the enclosing SRT_Mem/Exists/Set destination. The grouped accumulator
+in `src/internal/vdbe.ts:compileAggregateSelect` now tracks right-side matches
+before ON rejection, re-enters the row body with `NullRow` exactly once after
+exhausting right matches, and routes an empty right scan to that transition.
+The simple-group admission no longer rejects LEFT solely by join kind. This
+uses the same sorter and destination as inner-join groups, not a relocated
+child Program. Source-ID-checked native/public `select-scalar-child` cases
+exercise matched and unmatched groups, ORDER/LIMIT, typed Mem/Exists/Set,
+metadata and two iterations. RIGHT/FULL/USING grouped joins remain excluded;
+other grouped correlations and general compiler fallback migration are not
+proven by this slice.
+
+Revision (grouped LEFT, card-t-b): a `count(*)` unmatched row cannot detect
+re-entering the ON predicate on the synthetic NULL row. Pinned
+`src/wherecode.c:sqlite3WhereEnd` jumps to the loop body *after* ON when
+`NullRow` supplies the unmatched row; `src/select.c:sqlite3Select` then feeds
+that row to GROUP BY, with post-join WHERE evaluated on the NULL extension.
+The grouped scan now saves an after-ON label for each source and sends its
+synthetic row there instead of back to the physical cursor body. Paired
+source-ID-checked `count(t2.x)` / `WHERE t2.x IS NULL` and ON-rejection
+cases verify typed 0/1, Set membership, names and reset. This fixes the
+semantic producer, not the still-live completed-child relocation fallback.
+
+Revision (card-t-b, grouped ORDER expressions): `src/select.c:sqlite3Select`
+analyses both the result list and `sSort.pOrderBy` with the same AggInfo,
+then `selectInnerLoop`/`generateSortTail` sort finalized groups before the
+SRT_Mem/Exists/Set destination. `src/resolve.c:sqlite3ResolveOrderGroupBy`
+substitutes result ordinals/aliases, but an unmatched ORDER expression remains
+independently resolved. The grouped builder now lowers those expressions
+before AggStep, maps their source columns to saved group payload, and computes
+sort keys at group emission; previously its admission predicate required an
+ORDER term to match only the result or a group key. This is ordinary compiler
+lowering, not an exceptional algorithm substitution. Paired source-ID-checked
+`count(*)+1`, `x+1`, and ORDER-only `sum(y)` cases cover typed scalar,
+EXISTS/IN, LIMIT/OFFSET and reset. Completed child relocation still exists
+for other producers; these checks do not establish general ORDER parity.
+
+### Unordered table-backed UNION ALL IN producer (bounded card-t-b)
+
+Pinned `src/select.c:multiSelect` TK_ALL without ORDER BY calls
+`sqlite3Select(pParse,pPrior,&dest)` then `sqlite3Select(pParse,p,&dest)`;
+`src/expr.c:sqlite3CodeSubselect` provides SRT_Set, and
+`selectInnerLoop` inserts each arm's value into that destination. For
+unlimited unordered nonaggregate table-backed IN arms, `compileScalarSelect`
+now passes each arm to `compileInnerTableSelect` with one enclosing builder,
+parameter owner and Set cursor, rather than compiling a child Program and
+relocating its graph. A single Once owns the set fill, followed by the left
+operand's `InSet`; the browser-safe ephemeral KeyInfo/Mem encoding retains
+NULL and affinity comparison. The paired source-ID-checked
+`select-scalar-child-native.py` / `.test.mjs` checks typed hit/miss, names,
+and two iterations. This is not a general compound lowering: set operators,
+ORDER, shared LIMIT/OFFSET, VALUES, aggregate/window arms and scalar/EXISTS
+compound consumers remain outside this branch. The generic completed-child
+relocation still exists and the structural guard remains red.
+
+Follow-up (card-t-b, scalar/EXISTS compound destinations): pinned
+`select.c:multiSelect` forwards the same SRT destination to left then right;
+`selectInnerLoop` SRT_Mem/Exists records only the first accepted row, including
+NULL, and later arms must not replace it. For the same unordered unlimited
+nonaggregate table-backed UNION ALL producer, `compileInnerTableSelect` now
+consumes the parent Mem/Exists destination per arm. Mem's separate `found`
+register, set only by `emitSelectDestination`, distinguishes a NULL result
+from no result; checking the value register's nullness would incorrectly run
+the next arm. `IfPos` skips subsequent arms after the first accepted result,
+while Set still drains every arm. Paired source-ID-checked public tests cover
+first/empty-left/no-rows and NULL-first typed rows, names and reset. This
+branch still excludes ordered/limited compounds and other compound operators;
+the completed-child fallback and its structural test remain red.
+
+Follow-up (card-t-b, mixed no-FROM UNION ALL arm): pinned
+`src/select.c:multiSelect` TK_ALL calls `sqlite3Select` for consecutive arms
+with the same destination, whether an arm has a table SrcList or no FROM;
+`selectInnerLoop` emits a no-FROM arm's single candidate through that
+destination. The unordered, unlimited nonaggregate table-backed compound
+branch now admits a simple no-FROM arm interspersed with table-backed arms:
+`compileExpressionTree` emits its row directly into the enclosing
+Mem/Exists/Set destination, preserving the Mem found flag across arms.
+Source-ID-checked paired public cases cover empty/nonempty first table,
+no-FROM RHS, Set membership and a NULL middle arm with two iterations.
+This does not admit no-FROM WHERE or independent ORDER/LIMIT, nor remove the
+generic completed-child fallback. The no-FROM mixed branch has not been shown
+to cover every compound producer.
+
+Follow-up (card-t-b, left no-FROM/right table arm): two earlier scalar
+classification guards inspected only the rightmost `SelectNode.from`, which
+is empty for `SELECT 7 UNION ALL SELECT x FROM t2`. Pinned
+`src/select.c:multiSelect` instead walks the arm chain, forwarding one
+SelectDest and executing the left arm before the right. `compileSubquery`
+now restricts the constant/VALUES compound producer to **all** no-FROM arms,
+and restricts the simple no-FROM child to no-FROM arms throughout. The mixed
+arm path then receives left no-FROM plus table RHS without splicing a child
+Program. Paired pinned source-ID/public typed first/NULL-first Mem, Exists and
+Set cases with metadata and two iterations test this decision. Still neither
+general compound ownership nor completion of the generic fallback.
+
+Follow-up (card-t-b, mixed compound no-FROM WHERE): `src/select.c:multiSelect`
+forwards one destination to both TK_ALL arms; `sqlite3Select` enters
+`sqlite3WhereBegin` before its inner result loop. Pinned `src/where.c`'s
+constant-term path (`sqlite3ExprIfFalse` to `iBreak`) rejects the no-FROM
+candidate **before** coding/emitting its projection. The existing shared
+compound builder now admits a no-FROM arm with a represented WHERE, lowers the
+predicate in that arm's binding context before its projection, and patches the
+false/NULL exit past destination emission. Earlier arms still stop Mem/Exists
+on the first accepted row, including NULL; Set drains all arms. Paired
+source-ID/public 7 WHERE 0 and NULL WHERE 1 with table RHS cover typed
+Mem/Exists/Set, names and reset. Independent ORDER/LIMIT and general compounds
+are not admitted; completed-child fallback remains and structural guard is red.
+
+Follow-up (card-t-b, all-no-FROM WHERE compound): source-ID-checked
+`SELECT 7 WHERE 0 UNION ALL SELECT 3 WHERE 1` and NULL-first variants exposed
+an earlier caller classification gate, not a destination defect. The
+all-constant compound path rejects WHERE, then the simple no-FROM guard
+intercepts any all-no-FROM compound and throws before the enclosing mixed
+arm builder is reached. For an unordered, unlimited TK_ALL child with a
+represented arm WHERE, defer to the already shared builder, even when neither
+arm has a table. `src/select.c:multiSelect` invokes `sqlite3Select` on both
+arms with the same `SelectDest`; `src/where.c:sqlite3WhereBegin` guards the
+no-FROM candidate before result production, while `src/expr.c:sqlite3CodeSubselect`
+consumes Mem/Exists/Set. This change leaves no-WHERE constant compounds on
+their existing branch and keeps ordered/limited/set-operator cases gated.
+Paired native/public typed 3/1/1 and NULL/1/1, names and reset pass; generic
+completed-child relocation is still unresolved.
+
+### Independent ORDER aggregate in an ungrouped scalar child (card-t-b)
+
+The completed-child fallback was reachable for `count(*) FROM t2 ORDER BY
+sum(x)` but its aggregate shape gate rejected the child before relocation.
+Pinned `src/select.c:sqlite3Select` (ungrouped aggregate path, tag-select-0820)
+uses one accumulator row; `src/resolve.c:resolveOrderGroupBy` resolves ORDER
+expressions independently of result columns, and `src/expr.c:sqlite3CodeSubselect`
+consumes Mem/Exists/Set in the same VDBE. The ungrouped producer now lowers
+independent ORDER expressions before stepping so ORDER-only aggregates own
+registers; bare columns in those expressions use the first accepted row's
+saved registers. There is no sorter for the single ungrouped result row. This
+is not a generic compound/window/order translation. The generic completed-
+child splice remains and the structural test is red. The source-ID-checked
+public differential case in `select-scalar-child.test.mjs` checks typed
+count/EXISTS/IN and LIMIT 0 plus metadata, two resets and finalize against
+pinned 3.53.4. The first attempt extended ORDER lowering without removing
+an obsolete `:[]` branch and failed syntax checking; after correcting that,
+TS checking passed and focused public tests passed 19/20 (structural failure).
+
+### Zero-source aggregate expression destination (card-t-b, bounded repair)
+
+`src/select.c:sqlite3Select` tag-select-0820 initializes/finalizes an ungrouped
+accumulator once even with no FROM; `src/where.c:sqlite3WhereBegin` tests the
+sole candidate before `updateAccumulator`, so false WHERE yields `count(*)=0`
+but does not remove its output row. `src/expr.c:sqlite3CodeSubselect` sends the
+result to Mem/Exists/Set in the enclosing VDBE. The scalar child dispatcher
+now delegates admitted unordered, ungrouped zero-source aggregates to
+`compileAggregateSelect` with its parent builder/destination *before* the
+ordinary no-FROM expression lowering, which cannot evaluate aggregate calls.
+Shared Once, register, cursor, and LIMIT handling remain in the aggregate
+producer. The independent pinned native/public differential checks count,
+false-WHERE count, sum, LIMIT 0, typed cells, metadata, reset and finalize.
+Ordered/grouped/compound variants were not newly admitted in that slice. Completed-
+child relocation is still present and its structural regression still fails.
+
+### Zero-source aggregate HAVING destination (card-t-b follow-up)
+
+Pinned `src/select.c:sqlite3Select` tag-select-0820 emits `WhereBegin`,
+`updateAccumulator`, `WhereEnd`, `finalizeAggFunctions`, then checks HAVING
+before `selectInnerLoop`; `src/expr.c:sqlite3CodeSubselect` uses the enclosing
+Mem/Exists/Set. The preceding no-FROM aggregate repair mistakenly left a
+`hasHaving` admission exclusion even though the aggregate producer already
+lowers HAVING after `AggFinal` and before its destination/limit publication.
+Removing that exclusion, not evaluating HAVING in the scalar walker, allows
+false-WHERE count, false-HAVING null Mem/zero Exists and LIMIT 0 through the
+same parent builder. Source-ID-checked native typed cases are exercised twice
+through public `select-scalar-child.test.mjs` with names/reset/finalize.
+This remains a bounded ungrouped unordered noncompound slice; relocation and
+its structural test remain red.
+
+### Zero-source independent aggregate ORDER (card-t-b follow-up)
+
+The previous parent entry still blocked all ORDER BY clauses on no-FROM
+aggregate expression children, even though `compileAggregateSelect` already
+resolves independent ORDER expressions and adds their aggregate registers
+before AggStep. Pinned `src/select.c:sqlite3Select` tag-select-0820 emits one
+ungrouped accumulator row, not a result sorter; `src/resolve.c:resolveSelectStep`
+resolves ORDER ordinals/names and `src/expr.c:sqlite3CodeSubselect` consumes
+the Mem/Exists/Set output in the parent VDBE. The entry now admits ORDER for
+this same noncompound ungrouped aggregate slice; independent ORDER-only sum
+and count, WHERE rejection, HAVING and LIMIT 0 were paired with the pinned
+native source ID and public typed names/reset/finalize. Out-of-range ORDER
+ordinals still resolve as errors, not ignored keys. This does not admit
+nonaggregate independent no-FROM ORDER or migrate the generic completed-child
+fallback; the structural test remains red.
+
+### Independent ORDER keys on zero-source nonaggregate expression children (card-t-b)
+
+Pinned `src/resolve.c:resolveSelectStep` resolves **every** ORDER term after
+result resolution, including ordinal range and unknown-name errors, before
+`src/select.c:sqlite3Select` enters its zero-source WhereBegin and
+`selectInnerLoop` destination. In a one-candidate no-FROM producer, a resolved
+independent ORDER expression cannot change row order; the earlier scalar
+routing gate incorrectly required one ORDER key matching the result. The
+bounded no-FROM scalar child now invokes the shared resolver on the full child
+before emitting its enclosing Mem/Exists/Set producer, rather than constructing
+a sorter or suppressing invalid keys. This is not permission to skip ORDER
+resolution or to expand to multirow/compound children. The pinned native
+source-ID comparison for `ORDER BY 8+0`, false WHERE, LIMIT 0, ordinal 2 and
+unknown names is exercised through public typed cells/names/two resets and
+prepare errors in `select-scalar-child.test.mjs`. The completed-child fallback
+still exists; its structural regression is not green.
+
+### Zero-source grouped expression children (card-t-b follow-up)
+
+`src/resolve.c:resolveSelectStep` binds GROUP terms before
+`src/select.c:sqlite3Select` grouped `sqlite3WhereBegin` and sorter/accumulator
+processing. With no FROM, WhereBegin admits one candidate if WHERE succeeds;
+otherwise there is **no group** (unlike the ungrouped aggregate, which still
+finalizes a row). The existing `compileAggregateSelect` grouped producer had
+required a source table and routed no-source grouped expression children to a
+rejected scalar path. It now accepts that grouped shape, and its WHERE rejection
+jumps to SorterSort rather than a nonexistent `Next` cursor. Scalar/EXISTS/IN
+consume the grouped producer's existing enclosing Mem/Exists/Set destination,
+including LIMIT 0. The bounded no-source group is source-shaped sorter/aggregate
+lowering, not an independent expression evaluator. Native 3.53.4 two-step
+comparisons and public typed/name/reset/finalize coverage are in
+`test/conformance/select-scalar-child.test.mjs`. This does not retire the
+completed-child splice or admit arbitrary grouped compounds/windows.
+
+### Nested count destination with *outer* LIMIT/OFFSET (card-t-b continuation)
+
+The bounded nonflattenable zero-source derived `count(*)` producer already
+accepted a parent builder but rejected an outer LIMIT/OFFSET and therefore
+fell into the separate aggregate route (which attempted to resolve the
+transient derived alias as a schema table). In pinned `src/select.c:sqlite3Select`
+`computeLimitRegisters` (tag-select-0650) runs at each SELECT entry: the
+inner zero-source candidate's limiter gates `AggStep`, whereas the outer
+limiter gates the *final* aggregate row before `src/expr.c:sqlite3CodeSubselect`
+SRT_Mem/Exists/Set. The parent-owned producer now computes the outer limiter
+before the inner producer, then applies its OFFSET/zero jump after AggFinal;
+the inner WHERE/LIMIT/OFFSET still skip only the input event, not finalization.
+The standalone bridge retains its previous admission until its consumer moves.
+Pinned native two-step public comparisons (`select-scalar-child.test.mjs`)
+cover inner empty and present rows, outer LIMIT 0, positive/negative OFFSET,
+scalar/EXISTS/IN typed results, names, reset and finalize. This is not a
+lowering of arbitrary derived aggregate sources; the generic completed-child
+relocation remains and the structural ownership assertion still fails.
+
+### Nonflattenable zero-source derived count HAVING (card-t-b continuation)
+
+Pinned `src/select.c:sqlite3Select` tag-select-0820 finalizes the ungrouped
+accumulator even when the derived producer had zero accepted rows, then calls
+`sqlite3ExprIfFalse(pHaving, addrEnd, SQLITE_JUMPIFNULL)` before
+`selectInnerLoop` publishes SRT_Mem/Exists/Set. Previously
+`compileZeroSourceDerivedCount` excluded HAVING, falling into the aggregate
+schema-table resolver (`no such table: d`). Its parent-owned branch now binds
+count(*) HAVING references to the finalized accumulator output register and
+runs ordinary expression lowering and IfNot after AggFinal but before the outer
+OFFSET/destination. This bounded count-only translation rejects other
+aggregates and derived-column/subquery references rather than returning a
+wrong value; it does not provide a general derived aggregate resolver. The
+standalone bridge still excludes HAVING. Pinned-source-ID native versus public
+cases compare true/false HAVING with empty/present producer, LIMIT 0/OFFSET,
+scalar/EXISTS/IN integer/null cells, names, two resets and finalize. The
+completed-child relocation fallback is still present; its structural test
+still fails.
+
+### ORDER term resolution before zero-source derived count destination (card-t-b)
+
+Pinned `src/resolve.c:resolveSelectStep` / `resolveOrderGroupBy` validates
+ORDER BY aliases, ordinals and names before `src/select.c:sqlite3Select`
+suppresses the sorter for an ungrouped aggregate (tag-select-0820). The
+bounded parent-owned derived count with HAVING previously excluded ORDER,
+falling into schema lookup of the transient alias (`no such table: d`). It
+now resolves these terms through the existing resolver using a transient
+schema description of the derived result column, without opening a physical
+table; the one-row aggregate needs no sorter. This also binds ORDER terms
+referring to that derived column, including qualified names, and reports
+missing derived names at prepare even with LIMIT 0. It does not materialize
+a general derived-table aggregate source. Invalid ordinals and missing names
+must fail at prepare even with LIMIT 0. Pinned-native and public scalar/IN,
+count alias, count expression, derived-column and independent ORDER expression,
+empty producer, metadata and reset/error probes cover this admitted route.
+Generic completed-child relocation remains a failing structural criterion.
+
+### WHERE after the bounded derived row event (card-t-b continuation)
+
+Pinned `src/select.c:sqlite3Select` tag-select-0820 loops the derived FROM
+producer through `sqlite3WhereBegin(pWhere)` before `finalizeAggFunctions`,
+then tests HAVING before `selectInnerLoop`. The zero-source derived `count(*)`
+parent now resolves outer WHERE with a transient result-column schema (the
+same name resolution context used for ORDER), but evaluates its predicate on
+the producer's projected register only after the producer's WHERE and
+LIMIT/OFFSET gates. A false outer WHERE skips AggStep yet still finalizes the
+empty accumulator to zero. Qualified/unqualified derived columns and
+independent predicates are bounded to this one candidate; nested subqueries
+in outer WHERE are still rejected rather than compiled as a separate program.
+`resolveSelectStep` rejects aggregate use in WHERE during preparation before
+ORDER processing, including when LIMIT 0 would skip execution. This bounded
+path preserves the no-FROM child producer's actual row event and avoids a
+fictitious table cursor. Native source-ID/public reset/typed/error probes in
+`test/conformance/select-scalar-child.test.mjs` cover empty/present producer,
+HAVING, scalar/EXISTS/IN and invalid names/aggregate use. General materialized
+derived aggregate production and the completed-child splice remain outstanding.
+
+### Multi-column no-FROM derived producer for count (card-t-b continuation)
+
+Pinned `src/select.c:sqlite3ColumnsFromExprList` assigns distinct transient
+names to all derived projections before `resolveSelectStep` binds outer WHERE
+and ORDER. `sqlite3Select` produces a row of those columns, but an outer
+`count(*)` in tag-select-0820 counts only its accepted row event; it does not
+read a particular result column. The parent-owned zero-source derived count
+previously admitted only one projection and bound all WHERE references to its
+single register. The producer now evaluates its complete result list in order
+under its own WHERE/LIMIT/OFFSET gates, and the outer WHERE binds each resolved
+name to the corresponding emitted register. It still counts at most one row,
+including false/empty outer WHERE finalization; no physical cursor is opened
+for the transient name-resolution table. Source-ID native/public comparisons
+cover two different columns, colliding names (`x`, `x:1`), NULL tests,
+empty/present producer, ORDER, HAVING, LIMIT 0, scalar/EXISTS/IN and invalid
+names with two reset/finalize cycles. This is not a multirow materialized
+derived source; generic completed-child relocation remains.
+
+### Inner ORDER on the one-candidate derived producer (card-t-b continuation)
+
+Pinned `src/resolve.c:resolveSelectStep` / `resolveOrderGroupBy` resolves the
+inner SELECT's ORDER expressions, aliases and integer ordinals before
+`src/select.c:sqlite3Select` generates its sorter. With no FROM, at most one
+row survives inner WHERE/LIMIT/OFFSET; its ordering is invariant, but ORDER
+validation is not optional (an invalid name or out-of-range ordinal fails
+prepare even at LIMIT 0). `compileZeroSourceDerivedCount` now admits that
+bounded ORDER after running the existing resolver on the inner SelectNode;
+it leaves the candidate's projection/limit/outer WHERE/aggregate destination
+in its parent builder, without compiling or relocating an independent
+Program. Pinned-source-ID/native and public tests cover x/y ORDER by name,
+expression and ordinal; inner/outer LIMIT 0, HAVING and Mem/Exists/Set;
+prepare-time errors and two reset/finalize cycles. This does not substitute
+for materialized multirow derived sorting or generic scalar child migration.
+
+### Inner DISTINCT on the one-candidate derived producer (card-t-b continuation)
+
+Pinned `src/select.c:selectInnerLoop` evaluates the result row, runs
+`codeDistinct` to discard a row already seen, and then applies OFFSET and the
+SRT destination. The zero-FROM derived producer has at most one candidate
+before this stage: there is no earlier row with which it can collide, whether
+its result has one or several columns. Its parent-owned count(*) path now
+admits inner DISTINCT while preserving projection, inner WHERE/LIMIT/OFFSET,
+outer WHERE/AggStep and HAVING/destination order. The TS no-op for duplicate
+filtering here is a bounded cardinality adaptation, not an alternative
+multirow DISTINCT algorithm: upstream compares only with previously produced
+rows; there are none in this slice. `resolve.c:resolveSelectStep` still
+validates DISTINCT projection and ORDER during preparation even with LIMIT 0.
+Source-ID/native and public scalar/EXISTS/IN, empty producer, HAVING, ORDER,
+LIMIT and error/reset probes are in `test/conformance/select-scalar-child.test.mjs`.
+General DISTINCT and materialized derived aggregation, and the completed-child
+splice, remain outside this migration.
+
+### Nullable `count(expr)` in the bounded derived accumulator (card-t-b continuation)
+
+Pinned `src/select.c:sqlite3Select` tag-select-0820 invokes AggStep only for
+rows surviving WHERE; `src/func.c:countStep` increments for zero arguments or
+for a non-NULL argument, and AggFinal supplies zero even with no rows. The
+parent-owned one-candidate derived accumulator previously accepted only
+`count(*)`, counting the row irrespective of projected value. It now admits a
+single `count(expr)` argument and binds its derived-result column to the
+producer's projected register after inner gates and outer WHERE; the VM's
+AggStep applies SQLite's NULL rule. The transient derived-result schema is
+used at prepare even without WHERE/ORDER so missing arguments fail before
+LIMIT 0, and matching HAVING aggregate references reuse the finalized count.
+Distinct/filter/order aggregate variants and different HAVING aggregate
+arguments are still temporarily unsupported, not assumed equal. Pinned native
+and public typed/reset/error cases compare NULL/non-NULL, Mem/Exists/Set,
+WHERE, HAVING and LIMIT; a different HAVING argument is observed natively but
+is not claimed supported here. This is not multirow materialization or
+retirement of the completed-child splice.
+
+### Separate HAVING aggregate identities in the bounded derived count path
+
+Pinned `src/select.c:sqlite3Select` analyzes aggregate expressions in result,
+ORDER and HAVING into AggInfo (`sqlite3ExprAnalyzeAggList` and
+`sqlite3ExprAnalyzeAggregates`) before the tag-select-0820 row loop. It steps
+each distinct aggregate on accepted rows, finalizes all on empty input, then
+evaluates HAVING before the destination. The previous bounded count(expr)
+route only reused the projected count in HAVING and rejected a different count
+argument. It now collects distinct `count(*)` / `count(expr)` HAVING identities,
+allocates their own accumulator and result registers in the enclosing builder,
+steps them using the same accepted projected row, finalizes all, and binds
+HAVING references to the corresponding finalized registers. Source/outer WHERE,
+inner LIMIT/OFFSET, NULL arguments, outer LIMIT and destination still own their
+original order. `src/func.c:countStep` supplies the nullable-argument rule.
+This supersedes the previous temporary exclusion of *different count HAVING
+arguments* in this one-candidate branch; non-count, DISTINCT/FILTER/ordered
+aggregates and derived-column HAVING without an aggregate remain unsupported.
+Pinned native and public source-first tests cover independent count(x)/count(y)
+identities, empty input, Mem/Exists/Set, compound HAVING predicates, typed
+rows/reset and invalid HAVING column at prepare. This is not multirow derived
+materialization or a removal of the completed-child fallback.
+
+### DISTINCT count on the one-candidate derived aggregate
+
+Pinned `src/select.c:resetAccumulator` opens a distinct ephemeral key for an
+aggregate with exactly one argument; `updateAccumulator` calls `codeDistinct`
+on that argument before `AggStep`. An accepted no-FROM derived producer can
+emit at most one candidate: no earlier aggregate argument can collide. This
+bounded branch therefore admits `count(DISTINCT expr)` without an ephemeral
+comparison cursor, but keeps the argument's NULL handling in `func.c:countStep`
+and keeps DISTINCT and ordinary counts as **separate AggInfo identities** in
+result/HAVING. A different multirow producer must actually track distinct
+keys; this cardinality adaptation does not license omission there. Other
+aggregate families, FILTER/order variants and DISTINCT with no argument are
+not admitted here. Source-ID native/public scalar/EXISTS/IN probes cover
+NULL/non-NULL, mixed ordinary/DISTINCT HAVING counts, LIMIT 0, preparation
+errors and reset/finalize; the completed-child fallback still remains.
+
+### FILTER gates for bounded derived count AggInfo entries
+
+Pinned `src/select.c:updateAccumulator` tests each aggregate's FILTER with
+NULL-as-false *before* coding its arguments, distinct key or AggStep, jumping
+to the next aggregate entry. `resolve.c` rejects nested aggregate calls in
+FILTER/arguments at prepare, including LIMIT 0; `sqlite3Select` collects the
+result and HAVING aggregate entries before emitting the row loop. The
+parent-owned one-candidate no-FROM derived accumulator now compiles each
+count entry's own bound FILTER gate after inner and outer row gates, keeps
+ordinary/DISTINCT and different FILTER predicates as distinct accumulator
+identities, and finalizes all counts on empty input before HAVING and the
+Mem/Exists/Set destination. A single accepted candidate needs no distinct
+key set, but this does not replace multirow DISTINCT/FILTER processing.
+Source-ID native/public typed/reset/error comparisons cover NULL FILTER,
+NULL count argument, mixed HAVING FILTERs, DISTINCT+FILTER, LIMIT 0 and
+nested-aggregate preparation errors. Other aggregate functions, aggregate
+ORDER and general derived table materialization remain unmigrated.
+
+### Ordered count on the sole derived candidate
+
+Pinned `src/select.c:updateAccumulator` tests FILTER, codes aggregate ORDER
+keys, then arguments, inserts into the aggregate sorter, and replays the
+ordered arguments into AggStep. For this bounded no-FROM derived source at
+most one candidate reaches the accumulator; its ordering cannot change the
+AggStep sequence. The parent builder still binds/codes the keys after FILTER
+and before the argument, checks nested aggregates and unknown columns at
+prepare even with LIMIT 0, and treats distinct ORDER lists as different
+result/HAVING aggregate identities. No sorter is needed solely for ordering
+one accepted argument. This cardinality adaptation does not apply to
+multirow ordered aggregates or to order-dependent aggregates. Count with an
+ORDER list requires an argument; all other aggregate families remain outside
+this bounded bridge. Source-ID native/public typed/reset/error comparisons
+cover Mem/Exists/Set, NULL count argument, FILTER, HAVING and LIMIT 0.
+
+### Numeric AggInfo on the one-candidate derived producer
+
+Pinned `src/select.c:sqlite3Select` collects result and HAVING aggregate
+identities, steps each after the derived producer's accepted row event, and
+finalizes all on empty input before HAVING and destination emission. Pinned
+`src/func.c:sumStep`/`sumFinalize`/`totalFinalize`/`avgFinalize` distinguish
+NULL, integer, floating-point and empty-input results. The parent-owned
+one-candidate no-FROM derived route now uses the *existing translated VM
+aggregate implementations* for count/sum/avg/total, rather than assuming all
+AggInfo entries are count; their names participate in identity and determine
+AggStep/AggFinal. Single-argument numeric aggregates retain the already
+bounded per-entry FILTER, DISTINCT and ORDER gates. The sole accepted row
+needs no duplicate set or sorter, but multirow numeric aggregates require
+real distinct/sort resources. Source-ID native/public Mem/Exists/IN,
+INTEGER/REAL/NULL, FILTER/DISTINCT/HAVING, empty-result and prepare-time name
+errors are covered; this is not ownership of a general derived table.
+
+### Extrema on the one-candidate derived producer
+
+Pinned `src/select.c:updateAccumulator` passes the argument collation to
+min/max's AggStep; `src/func.c:minmaxStep` skips NULL and compares with that
+collation, `minMaxFinalize` returns NULL on empty input. The parent-owned
+no-FROM derived accumulator now admits one-argument min/max in both result
+and HAVING alongside count/sum/avg/total, preserving distinct function
+identities and the argument collation in the existing translated VM
+AggStep/AggFinal. Its <=1 accepted candidate cannot require comparisons
+between candidates, but name binding, NULL handling, FILTER/ORDER gates and
+empty finalization still run in source order. Source-ID native/public typed
+Mem/Exists/IN, text COLLATE NOCASE, NULL/empty, HAVING/FILTER, reset and
+prepare-error probes cover this bounded branch. Multirow min/max and general
+derived materialization are not established by these cases.
+
+### Multi-argument aggregate entries on the single-event producer
+
+Pinned `src/select.c:updateAccumulator` codes each aggregate argument after
+FILTER and ORDER keys, and `src/func.c:groupConcatStep` ignores NULL value,
+using the optional second argument as separator only between accepted values;
+`groupConcatFinalize` returns NULL on empty input. The bounded no-FROM
+derived aggregate bridge now records an argument vector per result/HAVING
+entry and emits it in order to the existing VM group_concat/string_agg
+step/final implementations. Aggregate identity retains function name and both
+arguments. It does not substitute text concatenation for the aggregate or
+claim multirow separator/sorter behavior from this <=1 accepted event. Pinned
+native/public Mem/Exists/IN, TEXT/NULL, empty, mixed HAVING, FILTER,
+DISTINCT/ORDER, typed metadata, reset/finalize and invalid name preparation
+cases cover the bounded route. The generic completed-child fallback remains.
+
+### Zero-source grouped derived producer
+
+Pinned `src/select.c:sqlite3Select`'s aggregate GROUP BY path forms groups
+from accepted input rows; its no-FROM producer offers at most one row and
+therefore at most one group (zero when WHERE rejects it). `src/resolve.c`
+validates GROUP BY ordinals, columns and aggregate misuse at preparation,
+including when LIMIT 0 later prevents emission. The parent-owned derived
+aggregate route now resolves a GROUP BY in the inner no-FROM SELECT before
+coding the same single candidate/WHERE/LIMIT/ORDER event into the outer
+accumulator. This is a bounded single-group optimization, not a replacement
+for general GROUP BY sorting or HAVING on the inner producer (which remains
+outside this route). Native/public typed Mem/Exists/IN, empty group,
+GROUP BY ordinal/name, ORDER/LIMIT, outer HAVING, reset/finalize and errors
+are compared. Inner HAVING and multirow grouping need their own owner.
+
+### Inner GROUP BY HAVING on the single-candidate derived producer
+
+Pinned `select.c:sqlite3Select` GROUP BY result generator calls
+`finalizeAggFunctions`, tests HAVING, then `selectInnerLoop` delivers the row
+(and applies OFFSET). For a no-FROM nonaggregate GROUP BY source, at most one
+group exists. The derived accumulator route resolves inner HAVING at prepare,
+binds a nonaggregate HAVING expression to that group's projected registers,
+and tests it before producer OFFSET and the enclosing aggregate step. Rejected
+WHERE creates no group; rejected/NULL HAVING emits no row. Aggregate functions
+inside the inner HAVING require an inner accumulator and are **not** admitted
+by this route. Native/public typed Mem/Exists/IN and reset tests check
+accepted/rejected/NULL, OFFSET, and missing-name errors under LIMIT 0;
+this is not multirow grouping or aggregate-HAVING support.
+
+### Single-group aggregate HAVING on the inner derived producer
+
+The pinned `select.c:sqlite3Select` GROUP BY result generator resets/steps
+AggInfo on the accepted group, finalizes it and tests HAVING before
+`selectInnerLoop` applies OFFSET and sends the row to its destination.
+`func.c:countStep/countFinalize` make `count(*)` on the one accepted input
+INTEGER 1; a WHERE-eliminated input creates **no group**, not a finalized
+zero-count row. The no-FROM derived producer now allocates its own count(*)
+accumulator, steps/finalizes it only when its sole group exists, binds any
+repeated count(*) calls in its HAVING to that finalized register, then uses
+the existing group result gate before producer OFFSET and the enclosing
+aggregate's accumulator. The bounded route supports only zero-argument
+count(*) in inner aggregate HAVING; other aggregate arguments/functions,
+inner expression subqueries and multirow groups still need their own owner.
+Name resolution occurs before this admission gate, including errors at LIMIT
+0. Pinned/public tests cover accepted/rejected/empty groups, mixed HAVING
+predicates, typed Mem/Exists/IN, OFFSET/ORDER/LIMIT and reset/finalize.
+
+### Inner one-group HAVING aggregate vector
+
+Pinned `select.c:updateAccumulator` emits each AggInfo function's FILTER
+before arguments and step; the GROUP BY output subroutine finalizes all
+entries before HAVING (`select.c:sqlite3Select`). The no-FROM derived producer
+now keeps separate inner accumulator registers per HAVING aggregate expression
+and emits FILTER, argument evaluation, step and finalization before testing
+the group. The existing VM `func.c` count/sum/avg/total/min/max and
+string-aggregate step/finalizers supply NULL, INTEGER/REAL, collation and
+TEXT semantics. DISTINCT on a one-candidate group has no earlier key to
+collide with; this is **not** a multirow DISTINCT or ORDER-BY-aggregate
+implementation. Name resolution precedes bounded admission even at LIMIT 0.
+The admitted inner HAVING aggregate vector retains count(expr), numeric,
+extrema and string arguments; aggregate ORDER BY and nested expression
+subqueries remain outside the bounded route. Public/native checks cover
+NULL, FILTER, DISTINCT, multiple functions, collation, Mem/Exists/IN and
+reset. Separate inner and outer accumulators are not interchangeable.
+
+### Inner aggregate ORDER keys on the bounded one-group producer
+
+Pinned `select.c:updateAccumulator` evaluates an aggregate's FILTER, ORDER
+keys and argument vector before its step/sorter insertion; the GROUP BY
+result subroutine finalizes before HAVING. The no-FROM single-candidate
+inner HAVING aggregate vector now binds/codes ORDER keys before arguments
+and steps on the accepted group. With at most one accepted value there is
+no second key to sort, so a runtime sorter is unnecessary **for this
+bounded producer only**; this does not translate multirow aggregate ORDER
+sorting. `resolve.c` still validates key names at prepare under LIMIT 0.
+Source-ID native/public string_agg, group_concat, sum, NULL and invalid-key
+probes check typed Mem/IN, names and two reset cycles. Multirow materialized
+derived producers and the generic completed-child relocation remain open.
+
+### Multirow derived count composition (bounded, source-owned)
+Pinned `select.c:flattenSubquery` restrictions (9)/(16) leave the aggregate
+consumer separate from a limited or ordered subquery; `sqlite3Select` builds
+its producer before the outer `count(*)` finalization. For the nonaggregate
+ordinary-table producer accepted by `compileInnerTableSelect`, the enclosing
+scalar compiler now supplies an `aggregate-expression` destination with no argument: scan/sorter drain,
+inner LIMIT/OFFSET and `AggStep` share one builder; the outer accumulator is
+reset once, finalized even for zero producer rows, and delivered through
+Mem/Exists/Set. The destination is an internal TS adaptation of SQLite's
+SRT_Coroutine/SRT_EphemTab materialization followed by aggregate iteration:
+streaming is safe here because this consumer needs only cardinality and never
+re-reads the transient table. Other aggregate argument expressions/predicates, grouped,
+window and compound producers remain on their existing paths; this is **not**
+a general materialized table implementation. Source-ID oracle and public tests
+cover multirow ORDER/LIMIT/OFFSET, zero rows, type/name/reset and Mem/Exists/IN.
+The generic completed-child relocation remains present and the structural
+assertion still fails; do not remove it until all admitted consumers migrate.
+
+### Projected-column steps over bounded multirow derived producer (revision)
+Pinned `select.c:flattenSubquery` (9)/(16) retains the separate ordered/limited
+producer; `updateAccumulator` steps on accepted rows and `func.c:sumStep` /
+`countStep` distinguish numeric/NULL arguments and empty finalization. For a
+single uncorrelated outer `count(column)`, `sum(column)`, `avg(column)` or
+`total(column)` with no filter/distinct/group/outer predicate, the producer's
+result-register vector now feeds `aggregate-expression` in the enclosing builder.
+The alias/column is resolved before producer execution, including LIMIT 0;
+OFFSET and sorter drain remain producer-owned. Streaming row events rather
+than materializing a transient table is a TS read-only adaptation valid for
+this single-pass consumer, not for rereads, grouping or arbitrary expressions.
+Pinned source-ID `native-multirow-values.py` and public scalar-child tests
+compare INTEGER/REAL/NULL, Mem/IN, name errors and two reset cycles. Generic
+completed-child relocation remains present; its structural test still fails.
+
+### Bounded multirow derived extrema (revision)
+Pinned `select.c:updateAccumulator` supplies the argument collation to
+`func.c:minmaxStep`; its NULL branch does not change the winner and
+`minMaxFinalize` returns NULL for an empty input. The existing projected-row
+aggregate-expression destination now carries that collation and admits directly
+referenced derived `min(column)`/`max(column)` (including COLLATE) in the same
+parent builder. Sorter/LIMIT/OFFSET stay producer-owned; name resolution
+occurs even at LIMIT 0. Source-ID `native-multirow-extrema.py` and public
+`select-scalar-child.test.mjs` compare INTEGER/NULL, collation, IN/EXISTS,
+invalid name, metadata and reset. This remains a single-pass, uncorrelated,
+non-grouped consumer, not general multirow materialization or aggregate
+ORDER sorting. The completed-child relocation structural check remains red.
+
+### Bounded derived-row aggregate argument expressions (revision)
+Pinned 3.53.4 `select.c:updateAccumulator` calls `sqlite3ExprCodeExprList`
+for the argument after the inner SELECT has delivered its row; `resolve.c`
+resolves names before stepping, even for LIMIT 0. For the uncorrelated,
+non-grouped single-pass derived aggregate bridge, `aggregate-expression`
+now binds references to the producer's projected row registers and codes a
+nonaggregate argument expression at the scan/sorter drain before AggStep.
+Its producer still owns ORDER/LIMIT/OFFSET; the enclosing accumulator resets
+and finalizes on empty input. Nested SELECT/aggregate expressions are excluded
+from this bounded route; the generic child relocation remains live and its
+structural assertion remains red. The pinned `native-multirow-expr.py` oracle
+and public `select-scalar-child.test.mjs` check sum/count/avg/min expression
+arguments, NULL, invalid column under LIMIT 0, metadata and two reset cycles.
+This does not implement general derived-table materialization or remove the
+completed-child fallback.
+
+### Derived aggregate argument collation correction (revision)
+Pinned `src/select.c:updateAccumulator` selects `sqlite3ExprCollSeq` on each
+argument before `AggStep`; `src/expr.c:sqlite3ExprCollSeq` follows a bare
+column, CAST or unary plus for implicit column collation, but a binary
+expression inherits only an explicit EP_Collate child. The derived argument
+binder previously substituted projected columns with bare registers before
+collation selection and defaulted `max(d.z)` to BINARY: with the fixture's
+RTRIM `z`, pinned max of `q`, `q ` is `q`, not `q `. Select argument
+collation from the original expression using the resolved producer result
+column descriptor for a bare reference, while binary expressions remain
+BINARY unless explicitly COLLATEd. Binding for row evaluation still targets
+the producer registers. Pinned `native.py` in the card collation-probe work
+and public two-cycle cases compare bare RTRIM, concatenation, explicit BINARY;
+this repairs the bounded route, not the remaining completed-child fallback.
+
+### Bounded derived aggregate FILTER row step (revision)
+Pinned `src/select.c:updateAccumulator` resolves a FILTER and calls
+`sqlite3ExprIfFalse(...,SQLITE_JUMPIFNULL)` **before** argument coding or
+AggStep. The single-pass derived aggregate consumer now binds projected
+columns in FILTER at preparation (even if producer LIMIT 0), codes the
+predicate on each accepted producer result row, and skips both argument
+coding and AggStep for false/NULL. This is the same `aggregate-expression`
+destination used by unfiltered count(*) (zero arguments), projected-column
+and expression arguments; the redundant `count-step` and `aggregate-step`
+destinations have been retired. Producer ORDER/LIMIT/OFFSET still gate rows;
+AggFinal still runs for zero steps. Only non-nested FILTER expressions in the
+bounded uncorrelated, non-grouped, single-aggregate derived consumer are
+admitted. DISTINCT, aggregate ORDER BY, nested SELECT/filter, outer WHERE,
+and general materialization are not claimed. The pinned `filter-probe/native.py`
+and public scalar-child two-reset cases check typed filtered sum/count, NULL,
+zero producer rows and LIMIT 0 invalid FILTER column. Completed-child
+relocation still blocks structural ownership.
+
+### Bounded derived aggregate DISTINCT row gate (revision)
+Pinned `src/select.c:resetAccumulator` opens a per-aggregate ephemeral index
+with `sqlite3KeyInfoFromExprList`; `updateAccumulator` tests FILTER, codes
+arguments, runs `codeDistinct` (Found/IdxInsert), then calls AggStep. The
+single-pass derived-row `aggregate-expression` destination now admits one
+argument DISTINCT for its existing uncorrelated non-grouped aggregate
+consumer. It opens the argument-collated ephemeral index after accumulator
+reset, evaluates FILTER before argument, and skips duplicate keys before
+AggStep. Producer ORDER/LIMIT/OFFSET still gates which rows are candidates;
+NULL and numeric comparisons remain Mem/KeyInfo/VM-owned; per-statement
+private-state budgets and reset/finalize retain their VM lifecycle. Pinned
+`distinct-probe/native.py` and public scalar-child cases check typed
+count/sum/max, RTRIM, FILTER, Mem/EXISTS/IN, LIMIT 0, invalid names, two
+reset cycles. No aggregate ORDER sorter, multiple aggregate vectors or
+general derived materialization are claimed. Generic completed-child
+relocation remains live and the structural assertion stays red.
+
+### Bounded multirow derived aggregate ORDER sorter (revision)
+Pinned `src/select.c:resetAccumulator` opens an aggregate ORDER ephemeral
+index; `updateAccumulator` tests FILTER, evaluates ORDER keys before the
+argument, applies DISTINCT, inserts accepted keys/argument instead of
+stepping; `finalizeAggFunctions` drains sorted arguments into AggStep before
+AggFinal. The uncorrelated, non-grouped single-aggregate derived-row
+consumer now carries an optional ORDER sorter in `aggregate-expression`:
+producer ORDER/LIMIT/OFFSET first chooses input rows, then FILTER, ORDER
+keys, argument, DISTINCT and sorter insertion occur at the producer row
+boundary. Drain follows producer completion and runs even when it accepted
+zero rows; VM SorterCursor owns stable equal-key order, Mem payload, async
+budgets and resource cleanup. Key and argument names bind before LIMIT 0.
+This is a bounded single-argument count/sum/avg/total/min/max path, not
+string_agg/group_concat, multi-aggregate vectors, arbitrary materialized
+derived tables or a replacement for the remaining completed-child fallback.
+The pinned `order-probe/native.py` and public scalar-child cases check typed
+FILTER/DISTINCT/order, empty count, IN/EXISTS, invalid ORDER key, metadata
+and two reset cycles. Earlier one-candidate aggregate ORDER note remains
+limited to that separate route; multirow sorting is now mapped only here.
+
+### Bounded derived-row group_concat ORDER consumer (revision)
+Pinned `src/select.c:resetAccumulator`, `updateAccumulator`, and
+`finalizeAggFunctions` open an aggregate ORDER table, evaluate FILTER before
+ORDER keys/argument/DISTINCT, then drain sorted arguments into AggStep and
+AggFinal. The existing one-argument `aggregate-expression` row destination
+now also accepts `group_concat(x)` (default comma separator) for the same
+uncorrelated, non-grouped ordinary-table derived producer. Its VM aggregate
+state and sorter still own typed Mem values, private budgets and reset cleanup.
+The pinned 3.53.4 `order-probe/native.py` and public scalar-child cases test
+ORDER, FILTER/DISTINCT, NULL on LIMIT 0, IN, names and two resets. This does
+not admit two-argument group_concat, string_agg, grouping, correlated rows or
+general materialization. Completed-child relocation remains live.
+
+### Derived-row aggregate argument vector (revision)
+Pinned `src/select.c:updateAccumulator` allocates the aggregate's argument
+range after ORDER keys (and sequence) and before DISTINCT, then stores each
+argument in the ORDER record; `finalizeAggFunctions` extracts `nArg` values
+for each sorted AggStep. `src/func.c:groupConcatStep` consumes two arguments,
+using the second as the separator between non-NULL values. The bounded
+`aggregate-expression` destination now emits an argument vector, preserves
+FILTER -> ORDER keys -> arguments -> DISTINCT -> sorter/step ordering, and
+allocates a full sortable payload range. Its caller binds every argument
+before executing the derived producer, including LIMIT 0. This admits
+`group_concat(value,separator)` and `string_agg(value,separator)` in the
+existing uncorrelated non-grouped ordinary-table derived-row route, with
+single-argument DISTINCT only; it is not a general grouped/materialized or
+correlated consumer. Oracle `order-probe/oracle-vector.log` and public
+scalar-child tests cover ordered custom separator, string_agg FILTER, NULL,
+IN, invalid second-argument name at LIMIT 0, names and two reset cycles.
+Previous notes excluding two-argument string aggregation from *this bounded
+route* are superseded. Generic completed-child relocation remains red.
+
+### Bounded derived-row aggregate outer WHERE gate (revision)
+Pinned `src/select.c:sqlite3Select` non-GROUP scan passes `pWhere` to
+`sqlite3WhereBegin` before `updateAccumulator` (near lines 8884–8891);
+`updateAccumulator` owns separate aggregate FILTER/ORDER/argument/DISTINCT.
+For the existing uncorrelated ordinary-table derived-row producer,
+`src/internal/vdbe.ts:compileScalarSelect` binds the outer projected-column
+WHERE before starting the producer (even at LIMIT 0), and the
+`src/internal/select-program.ts:aggregate-expression` destination rejects
+rows failing WHERE before FILTER, keys, arguments or AggStep. The producer
+ORDER/LIMIT/OFFSET selects candidates *before* the outer predicate. This is
+not general WHERE planning, correlated predicates or materialized rereads.
+Pinned source-ID oracle `order-probe/oracle-where.log` and public scalar-child
+two-reset cases cover typed count/sum/DISTINCT/ORDER/FILTER/string aggregation/
+IN, zero rows and invalid WHERE name at LIMIT 0. Completed-child relocation
+and its structural assertion remain red.
+
+### Bounded derived-row aggregate outer limiter (revision)
+Pinned `src/select.c:sqlite3Select` sets its limiter before scan setup
+(tag-select-0650); after `finalizeAggFunctions`, the non-GROUP branch emits
+its one row via `selectInnerLoop` to SRT_Mem/Exists/Set (near lines 8900–
+8935). `src/internal/vdbe.ts:compileScalarSelect` now initializes the *outer*
+LIMIT/OFFSET before resetting and scanning the aggregate, while the producer
+retains its independent ORDER/LIMIT/OFFSET. The aggregate finalizes even if
+outer OFFSET suppresses its sole result; LIMIT 0 skips the outer row and its
+scan. The destination receives no row under LIMIT 0 or OFFSET 1, including
+IN/EXISTS. Names bind before the limiter executes, including at LIMIT 0.
+This removes the outer-limit exclusion only for the existing uncorrelated
+non-grouped ordinary-table derived-row aggregate consumer, not grouped or
+materialized shapes. Pinned ctypes source-ID oracle
+`where-validation/outer-limit-oracle.log` and public scalar-child two-reset
+typed/name/error probes test these branches. The generic completed-child
+relocation still exists for other shapes; structural assertion remains red.
+
+### Bounded derived-row aggregate outer ORDER binding (revision)
+Pinned `resolve.c:resolveOrderGroupBy` (around 1805–1865) resolves the
+noncompound ORDER alias/ordinal against the EList before ordinary source
+expression binding. `select.c:sqlite3Select` non-GROUP finalization sends a
+single accumulator row through `selectInnerLoop` (around 8910–8935), so this
+outer ORDER does not sort the producer's rows: aggregate-internal ORDER and
+producer ORDER/LIMIT/OFFSET retain their independent stages. The existing
+uncorrelated ordinary-table derived-row aggregate destination now validates
+outer ORDER alias/ordinal or projected-column expressions before the limiter
+executes, including at LIMIT 0; a one-row finalization needs no outer sorter.
+This does not add grouped ORDER, arbitrary expression rewrites or transient
+materialization. Pinned source-ID ctypes `where-validation/outer-order-oracle.log`
+and two-reset public scalar/IN/EXISTS typed/name/error cases exercise the
+branch. The completed-child fallback and structural check remain red.
+
+### Zero-source derived aggregate count bridge boundary (revision)
+
+Pinned `src/select.c:sqlite3Select` feeds each producer result to the parent's
+aggregate step; `src/func.c:groupConcatStep` consumes the actual argument value
+and separator, not merely a row count. The legacy completed-producer fallback
+in `compileZeroSourceDerivedCount` emits `AggStep count` on each ResultRow and
+therefore may only own plain `count(*)` with no FILTER/ORDER/DISTINCT. It had
+intercepted compound-derived `group_concat(v,NULL)` before the separate row
+consumer, returning INTEGER 3 in place of TEXT `ba`. Rejecting that ownership
+lets `compileCompoundDerivedAggregate` consume producer rows and aggregate
+arguments in order. This guard does not make its completed-child relocation
+source-owned; it remains a migration gap. The captured pinned
+`aggregate30-group-concat-null-separator` and the utf8/utf16le/utf16be
+private-budget baseline/sorter/error tests in `from-subquery-routes.test.mjs`
+exercise this boundary through the public API.
