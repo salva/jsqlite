@@ -4500,7 +4500,15 @@ estimation, or multi-source order analysis. Nonempty sqlite_stat4 sample tables
 reject at graph load rather than silently treating stat1 as equivalent; stat1
 extensions beyond decimal prefixes and `unordered` reject rather than supply
 plausible estimates. The source also accepts `sz=`/`noskipscan`, table-only
-statistics and legacy malformed data: these are not represented here.
+statistics and legacy malformed data: these are not represented here. A matched
+non-NULL stat1 value stored as BLOB is also explicitly unsupported, not an
+absent estimate: `analyze.c:sqlite3AnalysisLoad/analysisLoader` receives it
+through sqlite3_exec callback text (and `decodeIntArray` may recognize `sz=`),
+whereas the read-only record loader retains its storage class. In three-encoding
+pinned BLOB `sz=` fixtures both forced and unforced public prepares reject;
+unknown-table rows still fall through and table-only rows preserve typed results.
+This explicit rejection avoids inventing an index cost without claiming BLOB
+stat representation. See `test/conformance/stat-record-boundary.test.mjs`.
 
 `where.c:whereLoopCheaperProperSubset` case 2 additionally admits strict
 subsets of represented constraint terms across indexes (unless a covering

@@ -401,13 +401,21 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       try {values=decodeRecord(cursor.payload(),database.encoding).values;}
       catch(error){throw new SchemaFormatError("invalid sqlite_stat1 record",{cause:error});}
       if(values.length!==3)malformed("sqlite_stat1 record must have three fields");
-      if(values[0]!.storageClass!=="text"||values[2]!.storageClass!=="text")continue;
+      if(values[0]!.storageClass!=="text")continue;
       const tableName=decodeSqliteText(values[0]!.bytes,database.encoding);
       const table=tables.get(sqliteAsciiFold(tableName));if(!table)continue;
       if(values[1]!.storageClass!=="text")continue;
       const indexName=decodeSqliteText(values[1]!.bytes,database.encoding);
       const index=indexes.get(sqliteAsciiFold(indexName));
       if(!index||index.table!==table)continue;
+      // analysisLoader receives sqlite3_exec callback text even for BLOB stat
+      // values. Skipping by storage class here would conceal e.g. a matched
+      // sz= extension and permit an invented numeric-only/default index cost.
+      // Only TEXT estimates are represented; reject other non-NULL values.
+      if(values[2]!.storageClass!=="text"){
+        if(values[2]!.storageClass==="null")continue;
+        throw new SchemaUnsupportedError(`unrepresented sqlite_stat1 storage class for ${index.name}`);
+      }
       const stat=decodeSqliteText(values[2]!.bytes,database.encoding);
       const parts=stat.split(" ");const count=index.terms.length+1;
       if(parts.length<count||parts.slice(0,count).some(part=>!/^\d+$/.test(part)||BigInt(part)>0xffffffffffffffffn))throw new SchemaUnsupportedError(`unrepresented sqlite_stat1 for ${index.name}`);

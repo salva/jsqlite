@@ -12,7 +12,7 @@ const capture=JSON.parse(fs.readFileSync(new URL('./cases/stat-record-boundary.j
 const manifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(capture.sourceId,manifest.sqliteSourceId);
 assert.deepEqual(capture.variants.map(v=>[v.encoding,v.kind]),
- ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','unknown-table','malformed-number','stat4-sample'].map(kind=>[encoding,kind])));
+ ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','unknown-table','malformed-number','blob-extension','stat4-sample'].map(kind=>[encoding,kind])));
 async function run(db,sql){const st=db.prepare(sql).statement;try{const rows=[];while(await st.step()==='row')rows.push(st.column(0));st.reset();const again=[];while(await st.step()==='row')again.push(st.column(0));assert.deepEqual(again,rows,'reset reconstructs selected access');return rows}finally{st.finalize()}}
 for(const variant of capture.variants){
  test(`${variant.encoding}/${variant.kind}: native typed access and public stat boundary`,async()=>{
@@ -23,6 +23,7 @@ for(const variant of capture.variants){
   assert.ok(variant.cases.forced.rows.length && variant.cases.forced.rows.every(row=>row[0].type==='integer'));
   if(variant.kind==='table-only')assert.deepEqual(variant.nullIndexRows,{type:'integer',value:'1'});
   if(variant.kind==='stat4-sample')assert.deepEqual(variant.samples,{type:'integer',value:'1'});
+  if(variant.kind==='blob-extension')assert.equal(variant.indexStat.type,'blob');
   const server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':bytes.length});r.end(bytes)});
   await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',resolve).once('error',reject));
   let db;

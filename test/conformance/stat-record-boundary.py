@@ -20,6 +20,7 @@ SETUP={
  'table-only': "INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t',NULL,'304')",
  'unknown-table': "INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('not_a_table','t_a','nonsense')",
  'malformed-number': "UPDATE sqlite_stat1 SET stat='bad 76' WHERE idx='t_a'",
+ 'blob-extension': "UPDATE sqlite_stat1 SET stat=CAST('304 76 sz=4096' AS BLOB) WHERE idx='t_a'",
  'stat4-sample': "CREATE TABLE sqlite_stat4(tbl,idx,neq,nlt,ndlt,sample)",
 }
 def capture(library,regenerate=False,stat4=False):
@@ -50,6 +51,7 @@ def capture(library,regenerate=False,stat4=False):
     if kind=='stat4-sample':assert sample['value']=='1'
     if stat4:assert int(sample['value'])>0
     if kind=='malformed-number':assert m.text(stat)=='bad 76'
+    if kind=='blob-extension':assert stat['type']=='blob' and len(bytes.fromhex(stat['hex']))>0
     cases={}
     for name,sql in base.SQL.items():
      rows,_=m.query(d,db,sql)

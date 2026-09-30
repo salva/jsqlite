@@ -255,6 +255,89 @@
     },
     {
       "encoding": "utf8",
+      "kind": "blob-extension",
+      "fixture": "test/conformance/fixtures/stat-record-utf8-blob-extension.db",
+      "sha256": "45960b0ea44807b4332c974377761f9b55afc5a0aa445eae36709033ea36c77f",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "0"
+      },
+      "indexStat": {
+        "type": "blob",
+        "hex": "33303420373620737a3d34303936"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
       "kind": "stat4-sample",
       "fixture": "test/conformance/fixtures/stat-record-utf8-stat4-sample.db",
       "sha256": "edcfdd4dffa9be6690af99e8295b16da62c7fafe7c1baa59dde525b3deb92bd3",
@@ -586,6 +669,89 @@
     },
     {
       "encoding": "utf16le",
+      "kind": "blob-extension",
+      "fixture": "test/conformance/fixtures/stat-record-utf16le-blob-extension.db",
+      "sha256": "dd99c82f70e7a03a91d7dae18d51efc03c320a6adb1a0d2b2a6fb73a8e42cd9a",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "0"
+      },
+      "indexStat": {
+        "type": "blob",
+        "hex": "330030003400200037003600200073007a003d003400300039003600"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
       "kind": "stat4-sample",
       "fixture": "test/conformance/fixtures/stat-record-utf16le-stat4-sample.db",
       "sha256": "ff257e48a050ae19cf1b05297988fd42bc6f2366d8fc1a2d3cae894016b935cb",
@@ -911,6 +1077,89 @@
           ],
           "eqp": [
             "SCAN t"
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "kind": "blob-extension",
+      "fixture": "test/conformance/fixtures/stat-record-utf16be-blob-extension.db",
+      "sha256": "654b194a778e2adfd60b7a279236a7b86745ec5e20cd0ab89487790ee9e286e4",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "0"
+      },
+      "indexStat": {
+        "type": "blob",
+        "hex": "00330030003400200037003600200073007a003d0034003000390036"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
           ]
         }
       }
