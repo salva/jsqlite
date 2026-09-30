@@ -1,0 +1,251 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtureSha256": "308a220bd0539131620466db4ebfa6764da003e9626047e54c7b8e809efe1b07",
+  "cases": [
+    {
+      "dimension": "fourth-IN-slot",
+      "disposition": "selected",
+      "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE a IN (2,1) AND b IN (3,2,1) AND c IN (2,1) AND d IN (3,2,1) ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      "eqp": [
+        "SEARCH t USING COVERING INDEX t_abcd (a=? AND b=? AND c=? AND d=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 0,
+        "sortOperations": 1,
+        "vmSteps": 366
+      }
+    },
+    {
+      "dimension": "equality-range-alternative",
+      "disposition": "selected",
+      "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE a IN (1,2) AND a>=1 AND a<3 AND b>=2 AND b<3 AND c>0 ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      "eqp": [
+        "SEARCH t USING COVERING INDEX t_abcd (a=? AND b>? AND b<?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 0,
+        "sortOperations": 1,
+        "vmSteps": 69
+      }
+    },
+    {
+      "dimension": "subquery-IN-RHS",
+      "disposition": "residual",
+      "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE a IN (SELECT a FROM t WHERE id=3) AND b>=2 ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      "eqp": [
+        "SEARCH t USING COVERING INDEX t_abcd (a=? AND b>?)",
+        "LIST SUBQUERY 1",
+        "SEARCH t USING INTEGER PRIMARY KEY (rowid=?)",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 0,
+        "sortOperations": 1,
+        "vmSteps": 44
+      }
+    },
+    {
+      "dimension": "forced-index-traversal",
+      "disposition": "residual",
+      "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE d>=2 ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN t USING COVERING INDEX t_abcd",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 4,
+        "sortOperations": 1,
+        "vmSteps": 53
+      }
+    },
+    {
+      "dimension": "multi-source-prerequisite",
+      "disposition": "selected",
+      "sql": "SELECT x.id,y.id FROM t x JOIN t y INDEXED BY t_abcd ON y.a IN (x.a) AND y.b=2 WHERE x.id IN (1,3) ORDER BY x.id,y.id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      "eqp": [
+        "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+        "SEARCH y USING COVERING INDEX t_abcd (a=? AND b=?)",
+        "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 0,
+        "sortOperations": 2,
+        "vmSteps": 94
+      }
+    },
+    {
+      "dimension": "selected-versus-residual",
+      "disposition": "residual",
+      "sql": "SELECT id FROM t NOT INDEXED WHERE a IN (1,2) AND b>=2 ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN t"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 4,
+        "sortOperations": 0,
+        "vmSteps": 41
+      }
+    },
+    {
+      "dimension": "prepare-unsupported",
+      "disposition": "unsupported",
+      "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE (a,b) IN ((1,2),(2,2)) ORDER BY id",
+      "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
+      "expected": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      "eqp": [
+        "SEARCH t USING COVERING INDEX t_abcd (a=? AND b=?)",
+        "LIST SUBQUERY 4",
+        "SCAN 2 CONSTANT ROWS",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "nativeCounters": {
+        "fullscanSteps": 0,
+        "sortOperations": 1,
+        "vmSteps": 52
+      }
+    }
+  ]
+}

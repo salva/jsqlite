@@ -6459,3 +6459,35 @@ Reserve `count` and return the old high-water mark plus one, as the shared
 ownership, not a SQL-specific join exception. The broader three-source
 USING/NATURAL and RIGHT/FULL sorter regression now executes without an
 undefined destination in addition to the mixed-IN reproducer.
+
+### Review-v6 original branch disposition — [[card:card-s-c-d-m]]
+
+`test/conformance/cases/in-range-branch-applicability.json` is a pinned-3.53.4
+read-only capture built by `capture-in-range-branch.py` against a separate
+four-column-index fixture. `in-range-branch-applicability.test.mjs` compares
+public typed rows and private seek/traversal counters. This is an applicability
+matrix, not an optimizer-completeness promise:
+
+| dimension | disposition in admitted TS route | pinned owner / TS owner |
+| --- | --- | --- |
+| fourth-IN-slot | selected | `wherecode.c:codeINTerm/codeAllEqualityTerms` creates one RHS cursor per prefix IN; `where.c:sqlite3WhereEnd` unwinds innermost first. `where-plan.ts:btreeLoops` and `vdbe.ts:compileInnerTableSelect/sqlite3WhereEnd` iterate the prefix without a three-slot cap. |
+| equality-range-alternative | selected | `where.c:whereLoopAddBtreeIndex` restores state per term; `where-plan.ts:btreeLoops` proposes equality and range branches. Later terms are residual (`wherecode.c:Case 4`). |
+| subquery-IN-RHS | safe residual traversal | `whereexpr.c:exprAnalyze` and `wherecode.c:codeINTerm` can use subquery RHS sets. Here `where-plan.ts:comparisonOperator` admits only list IN as selected access; `vdbe.ts` evaluates the SELECT as residual during forced index traversal. Not a selected seek. |
+| selected-versus-residual | safe table scan | `NOT INDEXED` forbids index access; rows are tested as residual. |
+| multi-source-prerequisite | selected | `whereexpr.c:exprAnalyze` prerequisites and `where.c:wherePathSolver` precede `vdbe.ts:compileInnerTableSelect` dependent RHS evaluation. |
+| forced-index-traversal | safe residual index traversal | `where.c:whereLoopAddBtree` forced access on non-leading field; TS traverses physical index, tests residual, does not invent a seek. |
+| prepare-unsupported | typed temporary unsupported | Pinned native accepts `(a,b) IN (...)`; the TS SELECT producer does not lower vector IN, so prepare rejects atomically rather than dropping a component. |
+
+Literal/parameter RHS use shared Mem/key-affinity sets (NULL and rebind are
+covered by existing suites); the fourth-slot capture uses unsorted multi-value
+RHS. Neither arbitrary STAT4 choices, pruning/order parity, native VM steps nor
+unforced selected-access identity is an unqualified public guarantee. The
+admitted observable promise is correct typed rows/order/error/reset with safe
+residual scan/traversal where selected access is not translated. Source controls:
+`where.c:whereLoopInsert` (cost/subset dominance), `wherePathSolver`
+(prerequisite-ready paths), `wherecode.c:Case 4` (prefix plus first range),
+`codeINTerm/codeAllEqualityTerms` and `where.c:sqlite3WhereEnd` (restart).
+Finite TS RHS sets replace C ephemeral cursor allocation for represented lists;
+this capture and prior three-slot/corruption/work-bound suites constrain that
+browser-safe substitution. This does not resolve [[card:card-t]]'s shared four
+SELECT producer reds or supersede i/j/k evidence.

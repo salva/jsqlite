@@ -3027,3 +3027,22 @@ Completed-child relocation in both paths still requires migration.
 | Mixed IN/range selected inner-join ordering | `src/where.c:wherePathSolver`, `src/whereexpr.c:exprAnalyze`, `src/wherecode.c:codeEqualityTerm`, Case 4, `sqlite3WhereEnd` | `src/internal/where-plan.ts` selects dependency-ordered path; `src/internal/vdbe.ts:compileInnerTableSelect` executes its inner-join ordinals and continues the selected cursor; `test/conformance/mixed-in-range-red.test.mjs` checks three encodings. Outer-join NULL continuation retains source order; no general STAT4/DESC parity claim. |
 
 | Standalone SELECT contiguous register range | `src/select.c:selectInnerLoop` (`pDest->iSdst=pParse->nMem+1`, then `nMem+=nResultCol`) | `src/internal/vdbe.ts:compileInnerTableSelect` standalone `range(count)` now reserves exactly `count` from the next register, matching `src/internal/select-program.ts:SelectProgramBuilder.range`; three-source USING/NATURAL and RIGHT/FULL sort tests exercise key copies. |
+
+### Review-v6 original IN/range branch applicability — [[card:card-s-c-d-m]]
+
+Pinned `whereexpr.c:exprAnalyze`, `where.c:whereLoopAddBtreeIndex`,
+`whereLoopInsert`, `wherePathSolver`, `sqlite3WhereEnd` and
+`wherecode.c:codeINTerm/codeAllEqualityTerms/Case 4` map to
+`where-plan.ts:analyzeWhereClause/btreeLoops/wherePathSolver` and
+`vdbe.ts:compileInnerTableSelect/sqlite3WhereEnd`. The public/pinned executable
+matrix is `test/conformance/cases/in-range-branch-applicability.json`, builder
+`capture-in-range-branch.py`, runner `in-range-branch-applicability.test.mjs`.
+`fourth-IN-slot` is selected with innermost-first restart; `subquery-IN-RHS`
+is safe residual index traversal (not a selected seek); `selected-versus-residual`
+is the NOT INDEXED table-scan control; `multi-source-prerequisite` uses positioned
+outer RHS before selected inner access; `forced-index-traversal` scans an index
+on a non-leading constraint; `prepare-unsupported` is a vector IN SELECT
+producer boundary, not a dropped predicate. Equality-prefix competing range
+alternatives and later residual terms are a separate selected matrix row. No
+STAT4/pruning/order or arbitrary selected-access parity is established. Existing
+i/j/k tests and [[card:card-t]]'s four shared reds remain separately scoped.
