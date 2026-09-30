@@ -4449,9 +4449,21 @@ ceiling: the later three-slot selected tests in `in-range-selected-red.test.mjs`
 exercise single-table rebind and joined LEFT in UTF-8/16le/16be; unrepresented
 RHS shapes still reject/replan atomically. Two-slot fixture expectations
 were checked independently with host SQLite 3.45.1; separate unsorted RHS
-cases have pinned 3.53.4 read-only comparisons. The newer three-slot tests
-check selected seeks and expected IDs but do not supply a frozen three-slot
-pinned native typed/metadata capture or prove arbitrary multi-IN parity.
+cases have pinned 3.53.4 read-only comparisons. Three-slot native evidence
+is now independently frozen in `test/conformance/cases/three-in-native.json`
+by `capture-three-in.py` against the immutable advanced-index images: typed
+ordered rows, EQP, selected root/IN cursor/restart/seek VDBE, counters and
+fixture hashes/roots in UTF-8/16le/16be. `three-in-native-ts.test.mjs` compares
+exact SQL via public fresh/reset/rebound calls, scan controls and selected-root
+corruption versus off-path scan isolation. The in-memory
+ordered finite `InListValue` set is a browser-safe ephemeral Btree substitution:
+unlike source `wherecode.c:codeINTerm`'s `Rewind`/`Column`/`IsNull` per RHS
+cursor and `codeAllEqualityTerms`' per-slot register/affinity setup, TS holds
+bounded KeyInfo-ordered arrays, resets inner slot registers when outer advances,
+and seeks the composite prefix for each non-NULL probe. Native 3.53.4 executes
+`SeekGE`/`IdxGT` on the covering `m_abc` root and advances RHS `Next`; this
+coverage checks ordered typed results and selected work, not native cursor
+complexity or broad optimizer parity.
 
 Selected IN RHS physical-order correction (supersedes the earlier array-order
 claim): pinned `expr.c:sqlite3CodeRhsOfIN` inserts RHS values into a KeyInfo

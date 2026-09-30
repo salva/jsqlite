@@ -1687,9 +1687,17 @@ lowering now tests two selected IN slots on the frozen six variants, with
 separate three-slot single-table/rebind and joined LEFT selected-seek cases on
 advanced-index fixtures in UTF-8/16le/16be. The original single-slot cases
 retain LEFT unmatched-once, NULL RHS, duplicate and reset checks. These tests
-are not an independently captured pinned three-slot typed oracle or general
-multi-IN/ORDER/statistics parity; the later stat-choice revision below covers
-only its bounded frozen pre/post choice.
+are now supplemented by an independently captured pinned three-slot typed
+oracle, not general multi-IN/ORDER/statistics parity: `capture-three-in.py`
+freezes UTF-8/16le/16be read-only advanced-index fixture hashes/roots, EQP,
+VDBE per-IN cursor and composite seek instructions, typed ordered rows and
+stmt counters. `three-in-native.test.py` and `three-in-native-ts.test.mjs`
+assert source identity, native selected/scan structure and exact-SQL public
+fresh/reset-rebind selected-probe/scan typed rows and selected-root versus
+off-path scan corruption isolation. See the living guide for
+finite-array adaptation; this bounded finding-1 evidence does not assert
+optimizer parity. The later stat-choice revision below covers only its bounded
+frozen pre/post choice.
 
 2026-09-29 private-work and corruption revision: the in-memory selected IN RHS
 set previously compared all earlier members inside one VM opcode with no work

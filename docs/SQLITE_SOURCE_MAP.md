@@ -1838,8 +1838,17 @@ inner registers on outer advancement and targeting the innermost probe on
 seek/prefix/end jumps. The six frozen encoding/state tests prove two-slot
 forced/unforced and LEFT cases. Separate UTF-8/16le/16be advanced-index tests
 exercise three selected slots, single-table rebind and joined LEFT selected
-seeks with expected IDs; no pinned three-slot typed/metadata oracle capture
-is claimed. Unsupported RHS/vector shapes must still reject atomically.
+seeks with expected IDs. The independent manifest-pinned read-only capture
+`capture-three-in.py` / `cases/three-in-native.json` now freezes those exact
+three-slot single/LEFT queries (plus NOT INDEXED scan control) for all three
+advanced-index encodings: fixture SHA-256, `m`/`m_abc` roots, typed ordered rows,
+EQP, relevant RHS cursor/seek VDBE operations and bounded native stmt counters.
+`three-in-native.test.py` asserts native root/cursor/scan structure;
+`three-in-native-ts.test.mjs` compares the same SQL, fresh/reset-rebound typed
+public rows and selected probe vs scan work, including off-path scan and
+selected-root corruption (SQLite code 11) on disposable byte mutations. This does not prove arbitrary
+multi-IN, optimizer cost, or ORDER parity. Unsupported RHS/vector shapes must
+still reject atomically.
 
 `expr.c:sqlite3CodeRhsOfIN` inserts list cells into a KeyInfo ephemeral Btree;
 `wherecode.c:codeINTerm` flips `bRev` on descending index columns and reads
