@@ -12,7 +12,7 @@ const capture=JSON.parse(fs.readFileSync(new URL('./cases/stat-record-boundary.j
 const manifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(capture.sourceId,manifest.sqliteSourceId);
 assert.deepEqual(capture.variants.map(v=>[v.encoding,v.kind]),
- ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','unknown-table','malformed-number','blob-extension','stat4-sample'].map(kind=>[encoding,kind])));
+ ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','unknown-table','unknown-index','unused-index-extension','malformed-number','blob-extension','stat4-sample'].map(kind=>[encoding,kind])));
 async function run(db,sql){const st=db.prepare(sql).statement;try{const rows=[];while(await st.step()==='row')rows.push(st.column(0));st.reset();const again=[];while(await st.step()==='row')again.push(st.column(0));assert.deepEqual(again,rows,'reset reconstructs selected access');return rows}finally{st.finalize()}}
 for(const variant of capture.variants){
  test(`${variant.encoding}/${variant.kind}: native typed access and public stat boundary`,async()=>{
@@ -24,16 +24,23 @@ for(const variant of capture.variants){
   if(variant.kind==='table-only')assert.deepEqual(variant.nullIndexRows,{type:'integer',value:'1'});
   if(variant.kind==='stat4-sample')assert.deepEqual(variant.samples,{type:'integer',value:'1'});
   if(variant.kind==='blob-extension')assert.equal(variant.indexStat.type,'blob');
+  if(variant.kind==='unknown-index')assert.equal(variant.indexStat.type,'text');
+  if(variant.kind==='unused-index-extension'){
+   assert.ok(variant.cases.forced.eqp.some(line=>line.includes('INDEX t_a')),'forced uses t_a, not the extended t_ab');
+   assert.ok(variant.cases.unforced.eqp.some(line=>line.includes('INDEX t_ab')),'unforced can select extended t_ab');
+  }
   const server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':bytes.length});r.end(bytes)});
   await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',resolve).once('error',reject));
   let db;
   try{
    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
    for(const sql of Object.values(capture.sql)){
-    if(variant.kind==='table-only'||variant.kind==='unknown-table'){
+    if(variant.kind==='table-only'||variant.kind==='unknown-table'||variant.kind==='unknown-index'){
      const expected=variant.cases[sql===capture.sql.forced?'forced':'unforced'].rows.map(row=>BigInt(row[0].value));
      assert.deepEqual(await run(db,sql),expected);
     }else{
+     // Even a forced t_a query cannot silently pretend the other existing
+     // index's unsupported stat is a numeric-only estimate.
      const pattern=variant.kind==='stat4-sample'?/sqlite_stat4/:/sqlite_stat1/;
      for(let attempt=0;attempt<2;attempt++)assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaUnsupportedError'&&e.classification==='temporary'&&pattern.test(String(e)));
     }

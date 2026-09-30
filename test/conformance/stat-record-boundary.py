@@ -19,6 +19,8 @@ STAT4_OUT=ROOT/'test/conformance/cases/stat4-enabled-boundary.json'
 SETUP={
  'table-only': "INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t',NULL,'304')",
  'unknown-table': "INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('not_a_table','t_a','nonsense')",
+ 'unknown-index': "INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t','not_an_index','304 76 sz=4096')",
+ 'unused-index-extension': "UPDATE sqlite_stat1 SET stat=stat||' noskipscan' WHERE idx='t_ab'",
  'malformed-number': "UPDATE sqlite_stat1 SET stat='bad 76' WHERE idx='t_a'",
  'blob-extension': "UPDATE sqlite_stat1 SET stat=CAST('304 76 sz=4096' AS BLOB) WHERE idx='t_a'",
  'stat4-sample': "CREATE TABLE sqlite_stat4(tbl,idx,neq,nlt,ndlt,sample)",
@@ -48,6 +50,8 @@ def capture(library,regenerate=False,stat4=False):
     sample=m.query(d,db,'SELECT count(*) FROM sqlite_stat4')[0][0][0] if stat4 or kind=='stat4-sample' else {'type':'integer','value':'0'}
     stat=m.query(d,db,"SELECT stat FROM sqlite_stat1 WHERE idx='t_a'")[0][0][0]
     if kind=='table-only':assert n['value']=='1'
+    if kind=='unknown-index':assert m.query(d,db,"SELECT stat FROM sqlite_stat1 WHERE idx='not_an_index'")[0][0][0]['type']=='text'
+    if kind=='unused-index-extension':assert m.text(m.query(d,db,"SELECT stat FROM sqlite_stat1 WHERE idx='t_ab'")[0][0][0]).endswith(' noskipscan')
     if kind=='stat4-sample':assert sample['value']=='1'
     if stat4:assert int(sample['value'])>0
     if kind=='malformed-number':assert m.text(stat)=='bad 76'
