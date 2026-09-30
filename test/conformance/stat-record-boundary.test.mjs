@@ -12,8 +12,8 @@ const capture=JSON.parse(fs.readFileSync(new URL('./cases/stat-record-boundary.j
 const manifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(capture.sourceId,manifest.sqliteSourceId);
 assert.deepEqual(capture.variants.map(v=>[v.encoding,v.kind]),
- ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','malformed-number','stat4-sample'].map(kind=>[encoding,kind])));
-async function run(db,sql){const st=db.prepare(sql).statement;try{const rows=[];while(await st.step()==='row')rows.push(st.column(0));return rows}finally{st.finalize()}}
+ ['utf8','utf16le','utf16be'].flatMap(encoding=>['table-only','unknown-table','malformed-number','stat4-sample'].map(kind=>[encoding,kind])));
+async function run(db,sql){const st=db.prepare(sql).statement;try{const rows=[];while(await st.step()==='row')rows.push(st.column(0));st.reset();const again=[];while(await st.step()==='row')again.push(st.column(0));assert.deepEqual(again,rows,'reset reconstructs selected access');return rows}finally{st.finalize()}}
 for(const variant of capture.variants){
  test(`${variant.encoding}/${variant.kind}: native typed access and public stat boundary`,async()=>{
   const bytes=fs.readFileSync(new URL(`../../${variant.fixture}`,import.meta.url));
@@ -29,12 +29,12 @@ for(const variant of capture.variants){
   try{
    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
    for(const sql of Object.values(capture.sql)){
-    if(variant.kind==='table-only'){
-     const expected=variant.cases.forced.rows.map(row=>BigInt(row[0].value));
+    if(variant.kind==='table-only'||variant.kind==='unknown-table'){
+     const expected=variant.cases[sql===capture.sql.forced?'forced':'unforced'].rows.map(row=>BigInt(row[0].value));
      assert.deepEqual(await run(db,sql),expected);
     }else{
      const pattern=variant.kind==='stat4-sample'?/sqlite_stat4/:/sqlite_stat1/;
-     assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaUnsupportedError'&&e.classification==='temporary'&&pattern.test(String(e)));
+     for(let attempt=0;attempt<2;attempt++)assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaUnsupportedError'&&e.classification==='temporary'&&pattern.test(String(e)));
     }
    }
   }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}

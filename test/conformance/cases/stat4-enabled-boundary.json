@@ -1,0 +1,258 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": {
+    "forced": "SELECT id FROM t INDEXED BY t_a WHERE a=1 AND b IN (13,14) ORDER BY id",
+    "unforced": "SELECT id FROM t WHERE a=1 AND b IN (13,14) ORDER BY id"
+  },
+  "variants": [
+    {
+      "encoding": "utf8",
+      "kind": "stat4-analyze",
+      "fixture": "test/conformance/fixtures/stat4-enabled-utf8.db",
+      "sha256": "2b25b0f261b366e543cf39706cd0161451946f6fdf71c8db89b915653ab86422",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "57"
+      },
+      "indexStat": {
+        "type": "text",
+        "utf8Hex": "333034203736"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "kind": "stat4-analyze",
+      "fixture": "test/conformance/fixtures/stat4-enabled-utf16le.db",
+      "sha256": "b214834ffc99bee29eb86627923bed7808983c81a68d29f0f4d362c87430aabd",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "57"
+      },
+      "indexStat": {
+        "type": "text",
+        "utf8Hex": "333034203736"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "kind": "stat4-analyze",
+      "fixture": "test/conformance/fixtures/stat4-enabled-utf16be.db",
+      "sha256": "5bb1295d5ca3644e687dca4da8ab1b00a5f22f8f7dafc598ba858cf73dad34c6",
+      "nullIndexRows": {
+        "type": "integer",
+        "value": "0"
+      },
+      "samples": {
+        "type": "integer",
+        "value": "57"
+      },
+      "indexStat": {
+        "type": "text",
+        "utf8Hex": "333034203736"
+      },
+      "cases": {
+        "forced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING INDEX t_a (a=?)"
+          ]
+        },
+        "unforced": {
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "214"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1003"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX t_ab (a=? AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ]
+        }
+      }
+    }
+  ]
+}
