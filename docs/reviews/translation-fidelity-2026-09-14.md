@@ -1447,9 +1447,88 @@ The historical advanced-index statement below that public TS attempted/credited 
 
 The repair also closes the projection-only covering hazard: residual WHERE and ORDER reads participate in capability coverage, and all-encoding ordinary/partial residual discriminators require table values when an index lacks the residual column. Represented non-covering WITHOUT ROWID secondary access performs the source-shaped complete-PK BLOBKEY lookup. Unsupported physical descriptors remain rejected/not selected rather than producing approximate rows.
 
-### Revision 2026-09-23 ([[card:card-s-c-b-b]] PK-remapping correction)
+### Revision 2026-09-23 ([[card:card-s-c-c-c]] partial deferred-seek review)
+
+A still-earlier resolved-binding defect is now concrete: pinned SQLite seeks `e_expr` for single-source `e AS x` terms `lower(x.a)` and `x.b+1`, while TypeScript rejects at prepare with `no such column: x.a` in every encoding. The stack points to `compileTableSelect`'s late legacy `resolveExpression`, before `where-plan` comparison. Repair the owning single-source qualified-alias resolution path so exact `ColumnNode`/source identity reaches analysis; do not normalize away qualification inside expression matching.
+
+Numeric literal identity has an all-encoding discriminator: pinned SQLite treats indexed `b+1` and query `b+01` as the same expression and seeks both fields. TypeScript seeks only `lower(a)`, then visits two candidates, reads the table, applies residuals, and sorts. Correct rows conceal that token spelling leaks into identity below the operator; compare resolved literal value/class as `sqlite3ExprCompare` does.
+
+Query-side OR adds a branch-direction discriminator: pinned SQLite admits forced `p_live` for `a=1 AND (c>0 OR c<0)` because `exprImpliesNotNull` requires both query-expression arms to imply the partial predicate `c IS NOT NULL`; TypeScript rejects in every encoding. This is distinct from `sqlite3ExprImpliesExpr`'s index-predicate-side `pE2` OR branch, which accepts either predicate arm. The repair must preserve both pinned directions—flattening OR as if it were AND would be unsound.
+
+A single-table all-encoding matrix isolates the missing pinned `exprImpliesNotNull` branch from join provenance and lowering. For partial `WHERE c IS NOT NULL`, SQLite admits forced `p_live` when the query has represented `c>0`, `c=1`, `c IN (1,2)`, or `c BETWEEN 0 AND 2`; TypeScript rejects all 12 executions as unusable. The implication repair must port the source operator switch/NULL-propagation logic, not only exact predicate identity.
+
+Expression identity now has a concrete all-encoding COLLATE discriminator. Pinned SQLite seeks `e_expr` for `lower(a) COLLATE BINARY` but full-index-scans for `COLLATE NOCASE`: it skips the top-level COLLATE while comparing expression structure, then applies physical collation compatibility. TypeScript returns correct rows but full-scans both (`indexSeeks=0`), proving `expressionStructuralIdentity` does not implement the `sqlite3ExprCompareSkip` boundary before the separate collation gate.
+
+The joined partial failure is independent of selected execution order: even when SQL source order begins with `p` and exactly matches its safe INNER-ON `p.c IS NOT NULL` proof, all encodings reject forced `p_live` during planning. Inspection localizes this to `usablePartialIndex`: it compares the schema predicate tree against the entire term expression identity and requires `term.left.source===source`. A split `IS NOT NULL` term does not carry the same whole-expression/source shape, so valid source-bound proof is discarded before path solving. Repair implication against resolved term/operator/operand identity and provenance (the pinned `whereUsablePartialIndex`/`sqlite3ExprImpliesExpr` ownership), not textual/source-order workarounds.
+
+A joined-path corruption discriminator closes the observability gap: on all three review-derived fixtures with corrupt `e_expr` roots, a forced aligned-order expression self-join returns `(1,1)` successfully with `indexSeeks/indexNext = 0` and table scan counters, rather than raising a SQLite error. Thus the selected `PhysicalIndex` identity is not merely lowered incorrectly—it is completely bypassed on this multi-source route. This violates forced-access identity and selected/off-path corruption locality even in a query whose rows happen to be correct due to source-order alignment. The fix must ensure forced selected physical identity reaches the opened cursor and corruption/error ordering; a table scan is not an acceptable forced substitute.
+
+A source-order reversal discriminator identifies an additional, earlier handoff divergence. With SQL source order `x JOIN y`, the planner selects constrained `y` before rowid lookup of `x`, but `compileInnerTableSelect` still emits loops by `expanded.sources` order. It therefore evaluates the selected `x.rowid=y.id` seek while `y` is unpositioned and returns empty. Rewriting the equivalent query as `y JOIN x` aligns textual and selected order and returns pinned `(2,2)` in every encoding. Consequently the shared repair must drive nesting from `multiWhere.path.loops` order (subject to join prerequisites/barriers), not merely find each selected loop while iterating source order. Physical-index lowering remains required for actual selected-index movement, but path-order fidelity is independently necessary and explains this empty-result signature.
+
+An all-encoding unforced control confirms this is not confined to `INDEXED BY`: automatic selection of `m_abc` returns `[]`, while the otherwise identical `NOT INDEXED` query returns pinned `(2,2)` in every encoding. This establishes the required unforced fallback boundary: until joined physical-index lowering exists, planner selection must not suppress executable table scan/residual behavior. Forced handling must remain atomic/truthful according to the represented contract rather than silently producing empty rows.
+
+Direct lowering inspection identifies the owning divergence: `compileInnerTableSelect` calls `planWhere`, but then opens only `source.table.rootPage` for every source and consumes only `rowidEquality`/`rowidUpper` from each selected capability before emitting `SeekRowid` or table `Rewind`/`Next`. It never opens the selected `PhysicalIndex`, lowers its equality/range admissions, or moves an index cursor. Thus a selected non-rowid capability can suppress/shape planner residuals without any corresponding executable index loop, explaining planned paths with zero execution counters and empty joined results. Pinned `sqlite3WhereCodeOneLoopStart` instead branches on the selected loop flags and emits the index cursor seek/scan before loop-body predicates. The repair belongs in shared multi-source loop lowering: either faithfully lower retained physical capabilities and identity, or conservatively prevent unsupported selection before residual ownership changes; do not special-case expression self-joins.
+
+A broader ordinary-index control localizes the empty self-join result away from expression identity: forced covering `m_abc` self-joins also return `[]` instead of pinned `(2,2)` in all six selected-/other-alias neighbors. The shared signature—zero movement/residual/sorter counters despite planned paths—shows a pre-execution joined indexed-loop lowering/initialization defect. Expression exact-source identity remains independently unproven, but the observed empty rows must not be misattributed only to its structural comparator.
+
+A second joined-source defect appears on expression indexes: pinned SQLite returns `(1,1)` for forced `e_expr` self-joins both when `lower(a)` is bound to the selected alias and when the same spelling is bound to the other alias (the latter truthfully full-scans the forced index). TypeScript returns no rows for all six all-encoding cases, including the exact selected-source match. This is a public row-correctness failure, not merely planner accounting, and means exact-source identity cannot yet be accepted even though the single-source frozen examples return correct rows.
+
+A new public all-encoding join-provenance discriminator exposes a separate implementation-owned failure: pinned SQLite admits forced `p_live` when `p.c IS NOT NULL` is either in INNER JOIN WHERE or in the safe ON clause of INNER/LEFT JOIN, returning `(1,1)`, but TypeScript rejects all nine prepares as `forced index is unusable`. Two unsafe LEFT JOIN neighbors—WHERE proof after null extension and no proof—are correctly rejected. This branch matrix confirms TS currently loses all usable joined-table implication, rather than merely mishandling outer-ON marking; acceptance is not blocked solely by lazy deferred seek.
+
+Structural mismatch remains distinct from unusable partial access: a new all-encoding/reset forced `e_expr` mismatch (`upper(a)` versus indexed `lower(a)`) passes through a truthful full expression-index scan with residual table reads and no index seek, rather than being atomically rejected or incorrectly admitted as an expression seek. This confirms the forced fallback branch currently works for the frozen represented descriptor but does not cure the unresolved structural-identity implementation gaps. New independently generated corrupt-`p_live` and corrupt-`e_expr` fixtures also prove selected partial- and expression-index root corruption fails through the public API while the corresponding `NOT INDEXED` table path remains readable before and after the failure in every encoding. This supplies the previously missing family-specific selected/off-path corruption evidence without extending manifest credit.
+
+The partial/expression selected-access scope remains zero credit. Direct pinned comparison corrects the earlier shorthand that `partial-implied` is covering: `wherePartIdxExpr` does not substitute `c IS NOT NULL`; SQLite emits lazy `OP_DeferredSeek`, but the query never reads an uncovered table value, so no table movement occurs. TypeScript currently executes that opcode eagerly and records one spurious seek per run in every encoding. A new all-encoding forced companion projecting `c` establishes the other side of the boundary: exactly one table seek is required when an uncovered value is actually consumed. Additional empty-result and three-row index-scan companions establish opcode timing: an empty seek performs zero table seeks, while every positioned index row currently causes an eager TS seek (three instead of pinned zero) even when no table value is consumed. A three-row projection reading uncovered `c` twice per row passes with exactly three table seeks, establishing the complementary caching requirement: after first materialization, repeated uncovered reads of the same positioned row must reuse that table position rather than seek again. The owning repair must defer—not erase or duplicate—the lookup.
+
 
 The prior revision's phrase “complete-PK suffix” was too narrow. Review `record:///review.md?card=card-s-c-b&v=3` demonstrated that SQLite deduplicates matching PK fields against declared secondary fields, so a PK may be mixed across declared/auxiliary positions or have no suffix. Physical descriptors now retain an immutable exact ordinal per PK term, matching column plus required PK collation, and lowering gathers mapped values in PK order. All-encoding public/native-fixture evidence covers mixed, reordered/interspersed, suffix-free, and different-collation duplicate shapes with composite DESC PK and NULL-sensitive secondary selection. Partial/expression credit remains unchanged at zero.
+
+#### Unforced joined IN fallback source identity ([[card:card-s-c-c-c]], 2026-09-28)
+
+The all-encoding unhinted joined-IN fallback test exposed `invalid source ordinal` at prepare (focused 0/1, advanced 46/47): the first replan implementation cloned a `ResolvedSource` to set `notIndexed`, while `where-plan.ts:binding/prereq` and `btreeLoops` rely on exact resolved source identity. Pinned `where.c` candidates retain cursor ownership when excluding loops, and `wherecode.c:codeEqualityTerm` requires per-IN-member selected seeks if admitted. `planWhere` now accepts `excludedIndexSources` as a planning-only ordinal gate, leaving original `ResolvedSource` and column-use ownership intact; forced `INDEXED BY` still rejects and unforced selection produces an actual scan. Review-derived UTF-8/16LE/16BE test compares unhinted and explicit `NOT INDEXED` rows, first-row/reset/NULL-rebind, zero selected index seeks and positive table movement. Focused 4/4, combined 118/118; manifest unchanged, no selected IN credit.
+
+#### Joined reverse ORDER proof correction ([[card:card-s-c-c-c]], 2026-09-28)
+
+A new forced reverse `ORDER BY y.b DESC` check initially required zero sorter inserts and failed (three inserts in all encodings despite correct rows). Branch inspection established the test's premise was wrong: `where-plan.ts:wherePathSolver` deliberately sets multi-source `orderTermsSatisfied=0`, and joined lowering honors this by retaining a sorter. Pinned `where.c` proves ORDER across the entire chosen WherePath, not just a selected inner root's local key order; `wherecode.c:sqlite3WhereCodeOneLoopStart` then emits directional access for a proved loop. Corrected the review-derived test to assert typed forced/scan rows fresh/reset, positive selected seek, and **retained** sorter for unproved joined global order. Focused 1/1, combined advanced/shared 98/98. Do not cite it as a reverse traversal or sorter-avoidance proof; no credit change.
+
+#### Joined selected IN gate ([[card:card-s-c-c-c]], 2026-09-28)
+
+After the joined residual identity fix, the all-encoding forced `m_abc` IN admission discriminator passed public rows but failed the selected seek bound in every encoding: `vdbe.ts:compileInnerTableSelect` excluded `operator==='in'` from `IndexSeekPrefix` yet let the planner's selected path fall through to `IndexRewind`. Pinned `wherecode.c:codeEqualityTerm/sqlite3WhereCodeOneLoopStart` instead loops over IN values and reseeks. The bounded lowering fix checks *selected* joined equality-prefix IN admissions at prepare: reject forced `INDEXED BY` atomically as temporarily unusable, or replan an unforced path with the offending source `NOT INDEXED`. This avoids crediting an unexecuted selected IN loop and keeps actual executable path/ORDER accounting aligned; residual public rows remain available on the fallback. Initial tests that assumed forced rows were adapted to assert rejection while retaining scan fresh/reset, NULL and rebind observations. Focused 3/3, combined 97/97, manifest 7/7, first-select 8/8, typecheck, boundary and diff check pass. No pinned selected IN claim or manifest change. Full physical IN restart/key/counter implementation and pinned native recapture remain future evidence requirements.
+
+#### Joined IN-list residual correction ([[card:card-s-c-c-c]], 2026-09-28)
+
+A review-derived joined `y.b IN (1,3)` neighbor returned `[]` under both `INDEXED BY m_abc` and `NOT INDEXED` in all three encodings, versus `(2,3),(2,1)` under host SQLite 3.45.1 (sanity only, not a pinned oracle). This disproved an index-only IN-loop diagnosis. In `vdbe.ts:compileInnerTableSelect`, the joined `resolveTree.visit` did not descend into `in-list`; `Column` consequently read cursor zero's `x.b` instead of the joined `y.b` in the residual expression. The resolver now follows the same operand recursion as single-source binding, including IN-list, BETWEEN, IN-subquery left and aggregate args (nested SELECT ownership stays separate). Pinned `resolve.c:resolveExprStep` and `expr.c:sqlite3ExprCodeIN` require source-resolved operands before evaluation. Initial/reset typed-row assertion now passes for both index and scan in all encodings; focused 1/1 and combined advanced/shared 95/95, manifest 7/7, first-select 8/8, typecheck and package-boundary pass. No credit change: joined selected IN-prefix restart, direction and exact nine-family counts remain unverified.
+
+#### Joined range review correction ([[card:card-s-c-c-c]], 2026-09-28)
+
+The review-derived joined `m_abc` test initially passed with two range bounds but returned no rows for lower-only `y.b>1` in all three encodings (the `NOT INDEXED` control returned `(2,2),(2,3)`). `vdbe.ts` had treated a missing range end as the range start and immediately terminated a prefix scan on the wrong inequality. Pinned `wherecode.c:1821-1866,1952-2041` maintains distinct start and end vectors; the bounded correction retains equality-prefix seek and residual WHERE filtering but emits `IndexRangeEnd` only for an actual opposite bound. All-encoding lower-only, upper-only and two-sided joined controls pass initially and after reset; this does **not** establish exact composite range positioning, reverse/IN joined paths or full selected-access credit. Refer to [[card:card-s-c-c-c]] status for the failed 40/41 run and repaired 93/93 combined suite.
+
+
+The latest complete public/internal focused run for [[card:card-s-c-c-c]] is
+`node --experimental-strip-types --test test/conformance/run-advanced-index-ts.test.mjs`:
+**18/40 pass, 22 fail**. This supersedes earlier partial aggregate counts and the
+prior 18/39 complete run; the added failure is the pinned qualifying IIF/CASE
+implication branch. Pinned `src/expr.c:sqlite3ExprIsIIF` accepts resolved
+inline-IIF function identity (ASCII-case-insensitive registered `iif` and
+built-in alias `if`, including upper-case spellings)
+with exactly two arguments or exactly three whose third passes pinned
+`sqlite3ExprIsNotTrue` (NULL, FALSE, or an integer AST recursively decoded as
+zero by `sqlite3ExprIsInteger`, including decimal/hex literals (with parentheses
+parse-discarded) and nested unary UPLUS/UMINUS, but excluding REAL zero at any
+such unary depth, TEXT zero, parameters under the no-parse-context call, and
+CAST/arithmetic constants; the
+variadic runtime forms do not qualify), and accepts one-pair searched CASE with
+absent or such a not-true ELSE. It then recurses into the first condition. The
+all-encoding test freezes those positives plus TRUE/nonzero-ELSE, variadic-IIF,
+simple-CASE, multi-WHEN, and NULL-condition rejection boundaries; TypeScript
+currently rejects all 75 qualifying prepares. The
+advanced-index manifest validator passes 7/7 because all four partial/expression
+cases correctly remain `unattempted` with zero selected-access credit. Shared
+planner/WITHOUT ROWID regressions pass 23/23 and shared multisource regressions
+pass 47/47; package-boundary and baseline public TypeScript conformance checks
+also pass. Those controls localize, but do not waive, the failures above. The
+partial/expression tranche is not accepted and [[card:card-s-c-c-b]] requires
+reopening for the owning implementation repairs.
+
 ### Revision 2026-09-23 ([[card:card-j-d-b-a-c]] derived multirow VALUES destination correction)
 
 A post-compound C2 discriminator exposed a destination-register divergence in the newer single-source derived coroutine route: public `SELECT * FROM (VALUES(1),(2),(3))` returned the first term three times, while pinned SQLite 3.53.4 returned 1, 2, 3. Generated `valuesRows` was complete; `compileScalarSelect` emitted each term from a distinct `ResultRow.p1` range, but `compileDerivedProducer` discarded that range when replacing `ResultRow` with `Yield` and its consumer reread fixed registers. Pinned `select.c::multiSelectValues` walks every linked VALUES term through `selectInnerLoop` into the caller's stable destination.
@@ -1459,6 +1538,7 @@ The correction gives the coroutine a stable producer-output range, copies each a
 Public focused coverage now spans all three database encodings, multirow/multicolumn payloads, parameters, NULL/INTEGER/REAL/TEXT/BLOB, ORDER plus OFFSET/LIMIT, reset/rerun, private sorter bytes, cancellation, first-error retention, cleanup, and restored admission: 8 declared / 8 attempted / 8 passed. The exact compound public gate remains 22 declared / 22 attempted / 22 passed / 22 credited. Parser/typecheck/package checks and affected coroutine lifecycle checks pass. A pre-existing three-encoding test named `materialized producer and outer sorter share private bytes` still fails unchanged at clean HEAD and with `maxPrivateBytes:1`: its query is now compiled as nested coroutines with no sorter opcodes, so its expected sorter-byte rejection is stale rather than a C2 regression. It is not waived or edited here because that concurrent route/test owner must replace it with a composition that actually owns simultaneous private cursors.
 
 Broader expression runners currently fail independently with `key-000001` versus expected `min` on aggregate coverage; this C2 patch does not touch aggregate selection. Relational private lifecycle is 18/18. These failures are reported rather than credited or hidden.
+
 ### Revision 2026-09-23 C2 implementation-owner correction ([[card:card-j-d-b-a-c]])
 
 This revision supersedes only the stale test-status statements in the preceding C2
@@ -1560,6 +1640,103 @@ The finding in `record:///review.md?card=card-p-b&v=16` is corrected: `%f`, `%e`
 and `%E` now pass altform2's 20-digit decoder cap and apply source trailing-zero
 removal; ordinary and round behavior is unchanged. Explicit C column-text evidence
 also records that uppercase `%F` is not a pinned conversion and emits empty.
+
+### Revision 2026-09-28 ([[card:card-s-c-c-b]] joined index-bound regression)
+
+The advanced-index focused suite's 40 passing tests did not detect an unbounded selected join on the larger shared `storage_values` fixture: a public typed INNER self-join exhausted the default `maxWorkUnits`. `compileInnerTableSelect` now consumes eligible selected equality/range admissions using `IndexSeekPrefix`, `IndexPrefixEnd` and `IndexRangeEnd` before deferred table reads (pinned `wherecode.c:sqlite3WhereCodeOneLoopStart`). The three-encoding shared public discriminator and the 113-test affected joined/planner/advanced suite now pass. This narrows the specific bound/termination gap; earlier audit warnings about arbitrary `WherePath.loops` order, reverse/IN join movement, covering and outer-join generality remain unproven, not superseded by this selected regression.
+
+### Revision 2026-09-29 ([[card:card-s-c-d-d]] competing candidate admission)
+
+A focused red reproducer showed `where-plan.ts:capabilities` suppressed a
+first-slot two-ended range whenever the same slot also admitted IN, although
+pinned `where.c:whereLoopAddBtreeIndex` restores saved `nEq`/`nBtm`/`nTop`
+between term proposals. Removing the early return keeps both alternatives;
+the three-encoding planner reproducer and advanced-index public suite pass.
+This corrects immutable candidate admission only: matching scan-equivalent rows
+alone do not establish selected physical-index cursor access, and joined
+selected-IN remains a separately documented unsupported lowering route.
+
+### Revision 2026-09-29 ([[card:card-s-c-c-d]] selected-access accounting)
+
+
+
+The 2026-09-23 prediction that all four partial/expression cases are unsupported
+and the older `unattempted`/zero verdict are historical. Current frozen public
+probes select loaded `p_live` and `e_expr` with KeyInfo and physical equality seeks
+in all encodings, beside pinned native EQP/typed captures. Bounded eligibility
+credits those two positive cases (six pairs); negative unforced base scans remain
+zero selected-access credit despite matching rows. The selected-access total is
+24/30, not a generic optimizer claim. Review-derived NULL/reset and corruption
+checks are not native recaptures. Joined selected-IN remains unsupported.
+
+### Revision 2026-09-29 (joined partial proof operand collision)
+
+The goal review's same-name cross-source hypothesis is now reproduced by the public fixture: `p.a=m.c`, `m.id=1`, `p.c=NULL` returns both p rows via `NOT INDEXED` but the pre-repair unforced plan omitted p.id=2 (RED `proc-559109ebef35`, 0/1). `sameResolvedExpression` compared only folded final names after structural mismatch; whole-term `p` prerequisites did not make `m.c` a proof of `p.c`. `where-plan.ts:partialProofIdentity` now compares depth-zero resolved source and declared column to the schema predicate's indexed-table column. The all-encoding forward/reversed/LEFT and reset companion passes after repair; forced unusable `p_live` rejects before preparation publishes a statement. Earlier revision-labeled joined partial failures describe previous states, not current facts. No new frozen selected-path credit is claimed (24/30 unchanged); source-identity cases beyond this represented public discriminator require separate evidence.
+
+2026-09-29 revision: selected single-table composite prefix IN + following
+range now repeats the index seek per non-NULL distinct RHS and retains sorter
+when IN iteration cannot certify output order. Six pinned encoding/state public
+cases and prior single-field/planner checks pass locally; this does not close the
+review's broader joined/LEFT, multi-slot IN, stat-choice, corruption, reset or
+cleanup findings. See `docs/TRANSLATION.md` selected single-slot revision.
+
+2026-09-29 joined-path revision: historical unsupported joined single-IN
+claims above are superseded by per-level restart for one selected IN slot plus
+composite range. Six frozen fixture variants with LEFT unmatched once, NULL
+RHS, duplicate key, and selected seeks pass; advanced-index reset/rebind
+selected tests replace prior scan-only assertions. Multi-IN, broader stat/order
+choice, malformed-page and lifecycle differential evidence remain open.
+
+2026-09-29 private-work and corruption revision: the in-memory selected IN RHS
+set previously compared all earlier members inside one VM opcode with no work
+checkpoint. `vdbe.ts:InListValue` now charges every candidate/prior comparison
+and releases temporary Mem on thrown limit; six encoding/state checks assert a
+selected probe before budget exhaustion and post-failure connection reuse.
+Independent malformed t_ab root tests retain the frozen file bytes except page
+5's type, require `NOT INDEXED` frozen typed results and selected SQLite code 11
+on first seek, including post-error finalize. No general multi-IN or stats parity.
+
+2026-09-30 two-IN revision (supersedes earlier all-multi-IN exclusion for this
+bounded subset): selected two-field composite equality prefixes now support two
+independent IN slots in single-table and joined LEFT callers, with inner-first
+iteration and per-outer reset. Six frozen encoding/state fixtures compare public
+rows for forced/unforced access and verify selected seek counts. Expected new
+rows checked with host SQLite 3.45.1, not a pinned-native capture. >2 slots,
+broader stats/ORDER parity and coordinated commit remain open.
+
+2026-09-30 RHS-order finding: previous finite array preserved source-list order,
+contradicting pinned `expr.c:sqlite3CodeRhsOfIN` ephemeral KeyInfo Btree traversal
+in `wherecode.c:codeINTerm`. Six pinned-oracle read-only fixture comparisons
+reproduced a selected no-ORDER public row-order mismatch with unsorted two-slot
+RHS lists. `InListValue` now owns a bounded ordered per-iterator set; focused
+135/135 selected/neighbor tests pass. This is still an array substitution,
+not native Btree cost/statistics parity.
+
+### Revision 2026-09-29 — immutable stat1 choice (bounded)
+
+The earlier no-stat-only W1/W2 characterization is superseded for represented
+index stat1 rows: loader plus planner now passes six pinned pre/post ANALYZE
+stat-choice cases, including forced controls, in UTF8/16le/be. This does not
+establish all WHERE pruning, stat4 or join-order fidelity. A joined forced IN
+probe-count assertion was contradicted by independently queried pinned native
+3.53.4 EXPLAIN: the join equality owns the index seek, IN is residual for that
+case. The corrected selected-seek test and 98-test broader suite pass. Keep
+unrepresented stat1 extensions/STAT4 and general path dominance as audit gaps.
+
+[[card:card-s-c-d-f]] follow-up finding: source-case-1 subset comparison is
+now index/prefix based, not term-identical; fixed guessed sort-cost and IN
+cost-penalty experiments were rejected by source or frozen results. Current
+selected unforced composite IN after ANALYZE and joined two-slot probes remain
+red despite six stat-choice successes. Candidate insertion/remaining-term
+adjustment and exact two-slot native-vs-public access need further comparison.
+
+[[card:card-s-c-d-f]] updated checkpoint: the insertion-order represented
+case-2 subset adjustment (`where.c:whereLoopCheaperProperSubset` /
+`whereLoopAdjustCost`) makes the frozen selected composite and joined two-slot
+public access assertions green in the focused run. Earlier red findings above
+are historical. This does not implement `whereLoopFindLesser` replacement,
+STAT4, or establish general planner parity.
+
 ### Revision 2026-09-29 — joined no-GROUP aggregate child checkpoint
 
 The earlier one-source-only aggregate-child gate is historical: the bounded

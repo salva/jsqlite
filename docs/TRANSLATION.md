@@ -4244,6 +4244,13 @@ not encoded-key execution evidence.
 
 `btreeLoops` now proposes every admitted equality alternative at each complete
 leading-prefix position and every applicable lower/upper pair on the next field.
+As in pinned `where.c:whereLoopAddBtreeIndex` (saved `nEq`/`nBtm`/`nTop`
+restored for each scanned term), the range alternatives on a field remain
+available even when that same field also has equality/IN alternatives; the
+prefix recursion must not return before visiting those competing terms.
+`where-plan-analysis.test.mjs` checks an IN-first-slot + two-ended second-slot
+candidate alongside a two-ended first-slot candidate in all three encodings.
+This is candidate admission, not proof of selected-index cursor access.
 Rowid equality and range alternatives follow the same rule. Each loop retains its
 own exact admissions and prerequisite union; deterministic dependency-first
 proposal order and normal path dominance replace prior first-term selection.
@@ -4283,17 +4290,17 @@ invariants. The REAL-affinity positive case expects no table seek because pinned
 EQP and VDBE use covering `ix_c` (`IdxRowid` and index `Column`, with no table
 cursor), matching the selected covering identity.
 
-## Advanced-index native contract (tests-first, zero TS credit)
+## Advanced-index native contract (tests-first historical checkpoint; runtime status below)
 
 `test/conformance/cases/stage3-advanced-index.spec.json` and its pinned capture add 30 native assertions (10 cases across UTF-8/UTF-16LE/UTF-16BE). They cover WITHOUT ROWID composite primary lookup/prefix scans and secondary records whose physical suffix is the composite primary key; partial-index implication and its non-implying neighbor; expression-index structural identity and a function-shape mismatch; index-backed IN; and composite equality/range plus multiple-range neighbors. Typed captures preserve INTEGER/REAL/TEXT/NULL distinctions, exact row order, EQP-selected identity, schema roots, `index_xinfo` fields, fixture bytes and SHA-256.
 
-This tranche is native-only: advanced public TS attempted/credited is 0/0 and the existing atomic `unsupported/temporary` TS rejection remains truthful. This is not an algorithm substitution. Pinned owners are `where.c:whereLoopAddBtreeIndex/whereUsablePartialIndex/wherePathSolver`, `whereexpr.c:exprAnalyze`, `wherecode.c:sqlite3WhereCodeOneLoopStart/codeEqualityTerm`, `expr.c:sqlite3ExprCompare/sqlite3ExprImpliesExpr`, `build.c:convertToWithoutRowidTable/sqlite3CreateIndex`, `btree.c:sqlite3BtreeIndexMoveto/sqlite3BtreeTableMoveto`, and `analyze.c:sqlite3AnalysisLoad`; assertion provenance is `without_rowid1.test`, `index6.test`, `indexexpr1.test`, and `in4.test`. Every success case also has machine-required `provenanceRationale` fields separating inherited upstream behavior from facts established by the local native capture. In particular, the composite and multiple-range cases do not claim `in4-3.21/.22` as direct provenance: exact hashed `wherecode.c` Case 4 and `where.c:whereLoopAddBtreeIndex` ranges own equality-prefix/first-range admission and later residual behavior. The validator requires composite-range category, both planner/lowering owners, range branch markers, and source-range provenance for those cases; adjacent tests are labeled neighbors only. `futurePrivateExpected` separately freezes the unattempted/uncredited TS selected-access contract for every case: selected root, cursor roles, covering/deferred/base mode, and per-case exact/min/max planner, seek, movement, lookup, residual, sorter, and IN-probe counters. Every private counter is re-audited against SQL and fixture cardinality using the ordinary-counter convention: seek counts positioning, Next counts successful row-to-row movement with at most one terminal boundary probe, residual counts visited candidates rather than emitted rows, and sorter rows count sorter insertions. Validator semantics require non-IN cases to have zero `inProbes`, actual IN cases to equal distinct RHS probes (two here) and matching index seeks, base scans to traverse/test the full table cardinality, deferred lookups to match emitted rows, covering paths to avoid table access, and EQP sorter cases to admit at least every emitted row.
+At the tests-first checkpoint this tranche was native-only (TS 0/0); the current bounded public credit is 24/30 including two selected partial/expression cases in three encodings. This is not an algorithm substitution. Pinned owners are `where.c:whereLoopAddBtreeIndex/whereUsablePartialIndex/wherePathSolver`, `whereexpr.c:exprAnalyze`, `wherecode.c:sqlite3WhereCodeOneLoopStart/codeEqualityTerm`, `expr.c:sqlite3ExprCompare/sqlite3ExprImpliesExpr`, `build.c:convertToWithoutRowidTable/sqlite3CreateIndex`, `btree.c:sqlite3BtreeIndexMoveto/sqlite3BtreeTableMoveto`, and `analyze.c:sqlite3AnalysisLoad`; assertion provenance is `without_rowid1.test`, `index6.test`, `indexexpr1.test`, and `in4.test`. Every success case also has machine-required `provenanceRationale` fields separating inherited upstream behavior from facts established by the local native capture. In particular, the composite and multiple-range cases do not claim `in4-3.21/.22` as direct provenance: exact hashed `wherecode.c` Case 4 and `where.c:whereLoopAddBtreeIndex` ranges own equality-prefix/first-range admission and later residual behavior. The validator requires composite-range category, both planner/lowering owners, range branch markers, and source-range provenance for those cases; adjacent tests are labeled neighbors only. `futurePrivateExpected` separately freezes the unattempted/uncredited TS selected-access contract for every case: selected root, cursor roles, covering/deferred/base mode, and per-case exact/min/max planner, seek, movement, lookup, residual, sorter, and IN-probe counters. Every private counter is re-audited against SQL and fixture cardinality using the ordinary-counter convention: seek counts positioning, Next counts successful row-to-row movement with at most one terminal boundary probe, residual counts visited candidates rather than emitted rows, and sorter rows count sorter insertions. Validator semantics require non-IN cases to have zero `inProbes`, actual IN cases to equal distinct RHS probes (two here) and matching index seeks, base scans to traverse/test the full table cardinality, deferred lookups to match emitted rows, covering paths to avoid table access, and EQP sorter cases to admit at least every emitted row.
 
 The spec and captures also execute statement reset/clear/rebind/finalize, a prepare error and two configured resource-limit branches (`SQLITE_LIMIT_LENGTH` at bind phase, with prepare success and no step, and index-backed-IN `SQLITE_LIMIT_VARIABLE_NUMBER` at prepare phase) with first-code/connection-reuse evidence, and statement-status bounded-work counters. Two non-duplicative selected physical-page companions are pinned in each encoding: a malformed `wr_c` b-tree root exercises `moveToRoot`/`getAndInitPage`, while a malformed `ov_k_payload` overflow-chain page reached while materializing an indexed 1200-byte payload exercises `accessPayload`/`getOverflowPage`. Each preserves an unrelated off-path query before and after the selected error. Corrupt companions remain native-only and no-credit. Reproduce with `npm run test:conformance:advanced-index:manifest` and `npm run test:conformance:advanced-index:native`.
 
 ### Revision 2026-09-23: scoped advanced-index public execution
 
-[[card:card-s-c-b-b]] promotes only the six advanced cases now passing through the public TypeScript API in all three database encodings: represented WITHOUT ROWID exact and prefix primary traversal, covering secondary access with exact composite-PK physical fields, index-backed expression-list `IN`, and the two ordinary composite-range neighbors. The harness executes all 30 public row cases, but selected-access credit is 18 encoding/case pairs (36 fresh reset/rebind accounting executions). Partial and expression index admissibility remains `unattempted`, zero-credit sibling [[card:card-s-c-c]] scope even though its pinned public rows currently match by conservative base access.
+[[card:card-s-c-b-b]] promotes only the six advanced cases now passing through the public TypeScript API in all three database encodings: represented WITHOUT ROWID exact and prefix primary traversal, covering secondary access with exact composite-PK physical fields, index-backed expression-list `IN`, and the two ordinary composite-range neighbors. At this 2026-09-23 checkpoint the harness executed all 30 public row cases with 18 credited pairs (36 fresh reset/rebind accounting executions); the 2026-09-29 selected-access reconciliation below supersedes this tally. The frozen positive `partial-implied` and `expression-identical` cases now earn six selected-access encoding pairs: loaded physical roots, KeyInfo and live seek/position plus typed rows and pinned EQP/counters meet the bounded criterion in CONFORMANCE. Negative `partial-not-implied` and `expression-mismatch` remain attempted row runs but `unattempted`/zero for selected-access credit because their truthful unforced execution scans the base table. This is not generic partial/expression optimizer parity; joined selected-IN remains gated.
 
 The represented WITHOUT ROWID physical boundary is column-only primary terms with built-in BINARY/NOCASE/RTRIM collation, ASC/DESC direction, default NULL ordering, and column-only secondary terms. Physical secondary records append every absent primary-key term using the same immutable `KeyInfo` identity. Exact/prefix primary and covering secondary paths are admitted. A non-covering secondary gathers the immutable per-PK-term physical-field mapping for a primary-table BLOBKEY lookup (`wherecode.c:2171-2185`, `OP_NotFound`); the all-encoding `wr_c` discriminator requires one secondary seek, one primary seek, no primary scan, and typed payload `w2`. Unrepresented expression/partial indexes, unsupported collations/NULLS modifiers, or incomplete physical descriptors are excluded from selection atomically rather than approximated.
 
@@ -4355,6 +4362,178 @@ trailing-zero removal follows the shared floating branch after rendering; ordina
 non-`!` calls and `round()` retain their existing policy. Pinned C column-text and
 public tests distinguish 20-digit decode for positive/negative, subnormal,
 exponent, width/zero/sign cases; pinned `%F` remains unsupported and emits empty.
+
+### Revision 2026-09-28 ([[card:card-s-c-c-b]] joined selected-index bound repair)
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` codes each selected loop's probe and termination with prerequisite cursors positioned; `src/where.c:whereLoopAddBtreeIndex` supplies admitted equality prefix and range. Joined lowering had opened and advanced the selected physical root but ignored these admissions, causing the shared `storage_values` inner self-join to exhaust the default work budget. `compileInnerTableSelect` now emits `IndexSeekPrefix` after prerequisite loops, with selected `PhysicalIndex.keyInfo` and admitted affinities, and `IndexPrefixEnd`/`IndexRangeEnd` before `DeferredSeek`; termination exits to the enclosing loop's next/LEFT empty transition. The bound RHS uses the joined source binder. Unsupported IN and unavailable-prerequisite probes do not use this seek; residual predicates remain. This bounded repair does not establish arbitrary joined path-order, reverse-scan, or IN-probe lowering.
+
+### Joined partial-proof operand identity correction (2026-09-29)
+
+`where.c:whereUsablePartialIndex` (3700–3734) tests each eligible join/WHERE term with `sqlite3ExprImpliesExpr(...,iTab)`; `expr.c:exprImpliesNotNull` (6698–6765) compares the *operand* against the predicate target, not merely a whole-term source mask. A query equality `p.a=m.c` has a `p` prerequisite but its `m.c` operand cannot prove `p.c IS NOT NULL`. The previous `sameResolvedExpression` last-name fallback falsely did so and omitted the nullable p row. Partial-proof column comparison now requires a depth-zero resolved column use, the indexed source object and its declared column identity; no matching use means no proof. The independently parsed schema predicate supplies the target table column name. This gate is local to partial proof: expression-index structural matching is unchanged. For unproved predicates, unforced plans retain the table path and forced `INDEXED BY` rejects at preparation. The public three-encoding `joined same-name operand` regression exercises forward/reversed/LEFT join order, reset and nullable scan controls; do not extrapolate to unrepresented inference branches.
+
+Joined selected IN-prefix handoff ([[card:card-s-c-d-a]]): the bounded single-field
+multi-source branch iterates distinct affinity/KeyInfo-collated RHS keys rather
+than repeating source-list keys. Pinned `wherecode.c:codeINTerm` uses a distinct
+RHS cursor produced by `expr.c:sqlite3CodeRhsOfIN`; the TS register-list
+iterator uses comparison instead of allocating an ephemeral B-tree (O(n²) for
+this bounded list), preserving non-NULL set probes, per-entry rebind, and LEFT
+loop exhaustion. See `docs/SQLITE_SOURCE_MAP.md` for the scope/test citation;
+composite/ranged IN and stats remain pending, not scan-equivalent credit.
+
+### Revision 2026-09-29: immutable native IN/range/stat choice discriminator ([[card:card-s-c-d-c]])
+
+The bounded pinned evidence at `test/conformance/cases/in-range-stat-native.json` supplements, but does not expand, W3 admission: native `codeINTerm` iterates RHS values and re-seeks a composite `a IN (...) AND b>=... AND b<=...` index without an `a=?` confounder. Native `ANALYZE` changes a separate IN candidate's chosen root (`t_a` to covering `t_ab`) on generated stat1 snapshots; this build does not carry sqlite_stat4, so STAT4 sample probing remains gated. That statement described the earlier tests-first checkpoint: the six stat-choice cases now execute through the bounded immutable stat1 planner slice below; selected composite IN is separately owned and its full six-case access remains under validation. The source-based tests and controls are in `docs/CONFORMANCE.md`; do not count matching scan rows as indexed behavior or adapt W3 estimates by SQL text.
+
+### Selected single IN slot with composite range (2026-09-29)
+
+`wherecode.c:codeINTerm` (pinned 3.53.4) opens an IN iterator per selected
+index equality slot; the seek is repeated after advancing the RHS, while
+`where.c:whereLoopAddBtreeIndex` preserves the equality prefix and following
+range and `whereexpr.c:exprAnalyze` records RHS prerequisites. The single-table
+VDBE caller now keeps one selected IN slot's set iterator outside its composite
+prefix/range seek, and reuses that slot's affinity and KeyInfo term collation for
+NULL/duplicate suppression. An IN prefix does **not** certify output order:
+repeated seeks follow RHS iteration order, so an ORDER BY still needs its sorter.
+The bounded in-memory RHS set used by the existing single-slot translation is
+retained as a browser-safe replacement for an ephemeral Btree; for this path
+its observable comparison and typed rows are checked against the pinned
+three-encoding `in-range-stat-native.json` through the public interface in
+`in-range-selected-red.test.mjs`. Multiple IN slots need nested iterators and
+remain an atomic temporary rejection. This is not full wherecode.c parity:
+joined composite IN, stat-driven choice, corruption and lifecycle/reset cases
+still need independent selected-path verification.
+
+### Joined composite single-IN-slot restart correction (2026-09-29)
+
+The historical joined admission gate above is superseded for **one** selected
+IN equality slot (with preceding equality prefix and optional following range).
+Pinned `wherecode.c:codeEqualityTerm/codeINTerm` creates an IN iterator per slot;
+`sqlite3WhereCodeOneLoopStart` combines its register with the remaining prefix
+and range seek, then `sqlite3WhereEnd` advances the RHS before the LEFT
+unmatched-once path. Joined `compileInnerTableSelect` now emits that restart
+within the source level, after prerequisite cursors are positioned, reuses
+`IndexPrefixEnd`/`IndexRangeEnd` on each seek, and suppresses NULL/duplicates
+using the selected KeyInfo slot. Two or more selected IN slots still need
+nested restarts and reject forced access atomically (unforced replans without
+that index). The in-memory finite RHS list replaces the ephemeral RHS Btree
+for browser-safe execution; public typed rows and actual selected probes for
+joined LEFT and reset/rebind in UTF-8/16LE/16BE are covered by
+`in-range-selected-red.test.mjs` and `run-advanced-index-ts.test.mjs`.
+Global joined ORDER remains a sorter, not a local-index-order claim.
+
+Selected composite IN private-work revision: `expr.c:sqlite3CodeRhsOfIN`/
+`wherecode.c:codeINTerm` use an ephemeral Btree with cursor movement, whereas
+this browser-safe finite RHS array compares affinity/KeyInfo-normalized values
+in memory. Unlike a SQLite Btree, its duplicate walk can be quadratic. The
+`InListValue` VM primitive now checkpoints and charges each candidate and
+prior-value comparison under the same operation `maxWorkUnits`, releasing
+borrowed `Mem` values in `finally` on cancellation/limit/collation failures.
+Six frozen encoding/state variants verify selected-vs-scan corruption isolation
+(SQLite CORRUPT code 11), post-error finalize/connection reuse, and a selected
+seek followed by bounded duplicate elimination; these are bounded safety and
+fixture parity, not a proof of equivalent Btree complexity or statistics choice.
+
+Selected two-slot IN revision (supersedes the earlier multi-IN rejection for
+**two** selected equality slots): `wherecode.c:codeINTerm` creates an RHS cursor
+per equality slot, and `where.c:sqlite3WhereEnd` advances the innermost cursor
+first, rewinding it when the outer RHS advances. The selected single-table and
+joined VDBE callers now assign independent registers and iterators per slot,
+restart the prefix seek after each inner probe, route inner exhaustion to the
+outer iterator, and reset the inner register for each outer probe. Frozen six
+encoding/state fixture tests cover forced/unforced two-slot selected seek counts,
+duplicate INTEGER/REAL/NULL probes and LEFT unmatched-once. This finite-array
+substitution remains bounded by `maxWorkUnits` as described above; >2 IN slots
+and unsupported RHS shapes still reject/replan atomically. Fixture expectations
+for the new shape were checked independently with host SQLite 3.45.1, **not** a
+new pinned-native oracle capture; broader native parity remains unproved.
+
+Selected IN RHS physical-order correction (supersedes the earlier array-order
+claim): pinned `expr.c:sqlite3CodeRhsOfIN` inserts RHS values into a KeyInfo
+ordered ephemeral Btree; `wherecode.c:codeINTerm` traverses that set with
+per-slot `bRev` toggled for a descending physical index field. A source-list
+iterator changes public no-ORDER row order even when each seek returns correct
+rows. `vdbe.ts:InListValue` now caches a per-iterator, affinity/collation-ordered,
+deduplicated finite set, with reverse per physical field; the joined and
+single-table callers pass physical index direction to the owning opcode.
+The in-memory ordered array is a browser-safe substitute for an ephemeral Btree,
+not a claim of native Btree complexity. It charges each comparison under
+`maxWorkUnits`, bounds retained entries/keys/aggregate bytes with existing
+private-state limits, releases cells on failed construction, inner-iterator
+reset, halt and statement reset. Six frozen UTF-8/16 variants compare public
+unsorted two-IN rows with independently queried pinned 3.53.4 read-only
+fixtures; the old selected-seek-before-budget-exhaustion test was updated to
+reflect the source-required RHS materialization before the first seek. Global
+ORDER/stats parity and general multi-slot coverage remain open.
+
+### Immutable stat1 choice slice ([[card:card-s-c-d-f]], 2026-09-29)
+
+`schema.ts` reads the immutable `sqlite_stat1` b-tree in database encoding and
+attaches represented index prefix LogEst estimates to the loaded index identity.
+`where-plan.ts` applies `build.c:sqlite3DefaultRowEst` absolute prefix defaults
+when absent, `analyze.c:analysisLoader/decodeIntArray` numeric stat1 prefixes
+when present, and `where.c:whereLoopAddBtreeIndex/wherePathSolver` IN iterations
+and order-dependent single-source sort cost. The six-case pinned stat-choice
+fixture chooses ordered t_a before ANALYZE and covering t_ab with a sorter after;
+forced t_a/t_ab controls retain rows in all three encodings. This is bounded
+choice evidence, not a full port of `whereLoopInsert` pruning, STAT4 sample
+estimation, or multi-source order analysis. Nonempty sqlite_stat4 sample tables
+reject at graph load rather than silently treating stat1 as equivalent; stat1
+extensions beyond decimal prefixes and `unordered` reject rather than supply
+plausible estimates. The source also accepts `sz=`/`noskipscan`, table-only
+statistics and legacy malformed data: these are not represented here.
+
+`where.c:whereLoopCheaperProperSubset` case 2 additionally admits strict
+subsets of represented constraint terms across indexes (unless a covering
+subset would outrank a noncovering superset). `whereLoopAdjustCost` adjusts
+run/output estimates in insertion order against earlier retained templates;
+the earlier same-index shorter equality-prefix case 1 remains. This corrected
+selected composite IN and joined two-slot access in the focused reproducer.
+Unlike native `whereLoopInsert`, this slice does not replace/discard candidates
+via `whereLoopFindLesser`, nor represent skip-scan or sampled STAT4 paths.
+Prior width and unused-term-output experiments did not repair the selected
+access and were reverted; do not infer general cost parity from these tests.
+
+The joined forced single-field IN probe-count regression was a test-oracle
+mistake, not a reason to force the IN candidate. Read-only pinned 3.53.4
+EXPLAIN on the advanced-index UTF8 fixture for both INNER and LEFT joins picks
+`m_abc (a=?)` from the join equality and evaluates IN as residual (one
+SeekGE/IdxGT pair), per `where.c:whereLoopAddBtreeIndex` candidate competition.
+The corrected test asserts one selected equality seek and typed rows after
+rebind; it does not credit distinct IN probes for that join.
+
+Stat1 choice follow-up ([[card:card-s-c-d-f]]): pinned `where.c:whereRangeScanEst` applies `whereRangeAdjust` to each bound (20 LogEst per default bound), another 20 for a pair, floors at 10 and caps against prior `nOut` minus bound count; the previous TS 10/20 total reduction was divergent. The corrected bounded range estimate preserves the frozen six choices but does not resolve post-stat composite selected access. `whereLoopAddBtreeIndex` additionally scales index-row visits by `szIdxRow/szTabRow`, adds table lookup separately, and only then applies IN iteration and `whereLoopOutputAdjust`; these source quantities and adjustments remain unrepresented. A trial of unscaled `rows+1` visits failed selected access and was reverted; it must not be substituted for row-width estimation. Two-slot unforced selected access remains red; typed result equality is not proof of selected probes.
+
+A subsequent branch comparison against `build.c:estimateTableWidth/estimateIndexWidth` and `where.c:whereLoopOutputAdjust` tested default row-width-scaled visits and residual-term output adjustment independently and together. Neither repaired post-stat composite or joined two-slot selected access (combined 42/52); both experiments were reverted rather than left as incomplete substitutions. Instrumented post-stat single-source candidates with both experiments temporarily enabled: `t_b` range run 50 / output 20 / scored 59 versus `t_ab` IN+range run 62 / output 29 / scored 72. This isolates a large remaining divergence in candidate formation/estimation, not merely a tie-break. The C row-width cost also requires the exact `Column.szEst` semantics and potential stat1 `sz=` override before porting. No claimed parity from this measurement.
+
+Stat1 choice follow-up ([[card:card-s-c-d-f]]): the bounded subset adjustment
+now follows `where.c:whereLoopCheaperProperSubset` case 1's **index identity and
+prefix length** comparison rather than requiring equal term identity. Case 2
+(term-subset/covering), insertion order, and `whereLoopOutputAdjust` are not
+ported by this change. Isolated source-branch experiments showed that replacing
+per-candidate sorting with a fixed guessed row count breaks the frozen choice,
+while dropping subset adjustment reverses the before-ANALYZE choice. Adding the
+source's stat1 IN seek/scan inequality as a cost penalty did not repair the
+unforced composite selected probe: seek-scan is a different cursor operation
+and must not be represented as an IN seek candidate. The six stat-choice
+snapshots pass, but post-stat unforced composite selected access and joined
+multi-slot selected probes remain red; do not infer broad optimizer parity.
+
+Stat1 solver follow-up ([[card:card-s-c-d-f]]): `where.c:whereBegin` calls
+`wherePathSolver` first without ORDER BY, then again with the first pass's
+estimated output cardinality plus one; `whereSortingCost` uses this fixed
+cardinality, output-column count, sorted-prefix fraction and `estLog`, rather
+than the candidate's own output rows. The bounded single-source TS solver now
+makes the same two passes and uses the ordinary ORDER BY branch of that cost.
+`wherePathSatisfiesOrderBy` also requires an IN prefix matching an ORDER term
+to agree in direction with later indexed terms. These changes preserve the six
+frozen pre/post stat choices, but still fail selected post-stat composite access
+and two-slot selected probes (focused run 42/52). A diagnostic post-stat
+candidate dump showed `t_b` range run/output 52/22, `t_ab` IN+range 63/30;
+the first-pass cardinality alone cannot fix that candidate-estimate gap. This
+is not a full translation of `whereInterstageHeuristic`, `whereLoopInsert`,
+row widths or multi-source ordering. Do not claim selected access from typed
+rows alone.
+
 #### Table RHS IN affinity follow-up (card-t-b)
 For a finished table-child SRT_Set splice still admitted by the scalar caller,
 `expr.c:comparisonAffinity` reads the **RHS result expression** (not its

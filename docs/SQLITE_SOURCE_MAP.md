@@ -1596,7 +1596,7 @@ runtime.
 | `parse.ts`, `resolve.ts`, `vdbe.ts` | `parse.y` `expr ::= expr between_op expr AND expr`; `expr.c:exprCodeBetween`, `sqlite3ExprCodeTarget`, `sqlite3ExprIfTrue/False` | Structured generated reduction; lhs register evaluated once; lower then upper shared comparisons preserve affinity, CollSeq, NULL/NOT and target-vs-predicate control. No token parser or range evaluator. |
 | exact `ExprNode.sourceText` and compiled column metadata | `select.c:sqlite3GenerateColumnNames`, `sqlite3DbSpanDup` | Unaliased computed expressions use the original UTF-8 source slice; aliases win and resolved direct columns use their column names. |
 | `audit-chinook-b1-b5*`, `between-lowering.test.mjs` | Exact pinned public results and development-only one-call function probe | 22 cases/56 executions, zero credit; typed rows, ordered names, repeated prepare/reset, expected errors and lifecycle. Native function registration is oracle-only, not public API. |
-| Physical encoding/affinity executable completion | `src/where.c:whereScanNext`; `src/expr.c:sqlite3CompareAffinity`, `sqlite3IndexAffinityOk`, `sqlite3BinaryCompareCollSeq`; `src/whereexpr.c:exprCommute`; `test/index3.test:index3-2.1/2.2` | three physical UTF-8/UTF-16le/UTF-16be fixtures and 23 cases each in `stage3-index-planner.json`; typed affinity/collation/orientation neighbors, EQP/VDBE evidence, exact roots/xinfo/hashes; all eight private counters have per-case exact/bounded invariants, with non-vacuous claimed-path movement and exact-zero forbidden work | 69 pinned captures and public attempts, 0 TS credit; five atomic gaps unchanged |
+| Physical encoding/affinity executable completion | `src/where.c:whereScanNext`; `src/expr.c:sqlite3CompareAffinity`, `sqlite3IndexAffinityOk`, `sqlite3BinaryCompareCollSeq`; `src/whereexpr.c:exprCommute`; `test/index3.test:index3-2.1/2.2` | three physical UTF-8/UTF-16le/UTF-16be fixtures and 23 cases each in `stage3-index-planner.json`; typed affinity/collation/orientation neighbors, EQP/VDBE evidence, exact roots/xinfo/hashes; all nine private counter families have per-case exact/bounded invariants, with `inProbes` zero outside index-backed IN, with non-vacuous claimed-path movement and exact-zero forbidden work | 69 pinned captures and public attempts, 0 TS credit; five atomic gaps unchanged |
 
 ### W1/W2 WHERE foundation delivery ([[card:card-s-b-a-a-a-a]], 2026-09-22)
 
@@ -1641,7 +1641,11 @@ literal storage class from expression affinity. Candidate construction now maps
 the admitted `whereScan*`/`whereLoopAddBtreeIndex` proposal behavior by emitting
 all leading equality alternatives and next-field lower/upper pairs (including
 rowid forms), each with exact identities and prerequisite masks, before solver
-dominance. Multi-source `WherePath.orderTermsSatisfied` is intentionally zero
+dominance. A same-slot IN and range must also produce competing alternatives:
+`whereLoopAddBtreeIndex` restores saved nEq/nBtm/nTop before considering the
+next term rather than returning after equality recursion. The three-encoding
+`where-plan-analysis.test.mjs` competing-IN/range test checks both alternatives;
+these candidate assertions do not establish selected cursor access. Multi-source `WherePath.orderTermsSatisfied` is intentionally zero
 until complete `wherePathSatisfiesOrder` path state is ported; local capability
 order facts remain non-authoritative for sorter removal. Cross-encoding affinity,
 text-order-invariant alternatives, and inner-restart order tests enforce these
@@ -1652,16 +1656,19 @@ boundaries without claiming W3 execution.
 | Pinned SQLite 3.53.4 owner | TypeScript owner / evidence | Status |
 |---|---|---|
 | `src/where.c:sqlite3WhereBegin`, `sqlite3WhereEnd`; `src/wherecode.c:codeEqualityTerm`, `sqlite3WhereCodeOneLoopStart` | `src/internal/where-plan.ts`, `src/internal/vdbe.ts`; `test/conformance/run-index-planner-ts.mjs` | Selected immutable rowid/index capabilities lower to table/index seek, range termination, direction, residual, covering, deferred-seek, and loop-end control. Every multi-source path conservatively publishes zero global order until the complete pinned `wherePathSatisfiesOrder` state machine is translated. |
-| `src/vdbe.c` seek/`Idx*`/`DeferredSeek`/`Column`/rowid traversal cases | `src/internal/vdbe.ts`; `stage3-index-planner.spec.json` and pinned capture | Page-local B-tree movement and `Mem`/`KeyInfo` comparisons serve explicit and persistent implicit rowid indexes. 69/69 public-route executions enforce rows/errors and exactly eight private counter fields. No exceptional algorithm substitution. |
+| `src/vdbe.c` seek/`Idx*`/`DeferredSeek`/`Column`/rowid traversal cases | `src/internal/vdbe.ts`; `stage3-index-planner.spec.json` and pinned capture | Page-local B-tree movement and `Mem`/`KeyInfo` comparisons serve explicit and persistent implicit rowid indexes. 69/69 public-route executions enforce rows/errors and exactly nine private counter families; `inProbes` is zero outside index-backed IN. No exceptional algorithm substitution. |
 
-## Advanced-index tests-first mapping
+### Joined selected-index one-sided range review ([[card:card-s-c-c-c]], 2026-09-28)
+
+Pinned `wherecode.c:1821-1866,1952-2041` Case 4 keeps `pRangeStart` and `pRangeEnd` separate, appends the start constraint to the equality prefix for a seek, and emits an independent end constraint only when present. The represented joined lowering currently seeks the equality prefix and evaluates the original WHERE residual; it must **not** recycle a lone lower start into `IndexRangeEnd`. A review-derived all-encoding `m_abc` joined fixture distinguishes lower-only `b>1`, upper-only `b<3` and two-sided `b>1 AND b<=2` from `NOT INDEXED`, initial and reset. Removing the recycled end restores typed rows in all three encodings; this is a conservative range-start fallback, not a claim of SQLite-equivalent bound positioning or exact movement counts. Joined strict starts, reverse scans, IN-prefix restarts and selected-path ORDER/accounting still require independent coverage or preselection gates. The frozen partial/expression selected-access manifest remains zero-credit.
+
 
 | Contract | Pinned owners/assertions | Disposition |
 |---|---|---|
-| WITHOUT ROWID composite PK/secondary suffix | `build.c:convertToWithoutRowidTable`, `btree.c:sqlite3BtreeIndexMoveto`, `test/without_rowid1.test` | Three encodings native captured; TS temporary unsupported |
-| Partial implication | `where.c:whereUsablePartialIndex`, `expr.c:sqlite3ExprImpliesExpr`, `test/index6.test` | Positive/negative EQP neighbors captured |
-| Expression identity | `where.c:whereLoopAddBtreeIndex`, `expr.c:sqlite3ExprCompare`, `test/indexexpr1.test` | Identical/mismatch neighbors captured |
-| IN/composite ranges | `where.c:whereLoopAddBtreeIndex/wherePathSolver`, `wherecode.c:codeEqualityTerm`, `test/in4.test` | IN, bounded and multiple-range neighbors captured |
+| WITHOUT ROWID composite PK/secondary physical mapping | `build.c:convertToWithoutRowidTable`, `btree.c:sqlite3BtreeIndexMoveto`, `test/without_rowid1.test` | Three encodings native captured and TS selected-access credited for primary exact/prefix and represented secondary mappings; the descriptor retains exact PK-field ordinals, including deduplicated/interspersed fields rather than assuming a suffix |
+| Partial implication | `where.c:whereUsablePartialIndex`, `expr.c:sqlite3ExprImpliesExpr`, `test/index6.test` | Positive/negative native and public-row neighbors captured; TS selected access remains unattempted and zero-credit pending the reopened implementation |
+| Expression identity | `where.c:whereLoopAddBtreeIndex`, `expr.c:sqlite3ExprCompare`, `test/indexexpr1.test` | Identical/mismatch native and public-row neighbors captured; TS selected access remains unattempted and zero-credit pending the reopened implementation |
+| IN/composite ranges | `where.c:whereLoopAddBtreeIndex/wherePathSolver`, `wherecode.c:codeEqualityTerm`, `test/in4.test` | Three-encoding TS selected-access credit covers represented IN and composite/multiple-range neighbors |
 
 Machine contract/capture/validator are `stage3-advanced-index.spec.json`, `stage3-advanced-index.json`, and `advanced-index-manifest.test.py`. `exactProvenance` maps every local case and applicable companion to a pinned Tcl assertion ID or stable source range and exact text SHA-256; validation reads and hashes the archive itself. Machine-required rationale separates inherited behavior from local-capture evidence. Composite/multiple-range semantics specifically map to hashed `wherecode.c` Case 4 and `where.c:whereLoopAddBtreeIndex` branches (equality prefix, first usable range, later residual), not `in4-3.21/.22`; validator requires range category, planner/lowering owners, and branch markers, while any test citation is neighbor-only. Each case's separate `futurePrivateExpected` maps the future uncredited TS selected root/cursor roles and exact/min/max physical-work shape; it is not native stmt-status evidence. Counter semantics follow the ordinary contract (seek positions, Next moves between rows with a possible terminal probe, residual tests visited candidates, sorter rows inserted rows). Validator rules derive IN probes from distinct RHS parameters, enforce zero probes for non-IN, full-cardinality base scan/residual bounds, emitted-row deferred seeks, covering zero-table access, and sorter cardinality. Captures include native lifecycle/error/reuse, statement-status bounded-work, bind-phase LENGTH and prepare-phase VARIABLE_NUMBER configured limits, and two selected-page/off-path-isolation surfaces: `btree.c:moveToRoot/getAndInitPage` for an index root and `btree.c:accessPayload/getOverflowPage` for an indexed payload overflow chain. Source SHA-256 prefixes are `where.c e96a8fea`, `whereexpr.c a6dc7d0f`, `wherecode.c 496fd3fb`, `btree.c c0982890`, `build.c c7154980`, `analyze.c d015f3d7`, and `expr.c 363e581d`. This is 30 native captures and 0 TS attempted/credited, not runtime implementation or algorithm substitution.
 
@@ -1671,14 +1678,33 @@ Machine contract/capture/validator are `stage3-advanced-index.spec.json`, `stage
 |---|---|---|
 | `schema.ts:physicalIndex` immutable WITHOUT ROWID PK suffix fields | `build.c:convertToWithoutRowidTable`, `sqlite3CreateIndex` | Exact composite PK order/collation/direction is appended to secondary keys; three-encoding descriptor and public cases. |
 | `where-plan.ts:admitIndexConstraint/makeCapability` | `where.c:whereLoopAddBtreeIndex`, `whereexpr.c:exprAnalyze` | Exact `PhysicalIndex`/`KeyInfo` identity; residual columns remain in covering needs. Partial/expression admissibility is deliberately not credited here. |
-| `vdbe.ts` primary and deferred secondary lowering | `wherecode.c:sqlite3WhereCodeOneLoopStart`, especially 2171-2185 | Exact/prefix BLOBKEY movement and complete secondary PK-suffix lookup; all-encoding non-covering discriminator requires one primary seek. |
+| `vdbe.ts` primary and deferred secondary lowering | `wherecode.c:sqlite3WhereCodeOneLoopStart`, especially 2171-2185; `vdbe.c:OP_DeferredSeek` 6680-6740 | Exact/prefix BLOBKEY movement and complete secondary PK-suffix lookup. Current rowid-index `DeferredSeek` is eager rather than upstream-lazy: all-encoding empty/one/three-row companions observe TS table seeks of 0/1/3 when no uncovered read occurs (pinned behavior 0/0/0); projecting uncovered `c` twice over three rows correctly yields 3, not 6, so the repair must preserve once-per-position materialization caching. This localizes the defect to pending-state creation timing, not prepare, initial seek, index movement, or repeat-read caching. |
 | `btree.ts:IndexCursor` | `btree.c:sqlite3BtreeIndexMoveto`, `btreeNext`, `btreePrevious` | Retained-path lazy seek/movement; selected corruption fails and unrelated malformed subtrees remain untouched. |
 
-The advanced manifest now records 30 attempted public row assertions and 18 credited encoding/case pairs: `wr-primary-exact`, `wr-primary-prefix`, `wr-secondary-suffix`, `index-backed-in`, `composite-equality-two-ranges`, and `multiple-range-neighbor`. Four partial/expression cases remain `unattempted`/zero selected-access credit for [[card:card-s-c-c]]. The focused non-covering `wr_c` case is additional source-backed coverage, not an invented native capture.
+The advanced manifest now records 30 attempted public row assertions and 24 credited encoding/case pairs: `wr-primary-exact`, `wr-primary-prefix`, `wr-secondary-suffix`, `index-backed-in`, `composite-equality-two-ranges`, `multiple-range-neighbor`, `partial-implied`, and `expression-identical`. The latter two earn three pairs each through loaded-root KeyInfo/live seeks, pinned EQP and typed rows; `partial-not-implied` and `expression-mismatch` scan and remain `unattempted`/zero for selected-access credit. See CONFORMANCE for eligibility; review-derived NULL/reset and corruption probes are not pinned recaptures for [[card:card-s-c-c]]. The focused non-covering `wr_c` case is additional source-backed coverage, not an invented native capture.
 
 #### WITHOUT ROWID secondary remapping correction (2026-09-23)
 
 `schema.ts:physicalIndex` now maps every primary `KeyInfo` term to an immutable selected-secondary record ordinal by exact column plus PK collation. `vdbe.ts:DeferredIndexSeek` gathers those ordinals in PK order. This translates pinned `wherecode.c:2171-2185` without assuming SQLite's deduplicated PK fields form a contiguous suffix. Native-generated all-encoding fixtures and public exact-counter tests cover mixed declared/auxiliary, reordered/interspersed, no-suffix, and collation-duplicate layouts. See immutable review `record:///review.md?card=card-s-c-b&v=3`.
+
+### Partial/expression persistent-index architecture handoff ([[card:card-s-c-c-a]], 2026-09-23)
+
+| Concern | Pinned SQLite 3.53.4 anchor | Required existing owner / decision |
+|---|---|---|
+| Partial predicate usability | `src/where.c:whereUsablePartialIndex` 3700-3730 and call in the index loop near 4125; `src/expr.c:sqlite3ExprIsInteger` 2899+, `sqlite3ExprImpliesExpr` 6847-6871, `sqlite3ExprIsNotTrue` 6774-6781, `sqlite3ExprIsIIF` 6793-6818, `exprImpliesNotNull` 6698-6845 | `schema.ts:IndexNode.partialWhere` becomes an immutable table-bound resolved expression; `where-plan.ts` proves every predicate AND conjunct from safe `WhereTerm`s. Initial proof is exact structure, index-predicate-side `pE2` OR (either arm), qualifying query-side `pE1` resolved inline-IIF function identity (ASCII-case-insensitive registered `iif` or built-in alias `if`, including upper-case spellings) or one-pair searched-CASE condition (exactly two args/absent ELSE, or exactly three args with pinned not-true ELSE: NULL, FALSE, or integer AST recursively decoded as zero including decimal/hex literals (parentheses parse-discarded) and nested UPLUS/UMINUS; never REAL zero at any such unary depth, TEXT zero, parameters under the no-parse-context call, CAST/arithmetic constant expressions, variadic IIF, simple/multi-WHEN CASE, or TRUE/nonzero ELSE), and only source-enumerated NOT-NULL branches (including query-side OR only when both arms prove non-NULL). Unknown is false/fallback, never acceptance. |
+| Expression-key identity | `src/where.c:whereScanNext` expression branch around 366-373 and `whereScanInitIndexExpr`; `src/expr.c:sqlite3ExprCompare` 6564-6650 and `sqlite3ExprCompareSkip` 6682-6689 | Current all-encoding identity discriminators also prove two independent comparison branches: query `lower(a) COLLATE BINARY` must skip top COLLATE and seek while `COLLATE NOCASE` must fail the later physical collation gate; query `b+01` must match indexed `b+1` by resolved numeric literal value/class. TS full-scans the former BINARY case and only uses the first expression field for the latter, with extra candidates/table reads/residuals/sorting. These are correct-row but wrong-path defects. Current all-encoding public self-join evidence fails both expression neighbors: forced `e_expr` returns no rows when the expression is bound to the selected alias and also when identical spelling is bound to the other alias (where pinned SQLite full-scans the forced index); both pinned results are `(1,1)`. An ordinary forced covering `m_abc` self-join control likewise returns no rows rather than pinned `(2,2)`. Direct code comparison localizes the immediate owner: `compileInnerTableSelect` opens only table roots and lowers only selected rowid equality/upper bounds; it never opens or moves a retained selected `PhysicalIndex`. This is not limited to forced access: automatic `m_abc` selection returns `[]` in every encoding while the identical `NOT INDEXED` query returns pinned `(2,2)`. Additionally, `compileInnerTableSelect` emits loop nesting in `expanded.sources` order and only looks up a selected loop by source ordinal; it does not honor `multiWhere.path.loops` order. An all-encoding reversal control returns `[]` for `x JOIN y` when selected constrained `y` must precede a correlated rowid seek of `x`, but returns pinned `(2,2)` for equivalent `y JOIN x` where text and selected order align. A joined selected-corruption control further proves exact identity bypass: forced aligned-order `e_expr` self-joins succeed and return `(1,1)` against corrupt expression-index roots in all encodings, with zero index movement, instead of raising SQLite corruption. Ensure forced `PhysicalIndex`/`KeyInfo` identity reaches cursor opening and preserves selected-path error ordering; a successful table scan is not a forced substitute. |
+| Affinity, collation, generated columns | `whereScanInitIndexExpr` (`sqlite3ExprAffinity`); `whereScanNext` affinity/collation gate; generated-expression affinity guard in `expr.c` near 4768 | Expression fields publish expression affinity and resolved built-in collation. Generated-column indexes use exact `ColumnNode` identity and declared affinity/collation; spelling the generation expression is not the column. Expression terms that read generated columns remain ordinary structurally compared index expressions. |
+| Join/provenance safety | `where.c:whereUsablePartialIndex` `JT_LTORJ`, `EP_OuterON`, `TERM_VNULL`, `iTab/-1` tests; `whereexpr.c:transferJoinMarkings` and `exprAnalyze` outer/inner ON, `extraRight`, prerequisite and virtual-term branches | Existing `WhereTerm.origin`, masks, parent/child, virtual and `outerJoinSafe` facts are mandatory inputs. Proof never makes a residual omittable. LEFT synthetic-NULL and ON timing remain lowerer-owned; RIGHT/FULL keeps statement-wide fallback. Current public all-encoding evidence finds a concrete branch-matrix divergence: forced `p_live` with `p.c IS NOT NULL` in INNER WHERE or INNER/LEFT ON is admitted by pinned SQLite but rejected by TS in all nine positive cases. LEFT WHERE (too late after null extension) and missing-proof neighbors are correctly rejected. Thus TS currently loses usable implication for joined tables generally, not merely an outer-ON flag. A reversed textual-order control with `p` first still rejects safe INNER-ON proof in all encodings, so this failure precedes path-order lowering. `usablePartialIndex` currently compares whole-expression serialization and additionally requires `term.left.source===source`; split null-test terms do not retain that same left-operand shape. Repair resolved operator/operand implication and provenance against `sqlite3ExprImpliesExpr`, rather than source-order or SQL-shape special cases. |
+| Atomic/lifecycle boundary | `where.c:whereLoopAddBtreeIndex` and `whereLoopAddBtree` index iteration/full-scan branches around 4119-4125 and 4232-4243 plus its `nSeek`/`x IN (...)` cost discussion around 3986-3995; `wherecode.c:codeEqualityTerm/sqlite3WhereCodeOneLoopStart`; `expr.c` variable/reprepare comparison branch | Unforced non-proof excludes the expression seek and falls back. A forced unproved partial index rejects before program publication because it is incomplete. A represented non-partial expression index without a matching constraint instead uses the source-shaped forced full-index scan, retains residuals, and looks up the table unless independently covering; it rejects only for a concrete unrepresented physical descriptor or scan/deferred-lookup lowering. RHS bind values may seek, but parameters never prove identity/implication and reset never replans. All-encoding/reset public tests distinguish the forced branches: unproved `p_live` rejects atomically, whereas an `e_expr` structural mismatch performs a truthful complete-index scan with residual table reads and zero index seeks. All nine production-private fields begin at zero for every execution/reset. Each executed index-backed IN probe increments `inProbes`, independently of ordinary/partial/expression index family; non-IN paths (including the four frozen cases and forced full scans) leave it zero. Rejected candidates/paths execute no probes or other execution counters. Malformed schema fails publication; valid unrepresented metadata falls back/rejects; selected physical corruption stays path-local. Independently generated all-encoding corrupt-`p_live` and corrupt-`e_expr` roots now verify both new families specifically: forced selected access fails as SQLite corruption, while the corresponding `NOT INDEXED` table access succeeds both before and after on the same connection. |
+
+This handoff adds no runtime selection or public API. Ordinary immutable TS objects,
+exact object references, arrays and tri-state tags adapt upstream structs and
+return codes; no exceptional algorithm substitution is proposed. A conservative
+`unknown` follows upstream's documented optimization-safety rule and preserves
+observable rows through unforced fallback. Validation remains the four zero-credit
+partial/expression cases in `stage3-advanced-index.spec.json` across all encodings,
+their frozen private expectations, and the focused structural/provenance/limits/
+lifecycle matrix specified in `TRANSLATION.md`.
 
 - `src/internal/vdbe.ts` aggregate-predicate ordered scalar producer maps pinned `expr.c:sqlite3CodeSubselect` SRT_Mem NULL initialization/Once/LIMIT-one control and `select.c` sorter destination flow into one shared Program; `test/conformance/aggregate-group-chinook-regressions.test.mjs` and `aggregate-group-lifecycle.test.mjs` cover the hash-gated result, controls, reset, UTF-8/16le/16be, and empty-to-NULL behavior.
 
@@ -1715,6 +1741,1257 @@ subnormal, Inf and altform2 outputs.
 `fixed` and `exponential` in addition to `generic`. Source-ID-pinned/public cases
 cover `%!.20f`, pinned-unsupported `%!.20F`, `%!.20e`, and signed zero-padded
 `%!+030.20E`, while prior result/lifecycle and shared REAL accessor gates remain.
+
+### Joined unforced IN fallback source identity ([[card:card-s-c-c-c]])
+
+The later all-encoding unhinted IN fallback review found a source-identity regression in that first exclusion implementation: cloning `ResolvedSource` to set `notIndexed` caused `where-plan.ts:binding` to compute source ordinal −1 from `resolved.sources.indexOf(use.source)` and abort preparation before any scan. `src/where.c` term/source prerequisites retain cursor identity while candidate loop sets are pruned; `src/wherecode.c:codeEqualityTerm` still requires true selected IN restarts if admitted. The planner handoff now passes an `excludedIndexSources` ordinal set into `planWhere`, applying the NOT INDEXED gate only to candidate generation while retaining the original resolved sources, column-use owners and join provenance. This preserves the temporary forced rejection and makes unforced scan fallback executable without substituting a new IN algorithm. Public UTF-8/16LE/16BE first-row/reset/NULL-rebind controls assert unhinted and `NOT INDEXED` rows, zero selected seeks and positive table movement. Focused 4/4 and combined 118/118; no selected-IN or frozen partial/expression credit.
+
+### Joined reverse ORDER coverage clarification ([[card:card-s-c-c-c]])
+
+A review-derived forced `m_abc(a,b,c)` join with `ORDER BY y.b DESC` returned the right three rows but inserted all three into a sorter. Initially a test demanded zero sorter inserts, mistaking a single selected index's locally reversible key order for proven **global joined** ORDER. Inspection of `where-plan.ts:wherePathSolver` shows it deliberately sets `orderTermsSatisfied` to zero whenever `sourceCount>1`; `vdbe.ts:compileInnerTableSelect` consequently retains the sorter, correctly avoiding a false global ORDER claim under its current fixed source-order lowering. Pinned `src/where.c` ORDER proof operates over a whole WherePath and `src/wherecode.c:sqlite3WhereCodeOneLoopStart` reverses a selected loop only once that proof and chosen order allow it. The assertion was corrected to require correct public typed rows, a selected root seek, and retained sorter for this unproved joined ordering, initially and after reset, in all encodings. This is a test-expectation correction, **not** proof of physical reverse cursor movement or a pinned native sorter capture; implementing an ORDER proof requires source-based joined path-order/uniqueness analysis and reverse cursor execution checks. Focused 1/1, combined advanced/shared 98/98; no manifest credit.
+
+### Joined selected IN admission gate ([[card:card-s-c-c-c]])
+
+Pinned `src/wherecode.c:codeEqualityTerm` / `sqlite3WhereCodeOneLoopStart` uses an IN-loop with a separate chosen-index seek for each member, including prerequisite cursor and NULL handling. The current joined `compileInnerTableSelect` cannot represent those restarts: its `IndexSeekPrefix` branch excludes `operator==='in'` and would otherwise silently emit `IndexRewind` for a path that the immutable planner selected. This is **temporary unsupported lowering**, not a substitution claiming SQLite-equivalent IN execution. At prepare, the lowering handoff now checks selected joined equality-prefix IN admissions: an `INDEXED BY` selection is rejected atomically as unusable; an unforced selection is replanned with that source `NOT INDEXED` so the actual executable scan, ORDER ownership, and planner accounting follow the lowered path. Other source candidates remain eligible. This preserves public rows on unforced scans and prevents unsupported forced access from masquerading as a physical selected IN-loop. A review-derived UTF-8/16LE/16BE test requires either two selected seeks or atomic forced rejection plus working scan control, and fresh/reset literal and parameter/NULL rebind controls accept the rejection and continue checking unforced rows. It does not grant pinned selected IN credit, or establish arbitrary path-order/strict-bound fidelity; the native library was unavailable for new capture. Before implementing selected joined IN, compare full wherecode IN-loop ordering, root/KeyInfo and nine counters against pinned captures. Combined advanced/shared 97/97, manifest 7/7, first-select 8/8, typecheck and package boundary pass (card status).
+
+### Joined IN-list residual source ownership ([[card:card-s-c-c-c]])
+
+Review-derived all-encoding regression `run-advanced-index-ts.test.mjs` exposed `SELECT x.id,y.id FROM m x JOIN m y [INDEXED BY m_abc | NOT INDEXED] ON y.a=x.a WHERE x.id=2 AND y.b IN (1,3) ORDER BY y.id DESC` returning no rows for both paths (pre-repair advanced 42/43). The shared joined `compileInnerTableSelect.resolveTree` recursed into binary nodes but not `in-list`: its left `y.b` retained no source cursor and the residual `Column` read cursor zero (`x.b`). Pinned `src/resolve.c:resolveExprStep` resolves operands within the owning name context and `src/expr.c:sqlite3ExprCodeIN` evaluates the resolved left operand before testing list members. The joined resolver now visits `in-list` left and values, `between` value/limits, `in-subquery` left, and aggregate args, without descending into a nested SELECT's independent name context; this mirrors the existing single-source `assign` recursion. Forced selected and unforced scan both now yield typed `(2,3),(2,1)` initially and after reset in UTF-8/16LE/16BE. This validates residual identity, not selected joined IN-prefix restart/seek counts; the host 3.45.1 sanity result is not a pinned native capture, and no manifest credit changes. Focused 1/1; combined advanced/planner/multisource/WITHOUT ROWID 95/95, manifest 7/7, public first-select 8/8, typecheck and boundary passed (see card status).
+
+### Joined selected-index bound correction ([[card:card-s-c-c-b]])
+
+`src/wherecode.c:sqlite3WhereCodeOneLoopStart` consumes `src/where.c:whereLoopAddBtreeIndex` admitted equality/range terms at the selected loop, after its prerequisites have been positioned. `src/internal/vdbe.ts:compileInnerTableSelect` now seeks the joined selected root with its physical KeyInfo/affinity and tests prefix/range termination before deferred table access, exiting the current loop on mismatch. The shared `storage_values` typed INNER self-join previously exhausted `maxWorkUnits` on unbounded index traversal; the public UTF-8/16LE/16BE regression now completes. Joined IN, arbitrary path reordering and reverse movement remain separate limits; residual predicates still run.
+
+2026-09-29 partial-proof correction: `src/where.c:whereUsablePartialIndex` (3700–3734) passes the indexed table cursor to `src/expr.c:sqlite3ExprImpliesExpr` (6847–6871); `exprImpliesNotNull` (6698–6765) compares the proof *operand* to the target. `src/internal/where-plan.ts:partialProofIdentity` now requires a resolved use on the indexed source and matching declared column rather than a last-name collision across joined sources. Public `run-advanced-index-ts.test.mjs` joined same-name nullable p.c versus m.c discriminator checks UTF-8/UTF-16LE/UTF-16BE, reversed and LEFT join, reset and forced atomic rejection. This is a bounded proof correction, not new selected-access credit.
+
+#### Bounded joined selected IN-prefix handoff ([[card:card-s-c-d-a]])
+
+`wherecode.c:codeINTerm` (around 660–803) advances a distinct RHS cursor and
+restarts its chosen index seek; `expr.c:sqlite3CodeRhsOfIN` (around 3592–3810)
+materializes the list with `IdxInsert`, suppressing duplicate keys. In the
+currently bounded multi-source `compileInnerTableSelect` path, a single-field
+selected IN equality prefix now retains an `InListValue` iterator and seeks the
+selected physical index per distinct non-NULL affinity/coercion + KeyInfo
+collation key; probe exhaustion restarts the iterator, while iterator exhaustion
+runs the level's LEFT unmatched/outer continuation. RHS expressions are computed
+per outer entry, so reset/rebind cannot reuse the last entry's values. The
+in-memory register list plus comparison on each advance (rather than a second
+B-tree cursor) is a browser/TS representation adaptation for this bounded RHS:
+it retains SQLite's set-valued keys and NULL omission, but costs O(n²) instead
+of ephemeral-index insertion. `run-advanced-index-ts.test.mjs`'s demanded joined
+forced IN test covers selected seeks, NULL, duplicate keys, rebinding and LEFT
+null-row/matched-once transitions across captured encodings. This does not
+implement composite/ranged IN, cost/statistic parity or all RHS subqueries;
+those candidates remain excluded/rejected. Native side-by-side oracle coverage
+of this particular joined branch is still outstanding.
+
+### IN-only/range/stat choice evidence ([[card:card-s-c-d-c]])
+
+`test/conformance/cases/in-range-stat-native.json` and `test/conformance/fixtures/in-range-stat-*.db` are pinned 3.53.4, three-encoding before/after ANALYZE snapshots. Generator `test/conformance/capture-in-range-stat.py` builds only in development and captures read-only; `in-range-stat-native.test.py` asserts physical selected `t_ab` range/IN RHS VDBE loop versus `NOT INDEXED` scan, and a separate stat1-driven **chosen** access change (`t_a` before, covering `t_ab` after). Public `in-range-stat-ts.test.mjs` checks typed scan and atomic temporary rejection of selected composite IN, not optimizer credit. Source: `src/where.c:whereLoopAddBtreeIndex`, `whereInScanEst`, `whereRangeScanEst`; `src/wherecode.c:codeINTerm` (IN_INDEX_LOOP, RHS cursor Rewind/Next), `sqlite3WhereCodeOneLoopStart`; `src/analyze.c` stat1 format/`analysisLoader` and optional STAT4 paths. Pinned native build has no STAT4; no STAT4 selected-choice comparison was obtained. W3 stat4 gating remains unchanged. See `docs/CONFORMANCE.md` for numerical discriminators.
+
+Selected composite single-IN-slot/range follow-up (2026-09-29): pinned
+`wherecode.c:codeINTerm`/index loop restart and `where.c:whereLoopAddBtreeIndex`
+map to `src/internal/vdbe.ts:compileTableSelect` (`InListValue`, composite
+`IndexSeekPrefix`, `IndexPrefixEnd`, `IndexRangeEnd`). `whereexpr.c:exprAnalyze`
+RHS prerequisites originate in `src/internal/where-plan.ts`. In-memory set
+iteration substitutes for ephemeral RHS cursor (browser-safe finite list), with
+KeyInfo term affinity/collation comparison and NULL/duplicate filtering; typed
+three-encoding pinned differential and selected seeks are asserted by
+`test/conformance/in-range-selected-red.test.mjs`. Multi-IN nesting, joined
+composite lowering and statistics parity are not established by this mapping.
+
+2026-09-29 joined selected IN correction: the historical joined gate above now
+applies to multiple selected IN equality slots only. Pinned
+`wherecode.c:codeEqualityTerm/codeINTerm`, `sqlite3WhereCodeOneLoopStart` and
+`sqlite3WhereEnd` map to `vdbe.ts:compileInnerTableSelect` per-source IN iterator,
+composite IndexSeekPrefix and end-check restart, with per-level LEFT unmatched
+handling and `whereexpr.c:exprAnalyze` prerequisite mask. Single IN prefix/range
+public comparisons across the six frozen fixture states and selected seeks are
+in `test/conformance/in-range-selected-red.test.mjs`; the advanced-index public
+reset/rebind neighbor replaces the older fallback expectation. Finite in-memory
+RHS set (rather than ephemeral Btree) remains the browser-safe substitution;
+multiple IN nesting and general native stats/ORDER parity remain open.
+
+`src/wherecode.c:codeINTerm` and `src/expr.c:sqlite3CodeRhsOfIN` maintain a
+Btree-backed RHS cursor. The TypeScript `vdbe.ts:InListValue` finite set
+substitution checks work before every candidate/prior-key comparison and uses
+`finally` to release both temporary Mem values. Source-based checks in
+`in-range-selected-red.test.mjs` establish a real selected seek preceding a
+`maxWorkUnits` limit on 180 duplicate RHS values, independent of six-fixture
+selected/off-path malformed index-root isolation; no general Btree work parity
+is asserted.
+
+`wherecode.c:codeINTerm` records each selected equality IN cursor; `where.c:
+sqlite3WhereEnd` iterates `aInLoop` from last to first and rewinds inner
+cursors when advancing an outer one. `vdbe.ts:compileInnerTableSelect` and the
+single-table selected caller now lower up to two per-slot `InListValue` probes,
+resetting the inner register on outer advancement; seek/prefix/end labels target
+the innermost probe. Six frozen encoding/state checks in
+`in-range-selected-red.test.mjs` cover forced/unforced and LEFT cases; >2 slots
+remain excluded at path admission (forced error, unforced replan).
+
+`expr.c:sqlite3CodeRhsOfIN` inserts list cells into a KeyInfo ephemeral Btree;
+`wherecode.c:codeINTerm` flips `bRev` on descending index columns and reads
+that RHS cursor in sorted order. `vdbe.ts:InListValue` caches a bounded ordered
+Mem set per RHS index register (field collation/affinity and physical direction)
+until `Integer` resets the register or VDBE halt; two selected-index callers
+supply slot direction. Frozen-six unsorted RHS row-order tests in
+`in-range-selected-red.test.mjs` were independently compared against pinned
+native 3.53.4 on the existing read-only fixtures.
+
+Immutable stat-choice slice ([[card:card-s-c-d-f]]): `analyze.c:sqlite3AnalysisLoad/analysisLoader/decodeIntArray` -> `schema.ts:statisticsForIndex/sqliteLogEst/loadSchemaGraph` (represented index stat1 rows, encoding-aware immutable b-tree read); `build.c:sqlite3DefaultRowEst` and `where.c:whereLoopAddBtreeIndex/whereLoopAdjustCost/wherePathSolver/whereSortingCost` -> `where-plan.ts:indexLoopEstimate/adjustIndexSubsets/wherePathSolver` (bounded prefix/IN/sort costs). `test/conformance/in-range-stat-choice-red.test.mjs` compares six frozen pinned choices and forced controls. Not mapped: STAT4 samples, general `whereLoopInsert` pruning and `wherePathSatisfiesOrderBy` for joins. Pinned 3.53.4 EXPLAIN on advanced-index fixture selects the join equality, not the competing IN slot, in `run-advanced-index-ts.test.mjs`'s joined forced single-field case.
+
+[[card:card-s-c-d-f]] follow-up: `src/where.c:whereLoopCheaperProperSubset`
+case 1 permits same-index shorter-prefix subsets without term-identity equality;
+`where-plan.ts:adjustIndexSubsets` now reflects that branch. Case 2 now compares represented admitted term identity and covering eligibility;
+`whereLoopAdjustCost` adjusts a candidate against previously inserted loops in
+order. `whereLoopInsert/whereLoopFindLesser` replacement/discard remains unmapped.
+`whereLoopAddBtreeIndex` stat1 IN gating distinguishes indexed seek from
+seek-scan/normal scan; neither alternate path is represented by a fabricated
+cost penalty. Frozen stat-choice 6/6 is not composite-IN access parity.
+
+[[card:card-s-c-d-f]] bounded follow-up: `src/where.c:whereBegin` two-pass
+`wherePathSolver` and `whereSortingCost` ordinary ORDER BY cost now map to
+`src/internal/where-plan.ts` first-pass unsorted cardinality and second-pass
+sort costing; `wherePathSatisfiesOrderBy` IN-prefix matching also tracks index
+reverse direction. Frozen stat-choice tests pass 6/6 but selected-access red
+suite remains red (42/52 combined), so candidate insertion, widths, output
+adjustment and join ordering are not established. See `docs/TRANSLATION.md`.
+
+- Scalar child LIMIT initialization (`src/expr.c:sqlite3CodeSubselect`,
+  `src/select.c:computeLimitRegisters` and `selectInnerLoop`): the table-backed
+  correlated child producer now initializes its Mem/Exists result before a
+  child-local LIMIT guard and patches zero-limit to bypass the scan and result
+  disposal. `test/conformance/select-scalar-child-native.py` and `.test.mjs`
+  compare pinned/public typed NULL/0 and names through reset/finalize. For
+  SRT_Set (`select.c:selectInnerLoop`), a nonzero LIMIT decrements after each
+  inserted row; the correlated IN producer now exits its scan after the
+  corresponding insertion, not merely on the zero guard. These changes
+  repair behavioral divergences in the existing parent-Program child producer,
+  **not** the separate scalar child Program splice: the latter still relocates
+  finished table/aggregate children and the structural test remains red.
+
+- FROM-less IN child destination (`src/expr.c:sqlite3CodeSubselect` SRT_Set,
+  `src/select.c:selectInnerLoop` SRT_Set): `compileScalarSelect` now emits
+  the one-row no-FROM RHS into the enclosing builder's own ephemeral cursor,
+  inserts its result before probing with `InSet`, and shares the register/VM
+  budget. This replaces the former atomic unsupported rejection only for
+  no-WHERE/no-ORDER/no-compound single-result children, including LIMIT 0/1
+  with SRT_Set opened before the zero guard and probe after it. Scalar Mem
+  initializes before its child LIMIT guard. `src/select.c:codeOffset` /
+  `selectInnerLoop` now map to `IfPos` before no-FROM Mem/Exists/Set
+  projection, skipping the sole candidate for OFFSET 1 without consuming
+  LIMIT or bypassing the outer probe. Pinned source-ID/public paired
+  `select-scalar-child-native.py` / `.test.mjs` cover LIMIT 0/1 OFFSET 0/1,
+  typed results, metadata and reset/finalize. `expr.c:sqlite3CompareAffinity`
+  and `comparisonAffinity` determine the IN comparison affinity from both
+  operands, not a constant BLOB; the no-FROM child now uses that semantic
+  owner for its `InSet` probe. Source-ID
+  paired `select-scalar-child-native.py`/`.test.mjs` cover IN, NOT IN, RHS
+  NULL, names/types and reset/finalize. Table and aggregate child Programs
+  still require relocation; this is a bounded producer/caller migration,
+  **not** completion of the scalar structural contract.
+
+- Incremental SELECT destination/allocation seam (`src/select.c:sqlite3SelectDestInit`,
+  `selectInnerLoop` SRT_Mem/Exists/Output; `src/expr.c:sqlite3CodeSubselect`):
+  `src/internal/select-program.ts` and `src/internal/vdbe.ts:compileScalarSelect`.
+  Scalar child and output register spans now use the shared builder; child
+  Program splice/relocation remains a temporary divergence, not a translation
+  of the shared Parse/Vdbe compilation path. See `docs/research/card-t-b-select-entry.md`.
+
+- Grouped aggregate range consumption (`src/select.c:selectInnerLoop` output,
+  `src/expr.c:sqlite3ExprCode*`, `src/vdbeaux.c` instruction building):
+  `src/internal/vdbe.ts:compileAggregateSelect` now reserves all aggregate
+  scratch spans through `SelectProgramBuilder.range` and publishes its count.
+  Source-first read-only paired check: `test/conformance/select-aggregate-destination-native.py`
+  and `test/conformance/select-aggregate-destination.test.mjs`. Other producers,
+  cursor/jump ownership and nested child splicing remain incomplete.
+
+- Recursive CTE Queue/Distinct cursor and queue-exhaustion label:
+  pinned `src/select.c:generateWithRecursiveQuery` allocates Queue then optional
+  immediately adjacent Distinct cursor, and branches on queue exhaustion.
+  `src/internal/vdbe.ts:compileRecursiveCteSelect` now allocates them through
+  `SelectProgramBuilder.cursor()` (reserving cursor 0 for this VM's existing
+  convention), allocates priority key registers via `range()`, and resolves
+  the queue-empty label at `finish()`. Output continues through
+  `emitSelectDestination`; other arm/limit fixups are still direct.
+  Paired probes: `test/conformance/select-recursive-builder-native.py` and
+  `.test.mjs`; see `docs/research/card-t-b-select-entry.md` for coverage limits.
+
+- `src/expr.c:comparisonAffinity` -> `src/internal/vdbe.ts:comparisonAffinity`:
+  both parent-owned no-FROM and still-spliced table SRT_Set consumers derive
+  affinity from left and RHS projection expressions; result metadata's
+  declaredType is not expression affinity (CAST projections). Pinned/public
+  paired probe: `test/conformance/select-scalar-child-native.py` / `.test.mjs`.
+  This does not remove the completed-child splice.
+
+- `src/select.c:sqlite3Select`/`selectInnerLoop` with `src/expr.c:sqlite3CodeSubselect`
+  -> `src/internal/vdbe.ts:compileScalarSelect` direct one-table column/rowid
+  child, shared `SelectProgramBuilder` cursor/register ranges and Mem/Exists/Set
+  destination, LIMIT-zero before Rewind and outer IN probe after set production.
+  `expandAndResolveSelect` supplies the `resolve.c:NameContext` direct result.
+  Paired tests: `test/conformance/select-scalar-child-native.py` and `.test.mjs`.
+  Other table/aggregate child programs still require relocation; structural
+  integration remains open.
+
+- `src/where.c:sqlite3WhereCodeOneLoopStart` + `src/select.c:selectInnerLoop`
+  -> parent-owned direct table-child WHERE in `compileScalarSelect`: resolver
+  column-use identities bind cursor operands; false/NULL predicates advance
+  before destination emission and child LIMIT accounting. Pinned/public
+  scalar-child differential includes filtered Mem/Exists/Set, zero and one LIMIT.
+  Aggregate and correlated child relocation remains unresolved.
+
+- `src/select.c:selectInnerLoop` / `pushOntoSorter` / `generateSortTail`
+  + `src/expr.c:sqlite3CodeSubselect` -> bounded direct table child single-key
+  ORDER BY sorter scan and drain in `src/internal/vdbe.ts:compileScalarSelect`.
+  Resolved result ordinal/alias or direct source-column keys use the parent's
+  cursor/register allocation and Mem/Exists/Set destinations, with child LIMIT
+  after sorter output and WHERE before sorter insertion. The direct no-FROM and
+  direct single-table IN producers now route their set insertion through
+  `select-program.ts:emitSelectDestination`'s bounded `set` destination (one
+  column, existing ephemeral cursor), like `select.c:selectInnerLoop` SRT_Set;
+  this changes ownership of emission, not the remaining compiler splice.
+  Other keys retain the
+  completed-child fallback. Source-ID-checked native and public scalar-child
+  probes cover ASC/DESC, LIMIT 0/1/2, sibling destinations, types, names,
+  two reset iterations and finalize. Unfiltered structural assertion remains red
+  on admitted aggregate/table completed-child relocation.
+
+- `src/expr.c:sqlite3CodeRhsOfIN` SRT_Set and `src/select.c:selectInnerLoop`
+  OFFSET/LIMIT handling -> bounded aggregate-parent one-table direct-column
+  `compileAggregateSubquery` IN producer emits into shared set destination
+  after `computeLimitRegisters` and before the outer probe. Source-ID/public
+  `select-scalar-child-native.py` and `.test.mjs` pair count(*)-3 IN
+  LIMIT 0/1/1 OFFSET 1 (types, names, reset/finalize). This is one consumer;
+  scalar-parent child Program relocation remains red.
+
+- `src/expr.c:sqlite3CodeSubselect` SRT_Exists initialization/LIMIT and
+  `src/select.c:selectInnerLoop` OFFSET before destination -> bounded
+  aggregate-parent `compileAggregateSubquery` EXISTS guard and offset in
+  `src/internal/vdbe.ts`; pinned-oracle/public count(*) WHERE EXISTS
+  LIMIT 0/1/1 OFFSET 4 in `select-scalar-child-native.py` and
+  `select-scalar-child.test.mjs` (typed rows, names, reset). This remains a
+  separate consumer route; it is not a shared child compiler migration.
+
+- `src/resolve.c:resolveExprStep` (`TK_SELECT`/`TK_EXISTS`/`TK_IN`) and
+  `resolveSelectStep` (`NC_HasAgg`) -> `src/internal/vdbe.ts:selectHasAggregate`:
+  child SELECT aggregates no longer classify the parent; the `TK_IN` left
+  operand does. Source-shaped ownership is checked in
+  `test/conformance/select-aggregate-ownership.test.mjs`; paired
+  `select-scalar-child-native.py`/`.test.mjs` exercise an admitted
+  count/EXISTS/IN child. Aggregate-valued IN left operands now lower through the aggregate producer's
+  output register entries before `expr.c:sqlite3ExprCodeIN`-like probing,
+  source-ID/public-tested for count(*) against a one-column child (see guide);
+  completed-child relocation remains.
+
+- `src/select.c:sqlite3Select` / `flattenSubquery`,
+  `src/build.c:sqlite3ViewGetColumnNames`, `src/expr.c:sqlite3CodeSubselect`
+  -> bounded immutable-view scalar/Exists/IN child in
+  `src/internal/vdbe.ts:compileScalarSelect`: existing view substitution
+  feeds the same parent-owned direct scan and Mem/Exists/Set destination;
+  the view source alias qualifies substituted leaves rather than blocking
+  flattening. Paired `select-scalar-child-native.py` / `.test.mjs` cover
+  named/inferred columns, qualified aliases, inner/outer WHERE, ORDER/LIMIT,
+  typed metadata and reset. Nonflattenable view children remain on fallback.
+
+- `src/select.c:flattenSubquery` / `selectInnerLoop`,
+  `src/resolve.c` direct NameContext binding, `src/expr.c:sqlite3CodeSubselect`
+  -> bounded single-source derived scalar/Exists/IN children in
+  `src/internal/vdbe.ts:compileScalarSelect`. Substitution reads qualified
+  Lemon leaves and synchronizes ExprNode tokens with replaced reductions so
+  direct resolution sees the underlying source; predicate conjunction then
+  feeds the parent-owned direct scan, allocations and destination.
+  Paired `select-scalar-child-native.py` / `.test.mjs` cover qualified and
+  unqualified ORDER/OFFSET, LIMIT zero, combined WHERE, typed rows and reset.
+  Nonflattenable producers remain on fallback.
+
+- `src/select.c:multiSelectByMerge` / `multiSelectByMergeKeyInfo`
+  ordered set compound, `src/expr.c:sqlite3CodeSubselect` Mem/Exists/Set ->
+  bounded one-column no-source ordered set child in
+  `src/internal/vdbe.ts:compileScalarSelect`. Parent-owned typed set cursor
+  first eliminates/deletes/intersects, then parent-owned sorter applies the
+  resolved single result-column ORDER key before LIMIT/OFFSET and destination.
+  Budgeted async cursors adapt pinned merge coroutines for finite constant
+  arms. Paired `select-scalar-child-native.py` / `.test.mjs` cover ordered
+  typed/null/limit/reset branches. Ordered mixed and source-backed arms remain
+  on fallback; no general merge parity is claimed.
+
+- `src/select.c:multiSelect` set prefix followed by unordered UNION ALL
+  shares `SelectDest` and LIMIT/OFFSET between merge and trailing arms ->
+  `src/internal/vdbe.ts:compileScalarSelect` drains the parent-owned typed
+  cursor before trailing constant rows and patches scalar/Exists exits past
+  the whole child. Paired `select-scalar-child-native.py` / `.test.mjs` cover
+  empty-prefix, duplicates, offset, typed destinations and reset. Ordered
+  set and source-backed producers remain unmigrated.
+
+- `src/select.c:multiSelect` / `multiSelectByMerge` set-compound
+  UNION/EXCEPT/INTERSECT, `src/expr.c:sqlite3CodeSubselect` shared
+  Mem/Exists/Set -> bounded single-column no-source unordered child
+  producer and caller in `src/internal/vdbe.ts:compileScalarSelect`.
+  Parent-owned typed ephemeral cursors implement insert/delete/intersection
+  and sorted drain; budgeted async cursors adapt SQLite merge coroutines for
+  finite constant arms. Paired `select-scalar-child-native.py` / `.test.mjs`
+  cover duplicate/null/typed results, destination kinds and reset. Ordered,
+  mixed and source-backed set producers remain on the audited fallback.
+
+- `src/select.c:multiSelectByMerge` ordered compound shared SelectDest,
+  `src/expr.c:sqlite3CodeSubselect` Mem/Exists/Set -> bounded constant
+  single-column UNION ALL child with one resolved result key in the enclosing
+  `src/internal/vdbe.ts:compileScalarSelect` builder. Budgeted typed sorter
+  substitutes for two SQLite coroutines on finite constant arms; paired
+  `select-scalar-child-native.py` / `.test.mjs` compare sorted typed rows,
+  names and resets. Source-backed/multi-key/set operators remain unmigrated.
+
+- `src/select.c:multiSelect` unordered UNION ALL shared limit iLimit
+  zero branch before offset coercion -> `src/internal/vdbe.ts` shared
+  `computeLimitRegisters` early-zero branch; pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` exercise
+  `LIMIT 0 OFFSET 'bad'` NULL/INTEGER 0 and reset.
+
+- `src/select.c:multiSelect` unordered UNION ALL left/right SelectDest,
+  `src/expr.c:sqlite3CodeSubselect` Mem/Exists/Set ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded single-column no-FROM
+  non-aggregate/non-window compound arm emission into the enclosing builder;
+  pinned/public `select-scalar-child-native.py` / `.test.mjs` check
+  INTEGER/NULL, metadata and reset. Table-backed and ordered compound
+  consumers still require separate migration.
+
+- `src/select.c:multiSelectValues/selectInnerLoop`,
+  `src/expr.c:sqlite3CodeSubselect` SRT_Mem/Exists/Set ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded single-column VALUES
+  child uses the enclosing builder for each constant row, set cursor and
+  destination. Pinned/public `select-scalar-child-native.py` / `.test.mjs`
+  compare INTEGER/NULL, metadata and reset; general compounds remain outside
+  this branch.
+
+- `src/expr.c:sqlite3ExprCodeTarget` TK_CASE branch/base/WHEN/THEN/ELSE,
+  `src/resolve.c:resolveExprStep` child NameContext ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded one-source CASE
+  projection binder. Parent builder owns CASE registers and the eventual
+  Mem/Exists/Set destination; paired pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` compare searched and simple
+  CASE typed rows, metadata and reset. Nested-subquery/multi-source children
+  are not migrated.
+
+- `src/resolve.c:resolveOrderGroupBy` unmatched ordinary ORDER expression,
+  `src/select.c:selectInnerLoop` sorter key/payload ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded one-source child binds
+  the ORDER expression in the child NameContext and builds its key independently
+  of the projected payload in the enclosing builder. Pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` compare typed `x+2 ORDER BY
+  x*2 DESC LIMIT/OFFSET` Mem/Exists/Set, metadata and reset. Other producers
+  retain the audited fallback.
+
+- `src/expr.c:sqlite3ExprCodeTarget` TK_COLLATE operand and
+  `src/resolve.c:resolveExprStep` collated NameContext use -> bounded collated
+  one-source child result binding in `src/internal/vdbe.ts`. Parent builder
+  retains projection, DISTINCT, sorter and destination. Pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` compare collated INTEGER and
+  CAST TEXT projections with LIMIT/OFFSET and IN; other child shapes retain
+  their fallback.
+
+- `src/resolve.c:resolveOrderGroupBy` alias/ordinal/result-expression ORDER,
+  `src/select.c:selectInnerLoop` sorter key/result production ->
+  `src/internal/vdbe.ts:compileScalarSelect` one-source expression child:
+  result-expression ORDER copies its bound projected register into the sorter
+  key, direct column ORDER loads its own key, DISTINCT still precedes sorter;
+  builder owns key/payload/cursor and SRT destination. Other ORDER producers
+  are not migrated. Pinned/public `select-scalar-child-native.py` / `.test.mjs`
+  compare typed `x+1` ORDER by expression/ordinal/alias, DISTINCT,
+  LIMIT/OFFSET, scalar/IN/EXISTS, names and reset.
+
+- `src/resolve.c:NameContext` child result/predicate binding,
+  `src/select.c:selectInnerLoop` projection before DISTINCT/OFFSET then SRT ->
+  `src/internal/vdbe.ts:compileScalarSelect` one-source expression child:
+  resolved result column uses bind into its builder cursor; expression VM
+  projects into its builder registers, reusing the DISTINCT result for sorter
+  payload/SRT. Single-column or ordinal ORDER only; other producers remain.
+  Pinned/public `select-scalar-child-native.py` / `.test.mjs` compare `x+1`
+  with WHERE, DISTINCT, descending ORDER, LIMIT/OFFSET, Mem/Exists/Set,
+  typed rows, names and reset.
+
+- `src/select.c:computeLimitRegisters` and `src/vdbe.c:OP_OffsetLimit`
+  -> `src/internal/vdbe.ts:computeLimitRegisters` and interim completed-child
+  register relocation of all three OffsetLimit operands; pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` compare two-source child
+  ORDER/LIMIT/OFFSET with Mem/Exists/Set and reset. **Not yet parent-owned**;
+  this relocation must retire when multi-source child producer migrates.
+
+- `src/select.c:sqlite3Select` grouped multi-source producer /
+  `selectInnerLoop` SRT_Mem/Exists/Set and `src/expr.c:sqlite3CodeSubselect`
+  -> `src/internal/vdbe.ts:compileAggregateSelect` parent builder consumed by
+  `compileScalarSelect` for bounded multi-source grouped children; paired
+  `select-scalar-child-native.py` / `.test.mjs` compare join predicate, HAVING,
+  ORDER/LIMIT/OFFSET, zero/empty groups, types/names/reset. Other fallback
+  children remain.
+
+- `src/resolve.c:resolveOrderGroupBy`, `src/select.c:selectInnerLoop`,
+  `src/expr.c:sqlite3CodeSubselect` -> bounded one-candidate no-FROM
+  child ORDER result alias/ordinal/expression in `compileScalarSelect`;
+  enclosing Mem/Exists/Set and LIMIT/OFFSET remain shared. An independent
+  ORDER key is not elided. Paired `select-scalar-child-native.py` / `.test.mjs`
+  check typed rows/names, WHERE, LIMIT/OFFSET and reset; completed-child
+  fallbacks remain.
+
+- `src/select.c:sqlite3Select` / `computeLimitRegisters` early integer-zero
+  exit before OFFSET and `sqlite3WhereBegin` / `selectInnerLoop` ->
+  `src/internal/vdbe.ts:computeLimitRegisters` now places the zero exit before
+  OFFSET for all bounded callers instead of treating compound SELECT as an
+  exception. Existing parent-owned single-source child Mem/Exists/Set and IN
+  probe retain their destination; completed-child fallbacks remain.
+  Pinned/public `select-scalar-child-native.py` / `.test.mjs` compare
+  aliased view-derived child and top-level no-FROM/table LIMIT 0 OFFSET NULL,
+  typed metadata and reset. Other shape combinations remain unclaimed.
+
+- `src/select.c:sqlite3Select` zero-source `sqlite3WhereBegin` /
+  `selectInnerLoop` and `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileScalarSelect` parent-owned one-row WHERE
+  predicate: false/NULL branches over OFFSET and SRT_Mem/Exists/Set candidate
+  while LIMIT setup and destination initialization precede candidate testing.
+  The integer-zero LIMIT branch precedes OFFSET coercion as in
+  `src/select.c:computeLimitRegisters`. Paired
+  `select-scalar-child-native.py` / `.test.mjs` cover scalar/EXISTS/IN,
+  NULL/INTEGER, LIMIT-zero/OFFSET NULL, names and reset.
+
+- `src/select.c:selectInnerLoop` result DISTINCT before OFFSET/SRT and
+  `src/expr.c:sqlite3CodeSubselect` enclosing destination ->
+  `src/internal/vdbe.ts:compileScalarSelect` no-FROM one-row child: DISTINCT
+  cannot duplicate its sole candidate, so no ephemeral is needed; existing
+  builder-owned LIMIT/OFFSET and Mem/Exists/Set remain. Pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` pair LIMIT 0/1 OFFSET 0/1,
+  typed rows, names and reset. Other child shapes are not implied.
+
+- `src/select.c:sqlite3Select` result DISTINCT ephemeral / `selectInnerLoop`
+  duplicate branch before OFFSET and `generateSortTail` sorted OFFSET ->
+  `src/internal/vdbe.ts:compileScalarSelect` direct one-table child: builder
+  cursor, typed projected key `Found`/`IdxInsert`, duplicates skip to Next
+  without consuming LIMIT/OFFSET; Mem/Exists/Set and sorter drain stay in
+  enclosing Program. Pinned/public `select-scalar-child-native.py` / `.test.mjs`
+  pair unsorted/sorted WHERE, LIMIT and OFFSET, typed rows, metadata, reset.
+  Other table shapes still use completed-Program relocation.
+
+- `src/select.c:sqlite3Select` result DISTINCT ephemeral / `selectInnerLoop`
+  duplicate check before OFFSET/SRT, `src/expr.c:sqlite3CodeSubselect` enclosing
+  Mem/Exists/Set -> `src/internal/vdbe.ts:compileAggregateSelect` no-GROUP
+  parent-owned result DISTINCT: builder cursor, reserved output register
+  `Found`/`IdxInsert`, duplicate jump past destination. Pinned/public paired
+  `select-scalar-child-native.py` / `.test.mjs` check LIMIT 0/1 OFFSET 1 and
+  filtered empty count, typed rows, names and reset. This does not imply
+  general aggregate-child or accumulator-DISTINCT ownership.
+
+- `src/expr.c:sqlite3CodeSubselect` SRT_Mem/Exists/Set and
+  `src/select.c:sqlite3Select` group sorter / `selectInnerLoop` ->
+  `src/internal/vdbe.ts:compileScalarSelect` calling
+  `compileAggregateSelect` in the enclosing `SelectProgramBuilder` for
+  single-source `simpleGroupShape` children; group
+  projection uses its builder-owned output range, the group sorter and
+  optional result DISTINCT ephemeral allocate cursors, and `Found`/`IdxInsert`
+  consume the projection's reserved register range before OFFSET and SRT
+  emission. The bounded result ORDER sorter likewise allocates a builder
+  cursor, inserts projected keys/payload, drains to the reserved range and
+  emits to the caller's SRT after OFFSET. Pinned/public paired ORDER and
+  DISTINCT group Mem/Exists/Set probes cover LIMIT, OFFSET, HAVING, typed
+  results, names and reset. HAVING/OFFSET/LIMIT retain emission order and no child Halt is
+  published. Pinned/public `select-scalar-child-native.py` / `.test.mjs`
+  pair group Mem/Exists/Set typed rows, names, reset/finalize. Other
+  admitted child plans still relocate finished Programs.
+
+- `src/select.c:selectInnerLoop` / `codeOffset` and sorter tail ->
+  `src/internal/vdbe.ts:compileScalarSelect` direct one-table child
+  `computeLimitRegisters` / `IfPos` at qualifying-row and sorted-drain
+  transitions. `src/expr.c:sqlite3CodeSubselect` supplies the enclosing
+  Mem/Exists/Set destinations and builder allocations. Pinned/public
+  `select-scalar-child-native.py` / `.test.mjs` pair WHERE, sorted OFFSET and
+  LIMIT 0 OFFSET (typed rows, names, two resets/finalize). Other child
+  producers still use completed-Program relocation; no general ownership claim.
+
+- `src/expr.c:sqlite3CodeSubselect` / `src/select.c:sqlite3Select` shared
+  `Parse.nTab` nested cursor ownership -> `src/internal/select-program.ts`
+  `SelectProgramBuilder.reserveCursorsThrough` and
+  `src/internal/vdbe.ts:compileAggregateSubquery`: reserve the aggregate
+  parent's still-fixed source/sorter/modifier range and allocate EXISTS/IN/
+  scalar-child cursors from the parent builder. Pinned/public paired
+  `select-scalar-child-native.py`/`.test.mjs` includes a simultaneous EXISTS
+  predicate and IN projection. This does not replace completed scalar-parent
+  child Programs or manual relocation; structural reproducer remains red.
+
+- Partial aggregate-child LIMIT producer: pinned `src/select.c:computeLimitRegisters`, `selectInnerLoop` SRT_Mem/Exists/Set and `src/expr.c:sqlite3CodeSubselect` initialize destination before row production. `src/internal/vdbe.ts:compileAggregateSelect` now gates no-GROUP accumulator scanning on LIMIT 0 and skips its single final output on OFFSET; paired `test/conformance/select-scalar-child-native.py` / `.test.mjs` compare scalar/EXISTS/IN rows, types, names, reset. Scalar caller still relocates a finished child Program; parent-owned compilation remains outstanding.
+
+- `src/expr.c:sqlite3CodeSubselect` -> `src/select.c:sqlite3Select` /
+  `flattenSubquery` -> `src/internal/vdbe.ts:compileAggregateSelect`: bounded
+  derived/immutable-view recursive compilation forwards the enclosing
+  builder/destination instead of dropping it. This is only forwarding for
+  the no-GROUP path; pinned/public `select-scalar-child-native.py` and
+  `.test.mjs` pair scalar/Exists/IN derived counts, filtered rows, LIMIT/OFFSET,
+  typed names and reset/finalize. The aggregate flattening result-name map
+  now uses `expressionName` (as ordinary flattening does), not synthetic
+  `columnN`, so qualified `d.x` substitutes its bound source expression;
+  both qualified and unqualified predicates are paired. Other completed-Program
+  child splices remain unmigrated.
+
+- Joined no-GROUP aggregate child (bounded): pinned
+  `src/select.c:sqlite3Select` no-GROUP `sqlite3WhereBegin` /
+  `updateAccumulator` / `sqlite3WhereEnd` / `finalizeAggFunctions`,
+  `src/expr.c:sqlite3CodeSubselect` destination initialization ->
+  `src/internal/vdbe.ts:compileAggregateSelect` enclosing builder, nested
+  source cursor Rewind/Next and `emitSelectDestination`. Paired
+  `select-scalar-child-native.py` / `.test.mjs` check ON/WHERE/HAVING,
+  empty input, scalar/Exists/IN, LIMIT/OFFSET and reset/finalize. Not a
+  general join ownership claim; nonaggregate child relocation remains.
+
+- Joined rowid equality child, interim: `src/wherecode.c` rowid seek and
+  `src/select.c:sqlite3Select` / `selectInnerLoop` destination ->
+  `src/internal/vdbe.ts:compileInnerTableSelect` produces `SeekRowid`;
+  `compileScalarSelect` still relocates its cursor, key register and exit PC
+  into the enclosing program. `test/conformance/select-scalar-child-native.py`
+  / `.test.mjs` pair rowid-equality join Mem/Exists/Set and resets. This is
+  not yet a source-owned joined child builder/destination; structural assertion
+  remains red.
+
+- Ordered nonflattenable one-table LIMIT producer and outer WHERE:
+  pinned `src/select.c:flattenSubquery` restriction (19), `selectInnerLoop`
+  sorter insertion/drain and `src/expr.c:sqlite3CodeSubselect` Mem/Exists/Set
+  -> `src/internal/vdbe.ts:compileScalarSelect` binds producer ORDER alias or
+  ordinal, retains bounded top-N sorted projected payload, applies producer
+  LIMIT before outer WHERE at drain, then delivers the caller destination.
+  The caller selects one matching producer EList expression; producer width
+  can exceed one because ORDER is bound to its own EList before drain. Only
+  selected value reaches the caller destination. For an outer predicate on
+  another direct producer column, `compileScalarSelect` binds the substituted
+  column to the single resolved source, stores it beside the selected value
+  in the producer sorter payload and tests it on the sorted drain before the
+  destination. Pinned `select.c:generateSortTail` owns this row retention;
+  `resolve.c` NameContext does not bind substituted outer reductions inside
+  the producer. This is not general transient-row materialization. Paired
+  `x AS a, x+1 AS b ORDER BY 2 DESC LIMIT 2` checks both `d.a` and `d.b`
+  as scalar/EXISTS/IN with names, types and resets. Source-ID-checked paired
+  `select-scalar-child-native.py` / `.test.mjs` compare DESC LIMIT 1 rejection
+  and DESC LIMIT 2 second-row acceptance, typed NULL/0/0 versus 4/1/1,
+  names and two resets. Other predicates/offsets and multirow materialization
+  remain unmigrated; completed-child fallback remains reachable.
+
+- Nonflattenable one-table LIMIT producer and outer WHERE: pinned
+  `src/select.c:flattenSubquery` restriction (19) and `selectInnerLoop` ->
+  `src/internal/vdbe.ts:compileScalarSelect` keeps producer scan/LIMIT before
+  substituted outer predicate and enclosing Mem/Exists/Set destination. Bounded
+  no-ORDER/non-DISTINCT one-table producer, one-column scalar/EXISTS/IN caller.
+  Source-ID-checked paired native/public expression projection `x+1 AS y`
+  with LIMIT 1 then `d.y>2`, typed rows, names, two resets; pre-edit public
+  prepare failed `no such table: d`. Not general materialization or ORDER.
+
+- COLLATE-wrapped producer ORDER references: pinned
+  `src/resolve.c:resolveOrderGroupBy` / `sqlite3ExprSkipCollateAndLikely`
+  and `src/select.c:flattenSubquery` -> `src/internal/vdbe.ts:compileScalarSelect`
+  unwraps COLLATE to bind producer AS-name/ordinal, substitutes producer EList
+  reduction within the preserved COLLATE wrapper, then transfers ORDER to
+  the enclosing sorter. Source-ID-checked paired native/public alias/ordinal
+  typed rows, names and resets; pre-edit values 4/2 instead of 10/10.
+  General NameContext and nonflattenable materialization remain open.
+
+- Producer ORDER ordinal before flatten transfer: pinned
+  `src/resolve.c:resolveOrderGroupBy` and `src/select.c:flattenSubquery`
+  -> `src/internal/vdbe.ts:compileScalarSelect` validates integer ordinal
+  against producer EList width, substitutes the producer expression before
+  transfer to the enclosing parent's sorter. Source-ID-checked paired
+  native/public two-column producer ordinal/alias rows, metadata and resets,
+  plus pinned 1..2 error for out-of-range 3; pre-edit ordinal failed 1..1.
+  General nonflattenable derived materialization remains open.
+
+- Producer ORDER AS-name before flatten transfer: pinned
+  `src/resolve.c:resolveOrderGroupBy` and `src/select.c:flattenSubquery`
+  ORDER transfer -> `src/internal/vdbe.ts:compileScalarSelect` resolves
+  producer aliases against producer EList before handing the key to the
+  parent's scan/sorter. Native/public source-ID-checked paired `x+1 AS y`
+  ORDER y vs ORDER 1 rows, types, names and resets; pre-edit alias returned
+  4 instead of pinned 10. General ORDER NameContext remains open.
+
+- Source-permitted nonzero-source derived LIMIT transfer: pinned
+  `src/select.c:flattenSubquery` restrictions (13)/(14)/(19) and LIMIT
+  transfer -> `src/internal/vdbe.ts:compileScalarSelect` carries producer
+  LIMIT/ORDER to the parent only when it has no WHERE/LIMIT and producer has
+  no OFFSET. Parent one-table scan/sorter consumes its destination in the
+  enclosing builder. Paired source-ID-checked native/public scalar/EXISTS/IN
+  rows, metadata and resets for LIMIT 0/1 and ORDER with LIMIT 1/2; outer
+  WHERE with producer LIMIT remains nonflattenable and unmigrated.
+
+- Nonzero-source derived ORDER transfer: pinned
+  `src/select.c:flattenSubquery` restrictions (7)/(11)/(19), producer ORDER
+  transfer and `selectInnerLoop` -> `src/internal/vdbe.ts:compileScalarSelect`
+  substitutes result/WHERE then transfers producer ORDER to a single-source
+  parent (only without producer LIMIT or parent ORDER), recursively compiles
+  that parent's scan/sorter and destination in the enclosing builder.
+  Source-ID-checked paired scalar-child native/public tests cover typed
+  scalar/EXISTS/IN rows, names and resets. LIMIT-bearing producer and general
+  CTE/derived materialization remain open; live generic relocation remains.
+
+- ORDER term resolution for no-FROM derived producer: pinned
+  `src/resolve.c:resolveOrderGroupBy` -> `src/internal/vdbe.ts:compileScalarSelect`
+  maps AS-name and integer ordinal to the producer EList transient registers
+  before ORDER expression lowering; out-of-range ordinals reject at prepare
+  with pinned diagnostic. Source-ID-checked paired scalar-child native/public
+  tests cover typed alias/ordinal rows and resets; native 0/3 ordinal errors
+  and public rejection followed by valid statement cover bounded atomicity.
+  General NameContext and multirow sorter parity remain open.
+
+- ORDER no-FROM derived producer: pinned
+  `src/select.c:flattenSubquery` restriction (7), `selectInnerLoop` and
+  `pushOntoSorter` -> `src/internal/vdbe.ts:compileScalarSelect` binds
+  producer ORDER keys to shared transient registers, evaluates them on the
+  admitted candidate before its OFFSET and consumes the one row through
+  the outer Mem/Exists/Set. No key comparison/sorter drain is required for
+  a no-FROM singleton; multirow ORDER requires upstream sorter ownership.
+  Source-ID-checked paired `select-scalar-child-native.py` / `.test.mjs`
+  cover typed values, names, empty candidate and reset. General derived/CTE
+  ORDER and generic relocation remain open.
+
+- DISTINCT no-FROM derived producer: pinned
+  `src/select.c:flattenSubquery` restriction (7), `sqlite3Select` DISTINCT
+  planning / `selectInnerLoop` -> `src/internal/vdbe.ts:compileScalarSelect`
+  admits DISTINCT for the no-FROM at-most-one-row producer, evaluates its
+  transient row once after WHERE/LIMIT/OFFSET admission and consumes the
+  outer Mem/Exists/Set. No dedup cursor is required for a singleton; this
+  does not replace multirow DISTINCT planning. Source-ID-checked paired
+  `select-scalar-child-native.py` / `.test.mjs` cover typed rows, empty
+  producer, names and reset. ORDER, wider derived/CTE and generic relocation
+  remain open.
+
+- Multi-column no-FROM derived producer: pinned
+  `src/select.c:flattenSubquery` restriction (7) / `selectInnerLoop`,
+  `src/resolve.c:resolveExprStep` and `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileScalarSelect` allocates producer row registers
+  in the enclosing builder, fills them on an admitted candidate, binds
+  transient source names in outer WHERE/result and emits Mem/Exists/Set after
+  gating. Paired `select-scalar-child-native.py` / `.test.mjs` cover two
+  producer columns, typed results, absent candidates and reset. One-row
+  register binding replaces C's ephemeral row cursor for this bounded
+  no-FROM producer; wider derived/CTE materialization, ORDER and generic
+  relocation remain open.
+
+- Outer expression on zero-source derived column child: pinned
+  `src/resolve.c:resolveExprStep` NameContext,
+  `src/select.c:flattenSubquery` restriction (7) / `selectInnerLoop`,
+  `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileScalarSelect` substitutes the producer's
+  transient reduction throughout the outer result, lowers after producer and
+  outer gates into the enclosing Mem/Exists/Set. Paired
+  `select-scalar-child-native.py` / `.test.mjs` check typed scalar/EXISTS/IN,
+  absent producer and reset. Independent ORDER, wider producer and generic
+  completed-child relocation remain open.
+
+- Outer WHERE on zero-source derived column child: pinned
+  `src/select.c:flattenSubquery` restriction (7) / `selectInnerLoop`,
+  `src/resolve.c:resolveExprStep` NameContext and
+  `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileScalarSelect` substitutes transient producer
+  column into the outer predicate, gates after producer candidate and before
+  outer OFFSET and Mem/Exists/Set. Paired `select-scalar-child-native.py` /
+  `.test.mjs` check typed rows/names, absent/matched/rejected candidates and
+  reset. Outer ORDER, wider producers and generic relocation remain open.
+
+- Nested outer LIMIT on zero-source derived column expression child: pinned
+  `src/select.c:sqlite3Select` LIMIT initialization / `selectInnerLoop`
+  OFFSET row event, `src/expr.c:sqlite3CodeSubselect` shared destination ->
+  `src/internal/vdbe.ts:compileScalarSelect` allocates the outer limit ahead
+  of the unflattenable producer limit and gates outer row emission after
+  producer suppression. Paired `select-scalar-child-native.py` / `.test.mjs`
+  cover typed scalar/EXISTS/IN, both suppressed candidates and reset. Outer
+  WHERE/ORDER and generic completed-child fallback remain outside this slice.
+
+- Zero-source derived column expression child: pinned
+  `src/select.c:flattenSubquery` restriction (7) / `selectInnerLoop` and
+  `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded zero-source producer,
+  direct derived-column projection to enclosing Mem/Exists/Set. Producer
+  WHERE/LIMIT/OFFSET controls the row event; IN probes after Once. Paired
+  `select-scalar-child-native.py` / `.test.mjs` check typed value, suppressed
+  candidate, names and reset. Wider derived projection and the completed-child
+  fallback remain unresolved.
+
+- Zero-source derived count expression child: pinned
+  `src/select.c:flattenSubquery` restriction (7) / `selectInnerLoop` candidate
+  and `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` parent-owned branch
+  uses the shared builder for producer WHERE/OFFSET/result event, accumulator
+  finalization and Mem/Exists/Set. Source-ID-checked paired
+  `select-scalar-child-native.py` / `.test.mjs` cover candidate suppression,
+  typed count, metadata and reset. The top-level producer compatibility
+  bridge and generic completed-child fallback remain separately live.
+
+- Ungrouped aggregate projected ORDER child (bounded): pinned
+  `src/expr.c:sqlite3CodeSubselect` SRT_Mem/Exists/Set and
+  `src/select.c:sqlite3Select` one-row accumulator ->
+  `src/internal/vdbe.ts:simpleUngroupedAggregateOrder` admits projected ORDER
+  result identity; existing `compileAggregateSelect` parent builder and
+  destination finalize one row before LIMIT/OFFSET. Source-ID-checked
+  `select-scalar-child-native.py` / `.test.mjs` pair count, empty input,
+  Mem/Exists/Set, metadata and reset. Independent ORDER expression and
+  nonflattenable producer shapes are not newly admitted; global relocation
+  assertion remains red.
+
+- Ordered grouped expression child (bounded): pinned `src/select.c:sqlite3Select`
+  GROUP-key sorter / `src/expr.c:sqlite3CodeSubselect` SRT destination ->
+  `src/internal/vdbe.ts:aggregateOrderGroupIndex`, `simpleGroupShape` and
+  `compileAggregateSelect` copy saved GROUP-key registers into the result
+  sorter's key range when an ORDER term is a group key not projected in the
+  result. Source-ID checked `select-scalar-child-native.py` / `.test.mjs`
+  cover descending derived/view grouping, rows/names and two resets. Arbitrary
+  ORDER expressions and nonflattenable derived producers remain outside this
+  bounded path; global completed-child relocation assertion still fails.
+
+- Flattenable grouped derived/view child (bounded): pinned
+  `src/select.c:flattenSubquery` and `sqlite3Select` grouped accumulator /
+  `src/expr.c:sqlite3CodeSubselect` destination ->
+  `src/internal/vdbe.ts:compileScalarSelect` calls `compileAggregateSelect`
+  with shared builder/destination; its simple-derived and immutable-view
+  flattening recurse with the same parent. `select-scalar-child-native.py` /
+  `.test.mjs` pair empty/HAVING/LIMIT and view grouping, typed rows/names and
+  reset. ORDER-key admission and nonflattenable derived/CTE still
+  need audit; global completed-child relocation assertion remains red.
+
+- Grouped scalar child (bounded destination checkpoint): pinned
+  `src/expr.c:sqlite3CodeSubselect` / `src/select.c:sqlite3Select` grouped
+  accumulator and sorter drain -> `src/internal/vdbe.ts:compileScalarSelect`
+  passes builder and SRT_Mem/Exists/Set destination to `compileAggregateSelect`
+  for direct physical-table GROUP BY. Paired `select-scalar-child-native.py` /
+  `.test.mjs` check empty/HAVING/DISTINCT/LIMIT grouped children, typed rows,
+  metadata and reset. Derived/view and other relocation consumers remain;
+  full structural assertion remains red.
+
+- Joined nonaggregate expression child (bounded builder checkpoint): pinned
+  `src/select.c:sqlite3Select` / `selectInnerLoop`, `src/expr.c:sqlite3CodeSubselect`,
+  `src/wherecode.c` rowid seek and `src/vdbeaux.c:sqlite3VdbeMakeLabel` ->
+  `src/internal/vdbe.ts:compileInnerTableSelect` optional enclosing builder,
+  cursor-based resolution, shared result range and `emitSelectDestination` at
+  scan/sorter drain. Paired `select-scalar-child-native.py` / `.test.mjs`
+  predate migration and check joined Mem/Exists/Set typed rows and reset. Other
+  completed-child relocation remains; structural test still red.
+
+- Independent nested scalar in admitted one-table producer expression:
+  pinned `src/resolve.c` gives nested SELECT its own NameContext;
+  `src/expr.c:sqlite3ExprCodeTarget/sqlite3CodeSubselect` compiles it into
+  the same Parse/Vdbe. `src/internal/vdbe.ts:compileScalarSelect` producer
+  binder now leaves scalar-subquery source binding to its own compiler, and
+  the existing callback emits nested destination, registers and cursor into
+  the enclosing builder. Native/public `ORDER BY (SELECT 1) DESC LIMIT 2`
+  scalar/EXISTS/IN compare typed 1/1/0, names, two resets. The binder also
+  binds only the left side of nested `x IN (SELECT 4)` to this producer,
+  leaving its RHS NameContext and destination to `src/expr.c:sqlite3CodeSubselect`;
+  native/public outer Mem/Exists/Set compare typed NULL/0/0 and, with
+  `x IN (SELECT 1)`, typed 1/1/1, names and two resets. General correlated RHS and transient source binding remain
+  unestablished; completed-child fallback remains reachable.
+
+- Unsorted derived LIMIT + outer WHERE destination: `src/select.c:selectInnerLoop`
+  decrements producer LIMIT after row events, whereas
+  `src/expr.c:sqlite3CodeSubselect` caps SRT_Mem/SRT_Exists to their first
+  accepted outer row. `src/internal/vdbe.ts:compileScalarSelect` now exits
+  the no-sort Mem/Exists drain on first accepted row even with post-predicate;
+  Set and rejected rows still advance according to producer LIMIT. Source-ID
+  checked native/public paired LIMIT 3, LIMIT 3 OFFSET 1 and LIMIT 1 OFFSET 1
+  give typed 2/1/1, 4/1/1 and NULL/0/0 with names and two resets. Full transient
+  rows and generic completed-child migration remain open.
+
+- Ordered derived LIMIT/OFFSET outer WHERE: pinned
+  `src/select.c:generateSortTail` applies producer OFFSET before the
+  post-producer predicate (restriction 19); `src/expr.c:sqlite3CodeSubselect`
+  caps SRT_Mem/SRT_Exists at one accepted result while preserving OFFSET.
+  `src/internal/vdbe.ts:compileScalarSelect` now admits this bounded
+  one-table path with producer OFFSET; its sorted drain stops Mem/Exists
+  after the first accepted row instead of overwriting it, while Set drains.
+  Source-ID-checked native/public paired LIMIT 2 OFFSET 1 and LIMIT 1
+  OFFSET 1 compare typed 4/1/1, names and two resets. Full transient rows,
+  general offset shapes and generic completed-child removal remain open.
+
+- Ordered direct scalar producer without post-predicate: pinned
+  `src/select.c:pushOntoSorter` bounds the sorter at producer LIMIT(+OFFSET)
+  independent of consumer WHERE. `src/internal/vdbe.ts:compileScalarSelect`
+  now passes the producer's `computeLimitRegisters.capacity` on both filtered
+  and unfiltered SorterInsert paths; `generateSortTail` drains into the shared
+  Mem/Exists/Set destination. Pinned-source-ID/public typed 9/1/1, names and
+  two resets for `SELECT x FROM t2 ORDER BY x DESC LIMIT 2`. Broader budgets
+  and completed-child migration remain open.
+
+- Ordered derived one-table LIMIT + outer predicate CASE: pinned
+  `src/select.c:flattenSubquery` (19), `generateSortTail` and
+  `src/expr.c:TK_CASE` -> `src/internal/vdbe.ts:compileScalarSelect` sorter
+  payload column collection *and* sorted-drain recursive CASE substitution.
+  Both branches must walk operand, WHEN, THEN and ELSE before Mem/Exists/Set;
+  otherwise CASE reads an exhausted source cursor. Source-ID-checked/public
+  paired `CASE WHEN d.a<9 THEN d.a ELSE 99 END<9` with `d.b` output returns
+  typed 4/1/1, metadata and two resets. The completed-child fallback remains.
+
+- Correlated no-FROM IN RHS in the direct one-table scalar producer: pinned
+  `src/resolve.c:lookupName` / `resolveExprStep` (`EP_VarSelect`),
+  `src/expr.c:sqlite3CodeSubselect` (no Once on correlated expressions),
+  `src/select.c:selectInnerLoop` -> `src/internal/resolve.ts:ResolvedColumnUse`
+  and `src/internal/vdbe.ts:compileScalarSelect` RHS column binding at the
+  producer scan cursor. Paired source-ID-checked native/public
+  `select-scalar-child-native.py` / `.test.mjs` compare typed scalar/EXISTS/IN
+  9/1/0, names and two resets. Other correlation depths and completed-child
+  relocation are not covered.
+
+- Correlated no-FROM RHS WHERE (follow-up): `src/resolve.c:lookupName` outer
+  NameContext use, `src/expr.c:sqlite3CodeSubselect` correlated evaluation,
+  `src/select.c:sqlite3Select` WHERE before SRT_Set -> `src/internal/vdbe.ts`
+  `bindCorrelated` for both child WHERE and child projection. Pinned-source-ID
+  native/public paired `select-scalar-child-native.py` / `.test.mjs` compare
+  `x IN (SELECT x WHERE x>1)` scalar/EXISTS/IN typed 9/1/0, metadata and two
+  resets; pre-repair public 9/1/1. Other NameContext depths remain open.
+
+- Bounded no-FROM correlated function calls: `src/resolve.c:lookupName` /
+  `sqlite3ResolveExprNames` and `src/expr.c:sqlite3ExprCodeTarget` ->
+  `src/internal/vdbe.ts:bindCorrelated`, `expressionFromReduction` and
+  `aggregateParts` exprlist order; `src/select.c:sqlite3Select` WHERE-before-
+  destination ordering remains shared by Mem/Exists/Set. Pinned/public paired
+  `select-scalar-child-native.py` / `.test.mjs` exercises `abs(x)` in result
+  and WHERE, typed 9/1/0, names, twice-reset statement. Other correlation
+  nesting and the completed-child relocation path remain unmigrated.
+
+- One-source scalar scan fallback (bounded, card-t-b): pinned
+  `src/expr.c:sqlite3CodeSubselect` -> `src/select.c:sqlite3Select`/
+  `selectInnerLoop` Mem/Exists/Set and sorter drain ->
+  `src/internal/vdbe.ts:compileScalarSelect` -> `compileInnerTableSelect`
+  enclosing `SelectProgramBuilder` for nonaggregate one-source as well as
+  joined producers. Paired source-ID-checked `select-scalar-child-native.py`
+  and `.test.mjs` exercise two-key ORDER/limit/offset typed rows and resets.
+  Completed-child opcode relocation for other shapes is still present.
+
+- Grouped LEFT JOIN child (bounded card-t-b): `src/select.c:sqlite3Select`
+  GROUP BY sorter after `src/where.c:sqlite3WhereBegin`/
+  `src/wherecode.c:sqlite3WhereEnd` NULL-extension ->
+  `src/internal/vdbe.ts:compileAggregateSelect` grouped sorter input loop;
+  `src/expr.c:sqlite3CodeSubselect` Mem/Exists/Set -> enclosing builder.
+  `select-scalar-child-native.py` / `.test.mjs` check matched/unmatched
+  typed count groups with order and reset. RIGHT/FULL/USING not admitted;
+  generic completed-child relocation still requires migration.
+
+- Grouped LEFT synthetic-row entry revision (card-t-b):
+  `src/wherecode.c:sqlite3WhereEnd` NULL-row continuation after ON ->
+  `src/internal/vdbe.ts:compileAggregateSelect` grouped `afterOn` labels;
+  `src/select.c:sqlite3Select` sorter receives post-ON, post-WHERE row.
+  Paired `select-scalar-child-native.py` / `.test.mjs` count nullable right
+  column with unmatched and ON-rejected groups. Generic relocation remains.
+
+- Grouped ORDER-only expression (card-t-b): `src/resolve.c:sqlite3ResolveOrderGroupBy`
+  alias/ordinal vs independent expression; `src/select.c:sqlite3Select`
+  `sqlite3ExprAnalyzeAggList(&sNC,sSort.pOrderBy)` and
+  `generateSortTail` -> `src/internal/vdbe.ts:compileAggregateSelect`
+  `orderExpressions` / saved-column remapping / grouped result sorter ->
+  `emitSelectDestination` Mem/Exists/Set. Source-first paired
+  `test/conformance/select-scalar-child-native.py` / `.test.mjs`.
+
+- Unordered table-backed UNION ALL IN (bounded card-t-b):
+  `src/select.c:multiSelect` TK_ALL consecutive `sqlite3Select` calls with
+  common `SelectDest` -> `src/expr.c:sqlite3CodeSubselect` SRT_Set ->
+  `src/internal/vdbe.ts:compileScalarSelect` per-arm
+  `compileInnerTableSelect` with shared builder/set cursor and `InSet`.
+  Paired `select-scalar-child-native.py` / `.test.mjs` checks typed hit/miss,
+  names and reset. ORDER/LIMIT/set-operator and non-IN compound ownership
+  remains pending; completed-child relocation still exists elsewhere.
+
+- Table-backed unordered UNION ALL scalar/EXISTS (card-t-b follow-up): pinned
+  `src/select.c:multiSelect` shared destination and `selectInnerLoop`
+  SRT_Mem/Exists first accepted row -> `src/internal/vdbe.ts:compileScalarSelect`
+  per-arm `compileInnerTableSelect` in enclosing builder; `select-program.ts`
+  Mem found flag disambiguates first NULL from empty. Paired source-ID-checked
+  scalar-child native/public first/empty-left/NULL tests include reset.
+  General compound ownership and completed-child fallback are not resolved.
+
+- Mixed table/no-FROM unordered unlimited UNION ALL expression children:
+  pinned `src/select.c:multiSelect` TK_ALL shares the SelectDest and
+  `selectInnerLoop` emits a no-FROM single candidate; `vdbe.ts:compileScalarSelect`
+  now sends simple no-FROM arms through `emitSelectDestination` alongside
+  `compileInnerTableSelect` for table arms. Source-ID-checked paired
+  scalar/Exists/Set first/empty/NULL public cases test metadata/reset.
+  No general compound ownership or fallback relocation removal is claimed.
+
+- Mixed compound classification (card-t-b): pinned
+  `src/select.c:multiSelect` walks `pPrior` then right-hand SELECT using a
+  common SelectDest; `vdbe.ts:compileScalarSelect` guards the all-constant
+  and simple no-FROM producers by **all** `SelectNode.arms`, not the
+  rightmost `from`. This routes left no-FROM/right table TK_ALL to the
+  shared builder. Pinned-source-ID public scalar/Exists/Set tests include
+  NULL-first, metadata and reset; generic fallback still remains.
+
+- Mixed no-FROM WHERE expression arms (card-t-b): pinned `src/select.c`:
+  `multiSelect` / `sqlite3Select` / `selectInnerLoop`, `src/where.c`:
+  `sqlite3WhereBegin` constant-term false jump to `iBreak`, `src/expr.c`:
+  `sqlite3CodeSubselect` Mem/Exists/Set. `vdbe.ts:compileScalarSelect`
+  lowers the no-FROM predicate before projection and destination emission in
+  the enclosing mixed TK_ALL arm loop; false/NULL jumps to its next arm.
+  Paired source-ID/public tests include WHERE 0 and NULL WHERE 1 with table
+  RHS, typed values, names and two iterations. Generic relocation unresolved.
+
+- All-no-FROM TK_ALL arms with WHERE (card-t-b): pinned `select.c:multiSelect`
+  calls `sqlite3Select` on each arm with one `SelectDest`; `where.c:sqlite3WhereBegin`
+  tests constant terms before `selectInnerLoop`; `expr.c:sqlite3CodeSubselect`
+  supplies Mem/Exists/Set. `vdbe.ts:compileScalarSelect` defers constant/simple
+  no-FROM classification when any arm has WHERE, and uses the existing arm-local
+  predicate and shared destination. Paired source-ID and public types/names/reset
+  for WHERE 0 and NULL WHERE 1; generic relocation still red.
+
+- `src/select.c:sqlite3Select` ungrouped aggregate tag-select-0820,
+  `src/resolve.c:resolveOrderGroupBy`, `src/expr.c:sqlite3CodeSubselect` ->
+  `src/internal/vdbe.ts:compileAggregateSelect` ORDER-only expression AggInfo
+  entries and `aggregateShapeSupported`; `test/conformance/select-scalar-child.test.mjs`
+  pinned independent `ORDER BY sum(x)` scalar/EXISTS/IN, LIMIT 0, reset and
+  metadata. Single accumulator output has no result sorter; completed-child
+  fallback remains untranslated.
+
+- `src/select.c:sqlite3Select` tag-select-0820 / `src/where.c:sqlite3WhereBegin` /
+  `src/expr.c:sqlite3CodeSubselect` -> `src/internal/vdbe.ts:compileScalarSelect`
+  zero-source aggregate routing into `compileAggregateSelect` with enclosing
+  `SelectProgramBuilder` and Mem/Exists/Set. WHERE filters accumulator input,
+  not the final row; LIMIT guards publication. Pinned typed public reset tests:
+  `test/conformance/select-scalar-child.test.mjs`. This is bounded to unordered,
+  ungrouped, noncompound child SELECTs; generic child relocation remains.
+
+- `src/select.c:sqlite3Select` tag-select-0820 (`WhereEnd` -> `finalizeAggFunctions`
+  -> HAVING -> `selectInnerLoop`) -> `src/internal/vdbe.ts:compileAggregateSelect`
+  finalization/HAVING/destination for no-FROM expression children. Parent
+  routing no longer excludes HAVING; `select-scalar-child.test.mjs` pairs the
+  pinned native scalar/Exists/Set values, LIMIT 0, names and reset. Generic
+  completed-child relocation remains.
+
+- `src/select.c:sqlite3Select` tag-select-0820 and
+  `src/resolve.c:resolveSelectStep` ORDER resolution ->
+  `src/internal/vdbe.ts:compileScalarSelect` zero-source aggregate entry into
+  `compileAggregateSelect` (ORDER-only aggregate registers allocated before
+  stepping, no output sorter for one accumulator row). Pinned native/public
+  typed source comparison: `select-scalar-child.test.mjs`; general completed
+  child relocation is not retired.
+
+- `src/resolve.c:resolveSelectStep` ORDER binding after result list and
+  `src/select.c:sqlite3Select` zero-source WhereBegin/`selectInnerLoop` ->
+  `src/internal/vdbe.ts:compileScalarSelect` no-FROM nonaggregate expression
+  child validates all independent ORDER keys via `expandAndResolveSelect`
+  before emitting its enclosing destination. One candidate needs no sorter;
+  ordinal/name errors remain prepare-time. `select-scalar-child.test.mjs`
+  compares pinned native rows, names, errors and reset. The generic completed
+  child splice is still unmigrated.
+
+- `src/resolve.c:resolveSelectStep` GROUP binding,
+  `src/select.c:sqlite3Select` grouped WhereBegin → sorter → accumulator →
+  destination -> `src/internal/vdbe.ts:compileAggregateSelect` zero-source
+  grouped producer, consumed by `compileScalarSelect` enclosing Mem/Exists/Set.
+  False WHERE skips sorter insertion directly (no Next cursor), producing no
+  group; unlike ungrouped count it does not finalize an empty group. Pinned
+  public typed/name/reset comparison: `select-scalar-child.test.mjs`.
+  Completed-child relocation remains a separate gap.
+
+- Nested zero-source derived count outer limiter: pinned
+  `src/select.c:sqlite3Select` tag-select-0650 `computeLimitRegisters` per
+  SELECT, `selectInnerLoop` producer candidate, `src/expr.c:sqlite3CodeSubselect`
+  SRT_Mem/Exists/Set -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  parent branch computes outer limiter before inner candidate and skips only
+  final destination for outer LIMIT/OFFSET; inner limiter skips AggStep.
+  `test/conformance/select-scalar-child.test.mjs` compares native typed values,
+  metadata and two resets. Generic completed-child splice remains separate.
+
+- Nonflattenable zero-source derived count HAVING: pinned
+  `src/select.c:sqlite3Select` tag-select-0820 (`finalizeAggFunctions`,
+  `sqlite3ExprIfFalse(pHaving,addrEnd,SQLITE_JUMPIFNULL)`, `selectInnerLoop`)
+  and `src/expr.c:sqlite3CodeSubselect` SRT destinations ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` parent branch. Only
+  count(*) aggregate references bind to finalized output; ordinary Boolean
+  expression lowering handles the rest, unsupported references reject.
+  Source-ID native/public `test/conformance/select-scalar-child.test.mjs`
+  checks typed rows, names and reset/finalize. Generic splice not retired.
+
+- Bounded zero-source derived count ORDER binding: pinned
+  `src/resolve.c:resolveSelectStep` / `resolveOrderGroupBy` before
+  `src/select.c:sqlite3Select` tag-select-0820 ungrouped accumulator and
+  suppressed sorter -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  resolves ORDER terms with `expandAndResolveSelect` against a transient
+  derived-result schema (resolution only, no physical table), before computing
+  parent/producer LIMITs or finalizing count. Qualified/unqualified derived
+  column ORDER keys and absent names bind/error at prepare. This is not a
+  general derived materialization. Source-ID native/public
+  `test/conformance/select-scalar-child.test.mjs` covers values and prepare
+  errors even under LIMIT 0; generic relocation still present.
+
+- Pinned `src/select.c:sqlite3Select` tag-select-0820 `sqlite3WhereBegin`
+  over a derived row before AggStep/finalize/HAVING/`selectInnerLoop`, with
+  `src/resolve.c:resolveSelectStep` rejecting WHERE aggregate use at prepare
+  -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount` parent-owned
+  one-candidate derived result register and outer WHERE `IfNot` before count
+  AggStep. A transient derived-result schema binds names but is never scanned.
+  Public/native typed/reset/error probes in
+  `test/conformance/select-scalar-child.test.mjs`; not a general derived scan.
+
+- Pinned `src/select.c:sqlite3ColumnsFromExprList` / `sqlite3Select` derived
+  result-list projection and `src/resolve.c:resolveSelectStep` source-column
+  binding before the tag-select-0820 outer count loop ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` computes all no-FROM
+  producer result registers in projection order and binds outer WHERE against
+  the corresponding unique transient column names; AggStep still counts only
+  the accepted row event. No general multirow materialization. Pinned/public
+  `test/conformance/select-scalar-child.test.mjs` probes width/name collision,
+  NULL, ORDER and errors; completed-child splice remains.
+
+- Pinned `src/resolve.c:resolveSelectStep` / `resolveOrderGroupBy` validates
+  inner derived SELECT ORDER names, expressions and ordinals before
+  `src/select.c:sqlite3Select` producer ordering. In
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount`, the bounded zero-FROM
+  one-row producer invokes `expandAndResolveSelect(source,schema)` at prepare;
+  ordering that single candidate is a no-op, but invalid ORDER still fails
+  preparation even under LIMIT 0. Source-ID native/public
+  `test/conformance/select-scalar-child.test.mjs` compares destination typed
+  rows/reset and errors. Not a materialized multirow sorter.
+
+- Pinned `src/select.c:selectInnerLoop` `codeDistinct` before OFFSET and SRT
+  destination -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount` admits
+  DISTINCT in its at-most-one-candidate zero-FROM producer. A single emitted
+  row cannot equal a prior row, so the ephemeral duplicate set is omitted
+  only in this bounded cardinality case. `src/resolve.c:resolveSelectStep`
+  validates inner projection/ORDER at prepare. Native/public
+  `test/conformance/select-scalar-child.test.mjs` covers typed rows,
+  reset/finalize and ordinal errors; no claim for multirow DISTINCT.
+
+- Pinned `src/select.c:sqlite3Select` tag-select-0820 AggStep/finalize and
+  `src/func.c:countStep` nullable-argument check ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` evaluates a single
+  `count(expr)` argument from the derived producer registers only after
+  source/outer WHERE gates, then passes it to AggStep; matching HAVING uses
+  AggFinal's output. Transient result names resolve at prepare even under
+  LIMIT 0. Source-ID native/public `test/conformance/select-scalar-child.test.mjs`
+  tests NULL/non-NULL, reset, destinations and missing columns. Other
+  aggregate identities are not conflated; no multirow derived support.
+
+- Pinned `src/select.c:sqlite3Select` AggInfo collection of result and HAVING
+  expressions (`sqlite3ExprAnalyzeAggList`/`sqlite3ExprAnalyzeAggregates`),
+  tag-select-0820 step/finalize/HAVING ordering, `src/func.c:countStep` ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` collects separate
+  count identities from bounded derived HAVING before emission, assigns
+  separate builder registers and steps/finalizes each against its projected
+  candidate. `test/conformance/select-scalar-child.test.mjs` native/public
+  compares NULL versus non-NULL counts, LIMIT 0, predicates, destinations,
+  reset and missing-column prepare; other aggregate families/multirow derived
+  producers are not covered.
+
+- Pinned `src/select.c:resetAccumulator` distinct-argument ephemeral setup,
+  `updateAccumulator` `codeDistinct` before AggStep and `src/func.c:countStep`
+  -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`: on its at-most-one
+  accepted no-FROM candidate, admit one-argument DISTINCT count without a
+  duplicate set, but distinguish DISTINCT versus ordinary aggregate identity
+  for separate result/HAVING registers. Native/public tests in
+  `test/conformance/select-scalar-child.test.mjs` compare NULL/empty/mixed
+  HAVING/destinations/errors/reset. Multirow distinct remains unimplemented by
+  this branch.
+
+- Pinned `src/select.c:updateAccumulator` FILTER-before-arguments/distinct/
+  AggStep, `sqlite3Select` AggInfo result/HAVING collection and `src/resolve.c`
+  nested aggregate validation -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  per-count FILTER gates and distinct FILTER-aware identities on its sole
+  candidate. `test/conformance/select-scalar-child.test.mjs` compares native
+  and public NULL, LIMIT 0, mixed counts, destinations, reset and invalid
+  FILTER expressions. No multirow deduplication/iteration is inferred.
+
+- Pinned `src/select.c:updateAccumulator` FILTER -> ORDER key -> argument ->
+  sorter -> AggStep path maps to `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  only for count with at most one accepted derived row: resolve/code keys in
+  the same gated order, distinguish ORDER identities in HAVING, step the one
+  accepted argument without a sorter. `test/conformance/select-scalar-child.test.mjs`
+  covers native/public ordered count rows, typed destinations, reset, empty
+  producer and prepare-time ORDER errors. Multirow ordered aggregates require
+  actual sorter/argument replay.
+
+- Pinned `src/select.c:sqlite3Select` result/HAVING AggInfo collection and
+  step/finalize order, `src/func.c:sumStep`, `sumFinalize`, `totalFinalize`,
+  `avgFinalize` -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  dispatches count/sum/avg/total names to existing translated VM AggStep and
+  AggFinal with independent identities and the no-FROM producer's <=1 row.
+  `test/conformance/select-scalar-child.test.mjs` compares native/public
+  integer/real/NULL, empty-input, mixed HAVING, destinations and reset/errors.
+  Multirow derived materialization and distinct/sort cursors remain unmapped.
+
+- Pinned `src/select.c:updateAccumulator` aggregate argument collation and
+  `src/func.c:minmaxStep`/`minMaxFinalize` -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  dispatches min/max from the <=1-row derived source into the existing VM
+  extrema aggregate, forwarding argument collation and distinct HAVING
+  identities. Native/public checks in `test/conformance/select-scalar-child.test.mjs`
+  cover integer/text/NULL, empty producer, destinations, FILTER/HAVING,
+  reset and missing column at prepare. Multirow extrema remain a separate
+  producer-iteration problem.
+
+- Pinned `src/select.c:updateAccumulator` argument emission order and
+  `src/func.c:groupConcatStep`/`groupConcatFinalize` ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` stores an argument
+  vector for each aggregate entry, forwarding one/two arguments to existing
+  VM group_concat/string_agg AggStep and finalizing on empty input. Native/
+  public typed destinations, mixed HAVING, FILTER/DISTINCT/ORDER and error
+  checks live in `test/conformance/select-scalar-child.test.mjs`. No multirow
+  string aggregation claim.
+
+- Pinned `src/select.c:sqlite3Select` zero-source GROUP BY group formation,
+  `src/resolve.c:resolveOrderGroupBy` ordinal/name/misuse checks ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` resolves and emits
+  the inner no-FROM grouped candidate into the enclosing accumulator;
+  its WHERE can remove the only group. `test/conformance/select-scalar-child.test.mjs`
+  compares native/public typed destinations, LIMIT 0, ORDER, empty group,
+  reset and errors. Inner HAVING/multirow grouping are not mapped here.
+
+- Pinned `src/select.c:sqlite3Select` GROUP BY result generator (HAVING
+  after group finalization, before `selectInnerLoop`/OFFSET), `src/resolve.c`
+  HAVING name binding -> `src/internal/vdbe.ts:compileZeroSourceDerivedCount`
+  nonaggregate inner HAVING on a no-FROM one-candidate GROUP BY producer.
+  `test/conformance/select-scalar-child.test.mjs` tests accepted, rejected,
+  NULL, OFFSET, typed destinations and preparation error; aggregate inner
+  HAVING and multirow groups still need separate production.
+
+- Pinned `src/select.c:sqlite3Select` GROUP BY AggInfo reset/step/finalize
+  and HAVING result gate, `src/func.c:countStep/countFinalize` ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` allocates one inner
+  count(*) accumulator for single-candidate GROUP BY HAVING, separately
+  from the enclosing accumulator. `test/conformance/select-scalar-child.test.mjs`
+  checks typed destinations, empty/filtered groups, ORDER/LIMIT/OFFSET,
+  repeated reset and name-resolution errors. Multirow grouping and other
+  aggregate expressions are not mapped through this route.
+
+- Pinned `src/select.c:updateAccumulator` FILTER/argument/step order and
+  GROUP BY finalizer/HAVING gate, `src/func.c` aggregate finalizers ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` inner HAVING
+  accumulator vector, separate from its enclosing aggregate. Source-ID
+  typed public checks in `test/conformance/select-scalar-child.test.mjs`
+  cover count(expr), FILTER/DISTINCT, numeric/extrema/string aggregates,
+  collation, empty group, name resolution, reset and destinations. Aggregate
+  ORDER BY, expression subqueries and multirow group materialization remain
+  unmapped in this bounded producer.
+
+- Pinned `src/select.c:updateAccumulator` aggregate FILTER -> ORDER key ->
+  argument -> sorter/step, GROUP BY finalize/HAVING ->
+  `src/internal/vdbe.ts:compileZeroSourceDerivedCount` one-candidate inner
+  HAVING aggregate vector. `test/conformance/select-scalar-child.test.mjs`
+  verifies typed ordered string/numeric aggregates, NULL, key-error under
+  LIMIT 0 and reset. No runtime sorter is required for one accepted value;
+  multirow aggregate ORDER remains outside this mapping.
+
+- `src/select.c:flattenSubquery` restrictions (9)/(16), `sqlite3Select`
+  subquery coroutine/materialization -> `src/internal/vdbe.ts:compileScalarSelect`
+  bounded nonaggregate multirow table producer via `compileInnerTableSelect`
+  and `src/internal/select-program.ts:aggregate-expression` destination. The consuming
+  count(*) only needs row events, so direct `AggStep` replaces transient-table
+  rereads in the same enclosing builder; `AggFinal` runs on the empty input.
+  Pinned oracle `native-multirow-count.py` and public
+  `test/conformance/select-scalar-child.test.mjs` check ORDER/LIMIT/OFFSET,
+  typed value/name and reset. This mapping excludes general materialized
+  derived tables and does not retire completed-child relocation.
+
+- Pinned `src/select.c:flattenSubquery`, `updateAccumulator` and
+  `src/func.c:sumStep/countStep` -> `src/internal/vdbe.ts:compileScalarSelect`
+  bounded derived projected-column aggregate route and
+  `src/internal/select-program.ts:aggregate-expression`. Producer sorter/LIMIT/
+  OFFSET gates the projected result vector before aggregate step; the outer
+  accumulator resets/finalizes once and emits Mem/Exists/Set. Only a single
+  uncorrelated column-argument count/sum/avg/total consumer without outer
+  predicate/group/distinct/filter is covered; streaming is a read-only TS
+  adaptation, not general subquery materialization. Source-ID
+  `native-multirow-values.py` and `select-scalar-child.test.mjs` cover typed
+  zero/nonzero input, IN, reset and invalid projected names under LIMIT 0.
+
+- Pinned `src/select.c:updateAccumulator` and `src/func.c:minmaxStep` /
+  `minMaxFinalize` -> `src/internal/select-program.ts:aggregate-expression` with
+  argument collation for bounded `min/max` of derived projected column in
+  `src/internal/vdbe.ts:compileScalarSelect`. Producer sorter, limit and offset
+  precede step; finalize on empty input. `native-multirow-extrema.py` (source
+  ID) and `select-scalar-child.test.mjs` check typed result, COLLATE, IN,
+  EXISTS, invalid name under LIMIT 0 and two reset cycles. No grouped or
+  general materialized derived consumer is claimed.
+
+- Pinned `src/select.c:updateAccumulator` `sqlite3ExprCodeExprList` and
+  `src/expr.c:sqlite3ExprCodeTarget` -> bounded derived-row argument binder
+  in `src/internal/vdbe.ts:compileScalarSelect`, with
+  `src/internal/select-program.ts:aggregate-expression` consuming producer
+  result registers at scan or sorter drain. Resolves projected names before
+  producer execution; no nested aggregate/SELECT argument in this route.
+  `native-multirow-expr.py` and public `select-scalar-child.test.mjs` cover
+  typed expression aggregates, empty rows, LIMIT/OFFSET and invalid columns;
+  generic completed-child relocation remains unmigrated.
+
+- `src/select.c:updateAccumulator` (NEEDCOLL) ->
+  `src/expr.c:sqlite3ExprCollSeq` -> `src/internal/vdbe.ts` derived-row
+  `argumentCollation`, before lowering references to registers. A bare
+  projected column takes its resolved descriptor collation; a binary
+  expression does not inherit implicit column collation, though explicit
+  COLLATE wins. Pinned `collation-probe/native.py` and public scalar-child
+  tests distinguish RTRIM/BINARY `max` across two reset cycles.
+
+- Pinned `src/select.c:updateAccumulator` FILTER `sqlite3ExprIfFalse`
+  (NULL jumps) -> `src/internal/select-program.ts:aggregate-expression`:
+  `emitFilter`/`IfNot` precedes `emitArgument`/`AggStep`, with FILTER names
+  bound before `compileInnerTableSelect` and producer scan/sorter events in
+  `src/internal/vdbe.ts:compileScalarSelect`. Zero-argument count(*) uses the
+  same destination. Former `count-step` and `aggregate-step` variants retired
+  after their bounded consumers migrated. Pinned `filter-probe/native.py` and
+  public `select-scalar-child.test.mjs` check false/NULL, empty input, names,
+  metadata and two reset cycles. No general multirow aggregate sorter.
+
+- Pinned `src/select.c:resetAccumulator` DISTINCT ephemeral KeyInfo and
+  `updateAccumulator` FILTER -> argument -> `codeDistinct` -> AggStep ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded derived aggregate
+  `distinctCursor` and `src/internal/select-program.ts:aggregate-expression`
+  Found/IdxInsert gate. `src/internal/private-state.ts:EphemeralIndexCursor`
+  retains Mem-owned key comparison/budget/lifecycle; producer sorter and
+  LIMIT gate before argument. Source-ID `distinct-probe/native.py` and public
+  `select-scalar-child.test.mjs` cover typed, collation, FILTER, reset,
+  Mem/IN/EXISTS and invalid name under LIMIT 0. No general materialization.
+
+- Pinned `src/select.c:resetAccumulator` aggregate ORDER index,
+  `updateAccumulator` FILTER -> ORDER key -> argument -> DISTINCT -> insert,
+  and `finalizeAggFunctions` drain/AggStep/AggFinal ->
+  `src/internal/vdbe.ts:compileScalarSelect` bounded derived aggregate sorter
+  and `src/internal/select-program.ts:aggregate-expression`. Producer sorter/
+  LIMIT/OFFSET selects candidate rows; aggregate sorter drains afterward.
+  `src/internal/private-state.ts:SorterCursor` owns stable ties, typed payload,
+  budget and VM cleanup. Pinned `order-probe/native.py` / public
+  `select-scalar-child.test.mjs` verify typed FILTER/DISTINCT, empty, Mem/IN/
+  EXISTS, missing ORDER key at LIMIT 0, name and two reset cycles. Only the
+  single-argument uncorrelated no-GROUP bounded producer is mapped.
+
+- Pinned `src/select.c:resetAccumulator` / `updateAccumulator` /
+  `finalizeAggFunctions` ordered single-argument `group_concat` -> bounded
+  `src/internal/vdbe.ts:compileScalarSelect` derived-row producer and
+  `src/internal/select-program.ts:aggregate-expression` sorter destination;
+  `src/internal/vdbe.ts:aggregateStep` still owns default separator and Mem
+  state. Pinned `order-probe/native.py` and public scalar-child tests cover
+  ORDER/FILTER/DISTINCT, empty, IN and reset. Two-argument and general
+  materialization paths are not mapped here.
+
+- Pinned `src/select.c:updateAccumulator` argument range and ordered record,
+  `finalizeAggFunctions` `nArg` sorted drain, and
+  `src/func.c:groupConcatStep` second separator argument ->
+  `src/internal/select-program.ts:aggregate-expression` argument vector and
+  `src/internal/vdbe.ts:compileScalarSelect` bounded derived-row sorter
+  payload range/drain; VM aggregate state remains the Mem owner. Oracle
+  `order-probe/oracle-vector.log` and public scalar-child two-reset tests
+  check string_agg, custom separator, FILTER, empty, IN and prepare errors.
+  Earlier one-argument-only mapping for this route is superseded; general
+  grouped/materialized SELECT is not mapped.
+
+- Pinned `src/select.c:sqlite3Select` non-GROUP `sqlite3WhereBegin` before
+  `updateAccumulator` -> `src/internal/vdbe.ts:compileScalarSelect` binds the
+  bounded derived-row outer WHERE before producer execution and
+  `src/internal/select-program.ts:aggregate-expression` gates rows before
+  FILTER/ORDER/arguments/DISTINCT/step. Producer ORDER/LIMIT/OFFSET runs first.
+  Source-ID oracle `order-probe/oracle-where.log` and public scalar-child cases
+  check typed results, IN, resets and bad names at LIMIT 0; not general WHERE.
+
+- Pinned `src/select.c:sqlite3Select` limiter tag-select-0650 before scan,
+  non-GROUP `finalizeAggFunctions` then `selectInnerLoop` -> bounded derived-row
+  scalar compiler outer `computeLimitRegisters`, producer scan/step/finalize,
+  offset gate then `emitSelectDestination` for Mem/Exists/Set. Producer's own
+  LIMIT/OFFSET remains separate. Source-ID `where-validation/outer-limit-
+  oracle.log` and public scalar-child two-reset cases cover typed results,
+  IN/EXISTS, LIMIT 0 and bad name at prepare. No general grouped/materialized
+  producer mapping.
+
+- `src/resolve.c:resolveOrderGroupBy` alias/ordinal before source-expression
+  binding and `src/select.c:sqlite3Select` one non-GROUP final row to
+  `selectInnerLoop` -> bounded ordinary-table derived-row aggregate compiler
+  outer ORDER binder (no second sorter), separate producer/aggregate argument
+  sorters. Pinned ctypes `where-validation/outer-order-oracle.log`; public
+  scalar-child two-reset typed/name/error, LIMIT 0, IN/EXISTS probes. Other
+  grouped/compound/materialized ORDER consumers not mapped here.
+
 ### Derived aggregate count bridge ownership (revision)
 
 `src/select.c:sqlite3Select` aggregate input event and `src/func.c:groupConcatStep`

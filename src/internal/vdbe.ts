@@ -19,7 +19,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
-import { planWhere, ROWID_NEEDED, WherePlanningUnsupportedError, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
+import { planWhere, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
@@ -4073,8 +4073,8 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // wherecode.c:wherePartIdxExpr may code an exact partial-index predicate, but
   // it never licenses dropping a different query conjunct that merely implied
   // candidate usability. Keep this narrow and structural.
-  const partialIdentity:null=null;
-  const allWhereTermsAdmitted=!select.hasSubquery&&(selectedEqualities.length>0||selectedIndexLower!==null||selectedIndexUpper!==null)&&selectedConstraints.length>0&&selectedLoopTerms.filter(term=>!term.virtual).every(term=>(selectedConstraints.some(item=>item.term.id===term.id)&&term.outerJoinSafe.mayOmitResidual));
+  const partialIdentity=selectedPhysical?.index.partialWhere?expressionStructuralIdentity(selectedPhysical.index.partialWhere):null;
+  const allWhereTermsAdmitted=!select.hasSubquery&&(selectedEqualities.length>0||selectedIndexLower!==null||selectedIndexUpper!==null)&&selectedConstraints.length>0&&selectedLoopTerms.filter(term=>!term.virtual).every(term=>(selectedConstraints.some(item=>item.term.id===term.id)&&term.outerJoinSafe.mayOmitResidual)||(partialIdentity!==null&&expressionStructuralIdentity(term.expression)===partialIdentity));
   // wherecode.c marks terms TERM_CODED independently. A rowid bound may omit
   // only its own comparison; it must not suppress an unrelated residual term
   // from the same AND-clause (for example `rowid<7 AND b>2`).

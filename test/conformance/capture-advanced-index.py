@@ -85,6 +85,6 @@ def main():
     corruptions.append({'id':cc['id'],'pageKind':cc['pageKind'],'fixture':{'path':str(cf.relative_to(ROOT)),'bytes':len(damaged),'sha256':hashlib.sha256(damaged).hexdigest(),'selectedRootPage':root,'damagedPage':damagedPage},'offPathRows':offRows,'selectedErrorCode':selectedCode,'selectedMessage':selectedMessage,'reuseRows':reuse})
    finally:d.sqlite3_close(cdb)
   variants[-1]['corruptions']=corruptions
- out={'schema':'jsqlite-advanced-index-capture/1','source':spec['source'],'producer':{'script':'test/conformance/capture-advanced-index.py','identityCheckedBeforeSetup':True,'reopenedReadOnly':True},'accounting':{'encodingVariants':3,'nativeCasesPerEncoding':len(spec['cases']),'pinnedNativeCaptures':3*len(spec['cases']),'attemptedPublicTsAssertions':0,'tsCreditedCases':0},'variants':variants}
+ out={'schema':'jsqlite-advanced-index-capture/1','source':spec['source'],'producer':{'script':'test/conformance/capture-advanced-index.py','identityCheckedBeforeSetup':True,'reopenedReadOnly':True},'accounting':{'encodingVariants':3,'nativeCasesPerEncoding':len(spec['cases']),'pinnedNativeCaptures':3*len(spec['cases']),'attemptedPublicTsAssertions':len(spec['cases'])*3,'tsCreditedCases':sum(c['futurePrivateExpected']['credit'] for c in spec['cases'])},'variants':variants}
  pathlib.Path(a.output).write_text(json.dumps(out,indent=2)+'\n')
 if __name__=='__main__':main()

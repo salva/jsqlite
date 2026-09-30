@@ -648,11 +648,15 @@ UTF-8 source-byte adaptation is the tested contract, not alternate SQL encodings
 ### WHERE planning implementation note
 
 The existing prepared-statement API is unchanged. Persistent-index selection and
-its eight execution-work counters are implementation-private; counter access is
-limited to the conformance adapter and is not exported by the package. Reset,
-rebind, finalize, deadline, cancellation, row/work/output limits, and deferred
-close retain their documented public behavior while the immutable selected plan
-and bindings are retained as applicable.
+its nine production-private counter families are implementation-private; counter
+access is limited to the conformance adapter and is not exported by the package.
+All nine begin fresh at zero for each execution/reset. Their operation-shaped
+semantics, including `inProbes`, are defined by the authoritative private
+accounting contract in `docs/TRANSLATION.md` and tested as described in
+`docs/CONFORMANCE.md`; they are not public statement-status or diagnostics.
+Reset, rebind, finalize, deadline, cancellation, row/work/output limits, and
+deferred close retain their documented public behavior while the immutable
+selected plan and bindings are retained as applicable.
 
 ### Advanced index public boundary (revision 2026-09-23)
 

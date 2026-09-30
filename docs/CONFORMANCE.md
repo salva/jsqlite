@@ -612,11 +612,132 @@ ordinary-BLOB-value error.
 `test/conformance/run-index-planner-ts.mjs` executes all 23 pinned cases through
 the public fixture/open/prepare/bind/step API for UTF-8, UTF-16LE, and UTF-16BE.
 All 69 executions require exact public rows/errors and every exact/min/max
-invariant for the eight production-private counters exposed only by the test
-adapter. `index-planner-manifest.test.py` validates pinned source identity,
+invariant for the nine production-private counter families exposed only by the
+test adapter. `inProbes` is zero outside index-backed IN.
+`index-planner-manifest.test.py` validates pinned source identity,
 captures, accounting, and credit; five unsupported atomic setup gates remain
 explicitly unattempted and receive no credit.
 
-## Advanced-index native-only tranche
+## Advanced-index execution and credit boundary
 
-The advanced-index contract contributes **30 pinned native captures** (10 cases across three encodings) and **0 public TS attempts / 0 TS credits** without changing ordinary-index 69/69. Validate with `npm run test:conformance:advanced-index:manifest`; recapture with `npm run test:conformance:advanced-index:native`. It covers WITHOUT ROWID primary/secondary layout and lookups, partial implication neighbors, expression identity neighbors, index-backed IN, and composite/multiple ranges. Native captures additionally execute reset/clear/rebind/finalize, prepare plus configured length and variable-number resource-limit errors followed by connection reuse, statement-status bounded-work counters, and two selected-page corruption branches per encoding: secondary b-tree root initialization and indexed payload overflow-chain traversal. Both require unrelated off-path success before/after the exact selected `SQLITE_CORRUPT`. Advanced TS remains atomic temporary unsupported.
+The advanced harness executes **30 public TypeScript row cases** (10 cases across
+UTF-8, UTF-16LE, and UTF-16BE) and credits **24 encoding/case pairs**:
+`wr-primary-exact`, `wr-primary-prefix`, `wr-secondary-suffix`,
+`index-backed-in`, `composite-equality-two-ranges`,
+`multiple-range-neighbor`, `partial-implied`, and `expression-identical` in
+all three encodings. The two negative `partial-not-implied` and
+`expression-mismatch` pairs are attempted public rows but remain `unattempted`
+for *selected-access* credit, zero selected-access credit: their native EQP and
+unforced TypeScript path are truthful base scans, not selection of `p_live` or
+`e_expr`.
+
+Selected-access eligibility requires the same frozen SQL/bindings and hashed
+fixture in each encoding, independently captured pinned native typed rows and EQP,
+public typed rows and bounded nine-family accounting, and a physically opened
+loaded selected root with its KeyInfo, live equality-key seek and matching
+position/iteration (not just a planner label or green rows). The all-encoding
+public probes establish this for `partial-implied` (`p_live`, one ge seek,
+`deferred-unused`, zero table seeks) and `expression-identical` (`e_expr`, one ge
+seek, `deferred-base` table lookup); captured native EQP selects those indexes.
+Negative controls establish base-only execution, so they do not earn positive
+selected-access credit even though their rows and counters pass. Review-derived
+NULL/rebind and corruption probes reinforce the boundary, but are not frozen
+native recaptures or extra credit. This bounded selected-access eligibility does
+not establish general optimizer parity or credit joined selected-IN (still gated).
+The frozen `partial-implied` access label is `deferred-unused`, not `covering`:
+pinned SQLite emits lazy `OP_DeferredSeek`, but no table record is read and the
+observable `tableSeeks`/`tableNext` contract remains exactly zero.
+Ordinary-index W1/W2 remains 69/69.
+
+The original tests-first snapshot was native-only and recorded advanced public TS
+attempted/credited as 0/0; that snapshot is superseded by the boundary above.
+The contract still retains **30 separately obtained pinned native captures** for
+the same ten cases. Validate source identity, captures, accounting, and credit with
+`npm run test:conformance:advanced-index:manifest`; recapture with
+`npm run test:conformance:advanced-index:native`. Native captures cover WITHOUT
+ROWID primary/secondary layout and lookups, partial implication neighbors,
+expression identity neighbors, index-backed IN, and composite/multiple ranges.
+Native-only reset/clear/rebind/finalize, resource-limit, statement-status, and
+selected-page corruption companions remain evidence outside the 30-public-row
+credit denominator and must not be counted as public attempts or credits. The two
+corruption companions per encoding require unrelated off-path success before and
+after the exact selected `SQLITE_CORRUPT`.
+
+All public executions retain the nine-family private accounting contract.
+`inProbes` increments only for executed index-backed IN probes and is zero on the
+four current partial/expression non-IN fallback cases.
+
+The expanded review gate is
+`node --experimental-strip-types --test test/conformance/run-advanced-index-ts.test.mjs`.
+The historical **18/40 pass, 22 fail** result is superseded by focused current
+verification below, not a credit denominator. All-encoding selected/off-path
+corruption, lazy DeferredSeek, reset/rebind/limits, join provenance and selected
+path order, exact-source/alias and expression-shape identity, NOT-NULL implication
+and IIF/CASE boundaries are review-derived probes rather than native recaptures.
+The two negative controls remain zero selected-access credit; the six positive
+partial/expression encoding pairs meet the criterion above independently of the
+whole-suite test count. See the revision-labeled fidelity audit for historical
+failure localization and current boundaries.
+
+2026-09-29 partial-proof safety correction: public advanced-index joined same-name nullable-row companion rejects `m.c` as evidence for `p.c IS NOT NULL` in the three fixture encodings, forward/reversed and LEFT joins with reset, comparing unforced to `NOT INDEXED` and rejecting forced unusable `p_live` at prepare. This is a regression outside the frozen 24/30 selected-access accounting; it adds no capture credit or optimizer-wide claim. Source: `where.c:whereUsablePartialIndex` and `expr.c:exprImpliesNotNull` (SQLite 3.53.4).
+
+## Native IN-only composite range and immutable statistics discriminator ([[card:card-s-c-d-c]])
+
+A separate development-only producer, `test/conformance/capture-in-range-stat.py`, validates the manifest source ID before constructing six immutable fixture files (`test/conformance/fixtures/in-range-stat-{utf8,utf16le,utf16be}-{before,after}.db`). Construction writes occur only in development; verification reopens all snapshots with `SQLITE_OPEN_READONLY`. The after snapshots contain native-generated `sqlite_stat1` from `ANALYZE`; this pinned library does **not** enable STAT4 and the schema has no `sqlite_stat4`. Do not attribute a STAT4 choice or extrapolate optimizer parity.
+
+`test/conformance/cases/in-range-stat-native.json` stores SHA-256, typed rows (including INTEGER/REAL/NULL and the UTF-encoded database variants), exact row order, full native EXPLAIN opcodes with arguments, EQP and FULLSCAN_STEP/SORT/VM_STEP for forced `t_ab`, unforced, and `NOT INDEXED` controls. The composite query has **no equality predicate on `a`**: duplicate `1`, REAL `1.0`, NULL and `2` IN RHS, `b>=12 AND b<=15`, `c>0.0`, with a separate NULL/duplicate RHS neighbor. Native selected EQP is `SEARCH t USING INDEX t_ab (a=? AND b>? AND b<?)` in all snapshots; RHS `OpenEphemeral`/four `IdxInsert`/`Rewind`/`Next`, `SeekGE` and `IdxGT` coexist; full-scan control returns identical typed rows but has 303 full-scan steps versus zero for the selected path. This distinguishes indexed IN probes from post-filtered scan results. The statistic-choice neighbor changes from `SEARCH ... t_a (a=?)` pre-ANALYZE to `SEARCH ... COVERING INDEX t_ab (a=? AND b=?)` plus sorter post-ANALYZE, with `t_a='304 76'`, `t_ab='304 76 1'`, `t_b='304 2'` in stat1; the composite selected path itself does **not** change. This proves a selected native path difference, not only a cost-estimate change.
+
+`python3 test/conformance/in-range-stat-native.test.py`, `python3 test/conformance/capture-in-range-stat.py --library <manifest-pinned-lib>` (without `--regenerate`), and `node --test test/conformance/in-range-stat-ts.test.mjs` verify the frozen data and public execution. At the earlier tests-first checkpoint TS rejected the composite selected IN and stat-choice IN at prepare in all six snapshots; the six stat-choice checks now pass in the bounded planner slice, whereas the separate composite access checks still require validation; public `NOT INDEXED` scan produces the native rows after each rejection, with table movement, **not selected-index credit**. The source-owner follow-up is `where.c:whereLoopAddBtreeIndex` / `whereInScanEst` / `whereRangeScanEst`, `wherecode.c:codeINTerm` and `sqlite3WhereCodeOneLoopStart`, `analyze.c:analysisLoader` / `sqlite3AnalysisLoad`, then the selected VDBE cursor reset/end transitions. No shared execution files were changed for this evidence.
+
+2026-09-29 correction to the historical joined selected-IN gate above: one
+selected IN prefix with an optional range now executes per-key composite seeks,
+including a joined LEFT nullable-row case and reset/rebind. The all-encoding
+`in-range-selected-red.test.mjs` and advanced-index joined regression check
+rows and access, not general optimizer/statistics parity. Multiple IN slots
+remain temporary unsupported for forced access; earlier scan-only credit is
+not promoted to native full-surface compatibility.
+
+2026-09-29 bounded composite-IN safety evidence: six frozen encoding/state
+public selected-vs-`NOT INDEXED` controls with malformed t_ab root return SQLite
+code 11 on selected seek without poisoning off-path rows. Six duplicate-RHS
+limit checks confirm a selected seek occurs before private RHS comparisons hit
+`maxWorkUnits` and the connection remains reusable after finalization. The
+finite-array work accounting is a browser-safe safety adaptation, not SQLite
+RHS Btree complexity parity.
+
+2026-09-30 selected two-slot IN checks: all six frozen encoding/state fixtures
+cover two equality slots, duplicate/NULL RHS, selected/unforced physical seeks,
+and LEFT unmatched-once. New-case expected rows were compared against host
+SQLite 3.45.1, not independently captured pinned-native behavior. The pinned
+fixture's original cases and their immutable oracle remain untouched.
+
+Selected IN RHS order: six UTF-8/16le/16be before/after fixture queries were
+independently run against manifest-pinned native SQLite 3.53.4 through read-only
+CTypes API, then asserted through TS public selected-index statements with
+unsorted duplicate/NULL two-slot RHS and physical seek evidence. Tests also
+exercise bounded RHS construction before first seek and post-error reuse.
+
+2026-09-29 [[card:card-s-c-d-f]] stat-choice check: six public pinned
+UTF8/16le/be pre/post ANALYZE cases in `in-range-stat-choice-red.test.mjs`
+pass typed rows, forced alternatives and selected access/sorter accounting;
+`where-plan-analysis.test.mjs`, `without-rowid-primary.test.mjs`, and
+`run-advanced-index-ts.test.mjs` pass 98/98 together. The latter's joined
+single-field IN expectation was corrected against independent pinned 3.53.4
+read-only EXPLAIN (join equality index seek; IN residual); it is not a
+multiple-probe credit. Unsupported stat4 and additional stat1 formats are not
+covered by the six fixture choices; no general planner parity is claimed.
+
+[[card:card-s-c-d-f]] regression checkpoint: the six stat-choice public cases
+pass but `in-range-stat-ts.test.mjs` still fails post-ANALYZE unforced composite
+selected probes, and `in-range-selected-red.test.mjs` fails three analogous
+and six joined two-slot access checks. Native capture uses `t_ab` for the
+unforced composite in all snapshots. Treat the earlier tests-first rejection
+paragraph as historical, not current execution status.
+
+[[card:card-s-c-d-f]] updated focused checkpoint: the insertion-order
+case-2 subset adjustment makes the six frozen stat-choice checks and the
+selected composite/paired-range and joined two-slot access assertions pass
+in `in-range-stat-choice-red.test.mjs`, `in-range-stat-ts.test.mjs`, and
+`in-range-selected-red.test.mjs` (52/52 together). The red checkpoint above
+is historical; native path comparison is bounded to these fixtures, not
+full `whereLoopInsert` or STAT4 fidelity.

@@ -59,20 +59,20 @@ test('WITHOUT ROWID unconstrained scan uses BLOBKEY storage safely',async()=>wit
   try{const rows=[];while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1),statement.column(2)]);assert.deepEqual(rows,[['Alpha',1n,'w1'],['alpha',2n,'w2'],['beta',1n,'w3'],['gamma',2n,'w4']]);}finally{statement.finalize()}
 }));
 
-test('partial-index residual needing a non-index table column never becomes false covering',async()=>{
+test('partial-index residual needing a non-index table column materializes the base row',async()=>{
   for(const [encoding,file] of Object.entries(fixtures))await withFixture(file,async db=>{
-    // p_live stores (a,b,rowid), not c. Partial-index implication is sibling
-    // scope, so this card must retain a table-reading path for c rather than
-    // evaluating the residual from a missing index-record value.
+    // p_live stores (a,b,rowid), not c. The now-integrated partial-index path
+    // may prove c IS NOT NULL for admission, but projecting c still requires
+    // one deferred base-table materialization for the selected row.
     const statement=db.prepare('SELECT c FROM p WHERE a=?1 AND c IS NOT NULL ORDER BY b').statement;
     try{
       statement.bind(1,1n);
       const actual=[];while(await statement.step()==='row')actual.push(statement.column(0));
       assert.deepEqual(actual,[1],encoding);
       const accounting=privateAccounting(statement);
-      assert.equal(accounting.indexSeeks,0,`${encoding}/no sibling partial selection`);
-      assert.ok(accounting.tableNext>=3,`${encoding}/table values read`);
-      assert.ok(accounting.residualTests>=4,`${encoding}/residual tested from table`);
+      assert.equal(accounting.indexSeeks,1,`${encoding}/partial selected`);
+      assert.equal(accounting.tableSeeks,1,`${encoding}/uncovered c materialized`);
+      assert.equal(accounting.residualTests,0,`${encoding}/admitted predicate omitted`);
     }finally{try{statement.finalize()}catch{}}
   });
 });

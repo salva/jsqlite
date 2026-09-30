@@ -68,6 +68,18 @@ export interface IndexNode {
   /** Immutable packed-key identity, built exactly once with the schema. */
   readonly physical: PhysicalIndex | null;
 }
+/** analyze.c:analysisLoader estimates, detached from frozen schema/key cycles. */
+export interface IndexStatistics { readonly rowLogEst: readonly number[]; readonly unordered:boolean }
+const indexStatistics=new WeakMap<IndexNode,IndexStatistics>();
+export function statisticsForIndex(index:IndexNode):IndexStatistics|null {return indexStatistics.get(index)??null;}
+/** util.c:sqlite3LogEst, including its small integer rounding table. */
+export function sqliteLogEst(value:bigint):number {
+ if(value<2n)return 0;
+ let x=value,y=40;
+ if(x<8n){while(x<8n){y-=10;x<<=1n;}}
+ else {while(x>255n){y+=40;x>>=4n;}while(x>15n){y+=10;x>>=1n;}}
+ return [0,2,3,5,6,7,8,9][Number(x&7n)]!+y-10;
+}
 export interface PhysicalIndexField { readonly role:"declared"|"primary-key-suffix"|"stored-column"|"rowid-tail"; readonly column:ColumnNode|null; readonly expression:ExprNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
 export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; /** Exact secondary-record field ordinal for each primary KeyInfo term, in PK order. */ readonly primaryKeyFields:readonly number[]; readonly keyInfo:KeyInfo }
 /** Historical name retained for internal consumers that construct synthetic
@@ -373,6 +385,37 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
     } else if (item.type === "trigger") {
       throw new SchemaUnsupportedError(`trigger construction is not implemented: ${item.name}`);
     } else malformed(`unknown object type ${item.type}`);
+  }
+  // analyze.c:sqlite3AnalysisLoad/analysisLoader. sqlite_stat1 is an ordinary
+  // rowid b-tree, not a schema declaration. Decode using the database encoding;
+  // never expose unsupported stat tokens as plausible planner estimates.
+  // STAT4 samples change equality/range selectivity in where.c. Until that
+  // sample path exists, do not publish a plan based on stat1 alone.
+  const stat4=tables.get("sqlite_stat4");
+  if(stat4){const samples=database.tableCursor(stat4.rootPage);if(samples.first())throw new SchemaUnsupportedError("sqlite_stat4 samples are not represented");}
+  const statTable=tables.get("sqlite_stat1");
+  if(statTable){
+    const cursor=database.tableCursor(statTable.rootPage);
+    if(cursor.first())do {
+      let values;
+      try {values=decodeRecord(cursor.payload(),database.encoding).values;}
+      catch(error){throw new SchemaFormatError("invalid sqlite_stat1 record",{cause:error});}
+      if(values.length!==3)malformed("sqlite_stat1 record must have three fields");
+      if(values[0]!.storageClass!=="text"||values[2]!.storageClass!=="text")continue;
+      const tableName=decodeSqliteText(values[0]!.bytes,database.encoding);
+      const table=tables.get(sqliteAsciiFold(tableName));if(!table)continue;
+      if(values[1]!.storageClass!=="text")continue;
+      const indexName=decodeSqliteText(values[1]!.bytes,database.encoding);
+      const index=indexes.get(sqliteAsciiFold(indexName));
+      if(!index||index.table!==table)continue;
+      const stat=decodeSqliteText(values[2]!.bytes,database.encoding);
+      const parts=stat.split(" ");const count=index.terms.length+1;
+      if(parts.length<count||parts.slice(0,count).some(part=>!/^\d+$/.test(part)||BigInt(part)>0xffffffffffffffffn))throw new SchemaUnsupportedError(`unrepresented sqlite_stat1 for ${index.name}`);
+      const tail=parts.slice(count).filter(Boolean);
+      if(tail.some(part=>part!=="unordered"))throw new SchemaUnsupportedError(`unrepresented sqlite_stat1 token for ${index.name}`);
+      const estimates=parts.slice(0,count).map(part=>sqliteLogEst(BigInt(part)));
+      indexStatistics.set(index,Object.freeze({rowLogEst:Object.freeze(estimates),unordered:tail.includes("unordered")}));
+    }while(cursor.next());
   }
   // Restore physical sqlite_schema declaration order after cross-linking tables.
   const byName = new Map<string, SchemaObject>([...tables, ...indexes, ...views]);

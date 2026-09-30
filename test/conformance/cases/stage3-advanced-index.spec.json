@@ -9,7 +9,7 @@
     "nativeSupported": true,
     "publicTsAttempted": true,
     "publicTsCredited": true,
-    "temporaryTsRejection": "partial/expression selected-access remains uncredited sibling scope",
+    "temporaryTsRejection": "joined selected equality-prefix IN remains atomic temporary unsupported; unrepresented partial/expression shapes remain gated",
     "readOnlyCapture": true
   },
   "upstreamAnchors": [
@@ -318,13 +318,13 @@
       ],
       "requiresPlan": "p_live",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "p_live",
         "cursorRoles": [
           "secondary"
         ],
-        "accessMode": "covering",
+        "accessMode": "deferred-unused",
         "counters": {
           "plannerCandidates": {
             "min": 1
@@ -442,8 +442,8 @@
       ],
       "requiresPlan": "e_expr",
       "futurePrivateExpected": {
-        "status": "unattempted",
-        "credit": 0,
+        "status": "passing",
+        "credit": 3,
         "selectedRoot": "e_expr",
         "cursorRoles": [
           "expression-index",
