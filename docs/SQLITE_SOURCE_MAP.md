@@ -1750,9 +1750,18 @@ The later all-encoding unhinted IN fallback review found a source-identity regre
 
 A review-derived forced `m_abc(a,b,c)` join with `ORDER BY y.b DESC` returned the right three rows but inserted all three into a sorter. Initially a test demanded zero sorter inserts, mistaking a single selected index's locally reversible key order for proven **global joined** ORDER. Inspection of `where-plan.ts:wherePathSolver` shows it deliberately sets `orderTermsSatisfied` to zero whenever `sourceCount>1`; `vdbe.ts:compileInnerTableSelect` consequently retains the sorter, correctly avoiding a false global ORDER claim under its current fixed source-order lowering. Pinned `src/where.c` ORDER proof operates over a whole WherePath and `src/wherecode.c:sqlite3WhereCodeOneLoopStart` reverses a selected loop only once that proof and chosen order allow it. The assertion was corrected to require correct public typed rows, a selected root seek, and retained sorter for this unproved joined ordering, initially and after reset, in all encodings. This is a test-expectation correction, **not** proof of physical reverse cursor movement or a pinned native sorter capture; implementing an ORDER proof requires source-based joined path-order/uniqueness analysis and reverse cursor execution checks. Focused 1/1, combined advanced/shared 98/98; no manifest credit.
 
-### Joined selected IN admission gate ([[card:card-s-c-c-c]])
+### Historical joined selected IN admission gate ([[card:card-s-c-c-c]], superseded)
 
-Pinned `src/wherecode.c:codeEqualityTerm` / `sqlite3WhereCodeOneLoopStart` uses an IN-loop with a separate chosen-index seek for each member, including prerequisite cursor and NULL handling. The current joined `compileInnerTableSelect` cannot represent those restarts: its `IndexSeekPrefix` branch excludes `operator==='in'` and would otherwise silently emit `IndexRewind` for a path that the immutable planner selected. This is **temporary unsupported lowering**, not a substitution claiming SQLite-equivalent IN execution. At prepare, the lowering handoff now checks selected joined equality-prefix IN admissions: an `INDEXED BY` selection is rejected atomically as unusable; an unforced selection is replanned with that source `NOT INDEXED` so the actual executable scan, ORDER ownership, and planner accounting follow the lowered path. Other source candidates remain eligible. This preserves public rows on unforced scans and prevents unsupported forced access from masquerading as a physical selected IN-loop. A review-derived UTF-8/16LE/16BE test requires either two selected seeks or atomic forced rejection plus working scan control, and fresh/reset literal and parameter/NULL rebind controls accept the rejection and continue checking unforced rows. It does not grant pinned selected IN credit, or establish arbitrary path-order/strict-bound fidelity; the native library was unavailable for new capture. Before implementing selected joined IN, compare full wherecode IN-loop ordering, root/KeyInfo and nine counters against pinned captures. Combined advanced/shared 97/97, manifest 7/7, first-select 8/8, typecheck and package boundary pass (card status).
+Pinned `src/wherecode.c:codeEqualityTerm` / `sqlite3WhereCodeOneLoopStart`
+requires an IN-loop with a chosen-index seek per member and NULL handling.
+At this checkpoint joined `compileInnerTableSelect` lacked restarts: forced
+selected IN rejected atomically and unforced selection replanned with that
+source `NOT INDEXED` rather than masquerading as selected cursor movement.
+Those all-encoding rejection/scan and reset controls prove only the historical
+safety fallback. The later selected `codeINTerm`/per-slot mapping below
+supersedes the general unsupported-IN claim; selected single-, two- and tested
+three-slot joined paths now execute actual index probes. This does not prove
+arbitrary vector RHS admission, joined ORDER proof or full native parity.
 
 ### Joined IN-list residual source ownership ([[card:card-s-c-c-c]])
 
@@ -1824,11 +1833,13 @@ is asserted.
 `wherecode.c:codeINTerm` records each selected equality IN cursor; `where.c:
 sqlite3WhereEnd` iterates `aInLoop` from last to first and rewinds inner
 cursors when advancing an outer one. `vdbe.ts:compileInnerTableSelect` and the
-single-table selected caller now lower up to two per-slot `InListValue` probes,
-resetting the inner register on outer advancement; seek/prefix/end labels target
-the innermost probe. Six frozen encoding/state checks in
-`in-range-selected-red.test.mjs` cover forced/unforced and LEFT cases; >2 slots
-remain excluded at path admission (forced error, unforced replan).
+single-table selected caller lower per-slot `InListValue` probes, resetting
+inner registers on outer advancement and targeting the innermost probe on
+seek/prefix/end jumps. The six frozen encoding/state tests prove two-slot
+forced/unforced and LEFT cases. Separate UTF-8/16le/16be advanced-index tests
+exercise three selected slots, single-table rebind and joined LEFT selected
+seeks with expected IDs; no pinned three-slot typed/metadata oracle capture
+is claimed. Unsupported RHS/vector shapes must still reject atomically.
 
 `expr.c:sqlite3CodeRhsOfIN` inserts list cells into a KeyInfo ephemeral Btree;
 `wherecode.c:codeINTerm` flips `bRev` on descending index columns and reads

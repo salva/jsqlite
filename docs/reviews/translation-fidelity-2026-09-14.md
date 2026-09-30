@@ -1681,11 +1681,15 @@ review's broader joined/LEFT, multi-slot IN, stat-choice, corruption, reset or
 cleanup findings. See `docs/TRANSLATION.md` selected single-slot revision.
 
 2026-09-29 joined-path revision: historical unsupported joined single-IN
-claims above are superseded by per-level restart for one selected IN slot plus
-composite range. Six frozen fixture variants with LEFT unmatched once, NULL
-RHS, duplicate key, and selected seeks pass; advanced-index reset/rebind
-selected tests replace prior scan-only assertions. Multi-IN, broader stat/order
-choice, malformed-page and lifecycle differential evidence remain open.
+claims above were superseded by per-level restart for one selected IN slot plus
+composite range. Later `wherecode.c:codeINTerm`/`where.c:sqlite3WhereEnd` per-slot
+lowering now tests two selected IN slots on the frozen six variants, with
+separate three-slot single-table/rebind and joined LEFT selected-seek cases on
+advanced-index fixtures in UTF-8/16le/16be. The original single-slot cases
+retain LEFT unmatched-once, NULL RHS, duplicate and reset checks. These tests
+are not an independently captured pinned three-slot typed oracle or general
+multi-IN/ORDER/statistics parity; the later stat-choice revision below covers
+only its bounded frozen pre/post choice.
 
 2026-09-29 private-work and corruption revision: the in-memory selected IN RHS
 set previously compared all earlier members inside one VM opcode with no work
@@ -1725,10 +1729,14 @@ unrepresented stat1 extensions/STAT4 and general path dominance as audit gaps.
 
 [[card:card-s-c-d-f]] follow-up finding: source-case-1 subset comparison is
 now index/prefix based, not term-identical; fixed guessed sort-cost and IN
-cost-penalty experiments were rejected by source or frozen results. Current
-selected unforced composite IN after ANALYZE and joined two-slot probes remain
-red despite six stat-choice successes. Candidate insertion/remaining-term
-adjustment and exact two-slot native-vs-public access need further comparison.
+cost-penalty experiments were rejected by source or frozen results. At this **earlier** stat1 revision, selected unforced composite IN after ANALYZE
+and joined two-slot probes remained red despite six stat-choice successes.
+That was not a permanent selected-IN exclusion: the later per-slot selected
+caller and planner fixes pass the frozen selected cases, including bounded
+three-slot advanced-index selected-seek tests. Candidate insertion/remaining-
+term adjustment and exact wider native-vs-public access remain open for
+source-based comparison; frozen stat-choice 6/6 does not establish general
+index-choice parity.
 
 [[card:card-s-c-d-f]] updated checkpoint: the insertion-order represented
 case-2 subset adjustment (`where.c:whereLoopCheaperProperSubset` /

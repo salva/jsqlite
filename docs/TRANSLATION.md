@@ -3928,11 +3928,11 @@ Unsupported gates run before opening cursors or emitting a partial program. This
 keeps malformed/corrupt distinct from valid-but-temporary unsupported and prevents
 fallback from violating `INDEXED BY`/`NOT INDEXED` promises.
 
-The unforced joined IN fallback now excludes unsupported index candidates by ordinal in `planWhere`, not by cloning a resolved source. The latter broke exact column-use/source identity (`invalid source ordinal` at prepare). A review-derived all-encoding unhinted-versus-`NOT INDEXED` test checks fresh/partial-step/reset NULL rebind, typed rows, zero selected seeks and positive scan movement. This preserves pinned `where.c` source ownership under loop exclusion and leaves `wherecode.c:codeEqualityTerm` per-IN selected probes unimplemented; see source map and audit.
+This preserved earlier fallback check excludes unsupported index candidates by ordinal in `planWhere`, not by cloning a resolved source. The latter broke column-use/source identity (`invalid source ordinal` at prepare). Its all-encoding unhinted-versus-`NOT INDEXED` test checks fresh/partial-step/reset NULL rebind, typed rows, zero selected seeks and scan movement **for that historical unsupported path**. Subsequent selected per-slot IN lowering supersedes the general scan-only claim; see the later multi-slot revision and source map.
 
 The joined reverse `ORDER BY y.b DESC` review neighbor retains its sorter deliberately: `wherePathSolver` does not prove ORDER for multi-source paths, so local reversible index order is not a global ORDER proof. All-encoding fresh/reset tests check correct typed rows, selected movement, and retained sorter; physical reverse traversal and future joined ORDER-proof work remain unclaimed (source map and audit).
 
-Joined selected equality-prefix `IN` is currently an executable-plan gate: pinned `src/wherecode.c:codeEqualityTerm/sqlite3WhereCodeOneLoopStart` requires per-value index restarts, while the joined lowerer cannot emit them. Forced selection rejects atomically at prepare; unforced selection replans without that source's index instead of claiming selected-access counters or ORDER satisfaction for a broad `IndexRewind`. Review-derived all-encoding admission, scan/reset and parameter/NULL-rebind tests cover this temporary unsupported boundary; no pinned selected IN credit is claimed (see source map and mutable audit).
+Historical joined selected equality-prefix `IN` admission gate (superseded by the selected per-slot lowering below): pinned `src/wherecode.c:codeINTerm/sqlite3WhereCodeOneLoopStart` requires per-value index restarts. At that checkpoint the joined lowerer could not emit them, so forced selection rejected at prepare and unforced selection replanned without the index. Those scan/reset and parameter/NULL-rebind tests established safe fallback, **not** permanent selected-IN exclusion. Current joined selected execution is covered by the later single-/multi-slot revisions, including forced physical seeks and LEFT null-row tests in `in-range-selected-red.test.mjs`; vector/unsupported RHS shapes are not thereby admitted.
 
 The joined residual `IN` operand is resolved through the same source-aware recursion as other expressions: pinned `src/resolve.c:resolveExprStep` resolves operands in their owning NameContext before `src/expr.c:sqlite3ExprCodeIN` evaluates the left value. The all-encoding forced-index and scan joined `y.b IN (1,3)` fresh/reset regression now returns the typed rows rather than reading `x.b` at cursor zero; this does not prove joined selected IN-prefix restart or exact counters (see source map and mutable audit).
 
@@ -4377,8 +4377,9 @@ than repeating source-list keys. Pinned `wherecode.c:codeINTerm` uses a distinct
 RHS cursor produced by `expr.c:sqlite3CodeRhsOfIN`; the TS register-list
 iterator uses comparison instead of allocating an ephemeral B-tree (O(n²) for
 this bounded list), preserving non-NULL set probes, per-entry rebind, and LEFT
-loop exhaustion. See `docs/SQLITE_SOURCE_MAP.md` for the scope/test citation;
-composite/ranged IN and stats remain pending, not scan-equivalent credit.
+loop exhaustion. This paragraph records the original single-field checkpoint;
+subsequent selected composite/ranged IN and bounded stat1 slices below supersede
+its pending-work assertion. See `docs/SQLITE_SOURCE_MAP.md` for boundaries.
 
 ### Revision 2026-09-29: immutable native IN/range/stat choice discriminator ([[card:card-s-c-d-c]])
 
@@ -4442,10 +4443,15 @@ restart the prefix seek after each inner probe, route inner exhaustion to the
 outer iterator, and reset the inner register for each outer probe. Frozen six
 encoding/state fixture tests cover forced/unforced two-slot selected seek counts,
 duplicate INTEGER/REAL/NULL probes and LEFT unmatched-once. This finite-array
-substitution remains bounded by `maxWorkUnits` as described above; >2 IN slots
-and unsupported RHS shapes still reject/replan atomically. Fixture expectations
-for the new shape were checked independently with host SQLite 3.45.1, **not** a
-new pinned-native oracle capture; broader native parity remains unproved.
+substitution remains bounded by `maxWorkUnits` as described above. This
+paragraph records the **two-slot** fixture proof, not the current admission
+ceiling: the later three-slot selected tests in `in-range-selected-red.test.mjs`
+exercise single-table rebind and joined LEFT in UTF-8/16le/16be; unrepresented
+RHS shapes still reject/replan atomically. Two-slot fixture expectations
+were checked independently with host SQLite 3.45.1; separate unsorted RHS
+cases have pinned 3.53.4 read-only comparisons. The newer three-slot tests
+check selected seeks and expected IDs but do not supply a frozen three-slot
+pinned native typed/metadata capture or prove arbitrary multi-IN parity.
 
 Selected IN RHS physical-order correction (supersedes the earlier array-order
 claim): pinned `expr.c:sqlite3CodeRhsOfIN` inserts RHS values into a KeyInfo

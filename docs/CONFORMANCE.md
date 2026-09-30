@@ -687,15 +687,29 @@ A separate development-only producer, `test/conformance/capture-in-range-stat.py
 
 `test/conformance/cases/in-range-stat-native.json` stores SHA-256, typed rows (including INTEGER/REAL/NULL and the UTF-encoded database variants), exact row order, full native EXPLAIN opcodes with arguments, EQP and FULLSCAN_STEP/SORT/VM_STEP for forced `t_ab`, unforced, and `NOT INDEXED` controls. The composite query has **no equality predicate on `a`**: duplicate `1`, REAL `1.0`, NULL and `2` IN RHS, `b>=12 AND b<=15`, `c>0.0`, with a separate NULL/duplicate RHS neighbor. Native selected EQP is `SEARCH t USING INDEX t_ab (a=? AND b>? AND b<?)` in all snapshots; RHS `OpenEphemeral`/four `IdxInsert`/`Rewind`/`Next`, `SeekGE` and `IdxGT` coexist; full-scan control returns identical typed rows but has 303 full-scan steps versus zero for the selected path. This distinguishes indexed IN probes from post-filtered scan results. The statistic-choice neighbor changes from `SEARCH ... t_a (a=?)` pre-ANALYZE to `SEARCH ... COVERING INDEX t_ab (a=? AND b=?)` plus sorter post-ANALYZE, with `t_a='304 76'`, `t_ab='304 76 1'`, `t_b='304 2'` in stat1; the composite selected path itself does **not** change. This proves a selected native path difference, not only a cost-estimate change.
 
-`python3 test/conformance/in-range-stat-native.test.py`, `python3 test/conformance/capture-in-range-stat.py --library <manifest-pinned-lib>` (without `--regenerate`), and `node --test test/conformance/in-range-stat-ts.test.mjs` verify the frozen data and public execution. At the earlier tests-first checkpoint TS rejected the composite selected IN and stat-choice IN at prepare in all six snapshots; the six stat-choice checks now pass in the bounded planner slice, whereas the separate composite access checks still require validation; public `NOT INDEXED` scan produces the native rows after each rejection, with table movement, **not selected-index credit**. The source-owner follow-up is `where.c:whereLoopAddBtreeIndex` / `whereInScanEst` / `whereRangeScanEst`, `wherecode.c:codeINTerm` and `sqlite3WhereCodeOneLoopStart`, `analyze.c:analysisLoader` / `sqlite3AnalysisLoad`, then the selected VDBE cursor reset/end transitions. No shared execution files were changed for this evidence.
+`python3 test/conformance/in-range-stat-native.test.py`, `python3 test/conformance/capture-in-range-stat.py --library <manifest-pinned-lib>` (without `--regenerate`), and `node --test test/conformance/in-range-stat-ts.test.mjs` verify the frozen data and public execution. At the earlier tests-first checkpoint TS rejected selected composite IN and
+stat-choice IN at prepare; that is **not current behavior**. The six frozen
+stat-choice before/after cases now run unforced through the represented stat1
+planner and assert selected t_a/no sorter before versus covering t_ab/two
+IN probes and four sorter rows after, with forced alternatives in all three
+encodings (`in-range-stat-choice-red.test.mjs`). The frozen composite IN/range
+cases also have public selected-index checks in `in-range-stat-ts.test.mjs` and
+`in-range-selected-red.test.mjs`; compare the separate `NOT INDEXED` scans as
+row controls, not selected credit. Frozen capture is two-field evidence, not a
+pinned three-slot native oracle. Source owners: `where.c:whereLoopAddBtreeIndex`
+/ `whereInScanEst` / `whereRangeScanEst`, `wherecode.c:codeINTerm` /
+`sqlite3WhereCodeOneLoopStart`, `analyze.c:analysisLoader` /
+`sqlite3AnalysisLoad`, and selected VDBE cursor reset/end transitions.
 
 2026-09-29 correction to the historical joined selected-IN gate above: one
 selected IN prefix with an optional range now executes per-key composite seeks,
 including a joined LEFT nullable-row case and reset/rebind. The all-encoding
 `in-range-selected-red.test.mjs` and advanced-index joined regression check
-rows and access, not general optimizer/statistics parity. Multiple IN slots
-remain temporary unsupported for forced access; earlier scan-only credit is
-not promoted to native full-surface compatibility.
+rows and access, not general optimizer/statistics parity. A subsequent per-slot
+revision extends the tested selected shape to two slots, and three-slot
+single-table rebind / joined LEFT selected-seek cases are also covered in each
+encoding. Do not infer arbitrary RHS/vector IN admission or a pinned native
+three-slot differential capture from these tests.
 
 2026-09-29 bounded composite-IN safety evidence: six frozen encoding/state
 public selected-vs-`NOT INDEXED` controls with malformed t_ab root return SQLite
