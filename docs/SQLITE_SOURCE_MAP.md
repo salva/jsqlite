@@ -3699,3 +3699,11 @@ constructor/sort/duplicate closure are shared SELECT→WHERE dependencies.
 snapshot from this closure. NullRow/Btree invalidation and selected nullable
 start/single-source reverse control stay in the subsequent WHERE slice.
 Finished-child structural ownership is not retired by this checkpoint.
+
+### IndexCursor clear transition correction
+
+`btree.c:sqlite3BtreeClearCursor` (848–852), consumed by `vdbe.c:OP_NullRow`,
+-> `btree.ts:IndexCursor.clearPosition/#set(null)`: invalidate physical path,
+decoded entry and borrow generation together. `btree-reader.test.mjs` actual
+cursor seek/clear/next/previous plus fresh first/last/seek regression guards
+against resuming a CURSOR_INVALID path; VM caller remains unchanged.

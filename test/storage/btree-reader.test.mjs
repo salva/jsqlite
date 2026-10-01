@@ -25,6 +25,33 @@ const fixtureNames = [
 async function bytes(name = "storage-p512.db") {
   return new Uint8Array(await readFile(new URL(name, generation)));
 }
+// btree.c:sqlite3BtreeClearCursor sets CURSOR_INVALID, not just an invalid
+// decoded payload. Movement must not resume its former physical index path.
+test("index clearPosition invalidates physical movement and borrowed payload", async () => {
+  const database = openBtreeDatabase(await bytes());
+  const cursor = database.indexCursor(3);
+  const target = ["key-001000", 1000n, 1000n];
+  const compare = (payload) => compareTuple(indexTuple(payload, database.encoding), target);
+  for (const direction of ["next", "previous"]) {
+    assert.equal(cursor.seek(compare, "ge"), true);
+    const borrow = cursor.borrowPayload();
+    cursor.clearPosition();
+    assert.equal(cursor.valid, false);
+    assert.throws(() => borrow.bytes(), BtreeCursorStateError);
+    assert.throws(() => cursor.payload(), BtreeCursorStateError);
+    assert.equal(cursor[direction](), false, `${direction} must not resume cleared index path`);
+    assert.equal(cursor.valid, false);
+    assert.equal(cursor.first(), true);
+    assert.equal(cursor.next(), true);
+    cursor.clearPosition();
+    assert.equal(cursor.last(), true);
+    assert.equal(cursor.previous(), true);
+    cursor.clearPosition();
+    assert.equal(cursor.seek(compare, "ge"), true);
+    assert.deepEqual(indexTuple(cursor.payload(), database.encoding), target);
+  }
+});
+
 function text(value) {
   assert.equal(value.storageClass, "text");
   return new TextDecoder(value.encoding).decode(value.bytes);

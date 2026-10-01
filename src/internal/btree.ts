@@ -416,6 +416,9 @@ export class IndexCursor extends CursorBase<IndexEntry> {
     this.generation++;
     return position !== null;
   }
+  // btree.c:sqlite3BtreeClearCursor sets CURSOR_INVALID. Invalidate the
+  // physical path as well as decoded position and payload borrow generation.
+  override clearPosition(): void { this.#set(null); }
   override first(): boolean { return this.#set(this.database.indexBoundary(this.#root, "first")); }
   override last(): boolean { return this.#set(this.database.indexBoundary(this.#root, "last")); }
   override next(): boolean {

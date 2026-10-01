@@ -7633,3 +7633,16 @@ insertion-order materialization alone cannot repair a reversed producer scan.
 Both are shared bridge dependencies evidenced by the MATERIALIZED DESC test.
 Physical nullable start/NullRow and selected-index guards remain separately
 attributed; no whole VDBE ownership is implied.
+
+### Selected IndexCursor physical invalidation repair
+
+Pinned `btree.c:sqlite3BtreeClearCursor` (848–852) puts the cursor into
+CURSOR_INVALID; `vdbe.c:OP_NullRow` delegates to it. `IndexCursor.clearPosition`
+now calls its shared `#set(null)` transition, clearing the physical traversal
+path and decoded entry while advancing borrow generation. Previously only the
+inherited indicator was cleared, allowing next/previous to resume a stale path.
+Fresh first/last/seek still establish a new physical position. Actual storage
+cursor tests cover both invalid movements, payload/borrow rejection and fresh
+positioning; public selected LEFT/reset/rebind and reverse/corruption controls
+remain applicable. This is a state-owner repair, not a new algorithm or SELECT
+producer migration.

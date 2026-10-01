@@ -2475,3 +2475,13 @@ NULL public/native companions, joined selected NULL guard, nullable range
 and unbounded reverse native probes. The c&1 test companion remains outside
 the index with separately attributable bitwise lowering; other arithmetic
 implication assertions and native captures are retained.
+
+### Review-v12 selected physical invalidation correction
+
+The inherited clearPosition invalidated decoded state but left IndexCursor
+physical #indexPosition live. The owning override now uses #set(null), matching
+`btree.c:sqlite3BtreeClearCursor` CURSOR_INVALID and retaining generation/borrow
+invalidation. Actual positioned-cursor regression failed before repair and
+passes after for Next/Prev and fresh boundary/seek. This closes that narrow
+state divergence only; completed-child SELECT ownership and stale GROUP BY
+admission-test gaps remain separate and unwaived.
