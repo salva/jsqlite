@@ -128,6 +128,10 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} nest
     assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT user_id FROM orders) ORDER BY name'),['Alice','Bob','Cara']);
     assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT user_id FROM orders WHERE 0) ORDER BY name'),[]);
     assert.deepEqual(await rows("SELECT name FROM users WHERE id NOT IN (SELECT CASE WHEN note IS NULL THEN NULL ELSE user_id END FROM orders) ORDER BY name"),[]);
+    assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT CASE user_id WHEN 1 THEN user_id WHEN 3 THEN user_id ELSE NULL END FROM orders) ORDER BY name'),['Alice','Cara']);
+    assert.deepEqual(await rows('SELECT name FROM users WHERE id IN (SELECT CASE WHEN note IS NULL THEN user_id ELSE NULL END FROM orders) ORDER BY name'),['Bob']);
+    assert.throws(()=>db.prepare('SELECT name FROM users WHERE id IN (SELECT CASE WHEN missing IS NULL THEN user_id ELSE NULL END FROM orders) ORDER BY name'),error=>error.kind==='sqlite'&&error.code===1&&error.message==='no such column: missing');
+    await rows('SELECT name FROM users ORDER BY name');
   }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
 

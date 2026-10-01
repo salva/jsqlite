@@ -32,6 +32,12 @@ export function compileSelect(
       ?? compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows)
       ?? compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows);
   }
+  // select.c:sqlite3Select dispatches a compound to multiSelect before
+  // coding the rightmost arm's aggregate. Each arm owns its own aggregate
+  // context; the rightmost expression must not classify the whole compound.
+  if (select.hasCompound && !select.orderBy.length && !select.limit && !select.offset && select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all') && select.arms.every(arm=>arm.origin==='select')) {
+    return compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
+  }
   const aggregate = selectHasAggregate(select) || select.hasGroupBy || select.hasHaving;
   const window = selectHasWindow(select);
   const jsonTableAggregate = aggregate && select.from.items.length === 1 &&

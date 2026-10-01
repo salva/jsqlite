@@ -5,6 +5,18 @@ import type {LemonValue} from './lemon-runtime.ts';
 import type {SqlToken} from './tokenize.ts';
 
 export class NameResolutionError extends Error{}
+// select.c:sqlite3ColumnsFromExprList installs unique names on the transient
+// subquery Table before resolve.c:lookupName walks linked NameContexts.
+function transientColumnNames(names:readonly string[]):readonly string[]{
+ const used=new Set<string>(),result:string[]=[];
+ for(const original of names){
+  let name=original,counter=0;
+  while(used.has(sqliteAsciiFold(name)))name=`${name.replace(/:\d+$/, '')}:${++counter}`;
+  used.add(sqliteAsciiFold(name));result.push(name);
+ }
+ return result;
+}
+
 export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>}
 export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{readonly cursorId:number;readonly table:TableNode}
 export interface ResultColumnDescriptor {readonly name:string;readonly declaredType:string|null;readonly database:string|null;readonly table:string|null;readonly origin:string|null;readonly affinity:ColumnNode['affinity']|null;readonly collation:string}
@@ -387,7 +399,22 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  let nextCursor=cursorBase+sources.length;
  const lastCursor=(resolved:ResolvedSelect):number=>Math.max(-1,...resolved.sources.map(source=>source.cursorId),...resolved.nested.map(lastCursor));
  const seenNested=new Set<SelectNode>();
- const resolveNested=(child:SelectNode):void=>{if(seenNested.has(child))return;seenNested.add(child);if(child.result.length!==1)throw new NameResolutionError(`sub-select returns ${child.result.length} columns - expected 1`);const resolved=expandAndResolveSelect(child,schema,context,nextCursor);nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);};
+ const resolveNested=(child:SelectNode):void=>{if(seenNested.has(child))return;seenNested.add(child);if(child.result.length!==1)throw new NameResolutionError(`sub-select returns ${child.result.length} columns - expected 1`);// select.c:selectExpander installs a derived SrcItem's transient columns
+ // before resolveSelectStep walks the linked child/parent NameContexts. The
+ // storage cursor is supplied later by the derived producer, not schema lookup.
+ const derived=child.from.derived;
+ let childSchema=schema;
+ if(derived&&derived.index===0&&child.from.items.length===1&&derived.select.hasCompound){
+  const first=derived.select.arms[0];
+  if(first&&first.result.length&&derived.select.arms.every(arm=>arm.result.length===first.result.length)){
+   const names=transientColumnNames(first.result.map((item,index)=>item.alias??(item.tokens.map(token=>token.text).join('')||`column${index+1}`)));
+   const columns=names.map(name=>({name,declaredType:null,affinity:'blob' as const,collation:null,primaryKeyPosition:null} as ColumnNode));
+   const name=child.from.items[0]!.tableName;
+   const table={kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
+   childSchema={tables:new Map([...schema.tables,[sqliteAsciiFold(name),table]])};
+  }
+ }
+ const resolved=expandAndResolveSelect(child,childSchema,context,nextCursor);nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);};
  const output:ResolvedResult[]=[];
  const windowDefinitions=resolvedWindowDefinitions(select);
  for(let i=0;i<select.windowDefinitions.length;i++){const definition=select.windowDefinitions[i]!;if(definition.frameError)throw new NameResolutionError(definition.frameError);if(definition.baseName){let base:typeof definition|undefined;for(let j=i-1;j>=0;j--){const candidate=select.windowDefinitions[j]!;if(sqliteIdentifierEqual(candidate.name,definition.baseName)){base=candidate;break;}}if(base){if(base.hasFrame)throw new NameResolutionError(`cannot override frame specification of window: ${definition.baseName}`);if(base.partitionBy.length&&definition.partitionBy.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${definition.baseName}`);if(base.orderBy.length&&definition.orderBy.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${definition.baseName}`);}}}

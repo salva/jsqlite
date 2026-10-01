@@ -2459,3 +2459,13 @@ The standalone allocator now reserves `count` registers from `registers+1`,
 consistent with `select.c:selectInnerLoop` and the shared builder. The 92-case
 broader join/in-range command now exits 0; its earlier 3 failing cases remain
 recorded as the pre-fix result, not erased by typecheck.
+
+### Second checkpoint attribution (2026-10-01, [[card:card-s-c-d-h]])
+
+First SELECT checkpoint includes the minimal shared joined reverse and
+insertion-order producer/consumer closure, not exclusive SELECT ownership.
+Remaining selected nullable-start, cursor NullRow/reset and single-source
+reverse semantics belong to the incremental WHERE checkpoint. Existing
+completed-child parent-owner structural test remains red; no migration or
+broad compatibility acceptance is implied. Current staged-only validation
+is recorded in the card delivery status with individual process exits.

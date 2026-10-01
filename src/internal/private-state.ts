@@ -136,9 +136,9 @@ export class PriorityQueueCursor {
 /** Memory-only ephemeral index. It owns complete keys and uses SQLite Mem/KeyInfo
  * equality; NULLs compare equal for DISTINCT. */
 export class EphemeralIndexCursor {
-  readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;
+  readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;readonly insertionOrder:boolean;
   #shared:{entries:Entry[];references:number}={entries:[],references:1};#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
-  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes)){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget}
+  constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes),insertionOrder=false){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget;this.insertionOrder=insertionOrder}
   get size():number{this.#live();return this.#shared.entries.length}
   /** sqlite3ExprCodeIN distinguishes empty RHS from RHS NULL on the Mem-owned index. */
   hasNullKey():boolean{this.#live();return this.#shared.entries.some(entry=>entry.key[0]?.initialStorageClass==="null")}
@@ -175,7 +175,7 @@ export class EphemeralIndexCursor {
    }return this.insert(key,control);
   }
   async sort(control:PrivateStateControl):Promise<void>{
-   this.#live();let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
+   this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#shared.entries.length>0}
   seekRowid(rowid:bigint):boolean{this.#live();this.#at=this.#shared.entries.findIndex(entry=>BigInt(entry.sequence+1)===rowid);return this.#at>=0}
@@ -187,7 +187,7 @@ export class EphemeralIndexCursor {
   /** vdbe.c OP_OpenDup creates an independently positioned cursor over the
    * same ephemeral b-tree. The duplicate borrows records; its position is not
    * shared with the owner. */
-  duplicate():EphemeralIndexCursor{this.#live();const copy=new EphemeralIndexCursor(this.keyInfo,this.limits,this.#budget);copy.#shared=this.#shared;copy.#shared.references++;return copy}
+  duplicate():EphemeralIndexCursor{this.#live();const copy=new EphemeralIndexCursor(this.keyInfo,this.limits,this.#budget,this.insertionOrder);copy.#shared=this.#shared;copy.#shared.references++;return copy}
   close():void{if(this.#closed)return;this.#closed=true;if(--this.#shared.references===0){this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[]}this.#at=-1}
   #live():void{if(this.#closed)throw new Error("ephemeral index cursor is closed")}
 }

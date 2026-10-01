@@ -388,7 +388,12 @@ immutable views with explicit/inferred names, duplicate-name behavior, inherited
 collation, and origin metadata. The four allocated compound-derived aggregate
 forms complete the aggregate native-success matrix at 34/34. Execution remains a
 single public `Statement` and shares its work and private-state limits across
-producers, materializations, aggregate state, and sorters.
+producers, materializations, aggregate state, and sorters. The bounded repeated
+one-table immutable view self-join now also accepts a parent `LIMIT`/`OFFSET`
+independently of the view's own LIMIT, including `LIMIT 0`; its materialized
+readers have separate positions. This admission does not promise arbitrary
+view bodies, view-plan identity with SQLite's first-source coroutine, or
+multi-source view predicates.
 
 This 19-case FROM-derived/view tranche does not itself imply scalar
 subqueries, general `EXISTS`, or `IN`; those forms, including admitted correlated
@@ -904,3 +909,123 @@ its selected preceding source is positioned; LEFT/RIGHT NULL-row continuation
 retains source order. The mixed IN/range public regression is bounded to the
 represented index/outer-join shapes in three encodings, not general optimizer or
 STAT4 parity (`test/conformance/mixed-in-range-red.test.mjs`).
+
+Bounded derived-source revision ([[card:card-t-c]]): `Connection.prepare()` also
+admits a pair of non-flattenable constant unordered `UNION ALL` FROM subqueries
+with direct column projection, an inner-join equality or column/literal `ON`
+condition, and ascending result ordinals in the outer `ORDER BY`. The two
+producers share one prepared statement and materialize into separate transient
+cursors before the parent join; `reset()` re-executes them. This is not a
+promise of general compound-derived/CTE, collations, outer joins, child ORDER or
+LIMIT support. Shapes outside the translated boundary must reject atomically
+with temporary `unsupported` rather than return partial rows. The paired native
+and public cases are `test/conformance/select-derived-composition-native.py` and
+`test/conformance/select-derived-composition.test.mjs`.
+
+The bounded parent SELECT route also accepts two distinct explicitly
+`MATERIALIZED` constant unordered `UNION ALL` CTE producers with direct-column
+parent projection, admitted inner-join equality, and ascending ordinal outer
+`ORDER BY`. Each declaration materializes into its own transient cursor before
+the parent scan; public `reset()` reruns the statement. This does not imply
+support for nonmaterialized/recursive/ordered/aggregate compound CTEs or
+arbitrary CTE joins. See the pinned/public paired
+`test/conformance/select-cte-compound-composition-{native.py,test.mjs}`.
+
+For the bounded two-materialized constant `UNION ALL` CTE route, each no-FROM
+`SELECT` arm may also carry a WHERE predicate. Its gate runs before that arm
+materializes, not after the parent join; e.g. filtering the first arm does not
+suppress a later arm. This does not extend support to table-backed compound
+arms or arbitrary nested correlated expressions. See the pinned/native and
+public `test/conformance/select-cte-compound-where-{native.py,test.mjs}` pair.
+
+The bounded MATERIALIZED pair route also admits a physical-table-backed,
+WHERE-filtered unordered `UNION ALL` arm when the parent joins two CTE sources.
+Each arm emits into its CTE materialization destination before the parent join;
+unsupported arm shapes are not partially published. This is not general
+correlated, ordered, aggregated or parameterized compound support. Paired native
+and public fixture controls: `test/conformance/select-cte-table-compound-parent-native.py`
+and `select-cte-table-compound-parent.test.mjs`.
+
+Two explicitly MATERIALIZED CTEs in the bounded parent join may also combine
+an ordered/LIMIT physical-table producer with an unordered constant UNION ALL
+producer. The table producer's ORDER/LIMIT applies to its CTE rows *before*
+the parent joins the two destinations. See the paired pinned/native and public
+`test/conformance/select-cte-ordered-mixed-parent-{native.py,test.mjs}`;
+this does not guarantee arbitrary ordered compound or correlated CTE shapes.
+
+A bounded correlated scalar `count(*)`/`sum(x)` over a single-column, no-FROM
+`UNION ALL` derived source is currently supported in a physical-table SELECT.
+Other correlated derived subquery shapes may still raise a temporary unsupported
+error at prepare; this is not a general compound-subquery guarantee.
+
+Within that bounded correlated derived aggregate path, qualified outer rowid
+and ordinary columns retain their resolved identity; missing qualified columns
+are preparation errors rather than deferred evaluation failures. This does not
+extend support to general correlated derived SELECT shapes.
+
+For the supported correlated physical-table scalar aggregate path, qualified
+outer rowid is bound as the rowid column and linked missing-name/inner ambiguity
+errors are reported during preparation. This does not imply support for all
+correlated scalar shapes or joined-scalar producers.
+
+Supported joined-row correlated scalar count now respects qualified outer
+rowid and the second outer joined source; inner ambiguous names and missing
+outer names fail during preparation. Other joined scalar shapes remain subject
+to typed temporary unsupported classification, not a promise of general
+correlated expression support.
+
+Bounded correlated scalar aggregates over no-FROM constant `UNION ALL` derived
+rows accept multiple projected columns, including SQLite's `:1` suffix for
+duplicate projected names. Missing names still fail preparation; this does
+not extend support to general derived producers.
+
+For the admitted table-backed `UNION ALL` derived projection, output aliases
+follow the first arm's collision-free transient names (`x`, `x:1` for duplicate
+`x` aliases); each arm's qualifying rows are returned in arm order. Unknown
+projected names fail during preparation. This is bounded support, not a general
+compound-derived SELECT guarantee. The bounded table-backed arms now share a
+parent-owned output/sorter destination and drain each arm before the next;
+this is not a promise that other derived/compound or coroutine routes share
+that lowering.
+
+#### Bounded window-derived materialized source (implementation note)
+For the admitted single-source window-derived outer predicate route, the child
+window rows are materialized in the enclosing program before outer WHERE,
+ORDER and LIMIT/OFFSET. The pinned/public `select-derived-window-parent-*`
+checks INTEGER ranks, projected name, reset, zero LIMIT, missing projected name
+(`no such column`, SQLite code 1), finalize and close. This does not admit all
+window-derived shapes; unsupported forms remain temporary at prepare.
+
+#### Bounded table-backed LIMIT-derived producer (implementation note)
+For the admitted single-column, single-table inner SELECT with LIMIT and no
+inner WHERE/ORDER, DISTINCT, compound or window, `prepare` exposes the child
+column name; missing projected names produce SQLite `no such column` (code 1).
+The inner scan yields typed INTEGER cells into the parent's coroutine; inner
+and outer LIMIT/OFFSET are independent, and `reset` replays the query.
+Pinned/public `test/conformance/select-derived-table-parent-*` check metadata,
+limits, reset, error, finalize and close. This does not admit general table or
+window derived shapes; unsupported variants remain temporary at prepare.
+
+#### Bounded ordered non-VALUES derived producer (implementation note)
+The admitted single-column no-FROM ordered UNION ALL derived coroutine uses
+parent-owned typed sorter and registers. Projected missing names fail at
+prepare with SQLite `no such column` (code 1); source/outer LIMIT and OFFSET,
+INTEGER cells, metadata, reset, finalize and close are covered by pinned/public
+`test/conformance/select-derived-nonvalues-parent-*`. This does not promise
+general compound, other table-backed or window derived producer support; those
+remaining fallback branches require separate admission tests.
+
+#### Bounded derived VALUES producer (implementation note)
+For an admitted single-source derived multirow `VALUES` query, `prepare`
+exposes the projected names and reports missing projected names as SQLite
+`no such column` (code 1). `step` retains INTEGER versus REAL, NULL, TEXT
+and BLOB values; `reset` replays all rows, `finalize` releases VM resources.
+This is not general derived/compound SELECT support: unimplemented shapes
+remain temporary unsupported at prepare, not partial result programs. Pinned
+and public evidence: `test/conformance/select-derived-values-parent-*` and
+`derived-values-registers.test.mjs` (all three fixture encodings).
+
+A bounded unordered `UNION ALL` arm may read a one-column constant ordinary,
+MATERIALIZED, or repeated NOT MATERIALIZED CTE using the shared compound
+statement destination. This is not general CTE/compound support; unsupported
+arm producer shapes remain prepare-time temporary unsupported.

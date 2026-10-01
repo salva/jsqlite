@@ -554,3 +554,62 @@ test('scalar child selects compile into the parent builder rather than splice re
  assert.doesNotMatch(body,/const child\s*=\s*selectHasAggregate/);
  assert.doesNotMatch(body,/child\.ops\.map\(original/);
 });
+
+// Pinned 3.53.4 expr.c:sqlite3CodeSubselect -> select.c:multiSelect / tag-select-0820:
+// the UNION ALL arms feed the outer aggregate before its Mem/Exists/Set destination.
+// Native source-ID and twice-stepped typed results captured with the ctypes probe
+// in the card work area (compound-probe/oracle.py); the public regression is
+// deliberately kept red until the compound producer owns the enclosing builder.
+test('compound-derived aggregate child uses parent Mem/Exists/Set destinations',async()=>{
+ const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const [sql,name,want] of [
+   ['SELECT (SELECT count(*) FROM (SELECT 1 AS x UNION ALL SELECT 2) d) AS n','n',2n],
+   ['SELECT EXISTS(SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d) AS e','e',1n],
+   ['SELECT 3 IN (SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d) AS i','i',1n],
+   ['SELECT (SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d) AS n','n',3n],
+  ]){
+   const stmt=db.prepare(sql).statement;
+   try{
+    assert.equal(stmt.columnMetadata(0).name,name);
+    for(let pass=0;pass<2;pass++){
+     assert.equal(await stmt.step(),'row',sql);
+     assert.deepEqual([stmt.columnType(0),stmt.column(0)],['integer',want],sql);
+     assert.equal(await stmt.step(),'done',sql);
+     stmt.reset();
+    }
+   }finally{stmt.finalize()}
+  }
+ }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});
+
+// Pinned SQLite 3.53.4 source-ID checked ctypes capture: compound-probe/oracle.py.
+// select.c:computeLimitRegisters exits before row publication; expr.c:sqlite3CodeSubselect
+// initializes the scalar Mem/Exists/Set before calling sqlite3Select.
+test('compound-derived aggregate destination respects outer LIMIT and OFFSET',async()=>{
+ const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const [sql,name,type,want] of [
+   ['SELECT (SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 1) AS n','n','integer',3n],
+   ['SELECT (SELECT count(*) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 0) AS n','n','null',null],
+   ['SELECT (SELECT count(*) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 1 OFFSET 1) AS n','n','null',null],
+   ['SELECT (SELECT count(*) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 0 OFFSET NULL) AS n','n','null',null],
+   ['SELECT EXISTS(SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 0) AS e','e','integer',0n],
+   ['SELECT 3 IN (SELECT sum(x) FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 0) AS i','i','integer',0n],
+  ]){
+   const stmt=db.prepare(sql).statement;
+   try{
+    assert.equal(stmt.columnMetadata(0).name,name);
+    for(let pass=0;pass<2;pass++){
+     assert.equal(await stmt.step(),'row',sql);
+     assert.deepEqual([stmt.columnType(0),stmt.column(0)],[type,want],sql);
+     assert.equal(await stmt.step(),'done',sql);stmt.reset();
+    }
+   }finally{stmt.finalize()}
+  }
+ }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});

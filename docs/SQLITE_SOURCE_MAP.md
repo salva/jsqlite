@@ -3046,3 +3046,593 @@ producer boundary, not a dropped predicate. Equality-prefix competing range
 alternatives and later residual terms are a separate selected matrix row. No
 STAT4/pruning/order or arbitrary selected-access parity is established. Existing
 i/j/k tests and [[card:card-t]]'s four shared reds remain separately scoped.
+
+- [[card:card-t-b]] bounded compound-derived no-FROM aggregate subquery:
+  pinned `src/select.c:multiSelect` TK_ALL / `sqlite3Select` accumulator /
+  `selectInnerLoop` SRT_Mem/Exists/Set, `src/expr.c:sqlite3CodeSubselect`;
+  `src/internal/vdbe.ts:compileCompoundDerivedAggregate` parent arm-row
+  generation, AggStep/AggFinal and `emitSelectDestination`;
+  `test/conformance/select-scalar-child.test.mjs` compound-derived twice-step
+  typed Mem/Exists/Set regression. The parent branch also computes outer
+  LIMIT/OFFSET before arms and suppresses the final publication as in
+  `select.c:computeLimitRegisters` / `selectInnerLoop`; pinned-ID typed and
+  twice-reset comparisons are in `$SAIVAGE_CARD_WORK_ROOT/limit-review/`.
+  Other compound-derived routes still use
+  finished-arm relocation; the generic scalar child bridge was retired in the
+  bounded parent-destination migration below.
+
+- [[card:card-t-b]] expression SELECT generic completed-child bridge retirement:
+  `src/expr.c:sqlite3CodeSubselect` -> `src/select.c:sqlite3Select` /
+  `selectInnerLoop` SRT_Mem/Exists/Set -> `src/internal/vdbe.ts:compileScalarSelect`
+  fallback calls `compileAggregateSelect` or `compileInnerTableSelect` with the
+  same `SelectProgramBuilder`, Once and destination; no generic `child.ops.map`
+  relocation. `test/conformance/select-scalar-child.test.mjs` structural and
+  public typed/reset tests, `select-output-differential.test.mjs` and the card's
+  `parent-migration/oracle.py` pinned-ID two-pass comparator. No observed
+  successful generic-fallback hit in broad instrumented inventories; top-level
+  `compileCteUnionAll` and compound-derived finished-arm relocation persist.
+
+- [[card:card-t-b]] bounded unordered UNION ALL ownership: pinned
+  `src/select.c:multiSelect` TK_ALL + `sqlite3Select` on the existing Vdbe,
+  `src/resolve.c` zero-FROM arm resolution, and `selectInnerLoop` SRT_Output ->
+  `src/internal/select-compiler.ts:compileSelect` compound-before-aggregate
+  routing (unlimited unordered SELECT-origin UNION ALL arms) ->
+  `src/internal/vdbe.ts:compileCteUnionAll` shared `SelectProgramBuilder`,
+  `compileInnerTableSelect`/`compileAggregateSelect` destination consumers and
+  `emitSelectDestination` for no-FROM arms. Public first-name/typed-order/reset,
+  width/name/table prepare errors: `select-compound-owner.test.mjs`; pinned-ID
+  oracle: `$SAIVAGE_CARD_WORK_ROOT/compound-validation/oracle.py`.
+  Ordered, limited, set, VALUES, window and derived routes are not thereby migrated;
+  retaining their existing selection avoids silently narrowing admitted SQL.
+
+- Ordered compound arm ownership (in progress): `select.c:multiSelectByMerge`,
+  `selectInnerLoop`/`SelectDest` -> `src/internal/vdbe.ts:compileOrderedCteUnionAll`,
+  `src/internal/select-program.ts:emitSelectDestination`; structural and public
+  checks in `test/conformance/select-compound-owner.test.mjs`. Direct builder
+  emission replaces completed-child relocation, but CTE-derived arm binding is
+  now accepts the bounded single-use ordinary CTE via producer substitution
+  before resolution (`select.c:flattenSubquery`, `resolve.c:resolveSelectStep`);
+  materialized/repeated CTE and full merge parity remain unproven.
+
+- `src/select.c:multiSelect` copies SelectDest and codes prior/right arm on one
+  Parse/Vdbe; `selectInnerLoop` directs rows, `multiSelectByMerge` owns ordered
+  or set merging. Bounded `src/internal/vdbe.ts:compileSimpleTableCompound`
+  consumes `SelectProgramBuilder` register/cursor allocation and
+  `src/internal/select-program.ts:emitSelectDestination` for output, retaining
+  typed ephemeral/set and sorter transitions in the same Program. Explicit
+  scan cursor is carried through OpenRead/Rewind/Column/Next. Source-ID oracle
+  and paired public table tests: `test/conformance/select-compound-owner.test.mjs`.
+  Not mapped: full merge scheduling, WHERE/index cursor planning, CTE/derived/
+  window compositions and comprehensive error/budget parity.
+
+- Materialized/repeated CTE bounded owner: pinned `src/select.c:sqlite3Select`
+  tag-select-0484/0488 `SRT_EphemTab` and shared Vdbe ->
+  `src/internal/vdbe.ts:compileCteDerivedSources` parent builder,
+  `compileInnerTableSelect` destination overload and
+  `src/internal/select-program.ts:emitSelectDestination` ephemeral insertion.
+  Outer direct comparison runs only after materialization, with OFFSET/LIMIT
+  after filtering. `test/conformance/select-compound-owner.test.mjs` checks
+  pinned-native typed rows, names, prepare errors and reset. The separate
+  `compileCteDerivedSourcesFallback` still relocates finished Programs for
+  other admitted shapes: this mapping does not claim those paths migrated.
+
+- Filtered table-backed materialized CTE continuation: `src/select.c:sqlite3Select`
+  tag-select-0488 producer `SRT_EphemTab`, `src/expr.c:sqlite3ExprCodeTarget`
+  predicate registers -> `src/internal/vdbe.ts:compileCteDerivedSources` ->
+  `compileInnerTableSelect` parent-builder destination with its existing
+  `resolveTree`/`compilePredicate` and table cursor; distinct outer WHERE
+  remains on the consumer side. Native source-ID-checked typed/reuse/error/reset
+  and public comparison: `test/conformance/select-compound-owner.test.mjs`.
+  Other producer forms still invoke `compileCteDerivedSourcesFallback`.
+
+- `src/select.c:sqlite3Select` FROM SrcItem generated Select materialization
+  (~8050–8130), `multiSelect` UNION ALL (~2935), `selectInnerLoop` destination
+  (~1139) -> `src/internal/parse.ts:sourceList` ordered derived carrier and
+  `src/internal/vdbe.ts:compileCteDerivedSources` bounded two constant compound
+  producer destinations/ON/ordinal sorter; paired pinned public/native
+  `test/conformance/select-derived-composition.{test.mjs,native.py}`.
+  Still not general derived/compound lowering; unsupported shapes reject before
+  publishing a Program. See the bounded revision in `docs/TRANSLATION.md`.
+
+- `src/select.c:sqlite3Select` materialized CteUse/SRT_EphemTab
+  (tag-select-0484/0488 ~8075–8145), `multiSelect` UNION ALL (~2935),
+  `selectInnerLoop` destination (~1139) -> `src/internal/cte.ts` CteUse
+  identity carrier and `src/internal/vdbe.ts:compileCteDerivedSources` bounded
+  two-MATERIALIZED-compound-CTE parent builder. Native/public paired test:
+  `test/conformance/select-cte-compound-composition-{native.py,test.mjs}`.
+  Other compound CTE producers and finished-child fallback remain unmigrated.
+
+- [[card:card-t-d]] zero-source materialized CTE WHERE slice:
+  `src/select.c:sqlite3Select` no-FROM WHERE / `selectInnerLoop` SRT_EphemTab,
+  `src/vdbeaux.c:sqlite3VdbeAddOp3` construction and `src/vdbe.c:sqlite3VdbeExec`
+  PC/IfNot/result execution -> `src/internal/vdbe.ts:compileCteDerivedSources`
+  parent `SelectProgramBuilder`, predicate then projection then ephemeral insertion;
+  runtime `Vdbe.step` retains PC/registers/cursors/budget/suspension ownership.
+  `compileInnerTableSelect` remains the table-backed WHERE planner consumer;
+  `compileCteDerivedSourcesFallback` still relocates independent Programs for
+  unmigrated producer forms. Source-ID-checked typed native script
+  `$SAIVAGE_CARD_WORK_ROOT/cte-vm/oracle.py` and public
+  `test/conformance/select-cte-zero-source-owner.test.mjs` test false/true
+  predicate, repeated use and reset. No C1–C6/Chinook or full lifecycle credit.
+
+- [[card:card-t-d]] table-backed CTE LIMIT: `src/select.c:sqlite3Select`
+  tag-select-0488, `selectInnerLoop` SRT_EphemTab/LIMIT loop exit, and
+  `src/vdbe.c:sqlite3VdbeExec` OP_IfNot/OP_DecrJumpZero ->
+  `src/internal/vdbe.ts:compileCteDerivedSources` parent emission of
+  `compileInnerTableSelect` with `computeLimitRegisters` and parent destination;
+  `Vdbe.step` remains the stateful execution owner. The `where.c` candidate/path
+  handoff is consumed inside `compileInnerTableSelect`. `producer.hasOrderBy`
+  still routes to fallback: source SRT_EphemTab retains insertion rowids after
+  sort drain; current EphemeralIndexCursor sorts by record key instead. Pinned
+  typed/reset oracle `$SAIVAGE_CARD_WORK_ROOT/cte-order/oracle.py` and public
+  `test/conformance/select-cte-order-owner.test.mjs` cover LIMIT 0/2/OFFSET 1
+  and duplicate CTE use; full execution ownership migration remains open.
+
+- 2026-09-30 [[card:card-t-d]] bounded CTE ORDER producer: `select.c:sqlite3Select`/`selectInnerLoop` SRT_EphemTab producer and sorter drain → `src/internal/vdbe.ts:compileCteDerivedSources`/`compileInnerTableSelect`; `wherecode.c` reverse loop setup/advance and `vdbe.c` OP_Last/Rewind/Prev/Next → TS Last/IndexLast/Rewind/IndexRewind and Prev/IndexPrev/Next/IndexNext in VM. Parent builder owns branch addresses; VM owns cursor position. `private-state.ts:EphemeralIndexCursor` insertion-order mode retains materialized row order. `test/conformance/select-cte-order-owner.test.mjs` native-source-ID-checked public control. Other producer fallback relocation and independent execution paths remain unmigrated.
+
+- `src/resolve.c:resolveSelectStep` (arm WHERE/result resolution),
+  `src/expr.c:sqlite3ExprCodeTarget` (gate value), `src/select.c:sqlite3Select`
+  WHERE before `selectInnerLoop`/`multiSelect` SRT_EphemTab ->
+  `src/internal/vdbe.ts:compileCteDerivedSources` per-arm no-FROM gate in the
+  shared parent builder. Paired `test/conformance/select-cte-compound-where-native.py`
+  and `.test.mjs` assert typed materialized pair/join results and reset. The
+  finished-Program fallback and independent SELECT dispatcher remain live.
+
+- `src/select.c:multiSelect` per-arm `sqlite3Select` to CteUse SRT_EphemTab,
+  `selectInnerLoop`, `src/resolve.c:resolveSelectStep` arm NameContext and
+  `src/expr.c` expression coding -> `src/internal/vdbe.ts:compileCteDerivedSources`
+  dispatches FROM-bearing compound arms to parent-owned `compileInnerTableSelect`
+  (where.c/wherecode.c plan handoff unchanged). Native/public
+  `test/conformance/select-cte-table-compound-parent-{native.py,test.mjs}`
+  compare pinned typed joined rows, metadata and reset. Other compound arm
+  operators/ordering and remaining completed-Program fallback are not migrated.
+
+- `src/select.c:sqlite3Select` CteUse per-destination materialization and
+  `multiSelect` only for its compound member, `selectInnerLoop` ordered/LIMIT
+  table output; `src/resolve.c:resolveSelectStep` per-producer contexts and
+  `src/expr.c` WHERE/result coding -> `src/internal/vdbe.ts:compileCteDerivedSources`
+  mixed MATERIALIZED pair admission, retaining `compileInnerTableSelect` parent
+  ORDER/LIMIT/where.c handoff and per-use cursor identity. Pinned/public
+  `test/conformance/select-cte-ordered-mixed-parent-{native.py,test.mjs}`
+  check typed rows, names and reset. Other ordered/compound combinations and
+  finished-child fallback not established by this pair.
+
+#### Linked scalar aggregate over constant UNION ALL derived source (card-t-c bounded repair)
+Pinned `src/resolve.c:lookupName`/`resolveExprStep` links outer `t.a` across the scalar SELECT's NameContext while `src/select.c:selectExpander` installs transient derived columns; `src/expr.c` scalar subselect does not reuse an `OP_Once` when `EP_VarSelect` is set. `src/select.c:multiSelect` (`TK_ALL`) feeds successive arms to the same destination; aggregate finalization occurs after the producer (including zero qualifying rows). `src/internal/resolve.ts:resolveNested` currently installs a transient schema description for this compound source, while `src/internal/vdbe.ts:compileTableSelect/compileExpressionSubquery` now does not open its root-page-zero descriptor as a physical Btree, and emits arm results, correlated WHERE and aggregate steps/finalization in the enclosing program. Only bounded one-column no-FROM UNION ALL arms with count/sum and a linked predicate are admitted; other derived scalar shapes remain temporary unsupported. The synthetic schema/name recovery and dedicated scalar branch are not the full upstream derived-producer or resolver migration. Paired pinned/public `test/conformance/select-correlated-derived-aggregate-{native.py,test.mjs}` checks typed count/sum zero-match behavior, physical correlated control, metadata and reset.
+
+Linked identity correction (card-t-c): pinned `src/resolve.c:lookupName` fixes `Expr.iTable/iColumn` while searching `NameContext.pNext`, then `resolveExprStep` marks correlated SELECT; `src/expr.c` scalar generation omits once for the variable SELECT. For the existing derived scalar count/sum consumer, `src/internal/resolve.ts:lookupName` already recorded each reduction's `ResolvedColumnUse` (source, index including -1 rowid, selectDepth). `src/internal/vdbe.ts:compileTableSelect/compileExpressionSubquery` now binds its predicate and aggregate arguments by those exact reduction identities into the enclosing producer, instead of searching outer source names a second time. This preserves rowid, aliases and resolver-reported missing names for the tested bounded path. Paired `test/conformance/select-linked-derived-identity-{native.py,test.mjs}` checks typed rowid/ordinary outer columns, names, repeated execution/reset and missing-name errors. The transient derived schema and specialized compiler branches remain; other callers still have separate binders and the resolver migration is incomplete.
+
+Physical scalar linked identity follow-up (card-t-c): pinned `src/resolve.c:lookupName` sets `Expr.iTable/iColumn` while walking `NameContext.pNext`; `src/expr.c:sqlite3CodeSubselect` omits `OP_Once` for `EP_VarSelect` and `src/select.c:sqlite3Select` consumes the source cursor into the scalar aggregate destination. In the ordinary physical-table `src/internal/vdbe.ts:compileTableSelect` expression-subquery consumer, `bind` now receives the same generated reductions recorded in `nested.columnUses`. For result, WHERE, and ORDER target expressions it uses the resolved `source/columnIndex` (including implicit rowid -1) and mapped child read cursor, not an independently ordered scan of current/nested/outer tables by spelling. The consuming path still emits into its enclosing parent builder; only this consumer's duplicate name search was removed. Paired `test/conformance/select-physical-linked-native.py` and `.test.mjs` cover typed correlated count over rowid/a/b, names, repeated step/reset/finalize/close and negative outer missing-name/inner ambiguity diagnostics. This does not migrate the separate joined scalar caller (`compileJoinSubquery`), synthetic compound-derived resolver descriptor, or live child-program fallback.
+
+Joined scalar correlated target follow-up ([[card:card-t-c]]): pinned `src/resolve.c:lookupName` walks `NameContext.pNext` and writes cursor/iColumn (rowid -1) before `src/expr.c:sqlite3CodeSubselect` lowers correlated expressions into the parent program without `OP_Once`; `src/select.c:sqlite3Select` uses the scalar aggregate Mem destination. `src/internal/vdbe.ts:compileInnerTableSelect/compileJoinSubquery` now consumes `entry.plan.columnUses` by exact generated reduction identity for the joined-row child WHERE and aggregate argument. The child physical read cursor maps to `entry.cursor`, outer identity to resolved `source.cursorId`. This retires that caller's independent spelling/ambiguity/alias search and uses its existing parent scan/AggStep/AggFinal, not a generic evaluator or a shared derived-register binder. Paired pinned/public `test/conformance/select-joined-linked-native.py` and `.test.mjs` compare qualified outer rowid and second joined source, NULL/nonmatch count 0, typed INTEGER/name metadata, reset/finalize/close and missing/ambiguous preparation errors. Other scalar shapes, transient derived resolver schema and finished-child fallback remain live/unmigrated.
+
+Compound-derived duplicate projected names in scalar expressions ([[card:card-t-c]]): pinned `src/select.c:sqlite3ColumnsFromExprList` (2227–2315) derives a transient Table column list from the first EList and suffixes colliding names `:1` before `src/resolve.c:lookupName` searches linked child/outer NameContexts; `src/expr.c:sqlite3CodeSubselect` and `src/select.c:sqlite3Select` deliver the correlated aggregate Mem target. `src/internal/resolve.ts:expandAndResolveSelect` now assigns collision-free ordinal transient names to its bounded compound-derived child descriptor. `src/internal/vdbe.ts:compileTableSelect/compileExpressionSubquery` emits *all* constant UNION ALL arm columns into corresponding parent registers before the already linked predicate/aggregate consumes the resolved ordinal, rather than admitting only one producer column. The synthetic descriptor remains a bounded resolution adaptation (root-page-zero is never opened), not a general derived storage implementation. Paired pinned/public `select-derived-duplicate-resolve-native.py` / `.test.mjs` exercise `d.x`, `d."x:1"`, correlated outer rowid/column, typed rows, names, errors, two reset cycles and cleanup; joined NULL-valued identity is separately covered by `select-joined-null-*`. More general derived producers, other dispatches and finished-child fallback remain unmigrated.
+
+Table-backed compound-derived projection ([[card:card-t-c]], later bounded repair): `src/internal/vdbe.ts:compileSingleCompoundDerived` still composes finished `compileTableSelect` arms, but now relocates *all* address-bearing child control edges through `relocateControlTargets`, including WHERE short-circuit jumps, seek/IN/scan exhaustion, and replaces each child Halt with an arm-exit Goto. Pinned `select.c:multiSelect` TK_ALL passes its destination to both arm `sqlite3Select` calls and drains each arm before the next; `select.c:sqlite3ColumnsFromExprList` (2227–2315) derives collision-free names from first-arm output before `resolve.c:lookupName` binds outer projections. This consumer now indexes first-arm unique transient names and exposes those names as result metadata, including `x:1`; missing admitted projected names fail prepare, not fallback to an unrelated derived compiler. Paired `select-table-compound-names-native.py` / `.test.mjs` tests a two-row WHERE/IN first arm followed by a one-row arm, names, INTEGER types, missing-name error, two cycles and cleanup. This repair does **not** translate direct shared-builder SELECT ownership or retire finished-child composition; those and other WHERE interfaces remain gaps.
+
+Follow-up parent migration ([[card:card-t-c]]): `compileSingleCompoundDerived` no longer calls `compileTableSelect` per arm or `relocateControlTargets`. It obtains per-arm `expandAndResolveSelect` plans with unique parent-owned cursor ranges, then feeds each to `compileInnerTableSelect` with the same `SelectProgramBuilder` and `SelectDest`; first-arm `sqlite3ColumnsFromExprList` naming and last-arm descriptor metadata remain distinct. The shared table-loop destination branch now exits early only for Mem/Exists, not output/sorter; pinned `select.c:selectInnerLoop` (SRT_Output versus SRT_Mem/Exists) and `multiSelect(TK_ALL)` (2990–3055) require draining the first arm before advancing. Paired pinned/public `select-table-compound-names-*` checks rows/types/names/error/reset; `select-compound-parent-builder.test.mjs` guards against reintroducing finished-child splicing. Other completed-child relocation remains in `compileJoinedUnionAll`, `compileSingleCompoundDerived`'s neighboring derived/CTE paths and the coroutine producer (`relocateControlTargets` is still used outside this caller); this does not resolve those paths or broaden table-arm admission.
+
+#### Single-source derived VALUES parent coroutine (card-t-c bounded caller)
+- `reference/sqlite/sqlite-src-3530400/src/select.c:multiSelectValues` 2862–2900
+  (one `selectInnerLoop` destination across rows), `sqlite3Select` derived
+  coroutine setup, `src/resolve.c:lookupName` derived EList naming ->
+  `src/internal/vdbe.ts:compileDerivedProducer` no-FROM multirow VALUES branch,
+  `src/internal/select-program.ts:emitSelectDestination` coroutine branch.
+  Parent `SelectProgramBuilder` allocates all row/source/stable coroutine
+  registers; each row is emitted in order before EndCoroutine and outer
+  ORDER/LIMIT. No completed scalar child or old-PC relocation on this branch.
+- Pinned/public `test/conformance/select-derived-values-parent-native.py` /
+  `.test.mjs`, structural `select-derived-values-parent-builder.test.mjs`,
+  three-encoding/parameter/limits `derived-values-registers.test.mjs`.
+  Ordered finite no-FROM single-column UNION ALL derived arms with one
+  supported ORDER key now likewise use a parent builder, typed sorter and
+  SRT_Coroutine destination, not a finished-child relocation. Other non-VALUES
+  table/window/compound forms still retain their separate fallback. See the
+  paired `select-derived-nonvalues-parent-*` native/public/structural tests.
+  The admitted one-column, single-table LIMIT-derived producer (no inner
+  WHERE/ORDER, DISTINCT, compound or window) now resolves the child with
+  `expandAndResolveSelect`, then invokes `compileInnerTableSelect` on the
+  parent's builder with `SRT_Coroutine` destination, following
+  `select.c:sqlite3Select` tag-select-0482 and `selectInnerLoop` iBreak.
+  No completed-child relocation on this branch; independent parent and child
+  limits and SQLite missing-name diagnostics are paired in
+  `select-derived-table-parent-*` native/public/structural tests. Other
+  table/window/compound fallbacks remain live; where.c/wherecode.c interface
+  remains coordinated through [[card:card-s]].
+  Window-derived predicate materialization follows
+  `src/select.c:sqlite3Select` tag-select-0488 (`SRT_EphemTab`, child
+  `sqlite3Select(pSub,&dest)`, then outer `selectInnerLoop`).
+  `compileDerivedProducer` now passes an enclosing `SelectProgramBuilder`
+  and typed zero-key sorter destination to `compileWindowSelectLowering`;
+  the window result producer emits into that destination, not a copied
+  finished child's `ResultRow`. Pinned/public/structural
+  `select-derived-window-parent-*` verify ranks before parent WHERE, INTEGER
+  type, name, ORDER/LIMIT/OFFSET, zero LIMIT, reset and prepare error. Other
+  window/CTE/compound fallback owners remain unpaired.
+
+- `src/select.c:multiSelect` TK_ALL and `sqlite3Select` FROM CTE materialization;
+  `src/resolve.c:resolveSelectStep` -> `src/internal/cte.ts:lowerOrdinaryCtes`
+  per-arm `cteDerived`/`CteUse` -> `src/internal/vdbe.ts:compileCteUnionAll`
+  parent builder ephemeral producer and duplicate readers ->
+  `test/conformance/select-cte-compound-source-native.py` and
+  `select-cte-compound-source.test.mjs`. Bounded one-column constant producer;
+  other CTE arm shapes remain temporary unsupported, not physical schema tables.
+
+- `src/resolve.c:lookupName` linked NameContext column uses and
+  `src/expr.c:sqlite3CodeSubselect`, `TK_CASE` (5683–5747),
+  `sqlite3ExprIfFalse(...,SQLITE_JUMPIFNULL)` ->
+  `src/internal/vdbe.ts:compileTableSelect` physical-table
+  `compileExpressionSubquery` reduction-linked target binder: optional CASE
+  operand, WHEN/THEN pairs and ELSE bind in original reduction order before
+  the existing parent-VDBE expression target emits its branches. No independent
+  name lookup or cursor workaround. Manifest-source-ID-verified SQLite 3.53.4
+  read-only users fixtures give empty NOT IN (NULL), Alice/Cara for simple CASE,
+  Bob for searched CASE, and code 1 for missing WHEN column; public
+  `subquery-view-foundation.test.mjs` verifies all three encodings, reset cycles,
+  and prepare-error restoration. This does not retire other subquery/SELECT
+  fallbacks or establish arbitrary CASE/window/compound compatibility.
+
+#### [[card:card-t-d]] zero-source derived coroutine ownership (bounded)
+`src/select.c:sqlite3Select` tag-select-0482 uses `SRT_Coroutine` for a FROM
+subselect; `src/select.c:selectInnerLoop` exits via its enclosing break label.
+`src/vdbeaux.c:sqlite3VdbeAddOp3` appends into the enclosing Vdbe;
+`src/vdbe.c:OP_InitCoroutine`/`OP_Yield`/`OP_EndCoroutine` execute PC handoff.
+`src/internal/vdbe.ts:compileDerivedProducer` now sends admitted zero-source
+scalar rows into parent `SelectProgramBuilder`/`SelectDest` with child LIMIT,
+WHERE, and register allocations; VM stepping retains coroutine PC/row ownership.
+The distinct finished-child fallback remains for other producers. See
+`test/conformance/select-derived-scalar-owner-{native.py,test.mjs}` for pinned
+source-ID checked public typed/lifecycle differential evidence; the structural
+whole-fallback test remains red. Shared WHERE handoff belongs to [[card:card-s]].
+
+#### [[card:card-t-d]] unordered derived UNION ALL OFFSET branch
+`src/select.c:multiSelect` TK_ALL -> `selectInnerLoop` / `codeOffset` (OP_IfPos
+skips output-limit decrement) -> `src/internal/vdbe.ts:compileDerivedProducer`
+parent `SelectProgramBuilder` coroutine destination, `IfPos` target after
+`DecrJumpZero` -> `src/internal/vdbe.ts` VM `IfPos`, `Yield`, `EndCoroutine`.
+Pinned public oracle/TS pair: `test/conformance/select-derived-union-owner-native.py`
+/ `.test.mjs`; bounded zero-source unordered arms only. Other derived fallback
+still relocates completed child ops; structural owner check remains red.
+
+#### [[card:card-t-d]] single-candidate ORDER BY derived caller
+`src/resolve.c:resolveOrderGroupBy` alias/ordinal validation ->
+`src/select.c:sqlite3Select` FROM `SRT_Coroutine` / `selectInnerLoop` lone
+candidate -> `src/internal/vdbe.ts:compileDerivedProducer` bounded scalarOrder
+and parent builder destination -> VM `Yield`/`EndCoroutine` PC handoff.
+Source-ID-checked public pair `select-derived-union-owner-native.py` / `.test.mjs`
+includes ORDER/LIMIT/OFFSET/reset checks; multi-candidate and general ORDER
+forms are not claimed, and other completed-child relocation remains.
+
+#### [[card:card-t-d]] no-FROM aggregate producer ownership
+Pinned `src/select.c:sqlite3Select` tag-select-0482 / aggregate
+`updateAccumulator` and `finalizeAggFunctions` -> `src/internal/vdbe.ts`
+`compileDerivedProducer` aggregateProducer -> `compileAggregateSelect` with
+parent `SelectProgramBuilder`, `SRT_Coroutine`-equivalent destination ->
+`EndCoroutine`. VM AggStep/AggFinal and Yield retain execution ownership.
+Source-ID-checked public pair `select-derived-union-owner-native.py`/`.test.mjs`
+compares count/false WHERE/sum LIMIT 0 and reset; finished-child fallback for
+other derived producers is still present.
+
+#### [[card:card-t-d]] table-derived DISTINCT/ORDER destination
+Pinned `src/select.c:sqlite3Select` tag-select-0482 calls inner SELECT with
+`SRT_Coroutine`; `selectInnerLoop` emits distinct filtering and sorter draining
+before destination handoff. `src/internal/vdbe.ts:compileDerivedProducer`
+now delegates admitted single-table DISTINCT and ascending ORDER to
+`compileInnerTableSelect` using the parent `SelectProgramBuilder`/destination;
+VM cursors, sorter, Yield, budgets and reset retain execution ownership.
+`select-derived-table-parent-{native.py,test.mjs}` is the pinned public pair.
+Descending selected-table ORDER guard and unrelated completed-child fallback
+remain; the structural owner test is red.
+
+#### [[card:card-t-d]] ungrouped derived aggregate HAVING handoff
+`src/select.c:sqlite3Select` tag-select-0482 compiles the inner aggregate into
+`SRT_Coroutine`; the ungrouped aggregate branch finalizes accumulators then
+`sqlite3ExprIfFalse(pHaving, addrEnd, SQLITE_JUMPIFNULL)` before
+`selectInnerLoop`. `src/internal/vdbe.ts:compileDerivedProducer` now admits
+HAVING on its bounded no-FROM aggregate route into parent-owned
+`compileAggregateSelect`. Its shared `IfNot` reject falls through to
+`EndCoroutine`; VM PC, aggregate Mem, budgets and reset remain execution-owned.
+Pinned public `select-derived-union-owner-{native.py,test.mjs}` covers true
+and false HAVING with two resets. Grouped/ordered/window and other child
+Program relocation are not migrated by this tranche.
+
+#### [[card:card-t-d]] ordered ungrouped derived aggregate
+`src/select.c:sqlite3Select` tag-select-0482 and ungrouped aggregate branch
+clear `sSort.pOrderBy` after AggFinal/HAVING and call `selectInnerLoop` with
+`SRT_Coroutine`; `src/resolve.c:resolveOrderGroupBy` checks result alias/ordinal
+before emission. `src/internal/vdbe.ts:compileDerivedProducer` routes bounded
+single-key no-FROM aggregate ORDER (also invalid positive ordinal for resolver
+diagnostics) to `compileAggregateSelect` with the enclosing builder and coroutine
+destination. `select-derived-union-owner-{native.py,test.mjs}` covers typed
+ordered row, exhausted OFFSET, invalid ordinal, reset and finalize. VM PC and
+Mem remain runtime-owned; other completed-child fallbacks remain.
+
+#### [[card:card-t-d]] zero-source GROUP BY derived destination
+`src/select.c:sqlite3Select` GROUP BY key sort/transition, `finalizeAggFunctions`,
+HAVING and `selectInnerLoop` feed the enclosing tag-select-0482
+`SRT_Coroutine`. `src/internal/vdbe.ts:compileDerivedProducer` routes bounded
+`simpleGroupShape` with no FROM to parent-owned `compileAggregateSelect` even
+without an aggregate call. The latter owns group key sorter, accumulator reset,
+HAVING, LIMIT/OFFSET and destination; VM retains runtime cursor/PC/Mem state.
+Paired public pinned `select-derived-union-owner-{native.py,test.mjs}` tests
+true/false HAVING and exhausted OFFSET over GROUP BY 1, reset and finalize.
+Other finished-child composition remains.
+
+#### [[card:card-t-d]] single-table grouped derived coroutine
+`src/select.c:sqlite3Select` tag-select-0482 and its GROUP BY branch use
+`sqlite3WhereBegin`/group sorting, accumulator transitions, HAVING and
+`selectInnerLoop` with enclosing `SRT_Coroutine`. The bounded single-table
+`simpleGroupShape` in `src/internal/vdbe.ts:compileDerivedProducer` calls
+parent-aware `compileAggregateSelect` (source cursor, sorter, group reset,
+LIMIT/OFFSET, destination) instead of `compileTableSelect`'s GROUP rejection.
+`select-derived-table-parent-{native.py,test.mjs}` tests typed fixture grouping,
+HAVING, name, reset/finalize against source-ID-checked pinned public API.
+Compound/window/multi-source and other completed-child composition remain.
+
+#### [[card:card-t-d]] single-table ungrouped derived aggregate
+`src/select.c:sqlite3Select` no-GROUP aggregate branch uses
+`sqlite3WhereBegin`, `updateAccumulator`, `sqlite3WhereEnd`,
+`finalizeAggFunctions`, HAVING and `selectInnerLoop` with enclosing
+`SRT_Coroutine` (tag-select-0482). `src/internal/vdbe.ts:compileDerivedProducer`
+keeps aggregate expressions out of ordinary `tableProducer` and routes bounded
+single-table ungrouped forms to parent-aware `compileAggregateSelect`, which
+owns WHERE scan, accumulator, HAVING and LIMIT before coroutine destination.
+Paired source-ID-checked public `select-derived-table-parent-{native.py,test.mjs}`
+adds WHERE count and HAVING-rejected count, typed name/rows, reset and finalize.
+Completed-child fallback and other unrepresented shapes remain.
+
+#### [[card:card-t-d]] bounded unordered UNION derived coroutine
+`src/select.c:multiSelect` combines arms in its enclosing Vdbe, and
+`sqlite3Select` tag-select-0482 targets `SRT_Coroutine`;
+`src/vdbe.c:OP_IdxInsert` and ephemeral iteration own execution.
+`src/internal/vdbe.ts:compileDerivedProducer` now emits bounded integer-literal
+UNION set insertion, ordered drain and LIMIT/OFFSET into the parent's builder,
+then yields to the outer consumer. Other compound callers still retain the
+completed-child fallback. Public paired `select-derived-union-owner-*` checks
+pinned source ID, typed rows, two reset passes and finalize.
+
+#### [[card:card-t-d]] EXCEPT/INTERSECT literal derived set (mapping correction)
+Pinned `src/select.c:multiSelect` lines 2990–3005 synthesizes ORDER BY 1 for
+non-ALL compounds and enters `multiSelectByMerge`. Prior UNION mapping above
+was inaccurate about upstream's algorithm. For the bounded one-column integer
+literal case, `compileDerivedProducer` reuses the typed ephemeral set/drain
+adaptation from `compileScalarSelect` in the parent Vdbe: `SetDelete`,
+`SetRetainIntersection` and `ClearEphemeral` model ordered compound results
+before coroutine emission. Distinct collation and expression effects excluded;
+source-ID paired `select-derived-union-owner-*` checks public typed rows and
+reset, not exact merge work/error parity. Other callers retain fallback.
+
+#### [[card:card-t-d]] mixed set-prefix / ALL-tail derived destination
+`src/select.c:multiSelect` 2990–3047 uses a merge/implicit ORDER 1 for a
+non-ALL prefix, then reuses destination and LIMIT/OFFSET for TK_ALL tail;
+`sqlite3Select` tag-select-0482 provides enclosing coroutine. Bounded integer
+literal prefix uses parent typed set insertion/deletion/intersection and ordered
+drain, then emits trailing arms through that same parent destination in
+`src/internal/vdbe.ts:compileDerivedProducer`. `select-derived-union-owner-*`
+provides source-ID pinned/public typed reset comparison. Merge VM work/error
+parity and all other mixed shapes remain gaps; completed-child fallback retained.
+
+#### [[card:card-t-d]] BINARY text literals in parent set-prefix
+`src/select.c:multiSelect` (implicit ORDER BY 1) and
+`multiSelectByMergeKeyInfo` compare compound result keys before enclosing
+`SRT_Coroutine`; `src/internal/vdbe.ts:compileDerivedProducer` now admits
+unadorned text literals as well as integer literals into the bounded parent
+`KeyInfo`/ephemeral drain, `Mem` and VM retaining encoding/type. Explicit
+COLLATE, nonliteral expressions and work/error parity are not covered.
+Paired `select-derived-union-owner-*` tests pinned/public typed BINARY rows.
+
+#### [[card:card-t-d]] scalar literal Mem keys in derived set prefix
+`select.c:multiSelect` 2990–3050 / `multiSelectByMergeKeyInfo` select the
+implicit ORDER BY comparison and shared TK_ALL destination; `vdbeaux.c`
+Mem/record comparison and `vdbe.c` coroutine execution are runtime owners.
+`src/internal/vdbe.ts:compileDerivedProducer` bounded parent set gate now
+accepts literal NULL, finite REAL and BLOB alongside INTEGER/TEXT: typed
+`KeyInfo` and `Mem` compare instead of independent SQL-text evaluation.
+`select-derived-union-owner-*` compares source-ID pinned and public typed
+NULL/REAL/BLOB order, deduplication, limit and reset. Exact merge work/error
+and other fallback callers remain unverified.
+
+#### [[card:card-t-d]] EXCEPT/INTERSECT prefix + ALL tail
+`src/select.c:multiSelect` 2990–3055: recursive non-ALL left uses implicit
+ORDER BY 1 merge; TK_ALL right inherits destination and LIMIT/OFFSET with
+`OP_IfNot` skip. `src/internal/vdbe.ts:compileDerivedProducer` parent bounded
+literal prefix now admits EXCEPT/INTERSECT without requiring UNION; VM
+`SetDelete`/`SetRetainIntersection` produce prefix then shared coroutine
+limit/offset drives tail. `select-derived-union-owner-*` pinned/public typed
+and reset cases compare empty/cross-tail transitions; exact merge costs not proven.
+
+#### [[card:card-t-d]] bounded nonliteral constant set arms
+Pinned `select.c:multiSelect` 2990–3055 and tag-select-0482 build the compound
+into enclosing SRT_Coroutine; `vdbeaux.c:sqlite3VdbeAddOp3` constructs while
+`vdbe.c` executes arithmetic/typed keys. `src/internal/vdbe.ts` bounded
+`compileDerivedProducer` accepts unary +/- finite numeric literal and binary
+integer-literal + arms using existing expression opcode compiler, then parent
+KeyInfo set and shared TK_ALL destination. Public pinned source-ID paired
+`select-derived-union-owner-*` covers typed signed/sum keys and reset. This
+neither migrates arbitrary expressions nor establishes merge work/error parity.
+
+#### [[card:card-t-d]] bound parameter prefix and ALL tail
+Pinned `select.c:multiSelect` 2990–3055 destination/limit sharing;
+`vdbeaux.c:sqlite3VdbeAddOp3` constructs; `vdbe.c:OP_Variable` 1575–1590
+reads bound Mem, coroutine opcodes preserve PC/registers. TS
+`src/internal/vdbe.ts:compileDerivedProducer` now admits single-column bare
+`variable` arms into existing parent set/mixed builder; the common parameter
+builder and VM `Variable` opcode own bindings and reset. Public paired pinned
+`select-derived-bound-*` verifies typed rows for bind/reset/rebind, offset,
+EXCEPT and ALL tail. Other completed-child callers and exact merge work/error
+parity remain unresolved.
+
+#### [[card:card-t-d]] derived multi-source scan
+`select.c:sqlite3Select` tag-select-0482 builds a coroutine source in the
+parent Vdbe; `selectInnerLoop` writes to SRT_Coroutine, `wherecode.c` owns
+position/loop exits, `vdbeaux.c` constructs and `vdbe.c` executes Yield/End.
+`src/internal/vdbe.ts:compileDerivedProducer` now routes multi-source
+noncompound nonaggregate nonwindow table producers to already parent-aware
+`compileInnerTableSelect` with shared builder/destination; no finished-child
+PC relocation on this path. `select-derived-join-*` pinned source-ID/public
+compares joined typed rows, sort, LIMIT/OFFSET, LEFT ON and reset. Other
+finished-child fallback paths remain, so structural gate and broader parity
+are not satisfied.
+
+#### [[card:card-t-d]] joined table-arm compound and sorter payload
+`select.c:multiSelect` TK_ALL forwards destination across arms; tag-select-0482
+puts derived coroutine in one Vdbe. `select.c:pushOntoSorter` 730ff distinguishes
+ORDER key width from row payload. `src/internal/vdbe.ts:compileSingleCompoundDerived`
+now sends multi-source table arms through common `compileInnerTableSelect`
+owner, retaining WHERE joins, predicates and cursor allocation. Its outer
+`SelectDest` sorter carries `keyCount` independently of result count to satisfy
+`src/internal/private-state.ts:SorterCursor.insert` and typed KeyInfo. Public
+source-ID pair `select-derived-joined-union-*` tests JOIN/LEFT JOIN UNION ALL
+and outer ORDER on first of two columns with reset. Other completed-child
+fallback callers, exact work/error order and structural gate remain red.
+
+#### [[card:card-t-d]] joined aggregate derived producer
+`select.c:sqlite3Select` tag-select-0482 and aggregate
+`sqlite3WhereBegin` / `updateAccumulator` / `sqlite3WhereEnd` (8878ff) produce
+rows in the enclosing Vdbe; SRT_Coroutine transfers finalized results.
+`src/internal/vdbe.ts:compileDerivedProducer` admits multi-source represented
+noncompound aggregates into parent `compileAggregateSelect` destination;
+existing aggregate compiler owns multi-source loop/ON/WHERE/finalization.
+`select-derived-joined-aggregate-*` pinned source-ID/public verifies typed
+count, empty result input, LIMIT 0 and reset. Earlier fallback threw an
+internal scalar-expression error. Other child-PC relocation remains live.
+
+#### [[card:card-t-d]] optional outer WHERE for materialized window child
+`select.c:sqlite3Select` tag-select-0482, `window.c:sqlite3WindowRewrite`,
+and `select.c:selectInnerLoop` produce a window result in the parent Vdbe;
+outer WHERE is optional before ORDER/LIMIT/output. The existing parent-builder
+window destination in `src/internal/vdbe.ts:compileDerivedProducer` now skips
+its outer `IfNot` and jump fixup when the predicate is absent. Pinned/public
+`select-derived-window-no-where-*` source-ID pair covers ORDER/LIMIT/OFFSET,
+LIMIT 0, reset, and prepare error. General window and remaining child-PC
+fallback are not proven migrated.
+
+#### [[card:card-t-d]] DISTINCT aggregate child
+`select.c:sqlite3Select` tag-select-0482 and the aggregate
+`sqlite3WhereBegin`/`updateAccumulator`/`sqlite3WhereEnd` branch feed
+`selectInnerLoop`/`codeDistinct` before `SRT_Coroutine`; `vdbeaux.c` builds
+opcodes, `vdbe.c:OP_Found`/`OP_Yield` executes them. In
+`src/internal/vdbe.ts:compileDerivedProducer`, DISTINCT aggregate children
+now enter the existing parent `compileAggregateSelect` destination, whose
+`distinctResultCursor` filters before output LIMIT; no independent VM/WHERE
+policy added. Pinned/public `select-derived-distinct-aggregate-*` pair checks
+integer counts, empty input, LIMIT 0 and reset. Finished-child fallback
+remains live for other forms; group/index and precise native work order not
+proven by this gate.
+
+#### [[card:card-t-d]] zero-source DISTINCT producer
+`select.c:sqlite3Select` tag-select-0482 -> `selectInnerLoop` ->
+`codeDistinct` default `OP_Found`/`OP_IdxInsert` -> `codeOffset` ->
+`SRT_Coroutine`; `vdbeaux.c` constructs and `vdbe.c:OP_Found` executes.
+`src/internal/vdbe.ts:compileDerivedProducer` now emits the finite scalar
+DISTINCT child in its parent `SelectProgramBuilder` using typed KeyInfo
+instead of rejecting the clause in a standalone scalar program. Pinned/public
+`select-derived-distinct-scalar-*` pair checks integer/zero-limit/offset/
+WHERE-false and reset. General DISTINCT work order and the surviving
+finished-child fallback are not claimed migrated.
+
+#### [[card:card-t-d]] compound shared LIMIT across table arms
+`select.c:multiSelect` TK_ALL copies `iLimit`/`iOffset` to the prefix and
+skips the tail on exhausted count; `selectInnerLoop` decrements only emitted
+rows. `vdbeaux.c` builds addresses and `vdbe.c` executes counter and cursor
+state. `src/internal/vdbe.ts:compileSingleCompoundDerived` now computes the
+compound limit once in `SelectProgramBuilder`, shares it with
+`compileInnerTableSelect`'s existing scan/destination loop, and fixes its
+breaks to the next arm/end. Pinned/public `select-derived-compound-limit-*`
+exercises cross-arm OFFSET, first-arm exhaustion, zero limit, outer ORDER and
+reset. General ordered/other-op compounds and precise work parity remain
+unproven; no WHERE planner or VM state policy changed.
+
+#### [[card:card-t-d]] ordered joined compound destination
+`select.c:multiSelectByMerge` builds two arm coroutines, comparison and merge
+into `SRT_Coroutine` (`sqlite3Select`, tag-select-0482); `vdbeaux.c` constructs
+and `vdbe.c` steps the opcodes. The finite prefix-ordinal BINARY `UNION ALL`
+joined-table producer in `src/internal/vdbe.ts:compileSingleCompoundDerived`
+now routes both arms to a parent-owned child sorter, drains into the existing
+outer destination; `compileInnerTableSelect` retains WHERE/index scan and
+limit exits. This is a sorter-for-merge adaptation, not native merge parity:
+independently resumable arm coroutines/permutation are not yet in this
+builder. Pinned/public `select-derived-ordered-joined-*` pair tests typed
+results, inner/outer ordering, reset. Non-prefix, child DESC, complex
+collation, tie/work/error ordering remain unproved or excluded.
+
+#### [[card:card-t-d]] ordered compound output LIMIT
+`select.c:multiSelectByMerge` computes shared result `iLimit`/`iOffset`,
+copies separate `iOffset+1` input capacities for A/B, then calls
+`generateOutputSubroutine` for post-merge OFFSET/LIMIT; `vdbeaux.c` constructs
+and `vdbe.c` executes the PC/counter branches. In bounded
+`compileSingleCompoundDerived` the parent builder sends both
+`compileInnerTableSelect` arm scans to its child sorter without shared output
+counters; drain applies `IfPos` OFFSET then output and `DecrJumpZero`. The
+unbounded-input sorter is a documented TS adaptation (not native arm work,
+error, or budget parity). Pinned/public `select-derived-ordered-limit-*`
+checks typed rows, LIMIT 0, cross-arm OFFSET, outer ORDER and two resets.
+
+#### [[card:card-t-d]] derived no-FROM scalar ORDER expressions
+`resolve.c:resolveOrderByTermToExprList` resolves single-result ORDER
+expressions; `select.c:sqlite3Select` tag-select-0482 compiles the child in
+its enclosing Vdbe to SRT_Coroutine; `selectInnerLoop` applies LIMIT and
+OFFSET around the one candidate. In `src/internal/vdbe.ts:compileDerivedProducer`,
+`scalarProducer` now admits one ORDER expression, validates via
+`expandAndResolveSelect`, and emits into its existing parent builder; VM
+execution/WHERE/index contracts unchanged. Pinned/public
+`select-derived-scalar-order-expression-*` verifies typed rows and resets.
+General ORDER expression evaluation and remaining
+finished-child fallback are not established.
+
+#### [[card:card-t-d]] multi-term scalar ORDER admission
+`resolve.c` simple SELECT ORDER-term resolver checks each term;
+`select.c:sqlite3Select` (tag-select-0482) emits into the parent
+SRT_Coroutine and `selectInnerLoop` handles the sole no-FROM candidate.
+`src/internal/vdbe.ts:compileDerivedProducer` now admits all ORDER term counts
+for the no-FROM nonaggregate scalar and validates via
+`expandAndResolveSelect`; aggregate admission remains separately bounded.
+Pinned/public `select-derived-scalar-multi-order-*` tests mixed direction,
+LIMIT/OFFSET, integer output and reset. Other fallback producers and native
+work/error ordering remain unestablished.
+
+#### [[card:card-t-d]] ungrouped aggregate ORDER in derived coroutine
+`resolve.c:resolveOrderGroupBy` resolves each ORDER term;
+`select.c:sqlite3Select`/tag-select-0482 and AggInfo generate one ungrouped
+accumulator output in the enclosing Vdbe. `src/internal/vdbe.ts` admits
+multi-term ORDER only for no-GROUP aggregate derived producers;
+`compileAggregateSelect` owns resolution, AggStep/Final, LIMIT and
+`SelectDest` into `compileDerivedProducer`'s parent coroutine. Paired
+`select-derived-aggregate-multi-order-*` checks joined count, empty input,
+LIMIT 0 and resets. Grouped/descending paths, VM work/error order and
+remaining finished-child fallback have not been proven.
+
+#### [[card:card-t-d]] no-FROM UNION ALL arm WHERE
+Pinned `select.c:multiSelect` TK_ALL passes shared destination and limit to
+both `sqlite3Select` arms; `selectInnerLoop` applies WHERE before result row,
+OFFSET and SRT_Coroutine. `resolve.c` owns arm name resolution;
+`vdbe.c:OP_IfNot`/`OP_Yield` own runtime jump/resume. TS
+`src/internal/vdbe.ts:compileDerivedProducer` resolves each arm using its
+SELECT context and emits arm-local predicate jumps in its parent builder;
+`computeLimitRegisters`, `emitSelectDestination`, and VM remain shared.
+Pinned/public `select-derived-union-where-*` checks 7 cases ×2 resets.
+Physical WHERE/index, more general compounds and remaining child relocation
+are not proven.
+
+#### [[card:card-t-d]] ordered constant-arm WHERE into parent sorter
+Pinned `select.c:multiSelectByMerge` resolves ORDER, emits arm A/B coroutines
+and applies OFFSET/LIMIT in merged output (`generateOutputSubroutine`);
+`selectInnerLoop` applies each WHERE before its row destination. TS
+`compileDerivedProducer` resolves each no-FROM arm in the child SELECT context,
+then branches to the next arm before inserting into its existing parent-owned
+typed sorter. Paired `select-derived-ordered-arm-where-*` pinned/public tests:
+7 typed cases ×2 resets. Typed sorter is a bounded substitution, not native
+incremental merge, work/error parity or general compound support.
+
+### Second checkpoint shared bridge allocation ([[card:card-s-c-d-h]])
+
+Pinned `select.c:selectInnerLoop` SRT_EphemTab NewRowid/Insert preserves
+producer insertion identity; `vdbe.c:OP_Last`, `OP_Rewind`, `OP_Prev`,
+`OP_Next` require matching initialization/continuation. First checkpoint
+`compileInnerTableSelect` joined reverse start/next, Last/IndexLast carriers
+and VM consumers, OpenEphemeral insertionOrder forwarding and ephemeral
+constructor/sort/duplicate closure are shared SELECT→WHERE dependencies.
+`select-cte-order-owner.test.mjs` discriminates the isolated wrong-order
+snapshot from this closure. NullRow/Btree invalidation and selected nullable
+start/single-source reverse control stay in the subsequent WHERE slice.
+Finished-child structural ownership is not retired by this checkpoint.

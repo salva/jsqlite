@@ -755,3 +755,13 @@ in `in-range-stat-choice-red.test.mjs`, `in-range-stat-ts.test.mjs`, and
 `in-range-selected-red.test.mjs` (52/52 together). The red checkpoint above
 is historical; native path comparison is bounded to these fixtures, not
 full `whereLoopInsert` or STAT4 fidelity.
+
+### Second checkpoint attribution (2026-10-01, [[card:card-s-c-d-h]])
+
+First SELECT checkpoint includes the minimal shared joined reverse and
+insertion-order producer/consumer closure, not exclusive SELECT ownership.
+Remaining selected nullable-start, cursor NullRow/reset and single-source
+reverse semantics belong to the incremental WHERE checkpoint. Existing
+completed-child parent-owner structural test remains red; no migration or
+broad compatibility acceptance is implied. Current staged-only validation
+is recorded in the card delivery status with individual process exits.

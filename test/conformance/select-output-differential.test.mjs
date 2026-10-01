@@ -9,6 +9,10 @@ const cases=[
   {sql:'SELECT 1 AS a, 2.0 AS b, NULL AS n',names:['a','b','n'],rows:[[['integer',1n],['real',2],['null',null]]]},
   {sql:'SELECT 1 AS v LIMIT 0',names:['v'],rows:[]},
   {sql:'SELECT 7 AS v UNION ALL SELECT 8 LIMIT 1 OFFSET 1',names:['v'],rows:[[['integer',8n]]]},
+  {sql:'SELECT 7 AS v UNION ALL SELECT 8 AS v',names:['v'],rows:[[['integer',7n]],[['integer',8n]]]},
+  {sql:'SELECT (SELECT 7) AS n, EXISTS(SELECT 8) AS e, 7 IN (SELECT 7) AS i',names:['n','e','i'],rows:[[['integer',7n],['integer',1n],['integer',1n]]]},
+  {sql:'SELECT (SELECT 7 LIMIT 0) AS n, EXISTS(SELECT 8 LIMIT 0) AS e, 7 IN (SELECT 7 LIMIT 0) AS i',names:['n','e','i'],rows:[[['null',null],['integer',0n],['integer',0n]]]},
+  {sql:'SELECT (SELECT 4 UNION SELECT 5 UNION ALL SELECT 9 LIMIT 1 OFFSET 1) AS n',names:['n'],rows:[[['integer',5n]]]},
 ];
 test('public scalar/output destination first, empty, compound and reset retain pinned types and metadata',async()=>{
  const bridge=await startFixtureServer(fixtureRoot);let db;
