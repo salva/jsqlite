@@ -358,6 +358,8 @@ class CursorBase<T extends PayloadCell> {
   get valid(): boolean { this.database.assertOpen(); return this.position >= 0 && this.position < this.entries.length; }
   first(): boolean { this.ensureEntries(); return this.move(this.entries.length ? 0 : -1); }
   last(): boolean { this.ensureEntries(); return this.move(this.entries.length ? this.entries.length - 1 : -1); }
+  // OP_NullRow clears the underlying Btree cursor as well as its decoded row.
+  clearPosition(): void { this.position = -1; this.generation++; }
   next(): boolean { this.ensureEntries(); return this.move(this.valid && this.position + 1 < this.entries.length ? this.position + 1 : -1); }
   previous(): boolean { this.ensureEntries(); return this.move(this.valid && this.position > 0 ? this.position - 1 : -1); }
   protected move(position: number): boolean { this.position = position; this.generation++; return this.valid; }

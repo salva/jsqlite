@@ -945,6 +945,229 @@ test('single-source reverse equality prefix without a range starts at its last k
  });
 });
 
+// wherecode.c Case 4 has a distinct no-start-constraint branch: OP_Last
+// (not OP_Rewind) when scanning a forced index backwards. Existing range and
+// equality-prefix tests do not exercise this boundary.
+test('unbounded forced index reverse scan positions at last before Prev',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT id,a,b FROM m ${hint} ORDER BY a DESC,b DESC,c DESC,id DESC`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement;
+  const control=db.prepare(sql('NOT INDEXED')).statement;
+  try{
+   const expected=await rows(control);
+   assert.ok(expected.length>2,`${variant.id}: reverse scan spans multiple keys`);
+   assert.deepEqual(await rows(selected),expected,`${variant.id}: reverse selected rows`);
+   assert.equal(privateAccounting(selected).sorterRows,0,`${variant.id}: index order, not a masking sorter`);
+   selected.reset();control.reset();
+   assert.equal(await selected.step(),'row',`${variant.id}: first selected row before reset`);
+   selected.reset();
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}: reset after first row`);
+  }finally{selected.finalize();control.finalize()}
+ });
+});
+
+// codeAllEqualityConstraints sends nullable '=' RHS to addrBrk before
+// IndexSeekPrefix, but IS must retain a NULL key. Exercise a selected
+// outer equality prefix with duplicate keys and reset/rebind.
+test('selected equality NULL exits before seek but IS retains NULL key',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  for(const comparison of ['=','IS']){
+   const sql=hint=>`SELECT id,a FROM m ${hint} WHERE a ${comparison} ?1 ORDER BY a,id`;
+   const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+   try{for(const value of [1n,null,2n,null,1n]){
+    for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,value)}
+    assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${comparison}/${String(value)}`);
+   }}finally{selected.finalize();control.finalize()}
+  }
+ });
+});
+
+// codeINTerm's RHS set filters NULL and duplicates, then the inner IN
+// cursor must restart when the outer IN cursor advances.
+test('selected two-field IN duplicates NULL and outer restart match scan',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT id,a,b FROM m ${hint} WHERE a IN (?1,?2,?3) AND b IN (?4,?5,?6) ORDER BY a,b,id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const params of [[1n,1n,null,1n,3n,null],[2n,null,1n,2n,2n,null],[null,null,null,1n,2n,null],[1n,2n,1n,3n,1n,3n]]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();params.forEach((value,i)=>statement.bind(i+1,value))}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(params)}`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// A failed range start in the inner IN level must advance the outer IN
+// level, not terminate the selected scan or revisit a stale cursor.
+test('selected nested IN with nullable range start advances outer level',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT id,a,b FROM m ${hint} WHERE a IN (?1,?2,?3) AND b IN (?4,?5,?6) AND c>=?7 ORDER BY a,b,c,id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const params of [[1n,2n,null,1n,2n,null,null],[1n,2n,null,1n,2n,null,2n],[2n,1n,2n,3n,1n,null,1n]]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();params.forEach((value,i)=>statement.bind(i+1,value))}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(params)}`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// A joined selected inner range must branch to the next outer row when its
+// start RHS is NULL; this caller constructs its own WHERE loop graph.
+test('joined selected nullable inner range advances outer cursor',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT x.id,y.id FROM m x JOIN m y ${hint} ON y.a=x.a WHERE x.id IN (1,2,3) AND y.b>=?1 ORDER BY x.id,y.id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const bound of [2n,null,1n,null,3n]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,bound)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(bound)}: nullable joined range`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// Joined equality keys must not turn = NULL into a seek over NULL keys;
+// the outer row must still advance, while IS may search NULL keys.
+test('joined selected nullable equality advances outer row',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  for(const comparison of ['=','IS']){
+   const sql=hint=>`SELECT x.id,y.id FROM m x JOIN m y ${hint} ON y.a ${comparison} ?1 WHERE x.id IN (1,2,3) AND y.b=x.b ORDER BY x.id,y.id`;
+   const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+   try{for(const key of [1n,null,2n,null,1n]){
+    for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,key)}
+    assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${comparison}/${String(key)}: joined nullable equality`);
+   }}finally{selected.finalize();control.finalize()}
+  }
+ });
+});
+
+// wherecode.c checks a nullable selected range RHS before seeking even
+// inside a join. Public rows may be rescued by residual predicates, but
+// skipping the branch still performs a cursor seek and changes budget/error
+// ordering. Keep the producer graph contract explicit until migrated.
+test('joined selected nullable range emits pre-seek VM IsNull branch',()=>{
+ const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
+ const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
+ const seek=joined.slice(joined.indexOf('const keys=admissions.map('),joined.indexOf('rewinds[level]=ops.length;ops.push({code:\'IndexSeekPrefix\''));
+ assert.match(seek,/code:'IsNull'.*p1:keys\[keys\.length-1\]!/, 'joined selected loop must branch on nullable start register before seek');
+});
+
+// A NULL start must skip the selected seek before work-limit accounting;
+// the upper bound on a fresh failed seek is source-owned loop control.
+test('joined selected NULL range bypasses seek while preserving sticky budget errors',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql='SELECT x.id,y.id FROM m x JOIN m y INDEXED BY m_abc ON y.a=x.a WHERE x.id IN (1,2,3) AND y.b>=?1 ORDER BY x.id,y.id';
+  const statement=db.prepare(sql).statement;
+  try{statement.bind(1,null);assert.deepEqual(await rows(statement),[],variant.id);
+   const nullSeeks=privateAccounting(statement).indexSeeks;
+   statement.reset();statement.clearBindings();statement.bind(1,1n);
+   assert.ok((await rows(statement)).length>0,`${variant.id}: bound rows`);
+   assert.ok(privateAccounting(statement).indexSeeks>nullSeeks,`${variant.id}: NULL branch did not seek`);
+  }finally{statement.finalize()}
+  const limited=db.prepare(sql).statement;limited.bind(1,1n);
+  let failure;try{await limited.step({maxWorkUnits:1})}catch(error){failure=error}
+  assert.equal(failure?.kind,'limit',`${variant.id}: work limit`);
+  assert.throws(()=>limited.reset(),error=>error===failure);
+  assert.doesNotThrow(()=>limited.finalize());
+ });
+});
+
+// where.c:sqlite3WhereEnd emits NullRow on both the table and its selected
+// index cursor for a LEFT miss. Probe an index-covered column after a hit,
+// then after a miss, across reset and outer iteration.
+test('selected LEFT index miss clears covered index row and deferred table row',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT x.id,y.id,y.a,y.b FROM m x LEFT JOIN m y ${hint} ON y.a=x.a AND y.b=?1 WHERE x.id IN (1,2,3) ORDER BY x.id,y.id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const b of [2n,99n,1n,99n,2n]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,b)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${b}: LEFT selected miss`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// where.c:sqlite3WhereEnd nulls both selected index and table cursors on
+// a LEFT miss, and vdbe.c:OP_NullRow invalidates pending deferred seeks.
+// Demand an uncovered column after a prior hit to catch stale table state.
+test('selected LEFT miss after hit never materializes stale deferred row',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT x.id,y.id,y.c FROM m x LEFT JOIN m y ${hint} ON y.a=x.a AND y.b=?1 WHERE x.id IN (1,2,3) ORDER BY x.id,y.id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const b of [1n,2n,null,99n]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,b)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(b)}: deferred LEFT row`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// A LEFT miss must clear a pending rowid from the preceding selected hit.
+// The index does not cover ov.payload; force a miss between two hits.
+test('selected LEFT miss clears pending uncovered payload from prior hit',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT x.id,y.id,y.payload FROM m x LEFT JOIN ov y ${hint} ON y.k=?1 WHERE x.id IN (1,2) ORDER BY x.id,y.id`;
+  const selected=db.prepare(sql('INDEXED BY ov_k_payload')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const k of ['needle','absent','other',null,'needle']){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,k)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(k)}: LEFT payload`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// sqlite3WhereEnd emits NullRow on the selected index as well as the
+// nullable table; vdbe.c:OP_NullRow cancels pending deferred seeks. The
+// producer and VM must implement both state transitions, even when residual
+// row tests happen to hide a stale cursor in selected public fixtures.
+test('selected LEFT null-row closes index and pending deferred table cursor',()=>{
+ const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
+ const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
+ const unmatched=joined.slice(joined.indexOf('const match=leftMatches[level];if(match!==undefined){'),joined.indexOf('const normalScanEnd='));
+ assert.match(unmatched,/code:'NullRow',p1:.*indexCursor/, 'selected LEFT miss must null its index cursor');
+ const vm=source.slice(source.indexOf('case "NullRow":'),source.indexOf('case "Column":',source.indexOf('case "NullRow":')));
+ assert.match(vm,/#deferredRowids\.delete\(op\.p1\)/,'NullRow must clear the table cursor pending seek');
+});
+
+// wherecode.c:sqlite3WhereRightJoinLoop nulls each left table AND its
+// selected index before invoking the unmatched-right continuation.
+test('selected RIGHT unmatched pass nulls left selected index before continuation',()=>{
+ const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
+ const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
+ const pass=joined.slice(joined.indexOf('if(rightLevel>=0){\n    // Resolve sqlite3WhereEnd-style'),joined.indexOf('const rewind=ops.length;ops.push({code:\'Rewind\'',joined.indexOf('if(rightLevel>=0){\n    // Resolve sqlite3WhereEnd-style')));
+ assert.match(pass,/for\(let level=0;level<rightLevel;level\+\+\)\{[\s\S]*?indexCursors\.get\(ordinal\)[\s\S]*?code:'NullRow',p1:indexCursor/, 'unmatched RIGHT continuation must null selected left index with table');
+});
+
+test('selected left cursor is NULL across RIGHT unmatched pass and reset',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT x.id,x.a,x.b,y.id FROM m x ${hint} RIGHT JOIN m y ON x.a=y.a AND x.b=?1 WHERE y.id IN (1,4,5) ORDER BY y.id,x.id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement,control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const b of [1n,99n,2n,null,1n]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,b)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(b)}: RIGHT null left`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+// Case 4 null range starts must take the next-loop edge before any row,
+// including a reverse prefix with duplicate leading keys and reset/rebind.
+test('forward selected equality prefix and nullable lower bound restart',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT id,b FROM m ${hint} WHERE a=?1 AND b>=?2 ORDER BY b,id`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement;
+  const control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const [a,b] of [[1n,2n],[1n,null],[1n,1n],[null,2n],[1n,2n]]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,a);statement.bind(2,b)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(a)}/${String(b)}: forward nullable range`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
+test('reverse selected equality prefix and nullable upper bound restart',async()=>{
+ for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
+  const sql=hint=>`SELECT id,b FROM m ${hint} WHERE a=?1 AND b<=?2 ORDER BY b DESC,id DESC`;
+  const selected=db.prepare(sql('INDEXED BY m_abc')).statement;
+  const control=db.prepare(sql('NOT INDEXED')).statement;
+  try{for(const [a,b] of [[1n,3n],[1n,null],[1n,2n],[null,3n],[1n,3n]]){
+   for(const statement of [selected,control]){statement.reset();statement.clearBindings();statement.bind(1,a);statement.bind(2,b)}
+   assert.deepEqual(await rows(selected),await rows(control),`${variant.id}/${String(a)}/${String(b)}: reverse nullable range`);
+   if(a!==null&&b!==null)assert.ok(privateAccounting(selected).indexSeeks>0,`${variant.id}: selected seek`);
+  }}finally{selected.finalize();control.finalize()}
+ });
+});
+
 // Case 4's nEq=0 reverse start is a full-key seek, not the equality-prefix
 // rewind; cover a strict range that changes both the first and last key.
 test('single-source reverse leading-key range without equality seeks the upper edge',async()=>{
@@ -1266,7 +1489,7 @@ test('expression identity folds function-name case but not function shape',async
 });
 
 test('partial NOT NULL implication preserves arithmetic seenNot fallthrough',async()=>{
- // The pinned c&1 companion remains in the working test until bitwise SELECT lowering is separately attributed.
+ // c&1 remains outside this checkpoint with separately attributed bitwise lowering.
  const cases=[['c*0',[]],['c/1',[[1n]]],['1/c',[[1n]]],['c%2',[[1n]]]],failures=[];
  for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
   for(const [predicate,expected] of cases)try{assert.deepEqual(await execute(db,`SELECT id FROM p INDEXED BY p_live WHERE a=1 AND ${predicate} ORDER BY id`),expected,`${variant.id}/${predicate}`)}catch(error){failures.push(error)}

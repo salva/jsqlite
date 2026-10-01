@@ -765,3 +765,9 @@ reverse semantics belong to the incremental WHERE checkpoint. Existing
 completed-child parent-owner structural test remains red; no migration or
 broad compatibility acceptance is implied. Current staged-only validation
 is recorded in the card delivery status with individual process exits.
+
+The incremental test allocation includes joined/physical linked identity and
+NULL public/native companions, joined selected NULL guard, nullable range
+and unbounded reverse native probes. The c&1 test companion remains outside
+the index with separately attributable bitwise lowering; other arithmetic
+implication assertions and native captures are retained.

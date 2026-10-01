@@ -6823,7 +6823,109 @@ whereas the current `IdxInsert`/`EphemeralSort` path sorts by record value.
 ORDER BY admission was reverted. Do not treat the LIMIT pass as an ORDER fix or
 proof of full CTE/compound, budget, lifecycle or C1–C6/Chinook compatibility.
 
-### 2026-09-30 bounded CTE ORDER producer traversal correction (joined bridge checkpoint) ([[card:card-t-d]])
+### 2026-10-01 selected RIGHT unmatched cursor and continuation ([[card:card-t-d]])
+
+Pinned `src/wherecode.c:sqlite3WhereRightJoinLoop` (2842–2950) emits
+`OP_NullRow` for each left table **and its selected index** before the
+unmatched-right RHS scan. `src/vdbe.c:OP_NullRow` (6195–6228) clears Btree
+position/cache; `OP_Rewind` (6372–6410) positions the fresh RHS scan.
+`compileInnerTableSelect` now emits both null-row operations for each
+left level using the loop's source ordinal. VM `Rewind` discards any prior
+seek/deferred cursor for that same table cursor, so the unmatched pass's
+`Next` advances its new scan, not the earlier matched seek. The compiler
+copies the shared RHS continuation with `relocateControlTargets` rather than
+an incomplete hand-written opcode list: the prior `ShortCircuit` jump into
+the original body caused the observed sorter-entry-limit exhaustion. PC,
+register, cursor and work accounting remain VM-owned; this change does not
+alter [[card:card-s]] index admission or c's window-derived lowering.
+Public forced selected-vs-scan RIGHT rows (INTEGER/NULL) with reset/rebind,
+a source-order assertion, and a read-only pinned source-ID-checked typed
+native comparison across three encodings cover this seam. RIGHT/FULL and
+advanced-index regressions pass, but exact native work-unit parity, all
+RIGHT/IN branches, C1–C6/Chinook and suspended concurrency remain open.
+
+### 2026-09-30 selected LEFT null-row ownership ([[card:card-t-d]])
+
+Pinned `src/where.c:sqlite3WhereEnd` (7655–7710) advances the IN
+iterators before the LEFT unmatched-row edge and emits `OP_NullRow` first
+for the table and then for a selected index, before re-entering the loop
+body. Pinned `src/vdbe.c:OP_NullRow` (6195–6228) marks a cursor null and
+clears its Btree position/cache; subsequent column reads must not expose
+a previous hit. `compileInnerTableSelect` now emits both null-row opcodes
+when a selected index exists. VM `NullRow` clears decoded row/rowid and
+pending deferred table seek on the addressed cursor, invalidates borrowed
+row state and clears positioned TableCursor/IndexCursor while retaining
+opened cursor identity for future seeks/restarts. `CursorBase.clearPosition`
+is the browser read-only Btree equivalent of clearing the underlying cursor;
+`first`/`seek` may reposition it. Source-only assertions protect the
+producer/VM state boundary; public forced/scan LEFT rows across all three
+encodings and reset/rebind, plus a pinned read-only source-ID-checked typed
+native comparison, cover the observed row/NULL behavior. Previously those
+public row checks passed even without the cursor-state transition; they
+cannot establish exact upstream work units or broader VM parity. No root
+[[card:card-s]] admission or API guarantee changed.
+
+### 2026-09-30 joined selected nullable range-start exit ([[card:card-t-d]])
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4
+(1990–2042) evaluates nullable `pRangeStart` and branches with `OP_IsNull`
+to `addrNxt` before affinity and the start seek. The joined caller
+`compileInnerTableSelect` previously evaluated the start register then
+immediately emitted `IndexSeekPrefix`; residual WHERE tests could hide
+extra cursor seeks in public rows. It now emits the same register-based
+`IsNull` before the seek and patches the compiler-owned exit together with
+the failed seek: inner IN restart when present, LEFT unmatched-row path,
+or the next outer loop, including pre-copy RIGHT JOIN continuation targets.
+The existing VM opcode executes the branch without opening/seeking the
+index; VM still owns Mem, PC, cursor state, limits, and cleanup. This
+corrects the joined producer without changing root [[card:card-s]] planner
+admissions or introducing a second evaluator. Public all-encoding tests
+cover NULL, duplicate keys, `=`/`IS`, nested IN, joined reset/rebind and
+sticky budget errors; `select-joined-index-null-native.py` uses read-only
+pinned source-ID-checked typed INTEGER/NULL forced-vs-scan differentials.
+The source-only guard checks pre-seek ordering; public rows alone would
+not establish that ordering. General outer-loop and suspended concurrency
+parity remains open.
+
+### 2026-09-30 nullable selected range start ([[card:card-t-d]])
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4 (1990–2042)
+computes a nullable range-start RHS, then emits `OP_IsNull` to `addrNxt`
+before affinity and `aStartOp` seeking; `src/vdbe.c:OP_IsNull` (2755–2763)
+reads the register and branches without moving the cursor. The selected
+`compileTableSelect` caller previously formed `IndexSeekPrefix` directly on
+an appended NULL bound: forward `a=1 AND b>=NULL` admitted three keys rather
+than none. The compiler now emits `IsNull` on the range-start register only
+(not equality-prefix `IS NULL` keys), routes it through the same loop-exit
+edge as failed seeks, including IN restarts, and leaves the VM responsible
+for register state, branch PC, seek, and cleanup. This translates a source
+branch rather than substituting a separate SQL predicate evaluator. Public
+`run-advanced-index-ts.test.mjs` forward/reverse bound cases compare forced
+selected to table control over NULL/rebind/reset in three encodings; pinned
+source-ID-checked `select-nullable-index-range-native.py` compares typed
+INTEGER rows with read-only native forced/control statements for both
+orientations. Other selected-end, NULL-order and VM/suspension parity remain
+open; no owner scope or API guarantee was changed.
+
+### 2026-09-30 unbounded reverse selected-index start ([[card:card-t-d]])
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4 `aStartOp`
+(1850–1866) emits `OP_Last` for an unconstrained reverse selected-index
+loop, matched to `OP_Prev` in `sqlite3WhereEnd`; `src/vdbe.c:OP_Last`,
+`OP_Rewind`, `OP_Prev` position/step the cursor, not the compiler. The
+single-table selected producer in `src/internal/vdbe.ts` formerly emitted
+`IndexRewind` even when the chosen loop was reverse, then `IndexPrev`:
+it produced the first physical row only. Its no-bound selected branch now
+emits `IndexLast` for reverse and retains `IndexRewind` for forward, leaving
+bound seeks, table scan and VM execution alone. Pinned source-ID-checked
+`test/conformance/select-unbounded-reverse-index-native.py` verifies typed
+INTEGER rows in three encodings for both selected and scan, twice each;
+`run-advanced-index-ts.test.mjs` compares public selected/scan results,
+checks no masking sorter and reset after partial execution. This is compiler
+start/continuation ownership, not a replacement index evaluator. Full VM/WHERE
+integration and C1–C6/Chinook/lifecycle/suspension gates remain open.
+
+### 2026-09-30 bounded CTE ORDER producer traversal correction ([[card:card-t-d]])
 
 Pinned `vdbe.c` OP_Last/OP_Rewind and OP_Prev/OP_Next initialize and advance a
 cursor in the same direction; `wherecode.c` loop direction must be carried into
@@ -6838,9 +6940,6 @@ now orders its admitted single projected ORDER term when requested; otherwise
 producer DESC order survives an unordered consumer. Existing specialized fallback
 and completed-child relocation remain live outside admitted forms. This does not
 establish general ORDER/index or VM construction/execution ownership equivalence.
-This first checkpoint owns joined parent-builder reverse initialization only;
-single-source selected reverse traversal, nullable start and NullRow state
-repairs are retained in the incremental WHERE checkpoint.
 Focused public oracle-derived regression: `select-cte-order-owner.test.mjs` checks
 DESC, repeated references, LIMIT/OFFSET and reset against pinned native results.
 

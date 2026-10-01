@@ -163,6 +163,7 @@ type Op =
   | { readonly code: "RealAffinity"; readonly p1: number }
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
+  | { readonly code: "IsNull"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number; readonly residual?: boolean }
   | { readonly code: "Next"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Prev"; readonly p1?: number; readonly p2: number }
@@ -183,7 +184,7 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "IfNotZero":case "IfPos":case "DecrJumpZero":case "Rewind":case "Last":
     case "SeekRowid":case "SeekRowidRange":case "RowidUpperBound":case "RowidLowerBound":
     case "IndexRewind":case "IndexLast":case "InListValue":case "IndexSeekPrefix":case "IndexPrefixEnd":
-    case "IndexRangeEnd":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
+    case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
       return {...original,p2:target(original.p2)} as Op;
     case "InitCoroutine":
       return {...original,p2:original.p2===0?0:target(original.p2),p3:target(original.p3)};
@@ -3032,7 +3033,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     :expanded.sources.map((_,ordinal)=>ordinal);
   const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
   for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=owner?owner.builder.cursor():rightMatchCursor+1+ordinal;indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
-  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>();
+  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>();
   for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??source.cursorId;if(isLeft){leftMatches[level]=allocate();ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!});}rewinds.push(ops.length);const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;if(rowEq){const tree=expressionFromReduction(rowEq.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:source.cursorId,key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
     const usable=indexCursor!==undefined&&capability&&(capability.equalityPrefix.length||capability.lower||capability.upper);
@@ -3060,6 +3061,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       }
       if(iterators.length)inRestarts.set(level,{iterators,advance:iterators.at(-1)!});
       const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(resolveTree(bound(admission.term)),ops,allocate,parameters,compileJoinSubquery));
+      // wherecode.c Case 4: nullable pRangeStart exits to addrNxt before
+      // affinity or seek. This is the next IN value (or outer loop), not Halt.
+      if(start){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
       const affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
       rewinds[level]=ops.length;ops.push({code:'IndexSeekPrefix',p1:indexCursor!,keys,affinities,keyInfo:capability.physicalIndex!.keyInfo,reverse:capability.reverse,strict:!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),p2:0});
     }else ops.push(indexCursor===undefined?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:indexCursor,p2:0});
@@ -3115,12 +3119,21 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // continuation. Copying their zero placeholders would restart at address
     // 0 when a downstream ON fails or its input is empty.
     for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}
+    for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;
     if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=nextAt.at(-1)!;
     for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
     // wherecode.c:sqlite3WhereRightJoinLoop scans the original RHS after the
     // source-order pass, NULLs every cursor left of the barrier, and invokes the
     // same interior continuation (including downstream joins and destinations).
-    for(let level=0;level<rightLevel;level++)ops.push({code:'NullRow',p1:expanded.sources[level]!.cursorId});
+    for(let level=0;level<rightLevel;level++){
+      const ordinal=loopOrdinals[level]!;
+      ops.push({code:'NullRow',p1:expanded.sources[ordinal]!.cursorId});
+      const indexCursor=indexCursors.get(ordinal);
+      if(indexCursor!==undefined)ops.push({code:'NullRow',p1:indexCursor});
+    }
+    // wherecode.c:sqlite3WhereRightJoinLoop uses a fresh RHS scan after
+    // NULLing the left cursors. That scan must supersede any selected seek
+    // cursor still attached to the same table cursor from the matched pass.
     const rewind=ops.length;ops.push({code:'Rewind',p1:expanded.sources[rightLevel]!.cursorId,p2:0});
     const start=ops.length;ops.push({code:'Rowid',p1:expanded.sources[rightLevel]!.cursorId,p2:rightKey!});
     const found=ops.length;ops.push({code:'Found',p1:rightMatchCursor,keyStart:rightKey!,keyCount:1,jump:0});
@@ -3145,7 +3158,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   let halt:number;
   if(orderTerms.length){const sortAt=ops.length;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:resultStart,count:expanded.result.length});let offsetAt:number|undefined;if(limit?.offset!==undefined){offsetAt=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}if(owner)emitSelectDestination(ops,owner.destination,resultStart,expanded.result.length);else ops.push({code:'ResultRow',p1:resultStart,p2:expanded.result.length});const limitAt=limit?ops.length:undefined;if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))ops.push({code:'Goto',p2:0});const next=ops.length;ops.push({code:'SorterNext',p1:sorterCursor,p2:sortAt+1});halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(offsetAt!==undefined)(ops[offsetAt] as {p2:number}).p2=next;if(limitAt!==undefined)(ops[limitAt] as {p2:number}).p2=halt;}else {halt=ops.length;if(!owner)ops.push({code:'Halt'});if(limit)for(let at=joinedBodyEnd-1;at>=joinedBodyStart;at--){const op=ops[at]!;if(op.code==='DecrJumpZero'&&op.p2===0)(op as {p2:number}).p2=halt;}}
-  for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;
+  for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;
   if(owner){
     // selectInnerLoop's iBreak is the enclosing continuation, not OP_Halt.
     // Patch only this producer's first-row exits, including the sorter drain.
@@ -4379,7 +4392,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     if(nestedReadCursors.has(source))continue;
     const cursor=expressionCursor++;
     nestedReadCursors.set(source,cursor);
-    ops.push({code:"OpenRead",p1:source.table.rootPage,p2:cursor});
+    if(!nested.source.from.derived?.select.hasCompound)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:cursor});
   }
   if(keyInfo)ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo});
   // select.c's DISTINCT ephemeral key uses the resolved result ExprList
@@ -4387,7 +4400,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // overrides the column's declared collation even though the projection can
   // still use the direct-column fast path.
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:expanded.result.map(result=>({collation:sqliteAsciiFold(result.descriptor.collation) as BuiltinCollation}))})});
-  let rewindIndex:number;const inIterators:number[]=[];
+  let rewindIndex:number;const inIterators:number[]=[],startNullGuards:number[]=[];
   const boundRhs=(term:WhereTerm):Expression=>{const expression=expressionFromReduction(term.expression.reduction!);if(expression.kind!=="binary")throw new JSQLiteError("internal","rowid bound lost binary expression");return term.originalIndexedOperand==="left"?expression.right:expression.left;};
   const inValues=(term:WhereTerm):Expression[]=>{const expression=expressionFromReduction(term.expression.reduction!);if(expression.kind!=="in-list"||expression.negated)throw new JSQLiteError("internal","IN constraint lost value list");return expression.values;};
   if(rowidEquality?.expression.reduction){
@@ -4419,13 +4432,24 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       }
       keys=admissions.map(admission=>targets.get(admission)??compileExpressionTree(boundRhs(admission.term),ops,()=>++registers,parameters));
     }else keys=admissions.map(admission=>compileExpressionTree(boundRhs(admission.term),ops,()=>++registers,parameters));
+    // wherecode.c Case 4 emits OP_IsNull on the nullable range start RHS
+    // before applying affinity or seeking. Equality IS NULL is not a range
+    // start: its NULL key must remain searchable.
+    if(start){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[keys.length-1]!,p2:0});}
     const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);rewindIndex=ops.length;ops.push({code:"IndexSeekPrefix",p1:accessCursor,keys,affinities,keyInfo:selectedPhysical.keyInfo,reverse:selectedIndexReverse,strict:!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),p2:0});
-  }else {rewindIndex=ops.length;ops.push(selectedPhysical?{code:"IndexRewind",p1:accessCursor,p2:0}:{code:"Rewind",p2:0});}
+  }else {
+    // wherecode.c Case 4 aStartOp: an unconstrained reverse index loop
+    // positions with OP_Last, paired with OP_Prev in sqlite3WhereEnd.
+    rewindIndex=ops.length;
+    ops.push(selectedPhysical
+      ? {code:selectedIndexReverse?"IndexLast":"IndexRewind",p1:accessCursor,p2:0}
+      : {code:"Rewind",p2:0});
+  }
   const selectedPrimarySingleRow=selectedPhysical?.index.origin==="primary-key"&&selectedEqualities.length===selectedPhysical.keyInfo.keyFieldCount;
   // Pinned where.c whereLoopAddBtreeIndex marks a PRIMARY KEY loop WHERE_ONEROW
   // once nEq reaches nKeyCol. wherecode.c then omits the loop-step opcode. This
   // is safe for WITHOUT ROWID PKs because every key term is non-NULL and unique.
-  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(rowidLower||rowidUpper?{reverse:rowidReverse}:{})};
+  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(rowidLower||rowidUpper?{reverse:rowidReverse}:{})};
   if(selectedPhysical&&selectedEqualities.length){const seek=ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedEqualities.length),affinities:seek.affinities.slice(0,selectedEqualities.length),keyInfo:selectedPhysical.keyInfo,p2:0});}
   const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedEqualities.length]?.descending;
   const indexEnd=rangeBackwards?selectedIndexLower:selectedIndexUpper,indexStart=rangeBackwards?selectedIndexUpper:selectedIndexLower;
@@ -5674,7 +5698,7 @@ export class VdbeStatement implements Statement {
           case "EphemeralAdvanceData": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(!cursor.next()){if(op.emptyJump!==undefined){this.#pc=op.emptyJump;break;}throw new JSQLiteError("internal","window inverse cursor exhausted");}const values=cursor.data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "IfEphemeralHasNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).hasNext())this.#pc=op.jump;break;
           case "EphemeralResetPosition": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).rewindBeforeFirst();break;
-          case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#records.delete(cursor);this.#recordRowids.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
+          case "Rewind": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","rewind on unopened cursor");const scan=this.#program.database!.tableScanCursor(root);this.#cursors.set(cursor,scan);this.#tableSeekCursors.delete(cursor);this.#deferredRowids.delete(cursor);this.#records.delete(cursor);this.#recordRowids.delete(cursor);if (!scan.first()) this.#pc = op.p2; else await this.#loadRecord(cursor,options, limit, started); break;}
           case "Last": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","last on unopened cursor");const table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursor,table);this.#cursors.delete(cursor);this.#records.delete(cursor);this.#recordRowids.delete(cursor);if(!table.last())this.#pc=op.p2;else this.#loadTableSeekRecord(cursor,table);break;}
           case "SeekRowid": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor);if(root===undefined)throw new JSQLiteError("internal","seek on unopened cursor");const keyMem=this.#registers[op.key]!;if(keyMem.initialStorageClass!=="integer"){this.#pc=op.p2;break;}let table=this.#tableSeekCursors.get(cursor);if(!table){table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursor,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(keyMem.integerValue(),"ge")){this.#records.delete(cursor);this.#recordRowids.delete(cursor);this.#pc=op.p2;}else this.#loadTableSeekRecord(cursor,table);break;}
           case "SeekRowidRange": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor),key=this.#registers[op.key]!;if(root===undefined)throw new JSQLiteError("internal","range seek on unopened cursor");if(key.initialStorageClass!=="integer"){this.#pc=op.p2;break;}let table=this.#tableSeekCursors.get(cursor);if(!table){table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursor,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const exact=table.seek(key.integerValue(),op.reverse?"le":"ge");if(!table.valid||(!op.inclusive&&exact&&!(op.reverse?table.previous():table.next()))){this.#pc=op.p2;break;}this.#loadTableSeekRecord(cursor,table);break;}
@@ -5731,11 +5755,20 @@ export class VdbeStatement implements Statement {
           case "IndexRangeEnd": {const record=this.#records.get(op.p1),raw=record?.values[op.field],key=this.#registers[op.key]!;if(!raw){this.#pc=op.p2;break;}const current=memFromRawRecord(raw,this.#borrow),bound=new Mem();bound.copyFrom(key);bound.applyAffinity(op.affinity,this.#program.encoding);try{const comparison=compareMem(current,bound,op.collation),passes=op.operator==="lt"?comparison<0:op.operator==="le"?comparison<=0:op.operator==="gt"?comparison>0:comparison>=0;if(!passes)this.#pc=op.p2;}finally{current.release();bound.release();}break;}
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.values.at(-1);if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
           case "DeferredIndexSeek": {this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const record=this.#records.get(op.p1),cursor=this.#indexCursors.get(op.p2);if(!record||!cursor)throw new JSQLiteError("internal","deferred index seek on unopened cursor");const values=op.primaryKeyFields.map(ordinal=>{const raw=record.values[ordinal];if(raw===undefined)throw new BtreeFormatError("secondary key is missing a primary-key field");return memFromRawRecord(raw,this.#borrow)});const key=new UnpackedRecordKey(values,0,"seek",op.physical.keyInfo);try{if(!cursor.seek(payload=>compareRecordKey(payload,key,op.physical.keyInfo),"ge"))throw new BtreeFormatError("secondary key does not reference a primary row");this.#loadIndexRecord(op.p2);}finally{key.release();}break;}
-          case "NullRow": this.#records.delete(op.p1); this.#recordRowids.delete(op.p1); break;
+          case "NullRow": {
+            this.#borrow.invalidate();
+            this.#records.delete(op.p1);
+            this.#recordRowids.delete(op.p1);
+            this.#deferredRowids.delete(op.p1);
+            this.#tableSeekCursors.get(op.p1)?.clearPosition();
+            this.#indexCursors.get(op.p1)?.clearPosition();
+            break;
+          }
           case "Column": {const cursorNumber=op.p3??0,pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
           case "Rowid": {const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
+          case "IsNull": if(this.#registers[op.p1]!.initialStorageClass==="null")this.#pc=op.p2;break;
           case "IfNot": if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
           case "Next": {const cursor=op.p1??0,table=this.#tableSeekCursors.get(cursor);this.#privateAccounting={...this.#privateAccounting,tableNext:this.#privateAccounting.tableNext+1};if(table?table.next():this.#cursors.get(cursor)!.next()){if(table)this.#loadTableSeekRecord(cursor,table);else await this.#loadRecord(cursor,options,limit,started);this.#pc=op.p2;}break;}
           case "Prev": {const cursor=op.p1??0,table=this.#tableSeekCursors.get(cursor);if(!table)throw new JSQLiteError("internal","reverse movement without seek cursor");this.#privateAccounting={...this.#privateAccounting,tableNext:this.#privateAccounting.tableNext+1};if(table.previous()){this.#loadTableSeekRecord(cursor,table);this.#pc=op.p2;}break;}

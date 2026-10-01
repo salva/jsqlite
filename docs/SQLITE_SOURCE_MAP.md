@@ -1087,7 +1087,7 @@ lifecycle/resource companions, and hashed assertion/source provenance live in
 | --- | --- | --- |
 | `src/select.c:flattenSubquery`, `substSelect`, `selectExpander` | `src/internal/parse.ts`, `resolve.ts`, `vdbe.ts` guarded derived/view expansion, predicate substitution, metadata preservation | 15 allocated derived/view IDs × 3 encodings; exact rows and five metadata fields |
 | `src/select.c:fromClauseTermCanBeCoroutine`, tags 0482/0484 | `compileDerivedProducer`, VDBE `InitCoroutine`/`Yield`/`EndCoroutine` | opcode route tests plus suspension/reset, work, cancellation and deadline evidence |
-| `src/select.c` tags 0486/0488; `src/vdbe.c:OP_Once`, `OP_Gosub`, `OP_Return`, `OP_OpenDup` | one statement-owned ephemeral fill and independent duplicate cursor | repeated immutable-view route and deferred-close/cleanup tests |
+| `src/select.c` tags 0486/0488; `src/vdbe.c:OP_Once`, `OP_Gosub`, `OP_Return`, `OP_OpenDup` | `src/internal/vdbe.ts:compileRepeatedImmutableView` resolves the bounded physical-table view body and calls `compileInnerTableSelect` with the parent `SelectProgramBuilder`/ephemeral `SelectDest`; one fill, independently positioned duplicate reader, parent LIMIT/OFFSET after producer LIMIT | `select-repeated-view-parent-native.py`, `.test.mjs`, `-builder.test.mjs` typed rows/names/error/reset/limits and no finished-child PC relocation; other view bodies and pinned first-view coroutine plan remain unmapped |
 | `src/select.c:multiSelect` result destinations; aggregate `updateAccumulator`/ordered replay | bounded compound-derived result redirection into shared aggregate/sorter opcodes | four aggregate blockers exact in three encodings; overflow finalize code and aggregate-local sorter shared-byte differential |
 | `src/resolve.c:lookupName` nested `NameContext` | linked nested SELECT/allocated persisted-view `EXISTS` resolution | allocated `view-correlated` only; no general scalar/EXISTS/IN claim |
 
@@ -1162,7 +1162,7 @@ machine-verifiable from the pinned tree/spec). `src/index.ts` loads schema and c
 
 | SQLite 3.53.4 source | TypeScript translation | Evidence / residual |
 |---|---|---|
-| `src/select.c:generateWithRecursiveQuery` and recursive destination routing | `compileRecursiveCteSelect`, bounded `compileMultipleRecursiveCtes`; `OpenFifo`/`FifoInsert`/`FifoShift`; `OpenPriorityQueue`/`PriorityInsert`/`PriorityShift`; typed sorter materialization | Public recursive conformance: FIFO, all-history UNION, ORDER priority, LIMIT/OFFSET, 20k iterative/lifecycle/control stress, plus two distinct recursive declarations composed through a direct-projection cross join and output ORDER BY with source-shaped explicit collation/direction/NULL flags; producer materialization uses a zero-field stable key rather than comparing payload values. Broader/reused consumers reject temporarily. |
+| `src/select.c:generateWithRecursiveQuery` and recursive destination routing | `compileRecursiveCteSelect`, bounded `compileMultipleRecursiveCtes`; `OpenFifo`/`FifoInsert`/`FifoShift`; `OpenPriorityQueue`/`PriorityInsert`/`PriorityShift`; typed sorter materialization | Multiple recursive queue producers now emit into the enclosing SelectProgramBuilder and a zero-key sorter destination directly, each with its own queue/cursor and forward break label. No completed child opcode/PC/register/cursor rebasing or Halt rewriting in this caller. `selectInnerLoop` destination is chosen before emitting producer rows; VM `SorterInsert` still owns insertion and execution budget. Public recursive conformance: FIFO, all-history UNION, ORDER priority, LIMIT/OFFSET, 20k iterative/lifecycle/control stress, plus two distinct recursive declarations composed through a direct-projection cross join and output ORDER BY with source-shaped explicit collation/direction/NULL flags; zero-field stable key does not compare payload values. Source-ID-checked `recursive-oracle/oracle.py` confirms typed INTEGER output and reset on a cross-join ORDER control. Broader/reused consumers reject temporarily; other fallback completed-child callers remain live. |
 | `src/select.c:resolveFromTermToCte` recursive CteUse branches | recursive pre-emission validation and generated-semantic nested-reference walk | Exact width, circular, direct multiple, nested multiple, aggregate/window prepare diagnostics. |
 | `src/vdbe.c` ephemeral cursor lifecycle/control loop | `FifoCursor`, `PriorityQueueCursor`, shared private budget, `VdbeStatement.#halt/#privateControl` | reset/rebind/finalize/error/cancel/deadline/work/yield state retained in one VM. |
 
@@ -1657,6 +1657,69 @@ boundaries without claiming W3 execution.
 |---|---|---|
 | `src/where.c:sqlite3WhereBegin`, `sqlite3WhereEnd`; `src/wherecode.c:codeEqualityTerm`, `sqlite3WhereCodeOneLoopStart` | `src/internal/where-plan.ts`, `src/internal/vdbe.ts`; `test/conformance/run-index-planner-ts.mjs` | Selected immutable rowid/index capabilities lower to table/index seek, range termination, direction, residual, covering, deferred-seek, and loop-end control. Every multi-source path conservatively publishes zero global order until the complete pinned `wherePathSatisfiesOrder` state machine is translated. |
 | `src/vdbe.c` seek/`Idx*`/`DeferredSeek`/`Column`/rowid traversal cases | `src/internal/vdbe.ts`; `stage3-index-planner.spec.json` and pinned capture | Page-local B-tree movement and `Mem`/`KeyInfo` comparisons serve explicit and persistent implicit rowid indexes. 69/69 public-route executions enforce rows/errors and exactly nine private counter families; `inProbes` is zero outside index-backed IN. No exceptional algorithm substitution. |
+
+### Selected RIGHT unmatched-pass cursor and control graph ([[card:card-t-d]], 2026-10-01)
+
+| Pinned producer/consumer | TypeScript path | Evidence / remaining gap |
+| --- | --- | --- |
+| `src/wherecode.c:sqlite3WhereRightJoinLoop` (2842–2950) emits `OP_NullRow` for each left table and `iIdxCur`, then scans RHS | `src/internal/vdbe.ts:compileInnerTableSelect` nulls each left table/index via source ordinal before `Rewind`/`Found` and shared unmatched continuation | Source-order assertion and public forced-selected/scan RIGHT hit/miss/NULL rebind in 3 encodings; pinned source-ID typed native `select-joined-index-null-native.py` compares INTEGER/NULL metadata and rows. No planner admission changed. |
+| `src/vdbe.c:OP_NullRow` (6195–6228), `OP_Rewind` (6372–6410) clear stale cursor then position fresh scan | VM `NullRow` invalidation and `Rewind` replace prior seek cursor/deferred rowid so `Next` advances the newly positioned scan | Before repair, copied RHS expression `ShortCircuit` jumped back to the matched pass, exhausting sorter entries. `relocateControlTargets` now maps all address-bearing opcodes during continuation copy instead of hand-written subset; VM still owns PC/register/budget. Exact work-unit parity, suspended concurrency and full RIGHT/IN matrix remain open. |
+
+### Selected LEFT null-row cursor-state boundary ([[card:card-t-d]], 2026-09-30)
+
+| Pinned producer/consumer | TypeScript path | Evidence / remaining gap |
+| --- | --- | --- |
+| `src/where.c:sqlite3WhereEnd` (7655–7710) resolves inner-to-outer IN restart before `OP_IfPos`, then emits `OP_NullRow` on both table and selected index for a LEFT miss | `src/internal/vdbe.ts:compileInnerTableSelect` emits table `NullRow`, then selected-index `NullRow` if opened, then re-enters the joined body | Public forced/scan LEFT hit/miss/reset rows in `run-advanced-index-ts.test.mjs`; typed pinned oracle `select-joined-index-null-native.py` three encodings; source-order assertion protects the hidden cursor transition |
+| `src/vdbe.c:OP_NullRow` (6195–6228) invalidates cursor cache and clears Btree position | `src/internal/vdbe.ts:VdbeStatement` removes decoded row, rowid and pending deferred seek on p1 and clears positioned index/table cursor via `src/internal/btree.ts:CursorBase.clearPosition`; future seek/restart retains opened cursor identity | Source/VM regression asserts deferred invalidation. Exact native work-unit equivalence and broader suspended/corruption parity remain open; no root [[card:card-s]] planner admission changed. |
+
+### Joined selected nullable range-start exit ([[card:card-t-d]], 2026-09-30)
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4
+(1990–2042) emits `OP_IsNull` after computing nullable `pRangeStart`
+and before affinity and seek, targeting `addrNxt`; `src/vdbe.c:OP_IsNull`
+(2755–2768) reads the register and changes PC without cursor movement.
+The joined `src/internal/vdbe.ts:compileInnerTableSelect` caller emits
+`IsNull` for the start register (not `IS NULL` equality) before
+`IndexSeekPrefix` and carries its label through `rewindEmpty`,
+`inRestarts` and next-outer exits, resolving before RIGHT JOIN
+continuation copying. The existing VM retains seek and register/PC
+execution ownership. Public forced-vs-scan NULL/duplicates/IS/IN
+reset/budget tests in `run-advanced-index-ts.test.mjs`, with typed
+source-ID-checked native differential in
+`select-joined-index-null-native.py`, exercise the bounded path. This
+is not a wholesale migration of joined WHERE loops or VM execution.
+
+### Nullable selected range-start guard ([[card:card-t-d]], 2026-09-30)
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4
+(1990–2042) evaluates the nullable range-start RHS, emits `OP_IsNull`
+to `addrNxt` before affinity/seek, then uses `aStartOp`; `src/vdbe.c:OP_IsNull`
+(2755–2763) performs the register branch. The selected
+`src/internal/vdbe.ts:compileTableSelect` caller now emits an `IsNull`
+branch for a present range start, but not for an equality `IS NULL`
+key; `sqlite3WhereEnd` patches that target to the same selected-loop
+failed-seek/IN-restart edge. VM `IsNull` executes on Mem register storage,
+while VM `IndexSeekPrefix` retains cursor movement and key release. Public
+all-encoding/reset/rebind forward and reverse forced-vs-control coverage
+in `run-advanced-index-ts.test.mjs` and source-ID-checked native typed
+rows in `select-nullable-index-range-native.py` check this bounded seam.
+No general planner or VM architecture migration is claimed.
+
+### Unbounded reverse selected-index loop start ([[card:card-t-d]], 2026-09-30)
+
+Pinned `src/wherecode.c:sqlite3WhereCodeOneLoopStart` Case 4 `aStartOp`
+(1850–1866) selects `OP_Last` when a chosen index is reverse and has no
+start constraint, and `sqlite3WhereEnd` selects `OP_Prev` (2214–2216).
+`src/vdbe.c:OP_Last/OP_Rewind/OP_Prev` (6254, 6372, 6495) owns cursor
+position and movement. In `src/internal/vdbe.ts:compileTableSelect` the
+no-bound selected-index branch now emits `IndexLast` for reverse,
+`IndexRewind` for forward; `sqlite3WhereEnd` already emits `IndexPrev`.
+VM positioning/record invalidation, bound seeks, Mem/KeyInfo and cleanup
+are unchanged. Public selected-vs-control all-encoding/reset test in
+`test/conformance/run-advanced-index-ts.test.mjs` and source-ID-checked
+read-only oracle `select-unbounded-reverse-index-native.py` cover typed
+INTEGER rows in all three encodings. This is a start/step contract fix,
+not full WHERE path parity or a VM architecture migration.
 
 ### Joined selected-index one-sided range review ([[card:card-s-c-c-c]], 2026-09-28)
 
