@@ -2632,3 +2632,24 @@ source symlink supplied and rerun11/11. No build script exists; tsconfig noEmit 
 the configured type/build boundary, not a fabricated npm build pass. Earlier
 h39 runtime/structural reds remain historical failures superseded only by these
 changed-source checks. No broad R1–R4, STAT4, optimizer or lifecycle acceptance.
+
+### Third incremental WHERE / stat seam validation (2026-10-02)
+
+The selected WHERE/Btree/index/private-state implementation seam is already
+committed in f5bb86 and earlier checkpoints; this incremental checkpoint does
+not invent extra source changes or import bitwise work. SELECT's RIGHT bound
+expression carrier and entry initialization are explicitly shared first closure.
+Existing source owners: where-plan.ts stat1 candidate/cost, schema.ts stat loader,
+vdbe.ts selected index/IN ordering and btree.ts cursor invalidation. Pinned
+where.c whereLoopAddBtreeIndex/stat1 cost and wherecode.c sqlite3WhereCodeOneLoopStart
+IN seek/continuation remain comparison references. No STAT4 or optimizer expansion.
+
+Independent local capture-in-range-stat.py --library pinned-library exit0 matched
+all SIX frozen cases/in-range-stat-native.json snapshots (before/after STAT1 x
+UTF8/UTF16LE/UTF16BE), with image hashes checked by capture; exact stat-choice
+SELECT id WHERE a=1 AND b IN(13,14) ORDER BY id and forced t_a/t_ab controls.
+Fresh stat-choice public tests6/6 assert existing current unforced choice and
+output; before t_a (native no sorter/0 IN probes), after t_ab (native sorter/2
+IN probes). TS accounting is implementation control, not native EQP/work identity.
+Historical parked sorterRows4-vs0 is not assumed current red; no counter waiver.
+Original c-e committed coverage rerun must be reopened only after actual commit.
