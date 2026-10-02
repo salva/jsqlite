@@ -813,6 +813,39 @@ test('unforced joined-index selection never suppresses executable table fallback
 });
 
 // Partial implication may not borrow the other source's identically named c.
+// Pinned expr.c:exprImpliesNotNull does not infer non-NULL from an AND
+// beneath NOT: NULL AND false is false, so its negation can be true.
+test('partial implication rejects NOT over AND with nullable operand',async()=>{
+ for(const variant of capture.variants){
+  const fixtures=[variant.fixture.path,`test/conformance/fixtures/advanced-index-${variant.id}-corrupt-partial-root-page.db`];
+  for(const fixture of fixtures)await withBytes(fs.readFileSync(path.resolve(fixture)),async db=>{
+   for(const predicate of ['NOT(c>0 AND a=?2)','NOT(a=?2 AND c>0)']){
+    const suffix=` WHERE a=?1 AND ${predicate} ORDER BY id`;
+    const automatic=db.prepare('SELECT id FROM p'+suffix).statement;
+    const scan=db.prepare('SELECT id FROM p NOT INDEXED'+suffix).statement;
+    try{
+     for(const [a,opposite,expected] of [[1n,2n,[[1n],[2n]]],[1n,1n,[]],[null,2n,[]],[1n,2n,[[1n],[2n]]]]){
+      for(const st of [scan,automatic]){st.reset();st.clearBindings();st.bind(1,a);st.bind(2,opposite)}
+      assert.deepEqual(await rows(scan),expected,`${variant.id}/${predicate}: typed scan`);
+      assert.deepEqual(await rows(automatic),expected,`${variant.id}/${predicate}: nullable/reset fallback`);
+      assert.equal(privateAccounting(automatic).indexSeeks,0,'no partial seek on unsafe proof');
+     }
+    }finally{scan.finalize();automatic.finalize()}
+    assert.throws(()=>db.prepare('SELECT id FROM p INDEXED BY p_live'+suffix),/forced index is unusable/,'forced rejects before cursor publication');
+   }
+   for(const predicate of ['NOT(c>0 OR c<0)','NOT(c<0 OR c>0)']){
+    const suffix=` WHERE a=1 AND ${predicate} ORDER BY id`;
+    assert.throws(()=>db.prepare('SELECT id FROM p INDEXED BY p_live'+suffix),/forced index is unusable/,'no non-NULL OR proof beneath NOT');
+    assert.deepEqual(await execute(db,'SELECT id FROM p'+suffix),await execute(db,'SELECT id FROM p NOT INDEXED'+suffix));
+   }
+   if(fixture===variant.fixture.path){
+    const positive=db.prepare('SELECT id FROM p INDEXED BY p_live WHERE a=?1 AND c>0 ORDER BY id').statement;
+    try{positive.bind(1,1n);assert.deepEqual(await rows(positive),[[1n]]);assert.ok(privateAccounting(positive).indexSeeks>0,'valid neighboring proof retains selected access')}finally{positive.finalize()}
+   }
+  });
+ }
+});
+
 test('joined same-name operand cannot prove partial predicate across sources',async()=>{
  const cases=[
   ['forward','SELECT p.id,p.c FROM p%s JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id'],

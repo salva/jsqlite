@@ -114,8 +114,14 @@ function exprImpliesNotNull(expression:ExprNode,target:ExprNode,sameResolvedExpr
  if(sameResolvedExpression(expression,target))return !isNullLiteral(target);
  const r=expression.reduction;if(!r||r.kind!=="reduction")return false;/* exprImpliesNotNull walks only immediate Expr operands. The SELECT beneath IN must not contribute its result expression as an operand of TK_IN. */const es=exprChildren(r).map(asExpr),sig=r.signature;
  const propagatesBoth=sig.includes(" EQ|NE ")||sig.includes(" LT|GT|GE|LE ")||sig.includes(" PLUS|MINUS ")||sig.includes(" BITOR|LSHIFT|RSHIFT ")||sig.includes(" CONCAT ");if(propagatesBoth)seenNot=true;
- if(sig==="expr ::= expr AND expr")return es.some(e=>exprImpliesNotNull(e,target,sameResolvedExpression,seenNot));
- if(sig==="expr ::= expr OR expr")return es.length===2&&es.every(e=>exprImpliesNotNull(e,target,sameResolvedExpression,seenNot));
+ // expr.c:exprImpliesNotNull has no TK_AND/TK_OR cases. Top-level AND
+ // splitting belongs to analyzeWhere. Never infer non-NULL through Boolean
+ // operands: NULL AND false is false, NULL OR true is true.
+ if(sig==="expr ::= expr AND expr")return false;
+ // Bounded true-only OR proof compensates for absent upstream OR-derived
+ // terms: every arm must independently prove the same target. It is NOT
+ // valid beneath NOT/non-NULL contexts. See TRANSLATION R1 correction.
+ if(sig==="expr ::= expr OR expr")return !seenNot&&es.length===2&&es.every(e=>exprImpliesNotNull(e,target,sameResolvedExpression,false));
  if(sig==="expr ::= expr in_op LP select RP"){const negated=r.children.some(child=>child.kind==="reduction"&&child.signature==="in_op ::= NOT IN");return !seenNot&&!negated&&!!es[0]&&exprImpliesNotNull(es[0],target,sameResolvedExpression,true);}
  if(sig==="expr ::= expr in_op LP exprlist RP")return exprImpliesNotNull(es[0]!,target,sameResolvedExpression,true);
  if(sig==="expr ::= expr between_op expr AND expr"){const negated=r.children.some(child=>child.kind==="reduction"&&child.signature==="between_op ::= NOT BETWEEN");if(seenNot||negated)return false;return es.slice(1).some(e=>exprImpliesNotNull(e,target,sameResolvedExpression,true))||exprImpliesNotNull(es[0]!,target,sameResolvedExpression,true);}
