@@ -2,7 +2,8 @@ import type { SelectNode } from "./parse.ts";
 import type { SchemaGraph } from "./schema.ts";
 import type { BtreeDatabase } from "./btree.ts";
 import type { Program } from "./vdbe.ts";
-import { compileAggregateSelect, compileMultipleRecursiveCtes, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
+import { SelectProgramBuilder, type SelectDest } from "./select-program.ts";
+import { compileAggregateSelect, compileCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
 
 /**
  * Production SELECT program entry. The graph has already passed public parse,
@@ -36,6 +37,26 @@ export function compileSelect(
   // coding the rightmost arm's aggregate. Each arm owns its own aggregate
   // context; the rightmost expression must not classify the whole compound.
   if (select.hasCompound && !select.orderBy.length && !select.limit && !select.offset && select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all') && select.arms.every(arm=>arm.origin==='select')) {
+    // multiSelect receives the enclosing Parse/Vdbe and output destination.
+    // Existing arm producers (including c's aggregate carriers) append to this
+    // owner. Admission is complete before emission; exceptions are terminal.
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    const compiled = compileCteUnionAll(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+    if (compiled) {
+      builder.ops.push({ code: "Halt" });
+      return Object.freeze({ ops: builder.finish(), registers: builder.registers, encoding,
+        columns: compiled.columns, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))),
+        database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits });
+    }
+    // A pre-emission admission decline retains specialized legacy ownership.
+    // No caught compiler error is permitted to enter that route.
+    return compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
+  }
+  // select.c:sqlite3Select dispatches the compound before any arm's
+  // SF_Aggregate production. Keep this bounded ordered composer in that owner.
+  if (select.hasCompound && select.from.items.length && !select.limit && !select.offset && select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all') && select.orderBy.length===1 && select.result.length===1 && select.orderBy[0]!.expr.tokens.length===1 && select.orderBy[0]!.expr.tokens[0]!.text==='1') {
     return compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
   }
   const aggregate = selectHasAggregate(select) || select.hasGroupBy || select.hasHaving;

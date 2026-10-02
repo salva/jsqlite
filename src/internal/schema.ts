@@ -23,7 +23,7 @@ export class SchemaStateError extends Error {
 export interface ColumnNode {
   readonly name: string;
   readonly declaredType: string | null;
-  readonly affinity: "blob" | "text" | "numeric" | "integer" | "real";
+  readonly affinity: "blob" | "text" | "numeric" | "integer" | "real" | "flexnum";
   readonly defaultExpr: ExprNode | null;
   readonly generatedExpr: ExprNode | null;
   readonly defaultIndex: number | null;
@@ -47,6 +47,8 @@ export interface TableNode {
   readonly columns: readonly ColumnNode[];
   readonly indexes: IndexNode[];
   readonly withoutRowid: boolean;
+  /** select.c TF_NoVisibleRowid; independent of physical WITHOUT ROWID storage. */
+  readonly noVisibleRowid?: boolean;
   readonly primaryKey: readonly ColumnNode[];
   readonly primaryKeyTerms: readonly IndexTerm[];
   readonly storageKey: readonly ColumnNode[];

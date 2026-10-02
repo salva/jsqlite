@@ -7646,3 +7646,1597 @@ cursor tests cover both invalid movements, payload/borrow rejection and fresh
 positioning; public selected LEFT/reset/rebind and reverse/corruption controls
 remain applicable. This is a state-owner repair, not a new algorithm or SELECT
 producer migration.
+
+### Resumed derived table-set destination slice (HEAD f5bb86ef plus peer dirt)
+`compileDerivedProducer`'s single-source outer direct projection with LIMIT/OFFSET
+can bypass `compileSingleCompoundDerived` and formerly splice a completed
+`compileSimpleTableCompound` Program. The represented single-column physical
+rowid table arms now emit through that primitive into the enclosing builder's
+SRT_Coroutine. Allocation, set/order transitions, limit exits and parameters stay
+in the caller Parse; completion falls through to EndCoroutine, not child Halt.
+Pinned `select.c:multiSelect`, `selectInnerLoop`, tag-select-0482 own this path.
+The owning table-arm read now also follows `expr.c:TK_COLUMN` INTEGER PRIMARY KEY
+alias lowering to Rowid rather than the NULL payload field. Source-ID guarded
+`select-derived-table-parent-native.py` and public companion cover UNION ALL,
+UNION and empty EXCEPT, INTEGER/name/reset/inner and outer limits; the new slice
+structural test requires parent builder/destination emission. This is not the
+whole ownership gate: remaining non-table compound/aggregate guards can still
+reach finished-Program relocation; the broader owner assertion stays red and
+must not be weakened to credit this slice. Joined continuation copying (~3146)
+is distinct remaining work. No WHERE interface or new index breadth changed.
+The next bounded resumed slice migrates no-FROM SELECT-arm ordered UNION ALL
+with wider rows/multiple ORDER keys from the completed-program fallback into
+that same enclosing coroutine. `resolve.c:resolveCompoundOrderBy` alias/ordinal/
+structural identity order and `select.c:multiSelectCollSeq` result collation feed
+KeyInfo; each arm fills a complete payload and separate key range. The existing
+finite-row typed sorter adaptation remains, rather than adding a merge evaluator.
+`select-derived-table-parent-native.py`/public companion now include a two-column,
+two-key child with outer OFFSET, checked before consuming this migration. The
+public case already returned the right INTEGER row under the old fallback: this
+is ownership correction, not a claimed new row difference. The slice structural
+gate requires wide rows/multiple keys in the parent. VALUES arms, set/mixed richer
+expressions and aggregate-order misses still require a full caller census and
+migration; the general ownership gate remains red.
+Compound VALUES tails/intermediate arms now feed every `valuesRows` entry into
+the existing ordered or streaming parent UNION ALL destination. Pinned
+`select.c:multiSelectValues` iterates SELECT rows under the same Parse/destination;
+this representation keeps that row cardinality instead of only `arm.result`.
+Paired oracle/public coverage includes SELECT UNION ALL VALUES with outer OFFSET
+and an intermediate VALUES arm followed by SELECT with ORDER/LIMIT. A final
+VALUES followed directly by ORDER is native syntax error and was discarded from
+the proposed valid-shape matrix, not silently accepted as an oracle case. Both
+valid cases were supported under relocation before this ownership migration.
+### card-t-d RIGHT continuation output-break ownership (2026-10-01)
+Pinned wherecode.c:sqlite3WhereRightJoinLoop invokes the one right-join interior subroutine (Gosub), with sqlite3VdbeNoJumpsOutsideSubrtn controlling exits; select.c:selectInnerLoop owns output LIMIT/iBreak. Current compileInnerTableSelect still clones the interior body instead of translating that subroutine architecture. The parent scalar SRT_Mem caller in compileScalarSelect exposed a concrete divergence: a cloned DecrJumpZero retained zero target, restarted at caller initialization, and erased its output to NULL. Track output-limit exits as compiler-owned addresses, including the cloned copy, and resolve both to the enclosing continuation/common compound break. VM PC/register/Mem/budget/suspension behavior is unchanged; no WHERE/index policy expansion. Public/pinned select-right-continuation pair covers OFFSET first/late/end/exhausted and LIMIT0, INTEGER/NULL and two resets. Remaining clone/subroutine substitution is not native error/work parity and is NOT full ownership acceptance. Parent card-t-c owns general derived fallback migration; card-t-d owns this WHERE continuation output contract. Do not remove other live splices based on this repair.
+
+Joined ordered ALL derived fallback migration: compileDerivedProducer now admits
+physical joined first arm plus zero-source ALL tails with ORDER ordinal 1 (no
+inner LIMIT/window/GROUP/HAVING). It resolves descriptors without publishing a
+child; compileOrderedCteUnionAll consumes enclosing builder/parameters and
+SRT_Coroutine destination. Sorter drain emits through selectInnerLoop destination,
+empty exit falls through to parent's EndCoroutine; no finished child/pcMap in
+this branch (select.c:sqlite3Select8054–8074). Existing finite-sorter ordered ALL
+adaptation unchanged, not claimed upstream merge migration. Public/native
+wrapped join+scalar outer LIMIT/OFFSET tests, zero limit/empty join/bound tail
+public probes and source branch assertion preserve ownership distinction.
+Other derived fallback remains; window sourceProgram and derived aggregate
+children, wider compound/nested transient shapes and complete runtime census
+remain open. RIGHT continuation/outputLimitStops belongs to card-t-d, untouched.
+
+Unordered mixed physical/scalar ALL derived producer: compileDerivedProducer
+mixedPhysicalAllProducer now delegates to compileCteUnionAll owner overload,
+sharing enclosing builder/parameters/SRT_Coroutine (select.c:multiSelect TK_ALL
+3020–3060; sqlite3Select8057–8074). Physical WHERE/Next stays in ordinary
+producer, zero-source output uses same destination, exhaustion falls through
+parent EndCoroutine. Descriptor names follow first arm, derived origins/types
+follow last arm; no child Program/pcMap for this slice. Admit ordinary SELECT
+ALL arms without inner LIMIT, DISTINCT, VALUES, CTE/derived, aggregate/GROUP or
+window; keep other source-specialized owners. Pinned/public physical/scalar,
+reverse order, empty and outer LIMIT0 variants; missing tail column prepare error
+public. Joined ordered family remains. Other fallback consumers remain red.
+
+### card-t-d RIGHT interior: one parent subroutine (2026-10-01)
+Supersedes the RIGHT clone adaptation above, not the retained general derived
+fallback. `wherecode.c` BeginSubrtn after ON/match recording and
+`sqlite3WhereRightJoinLoop`, `where.c:sqlite3WhereEnd` RIGHT continue/break
+Returns, and `vdbe.c` BeginSubrtn/Gosub/Return now map to the live
+`compileInnerTableSelect` path: one inline body, compiler entry/continue/break
+addresses (`rightBody`), NULL return register on matched entry, and Gosub of
+that same body on unmatched RHS rows. Downstream WHERE/index empty/IN/LEFT exits
+reach the RIGHT continue Return; right-source exhaustion has a separate Return.
+Unmatched scan nulls both left table/index cursors and RHS selected index.
+No completed body slicing, delta relocation, or copied output-limit fixups remain.
+Scalar, EXISTS, coroutine, sorter and compound callers still share their original
+destinations/counters; output exhaustion leaves the producer, not merely the call.
+
+VM Return now mirrors pinned P3 NULL-fallthrough; Gosub preserves already-advanced
+TS PC (C stores current PC then increments in its dispatch). Mem remains the
+address owner. The live window child composer remaps new register-bearing ops;
+its larger finished-child path is not retired. Boundary validation translates
+vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn's *debug* invariant, not runtime rewriting:
+interior/Return targets and producer early termination are admitted. Gosub and
+coroutine transfers retain their separate caller contracts. This is narrower
+than native debug opcode classification and is not complete opcode parity.
+
+Pinned/public `select-right-continuation` now covers eight typed cases/two resets,
+NULL, matched/unmatched IN, downstream LEFT/index-IN, scalar LIMIT/OFFSET and
+sorter drain; structural gate demands one body and subroutine ops. No scope or
+index policy expansion. Bloom acceleration, multiple RIGHT barriers, full native
+work/error order and general window/derived ownership remain gaps. Broad owner
+gate remains red; focused convergence is not full compatibility acceptance.
+
+Compound-derived standalone aggregate no longer compiles per-arm Programs or
+rewrites their ResultRow/Halt/PCs. select.c:sqlite3Select8114–8128 SRT_EphemTab
+and multiSelect TK_ALL guide one enclosing builder: resolve each arm, ordinary
+physical/aggregate owner emits ephemeral destination; zero-source/VALUES rows
+emit same destination. Insertion-order ephemeral preserves ALL duplicates and
+source order (existing browser representation of rowid transient table), scanned
+with EphemeralRewind/Data/Next before aggregate finalization. Empty scan skips
+steps but finalizes count0; output metadata/existing LIMIT admission unchanged.
+Source updateAccumulator6808/call8891 owns step semantics. Pinned/public count,
+sum, empty, duplicate rows, name/type/reset/finalize and public missing-column
+error cover this replacement. Existing aggregate expression lower/forRow walkers
+remain a separate resolver/AggInfo fidelity gap; no complete aggregate migration
+claimed. Other derived/window armPrograms copying remains explicitly RED.
+
+Ordinary mixed ALL arm DISTINCT is now delegated, not a compound admission
+exclusion. compileDerivedProducer reuses mixedPhysicalAllProducer's enclosing
+coroutine contract; compileCteUnionAll no longer treats rightmost select.hasDistinct
+as compound-wide. Physical arm compileInnerTableSelect retains its own resolved
+KeyInfo/Found/IdxInsert before destination (select.c:codeDistinct933 and
+selectInnerLoop1297); zero-source SELECT has one candidate, so its DISTINCT is
+locally redundant. DISTINCT VALUES remains excluded from this composer pending
+its own multirow filter, rather than silently yielding duplicates. No new shape
+compiler/state or evaluator. Pinned/public constant duplicate physical arm plus
+DISTINCT scalar tail returns [4,4], not global ALL dedup; reverse arm order,
+outer LIMIT0, typed/name/reset/finalize and missing-column error covered. These
+ordinary arm semantics now reach the shared builder rather than generic child
+Program relocation; generic derived/window copying still explicitly red.
+
+Ordinary unordered ALL now owns compound LIMIT/OFFSET in its enclosing
+builder (select.c:multiSelect3018–3041 iLimit/iOffset across arms).
+compileCteUnionAll computes registers once, passes compoundLimit/stops to
+compileInnerTableSelect, applies offset/output/decrement to zero-source rows,
+and resolves stop targets only after all arms are compiled. Exhaustion falls
+through parent EndCoroutine (or standalone Halt); outer coroutine LIMIT stays
+independent. LIMIT0 still resolves every arm for atomic missing-column errors.
+Limited aggregate/window/transient/group destinations stay excluded until they
+carry shared-limit ownership. No separate limited-shape evaluator/compiler.
+Native/public WHERE physical+scalar ALL inner limits now pass (previously typed
+unsupported, not an executed clone); parent mixed ordinary destination can now
+consume inner limits instead of taking generic child fallback. This is a producer
+prerequisite, not proof of exhaustive admitted fallback retirement. Reverse arms,
+negative limit/offset, LIMIT0 and DISTINCT-before-offset covered. Generic pcMap
+and window sourceProgram remain red until actual consuming paths are retired.
+
+Grouped window rewritten source now emits AggInfo directly on the enclosing
+window builder with SRT_Coroutine (select.c8055–8074, window.c39–53).
+compileWindowSelectLowering retains the rewritten Select, reserves the current
+window register/cursor ranges, allocates the payload range, and calls the existing
+compileAggregateSelect owner overload at source-coroutine construction. Producer
+high-water registers/cursors feed back to later window/outer sorter allocation;
+EndCoroutine is emitted by the window caller. Buffer width/deferred OVER slots,
+rewrite layers, Mem/KeyInfo/async lifecycle remain unchanged. No grouped child
+Program, offset/pcMap or ResultRow rewriting remains in this branch. Recursive
+CTE source copier is now retired by the source-coroutine destination below.
+Pinned/public grouped sum/row_number, empty/LIMIT0 and parent ORDER a DESC
+LIMIT/OFFSET with reset/type/name/finalize covered. ORDER BY window alias r was reproduced as a prepare error and repaired:
+resolve.c resolveOrderGroupBy1818–1853 assigns result ownership to AS names
+before ordinals/source lookup. Immutable resolver now carries orderResultColumns;
+window rewrite lifts the referenced result expression, never the bare alias as
+an input column. Parent drain consumes that result slot (window or lifted
+aggregate), preserving parent sort flags/LIMIT/OFFSET. This corrects the prior
+stale-carrier hypothesis: child order arrays were cleared, but parent alias r
+was erroneously lifted into the child's result buffer. Alias r/s and ordinal2
+native/public regressions preserve INTEGER pairs/names/reset/finalize. No
+resolver diagnostic bypass, alias-specific SQL predicate or new evaluator. Broad generic copier gate stays
+red. This is actual supported producer retirement, not a compatibility claim.
+
+
+Recursive window source (select.c:generateWithRecursiveQuery2666–2848,
+sqlite3Select8055–8074): compileRecursiveWindowSelect obtains CTE names from
+explicit column names or seed expressions (no discarded metadata Program),
+resolves the transient source, defers recursive Select to source-coroutine
+construction. Existing compileRecursiveCteSelect shared builder/parameter and
+SRT_Coroutine emit queue/current/output/recursive enqueue on enclosing window
+ops after reserving window ranges. Registers/cursor high-water propagate back;
+caller EndCoroutine and final builder.finish resolve empty-Queue labels before
+publication. Standalone shared producers omit Halt; no source Program/copy/PC
+remapping remains in window lowering. Initial unfinalized label gave repeated
+empty Queue execution/work limit, corrected at publication owner, not VM symptom.
+Native/public admitted recursive row_number, queue LIMIT0 and OFFSET/parent alias
+ORDER reset/finalize regressions pass. Generic derived pcMap and other aggregate
+copy owners remain; this is not exhaustive census or full compatibility acceptance.
+
+
+Ordered aggregate ALL dependency (progressive, generic derived gate still RED):
+select.c multiSelect2990 routes ORDER to multiSelectByMerge. The existing finite
+sorter adaptation remains (browser async typed sorter; bounded represented arm
+results, observable order/duplicates/types retained); this change does not claim
+to translate merge or authorize wider substitution. compileAggregateSelect now
+emits each arm with shared builder/parameters/SRT_Sorter, allocates a disjoint
+sorter and output range, drains to caller SelectDest, omits Halt when shared.
+Former completed armPrograms/control relocation/max-register reuse removed.
+Derived ordered aggregate caller resolves first-arm descriptors without a
+completed metadata Program and forwards its coroutine destination. Native/public
+sum(a)/scalar ordered ALL returns INTEGER[8,16], s name/reset/finalize.
+Generic derived residual pcMap is retained: exact negative admission partition
+and transitive unresolved families in card-t-c status. This is a dependency
+repair, not requested generic-owner completion or exhaustive census acceptance.
+
+
+Residual ordinary physical compound dependency (card-t-c progressive):
+compileTableCompoundProducer now owns the production table compound dispatch
+(ORDER owner before clause rejection; unordered ALL then table-set owner).
+Top-level compileTableSelect and residual physical compound FROM caller consume
+it with their own SelectDest. FROM descriptors resolve last arm origins/types
+and first arm names without completing a metadata Program. Source: select.c
+multiSelect3010–3047 copies caller destination for TK_ALL arm calls; enclosing
+sqlite3Select8055–8074 owns coroutine exhaustion. WHERE-bearing physical ALL
+native/public rows INTEGER[3,9,1,1,3]; child LIMIT/OFFSET, outer limits, empty,
+LIMIT0 and public missing tail column covered with two resets. General fallback
+pcMap retained: CTE/nested/complex aggregate transitive admission census still
+open. This shared dispatch dependency does not constitute general SELECT owner
+completion; standalone JoinedUnionAll fallback remains pending exact overlap
+census (not silently deleted). API unchanged; finite sort adaptations unchanged.
+
+Progressive CTE compound descriptor dependency: compoundArmColumns resolves
+transient result names/qualifiers independently of completed Programs. Existing
+compileCteUnionAll materializes CteUse once, OpenDup per arm, emits parent
+SelectDest in shared builder (select.c multiSelect3015–3040 and
+sqlite3Select8055–8074). Admitted `WITH q(x) AS (VALUES(2),(1)) SELECT d.x
+FROM (SELECT x FROM q UNION ALL SELECT 8) d LIMIT 4` native/public INTEGER
+[2,1,8], x/reset/finalize. Two-CTE-arm derived variant is NOT established admitted:
+current early tableCompound metadata resolves lexical q as schema table and
+fails; no general CTE compatibility claimed. General residual pcMap and exhaustive
+transitive caller census remain open. Public API unchanged.
+
+Residual compound destination admission now also consumes ordinary aggregate
+arm owners (historical residualPhysicalCompound renamed compoundDestinationProducer).
+No aggregate exclusion when the production multiSelect dispatcher already
+forwards compileAggregateSelect(builder,ops,parameters,destination). Descriptors
+still resolve independently via compoundArmColumns; accumulator step/finalize
+and empty aggregate row belong to the existing arm owner, not a parent walker.
+Pinned select.c multiSelect3015–3040 / sqlite3Select8055–8074; differential
+SELECT d.s FROM (SELECT sum(a) AS s FROM t1 WHERE a>1 UNION ALL SELECT 8) d
+LIMIT 4 => INTEGER[15,8]; empty aggregate => [NULL,INTEGER8]; parent LIMIT0 =>[].
+Names/reset/finalize retained. General residual nested-derived/window/other
+owner census and pcMap retirement remain open, not general SELECT equivalence.
+
+Transient compound routing correction: compileSingleCompoundDerived and
+ tableCompoundProducer persistent scan admission now exclude retained
+ from.derived/cteDerived SrcItems before schema-table resolution. Source
+ select.c8075–8088/8134–8139 preserves CteUse subquery/materialized ownership
+ and OpenDup, never treats lexical CTE name as schema storage. The common
+ compound dispatcher/compoundArmColumns handles these retained contexts.
+ Previously documented two-CTE-arm `WITH q(x) AS (VALUES(2),(1)) SELECT d.x
+ FROM (SELECT x FROM q UNION ALL SELECT x FROM q) d` now pinned/public
+ INTEGER[2,1,2,1], with and without outer LIMIT4, name/reset/finalize. This
+ repairs misrouting at physical admission, not SQL text. Generic pcMap still
+ exists for other contexts; transitive census/general owner remains incomplete.
+
+Window/compound integrity boundary: window.c958–964 sqlite3WindowRewrite
+requires pPrior==0. compileWindowSelectLowering now rejects a retained compound
+owner with typed temporary unsupported BEFORE rewriting, shared by scalar,
+table and derived callers. Previously `SELECT d.r FROM (SELECT row_number()
+OVER () AS r UNION ALL SELECT 8) d LIMIT 4` published INTEGER[1] although
+pinned native produces [1,8]. This was silent partial compilation, not a
+supported shape to preserve. Public regression requires atomic temporary;
+standalone variant also rejects. Correct window-arm composition remains open:
+current lowering requires initial builder and private parameter ownership, and
+ordered compound dispatcher declines windows. No support/equivalence claim.
+
+Window-arm composition supersedes the previous whole-compound rejection for
+unordered ALL: multiSelect's isolated Select arm now calls the existing window
+owner with shared builder/parameters/destination. window.c958–964 pPrior==0
+still enforced at lowering entry; compound itself is never rewritten as arm1.
+sqlite3WindowRewrite accepts enclosing nMem/nTab high-water allocation floors;
+physical resolver sources allocate at builder.cursors. Window exhaustion emits
+an explicit ownerExit Goto past generated Gosub/Return bodies instead of Halt.
+Existing derived materialization caller consumes that exit carrier rather than
+assuming child Halt. Initial attempt failed maxWorkUnits because old caller
+re-entered setup; carrier correction repairs exit ownership, not VM behavior.
+Native/public scalar two-arm [1,8], two window arms [1,1], physical window arm
+parentLIMIT2/OFFSET1 [2,3], empty window arm/scalar [8], resets/finalize pass.
+Compound ORDER/set/child LIMIT window admission remains atomic temporary;
+no general window compound or transitive fallback retirement claim.
+
+Nested ordinary compound arm: extracted existing standalone bounded
+flattenSubquery production into flattenOrdinaryDerived, shared by arm emitter,
+compoundArmColumns and standalone caller. Pinned select.c4290–4348 admits
+nonzero FROM; conservative existing DISTINCT/GROUP/ORDER/LIMIT/window/compound
+exclusions retained. Parser eager SrcList splicing must not erase renamed
+projection expressions: a AS x was wrongly considered identity projection,
+leaving outer x against t1.a. Retain renamed projection for lowering substitution.
+Native/public nested arm SELECT x FROM (SELECT a AS x FROM t1 WHERE a>1) n
+UNION ALL SELECT8 wrapped parentLIMIT4 => INTEGER[3,5,7,8], x/reset/finalize.
+This was formerly no-such-column, not an admitted child clone. General transient
+materialization/descriptor graph and fallback retirement still unresolved.
+
+Renamed projection follow-up: absent outer alias cannot make a single-source
+EList an identity splice. parse.ts now retains that SrcItem independent of alias
+presence. Existing flattenOrdinaryDerived then substitutes expressions and
+combines WHERE before ordinary resolver/arm lowering (select.c4681 substSelect).
+Pinned/public aliasless nested compound arm INTEGER[3,5,7,8] and standalone
+INTEGER[3,5,7], column x, reset/finalize; missing tail under parentLIMIT0 errors
+before Statement publication. Prior alias-only gate missed this path; no new
+execution algorithm. Multi-source parser eager flattening debt remains outside
+this bounded single-source production; general child.ops/pcMap gate remains red.
+
+Retained compound-arm derived LIMIT/OFFSET gap: parser now recognizes clauses
+owned by a FROM SrcItem Select as nested, not misplaced arm ORDER/LIMIT
+(parse.y623ff composition). Native nested LIMIT2/OFFSET1 arm+scalar returns
+INTEGER[5,7,8]; public formerly parse-error then, after ownership repair,
+no-such-table:n. select.c4336–4340 restrictions13–15 prevent flattening this
+producer. No materialization implementation is claimed: descriptor/emitter
+owners now reject retained non-CTE derived arms atomically typed temporary
+before physical schema lookup. Standalone/derived wrappers both covered;
+ordinary flattened renamed arms remain supported. Next implementation needs
+shared builder/parameters/destination on compileDerivedProducer, including
+caller coroutine termination and LIMIT after child output, not flattening
+OFFSET or copying completed child programs.
+
+Nested limited ordinary physical arm supersedes the preceding blanket gap:
+compileDerivedProducer accepts enclosing builder/parameters/destination for its
+existing single physical child path. InitCoroutine patches use local init PC,
+resolver uses enclosing cursor floor, allocators propagate high-water, output
+uses caller destination, exhaustion falls through without Halt/freezing shared
+ops. Child LIMIT/OFFSET remains inside child coroutine; parent output remains
+outside (select.c8055–8074). Native/public nested LIMIT2/OFFSET1+scalar [5,7,8]
+and existing reset/finalize pass. Shared owner conservatively declines DISTINCT,
+ORDER/WHERE/aggregate/window/multiple-source parents and nonordinary children;
+compound-wide LIMIT on retained arm also stays temporary. Descriptor resolution
+uses child descriptors then transient names; emitter makes final shape admission.
+General child.ops/pcMap fallback remains, no general nested-materialization claim.
+
+Retained DISTINCT ordinary physical child is now admitted by the shared derived
+owner. This delegates to existing compileInnerTableSelect result KeyInfo,
+Found/IdxInsert before OFFSET/destination/LIMIT, matching select.c selectInnerLoop
+codeDistinct; DISTINCT is per child, never compound ALL deduplication. It remains
+unflattened (select.c4342 restriction4). Pinned/public duplicates t2[1,1,3,9]
+produce child[1,3,9]+tail8; childLIMIT1/OFFSET1 => [3,8], empty child => [8].
+No ORDER/window/aggregate/nested child admission change. General copied child
+fallback and shared compound-limit filtering still unresolved.
+
+Retained ordinary physical derived arms now carry compound LIMIT/OFFSET output
+through compileCteUnionAll's existing emitRow continuation. The derived consumer
+calls it after local child coroutine Yield; shared compound iOffset/iLimit never
+replaces the child's own limit. Shared stops patch to compound end, not child
+EndCoroutine; zero LIMIT still resolves all arms before publication. This follows
+select.c selectInnerLoop destination+LIMIT ordering and multiSelect shared limit.
+Pinned/public child DISTINCT LIMIT2/OFFSET1 then compoundLIMIT2/OFFSET1 [9,8],
+derived parentLIMIT1 [9], compoundLIMIT0[]; public missing tail under LIMIT0
+errors before Statement. Limited CTE/window/aggregate arms remain temporary.
+No generalized evaluator/coroutine VM alteration or finished Program relocation.
+
+Retained physical child's ascending ORDER is now forwarded by shared derived
+owner to existing compileInnerTableSelect sorter. DISTINCT before sorter insertion,
+child OFFSET/LIMIT on sorter drain, then coroutine/compound output continuation
+retain select.c selectInnerLoop/pushOntoSorter/generateSortTail ordering. Paired
+child DISTINCT ORDERx LIMIT2/OFFSET1 + scalar [3,9,8], with compoundLIMIT2/OFFSET1
+[9,8] pass INTEGER/name/reset/finalize. Descending child remains typed temporary
+under existing scan-direction admission; parent ORDER is not newly admitted.
+This is owner forwarding to existing specialized sorter, not new generic sort or
+claim of complete ORDER/collation/NULL compatibility. Parent WHERE binding and
+general fallback copier remain open.
+
+Shared retained derived owner now forwards zero-FROM ordinary children to its
+existing scalarProducer selectInnerLoop candidate instead of physical-only
+admission. LIMIT/OFFSET/WHERE enters local EndCoroutine, then existing compound
+output continuation. scalarProducer resolves all child names even LIMIT0 (not
+only when ORDER exists), preserving atomic error before publication. Paired
+scalar3 LIMIT1+tail8 [3,8], compoundLIMIT1/OFFSET1 [8]; public empty/offset/WHERE
+and missing-column LIMIT0 regressions. No additional expression walker or VM
+change; parent WHERE NameContext work and general copier census remain open.
+
+Retained VALUES child compound descriptors now use transient column1..columnN
+names rather than expression token names; width is validated before descriptor
+publication (select.c sqlite3ColumnsFromExprList/multiSelectValues). Existing
+compileDerivedProducer VALUES branch already feeds each row to coroutine then
+shared compound output continuation; no emitter/VM change. Pinned/public nested
+VALUES(2),(1)+scalar8 [2,1,8], compoundLIMIT2/OFFSET1 [1,8], column1/types/reset/
+finalize pass. Missing projected name and mismatched VALUES width at LIMIT0
+reject atomically. General transient NameContext/copy census remains open.
+
+Transient name collision owner is now resolver-exported transientColumnNames;
+vdbe imports it for derived/CTE/view/window consumers instead of duplicate
+implementation. Pinned select.c2301–2306 strips trailing colon even without
+numeric digits on collision; prior /:\d+$/ diverged for duplicate x: and emitted
+x::1. Corrected shared primitive /:\d*$/; native/public duplicate x: projected
+x:1 => INTEGER[1,8]. Source primitive tests cover ASCII fold/suffix stripping,
+input immutability/frozen result. Existing deterministic suffix allocation beyond
+four collisions remains an adaptation gap: upstream randomizes counter after
+cnt>3, tests do not claim oracle parity for randomized suffixes. General
+transient descriptors/NameContext affinity and copier census still open.
+
+Nested resolver compound transient names now come from resolved first-arm
+results (qualified TK_COLUMN names), not joined lexical tokens; pinned
+select.c2260ff. Public scalar retained compound still cannot compose its child
+destination; it now rejects typed temporary before false persistent-table lookup.
+Oracle SELECT (SELECT d.a FROM (SELECT t1.a FROM t1 UNION ALL SELECT8) d LIMIT1)
+returns INTEGER1; this is a recorded unresolved producer gap, not output parity.
+First-arm descriptor resolution is bounded; full compound affinity/collation and
+lexical NameContext ownership remain work, not claimed implemented here.
+
+Standalone scalar/EXISTS over retained unordered ordinary UNION ALL now composes
+compileDerivedProducer on enclosing builder with Mem/Exists destination and
+first-output break (select.c SRT_Mem, expr.c sqlite3CodeSubselect). Child arms are
+bounded ordinary <=1-source, no CTE/nested/window/aggregate/set/ORDER. Empty gives
+NULL/0; parent LIMIT/OFFSET remain independent. Scalar compiler now emits result
+body and LIMIT setup on one builder using setup/body/continuation labels, replacing
+its detached resultOps append, so nested coroutine PCs remain absolute. Derived
+OFFSET now targets actual resume after destination, not fixed instruction count.
+Pinned standalone qualified child scalar => INTEGER1; public OFFSET1=>3,
+LIMIT0/empty=>NULL, EXISTS=>1, invalid tail LIMIT0 atomic error. Expanded cases
+not newly native paired. Outer compound scalar-expression emission remains
+excluded; generic child.ops copier/census and affinity/collation gaps remain.
+
+Unordered ordinary zero-FROM ALL arms now call compileScalarSelect with enclosing
+builder/ParameterBuilder and output continuation, sharing its expr.c subquery
+owner instead of compileExpression without subquery hook. Scalar publication/
+Halt belong only to root; shared return leaves ops mutable and common compound
+LIMIT/OFFSET stays in multiSelect output. Scalar entry also routes eligible ALL
+to common owner, including when parser recovered nested LIMIT means top-level
+FROM is empty. Pinned/public nested physical compound scalar +8 => INTEGER[1,8],
+x/reset/finalize. Public common OFFSET=>[8], childLIMIT0=>[NULL,8], parentLIMIT0=>[],
+invalid tail under parentLIMIT0 atomic SQLite error. Expanded probes not newly
+native paired. WHERE/DISTINCT scalar arms and VALUES retain existing specialized
+routes; no general correlated/JSON/ORDER/set coverage claim. General copier gate
+still red, source/transitive census and C1–C6/Chinook/resources remain required.
+
+Common ALL zero-source ordinary WHERE arms now compose shared scalar owner too.
+The owner codes predicate with the same expr.c subquery hook and jumps to its
+local continuation on false/NULL before result body/output; common compound
+OFFSET/LIMIT only sees admitted rows. Pinned select.c8292/8347 invokes WHERE
+before selectInnerLoop; where.c7020–7035 nTabList==0 tests predicate with
+SQLITE_JUMPIFNULL to iBreak. No physical WHERE planner/interface changed.
+Pinned/public nested scalar WHERE1+8 [1,8], WHERE0+8 [8], empty predicate EXISTS
++8 [8], predicate EXISTS true commonOFFSET1 [8], name x/INTEGER/reset/finalize.
+Invalid projected child under WHERE0/parentLIMIT0 rejects atomically (public-only
+new error probe). DISTINCT/VALUES/physical predicate branches retain their
+specialized routes. General transient binding, clone census and full integration
+remain open; this is not a general WHERE/correlation parity claim.
+
+Common ALL ordinary zero-source DISTINCT arms now call shared scalar expression/
+subquery owner, with or without WHERE. Upstream where.c6945–6952 establishes
+WHERE_DISTINCT_UNIQUE for nTabList==0; select.c codeDistinct UNIQUE emits no filter.
+A sole candidate needs no new KeyInfo/ephemeral set (not an algorithm exception).
+The scalar owner's clause gate acknowledges that bounded shared ordinary case;
+VALUES/compound/physical DISTINCT keep existing owners/boundaries. Pinned/public
+nested DISTINCT scalar +8 [1,8], WHERE0 +8 [8], ALL equal tail [1,1] (no cross-arm
+DISTINCT), name x/INTEGER/reset/finalize. Public NULL child plus commonOFFSET [8]
+and invalid child WHERE0/parentLIMIT0 atomic error. No generic DISTINCT/correlation
+or multirow VALUES parity claim. General copier/census and full integration open.
+
+Ordinary scalar-root DISTINCT now acknowledges the same WHERE_DISTINCT_UNIQUE
+single-candidate branch as shared ALL scalar arms (where.c6945–6952,
+select.c codeDistinct972–976). Root versus shared destination does not change
+uniqueness. Admission excludes VALUES, compound and physical FROM; ORDER/group/
+HAVING retain clause gates. Root publication/Halt remains unchanged. Pinned/public
+standalone DISTINCT retained-compound scalar => INTEGER1/x/reset/finalize. Public
+childLIMIT0=>NULL, rootLIMIT0/rootOFFSET1=>empty and invalid child rootLIMIT0
+atomic error. Expanded probes public-only. This repair does not establish general
+DISTINCT, retained producer/correlation/copy-retirement or integrated compatibility.
+
+Root ordinary zero-source WHERE is resolved by compileTableSelect then handed to
+compileScalarSelect's shared expression/predicate owner, after window rewrite
+and before physical scan admission. No physical WHERE interface/planner change.
+select.c8292/8347 and where.c7025–7035 order zero-source predicate before result
+production; false/NULL exits before output. Scalar owner root admission now accepts
+WHERE as well as shared arms. Pinned/public DISTINCT retained scalar WHERE1=>
+INTEGER1/x, WHERE0/NULL=>empty/reset/finalize. Public predicate EXISTS=>3, LIMIT0
+empty and invalid predicate/projected child atomic SQLite errors. ORDER/VALUES/
+compound/group/window retain their specialized routes/boundaries. This is not
+completion of linked NameContext/correlation or general copier retirement.
+
+Retained ordinary zero-source scalar child producer now invokes shared
+compileScalarSelect expression/predicate owner with SRT_Coroutine callback
+(select.c8055–8073 tag-select-0482 sqlite3Select(pSub,&dest)). Child LIMIT/OFFSET
+and false predicate exit fall through to its EndCoroutine; parent/common limits
+remain separate. Replaced duplicate predicate/result/DISTINCT/limit emission,
+including unnecessary single-candidate set, not completed Program/PC copying.
+Pinned/public nested scalar-expression child +8 => INTEGER[1,8]/x/reset/finalize.
+Public childLIMIT0, childOFFSET1/DISTINCT, WHERE0, commonOFFSET1 =>[8] and invalid
+projected grandchild childLIMIT0 atomic error. Expanded cases public-only.
+General compound scalar/VALUES/ordered child specialized routes, transitive
+copier census, linked transient affinities and full integration remain open.
+
+Retained zero-source ALL ordinary SELECT arms now compose shared scalar
+expression/predicate owner and coroutine destination under the child's common
+LIMIT/OFFSET (select.c3010ff multiSelect shares limit/offset and calls sqlite3Select).
+Multirow VALUES retains its specialized loop. Arm projection resets hasValues
+from arm.origin, not inherited compound flags, in resolution and lowering.
+Pinned/public retained nested scalar ALL =>INTEGER[1,8]/x and commonOFFSET1=>[8].
+Public WHERE0/DISTINCT=>[8], NULL scalar=>[NULL,8], LIMIT0 empty and invalid child
+atomic error/reset/finalize. Expanded non-OFFSET probes public-only. No complete
+compound/VALUES/correlation/copy-retirement or integrated compatibility claim.
+
+Retained ALL VALUES row ELists now use shared scalar expression/subquery owner
+one row at a time, retaining row iteration/common child LIMIT/OFFSET/coroutine
+(select.c multiSelectValues2862–2889 invokes selectInnerLoop for each node;
+shared scalar owner supplies expression/destination body in TS).
+Not scalarizing the entire multirow VALUES or introducing another evaluator.
+VALUES-first retained ALL metadata now uses column1..N rather than lexical
+expression text (select.c sqlite3ColumnsFromExprList). Pinned/public nested scalar
+VALUES + (3) +8 =>INTEGER[1,3,8]/column1/reset/finalize. Public OFFSET=>[3,8],
+NULL scalar=>[NULL,3,8], LIMIT0 empty and invalid child atomic error. Expanded
+probes public-only. Standalone VALUES/ordered/set specialized expression emitters
+and general copier/census/transient affinity/integration remain open.
+
+Standalone VALUES now iterates row ELists on one SelectProgramBuilder/parameters
+and uses shared scalar expression/subquery/destination owner for each one-row
+body (select.c2875–2889 multiSelectValues/selectInnerLoop). Width validation and
+column1..N metadata retained; every row resolves before publication; root alone
+Halts/freezes. Program carries supplied database/maxRows because row subqueries
+may open physical cursors: expression composition must preserve execution context,
+not merely ops/registers. Pinned/public VALUES nested scalar,(3) =>INTEGER[1,3]/
+column1/reset/finalize; public reversed rows[3,1], NULL child[NULL,3], invalid late
+row/grandchild atomic SQLite errors. Expanded probes public-only. Other specialized
+VALUES/compound/ordered routes and general copier/census/integration remain open.
+
+Pure retained VALUES producer now calls the shared VALUES expression owner with
+coroutine destination on the enclosing builder/parameters, replacing its duplicate
+no-subquery-hook row emitter (select.c8055–8073 coroutine and2877–2889 VALUES
+selectInnerLoop iteration). Parent limits stay consumer-owned; producer finishes
+with local EndCoroutine. Pinned/public retained VALUES nested scalar,(3) =>
+INTEGER[1,3]/column1/reset/finalize. Public parentOFFSET1=>[3], childLIMIT0=>
+[NULL,3], parentLIMIT0 empty, invalid late row atomic SQLite error. Expanded probes
+public-only. Ordered/set expression paths and general copier/census/transient
+binding/integrated compatibility remain unresolved.
+
+Retained ordered zero-source ALL now composes shared scalar expression/predicate
+owner per ordinary arm/VALUES EList with sorter insertion continuation. This
+removes independent no-hook expression/predicate emission; ordinary single-row
+DISTINCT uses existing UNIQUE proof, VALUES iteration preserved. Common sorted
+LIMIT/OFFSET/topN and coroutine destination unchanged. Upstream select.c3584/3599
+multiSelectByMerge compiles each arm with sqlite3Select, and selectInnerLoop owns
+expression evaluation. Existing bounded finite-sorter adaptation is not replaced
+by upstream merge here; no broader ordering/correlation compatibility claimed.
+Pinned/public nested scalar +8 ORDER DESC =>INTEGER[8,1]/x/reset/finalize. Public
+commonOFFSET=>[1], WHERE0=>[8], NULL scalar=>[8,NULL], invalid child LIMIT0 atomic
+SQLite error. Expanded probes public-only. General copier/census/transient
+binding/integration remain unresolved; set destinations still have separate
+expression emission requiring owning-path translation.
+
+Retained set/mixed arms now compose shared expression/predicate body into existing
+IdxInsert/SetDelete and ALL-tail destinations; duplicate no-hook evaluators removed.
+VALUES ELists iterate fully before INTERSECT retention. Pinned/public nested
+scalar UNION8 =>INTEGER[1,8]/x/reset/finalize. Public INTERSECT[1], EXCEPT[],
+NULL UNION NULL[NULL], WHERE0[8], mixed tail/commonOFFSET[8,1], invalid child LIMIT0
+atomic SQLite error pass. Expanded probes public-only.
+Important current-source comparison: SQLite3.53.4 select.c2987–3003 routes *all*
+non-ALL compounds through multiSelectByMerge, synthesizing ORDER BY1. The retained
+TS KeyInfo ephemeral-set route is pre-existing adaptation, NOT a translation of
+an upstream temporary-set branch. This slice changes expression/destination
+ownership only; source-faithful merge replacement/technical rationale review
+remain open along with general copier/census/transient binding/integration.
+Upstream3584/3599 compiles arm sqlite3Select coroutines; shared body preserves
+that semantic ownership while current TS destination algorithm remains debt.
+
+Retained two-arm unordered non-ALL zero-source compounds now use source-shaped
+multiSelectByMerge control flow (select.c2987–3003,3570–3719): sorted arm
+coroutines, A<B/A==B/A>B, eof-A/eof-B, generateOutputSubroutine previous-key
+suppression before common OFFSET/LIMIT. Shared scalar/VALUES expression owner
+feeds each arm sorter. No ephemeral union/delete/intersection on this admission.
+Existing sorter arm representation remains browser-safe; CompareJump fuses
+OP_Compare/OP_Jump using shared Mem/KeyInfo (all ascending full-row tie keys here;
+explicit ordered/mixed/more-than-two arms retain old route). Both initially empty
+and exhausted transitions use caller Yield P2; no completed Program relocation.
+Pinned/public multi-column INTEGER,NULL duplicate UNION=>[[1,NULL],[2,NULL],
+[3,NULL]], INTERSECT=>[[2,NULL]], EXCEPT=>[[1,NULL]], metadata/reset/finalize pass.
+Public initial empty arms/common limits pass. Illegal trailing VALUES LIMIT
+fixture was removed: pinned grammar rejects it too, not a product regression.
+General old set-route replacement, collation/encoding/REAL/BLOB/resources/ordered
+merge and transitive copier census/integration remain open. This is bounded
+source-owner progress, not complete compound fidelity or exception approval.
+
+Unordered retained pure set chains now recursively compose prior SELECT merge
+into A coroutine (select.c3570–3607 destA/pPrior sqlite3Select). Prefix merges
+own previous-key suppression but not root common LIMIT/OFFSET; their end falls
+through to local EndCoroutine. Root alone applies common limits. This replaces
+pre-existing ephemeral-set algorithm on admitted pure unordered set chains,
+not mixed ALL/ordered paths. Pinned/public left-associated UNION/EXCEPT/INTERSECT
+and three-arm duplicate UNION commonOFFSET pass INTEGER/x/reset/finalize.
+Structural regression requires recursive merge/CompareJump/root limits and
+excludes ephemeral set/child.ops in that producer. 149 focused tests/type pass;
+general copier ownership remains red. REAL/BLOB/collation/encoding/resource and
+mixed/ordered merge translation plus transitive census/full integration remain
+open; no broad compatibility claim.
+
+Retained unordered mixed chains ending in a set operator now recursively merge
+ALL prefixes as sorted streams (select.c3507–3516 regPrev=0 for TK_ALL,
+3653–3689 equal emits A/advances A, EOF drains both). ALL merge allocates no
+previous-key state; enclosing set merge suppresses duplicates. Common limits
+remain root-only. Chains ending ALL retain existing sequential output route,
+not sorted by this change. Pinned/public ALL-prefix duplicate UNION[1,2],
+INTERSECT[2], EXCEPT[1], commonOFFSET[2] pass INTEGER/x/reset/finalize.
+This removes ephemeral set consumption on this admission; ordered/mixed tails
+and old set fallback still need displacement. Final regPrev branch source
+comparison prompted deletion of unnecessary ALL state; type26 focused pass
+following earlier native/type149 pass. General compatibility/census/integration
+and collation/REAL/BLOB/encoding/resource gaps remain open.
+
+Retained unordered mixed compounds ending ALL now emit merged prefix then
+sequential tail to same coroutine destination/common limit registers, matching
+select.c3004–3045 multiSelect TK_ALL ownership. Prefix limit exhaustion skips
+all tails; prefix EOF resumes tail with residual OFFSET/count. Tail WHERE runs
+in shared expression owner before counting output. No tail sorting/deduplication.
+All admitted unordered set/mixed paths now avoid old ephemeral-set branch;
+that branch remains for explicit ordered sets pending merge permutation work.
+Pinned/public UNION2,1 ALL2=>[1,2,2], empty EXCEPT prefix=>[1], common
+LIMIT2 OFFSET1=>[2,2], OFFSET2=>[2], INTEGER/x/two resets/finalize pass.
+Public LIMIT0/LIMIT1/false tail/two unsorted tails/invalid tail despite LIMIT0
+atomic error pass. Native/type149/diff pass; general copier16/1 remains red.
+REAL/BLOB/collation/encoding/resources/full census/peer integration open.
+
+Retained admitted ordered set/mixed compounds now use recursive coroutine merge,
+removing superseded ephemeral-set/delete/intersection/output-sorter branch.
+Existing ordered admission remains one column/one term: permutation identity,
+not general ORDER support. select.c3465–3507 distinguishes merge vs duplicate
+KeyInfo: descending/explicit collation/NULLS placement affect merge/arm sorter,
+previous-row equality remains compound collation ascending. CompareJump now
+honors KeyInfo nullsLarge before descending reversal (shared Mem storage class).
+Ordered ALL tails are recursive sorted merge, unordered tails stay sequential.
+Pinned/public DESC[2,1], DESC NULLS FIRST[NULL,1], mixed DESC/commonOFFSET[2,1]
+with x/types/reset/finalize pass; native/type149/diff pass. Full collation/type
+encoding/resources, multi-column permutation/order admission and general
+copier/census/integration remain open. Structural tests updated to require merge
+ownership, not deleted ephemeral implementation details.
+
+Retained ordered ALL one-column/one-term producers now dispatch to shared
+recursive source merge instead of finite whole-compound sorter. TK_ALL owns
+no regPrev (select.c3507–3516), equal emits A/advances A, both EOF branches drain
+remaining duplicates (3662–3684). Common limits root-only; shared expression
+body produces arm sorter/coroutine. Wider/multiple-order supported ALL retains
+existing sorter adaptation until permutation support lands, not rejected.
+Pinned/public duplicate DESC[2,2,1], DESC NULLS FIRST[NULL,1], commonOFFSET[2,1],
+metadata/types/two resets/finalize pass; native/type149/diff pass; broad copier16/1
+still red. No full compound/type/encoding/collation/resource compatibility claim.
+
+Retained wider/multiple-term ordered ALL now shares recursive source merge:
+ORDER resolution maps each term to result index, arm sorter stores permuted keys
+plus full payload, CompareJump indexes payload through permutation (select.c
+3479–3505 OP_Permutation/KeyInfo). Removed whole-compound finite-sorter branch;
+no supported width/order contract narrowed. Set admission remains existing
+one-term/one-column; no claim general set tie-key expansion implemented.
+Pinned/public two-column ORDER2,1DESC=>[[3,1],[2,1],[1,2]], alias ORDER y,xDESC
+LIMIT1 OFFSET1=>[[2,1]], INTEGER/x,y/two resets/finalize pass. Earlier NULL,
+scalar/predicate/VALUES/compound probes retained. Native/type149/diff pass after
+obsolete structural locator updated; broad copier16/1 remains red. Full type,
+collation,encoding,resources/census/linked contexts/integration remain open.
+
+Root zero-source set/mixed compound arms now use shared scalar expression body
+and destination callbacks on enclosing builder/parameters; replaces no-hook
+compileExpression row emitters in prefix and ALL suffix. Physical scalar
+subqueries carry Program.database/maxRows at publication. Pinned select.c3584/
+3599 arm sqlite3Select and expr.c scalar destination ownership inform composition;
+root ephemeral set algorithm remains debt, not claimed pinned merge translation.
+Pinned/public SELECT(SELECT a FROM t1 LIMIT1) UNION8=>INTEGER[1,8]/x/reset/finalize
+now passes (previous public typed temporary); EXCEPT/INTERSECT/ALL suffix pass.
+Native/type149/diff pass. Root ordered/unordered ALL emitter and root set merge
+algorithm remain unresolved, as do general census/resources/integration.
+
+Root admitted scalar set/mixed compounds and retained set/ordered ALL now call
+one emitScalarCompoundMerge mutable-builder/destination owner, rather than root
+ephemeral insertion/delete/intersection/output sorting. select.c2987–3005 and
+multiSelectByMerge arm/destination/output policy own recursion; root SRT_Output,
+retained SRT_Coroutine. Unordered trailing ALL sequential/common limits retained.
+Root width/ORDER admission unchanged (ordered sets one-column/term). No synthetic
+FROM wrapper/finished graph relocation. Root prevalidation still computes unused
+old limit setup before selecting merge; not emitted/published, cleanup debt.
+Pinned/public root EXCEPT chain[1], ALL-prefix INTERSECT[2], ALL-tail OFFSET[2,8],
+DESC OFFSET[1] INTEGER/x/reset/finalize pass; physical scalar regression remains.
+Native/type149/diff pass after structural helper-following assertion update;
+broad copier16/1 red. Root pure ALL/ordered ALL duplicate emitters, full type/
+collation/encoding/resources/linked contexts/census/integration remain unresolved.
+
+Root ordered scalar/VALUES ALL now calls emitScalarCompoundMerge with SRT_Output,
+same owner as retained coroutine compounds. Removed independent ORDER resolver,
+compileOrderedScalarSubquery hook and whole-compound sorter; source TK_ALL
+regPrev=0/recursive arm coroutine ownership select.c3507–3518,3580–3605.
+Root set prevalidation/unused duplicate limit setup removed: shared owner resolves
+ORDER/errors and owns limits. Existing ordered set width admission unchanged.
+Pinned/public duplicate DESC[2,2,1], NULLS FIRST[NULL,1], two-column permutation,
+physical scalar ORDER/OFFSET[1] pass; physical scalar previously typed temporary.
+Native/type149/diff pass, broad copier16/1 remains red. Root unordered ALL still
+uses separate no-hook row emitter; encoding/type/collation/resources/census and
+linked transient contexts/integration remain open, not compatibility acceptance.
+
+Root zero-source unordered ALL now lowers every arm/VALUES EList through shared
+scalar expression owner on enclosing builder/parameters with sequential output
+and common limits, per select.c3005–3048 TK_ALL. Dispatcher no longer sends this
+zero-source contract to compileCteUnionAll's no-hook expression route; physical/
+CTE/predicate/DISTINCT/group branches retain their specialized producer. Program
+carries database/maxRows for physical scalar cursor execution. No sorting/dedup.
+Pinned/public physical scalar ALL[1,8], OFFSET[1], scalarLIMIT0[8,NULL], INTEGER/
+NULL/x/two resets/finalize pass. Public VALUES[1,3,8] and invalid late scalar
+under LIMIT0 atomic SQLite error pass. Native/type149/diff pass; broad copier16/1
+red. Specialized CteUnionAll zero-source arm emission still needs shared owner;
+full type/encoding/collation/resources/census/linked contexts/integration open.
+
+compileCteUnionAll zero-source ordinary/VALUES arms now use compileScalarSelect
+with shared builder/parameters/common emitRow, removing fallback no-hook emitter
+that scalarized VALUES to its first EList. select.c multiSelect TK_ALL3005–3048
+and multiSelectValues/selectInnerLoop own row iteration. Compiled descriptor
+columns preserve VALUES-first column1 naming. Physical/CTE/aggregate/window arm
+branches unchanged. Zero-source grouping remains typed temporary not partial.
+Pinned/public VALUES physical-scalar + table ALL[1,3,1,3,5,7], table+VALUES
+[1,3,5,7,1,8], common OFFSET[3,1] INTEGER/column1 or x/reset/finalize pass.
+Native/type149/diff pass; expanded public metadata/late-invalid-LIMIT0 pass after
+illegal trailing VALUES LIMIT fixture corrected with SELECT tail. Ordered CTE
+zero-source emitter and CTE materialization row hooks remain unresolved; broad
+copier16/1/type encodings resources/census/integration remain open.
+
+Ordered specialized ALL no-source arm now uses shared scalar/VALUES expression
+owner feeding its existing sorter destination (select.c3580–3605 arm owner).
+Project hasValues from arm.origin in semantic producer: compound-wide flag was
+wrong on mixed SELECT/VALUES and caused missing-row invariant failure. Manual
+predicate/result hookless loop removed. Numeric complete-result ORDER admission
+unchanged; alias ordering remains temporary in this specialized route. Legal
+VALUES middle+SELECT tail required (trailing VALUES ORDER is syntax error).
+Pinned/public table+scalar[1,1,3,5,7], table+VALUES+tail[1,1,3,5,7,8,9], scalar
+WHEREfalse[1,3,5,7] INTEGER/x/reset/finalize pass. Native/type149/diff pass after
+structural test follows shared owner. Existing specialized whole-compound sorter
+algorithm debt remains; CTE materialization/census/resources/integration open.
+
+CteUnionAll bounded materialized SELECT/VALUES producer now delegates row
+expressions to shared compileScalarSelect builder/parameters/ephemeral destination
+rather than no-hook compileExpression. select.c8102–8139 tag-select-0488 calls
+sqlite3Select(SRT_EphemTab); existing Gosub/Return/OpenDup reuse remains. Pinned/
+public repeated physical-scalar VALUES CTE[1,3,1,3], empty scalar CTE[NULL,NULL]
+metadata x/reset/finalize pass, native/type149/diff. Scalar LIMIT nested in CTE
+currently misattributed by parser (LIMIT before UNION error); probes use WHERE
+unique/empty instead, parser gap retained. Materialization Once/error ordering,
+CTE descriptor/collation/general shape and specialized ordered merge debt remain;
+no exhaustive compatibility/resources/integration claim.
+
+Ordinary physical/scalar ordered ALL numeric complete-result keys now compose
+shared recursive merge via arm emitter interface: physical compileInnerTableSelect
+feeds source sorter destination, scalar owner feeds ordered row callback. Pinned
+select.c3580–3605 destinations remain arm-owned; aggregate/CTE/derived/window/
+DISTINCT specialized routes retain old bounded sorter until integrated. No
+finished graph relocation. Resolved implicit column collation accompanies ORDER
+KeyInfo (first emitted attempt lost NOCASE; existing regression exposed it and
+owning key producer fixed). Pinned/public physical WHERE/empty/tie cases pass;
+native/type149/diff pass. Whole-compound sorter remains for excluded specializations,
+not removed globally; interfaces/census/type encoding resources/integration open.
+
+Ordered specialized numeric complete-result ALL aggregate/GROUP/HAVING arms
+now feed shared recursive merge through compileAggregateSelect sorter destination,
+not whole-compound sorter. select.c3580–3605 compiles arm sqlite3Select; aggregate
+output flows through selectInnerLoop destination. Empty SUM NULL, HAVINGfalse,
+group rows preserve output/lifecycle, pinned/native/type149/diff pass. KeyInfo
+resolution must project each arm GROUP/HAVING carriers as row lowering does;
+inherited compound HAVING caused false nonaggregate error, owning semantic
+projection corrected. DISTINCT/CTE/derived/window specialized sorter remains;
+no census/resource/full compatibility acceptance claimed.
+
+Ordered physical DISTINCT ALL arms now enter shared recursive merge, preserving
+arm DISTINCT carrier and compileInnerTableSelect Found/IdxInsert before sorter
+destination (select.c selectInnerLoop/codeDistinct); no-source DISTINCT retained
+specialized route until its row contract integrates. Numeric complete-result ORDER
+admission unchanged. Pinned/public duplicate parity [1,1], empty A [1], NULL ties
+[NULL,NULL] plus existing CAST/+column NOCASE cases pass; native/type149/diff,
+then new shared-owner structural test passes. Specialized CTE/derived/window and
+no-source DISTINCT whole-compound sorter remains; exhaustive census/resources/
+C1–C6/Chinook integration unclaimed.
+
+Ordered specialized ALL single-candidate no-FROM SELECT DISTINCT now feeds shared
+merge through scalar row callback. No-source SELECT has at most one candidate;
+lexical DISTINCT resolution retained then dedup flag elided in lowering, matching
+select.c codeDistinct WHERE_DISTINCT_UNIQUE no-op. VALUES multirow not included;
+physical DISTINCT retains own Found/IdxInsert. Pinned/public physical-scalar
+DISTINCT, false predicate and NULL ties preserve rows/types/x/reset/finalize;
+native/type150/diff pass. Old sorter remains for CTE/derived/window and non-single
+candidate specializations; census/resources/full integration not approved.
+
+Ordered single-use ordinary CTE flatten now precedes shared merge admission/key
+resolution (select.c7879 flattenSubquery before producer). Existing bounded
+restriction and EList/WHERE substitution moved, not expanded: materialized,
+repeated, compound, GROUP/DISTINCT/ORDER/LIMIT/nested sources still excluded.
+Reconstructed arm carriers carry substituted result/from/where to merge while
+preserving original compound operator. Pinned/public table CTE predicate and
+combined parent predicate [2,5,7]/[2,5] metadata/reset/finalize pass; native/type150/
+diff pass after shared-owner locator updated. Old ordered sorter remains for
+other specializations, generic flatten restrictions/CTE mappings/census/resources/
+full integration remain debt; no exhaustive compatibility claim.
+
+Ordered ALL represented window arms now compose shared merge through existing
+compileWindowSelectLowering sorter destination on enclosing builder. select.c7699/
+window.c958 sqlite3WindowRewrite applies to individual pPrior==0 arm; multiSelect
+3580–3605 composes destinations. Never invoke window lowerer on whole compound.
+Pinned/public row_number ordered tie [1,2,2,3,4] and empty A [2] INTEGER/x/reset/
+finalize pass; prior caller fell through to typed temporary complex table arm.
+Native/type150/diff pass. Numeric complete-result ORDER bounded admission unchanged;
+retained derived/CTE/materialization and generic copying/census/resources/integration
+remain open, not global window/compound compatibility approval.
+
+Ordered ordinary derived single-table flattenable arm now uses existing
+flattenOrdinaryDerived before shared merge. select.c flattenSubquery4290ff/7879
+substitutes EList/WHERE before execution; lexical output column names survive
+producer substitution (qualified d.x outputs x, not producer a). Preserve aliases
+from lexical column expression, not expressionName token text. Pinned/public
+predicate and combined predicate [2,5,7]/[2,5] INTEGER/x/reset/finalize pass;
+native/type150/diff. Retained LIMIT/compound/DISTINCT/group/window derived
+producers remain excluded by existing flatten restrictions, no general flatten/
+metadata/type-origin/resource compatibility claim; copier/census/integration open.
+
+Ordered retained ordinary derived noncompound/nonnested projection now invokes
+compileDerivedProducer shared destination/row callback inside merge (select.c
+3580–3605 arm destination,8048+ retained coroutine). Child LIMIT remains owned by
+child, never flatten into parent. KeyInfo collation derives through producer
+projection descriptor/name substitution for this bounded single-level branch,
+not physical lookup of lexical d. Arm emitter owns resolution; scalar-only merge
+validation remains when no emitter supplied. Pinned/public LIMIT2 [1,2,3] and
+LIMIT0 [2] names/reset/finalize pass; native/type150/diff. Compound/nested retained
+keys, CTE/materialization, generalized transient NameContext/copying/census/types/
+resources/integration remain debt; no general descriptor compatibility claim.
+
+Retained derived merge key now checks explicit collation inherited from producer
+projection before implicit resolved-column fallback. select.c2574 multiSelectCollSeq
+uses first non-null sqlite3ExprCollSeq in left-to-right arm order; prior bounded
+metadata substitution omitted producer explicit COLLATE. Child execution/LIMIT
+unchanged. Pinned/public retained literal NOCASE 'a' versus 'B' => ['a','B'], TEXT,
+x/reset/finalize; baseline wrongly binary ['B','a']. Native/type150/diff pass.
+This repairs existing key producer, not full transient resolver/descriptor debt;
+compound/nested sources/census/resources/full integration remain unclaimed.
+
+Retained transient column default BINARY now terminates compound collation search
+when its producer has no explicit/implicit collation. expr.c248 TK_COLUMN always
+looks up column collation; select.c2426–2429 sets optional producer collation on
+transient descriptor, otherwise default remains BINARY. Metadata projection must
+not treat a literal producer's lack of collation as the outer column's lack.
+Pinned/public retained literal 'a' then 'B' COLLATE NOCASE => ['B','a'], TEXT/x/
+reset/finalize; prior output ['a','B'] wrongly inherited later arm NOCASE.
+Native/type150/diff pass; cast/unary-plus column identity preserved. General
+transient descriptors/compound keys/census/resources/integration still open.
+
+Transient merge collation metadata now derives recursively from leftmost producer
+EList (select.c2346 sqlite3SubqueryColumnTypes follows pPrior) and resolved
+expression collation/default BINARY. Consumer projected column identity is matched
+to unique transient names; CAST/+ preserve identity. No expression substitution
+or child predicate/LIMIT movement in key producer. Removed prior substituted-key
+and special default fallback path. Ordered nonnested compound derived projection
+now feeds existing shared producer; pinned/public NOCASE scalar ALL child plus
+outer 'B' => ['a','B','c'], TEXT/x/reset/finalize. Native/type150/diff pass after
+normalizing descriptor uppercase BINARY at KeyInfo boundary. Helper covers
+collation only, not full affinity/type/name/NameContext migration; unsupported
+noncolumn nested projection remains typed temporary. Copier/census/resources/
+CTE/full integration still open.
+
+Transient collation metadata now requires resolution of represented producer arms
+before leftmost descriptor extraction, matching select.c2346 SF_Resolved
+precondition. Reuses expandAndResolveSelect (no new expression walker), maps
+NameResolutionError to SQLITE error before descriptor/Program publication; nested
+producer validation recurses. Public/native later missing-column both ordinary
+and LIMIT0 reject at prepare (native SQLITE_ERROR/null stmt). Corrected baseline
+already rejected during lowering; this is error/semantic ownership relocation,
+not a newly fixed behavioral red. Initial test used wrong error.reason instead
+of API error.kind; corrected baseline passed. Native/type150/diff pass.
+General linked transient resolver/affinity/types/census/resources still open.
+
+Transient descriptor precondition now validates later derived arm projection as
+well as its child producer: isolate arm then existing descriptor qualifier/name
+checks; recursion terminates on single-arm branch. select.c2346 SF_Resolved
+requires consumer expressions resolved, not only producer. Public/native nested
+later n.missing with inner LIMIT0 yields atomic SQLITE prepare error (native null
+stmt). Baseline already rejected during lowering; ownership moved earlier, not
+behavioral red. Native/type150/diff pass. Full linked NameContext integration
+remains missing; this local descriptor precondition is not its replacement.
+
+Transient merge metadata now binds a SrcItem-indexed descriptor to the existing
+expandAndResolveSelect linked NameContext instead of local name/qualifier lookup.
+select.c2346 builds transient columns; resolve.c278 lookupName owns consumer
+expression resolution. Descriptor override is explicit optional resolver argument,
+not schema mutation/alias. Metadata-only rootPage0 table never enters physical
+producer; affinity remains placeholder BLOB, not full type/affinity translation.
+Removed local projection walker/name matching; inherited collation through resolved
+column uses existing implicit owner. Native/type150/diff pass. Invalid direct
+column with child LIMIT0 remains atomic SQLITE. COLLATE-wrapped invalid projection
+still fails earlier typed temporary in compoundArmColumns (unimplemented shape),
+not falsely claimed repaired. Physical planner interfaces unchanged.
+
+compoundArmColumns retained direct projection now consumes the same transient
+SrcItem descriptor/resolver as merge collation. Removed independent name splitting,
+qualifier matching and exposed-index walker; resolver's direct column reference
+owns index and output alias. Shared transientSourceTable supplies unique names,
+collations and declaration metadata (select.c2346 / resolve.c278 lookupName).
+Metadata-only physical rootPage0 isolation unchanged; affinity placeholder BLOB
+and general type-origin propagation remain debts. Public/native aliased retained
+NOCASE column yields renamed/['a','B']; baseline already passed, ownership repair.
+Native/type150/diff pass. Unsupported nondirect projections still typed temporary;
+producer/register contexts/census/resources/full integration not claimed.
+
+Bounded single-source CTE compound column metadata now attaches shared transient
+SrcItem descriptor to resolver, deleting duplicate name/qualifier walker. CTE
+explicit column aliases preserved from normalized producer EList (VALUES default
+column1 is not CTE x). Collation precondition likewise binds CTE descriptors,
+without schema mutation or physical planner changes. select.c2346 and resolve.c278
+own descriptor/lookup path. Public/native repeated q(x) VALUES child projected
+renamed => [2,1,2,1], INTEGER/name; baseline passed. First implementation lost CTE
+names to VALUES defaults; corrected descriptor name policy. Native/type150/diff
+pass. Runtime materialization/register/affinity/census/resources still debt.
+
+Transient SrcItem descriptors now carry noVisibleRowid independently of physical
+WITHOUT ROWID. select.c5908 sets TF_NoVisibleRowid on derived transient table;
+resolve.c471/564 VisibleRowid guards implicit rowid candidates. Resolver checks
+this flag only after real column lookup, preserving explicitly projected rowid
+and physical table rowids. Shared transientSourceTable sets flag for derived/CTE
+metadata; no physical planner/storage semantics changed. Unit red allowed hidden
+rowid via descriptor; corrected. Pinned/public rowid/_rowid_/oid missing with child
+LIMIT0 are atomic SQLITE prepare errors; explicit rowid returns [1,2]. Native/
+type157/diff pass. General affinity/type/register/census/resources still open.
+
+Transient metadata now has one resolveTransientArm binding/error owner shared by
+compoundArmColumns and collation extraction. Removed separate validation recursion
+and duplicated derived/CTE resolver setup: each arm resolves its actual SrcItems
+once in collation extraction, then leftmost plan supplies descriptors (select.c2346
+SF_Resolved / pPrior, resolve.c278 lookupName). Recursive child descriptors remain
+metadata-only, never physical scans. Public/native COLLATE missing-column LIMIT0
+atomic SQLITE error verified; current baseline already rejects after previous
+column resolver repair, superseding older temporary prediction. Native/type157/
+diff pass. Affinity placeholder and general execution register contexts remain.
+
+Ordinary transient descriptor affinity now uses resolvedExpressionAffinity
+(expr.c45 sqlite3ExprAffinity): resolved column/rowid, CAST type, COLLATE operand,
+parentheses representation; unary plus and literals have no affinity. Consumes
+columnUses or direct result binding, not declared-type guess. Shared descriptor
+uses this only for noncompound producers. Compound cross-arm DataType/conflict/
+FLEXNUM scan (select.c2378–2398) remains explicitly BLOB placeholder; scalar SELECT
+expression affinity remains absent, not claimed translated. Unit source-branch
+coverage plus existing pinned public differential native/type158/diff pass.
+No runtime producer/register context migration or broad compatibility claim.
+
+Nested compound-derived resolver descriptor now uses SrcItem-indexed binding,
+not child schema alias injection, and carries TF_NoVisibleRowid (select.c5908,
+resolve.c471). Explicit rowid columns remain visible. Scalar retained compound
+caller resolves consumer before temporary destination admission, preserving lexical
+error precedence even LIMIT0. Pinned/public nested implicit rowid/_rowid_/oid now
+SQLITE_ERROR before statement publication; first public attempt remained temporary
+because capability check preceded resolution, corrected at caller. Unit/native/
+type159/diff pass. Runtime unsupported destination remains temporary for valid
+unimplemented shapes; compound affinity/register/census/resource debt remains.
+
+resolvedExpressionAffinity now includes expr.c56 TK_SELECT: scalar SELECT follows
+semantic SelectNode identity into existing linked resolved child then first result
+expression affinity. Correlated outer column and differently typed siblings use
+their actual resolved contexts; IN/EXISTS/unary plus do not inherit SELECT affinity.
+Shared ordinary transient descriptor consumes this without independent re-resolution.
+Unit baseline undefined scalar affinities repaired; existing pinned differential/
+type160/diff pass. No new public affinity observability claim. Compound cross-arm
+DataType/FLEXNUM scan, general register contexts/copiers/resources remain open.
+
+Transient compound descriptor now scans resolved arm expression affinity and prior
+DataType masks (select.c2378–2398), stopping on real BLOB affinity, not confusing
+it with NONE. expr.c106 DataType owner covers represented literals/parameters/
+functions/column/CAST/scalar SELECT/CONCAT/CASE output unions, unary plus/COLLATE.
+Numeric/text prior conflict gives BLOB; no affinity defaults BLOB. FLEXNUM on
+numeric leftmost CAST remains explicit metadata placeholder BLOB, not a claimed
+runtime substitute; shared Mem has no FLEXNUM yet. Unit mask red then native/
+type161/diff pass; public affinity observability not newly asserted. Runtime
+register contexts/copiers/census/resource acceptance remain open.
+
+Correction to compound affinity scan: source select.c2387 loops over later arms
+AFTER selecting first affinity owner as well as prior NONE masks. Previous scan
+omitted tail masks. resolvedCompoundAffinity now owns both loops; transient table
+caller consumes it. Source tests numeric column then text => BLOB, TEXT CAST then
+numeric => BLOB, NULL/integer/NULL => integer, BLOB CAST stops. Native/type162/diff
+pass. Numeric CAST FLEXNUM placeholder remains explicit; no new public affinity
+observability acceptance or general execution context migration claimed.
+
+Shared Mem affinity now represents FLEXNUM explicitly (vdbe.c386–410): converts
+numeric text, preserves preexisting REAL/IntReal, NULL/BLOB/non-numeric text.
+NUMERIC also performs source integer-affinity on existing REAL (old TS incorrectly
+exempted NUMERIC). Compound numeric leftmost CAST now supplies FLEXNUM instead of
+BLOB placeholder (select.c2397); comparison affinity treats FLEXNUM as numeric.
+Unit REAL/text/BLOB across three encodings plus descriptor CAST branch; native/
+type178/diff pass. Initial test used nonexistent setReal; corrected setDouble;
+initial red was test API failure, not demonstrated production red. General runtime
+register contexts/copier/census/resource acceptance still open.
+
+Compound FLEXNUM CAST identity now peels TS-only parentheses (parse.y1176
+returns same Expr); COLLATE remains real Expr, so does not qualify as TK_CAST
+(select.c2397). Source-unit nested parentheses red repaired. Added pinned/public
+retained compound numeric CAST/ALL/order probe: REAL1/INTEGER2/INTEGER3, name x,
+reset twice/finalize. Native/type179/diff pass; probe was already supported, not
+claimed public behavioral red. General register/copier/census/resources remain.
+
+Resolved affinity/DataType now includes represented TK_VECTOR first-field metadata
+(expr.c76–81/135–145), through leftmost nexprlist, using actual linked column use.
+Does not admit row-value result lowering. Function DataType branch now recognizes
+actual grouped Lemon function signature explicitly; previously function happened
+to return unknown via generic identifier affinity branch (baseline passed).
+Unit vector red repaired; function coverage passing baseline retained. Native/
+type181/diff pass; TK_SELECT_COLUMN/deferred-function affinity and generic runtime
+contexts/copier/census/resources remain unclaimed.
+
+Nested scalar compound-derived resolver descriptor now resolves every represented
+producer arm and consumes shared resolvedCompoundAffinity, replacing blanket BLOB
+(select.c2378–2399 SF_Resolved prerequisite/scan). First-arm output names unchanged;
+SrcItem-index attachment/noVisibleRowid preserved. Linked scalar affinity now
+integer/NULL, numeric/text conflict BLOB, numeric CAST FLEXNUM. Unit red repaired,
+existing pinned/public native/type182/diff pass; no new runtime destination admitted.
+Nested descriptor collation/type-origin and general runtime contexts/copier/census/
+resources remain open; later arm lexical resolution now happens at descriptor owner.
+
+resolvedImplicitCollation now consumes direct ResolvedResult binding when no
+columnUses entry exists (expr.c248 TK_COLUMN); nested compound transient descriptor
+uses first resolved producer implicit collation, default BINARY. NOCASE/BINARY
+first-column order coverage unit red repaired, native/type183/diff pass. This is
+not full nested explicit EP_Collate propagation: explicit COLLATE/expression
+children and type-origin remain open at nested descriptor owner. No new destination
+admission or broad compatibility claim; runtime/copier/census/resources remain.
+
+Resolved expression collation owner now handles represented explicit COLLATE and
+EP_Collate left-to-right children (expr.c276–308), skipping scalar SELECT contents,
+CAST/UPLUS/parentheses operand ownership first. Nested compound descriptor and
+transientResultCollations consume it; latter removes duplicate expression-tree
+conversion for explicit collation. Unit explicit/function/binary/SELECT boundary
+red repaired; native/type184/diff pass. Vector/deferred-function/register collation
+branches and full type-origin/runtime/census/resource coverage remain unclaimed.
+
+Resolved TK_VECTOR collation now follows first field before EP_Collate child scan
+(expr.c271): later explicit COLLATE cannot override first field or supply missing
+collation. Affinity/collation share parser first-field extraction. Result KeyInfo
+consumer uses resolvedExpressionCollation, removing duplicate explicit-tree walk.
+Unit red repaired; native/type pass, initial suite184/1 obsolete structural locator,
+updated locator then185/0. Native not rerun after assertion-only change. Deferred/
+register collation, remaining compound callers/runtime/census/resources still open.
+
+Compound merge now resolves each actual arm and uses shared resolvedCompoundCollation
+(select.c2574 prior-first/non-null); removes explicit/implicit/derived conditional
+collation walker from emitScalarCompoundMerge. Whole-compound ordered CTE route
+also uses resolvedExpressionCollation per arm; no resolvedImplicitCollation calls
+remain in vdbe.ts. BINARY physical column stops later NOCASE, literal NONE permits
+later collation. Unit owner red; initial type narrowing failure then obsolete
+locator185/1, corrected native/type186/diff pass. General source/type-origin/
+register/copier/census/resources remain; not exhaustive compatibility acceptance.
+
+Nested compound resolver descriptor declared type no longer blanket NULL: shared
+transientDeclaredType normalizes original resolved direct-column type against
+computed affinity (select.c2399–2420/global.c standard table), NUM for FLEXNUM,
+INT/REAL/TEXT/BLOB otherwise. Original INTEGER preserved, numeric/text conflict
+BLOB, CAST FLEXNUM NUM source-unit red repaired; native/type187/diff pass.
+This is descriptor metadata, not new public provenance acceptance: full columnType
+CAST/scalar SELECT/origin recursion and general transientSourceTable consumer still
+need migration, as do runtime/copier/census/resources.
+
+Nested transient type normalization now consumes resolvedExpressionDeclaredType:
+select.c columnTypeImpl TK_COLUMN and semantic-linked TK_SELECT (including outer
+binding) only; TS parentheses preserve Expr identity, CAST/UPLUS/functions do not
+inherit declared type. Unit red repaired with direct wrapped fallback; native/
+type188/diff pass. General producer descriptor/origin recursion and public metadata
+assertions still pending; not a new declared-type compatibility claim.
+
+General transientSourceTable now consumes resolved columnType and shared declared
+normalization (select.c2399–2420), removing independent compoundArmColumns type
+copy. Public/native compound CAST probe additionally checks top-level decltype
+NULL (leftmost CAST expression has no columnType), rows/types/name/reset unchanged; this is not evidence
+that descriptor NUM equals public origin metadata. Ownership locator red repaired;
+native/type189/diff pass. Derived origin recursion, scalar expression metadata and
+remaining runtime/copier/census/resource integration remain pending.
+
+Resolved scalar SELECT result descriptors now inherit linked child type/database/
+table/origin (select.c2033 TK_SELECT), preserving parent name and not copying
+child affinity/collation. Parentheses only preserve C Expr identity; CAST/UPLUS/
+functions remain expression metadata. Unit metadata red repaired; native/public
+scalar INTEGER/name/value probe passes, public provenance checked against source
+(not native metadata functions); type190/diff pass. Derived-origin recursion and
+runtime/copier/census/resources remain unresolved.
+
+Derived descriptor columnType now follows attached resolved current producer EList
+(select.c1988–2005), not transient alias as main-table origin. WeakMap keyed by
+TableNode represents SrcItem subquery relationship without modifying physical
+schema; ordinary derived producers attach, CTE names excluded (separate C branch).
+Nested scalar unit alias-origin red repaired, literal producer type/origin null.
+Native/type191/diff pass before CTE guard; guard type33/diff pass afterward.
+No fresh public/native derived-origin probe; retained execution metadata copier
+and exhaustive CTE/view/type-origin integration still pending.
+
+Retained derived compoundArmColumns now consumes resolved descriptor producer
+relationship (columnTypeImpl subquery branch), removing independent child metadata
+recursion while preserving direct-projection capability boundary. New native/public
+derived physical-column probe preserves INTEGER/name/value and source provenance.
+Initial oracle expectation of last literal decltype NULL was disproved (INTEGER);
+corrected test passed baseline, not a public product red. Native/type192/diff pass.
+Public compound metadata arm selection still requires generalized source census;
+runtime/copier/resource integration remains open.
+
+Residual compound destination metadata now takes leftmost arm for both name/type/
+origin (select.c2155 and generateColumnTypes call), removing last-arm provenance
+copy. Earlier commentary attributing CAST probe NULL to last literal was wrong:
+CAST itself has no columnType. Native derived-column/literal pair confirms INTEGER
+while CAST/literal pair NULL; existing public probes pass. Structural branch red
+repaired; native/type193/diff pass. No exhaustive compound metadata census or
+runtime/copier/resource acceptance implied.
+
+Correction: columnTypeImpl subquery branch uses pS->pEList, with no pPrior rewind
+(select.c1999). Compound derived origin therefore follows current/rightmost arm,
+unlike GenerateColumnNames top-level leftmost and transient affinity/type scan.
+Producer bindings now attach rightmost plan. Native literal-first/physical-last
+retained derived probe disproved NULL hypothesis: INTEGER; public baseline passed,
+nested resolver source-unit red repaired. Native/type193/diff pass. Earlier
+residual leftmost metadata repair still needs caller-context distinction review:
+public root vs derived producer cannot share blanket arm ownership. No complete
+compound metadata/census/runtime/resources acceptance.
+
+Residual derived producer metadata correction: current/rightmost type/origin with
+leftmost transient names, not top-level GenerateColumnNames. Attempted parent
+resolved metadata passed193 tests but inspection showed producerOutput width must
+remain child width, independent of parent projection; removed that attempt before
+handoff. Current source-specific producer composition restored (columnTypeImpl
+1999); type/focused tests pass. Full suite/native from removed attempt are not
+acceptance evidence for final code; broad rerun remains due.
+
+Producer-width follow-up differential now covers three-column compound coroutine
+payload consumed by one-column parent and reordered/repeated three-column parent,
+LIMIT2 and two reset cycles, INTEGER rows and names through public/native APIs.
+Both pass on final current-arm metadata composition. Native/type193/diff rerun
+closes prior removed-attempt verification gap, not overall migration acceptance.
+The child payload register range must not be allocated from parent EList width
+(selectInnerLoop destination count vs parent result; TS producerOutput).
+
+columnTypeImpl represented COLUMN/SELECT metadata now shares
+resolvedExpressionMetadata for declared type and origin; declared-type wrapper and
+scalar result finalization consume it. Parent scalar identity gate does not rewrite
+ordinary merged/coalesce result descriptors. Direct descriptors take precedence
+over columnUses to preserve INTEGER PRIMARY KEY origin name. Unit absent-owner
+red then IPK/merged descriptor regressions repaired; type194/diff pass. Native pair
+passed before final identity gate; public pair rerun afterward. No new execution
+admission or complete origin/branch compatibility claim.
+
+Shared columnType metadata now honors resolver FULL USING semantic coalesce rewrite
+before looking at child columnUses: resolve.c lookupName builds TK_FUNCTION,
+columnTypeImpl default has null type/origin. TS retains Lemon syntax and explicit
+ResolvedResult coalesce marker, so metadata checks that marker. Direct, wrapped,
+and scalar-linked FULL USING metadata unit red repaired. Native/type195/diff pass;
+no new public FULL execution admission or native provenance-function comparison.
+Affinity/collation semantic rewrite ownership remains to census independently.
+
+FULL USING deferred coalesce correction: resolve.c774 assigns SQLITE_AFF_DEFER;
+expr.c76/272 explicitly follows first argument for affinity/collation, while
+DataType FUNCTION is7 (scalar SELECT wrapper instead uses text affinity mask6).
+Merged result bindings now supply first source for affinity/collation and function
+mask for direct DataType. Initial generic-function no-affinity hypothesis was
+wrong and removed. Wrapped missing-bindings repaired; final type29/diff pass.
+Broad/native final rerun due; no new FULL public execution admission.
+
+Deferred coalesce ownership lookup is now shared across affinity/DataType/
+collation/columnType metadata, matching Lemon parentheses by semantic identity
+(parse.y same Expr, resolve.c774 deferred function, expr.c76/272 first argument).
+Source test directly passes peeled inner expression to all owners; final
+native/type197/diff pass closes prior final broad/native verification gap.
+This is represented result rewrite ownership only, not exhaustive predicate or
+runtime context binding. No new public FULL execution compatibility claim.
+
+lookupName now carries FULL USING merged argument sources on ResolvedColumnUse,
+not just result descriptors (resolve.c774 deferred coalesce rewrite). Shared
+semantic owner consults these bindings for predicates and correlated references;
+DataType FUNCTION7 and null columnType no longer infer first raw column type.
+Predicate source-unit verifies WHERE-only binding. Initial probe used wrong
+fixture index2 (actual same index1), corrected; no claimed baseline product red.
+Native/type198/diff pass. Runtime codegen use of merged argument list and full
+transitive semantic context census still pending; no new public admission.
+
+Coalesce/ifnull scalar lowering now follows expr.c4592–4607: first argument
+copies into target, target NotNull precedes each next argument, no redundant
+last test/NULL write. Mem Copy and async execution retained. Existing lowering
+already short-circuited observably; pinned public/native overflow-unused-argument
+probe passed before and after, integer result with reset twice. Structural owner
+coverage verifies branch order. Final native/type199/diff pass. This does not yet
+lower lookupName deferred merged argument bindings in runtime predicates:
+joined resolveTree still searches names, and correlated binder selects first
+raw column. Deferred flags/affinity/collation and root WHERE interfaces must land
+together; no FULL predicate admission or general migration approval claimed.
+
+Joined correlated aggregate scalar binder now lowers lookupName mergedSources
+into deferred coalesce arguments (resolve.c774), mapping inner source to its
+allocated cursor and retaining outer cursors. Expression deferredAffinity flag
+supplies first-argument affinity/collation (expr.c76/272), distinct from ordinary
+coalesce call. Shared expr.c4592 lowering emits short circuit. Native/public
+matched FULL USING correlated aggregate probe passes baseline and final; final
+native/type199/diff pass. Unmatched FULL/residual outer WHERE/name-search binder
+coverage still pending; scalar nonaggregate LIMIT form remains typed temporary.
+
+Joined residual predicates/result expressions and non-result ORDER now carry
+Lemon reduction identity into resolver columnUses lowering, including FULL USING
+mergedSources to deferred coalesce (resolve.c774/expr.c4592). Removed independent
+name search for these original expressions. Native/public FULL USING WHERE x=1
+probe reproduced internal lost-identity error and now passes integer result.
+Physical selected operands/generated USING still lack reduction identity and
+retain bounded name binding: coordinate root WHERE interface before removal.
+Final native/type199/diff pass, not exhaustive CASE/subquery/outer-pass coverage.
+
+Joined original-expression and correlated scalar binders now align erased
+parentheses with Lemon identity before operand traversal (parse.y expr LP expr
+RP returns same Expr). Parenthesized searched/simple CASE public probes first
+reproduced internal operand identity failure, repaired at binder entry; expr.c
+5683 CASE producer ordering preserved. Qualified unmatched FULL residual pass
+and reset twice verified, not new merged unmatched coverage. Native/type199/diff
+pass; native/public rerun after adding wrapped correlated aggregate coverage.
+Physical synthetic binding/deferred unmatched/context census remain open.
+
+Parentheses identity alignment is shared in expressionIdentityReduction
+(parse.y1176 A=X), consumed by joined original/scalar and window source/FILTER/
+retained producer binders. Window WHERE (a=1) native passes/public internal
+operand binding red repaired at owning representation primitive. Only LP expr RP
+is peeled; CAST/COLLATE/unary semantics survive. Final native/type199/diff pass.
+FILTER/retained contexts consume same primitive but fresh public probes there
+still due; no exhaustive window rewrite/runtime ownership claim.
+
+Window FILTER BETWEEN probe exposed ignored filter in whole-partition drain
+(native1/public16). window.c1049 duplicates full FILTER into producer payload;
+1688 reads it before AggStep. FILTER binder now traverses BETWEEN/IN/call/CASE
+operands. Existing unguarded regAccum AggStep sites in represented specialized
+window drains now share emitStep's IfNot(payload filter) around callback only;
+AggValue and row/group progress remain unconditional. Shared Mem/async intact.
+Native/type199/diff pass. Temporary-accumulator exclusion branches already have
+individual guards and remain; inverse/direct-frame exhaustive census and fresh
+IN/CASE FILTER probes remain due. No general window compatibility claim.
+
+Filtered sliding ROWS IN probe native [1,1,NULL,NULL] exposed inverse callback
+without stepped value. window.c1688 guard applies to inverse as well as step.
+Specialized drains now share guarded emitStep(inverse), and pending bounded
+streaming rows invoke existing windowCodeOp WINDOW_AGGINVERSE. Cursor positioning
+and unconditional progress unchanged. Native/type199/diff pass. Combined
+step/value/inverse sites and transitive frame census remain due: this is not
+exhaustive FILTER compatibility. Probe covers INTEGER/NULL distinction.
+
+windowAggregateCallback now owns shared FILTER/args/callback guard for
+windowAggStep and specialized emitStep, removing duplicate guard production
+(window.c1688). Ordered EXCLUDE TIES combined step/value/inverse routes callbacks
+through it while value stays unconditional. CASE NULL/false FILTER current-row
+and RANGE EXCLUDE TIES probes pass baseline/final, not behavioral reds.
+Final native/type199/diff pass. Unordered no-current peer combined pair and
+already individually guarded pending branches remain to consolidate/census;
+no exhaustive callback or NULL/filter compatibility claim.
+
+Unordered GROUPS1 FOLLOWING..UNBOUNDED CASE NULL/false FILTER public/native
+probe (two reset cycles) passes baseline/final, not a behavioral red. No-order
+combined pair and remaining pending inverse producers now use shared guarded
+windowAggregateCallback/windowCodeOp (window.c1688); cursor advance still precedes
+callback and progress/value remains unconditional. Direct AggInverse producer
+census leaves only shared conditional opcode production plus runtime consumer
+in vdbe.ts. This is textual producer census, not exhaustive frame/reachable
+transitive admission proof. Step/temporary accumulator duplicate production,
+resources/limits and full integration remain due. Native/type199/diff pass.
+
+Retained derived parent expression projection: native filtered window over a
+LIMIT2 physical producer yields two INTEGER1 rows, but destination composition
+is not yet implemented. compileDerivedProducer no longer reports the whole
+valid function expression as a missing column. It resolves the transient parent
+NameContext via resolveTransientArm before typed temporary capability rejection;
+actual missing identifiers remain SQLITE errors. No window admission added or
+LIMIT flatten bypass. window.c1049 FILTER payload/select.c retained coroutine
+composition remains required. Native/type199/diff pass includes this explicit
+gap test, not row parity for this unimplemented combination.
+
+Pending individual cumulative/sliding/following window step now consumes
+windowAggregateCallback, replacing duplicate FILTER guard (window.c1688).
+Fresh abs(a) FILTER cumulative public/native INTEGER1 probe passes baseline/final;
+not a behavioral red. Native/type199/diff pass. Retained physical LIMIT2 window
+composition was inspected (source coroutine, grouped payload and derived dispatch)
+but not implemented: existing producer requires direct parent projections and
+register binder/destination must be composed rather than child Program copying.
+Temporary-accumulator step producers and remaining pending shared-step production
+still require consolidation; no completed window producer migration claim.
+
+GROUPS cumulative EXCLUDE CURRENT ROW temporary accumulator scan now consumes
+windowCodeOp WINDOW_AGGSTEP with accumulator override. window.c1688 guards every
+aggregate callback on FILTER false/NULL, including full-scan exclusion paths.
+Its missing guard produced [NULL,1,4,9] instead of pinned [NULL,1,1,1] for sum(a)
+FILTER WHERE a=1. Six specialized temporary scans now share this owner, retaining
+identity/peer exclusions, cursor positioning and unconditional row progress.
+Focused red→pass, native/type199/diff pass. Remaining pending shared step producers,
+retained derived-window destination and full frame/resource census remain open;
+this repairs the reproduced exclusion FILTER defect, not overall migration.
+
+### Retained physical producer → window parent (card-t-c current repair)
+The previously temporary LIMIT2/FILTER window probe is now admitted. Production
+compileSelect→compileTableSelect resolves the parent via resolveTransientArm;
+compileWindowSelectLowering consumes retainedSource on the same builder through
+compileInnerTableSelect SRT_Coroutine. select.c8048–8077 (tag-select-0482) owns
+InitCoroutine/child result range/EndCoroutine; window.c1049 copies complete FILTER
+into producer payload. Direct transient column bindings copy child result registers
+(not physical Column on rootPage0); FILTER uses the existing resolver-identity
+expression binder returning register leaves, compiled by compileExpressionTree.
+This reuses normal expression lowering, not a separate evaluator or SQL rewriting.
+Child LIMIT/OFFSET belongs to its source and survives parent limits/window buffering.
+No finished child Program or pcMap on this consuming path. Existing generic fallback
+still remains for other callers, not retired globally. Bounds: single noncompound
+physical child without DISTINCT/group/HAVING/window/order and parent without WHERE/
+group/HAVING/compound; other valid destinations remain temporary, lexical errors
+resolve first. Broader expression buffer slots remain atomically unrepresented.
+Pinned/public INTEGER1x2/reset, LIMIT0 empty, OFFSET1 sum3, qualified FILTER plus
+parent LIMIT1 pass; native/type199/diff pass. Structural gate now16/18: new retained
+producer ownership passes; generic fallback and CTE metadata Program tests remain
+red. Grouped owner test delimiter updated for preceding retained-source branch,
+no assertion waived. Prior 15/18 intermediate included this stale delimiter.
+
+### CTE metadata acceptance investigation (card-t-c, still incomplete)
+The residual CTE structural failure is a helper-placement assertion, not evidence
+of compile/discard metadata: compoundArmColumns calls resolveTransientArm and
+transientSourceTable owns unique names. Both existing structural reds remain
+unchanged pending semantic/transitive acceptance. Pinned parse.y609 and1955ff
+assign CTE SELECTs independent clause owners. A native/public metadata probe
+with physical CTE LIMIT2 exposed selectAction's misplaced-clause guard incorrectly
+counting WITH-body LIMIT as outer compound LIMIT. The guard now excludes tokens
+owned by each WithClause.ctes Select, as it already excludes derived/expression
+Select tokens; genuine outer misplaced LIMIT remains SQLITE. Native metadata
+is x/INTEGER/main/t1/a with INTEGER rows1,3,9, but public now correctly reaches
+atomic temporary at the existing scalar-only CTE producer admission, not row
+parity. This is prerequisite error ownership repair, not metadata/composition
+completion or widened producer admission. Native/type87/diff pass; earlier public
+row assertion still failed temporary after this fix. Next required work: source-
+faithful physical CTE consuming destination and transitive metadata acceptance;
+no narrower supported behavior or structural assertion waiver.
+
+### Physical CTE compound destination and metadata convergence
+The preceding CTE LIMIT2 acceptance now passes rows/types/metadata/reset, not merely
+temporary rejection. compileCteUnionAll materializes single-column physical child
+on the shared builder via compileInnerTableSelect SRT_EphemTab, retaining child
+LIMIT/predicate ownership. Existing CteUse-keyed cache, Gosub/Return and OpenDup
+consumers remain (select.c8102–8139); no completed child relocation added.
+Parent projection is bound by resolveTransientArm instead of duplicate name walk.
+compoundArmColumns CTE results now follow producer semantic descriptors with parent
+name; tested physical result INTEGER/main/t1/a. Scalar bounds remain unchanged;
+outer compound LIMIT with specialized CTE arms remains temporary.
+Structural acceptance now17/18: metadata gate checks transitive semantic helpers,
+no compilation/ops/pcMap and physical ephemeral destination; old names/first/last
+literal assumptions updated to actual shared-helper and names/current owners only
+after production/public acceptance. Generic copier remains red, not waived.
+Native/type233/diff pass; source gate17/18 exit1. No complete caller census/integration
+claim: compileDerivedProducer fallback still copies inner Program with pcMap.
+Other remaining copiers include compound aggregate paths and relocation helpers;
+window owner itself emits shared grouped/recursive/retained sources. Caller inputs
+and fallback reachability need complete classification before deleting generic debt.
+
+### First-source retained CTE spool ownership
+The index0/two-source retained CTE caller resolves compoundArmColumns rather
+than compiling a metadata Program. Its child now emits existing semantic
+producer owners on the enclosing builder with a zero-key sorter destination;
+no inner.ops copying, first-instruction splice or ResultRow/Halt rewriting.
+Pinned select.c8102–8134 owns materialization before the next source. The
+existing browser VM spool representation remains (bag, not deduplicating set):
+SorterOpen→child destination→SorterSort/Data→outer Rewind/Next→SorterNext,
+then parent ordering/output. Empty child goes directly to parent final sorter;
+child LIMIT/OFFSET remain private, register high-water flows to parent payload,
+output and expression temporaries. Parent spool/output/outer cursors now come
+from builder.cursor; physical legacy cursor0..30 reservation is transitional,
+not final nTab ownership. Root WHERE source identities are not changed here.
+
+Caller map: actual CTE source0 reaches this retained branch; direct-derived
+source0 probe still falsely reports no such table:d before it (separate gap).
+Index1 shared destination and generic residual dispatch remain intact. Existing
+specialized child dispatch invokes shared production owners, not a new evaluator;
+consolidating remaining call dispatch requires wider admission evidence.
+First-source pinned/public LIMIT2, LIMIT0, OFFSET2 INTEGER/names/reset and
+missing-column LIMIT0 lexical error pass. Native second-source controls and
+selected289/289/owner20/20/diff0 pass. Full metadata origin/type derivation,
+limits/resources, C1–C6/Chinook integration and compound aggregate relocation
+remain gaps. Artifact directory work:///cards/card-t-c/first-source-repair/;
+initial type check found a leftover independent ++registers for parent sort key,
+corrected to builder allocation before focused4/4 and final289/289.
+
+### Compound aggregate consumer allocation correction
+Current census supersedes predictions of compound aggregate PC relocation:
+compileCompoundDerivedAggregate already emits UNION ALL producer arms through
+shared owners on one builder. The remaining top-level materialized consumer
+had detached registers/cursors and hardcoded output register1. Now accumulator,
+aggregate ORDER sorter, input row, keys/payload/arguments, output and expression
+temporaries all allocate on that builder; output uses SelectDest output through
+emitSelectDestination. No child copier was invented or removed in this slice.
+Pinned select.c aggregate finalizeAggFunctions → selectInnerLoop keeps Parse
+nMem/nTab and result destination; producer materialization8102–8134 precedes
+EphemeralRewind/Data/Next, empty scan still finalizes aggregates, ORDER sorter
+finishes before AggFinal, then output expression compilation/publication.
+Parent simple scalar-arm aggregate destination branch remains bounded and
+unchanged; broader physical parent intersection is NOT enabled by this repair.
+Only caller compileAggregateSelect invokes this helper before ordinary lowering.
+
+Native/public physical+scalar count3, empty physical+scalar sum8, all-empty count0
+and ordered sum+count exercise INTEGER/names/two resets; selected294/294 and
+owner20/20 pass. Initial focused4/4/type/native pass, then stronger builder/output
+assertions + ordered multi-result pair pass. Full metadata origins/errors,
+resource limits/NULL-REAL corpus and wider parent contracts remain gaps. Logs
+work:///cards/card-t-c/compound-aggregate-repair/. Direct-derived source0 lexical
+reproducer/owner handoff and root WHERE legacy0..30 allocator seam remain as
+recorded, not global blockers; no integrated candidate/C1–C6/Chinook claim.
+
+### Forced/repeated CTE fallback destination repair
+compileCteDerivedSources4374–4401 retains its fast paths; actual fallback now
+uses semantic compoundArmColumns, one builder/ParameterBuilder and existing
+producer owners with ephemeral destination. Removed finished-child Program map,
+inner.ops PC offsets/ResultRow/Halt conversion, cursor60 and max-register merge.
+Pinned select.c8102–8145 CteUse fill: owner cursor and Once/Gosub/Return are
+parent-owned; repeated references OpenDup same bag. Legacy physical0..30 range
+reserved pending root WHERE seam, not final allocator acceptance. EphemeralSort
+and independent nested rewind/data/next preserve existing ordinal order/reuse.
+First empty exits outer/inner next correctly; SQL LIMIT/OFFSET child-owned;
+reset clears VM Once/cursors, recompilation is not used for reset.
+Caller bounds still forced single/direct projections or two direct cross/equality
+references, ordinal1 order; computed/filter probes were native-success/public
+failure before this repair, not admitted fallback regressions. Preserve exact
+probes in cte-fallback-red/native.log/public.log; no new feature breadth.
+Native/public four LIMIT/empty/offset/repeated cases plus missing identifier
+LIMIT0 lexical error pass; selected300/300/owner20/diff0. Wider branch dispatch,
+bind lifetimes, metadata origins/resource limits not exhaustively paired. Root
+allocator seam/source0 lexical admission handoff and C1–C6/Chinook remain gaps.
+
+### Linked correlated expression carrier (bounded first consumer)
+resolve.ts resolvedExpressionCarrier retains normalized reduction identity,
+linked lookup column use (source/iColumn/selectDepth/merged FULL sources) and
+children, including unsupported productions. compileJoinSubquery now consumes
+that carrier via reusable bindResolvedExpression rather than local reduction
+walker/columnUses searches. Runtime cursor mapping is supplied by the caller;
+affinity/collation/rowid and merged coalesce still derive from lexical source.
+Pinned resolve.c lookupName/resolveExprStep resolves before emission; expr.c
+sqlite3ExprCodeTarget column/COLLATE branches consume resolved source metadata.
+No spelling re-resolution or new evaluator. Joined scalar aggregate admission
+is unchanged; unsupported nodes remain typed temporary before execution.
+Native/public correlated physical JOIN COLLATE count/name/INTEGER/reset and
+ambiguous/missing LIMIT0 first errors pass; selected304/304. Literal/NULL in
+this specialized binder still intentionally unsupported pending source-based
+admission work; no NULL/codegen compatibility claim. Other duplicated consumers
+remain migration debt, not converted by this contract. Source0 synthetic lexical
+admission defect and root physical reservation remain separate concrete handoffs.
+
+### Second linked carrier consumer: ordinary scalar subquery
+compileTableSelect→compileExpressionSubquery ordinary scalar branch now consumes
+resolvedExpressionCarrier through bindResolvedExpression for result, WHERE and
+ORDER; removed local bind reduction walker/columnUses search. Caller maps
+nestedReadCursors or lexical cursor; resolver source/depth ownership stays linked.
+Explicit preserveScalarLeaves mode retains that caller's prior prebound columns,
+literals/NULL/variables, CASE reduction order, BETWEEN and IN-subquery LHS.
+First joined aggregate caller keeps narrow admission, not silently broadened.
+Pinned resolve.c lookupName pNext and expr.c sqlite3ExprCodeTarget TK_COLUMN,
+COLLATE/CASE conventions retain semantic binding before evaluation. Unsupported
+nodes pass intact to scalar codegen's existing typed rejection; no evaluator.
+Native/public correlated projection, NULL literal, CASE/BETWEEN/literal result,
+COLLATE/aliases/type/reset and ambiguous/missing LIMIT0 pass; native first
+consumer and selected490/490 pass. Source0 synthetic admission remains separate;
+window substituted-reduction binder and special aggregate argument binder remain
+live debt. Broader flags/merged-source/affinity/origin/resource/limits/combined
+acceptance unproved. d658 predates carrier inputs, not current integration.
+
+### Derived scalar aggregate register-phase carrier consumer
+compileTableSelect→compileExpressionSubquery derived scalar ALL branch now
+binds predicate and aggregate arguments via resolvedExpressionCarrier and shared
+bindResolvedExpression. ResolvedExpressionBinding.location receives resolved
+source/iColumn and selectDepth, returning cursor or explicitly producer-row
+register destination; caller owns rows[iColumn] range validation and outer
+lexical cursor. No name re-resolution, stale substituted reduction or evaluator.
+Derived policy keeps prior binary/unary/cast/COLLATE/call/column admission,
+including prior rejection of literal predicate/argument leaves; producer arm
+NULL/literals still admitted. Ordinary scalar leaves and joined narrow policy
+are unchanged. Local bindDerived/argument reduction walker removed.
+Pinned expr.c sqlite3ExprCodeTarget TK_AGG_COLUMN (4990–5023) distinguishes
+AggInfoColumnReg from direct/sorter/column access; current producer-row register
+binding is NOT AggInfo accumulation or finalized-row ownership. resolve.c
+lookupName linked depth remains semantic; window.c sqlite3WindowRewrite creates
+new subquery/column identities, so its substitution binder remains separate.
+Native/public duplicate+NULL count, no-match/all-NULL sum, COLLATE/alias types,
+outer LIMIT0, lexical errors and reset pass; selected496 tests/type/diff pass.
+First typecheck attempt found mistaken use.name and leftover reduction args;
+corrected to expression display name and carrier children before public runs.
+Broader window/AggInfo/flags/merged/source metadata/resource/lifecycle/limits
+and source0 lexical admission remain debt. d674 predates this change, not current
+combined acceptance. Exact blocks/logs/hashes: card-t-c register-carrier-repair.
+
+### Window FILTER semantic handoff
+window-rewrite.ts rewrite function construction captures filterCarrier from the
+owned FILTER expression (not its filter_clause wrapper). Its linked source/depth
+identity travels with WindowRewriteFunction into compileWindowSelect producer
+payload emission. Rewritten parent/buffer substitutions are NOT passed to this
+carrier. Pinned window.c selectWindowRewriteExprCb/sqlite3WindowRewrite move
+FILTER evaluation to producer payload; select.c invokes rewrite before producer
+scan. Replaced actual local bindColumns traversal/search with shared binding,
+window-filter location mapping lexical cursor or retained producer-row register.
+Window policy retains former cursor/index-only column semantics, infix LIKE
+argument reversal, IN-list/BETWEEN/CASE/NULL and literal admission; previous
+three consumer policies remain unchanged. Source WHERE walker still live.
+Native/public physical FILTER BETWEEN/COLLATE/ROWS EXCLUDE/NULL, empty LIMIT,
+window missing/ambiguous LIMIT0 and reset pass; selected502/type/diff pass.
+Retained-derived FILTER probes with and without child LIMIT passed native but
+public returned temporary unsupported: no broadened admission/fix claim; logs
+retained in card-t-c/window-carrier-repair. Retained register mapping structural
+control remains, independently paired retained FILTER behavior still a gap.
+Window argument/order/lifted substitution identity ownership beyond this FILTER
+handoff and AggInfo finalized-row phase remain separate debt, as do source0/root
+seam/full lifecycle/metadata/limits/combined acceptance. d674 is stale input.
+
+### Window original-source predicate carrier
+sqlite3WindowRewrite's original producer edge now owns sourcePredicates carriers
+for ON (source order) then WHERE; capture uses original resolved reductions,
+never lifted/substituted parent identities. compileWindowSelect physical source
+loop consumes these through shared window-source location policy before Yield.
+Rewind/Next/IfNot ordering is unchanged; local bindSourceExpression walk/search
+removed. Policy retains cursor/index-only column semantics, IN/BETWEEN/infix
+argument ordering and prior literal/NULL support. Unlike FILTER, prior source
+binder did not bind CASE/aggregate/IN-subquery interiors; do not conflate policies.
+Retained/group/recursive branches still delegate source predicates to their own
+producer, not this original physical-loop carrier or invented register mapping.
+Pinned window.c sqlite3WindowRewrite pWhere/pSrc handoff, select.c invocation,
+resolve.c lookupName linked contexts and expr.c target column/register distinction
+own this transition. Source carriers retain linked depth/merged provenance.
+Native/public WHERE BETWEEN/COLLATE + FILTER IN/EXCLUDE, WHERE IN + NULL FILTER,
+WHERE NULL/LIMIT empty and missing/ambiguous WHERE LIMIT0 errors/reset pass;
+selected508/type/diff pass. Retained FILTER temporary probes remain gaps; no
+new admission. AggInfo finalized-phase/source0 lexical/root nTab and broader
+metadata/resources/lifecycle/limits/combined acceptance remain unresolved.
+
+### Compound aggregate phase consumer (standalone)
+compileCompoundDerivedAggregate resolves original outer expressions against the
+existing transient derived SrcItem context, then lower carries linked aggregate
+arguments and ORDER reductions with explicit accumulator and finalized-output
+locations. Shared aggregate-source binding maps linked iColumn to source-row
+payload registers, retiring forRow name lookup/traversal. AggStep and AggFinal
+consume accumulator location; output register is read only after finalization.
+Pinned expr.c TK_AGG_COLUMN directMode vs AggInfoColumnReg and TK_AGG_FUNCTION,
+select.c analyzeAggregate/finalizeAggFunctions/selectInnerLoop distinguish phases;
+resolve aggregate context remains upstream semantic owner. Same builder,
+ephemeral destination and iteration remain. Parent narrow branch and ordinary
+GROUP/bare/FILTER/DISTINCT lower/binders remain live debt, not a generic evaluator.
+Source policy preserves former forRow admission, including unsupported interiors.
+Native/public empty/NULL/ordered sum/count/INTEGER-REAL sum/avg names/reset and
+non-LIMIT missing column errors pass; selected518/type/diff pass. LIMIT0 native
+first-error probes public failed inherited temporary admission before this caller;
+not fixed/narrowed or counted passed. GROUP/bare/ties/FILTER/DISTINCT intersections
+need their actual owners. Retained FILTER/source0/root seam/full acceptance remain.
+
+### Ordinary aggregate original-result phase (in progress)
+Original result lower now retains resolved arguments/ORDER and accumulator/output
+locations; actual argument/ORDER code generation uses shared ordinary-aggregate
+binding. Pinned expr.c analyzeAggregate NC_UAggInfo/NC_InAggFunc and
+TK_AGG_COLUMN/FUNCTION, select.c finalizeAggFunctions distinguish these phases.
+GROUP/bare cache consumers keep their existing payload ownership. Original trees
+still pass the old spelling resolver before this lower; HAVING/ORDER alias lower
+and FILTER remain legacy. Thus this is partial implementation, not retirement of
+the complete duplicate binding path. Selected native/type30 pass; strengthened
+REAL/ties/error LIMIT0 and full regression remain required before green.
+
+### Ordinary aggregate HAVING/unmatched ORDER linked alias edge
+resolve.c lookupName/resolveAlias resolves sources first for HAVING, substitutes
+result EList only after lexical miss, and checks aggregate/window restrictions
+in its NameContext. resolve.ts now retains that substitution as reduction→result
+reduction identity in aliasUses. resolvedExpressionCarrier follows it; the shared
+binder expands substituted expressions before binding arguments/FILTER/ORDER.
+compileAggregateSelect HAVING and unmatched ORDER now consume that linked carrier
+through lowerResult and ResolvedAggregatePhaseCarrier, retiring lowerAlias and
+resolve(aliasExpression(...)) on these edges. Original and alias aggregates use
+source cursor/payloadIndex, accumulator AggStep/AggFinal and output registers;
+GROUP/bare cache still supplies existing payload/bare relationships, not a claim
+that expr.c TK_AGG_COLUMN directMode/useSortingIdx/REAL/RIGHT-null is fully migrated.
+Native/public paired alias tests cover source-shadowing empty HAVING, alias sum,
+GROUP/bare min ties, NULL/REAL, FILTER/DISTINCT/aggregate ORDER, CASE short circuit,
+missing/nested errors, names/types/reset. Native/type547/diff pass. Initial type
+failure was optional aliasUses exactOptionalPropertyTypes, fixed at plan creation.
+WHERE/GROUP spelling owners, subquery/parent aggregate paths and complete AggInfo
+column phase relationships remain substantive obligations. No new admission,
+cursor remapping, b541 or R3 dispatch replacement, algorithm substitution.
+
+### Ordinary aggregate source WHERE linked consumer
+The ordinary compileAggregateSelect WHERE edge now uses aggregatePlan's resolved
+carrier and existing source cursor/payload location, not resolve(whereTree).
+resolve.c resolveSelectStep validates WHERE under alias/aggregate restrictions;
+select.c sqlite3WhereBegin precedes updateAccumulator. Existing TS WHERE branches
+remain before sorter capture/AggStep with their reject targets unchanged. This
+retires the spelling walker on that consuming edge only, preserving shared binder
+scalar-subquery leaves and linked CASE/IN children. Native/public paired
+select-aggregate-source-owner covers GROUP IPK/CAST REAL, CASE short circuit,
+FILTER DISTINCT/NULL, bare min ties, empty GROUP, names/types/reset and exact
+missing/nested LIMIT0 errors. Native/type555/diff pass. No algorithm substitution,
+new admission or physical remapping. GROUP, ON, subquery/parent binders and actual
+source→sorter→bare/accumulator/finalized AggInfoColumnReg/directMode/sorter REAL/
+RIGHT-null relationships still require migration; root WHERE/index seam unchanged.
+
+
+### Third isolated checkpoint attribution
+
+Shared SELECT/WHERE prerequisites include lexical linked carriers, true-leaf
+lookup, noVisibleRowid, only two Mem flexnum relationship hunks, expression
+affinity/collation and coupled RIGHT bound/entry state. Physical cursor 0..30
+reservations and f5bb86 invalidation remain; no broad nTab migration.
+Compound aggregate source now streams with parent Coroutine/Yield/EndCoroutine
+and retains parent Mem/Exists/Set/LIMIT; no budget increase. This is bounded
+checkpoint evidence, not broad R1-R4 or optimizer acceptance.
+
+### Third-checkpoint regression correction (bounded, no producer breadth)
+Compound-derived aggregate ordinary ALL arms now stream through enclosing
+SRT_Coroutine register row/Yield rather than allocating SRT_EphemTab. Pinned
+select.c selectInnerLoop SRT_Coroutine publishes each row; caller advances Yield
+until EndCoroutine redirects to caller end. Same builder, parameters, linked
+aggregate source register binding, KeyInfo and accumulator/local ORDER sorter
+remain. Unordered source incurs no ephemeral private charge; aggregate-local
+ORDER retains its existing shared private-state budget/error/finalize owner.
+Private24-byte tests across three encodings now distinguish successful baseline
+from ordered sorter limit (including finalize preserving error), no budget change.
+Retained compound scalar aggregate reaches existing compileAggregateSelect parent
+Mem/Exists/Set owner before generic derived projection gate; output LIMIT/OFFSET
+stays computeLimitRegisters + finalized-row destination, not child row limit.
+No changed generic gate/admission or physical reservation. Paired native rows/types
+and existing destination reset/metadata tests pass; current shared424 pass.
+Structural tests now assert live shared producer/destination and no completed-child
+splices, not obsolete inner.ops copying or a required ephemeral row store.
+R2 GROUP/AggInfo/ON/subquery/parent obligations remain paused/incomplete. Frozen
+coroutine test handoff remains d-owned; this is not exported isolated acceptance.

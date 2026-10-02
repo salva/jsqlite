@@ -112,7 +112,7 @@ export function lowerOrdinaryCtes(root:SelectNode,context=new CtePrepareContext(
       const lowered=[];
       for(let index=1;index<arms.length;index++){
         const arm=arms[index]!;
-        const single:SelectNode={...current,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,with:null,arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])};
+        const single:SelectNode={...current,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,with:null,arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])};
         const child=walk(single,scope);if(!child)return null;
         lowered.push(Object.freeze({...arm,result:child.result,from:child.from,where:child.where}));
       }

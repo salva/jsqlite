@@ -490,3 +490,135 @@ test('INTEGER PRIMARY KEY resolves to rowid storage while retaining declared met
  const ipk=column('id','INTEGER','integer');const t=table('ipk',[ipk,column('v','TEXT','text')],[0]);const local={tables:new Map([['ipk',t]])};const r=expandAndResolveSelect(parseSql('SELECT id FROM ipk').statement,local).result[0];assert.equal(r.columnIndex,-1);assert.deepEqual(r.descriptor,{name:'id',declaredType:'INTEGER',database:'main',table:'ipk',origin:'id',affinity:'integer',collation:'BINARY'});
  const aliased=expandAndResolveSelect(parseSql('SELECT id AS renamed FROM ipk').statement,local).result[0];assert.equal(aliased.columnIndex,-1);assert.equal(aliased.descriptor.name,'renamed');assert.equal(aliased.descriptor.origin,'id');assert.equal(aliased.descriptor.declaredType,'INTEGER');
 });
+test('transient SrcItem descriptor hides implicit rowid but preserves explicit rowid columns',()=>{
+ const transient={...table('d',[column('x')]),rootPage:0,noVisibleRowid:true};
+ for(const name of ['rowid','_rowid_','oid'])assert.throws(()=>expandAndResolveSelect(parseSql(`SELECT d.${name} FROM d`).statement,schema,null,0,new Map([[0,transient]])),/no such column/);
+ const explicit={...transient,columns:[column('rowid','TEXT','text')]};
+ const plan=expandAndResolveSelect(parseSql('SELECT d.rowid FROM d').statement,schema,null,0,new Map([[0,explicit]]));
+ assert.equal(plan.result[0].columnIndex,0);
+ assert.equal(resolve('SELECT a.rowid FROM a').result[0].columnIndex,-1);
+});
+test('expr.c resolved affinity follows column CAST COLLATE but not unary plus',async()=>{
+ const {resolvedExpressionAffinity}=await import('../../src/internal/resolve.ts');
+ for(const [sql,expected] of [['SELECT x FROM a','integer'],['SELECT x COLLATE NOCASE FROM a','integer'],['SELECT +x FROM a',undefined],['SELECT CAST(x AS TEXT) FROM a','text'],['SELECT CAST(x AS DOUBLE PRECISION) FROM a','real'],['SELECT 1 FROM a',undefined]]){
+  const plan=resolve(sql);assert.equal(resolvedExpressionAffinity(plan.result[0].expression.reduction,plan),expected,sql);
+ }
+});
+test('nested compound transient SrcItem has no visible implicit rowid',()=>{
+ for(const name of ['rowid','_rowid_','oid'])assert.throws(()=>resolve(`SELECT (SELECT d.${name} FROM (SELECT x FROM a UNION ALL SELECT x FROM b) d LIMIT 0)`),/no such column/);
+ const explicit=resolve('SELECT (SELECT d.rowid FROM (SELECT x AS rowid FROM a UNION ALL SELECT x FROM b) d LIMIT 1)');
+ assert.equal(explicit.nested[0].result[0].columnIndex,0);
+});
+test('scalar SELECT affinity uses linked resolved producer, not sibling or IN/EXISTS',async()=>{
+ const {resolvedExpressionAffinity}=await import('../../src/internal/resolve.ts');
+ const plan=resolve('SELECT (SELECT x FROM a LIMIT 1),(SELECT x FROM b LIMIT 1),(SELECT o.x FROM b LIMIT 1) FROM a o');
+ assert.deepEqual(plan.result.map(result=>resolvedExpressionAffinity(result.expression.reduction,plan)),['integer','real','integer']);
+ for(const sql of ['SELECT EXISTS(SELECT x FROM a)','SELECT 1 IN (SELECT x FROM a)','SELECT +(SELECT x FROM a)']){const p=resolve(sql);assert.equal(resolvedExpressionAffinity(p.result[0].expression.reduction,p),undefined);}
+});
+test('expr.c datatype mask differs from affinity and unions CASE output branches',async()=>{
+ const {resolvedExpressionDataType}=await import('../../src/internal/resolve.ts');
+ for(const [expr,mask] of [["NULL",0],["'a'",2],["x'01'",4],["1",1],["?",7],["x",5],["CAST(x AS TEXT)",6],["+'a'",2],["'a'||'b'",6],["CASE WHEN 1 THEN 'a' WHEN 0 THEN x'01' ELSE 3 END",7]]){const p=resolve(`SELECT ${expr} FROM a`);assert.equal(resolvedExpressionDataType(p.result[0].expression.reduction,p),mask,expr);}
+});
+test('compound affinity conflict includes arms after the first affinity owner',async()=>{
+ const {resolvedCompoundAffinity}=await import('../../src/internal/resolve.ts');
+ const plans=expressions=>expressions.map(expr=>resolve(`SELECT ${expr} FROM a`));
+ assert.equal(resolvedCompoundAffinity(plans(['x',"'text'"]),0),'blob');
+ assert.equal(resolvedCompoundAffinity(plans(["CAST(x AS TEXT)",'1']),0),'blob');
+ assert.equal(resolvedCompoundAffinity(plans(['NULL','x','NULL']),0),'integer');
+ assert.equal(resolvedCompoundAffinity(plans(["CAST(x AS BLOB)",'x']),0),'blob');
+});
+
+test('compound numeric CAST exposes FLEXNUM without collapsing REAL',async()=>{const {resolvedCompoundAffinity}=await import('../../src/internal/resolve.ts');assert.equal(resolvedCompoundAffinity([resolve('SELECT CAST(1 AS REAL)'),resolve('SELECT 2')],0),'flexnum');});
+test('compound FLEXNUM CAST identity peels parser parentheses but not COLLATE',async()=>{
+ const {resolvedCompoundAffinity}=await import('../../src/internal/resolve.ts');
+ for(const [expr,expected] of [['CAST(1 AS REAL)','flexnum'],['((CAST(1 AS REAL)))','flexnum'],['CAST(1 AS REAL) COLLATE BINARY','real']])assert.equal(resolvedCompoundAffinity([resolve(`SELECT ${expr}`),resolve('SELECT 2')],0),expected,expr);
+});
+test('function datatype is unknown, independent of function name and scalar result type',async()=>{
+ const {resolvedExpressionDataType,resolvedCompoundAffinity}=await import('../../src/internal/resolve.ts');
+ for(const expression of ["lower('A')",'abs(1)',"coalesce(NULL,'a')",'count(*)']){const p=resolve(`SELECT ${expression} FROM a`);assert.equal(resolvedExpressionDataType(p.result[0].expression.reduction,p),7,expression);}
+ const numeric=resolve('SELECT x FROM a'),fn=resolve("SELECT lower('A')");assert.equal(resolvedCompoundAffinity([numeric,fn],0),'blob');
+});
+test('TK_VECTOR affinity and datatype follow first resolved field without admitting row-value output',async()=>{
+ const {resolvedExpressionAffinity,resolvedExpressionDataType}=await import('../../src/internal/resolve.ts');
+ const p=resolve('SELECT (x,2) FROM a');assert.equal(resolvedExpressionAffinity(p.result[0].expression.reduction,p),'integer');assert.equal(resolvedExpressionDataType(p.result[0].expression.reduction,p),5);
+});
+test('nested scalar compound descriptor shares cross-arm affinity scan',async()=>{
+ const {resolvedExpressionAffinity}=await import('../../src/internal/resolve.ts');
+ for(const [producer,affinity] of [['SELECT x FROM a UNION ALL SELECT NULL','integer'],["SELECT x FROM a UNION ALL SELECT 'a'",'blob'],['SELECT ((CAST(1 AS REAL))) AS x UNION ALL SELECT 2','flexnum']]){
+  const p=resolve(`SELECT (SELECT d.x FROM (${producer}) d LIMIT 1)`);assert.equal(resolvedExpressionAffinity(p.result[0].expression.reduction,p),affinity,producer);
+ }
+});
+test('nested compound descriptor preserves first direct column collation',async()=>{
+ const {resolvedImplicitCollation}=await import('../../src/internal/resolve.ts');
+ const direct=resolve('SELECT same FROM a');assert.equal(resolvedImplicitCollation(direct.result[0].expression.reduction,direct),'NOCASE');
+ const p=resolve('SELECT (SELECT d.same FROM (SELECT same FROM a UNION ALL SELECT same FROM b) d LIMIT 1)');
+ assert.equal(p.nested[0].sources[0].table.columns[0].collation,'NOCASE');
+ const reverse=resolve('SELECT (SELECT d.same FROM (SELECT same FROM b UNION ALL SELECT same FROM a) d LIMIT 1)');assert.equal(reverse.nested[0].sources[0].table.columns[0].collation,'binary');
+});
+test('nested descriptor explicit collation follows expression flags, not scalar SELECT contents',async()=>{
+ const {resolvedExpressionCollation}=await import('../../src/internal/resolve.ts');
+ for(const [expr,expected] of [["'a' COLLATE NOCASE",'NOCASE'],["lower('a' COLLATE RTRIM)",'RTRIM'],["('a' COLLATE NOCASE)||('b' COLLATE RTRIM)",'NOCASE'],["(SELECT 'a' COLLATE NOCASE)",undefined]]){const p=resolve(`SELECT ${expr}`);assert.equal(resolvedExpressionCollation(p.result[0].expression.reduction,p),expected,expr);}
+ const p=resolve("SELECT (SELECT d.x FROM (SELECT 'a' COLLATE NOCASE AS x UNION ALL SELECT 'b') d LIMIT 1)");assert.equal(p.nested[0].sources[0].table.columns[0].collation,'NOCASE');
+});
+test('vector collation uses first field even if later field has explicit COLLATE',async()=>{
+ const {resolvedExpressionCollation}=await import('../../src/internal/resolve.ts');
+ for(const [expr,expected] of [["(same,'a' COLLATE RTRIM)",'NOCASE'],["(1,'a' COLLATE NOCASE)",undefined],["(same,2,3)",'NOCASE']]){const p=resolve(`SELECT ${expr} FROM a`);assert.equal(resolvedExpressionCollation(p.result[0].expression.reduction,p),expected,expr);}
+});
+test('compound collation uses first non-null resolved arm, including BINARY columns',async()=>{
+ const {resolvedCompoundCollation}=await import('../../src/internal/resolve.ts');
+ const plans=sqls=>sqls.map(resolve);
+ assert.equal(resolvedCompoundCollation(plans(["SELECT 1",'SELECT same FROM a']),0),'NOCASE');
+ assert.equal(resolvedCompoundCollation(plans(['SELECT same FROM b','SELECT same FROM a']),0),'binary');
+ assert.equal(resolvedCompoundCollation(plans(["SELECT 'a' COLLATE RTRIM",'SELECT same FROM a']),0),'RTRIM');
+});
+test('nested compound transient declared type follows affinity conflict and standard names',()=>{
+ for(const [producer,declaredType] of [['SELECT x FROM a UNION ALL SELECT NULL','INTEGER'],["SELECT x FROM a UNION ALL SELECT 'a'",'BLOB'],['SELECT CAST(1 AS REAL) AS x UNION ALL SELECT 2','NUM']]){
+ const p=resolve(`SELECT (SELECT d.x FROM (${producer}) d LIMIT 1)`);assert.equal(p.nested[0].sources[0].table.columns[0].declaredType,declaredType,producer);
+ }
+});
+test('columnType scalar SELECT uses linked child, CAST and arithmetic have no column type',async()=>{
+ const {resolvedExpressionDeclaredType}=await import('../../src/internal/resolve.ts');
+ for(const [sql,expected] of [['SELECT (SELECT x FROM a)','INTEGER'],['SELECT (SELECT x) FROM a','INTEGER'],['SELECT CAST(x AS REAL) FROM a',null],['SELECT +x FROM a',null],['SELECT (x) FROM a','INTEGER']]){const p=resolve(sql);assert.equal(resolvedExpressionDeclaredType(p.result[0].expression.reduction,p),expected,sql);}
+});
+test('scalar SELECT result metadata inherits linked column provenance, not CAST or unary plus',()=>{
+ for(const sql of ['SELECT (SELECT x FROM a) AS chosen','SELECT (SELECT x) AS chosen FROM a']){
+ const p=resolve(sql),d=p.result[0].descriptor;assert.equal(d.name,'chosen');assert.equal(d.declaredType,'INTEGER');assert.equal(d.database,'main');assert.equal(d.table,'a');assert.equal(d.origin,'x');
+ }
+ for(const sql of ['SELECT CAST(x AS REAL) FROM a','SELECT +x FROM a','SELECT lower(x) FROM a']){const d=resolve(sql).result[0].descriptor;assert.equal(d.declaredType,null);assert.equal(d.origin,null);}
+});
+test('derived scalar column provenance follows first producer expression, not transient alias',()=>{
+ const p=resolve('SELECT (SELECT d.x FROM (SELECT 2 AS x UNION ALL SELECT x FROM a) d LIMIT 1) AS chosen');
+ assert.equal(p.result[0].descriptor.table,'a');assert.equal(p.result[0].descriptor.origin,'x');assert.equal(p.result[0].descriptor.database,'main');
+ const q=resolve('SELECT (SELECT d.x FROM (SELECT 1 AS x UNION ALL SELECT 2) d LIMIT 1)');
+ assert.equal(q.result[0].descriptor.table,null);assert.equal(q.result[0].descriptor.declaredType,null);
+});
+test('columnType metadata has one linked scalar owner for type and provenance',async()=>{
+ const {resolvedExpressionMetadata}=await import('../../src/internal/resolve.ts');
+ for(const [sql,type,origin] of [['SELECT ((SELECT x FROM a LIMIT 1))','INTEGER','x'],['SELECT (SELECT o.x) FROM a o','INTEGER','x'],['SELECT +(SELECT x FROM a LIMIT 1)',null,null],['SELECT CAST((SELECT x FROM a LIMIT 1) AS TEXT)',null,null],['SELECT abs((SELECT x FROM a LIMIT 1))',null,null]]){
+  const p=resolve(sql),m=resolvedExpressionMetadata(p.result[0].expression.reduction,p);assert.equal(m.declaredType,type);assert.equal(m.origin,origin);
+ }
+});
+test('columnType treats resolved FULL USING coalesce as function, not first column use',async()=>{
+ const {resolvedExpressionMetadata}=await import('../../src/internal/resolve.ts');
+ for(const sql of ['SELECT x FROM a FULL JOIN b USING(x)','SELECT (x) FROM a FULL JOIN b USING(x)','SELECT (SELECT x FROM a FULL JOIN b USING(x) LIMIT 1)']){
+  const p=resolve(sql);assert.deepEqual({...resolvedExpressionMetadata(p.result[0].expression.reduction,p),name:undefined,affinity:undefined,collation:undefined},{declaredType:null,database:null,table:null,origin:null,name:undefined,affinity:undefined,collation:undefined});
+ }
+});
+test('FULL USING deferred function retains first affinity/collation but generic datatype',async()=>{
+ const {resolvedExpressionAffinity,resolvedExpressionDataType,resolvedExpressionCollation}=await import('../../src/internal/resolve.ts');
+ for(const sql of ['SELECT same FROM a FULL JOIN b USING(same)','SELECT (same) FROM a FULL JOIN b USING(same)','SELECT (SELECT same FROM a FULL JOIN b USING(same) LIMIT 1)']){
+  const p=resolve(sql),e=p.result[0].expression.reduction;assert.equal(resolvedExpressionAffinity(e,p),'text');assert.equal(resolvedExpressionDataType(e,p),sql.includes('SELECT (SELECT')?6:7);
+  if(!sql.includes('SELECT (SELECT'))assert.equal(resolvedExpressionCollation(e,p)?.toLowerCase(),'nocase');
+ }
+});
+test('deferred coalesce semantic binding survives caller peeling parentheses',async()=>{
+ const {resolvedExpressionAffinity,resolvedExpressionDataType,resolvedExpressionCollation,resolvedExpressionMetadata}=await import('../../src/internal/resolve.ts');
+ const p=resolve('SELECT ((same)) FROM a FULL JOIN b USING(same)');let e=p.result[0].expression.reduction;
+ while(e.signature==='expr ::= LP expr RP')e=e.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+ assert.equal(resolvedExpressionAffinity(e,p),'text');assert.equal(resolvedExpressionDataType(e,p),7);assert.equal(resolvedExpressionCollation(e,p)?.toLowerCase(),'nocase');assert.equal(resolvedExpressionMetadata(e,p).declaredType,null);
+});
+test('lookupName records deferred FULL USING ownership outside result EList',async()=>{
+ const {resolvedExpressionDataType,resolvedExpressionMetadata}=await import('../../src/internal/resolve.ts');
+ const p=resolve("SELECT 1 FROM a FULL JOIN b USING(same) WHERE same='a'");const use=p.columnUses.find(use=>use.source.table.name==='a'&&use.columnIndex===1);assert.ok(use);
+ assert.equal(resolvedExpressionDataType(use.expression,p),7);assert.equal(resolvedExpressionMetadata(use.expression,p).declaredType,null);assert.equal(use.mergedSources.length,2);
+});

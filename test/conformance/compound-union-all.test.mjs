@@ -3,6 +3,10 @@ import {open,JSQLiteError} from '../../src/index.ts';
 import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
 import {compileScalarSelect,DEFAULT_PRIVATE_STATE_LIMITS} from '../../src/internal/vdbe.ts';
 import {parseSql} from '../../src/internal/parse.ts';
+import fs from 'node:fs';
+import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
+import {btreeFromStorage} from '../../src/internal/btree.ts';
+import {loadSchemaGraph} from '../../src/internal/schema.ts';
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 async function withDb(fn,limits){const b=await startFixtureServer(root);let db;try{const request=new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`);db=limits?await open(request,{limits}):await openFixture(request);await fn(db)}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>b.server.close(e=>e?j(e):r()))}}
 test('unordered scalar UNION ALL preserves arm order/multiplicity and leftmost name',()=>withDb(async db=>{const s=db.prepare('SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2').statement;try{assert.equal(s.columnMetadata(0).name,'v');const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[2n,1n,2n])}finally{s.finalize()}}));
@@ -80,7 +84,19 @@ test('public result bytes do not cap private compound sorter staging',async()=>{
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
 });
 
-test('Program owns immutable finite private-state defaults',()=>{const parsed=parseSql('SELECT 1 UNION SELECT 2');const program=compileScalarSelect(parsed.statement,'utf-8');assert.strictEqual(program.privateStateLimits,DEFAULT_PRIVATE_STATE_LIMITS);assert.ok(Object.isFrozen(program.privateStateLimits));for(const value of Object.values(program.privateStateLimits))assert.ok(Number.isSafeInteger(value)&&value>=0)});
+test('Program owns immutable finite private-state defaults',()=>{
+ const storage=ImmutableStorage.open(fs.readFileSync(new URL('fixtures/advanced-index-utf8.db',import.meta.url)));
+ try{
+  // multiSelect merge now consumes the same database/schema context as public
+  // prepare; do not revive the retired independent scalar merge for this check.
+  const schema=loadSchemaGraph({[storageOwner]:storage}),database=btreeFromStorage(storage);
+  const parsed=parseSql('SELECT 1 UNION SELECT 2');
+  const program=compileScalarSelect(parsed.statement,database.encoding,undefined,undefined,undefined,schema,database);
+  assert.strictEqual(program.privateStateLimits,DEFAULT_PRIVATE_STATE_LIMITS);
+  assert.ok(Object.isFrozen(program.privateStateLimits));
+  for(const value of Object.values(program.privateStateLimits))assert.ok(Number.isSafeInteger(value)&&value>=0);
+ }finally{storage.close();}
+});
 
 test('compound zero LIMIT bypasses OFFSET coercion and producers',async()=>{
  const bridge=await startFixtureServer(root);let db,s;try{

@@ -181,7 +181,7 @@ test('filtered materialized CTE producer retains parent destination ownership',(
  // compileInnerTableSelect destination call. Other fallback consumers remain.
  assert.doesNotMatch(owner.slice(0,owner.indexOf('if(producer.from.items.length)expanded.set(')),/producer\.where\|\|/);
  assert.match(owner,/compileInnerTableSelect\(producer,expanded\.get\(source\.use\)!,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder,ops,parameters,destination\}\)/);
- assert.match(fallback,/for\(const original of inner\.ops\)/);
+ assert.doesNotMatch(fallback,/for\(const original of inner\.ops\)/);
 });
 
 // Independently obtained native typed output: $SAIVAGE_CARD_WORK_ROOT/cte-owner/oracle-fallback.py.

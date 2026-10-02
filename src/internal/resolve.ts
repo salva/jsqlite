@@ -7,14 +7,14 @@ import type {SqlToken} from './tokenize.ts';
 export class NameResolutionError extends Error{}
 // select.c:sqlite3ColumnsFromExprList installs unique names on the transient
 // subquery Table before resolve.c:lookupName walks linked NameContexts.
-function transientColumnNames(names:readonly string[]):readonly string[]{
+export function transientColumnNames(names:readonly string[]):readonly string[]{
  const used=new Set<string>(),result:string[]=[];
  for(const original of names){
   let name=original,counter=0;
-  while(used.has(sqliteAsciiFold(name)))name=`${name.replace(/:\d+$/, '')}:${++counter}`;
+  while(used.has(sqliteAsciiFold(name)))name=`${name.replace(/:\d*$/, '')}:${++counter}`;
   used.add(sqliteAsciiFold(name));result.push(name);
  }
- return result;
+ return Object.freeze(result);
 }
 
 export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>}
@@ -24,10 +24,10 @@ export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly colu
 export interface ResolvedResult {readonly name:string;readonly expression:ExprNode;readonly source:ResolvedSource|null;readonly columnIndex:number|null;readonly mergedSources:readonly ResolvedColumnRef[]|null;readonly resolution:'direct'|'coalesce'|'expression';readonly descriptor:ResultColumnDescriptor}
 export interface ResolvedWindow {readonly functionName:string;readonly argumentCount:number;readonly owner:ExprNode;readonly filter:ExprNode|null;readonly definitionName:string|null;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode;readonly compatibleGroup:number}
 export interface ResolvedWindowDefinition {readonly name:string;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode}
-export interface ResolvedColumnUse {readonly expression:ExprReduction;readonly source:ResolvedSource;readonly columnIndex:number;readonly selectDepth:number}
-export interface ResolvedSelect {readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
+export interface ResolvedColumnUse {readonly expression:ExprReduction;readonly source:ResolvedSource;readonly columnIndex:number;readonly selectDepth:number;readonly mergedSources?:readonly ResolvedColumnRef[]|null}
+export interface ResolvedSelect {readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
 /** Transient resolve.c NameContext frame; never attached to immutable schema AST. */
-interface NameContext {readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
+interface NameContext {readonly aliasUses?:Map<ExprReduction,ExprReduction>;readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:'reduction'};
 export function expressionStructurallyEqual(left:ExprNode,right:ExprNode,sources:SelectNode['arms'][number]['from']['items'],ignoreTopLevelCollate=true):boolean{
  if(!left.reduction||!right.reduction)return false;
@@ -201,7 +201,7 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
  if(expressionTokens.length===1&&['string','integer','float','blob','variable'].includes(expressionTokens[0]!.kind)||expressionTokens.length===1&&expressionTokens[0]!.kind==='keyword'&&sqliteAsciiFold(expressionTokens[0]!.text)==='null')return null;
  const words=expressionTokens.map(t=>t.text);let database:string|null=null,qualifier:string|null=null,name:string;if(words.length===1)name=identifier(words[0]!);else if(words.length===3&&words[1]==='.') {qualifier=identifier(words[0]!);name=identifier(words[2]!);}else if(words.length===5&&words[1]==='.'&&words[3]==='.') {database=identifier(words[0]!);qualifier=identifier(words[2]!);name=identifier(words[4]!);}else return null;
  const eligible=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.tableName,qualifier!)&&(!database||(!s.alias&&sqliteIdentifierEqual(s.databaseName??'main',database))));let found:{source:ResolvedSource;columnIndex:number;name:string}[]=[];const rowidCandidates:{source:ResolvedSource;columnIndex:number;name:string}[]=[];
- for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if(!source.table.withoutRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))rowidCandidates.push({source,columnIndex:-1,name});}
+ for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if(!source.table.withoutRowid&&!source.table.noVisibleRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))rowidCandidates.push({source,columnIndex:-1,name});}
  // resolve.c:lookupName retains rowid candidates only when no real column
  // matched anywhere in the current NameContext.
  if(found.length===0)found=rowidCandidates;
@@ -217,14 +217,28 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
 function lookupName(expression:ExprNode,context:NameContext,owner:NameContext=context,reduction?:ExprReduction):{resolved:ResolvedColumnRef;mergedSources:readonly ResolvedColumnRef[]|null}|null{
  let frame:NameContext|null=context,depth=0;
  while(frame){
-  try{const match=direct(expression,frame.sources);if(match){if(depth>0)owner.nRef++;if(reduction)owner.columnUses.push(Object.freeze({expression:reduction,source:match.resolved.source,columnIndex:match.resolved.columnIndex,selectDepth:depth}));return match;}}
+  try{const match=direct(expression,frame.sources);if(match){if(depth>0)owner.nRef++;if(reduction){
+    // resolveExprStep resolves TK_ID below TK_COLLATE/parentheses. direct()
+    // unwraps these for lookup, so publish that same leaf identity for linked
+    // lowering as well as the wrapper used by result metadata consumers.
+    let leaf=reduction;
+    while(leaf.signature==='expr ::= LP expr RP'||leaf.signature.startsWith('expr ::= expr COLLATE ')){
+     const child=leaf.children.find((part):part is ExprReduction=>part.kind==='reduction'&&part.signature.startsWith('expr ::='));
+     if(!child)break;leaf=child;
+    }
+    const use={source:match.resolved.source,columnIndex:match.resolved.columnIndex,selectDepth:depth,mergedSources:match.mergedSources};
+    owner.columnUses.push(Object.freeze({expression:reduction,...use}));
+    if(leaf!==reduction)owner.columnUses.push(Object.freeze({expression:leaf,...use}));
+   }return match;}}
   catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;}
   frame=frame.pNext;depth++;
  }
  // Re-run the innermost lookup to retain its exact missing-name spelling.
  return direct(expression,context.sources);
 }
-function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDescriptor{if(!resolved)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:null,collation:'BINARY'});const c=resolved.columnIndex<0?resolved.source.table.columns.find(column=>sqliteIdentifierEqual(column.name,resolved.name)):resolved.source.table.columns[resolved.columnIndex];if(!c){
+function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDescriptor{if(!resolved)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:null,collation:'BINARY'});const producer=transientProducerPlans.get(resolved.source.table);
+ if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
+ const c=resolved.columnIndex<0?resolved.source.table.columns.find(column=>sqliteIdentifierEqual(column.name,resolved.name)):resolved.source.table.columns[resolved.columnIndex];if(!c){
  // select.c:columnTypeImpl maps a real table's implicit TK_COLUMN rowid
  // (iColumn<0 and no INTEGER PRIMARY KEY alias) to INTEGER metadata whose
  // physical origin is the canonical "rowid", regardless of the SQL alias
@@ -301,7 +315,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
   if(node.signature.startsWith('expr ::= expr COLLATE ')){node.children.forEach(walk);const collationToken=tokens(node).at(-1);if(collationToken){const name=identifier(collationToken.text);if(!['binary','nocase','rtrim'].some(candidate=>sqliteIdentifierEqual(candidate,name)))throw new NameResolutionError(`no such collation sequence: ${name}`);}return;}
   if(node.signature.startsWith('expr ::= nm DOT nm DOT nm')){lookupName({kind:'tokens',tokens:tokens(node)},{sources,pNext:context.pNext,columnUses:context.columnUses,nRef:0},context,node);return;}
   if(node.signature.startsWith('expr ::= nm DOT nm')){lookupName({kind:'tokens',tokens:tokens(node)},{sources,pNext:context.pNext,columnUses:context.columnUses,nRef:0},context,node);return;}
-  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{lookupName({kind:'tokens',tokens},{sources,pNext:context.pNext,columnUses:context.columnUses,nRef:0},context,node);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!matches[0])throw error;if(rejectAliasAggregate){const aggregate=firstAggregateName(matches[0]);if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}if(rejectWindowFunctions&&firstWindowName(matches[0]))throw new NameResolutionError(`misuse of aliased window function ${name}`);resolveAgainstSources(matches[0],sources,[],rejectAliasAggregate,rejectAggregateFunctions,rejectWindowFunctions,selectWindowNames,windowDefinitions,context,resolveNested);}return;}}
+  if(node.signature.startsWith('expr ::= ID')||node.signature.startsWith('expr ::= INDEXED')||node.signature.startsWith('expr ::= JOIN_KW')){const tokens=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value]:[]);if(tokens.length){try{lookupName({kind:'tokens',tokens},{sources,pNext:context.pNext,columnUses:context.columnUses,nRef:0},context,node);}catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!matches[0])throw error;if(rejectAliasAggregate){const aggregate=firstAggregateName(matches[0]);if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}if(rejectWindowFunctions&&firstWindowName(matches[0]))throw new NameResolutionError(`misuse of aliased window function ${name}`);if(matches[0].reduction)context.aliasUses?.set(node,matches[0].reduction as ExprReduction);resolveAgainstSources(matches[0],sources,[],rejectAliasAggregate,rejectAggregateFunctions,rejectWindowFunctions,selectWindowNames,windowDefinitions,context,resolveNested);}return;}}
   node.children.forEach(walk);
  };
  if(expression.reduction)walk(expression.reduction);
@@ -390,12 +404,12 @@ function expressionListForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]
 function sortExpressionsForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]{const items:ExprNode[]=[];const visit=(part:LemonValue<SqlToken>):void=>{if(part.kind!=='reduction')return;if(part.signature.startsWith('sortlist ::=')){const expression=part.children.find(child=>child.kind==='reduction'&&!child.signature.startsWith('sortlist ::=')&&!child.signature.startsWith('sortorder ::=')&&!child.signature.startsWith('nulls ::='));if(expression?.kind==='reduction'){const leaves=(n:LemonValue<SqlToken>):SqlToken[]=>n.kind==='terminal'?(n.value?[n.value]:[]):n.children.flatMap(leaves);items.push(Object.freeze({kind:'tokens',tokens:Object.freeze(leaves(expression)),reduction:expression}));}}for(const child of part.children)if(child.kind==='reduction'&&child.signature.startsWith('sortlist ::='))visit(child);};visit(node);return Object.freeze(items.sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0)));}
 
 /** Bounded ports of select.c:selectExpander and resolve.c:lookupName for ordinary tables. */
-export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0):ResolvedSelect{
- const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const table=schema.tables.get(sqliteAsciiFold(item.tableName));if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
+export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0,transientTables:ReadonlyMap<number,TableNode>=new Map()):ResolvedSelect{
+ const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const table=transientTables.get(cursorOffset)??schema.tables.get(sqliteAsciiFold(item.tableName));if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
  for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
  const columnUses:ResolvedColumnUse[]=[];
- const context:NameContext={sources,pNext:outer,columnUses,nRef:0},nested:ResolvedSelect[]=[];
+ const context:NameContext={sources,pNext:outer,columnUses,aliasUses:new Map(),nRef:0},nested:ResolvedSelect[]=[];
  let nextCursor=cursorBase+sources.length;
  const lastCursor=(resolved:ResolvedSelect):number=>Math.max(-1,...resolved.sources.map(source=>source.cursorId),...resolved.nested.map(lastCursor));
  const seenNested=new Set<SelectNode>();
@@ -403,18 +417,23 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // before resolveSelectStep walks the linked child/parent NameContexts. The
  // storage cursor is supplied later by the derived producer, not schema lookup.
  const derived=child.from.derived;
- let childSchema=schema;
+ const childBindings=new Map<number,TableNode>();
  if(derived&&derived.index===0&&child.from.items.length===1&&derived.select.hasCompound){
   const first=derived.select.arms[0];
   if(first&&first.result.length&&derived.select.arms.every(arm=>arm.result.length===first.result.length)){
-   const names=transientColumnNames(first.result.map((item,index)=>item.alias??(item.tokens.map(token=>token.text).join('')||`column${index+1}`)));
-   const columns=names.map(name=>({name,declaredType:null,affinity:'blob' as const,collation:null,primaryKeyPosition:null} as ColumnNode));
+   // select.c:sqlite3ColumnsFromExprList resolves TK_COLUMN before naming
+   // a transient Table. Qualified token text is not its column name.
+   const armPlans=derived.select.arms.map(arm=>expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,arms:Object.freeze([arm]),hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema,null,nextCursor));
+   const firstResolved=armPlans[0]!;
+   const names=transientColumnNames(firstResolved.result.map(item=>item.name));
+   const columns=names.map((name,index)=>({name,declaredType:transientDeclaredType(resolvedExpressionDeclaredType(firstResolved.result[index]!.expression.reduction!,firstResolved),resolvedCompoundAffinity(armPlans,index)),affinity:resolvedCompoundAffinity(armPlans,index),collation:resolvedExpressionCollation(firstResolved.result[index]!.expression.reduction!,firstResolved)??'binary',primaryKeyPosition:null} as ColumnNode));
    const name=child.from.items[0]!.tableName;
-   const table={kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
-   childSchema={tables:new Map([...schema.tables,[sqliteAsciiFold(name),table]])};
+   const table={kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
+   bindTransientProducer(table,armPlans.at(-1)!);
+   childBindings.set(derived.index,table);
   }
  }
- const resolved=expandAndResolveSelect(child,childSchema,context,nextCursor);nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);};
+ const resolved=expandAndResolveSelect(child,schema,context,nextCursor,childBindings);nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);};
  const output:ResolvedResult[]=[];
  const windowDefinitions=resolvedWindowDefinitions(select);
  for(let i=0;i<select.windowDefinitions.length;i++){const definition=select.windowDefinitions[i]!;if(definition.frameError)throw new NameResolutionError(definition.frameError);if(definition.baseName){let base:typeof definition|undefined;for(let j=i-1;j>=0;j--){const candidate=select.windowDefinitions[j]!;if(sqliteIdentifierEqual(candidate.name,definition.baseName)){base=candidate;break;}}if(base){if(base.hasFrame)throw new NameResolutionError(`cannot override frame specification of window: ${definition.baseName}`);if(base.partitionBy.length&&definition.partitionBy.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${definition.baseName}`);if(base.orderBy.length&&definition.orderBy.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${definition.baseName}`);}}}
@@ -451,8 +470,14 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  }
  if(select.limit)resolveAgainstSources(select.limit,[],[],false,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
  if(select.offset)resolveAgainstSources(select.offset,[],[],false,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
+ const orderResultColumns:(number|null)[]=[];
  for(let i=0;i<select.orderBy.length;i++){
   const expression=select.orderBy[i]!.expr,parsed=groupByInteger(expression);
+  // resolve.c:resolveOrderGroupBy marks AS-name matches before ordinals and
+  // source lookup. Keep the result ownership for immutable window rewrite.
+  const name=bareName(expression)??collatedBareName(expression);
+  const aliasIndex=name===null?-1:select.result.findIndex(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));
+  orderResultColumns.push(aliasIndex>=0?aliasIndex:parsed!==null&&parsed>=1n&&parsed<=BigInt(output.length)?Number(parsed)-1:null);
   if(parsed!==null&&parsed>=-2147483647n&&parsed<=2147483647n){const ordinal=Number(parsed);if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term out of range - should be between 1 and ${output.length}`);}continue;}
   if(select.hasCompound){const collationAt=expression.tokens.map(token=>sqliteAsciiFold(token.text)).lastIndexOf('collate');if(collationAt>=0&&expression.tokens[collationAt+1]){const value=identifier(expression.tokens[collationAt+1]!.text);if(!['binary','nocase','rtrim'].some(item=>sqliteIdentifierEqual(item,value)))throw new NameResolutionError(`no such collation sequence: ${value}`);}const name=bareName(expression)??collatedBareName(expression),matchesAlias=name!==null&&select.arms.some(arm=>arm.result.some(item=>item.alias&&sqliteIdentifierEqual(item.alias,name))),matchesExpression=select.arms.some(arm=>arm.result.some(item=>expressionStructurallyEqual(item,expression,arm.from.items)));if(!matchesAlias&&!matchesExpression){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} ORDER BY term does not match any column in the result set`);}}
   else resolveAgainstSources(expression,sources,select.result,false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);
@@ -460,5 +485,298 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   if(aggregate&&!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);
  }
  const resolvedWindowGraph=collectResolvedWindows(select,windowDefinitions);
- return Object.freeze({source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
+ const plan:ResolvedSelect=Object.freeze({aliasUses:context.aliasUses!,orderResultColumns:Object.freeze(orderResultColumns),source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
+ const metadataResults=plan.result.map(item=>{
+  const expression=item.expression.reduction;
+  if(!expression||!linkedScalarMetadataExpression(expression))return item;
+  const descriptor=resolvedExpressionMetadata(expression,plan);
+
+  // select.c columnTypeImpl TK_SELECT inherits type/origin, not affinity or
+  // collation. Keep the parent's result name and semantic expression binding.
+  return Object.freeze({...item,descriptor:Object.freeze({...item.descriptor,declaredType:descriptor.declaredType,database:descriptor.database,table:descriptor.table,origin:descriptor.origin})});
+ });
+ return Object.freeze({...plan,result:Object.freeze(metadataResults)});
+}
+
+// resolve.c lookupName preserves a deferred coalesce argument list. Lemon
+// parentheses are representation wrappers, not new semantic expression owners.
+function resolvedDeferredCoalesce(expression:LemonValue<SqlToken>,plan:ResolvedSelect):{readonly mergedSources?:readonly ResolvedColumnRef[]|null}|undefined{
+ const identity=(value:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
+  while(value.kind==='reduction'&&value.signature==='expr ::= LP expr RP'){
+   const child=value.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));if(!child)break;value=child;
+  }
+  return value;
+ };
+ const node=identity(expression);
+ return plan.columnUses.find(use=>use.mergedSources&&identity(use.expression)===node)??plan.result.find(result=>result.resolution==='coalesce'&&result.expression.reduction&&identity(result.expression.reduction)===node);
+}
+
+/** expr.c:sqlite3ExprCollSeq implicit column path. CAST and UPLUS preserve
+ * column collation; other operators do not inherit it without EP_Collate.
+ * Explicit COLLATE is handled by the expression generator's flagged walk. */
+export function resolvedImplicitCollation(expression:LemonValue<SqlToken>,plan:ResolvedSelect):string|undefined{
+ if(expression.kind!=='reduction')return undefined;
+ let node=expression;
+ for(;;){
+  const merged=resolvedDeferredCoalesce(node,plan)?.mergedSources?.[0];
+  if(merged)return merged.columnIndex<0?undefined:merged.source.table.columns[merged.columnIndex]?.collation??'binary';
+
+  const children=node.children.filter((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+  const terminals=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value.text]:[]);
+  if(node.signature==='expr ::= LP expr RP'||node.signature.startsWith('expr ::= CAST')||(children.length===1&&terminals.length===1&&terminals[0]==='+')){
+   if(!children[0])return undefined;
+   node=children[0];continue;
+  }
+  const use=plan.columnUses.find(use=>use.expression===node);
+  if(use)return use.columnIndex<0?undefined:use.source.table.columns[use.columnIndex]?.collation??'binary';
+  const result=plan.result.find(result=>result.expression.reduction===node||result.expression.reduction===expression);
+  if(!result?.source||result.columnIndex===null||result.columnIndex<0)return undefined;
+  return result.source.table.columns[result.columnIndex]?.collation??'binary';
+ }
+}
+
+// expr.c sqlite3ExprAffinity: affinity belongs to the resolved column, CAST,
+// or COLLATE operand. Unlike collation, unary plus removes affinity. Parentheses
+// are absent in C Expr and are peeled here only as a Lemon representation step.
+export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:ResolvedSelect):ColumnNode['affinity']|undefined{
+ if(expression.kind!=='reduction')return undefined;
+ let node=expression;
+ for(;;){
+  const merged=resolvedDeferredCoalesce(node,plan)?.mergedSources?.[0];
+  if(merged)return merged.columnIndex<0?'integer':merged.source.table.columns[merged.columnIndex]?.affinity;
+
+  const child=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+  if(node.signature==='expr ::= LP expr RP'||node.signature.startsWith('expr ::= expr COLLATE')){if(!child)return undefined;node=child;continue;}
+  if(node.signature==='expr ::= LP nexprlist COMMA expr RP'){
+   const first=vectorFirstExpression(node);
+   return first?resolvedExpressionAffinity(first,plan):undefined;
+  }
+  if(node.signature==='expr ::= LP select RP'){
+   const select=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('select ::='))?.semantic;
+   const nested=plan.nested.find(nested=>nested.source===select);
+   // Resolve owns this link; do not infer affinity from SQL text, sibling
+   // position, or a newly independently resolved NameContext.
+   if(!nested?.result[0]?.expression.reduction)return undefined;
+   return resolvedExpressionAffinity(nested.result[0].expression.reduction,nested);
+  }
+  if(node.signature.startsWith('expr ::= CAST')){
+   const tokens:SqlToken[]=[];const collect=(value:LemonValue<SqlToken>):void=>{if(value.kind==='terminal'){if(value.value)tokens.push(value.value);}else value.children.forEach(collect);};
+   // The type-name nonterminal is owned by CAST, not nested operand tokens.
+   const type=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('typetoken ::='));
+   if(!type)return undefined;collect(type);const name=tokens.map(token=>token.text).join(' ').toUpperCase();
+   if(name.includes('INT'))return 'integer';if(/CHAR|CLOB|TEXT/.test(name))return 'text';if(!name||name.includes('BLOB'))return 'blob';if(/REAL|FLOA|DOUB/.test(name))return 'real';return 'numeric';
+  }
+  const use=plan.columnUses.find(use=>use.expression===node);
+  if(!use){
+   const result=plan.result.find(result=>(result.expression.reduction===node||result.expression.reduction===expression));
+   if(result?.source&&result.columnIndex!==null)return result.columnIndex<0?'integer':result.source.table.columns[result.columnIndex]?.affinity;
+   return undefined;
+  }
+  return use.columnIndex<0?'integer':use.source.table.columns[use.columnIndex]?.affinity;
+ }
+}
+
+// expr.c sqlite3ExprDataType, numeric/text/blob bits (NULL contributes zero).
+// This is static producer metadata, not an evaluator of CASE conditions.
+export function resolvedExpressionDataType(expression:LemonValue<SqlToken>,plan:ResolvedSelect):number{
+ if(expression.kind!=='reduction')return 0;
+ let node=expression;
+ for(;;){
+  if(resolvedDeferredCoalesce(node,plan))return 7;
+  const exprs=node.children.filter((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+  if(node.signature==='expr ::= term') {const term=node.children.find((child):child is ExprReduction=>child.kind==='reduction');if(!term)return 0;node=term;continue;}
+  const terminals=node.children.flatMap(child=>child.kind==='terminal'&&child.value?[child.value.text]:[]);
+  if(node.signature==='expr ::= LP expr RP'||node.signature.startsWith('expr ::= expr COLLATE')||node.signature==='expr ::= PLUS|MINUS expr'&&terminals[0]==='+'){if(!exprs[0])return 0;node=exprs[0];continue;}
+  if(node.signature==='term ::= NULL|FLOAT|BLOB'){const token=node.children.find(child=>child.kind==='terminal'&&child.value);if(token?.kind==='terminal')return token.value?.text.toUpperCase()==='NULL'?0:token.value?.text.match(/^[xX]'/)?4:1;}
+  if(node.signature==='term ::= NULL')return 0;
+  if(node.signature==='term ::= STRING')return 2;
+  if(node.signature==='term ::= BLOB')return 4;
+  if(node.signature.includes('CONCAT'))return 6;
+  if(node.signature.includes('VARIABLE')||/^expr ::= ID(?:\|INDEXED\|JOIN_KW)? LP /.test(node.signature))return 7;
+  if(node.signature.startsWith('expr ::= CASE')){
+   let mask=0;
+   const branches=(value:LemonValue<SqlToken>):void=>{
+    if(value.kind!=='reduction')return;
+    if(value.signature.startsWith('case_exprlist ::=')){
+     const outputs=value.children.filter((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+     if(outputs[1])mask|=resolvedExpressionDataType(outputs[1],plan);
+     value.children.filter(child=>child.kind==='reduction'&&child.signature.startsWith('case_exprlist ::=')).forEach(branches);
+    }else if(value.signature.startsWith('case_else ::='))for(const child of value.children)if(child.kind==='reduction'&&child.signature.startsWith('expr ::='))mask|=resolvedExpressionDataType(child,plan);
+   };node.children.forEach(branches);return mask;
+  }
+  if(node.signature.startsWith('expr ::= CAST')||node.signature==='expr ::= LP select RP'||node.signature==='expr ::= LP nexprlist COMMA expr RP'||node.signature.startsWith('expr ::= ID|')||node.signature==='expr ::= nm DOT nm'||node.signature==='expr ::= nm DOT nm DOT nm'){
+   const affinity=resolvedExpressionAffinity(node,plan);
+   return affinity==='integer'||affinity==='real'||affinity==='numeric'||affinity==='flexnum'?5:affinity==='text'?6:7;
+  }
+  return 1;
+ }
+}
+
+// select.c sqlite3SubqueryColumnTypes: earlier NONE arms and later arms both
+// contribute datatype conflicts. BLOB is a real affinity, not NONE.
+export function resolvedCompoundAffinity(plans:readonly ResolvedSelect[],index:number):ColumnNode['affinity']{
+ let arm=0,mask=0;
+ const expr=(at:number)=>plans[at]!.result[index]!.expression.reduction!;
+ let affinity=resolvedExpressionAffinity(expr(arm),plans[arm]!);
+ while(!affinity&&arm+1<plans.length){mask|=resolvedExpressionDataType(expr(arm),plans[arm]!);affinity=resolvedExpressionAffinity(expr(++arm),plans[arm]!);}
+ affinity??='blob';
+ if(affinity!=='blob'&&plans.length>1){
+  for(let tail=arm+1;tail<plans.length;tail++)mask|=resolvedExpressionDataType(expr(tail),plans[tail]!);
+  if(affinity==='text'&&(mask&1)||affinity!=='text'&&(mask&2))return 'blob';
+  // select.c: numeric leftmost CAST preserves real/integer with FLEXNUM.
+  let first=expr(0);
+  // parse.y parentheses return the same Expr pointer; only TS retains a
+  // Lemon wrapper. COLLATE is a real C Expr and must not be stripped here.
+  while(first.kind==='reduction'&&first.signature==='expr ::= LP expr RP'){
+   const child=first.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+   if(!child)break;first=child;
+  }
+  if(affinity!=='text'&&first.kind==='reduction'&&first.signature.startsWith('expr ::= CAST'))return 'flexnum';
+ }
+ return affinity;
+}
+
+/** expr.c sqlite3ExprCollSeq: implicit column/CAST/UPLUS ownership precedes
+ * EP_Collate child selection. SELECT contents do not propagate Expr flags. */
+export function resolvedExpressionCollation(expression:LemonValue<SqlToken>,plan:ResolvedSelect):string|undefined{
+ if(expression.kind!=='reduction')return undefined;
+ const merged=resolvedDeferredCoalesce(expression,plan)?.mergedSources?.[0];
+ if(merged)return merged.columnIndex<0?undefined:merged.source.table.columns[merged.columnIndex]?.collation??'binary';
+ const children=expression.children.filter((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+ if(expression.signature==='expr ::= LP expr RP'||expression.signature.startsWith('expr ::= CAST')||expression.signature==='expr ::= PLUS|MINUS expr'&&expression.children.some(child=>child.kind==='terminal'&&child.value?.text==='+'))return children[0]?resolvedExpressionCollation(children[0],plan):undefined;
+ if(expression.signature.startsWith('expr ::= expr COLLATE')){
+  const token=expression.children.filter(child=>child.kind==='terminal'&&child.value).at(-1);
+  return token?.kind==='terminal'?identifier(token.value.text):undefined;
+ }
+ if(expression.signature==='expr ::= LP nexprlist COMMA expr RP'){
+  const first=vectorFirstExpression(expression);
+  return first?resolvedExpressionCollation(first,plan):undefined;
+ }
+ const implicit=resolvedImplicitCollation(expression,plan);
+ if(implicit)return implicit;
+ const flagged=(value:LemonValue<SqlToken>):string|undefined=>{
+  if(value.kind!=='reduction'||value.signature.startsWith('select ::=')||value.signature==='expr ::= LP select RP')return undefined;
+  if(value.signature.startsWith('expr ::= expr COLLATE'))return resolvedExpressionCollation(value,plan);
+  for(const child of value.children){const found=flagged(child);if(found)return found;}
+  return undefined;
+ };
+ return flagged(expression);
+}
+
+// Parser representation of Expr.x.pList->a[0], shared by affinity/collation.
+function vectorFirstExpression(node:ExprReduction):ExprReduction|undefined{
+ let list=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('nexprlist ::='));
+ while(list){
+  const prior=list.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('nexprlist ::='));
+  if(prior){list=prior;continue;}
+  return list.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+ }
+ return undefined;
+}
+
+// select.c multiSelectCollSeq: pPrior before current, first non-null wins.
+// Do not default BINARY at each expression: literals have no collation.
+export function resolvedCompoundCollation(plans:readonly ResolvedSelect[],index:number):string|undefined{
+ for(const plan of plans){const expression=plan.result[index]?.expression.reduction;if(!expression)continue;const collation=resolvedExpressionCollation(expression,plan);if(collation!==undefined)return collation;}
+ return undefined;
+}
+
+// select.c2399 sqlite3SubqueryColumnTypes type normalization. Original type
+// is columnType's result, not inferred from affinity or runtime values.
+export function transientDeclaredType(original:string|null,affinity:ColumnNode['affinity']):string{
+ if(original){const type=original.toUpperCase();const mapped=type.includes('INT')?'integer':/CHAR|CLOB|TEXT/.test(type)?'text':!type||type.includes('BLOB')?'blob':/REAL|FLOA|DOUB/.test(type)?'real':'numeric';if(mapped===affinity)return original;}
+ return affinity==='numeric'||affinity==='flexnum'?'NUM':affinity==='integer'?'INT':affinity==='real'?'REAL':affinity==='text'?'TEXT':'BLOB';
+}
+
+/** select.c columnTypeImpl: only TK_COLUMN and linked TK_SELECT own types.
+ * Parentheses are the same Expr pointer in C; do not peel CAST or UPLUS. */
+function linkedScalarMetadataExpression(expression:LemonValue<SqlToken>):boolean{
+ if(expression.kind!=='reduction')return false;
+ if(expression.signature==='expr ::= LP expr RP'){
+  const child=expression.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));return !!child&&linkedScalarMetadataExpression(child);
+ }
+ return expression.signature==='expr ::= LP select RP';
+}
+export function resolvedExpressionMetadata(expression:LemonValue<SqlToken>,plan:ResolvedSelect):Pick<ResolvedResult['descriptor'],'declaredType'|'database'|'table'|'origin'>{
+ const empty={declaredType:null,database:null,table:null,origin:null};
+ if(expression.kind!=='reduction')return empty;
+ // resolve.c lookupName rewrites FULL USING matches to TK_FUNCTION coalesce.
+ // TS retains original Lemon expression and records the rewrite on ResolvedResult.
+ // Its child columnUses are not the metadata owner (columnTypeImpl default).
+ if(resolvedDeferredCoalesce(expression,plan))return empty;
+ if(expression.signature==='expr ::= LP expr RP'){
+  const child=expression.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));const direct=plan.result.find(result=>result.expression.reduction===expression&&result.resolution==='direct');return direct?.descriptor??(child?resolvedExpressionMetadata(child,plan):empty);
+ }
+ if(expression.signature==='expr ::= LP select RP'){
+  const select=expression.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('select ::='))?.semantic;
+  const nested=plan.nested.find(nested=>nested.source===select),first=nested?.result[0]?.expression.reduction;
+  return nested&&first?resolvedExpressionMetadata(first,nested):empty;
+ }
+ if(expression.signature!=='expr ::= ID|INDEXED|JOIN_KW'&&!expression.signature.startsWith('expr ::= nm DOT'))return empty;
+ const result=plan.result.find(result=>result.expression.reduction===expression&&result.resolution==='direct');
+ if(result)return result.descriptor;
+ const use=plan.columnUses.find(use=>use.expression===expression);
+ if(use)return descriptor('',{source:use.source,columnIndex:use.columnIndex,name:use.columnIndex<0?'rowid':use.source.table.columns[use.columnIndex]!.name});
+ const direct=plan.result.find(result=>result.expression.reduction===expression);
+ return direct?.resolution==='direct'?direct.descriptor:empty;
+}
+
+export function resolvedExpressionDeclaredType(expression:LemonValue<SqlToken>,plan:ResolvedSelect):string|null{
+ return resolvedExpressionMetadata(expression,plan).declaredType;
+}
+
+// SrcItem.u4.pSubq metadata relationship: WeakMap preserves shared TableNode
+// representation without pretending rootPage=0 is a physical origin.
+const transientProducerPlans=new WeakMap<TableNode,ResolvedSelect>();
+export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{transientProducerPlans.set(table,producer);}
+
+/** resolve.c linked lookup results retained through expression code generation.
+ * Reduction identity, not SQL spelling, owns the lexical source and depth.
+ * Unsupported productions remain present so consumers reject before execution.
+ */
+export interface ResolvedExpressionCarrier {
+ readonly reduction:ExprReduction;
+ readonly column:ResolvedColumnUse|null;
+ readonly children:readonly ResolvedExpressionCarrier[];
+}
+export function resolvedExpressionCarrier(plan:ResolvedSelect,reduction:ExprReduction):ResolvedExpressionCarrier {
+ const uses=new Map(plan.columnUses.map(use=>[use.expression,use]));
+ const expressionChildren=(node:LemonValue<SqlToken>):ExprReduction[]=>{
+  if(node.kind!=='reduction')return [];
+  return node.children.flatMap(child=>child.kind==='reduction'&&(child.signature.startsWith('expr ::=')||child.signature.startsWith('term ::='))?[child]:expressionChildren(child));
+ };
+ const build=(node:ExprReduction):ResolvedExpressionCarrier=>{
+  // resolve.c resolveAlias substitutes the result expression after lexical
+  // source lookup fails; retain its identity rather than rebind its spelling.
+  const alias=plan.aliasUses?.get(node);if(alias)return build(alias);
+  while(node.signature==='expr ::= LP expr RP'){
+   const child=expressionChildren(node)[0];if(!child)throw new NameResolutionError('parenthesized expression lost identity');node=child;
+  }
+  return Object.freeze({reduction:node,column:uses.get(node)??null,children:Object.freeze(expressionChildren(node).map(build))});
+ };
+ return build(reduction);
+}
+
+/** Physical location is selected after linked resolution, never by name lookup.
+ * Producer-row registers are distinct from aggregate finalized-row registers.
+ * The latter phase has no consumer here and must not be inferred from a number.
+ */
+export type ResolvedExpressionLocation =
+ | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number}
+ | {readonly kind:'register';readonly register:number;readonly phase:'producer-row'|'source-row'};
+export interface ResolvedExpressionBinding {
+ readonly location:(reference:ResolvedColumnRef,selectDepth:number)=>ResolvedExpressionLocation;
+ readonly policy:'joined-aggregate'|'scalar'|'derived-predicate'|'window-filter'|'window-source'|'aggregate-source'|'ordinary-aggregate';
+}
+
+/** select.c AggInfo functions own one accumulator until AggFinal publishes it.
+ * Argument and ORDER expressions retain their resolved source-row identities;
+ * output location is only consumed after the owning finalization operation.
+ */
+export interface ResolvedAggregatePhaseCarrier {
+ readonly expression:ResolvedExpressionCarrier;
+ readonly arguments:readonly ResolvedExpressionCarrier[];
+ readonly orderBy:readonly ResolvedExpressionCarrier[];
+ readonly accumulator:Readonly<{phase:'accumulator';register:number}>;
+ readonly output:Readonly<{phase:'finalized-output';register:number}>;
 }

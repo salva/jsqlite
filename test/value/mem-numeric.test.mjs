@@ -129,3 +129,11 @@ test("UPSTREAM numeric affinity requires full text and prefers exact integer", (
   const nul=text("12\0x"); nul.cast("numeric","utf-8"); assert.equal(memToPublicInitial(nul),12n);
   const odd = new Mem(); odd.setText(Uint8Array.of(0x31,0,0x32,0,0xff),"utf-16le"); odd.cast("integer","utf-16le"); assert.equal(memToPublicInitial(odd),12n);
 });
+test('vdbe.c FLEXNUM converts numeric text but retains REAL and BLOB',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const real=new Mem();real.setDouble(1);real.applyAffinity('flexnum',encoding);assert.equal(memToPublicInitial(real),1);assert.equal(typeof memToPublicInitial(real),'number');
+  const numeric=text('1.0',encoding);numeric.applyAffinity('flexnum',encoding);assert.equal(memToPublicInitial(numeric),1n);
+  const bad=text('1x',encoding);bad.applyAffinity('flexnum',encoding);assert.equal(memToPublicInitial(bad),'1x');
+  const blob=new Mem();blob.setBlob(enc.encode('1'));blob.applyAffinity('flexnum',encoding);assert.deepEqual(memToPublicInitial(blob),enc.encode('1'));
+ }
+});

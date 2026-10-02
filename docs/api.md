@@ -1029,3 +1029,188 @@ A bounded unordered `UNION ALL` arm may read a one-column constant ordinary,
 MATERIALIZED, or repeated NOT MATERIALIZED CTE using the shared compound
 statement destination. This is not general CTE/compound support; unsupported
 arm producer shapes remain prepare-time temporary unsupported.
+
+### Retained physical producer → window parent (card-t-c current repair)
+The previously temporary LIMIT2/FILTER window probe is now admitted. Production
+compileSelect→compileTableSelect resolves the parent via resolveTransientArm;
+compileWindowSelectLowering consumes retainedSource on the same builder through
+compileInnerTableSelect SRT_Coroutine. select.c8048–8077 (tag-select-0482) owns
+InitCoroutine/child result range/EndCoroutine; window.c1049 copies complete FILTER
+into producer payload. Direct transient column bindings copy child result registers
+(not physical Column on rootPage0); FILTER uses the existing resolver-identity
+expression binder returning register leaves, compiled by compileExpressionTree.
+This reuses normal expression lowering, not a separate evaluator or SQL rewriting.
+Child LIMIT/OFFSET belongs to its source and survives parent limits/window buffering.
+No finished child Program or pcMap on this consuming path. Existing generic fallback
+still remains for other callers, not retired globally. Bounds: single noncompound
+physical child without DISTINCT/group/HAVING/window/order and parent without WHERE/
+group/HAVING/compound; other valid destinations remain temporary, lexical errors
+resolve first. Broader expression buffer slots remain atomically unrepresented.
+Pinned/public INTEGER1x2/reset, LIMIT0 empty, OFFSET1 sum3, qualified FILTER plus
+parent LIMIT1 pass; native/type199/diff pass. Structural gate now16/18: new retained
+producer ownership passes; generic fallback and CTE metadata Program tests remain
+red. Grouped owner test delimiter updated for preceding retained-source branch,
+no assertion waived. Prior 15/18 intermediate included this stale delimiter.
+
+Bounded compound ALL CTE source now admits a single-column physical producer
+without DISTINCT/group/HAVING/order/window/compound, preserving child LIMIT and
+physical predicate ownership. Public result metadata follows the producer origin;
+missing columns remain SQLITE. Specialized outer compound LIMIT contexts still
+reject atomically temporary. No general CTE/compound compatibility claim.
+
+Zero-FROM noncompound scalar SELECT retains resolved ORDER BY expressions and
+multiple terms without a sorter (one candidate); WHERE/LIMIT/OFFSET still apply.
+Unknown ORDER identifiers are SQLITE even at LIMIT0. This also holds when the
+scalar producer feeds a retained derived coroutine; no broader sorted compound
+or aggregate admission follows from this singleton ordering proof.
+
+Bounded nested retained single-source direct projections preserve independent
+child SQL LIMIT/OFFSET and physical origin metadata instead of treating parser
+synthetic `(subquery)` as a schema table. Existing recursive capability bounds
+still apply; this is not general nested SELECT/CTE/window admission.
+
+Retained derived producer residual composition now uses the enclosing SELECT
+builder/destination and semantic metadata rather than relocating a completed
+child Program. Existing owner capability gates still decide unsupported shapes
+atomically; selected destination/metadata/reset tests are not a general nested
+SQL or complete compatibility guarantee.
+
+The admitted second-source retained JOIN producer now shares enclosing SELECT
+register/parameter/destination state. Its child LIMIT/OFFSET and reset behavior
+remain tested; this is not a broader JOIN/derived/window support guarantee.
+
+Admitted retained first-source CTE JOIN materialization now shares SELECT
+allocation and production destination; child LIMIT/OFFSET, empty/reset and
+lexical missing-column LIMIT0 checks remain tested. Direct-derived source0
+admission is a distinct unresolved gap, not newly promised support.
+
+The admitted compound-derived aggregate consumer now retains shared SELECT
+allocation through final result production. Ordered aggregate/multiple outputs,
+empty inputs and reset controls are tested; broader enclosing physical aggregate
+producer support is not implied.
+
+Forced/repeated admitted CTE fallback materialization shares enclosing SELECT
+allocation/parameter/destination state; bag duplicates, empty/SQL child limits,
+ordinal order/reset and missing identifier LIMIT0 remain tested. No wider
+computed/filter or resource/binding compatibility guarantee is added.
+
+Joined correlated scalar aggregate compilation now carries linked resolver
+identity through expression binding. Existing admission remains bounded; alias
+names/types/reset and missing/ambiguous LIMIT0 prepare errors are retained.
+This is not broader scalar NULL/literal expression admission.
+
+Ordinary scalar subquery result/WHERE/ORDER binding now retains linked resolver
+identity via shared carrier without narrowing admitted NULL/literal/CASE support.
+INTEGER/NULL alias/reset and ambiguous/missing LIMIT0 checks are paired; this
+does not imply broader window/correlated aggregate/resource admission.
+
+Derived scalar ALL aggregate payload binding now retains linked identities with
+explicit producer-row register phase. Existing predicate/argument narrow bounds
+and ordinary scalar NULL/literal support are unchanged; no broader derived
+predicate admission implied. Typed NULL sum/INTEGER count, names/reset/outer
+LIMIT0 and lexical first-error controls are paired; wider lifecycle unproved.
+
+Window FILTER now retains resolver-linked identity through producer payload
+binding, preserving existing physical NULL/COLLATE/EXCLUDE/order behavior and
+window lexical LIMIT0 first errors. Retained-derived FILTER probe intersections
+remain typed temporary; no wider window admission or lifecycle guarantee added.
+
+Window original physical source ON/WHERE binding now retains resolved identity
+through rewrite producer handoff. Existing predicate-before-window behavior,
+NULL/empty/EXCLUDE/FILTER combinations and lexical WHERE LIMIT0 errors remain;
+retained FILTER temporary intersections and wider lifecycle are not new support.
+
+Standalone derived UNION ALL aggregate binding now retains linked argument/order
+identity and distinct source-row/accumulator/finalized-output locations. Existing
+empty/NULL/REAL/order/reset results preserved. LIMIT0 missing-column probes still
+return public temporary before this caller (native lexical error); not new support.
+
+Ordinary aggregate phase work is partial, no new admission or compatibility claim.
+Selected GROUP/FILTER/DISTINCT/bare/empty regressions pass; legacy resolution and
+alias edges and LIMIT0 evidence remain outstanding.
+
+Original ordinary aggregate result binding now retains resolved source identity
+through FILTER/argument/ORDER production and accumulator/finalized output.
+GROUP/ORDER, bare tie, FILTER/DISTINCT, NULL empty/count, REAL sum/avg and resets
+are covered; missing column/nested aggregate errors still precede LIMIT0 execution.
+Standalone compound LIMIT0 first-error discrepancy remains unresolved.
+
+For the admitted unordered SELECT-origin UNION ALL route, compound classification
+precedes each arm's aggregate production. First-arm names and INTEGER/REAL/NULL
+values survive across arms and reset. A selected arm compiler's prepare error
+aborts the entire prepare; no partial statement or alternate-compiler retry is
+published. This bounded ownership correction does not broaden admission.
+
+R3 partial work restores compound-derived missing-column diagnostics before
+LIMIT0 capability decline. Source0 retained join LIMIT/OFFSET remains unfinished;
+no full compatibility/admission claim from this work.
+
+Bounded source0 retained join now preserves child LIMIT before join and parent
+LIMIT/OFFSET after ordering; negative LIMIT and zero rows tested with reset.
+Pinned compound missing-column diagnostics precede LIMIT0 admission decline.
+Existing UTF8/16 derived-join regressions pass; not a full compatibility claim.
+
+Bounded aggregate alias owner coverage preserves source-name shadowing in HAVING,
+aggregate alias expressions in HAVING/unmatched ORDER, INTEGER/REAL/NULL, names
+and reset. Paired pinned tests pass; this is not full GROUP/RIGHT/subquery or
+metadata/resource compatibility. No supported admission change intended.
+
+Ordinary aggregate source WHERE linked-owner coverage now includes grouped IPK/
+REAL, CASE short circuit, FILTER DISTINCT/NULL and min-tie/reset cases, with exact
+LIMIT0 prepare errors preserved. No admission/API changes; full aggregate phase,
+RIGHT, metadata/resources and whole-candidate guarantees remain under verification.
+
+Checkpoint repair preserves admitted retained compound aggregate Mem/Exists/Set
+and LIMIT/OFFSET behavior, reset/types/names, plus streaming private-byte baseline
+and ordered-sorter error/finalize precedence across UTF8/UTF16LE/UTF16BE. No budget
+or admission narrowing. Shared424 current workspace pass is not isolated export
+or complete lifecycle/origin/resource compatibility acceptance.
+
+### Third isolated checkpoint attribution
+
+Shared SELECT/WHERE prerequisites include lexical linked carriers, true-leaf
+lookup, noVisibleRowid, only two Mem flexnum relationship hunks, expression
+affinity/collation and coupled RIGHT bound/entry state. Physical cursor 0..30
+reservations and f5bb86 invalidation remain; no broad nTab migration.
+Compound aggregate source now streams with parent Coroutine/Yield/EndCoroutine
+and retains parent Mem/Exists/Set/LIMIT; no budget increase. This is bounded
+checkpoint evidence, not broad R1-R4 or optimizer acceptance.
+
+### Third checkpoint literal C1–C6 bounded bridge (2026-10-02)
+
+This maps root's literal cases, not B1–B5 and not a unified compatibility
+denominator. Pinned source3.53.4 source ID bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc;
+Chinook SHA2567651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15.
+Native capture and public bridge are test/conformance/capture-canonical-c1-c6-checkpoint.py,
+cases/canonical-c1-c6-checkpoint.json and canonical-c1-c6-checkpoint.test.mjs.
+The capture takes LIBRARY DB CASES arguments; checks pinned identity and database
+digest. Native C API column_type/int64/double/text/name and public APIs compare
+INTEGER/REAL/TEXT, raw IEEE bytes, columnText and names, then reset. Public
+requires CHINOOK_DB. Results:12 named obligations pass, not twelve independent
+canonical cases or proof of all owner coverage.
+
+| Literal | Existing owner/path | Original result and separate controls |
+|---|---|---|
+| C1 | l/m: expr.c sqlite3CodeSubselect LIMIT and select.c aggregate; select-scalar-child, expression-subquery-chinook | COUNT ordered LIMIT1 bigint4; MIN control bigint10. Control must not replace original. |
+| C2 | j/m: select.c selectInnerLoop SRT_Coroutine, vdbe Yield; select-derived-values-parent, subquery-view-foundation | derived VALUES1,2,3 are three INTEGER rows; paired descending rows 2,b then1,a. |
+| C3 | m: where.c IN terms/wherecode.c iterator, select.c GROUP; aggregate-group-chinook-regressions, selected-in-integration | literal Track grouped rows1,10 and2,1 INTEGER; derived InvoiceLine group_concat IN/OR individually captured equal TEXT sequences. Exact original group_concat SQL absent, no original credit. |
+| C4 | p/j: vdbe.c arithmetic, util.c sqlite3FpDecode, printf.c altform2; mem-numeric, Mem/printf owner tests | maxint+1 columnText/CAST/printf 9.2233720368547758e+18; overflow Inf; tiny9.9998886718268301e-321; public raw IEEE equals native, no REAL-to-INTEGER flattening. |
+| C5 | l/m: resolve.c lookupName correlation depth, expr.c subselect, select.c count; expression-subquery-chinook, select-scalar-linked-owner | Artist1 AC/DC and INTEGER2, not merely derived sample. |
+| C6 | m/p: func.c substr, select.c group/order/name; aggregate-group-chinook-regressions | fresh typed TEXT years2021..2025 and INTEGER counts83,83,83,83,80; names y and COUNT(*), two executions. |
+
+First checkpoint includes SELECT entry/producer and explicitly SHARED minimal
+Mem/schema/resolve/affinity/collation/RIGHT entry prerequisites, not exclusive t
+ownership. Raw patch3ea28e05 tree is handoff, not delivered tree: c&1 companion
+restored to HEAD's bounded exclusion, unrelated bitwise remains dirty. Source
+C-to-TS comparison of selectInnerLoop SRT_Coroutine matches parent Yield instead
+of ephemeral insertion. Compound aggregate Mem/Exists/Set dispatch precedes
+projection gate and parent final-row LIMIT; 24-byte lifecycle retained without
+budget increase. Physical0..30 and f5bb86 cursor invalidation preserved.
+
+Local disposable source checks: shared424/424, selected175/175, prerequisite50/50,
+61 pinned SELECT/window native scripts, typecheck0. Advanced-index manifest first
+failed with two missing upstream test-file errors in git archive; read-only pinned
+source symlink supplied and rerun11/11. No build script exists; tsconfig noEmit is
+the configured type/build boundary, not a fabricated npm build pass. Earlier
+h39 runtime/structural reds remain historical failures superseded only by these
+changed-source checks. No broad R1–R4, STAT4, optimizer or lifecycle acceptance.

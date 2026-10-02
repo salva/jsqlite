@@ -77,7 +77,7 @@ export interface MemDiagnostic {
   readonly clearedNull: boolean;
 }
 export interface MemLimits { readonly maxLength?: number }
-export type MemAffinity = "blob" | "text" | "numeric" | "integer" | "real";
+export type MemAffinity = "blob" | "text" | "numeric" | "integer" | "real" | "flexnum";
 export interface SetBytesOptions extends MemLimits {
   readonly ownership?: MemOwnership;
   readonly lifetime?: BorrowLifetime | BorrowToken;
@@ -487,7 +487,7 @@ export class Mem {
       // vdbe.c:applyNumericAffinity deliberately invalidates MEM_Str because
       // source text is not guaranteed to be the canonical rendering.
       if (numeric?.kind === "integer" || numeric?.kind === "real") this.#replaceWithNumeric(numeric);
-    } else if ((this.#numeric?.kind === "real" || this.#numeric?.kind === "int-real") && affinity !== "numeric") {
+    } else if ((this.#numeric?.kind === "real" || this.#numeric?.kind === "int-real") && affinity !== "flexnum") {
       const real = numericAsReal(this.#numeric);
       const candidate = realToI64(real);
       if (realSameAsInt(real, candidate)) { this.#replaceWithNumeric({ kind: "integer", value: candidate }); }

@@ -6,7 +6,10 @@ for n,args,ret in [('sqlite3_sourceid',[],C.c_char_p),('sqlite3_open_v2',[C.c_ch
 root=pathlib.Path(__file__).resolve().parents[2];assert L.sqlite3_sourceid().decode()==json.loads((root/'reference/sqlite/manifest.json').read_text())['sqliteSourceId']
 generation=json.loads((root/'test/fixtures/CURRENT.json').read_text())['generationId'];path=root/'test/fixtures/generations'/generation/'generated/subquery-utf8.db';db=P();assert L.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
 cases=[('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1) d',[(7,)]),('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1 LIMIT 0) d',[]),('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1 LIMIT 2 OFFSET 1) d',[]),('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1 DESC) d',[(7,)]),('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1 LIMIT 1 OFFSET 0) d',[(7,)]),('SELECT d.n FROM (SELECT 7 AS n ORDER BY n+1 LIMIT 0) d',[])]
+L.sqlite3_errmsg.argtypes=[P];L.sqlite3_errmsg.restype=C.c_char_p
 try:
+ st=P();assert L.sqlite3_prepare_v2(db,b'SELECT d.n FROM (SELECT 7 AS n ORDER BY missing LIMIT 0) d',-1,C.byref(st),None)==1
+ assert b'no such column' in L.sqlite3_errmsg(db)
  for sql,want in cases:
   st=P();assert L.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0,sql
   try:

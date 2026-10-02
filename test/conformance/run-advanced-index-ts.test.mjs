@@ -1126,7 +1126,7 @@ test('selected LEFT null-row closes index and pending deferred table cursor',()=
 test('selected RIGHT unmatched pass nulls left selected index before continuation',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
- const pass=joined.slice(joined.indexOf('if(rightLevel>=0){\n    // Resolve sqlite3WhereEnd-style'),joined.indexOf('const rewind=ops.length;ops.push({code:\'Rewind\'',joined.indexOf('if(rightLevel>=0){\n    // Resolve sqlite3WhereEnd-style')));
+ const pass=joined.slice(joined.indexOf('if(rightLevel>=0){\n    // wherecode.c:sqlite3WhereRightJoinLoop scans'),joined.indexOf('const rewind=ops.length;ops.push({code:\'Rewind\'',joined.indexOf('if(rightLevel>=0){\n    // wherecode.c:sqlite3WhereRightJoinLoop scans')));
  assert.match(pass,/for\(let level=0;level<rightLevel;level\+\+\)\{[\s\S]*?indexCursors\.get\(ordinal\)[\s\S]*?code:'NullRow',p1:indexCursor/, 'unmatched RIGHT continuation must null selected left index with table');
 });
 

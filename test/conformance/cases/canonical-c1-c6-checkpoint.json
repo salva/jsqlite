@@ -1,0 +1,376 @@
+[
+  {
+    "id": "C1-original",
+    "sql": "SELECT COUNT(*) FROM Track WHERE AlbumId=(SELECT AlbumId FROM Album ORDER BY AlbumId LIMIT 1)",
+    "names": [
+      "COUNT(*)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "10",
+          "text": "10"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C1-control",
+    "sql": "SELECT COUNT(*) FROM Track WHERE AlbumId=(SELECT MIN(AlbumId) FROM Album)",
+    "names": [
+      "COUNT(*)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "10",
+          "text": "10"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C2-values",
+    "sql": "SELECT * FROM (VALUES(1),(2),(3))",
+    "names": [
+      "column1"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "3",
+          "text": "3"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C2-paired",
+    "sql": "SELECT * FROM (VALUES(1,'a'),(2,'b')) ORDER BY 1 DESC",
+    "names": [
+      "column1",
+      "column2"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        },
+        {
+          "type": "text",
+          "value": "b",
+          "text": "b"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        },
+        {
+          "type": "text",
+          "value": "a",
+          "text": "a"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C3-original",
+    "sql": "SELECT AlbumId,COUNT(*) FROM Track WHERE AlbumId IN(1,2) GROUP BY AlbumId",
+    "names": [
+      "AlbumId",
+      "COUNT(*)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        },
+        {
+          "type": "integer",
+          "value": "10",
+          "text": "10"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        },
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C3-derived-IN",
+    "sql": "SELECT InvoiceId,group_concat(TrackId) FROM InvoiceLine WHERE InvoiceId IN(1,2) GROUP BY InvoiceId",
+    "names": [
+      "InvoiceId",
+      "group_concat(TrackId)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        },
+        {
+          "type": "text",
+          "value": "2,4",
+          "text": "2,4"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        },
+        {
+          "type": "text",
+          "value": "6,8,10,12",
+          "text": "6,8,10,12"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C3-derived-OR",
+    "sql": "SELECT InvoiceId,group_concat(TrackId) FROM InvoiceLine WHERE InvoiceId=1 OR InvoiceId=2 GROUP BY InvoiceId",
+    "names": [
+      "InvoiceId",
+      "group_concat(TrackId)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1",
+          "text": "1"
+        },
+        {
+          "type": "text",
+          "value": "2,4",
+          "text": "2,4"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        },
+        {
+          "type": "text",
+          "value": "6,8,10,12",
+          "text": "6,8,10,12"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C4-real",
+    "sql": "SELECT 9223372036854775807+1,1e308*10,1e-320",
+    "names": [
+      "9223372036854775807+1",
+      "1e308*10",
+      "1e-320"
+    ],
+    "rows": [
+      [
+        {
+          "type": "real",
+          "value": "43e0000000000000",
+          "text": "9.2233720368547758e+18"
+        },
+        {
+          "type": "real",
+          "value": "7ff0000000000000",
+          "text": "Inf"
+        },
+        {
+          "type": "real",
+          "value": "00000000000007e8",
+          "text": "9.9998886718268301e-321"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C4-cast",
+    "sql": "SELECT CAST(9223372036854775807+1 AS TEXT),CAST(1e308*10 AS TEXT),CAST(1e-320 AS TEXT)",
+    "names": [
+      "CAST(9223372036854775807+1 AS TEXT)",
+      "CAST(1e308*10 AS TEXT)",
+      "CAST(1e-320 AS TEXT)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "text",
+          "value": "9.2233720368547758e+18",
+          "text": "9.2233720368547758e+18"
+        },
+        {
+          "type": "text",
+          "value": "Inf",
+          "text": "Inf"
+        },
+        {
+          "type": "text",
+          "value": "9.9998886718268301e-321",
+          "text": "9.9998886718268301e-321"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C4-printf",
+    "sql": "SELECT printf('%!.17g',9223372036854775807+1),printf('%!.17g',1e308*10),printf('%!.17g',1e-320)",
+    "names": [
+      "printf('%!.17g',9223372036854775807+1)",
+      "printf('%!.17g',1e308*10)",
+      "printf('%!.17g',1e-320)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "text",
+          "value": "9.2233720368547758e+18",
+          "text": "9.2233720368547758e+18"
+        },
+        {
+          "type": "text",
+          "value": "Inf",
+          "text": "Inf"
+        },
+        {
+          "type": "text",
+          "value": "9.9998886718268301e-321",
+          "text": "9.9998886718268301e-321"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C5-original",
+    "sql": "SELECT ar.Name,(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId) FROM Artist ar WHERE ar.ArtistId=1",
+    "names": [
+      "Name",
+      "(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "text",
+          "value": "AC/DC",
+          "text": "AC/DC"
+        },
+        {
+          "type": "integer",
+          "value": "2",
+          "text": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "C6-original",
+    "sql": "SELECT substr(InvoiceDate,1,4) AS y,COUNT(*) FROM Invoice GROUP BY y ORDER BY y",
+    "names": [
+      "y",
+      "COUNT(*)"
+    ],
+    "rows": [
+      [
+        {
+          "type": "text",
+          "value": "2021",
+          "text": "2021"
+        },
+        {
+          "type": "integer",
+          "value": "83",
+          "text": "83"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "value": "2022",
+          "text": "2022"
+        },
+        {
+          "type": "integer",
+          "value": "83",
+          "text": "83"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "value": "2023",
+          "text": "2023"
+        },
+        {
+          "type": "integer",
+          "value": "83",
+          "text": "83"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "value": "2024",
+          "text": "2024"
+        },
+        {
+          "type": "integer",
+          "value": "83",
+          "text": "83"
+        }
+      ],
+      [
+        {
+          "type": "text",
+          "value": "2025",
+          "text": "2025"
+        },
+        {
+          "type": "integer",
+          "value": "80",
+          "text": "80"
+        }
+      ]
+    ]
+  }
+]

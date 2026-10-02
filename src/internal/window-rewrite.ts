@@ -1,18 +1,19 @@
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {ExprNode, OrderTermNode, SelectNode} from "./parse.ts";
-import {expressionStructurallyEqual, type ResolvedColumnUse, type ResolvedResult, type ResolvedSelect, type ResolvedSource, type ResolvedWindow} from "./resolve.ts";
+import {resolvedExpressionCarrier, type ResolvedExpressionCarrier, expressionStructurallyEqual, type ResolvedColumnUse, type ResolvedResult, type ResolvedSelect, type ResolvedSource, type ResolvedWindow} from "./resolve.ts";
 import {sqliteAsciiFold} from "./sqlite-case.ts";
 import type {SqlToken} from "./tokenize.ts";
 import {productions, tokenIds} from "../generated/parser-tables.ts";
 
 type Reduction=Extract<LemonValue<SqlToken>,{kind:"reduction"}>;
 export interface WindowExpressionBinding {readonly source:ResolvedSource;readonly columnIndex:number}
-export interface WindowRewriteFunction {readonly window:ResolvedWindow;readonly regAccum:number;readonly regResult:number;readonly argumentColumn:number;readonly filterColumn:number|null}
+export interface WindowRewriteFunction {readonly window:ResolvedWindow;readonly regAccum:number;readonly regResult:number;readonly argumentColumn:number;readonly filterColumn:number|null;readonly filterCarrier:ResolvedExpressionCarrier|null}
 export interface WindowRewriteSortTerm {readonly expression:ExprNode;readonly binding:WindowExpressionBinding|null;readonly source:"partition"|"order";readonly copiedIntegerToNull:boolean;readonly descending:boolean;readonly nulls:"first"|"last"|null}
 export interface WindowLiftedExpression {readonly expression:ExprNode;readonly kind:"column"|"aggregate"|"window";readonly bufferColumn:number;readonly selectDepth:number;readonly aggregateDepthBefore:number|null;readonly aggregateDepthAfter:number|null;readonly correlatedFromScalarSubquery:boolean}
 export interface WindowAggregateDepthRepair {readonly expression:ExprNode;readonly selectDepth:number;readonly aggregateDepthBefore:number;readonly aggregateDepthAfter:number}
 export interface WindowRewriteOriginalProducer {
  readonly kind:"original";readonly nonFlattenable:true;readonly correlated:true;
+ readonly sourcePredicates:readonly ResolvedExpressionCarrier[];
  readonly from:SelectNode["from"];readonly where:ExprNode|null;readonly groupBy:readonly ExprNode[];readonly having:ExprNode|null;
 }
 export interface WindowRewriteNestedProducer {
@@ -150,17 +151,17 @@ function resolvedBinding(value:ExprNode,uses:ReadonlyMap<Reduction,ResolvedColum
 }
 
 /** Immutable port of window.c:sqlite3WindowRewrite/sqlite3WindowCodeInit. */
-export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph{
+export function sqlite3WindowRewrite(resolved:ResolvedSelect,allocation?:{registers:number;cursors:number}):WindowRewriteGraph{
  const groups=new Map<number,ResolvedWindow[]>();for(const window of resolved.windows){const group=groups.get(window.compatibleGroup);if(group)group.push(window);else groups.set(window.compatibleGroup,[window]);}
- let nextCursor=Math.max(-1,...resolved.sources.map(source=>source.cursorId))+1,nextRegister=0;const layers:WindowRewriteLayerState[]=[];let parentOrder=resolved.source.orderBy;let prefixElided=false;
+ let nextCursor=Math.max(allocation?.cursors??0,Math.max(-1,...resolved.sources.map(source=>source.cursorId))+1),nextRegister=allocation?.registers??0;const layers:WindowRewriteLayerState[]=[];let parentOrder=resolved.source.orderBy;let prefixElided=false;
  const uses=new Map<Reduction,ResolvedColumnUse>();const collectUses=(owner:ResolvedSelect):void=>{for(const use of owner.columnUses)uses.set(use.expression,use);owner.nested.forEach(collectUses);};collectUses(resolved);
  const groupEntries=[...groups.entries()];
  for(const [groupIndex,[compatibleGroup,windows]] of groupEntries.entries()){const main=windows[0]!;
   const orderFlags=windowOrderFlags(main);const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),binding:resolvedBinding(value,uses),source:"partition" as const,copiedIntegerToNull,descending:false,nulls:null});}),...main.orderBy.map((value,index)=>{const copiedIntegerToNull=integerSortKey(value),flags=orderFlags[index]??{descending:false,nulls:null};return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),binding:resolvedBinding(value,uses),source:"order" as const,copiedIntegerToNull,...flags});})]);
   if(layers.length===0&&parentOrder.length<=producerOrderBy.length&&parentOrder.every((term,index)=>sameOrderTerm(term,producerOrderBy[index]!,resolved))){parentOrder=Object.freeze([]);prefixElided=true;}
-  const terminalRewrite=liftExpressions([...resolved.result.map(result=>result.expression),...parentOrder.map(term=>term.expr),...groupEntries.slice(groupIndex+1).flatMap(([,pending])=>pending.flatMap(window=>[...window.partitionBy,...window.orderBy,...windowArguments(window.owner)]))],resolved,main),lifted=terminalRewrite.lifted,buffer:ExprNode[]=lifted.map(item=>item.expression),bufferBindings:(WindowExpressionBinding|null)[]=buffer.map(value=>resolvedBinding(value,uses));
+  const terminalRewrite=liftExpressions([...resolved.result.map(result=>result.expression),...parentOrder.map(term=>{const index=resolved.orderResultColumns[resolved.source.orderBy.indexOf(term)];return index!==null&&index!==undefined?resolved.result[index]!.expression:term.expr;}),...groupEntries.slice(groupIndex+1).flatMap(([,pending])=>pending.flatMap(window=>[...window.partitionBy,...window.orderBy,...windowArguments(window.owner)]))],resolved,main),lifted=terminalRewrite.lifted,buffer:ExprNode[]=lifted.map(item=>item.expression),bufferBindings:(WindowExpressionBinding|null)[]=buffer.map(value=>resolvedBinding(value,uses));
   for(const value of [...main.partitionBy,...main.orderBy]){buffer.push(value);bufferBindings.push(resolvedBinding(value,uses));}
-  const functions=windows.map(window=>{const argumentColumn=buffer.length;for(const value of windowArguments(window.owner)){buffer.push(value);bufferBindings.push(resolvedBinding(value,uses));}const filterColumn=window.filter?(buffer.push(window.filter),bufferBindings.push(resolvedBinding(window.filter,uses)),buffer.length-1):null;return Object.freeze({window,argumentColumn,filterColumn,regAccum:++nextRegister,regResult:++nextRegister});});
+  const functions=windows.map(window=>{const argumentColumn=buffer.length;for(const value of windowArguments(window.owner)){buffer.push(value);bufferBindings.push(resolvedBinding(value,uses));}const filterColumn=window.filter?(buffer.push(window.filter),bufferBindings.push(resolvedBinding(window.filter,uses)),buffer.length-1):null;const filterReduction=window.filter?.reduction;const filterExpr=filterReduction?.kind==='reduction'?filterReduction.children.find((child):child is Reduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::=')):undefined;const filterCarrier=filterExpr?resolvedExpressionCarrier(resolved,filterExpr):null;return Object.freeze({window,argumentColumn,filterColumn,filterCarrier,regAccum:++nextRegister,regResult:++nextRegister});});
   if(buffer.length===0){buffer.push(Object.freeze({kind:"tokens",tokens:Object.freeze([])}));bufferBindings.push(null);}
   const iEphCsr=nextCursor;nextCursor+=4;const regGosub=++nextRegister,addrGosub=layers.length,handoff=Object.freeze([{code:"Gosub" as const,register:regGosub,address:addrGosub},{code:"Return" as const,register:regGosub}] as const);
   // The producer edge is attached after all layer-local state is complete. Only
@@ -168,11 +169,16 @@ export function sqlite3WindowRewrite(resolved:ResolvedSelect):WindowRewriteGraph
   // consume the complete Select produced by the preceding recursive rewrite.
   layers.push(Object.freeze({compatibleGroup,windows:Object.freeze(functions),producerOrderBy,bufferExpressions:Object.freeze(buffer),bufferBindings:Object.freeze(bufferBindings),lifted:Object.freeze(lifted),aggregateDepthRepairs:Object.freeze(terminalRewrite.aggregateDepthRepairs),iEphCsr,duplicateCursors:Object.freeze([iEphCsr+1,iEphCsr+2,iEphCsr+3]) as readonly [number,number,number],regGosub,addrGosub,handoff}));
  }
+ // Capture original predicate identities on the moved producer edge, not
+ // rewritten parent expressions. ON predicates precede WHERE as before.
+ const sourcePredicates:ResolvedExpressionCarrier[]=[];
+ for(const item of resolved.source.from.items)if(item.on?.reduction?.kind==='reduction')sourcePredicates.push(resolvedExpressionCarrier(resolved,item.on.reduction));
+ if(resolved.source.where?.reduction?.kind==='reduction')sourcePredicates.push(resolvedExpressionCarrier(resolved,resolved.source.where.reduction));
  let root:WindowRewrittenSelect|null=null;
  const linked:WindowRewriteLayer[]=[];
  for(const [index,unlinked] of layers.entries()){
   const producer:WindowRewriteProducer=index===0
-   ?Object.freeze({kind:"original" as const,nonFlattenable:true as const,correlated:true as const,from:resolved.source.from,where:resolved.source.where,groupBy:resolved.source.groupBy,having:resolved.source.having})
+   ?Object.freeze({kind:"original" as const,nonFlattenable:true as const,correlated:true as const,sourcePredicates:Object.freeze(sourcePredicates),from:resolved.source.from,where:resolved.source.where,groupBy:resolved.source.groupBy,having:resolved.source.having})
    :Object.freeze({kind:"rewritten-select" as const,nonFlattenable:true as const,correlated:true as const,parentCompatibleGroup:unlinked.compatibleGroup,select:root!});
   const layer:WindowRewriteLayer=Object.freeze({...unlinked,producer});
   linked.push(layer);

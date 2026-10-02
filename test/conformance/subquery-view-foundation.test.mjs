@@ -214,9 +214,10 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} froz
   try{
     db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
     for(const contract of contracts){
-      if(contract.limits){db.close();db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{limits:contract.limits});}
       statement=db.prepare(contract.sql).statement;
-      const operation=contract.id==='coroutine-cancel-inner'?{signal:AbortSignal.abort('inner cancellation')}:contract.id==='coroutine-deadline-inner'?{timeoutMs:0}:undefined;
+      // Tighten this producer's operation, not the next admission probe. Work
+      // is implementation-defined; SELECT 1 need not fit its six-unit budget.
+      const operation=contract.id==='coroutine-cancel-inner'?{signal:AbortSignal.abort('inner cancellation')}:contract.id==='coroutine-deadline-inner'?{timeoutMs:0}:contract.limits;
       await assert.rejects(async()=>{while(await statement.step(operation)==='row'){}},error=>error.kind===contract.expect.errorKind,`${contract.id} is observed inside the shared child execution`);
       assert.throws(()=>statement.column(0),error=>error.kind==='misuse','failed child execution invalidates any exposed row');
       assert.throws(()=>statement.finalize(),error=>error.kind===contract.expect.errorKind,'finalize preserves the first inner control/work error');statement=undefined;

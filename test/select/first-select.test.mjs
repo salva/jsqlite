@@ -329,7 +329,35 @@ test("live statement close is BUSY, deferred close keeps VM alive, and breadth i
   const count=db2.prepare("SELECT count(*)").statement;
   assert.equal(await count.step(),"row"); assert.equal(count.column(0),1n);
   assert.equal(await count.step(),"done"); count.finalize();
-  assert.throws(()=>db2.prepare("SELECT 1 GROUP BY 1"), error=>isError("unsupported")(error)&&error.unsupportedClassification==="temporary");
+  // Pinned resolve.c:resolveOrderGroupBy substitutes result ordinal 1;
+  // select.c's grouped zero-source candidate produces one group, not unsupported.
+  for(const [sql,name,type,value,hasRow] of [
+    ["SELECT 1 GROUP BY 1","1","integer",1n,true],
+    ["SELECT 1 AS x GROUP BY 1","x","integer",1n,true],
+    ["SELECT 1 WHERE 0 GROUP BY 1","1",null,null,false],
+    ["SELECT 1.5 AS x GROUP BY 1","x","real",1.5,true],
+    ["SELECT NULL AS x GROUP BY 1","x","null",null,true],
+  ]) {
+    const grouped=db2.prepare(sql).statement;
+    try {
+      assert.equal(grouped.columnCount,1);
+      assert.equal(grouped.columnMetadata(0).name,name);
+      for(let pass=0;pass<2;pass++) {
+        assert.equal(await grouped.step(),hasRow?"row":"done");
+        if(hasRow) { assert.equal(grouped.columnType(0),type); assert.equal(grouped.column(0),value); }
+        assert.equal(await grouped.step(),"done");
+        assert.equal(await grouped.step(),"done");
+        if(pass===0)grouped.reset();
+      }
+    } finally { grouped.finalize(); }
+    assert.throws(()=>grouped.reset(),isError("misuse"));
+  }
+  for(const [sql,message] of [
+    ["SELECT 1 GROUP BY 0","1st GROUP BY term out of range - should be between 1 and 1"],
+    ["SELECT 1 GROUP BY 2","1st GROUP BY term out of range - should be between 1 and 1"],
+    ["SELECT 1 GROUP BY missing","no such column: missing"],
+    ["SELECT count(*) GROUP BY 1","aggregate functions are not allowed in the GROUP BY clause"],
+  ])assert.throws(()=>db2.prepare(sql),error=>isError("sqlite")(error)&&error.code===1&&error.message===message);
   assert.throws(()=>db2.prepare("SELECT * FROM missing JOIN other"), error=>isError("sqlite")(error)&&error.message.includes("no such table"));
   db2.close();
 });

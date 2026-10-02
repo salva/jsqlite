@@ -10,10 +10,10 @@ import test from 'node:test';
 test('ordered non-VALUES derived coroutine does not relocate a finished child',()=>{
  const source=readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('function compileDerivedProducer(');
- const end=source.indexOf('\nfunction uniqueTransientColumnNames(',start);
+ const end=source.indexOf('\nfunction substituteViewExpression(',start);
  assert.ok(start>=0&&end>start,'derived producer owner identifiable');
  const owner=source.slice(start,end);
- const ordered=owner.slice(owner.indexOf('}else if(ordered){'),owner.indexOf('}else{\n    // Existing non-VALUES fallback'));
+ const ordered=owner.slice(owner.indexOf('}else if(setProducer||mixedProducer||ordered){'),owner.indexOf('}else{\n    // select.c sqlite3Select dispatches semantic SELECT owners'));
  assert.ok(ordered.length>0,'ordered non-VALUES branch remains separate from table/window fallback');
  assert.match(ordered,/kind:'coroutine'/);
  assert.doesNotMatch(ordered,/relocateControlTargets\(|child\.ops|pcMap\[/,'ordered compound emits through parent destination without copying child PCs');
