@@ -1,0 +1,118 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "id": "json-subtypes",
+      "sql": "SELECT json_valid('{a:1}'),json_valid('{a:1}',2),json_valid(NULL),json(NULL),jsonb(NULL),subtype(json('{}')),subtype(jsonb('{}'))",
+      "provenance": {
+        "owner": "src/json.c jsonValidFunc/jsonFunc/jsonReturnString",
+        "existingSuite": "test/conformance/json-foundation.test.mjs",
+        "credit": "source-branch companion, no additional upstream test credit"
+      },
+      "columns": [
+        {
+          "name": "json_valid('{a:1}')",
+          "declaredType": null
+        },
+        {
+          "name": "json_valid('{a:1}',2)",
+          "declaredType": null
+        },
+        {
+          "name": "json_valid(NULL)",
+          "declaredType": null
+        },
+        {
+          "name": "json(NULL)",
+          "declaredType": null
+        },
+        {
+          "name": "jsonb(NULL)",
+          "declaredType": null
+        },
+        {
+          "name": "subtype(json('{}'))",
+          "declaredType": null
+        },
+        {
+          "name": "subtype(jsonb('{}'))",
+          "declaredType": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "74"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "json-values",
+      "sql": "SELECT json_extract('{\"x\":1.5}', '$.x'), json_extract('{\"x\":null}', '$.x'), json('{a:1}'), jsonb('{}')",
+      "provenance": {
+        "owner": "src/json.c jsonExtractFunc/jsonReturnFromBlob/jsonbResult",
+        "credit": "typed source-branch discriminator"
+      },
+      "columns": [
+        {
+          "name": "json_extract('{\"x\":1.5}', '$.x')",
+          "declaredType": null
+        },
+        {
+          "name": "json_extract('{\"x\":null}', '$.x')",
+          "declaredType": null
+        },
+        {
+          "name": "json('{a:1}')",
+          "declaredType": null
+        },
+        {
+          "name": "jsonb('{}')",
+          "declaredType": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "real",
+            "ieee754be": "3ff8000000000000"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7b2261223a317d"
+          },
+          {
+            "type": "blob",
+            "hex": "0c"
+          }
+        ]
+      ]
+    }
+  ]
+}
