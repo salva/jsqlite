@@ -2460,32 +2460,6 @@ consistent with `select.c:selectInnerLoop` and the shared builder. The 92-case
 broader join/in-range command now exits 0; its earlier 3 failing cases remain
 recorded as the pre-fix result, not erased by typecheck.
 
-### Second checkpoint attribution (2026-10-01, [[card:card-s-c-d-h]])
-
-First SELECT checkpoint includes the minimal shared joined reverse and
-insertion-order producer/consumer closure, not exclusive SELECT ownership.
-Remaining selected nullable-start, cursor NullRow/reset and single-source
-reverse semantics belong to the incremental WHERE checkpoint. Existing
-completed-child parent-owner structural test remains red; no migration or
-broad compatibility acceptance is implied. Current staged-only validation
-is recorded in the card delivery status with individual process exits.
-
-The incremental test allocation includes joined/physical linked identity and
-NULL public/native companions, joined selected NULL guard, nullable range
-and unbounded reverse native probes. The c&1 test companion remains outside
-the index with separately attributable bitwise lowering; other arithmetic
-implication assertions and native captures are retained.
-
-### Review-v12 selected physical invalidation correction
-
-The inherited clearPosition invalidated decoded state but left IndexCursor
-physical #indexPosition live. The owning override now uses #set(null), matching
-`btree.c:sqlite3BtreeClearCursor` CURSOR_INVALID and retaining generation/borrow
-invalidation. Actual positioned-cursor regression failed before repair and
-passes after for Next/Prev and fresh boundary/seek. This closes that narrow
-state divergence only; completed-child SELECT ownership and stale GROUP BY
-admission-test gaps remain separate and unwaived.
-
 #### Current correction: forced/repeated CTE fallback (bounded)
 Current compileCteDerivedSourcesFallback finished-child copying retired into
 shared builder semantic producer destinations, CteUse-keyed parent fill/reuse.
@@ -2493,18 +2467,21 @@ Native/public LIMIT2/0/OFFSET2/repeated CROSS and lexical missing child pass;
 selected300/300 not integrated acceptance. Computed/filter probes remain outside
 this fallback admission; root WHERE0..30 allocator reservation/source0 lexical
 caller defect and broader metadata/error/binds/resources remain unresolved.
+
 #### Linked expression carrier first consumer correction
 Joined scalar aggregate consumer now consumes resolve.ts carrier rather than
 local reduction walker/name-use search. Source/depth/merged metadata preserved;
 304 selected tests and pinned physical correlated JOIN evidence pass. Other
 walkers/NameContext flags/aggregate carrier and NULL/literal binder admission
 remain unresolved, not architecture acceptance.
+
 #### Second linked carrier consumer correction
 Ordinary scalar subquery binder duplicate traversal/search retired into carrier
 and shared binding; explicit scalar-leaf mode preserves NULL/literal/CASE/
 BETWEEN/prebound columns, first joined consumer remains bounded. Native two
 consumers and selected490 pass. Window substitution/special aggregate binders,
 full linked flags/depth/metadata/error/resource intersections remain unresolved.
+
 #### Derived register-phase carrier correction
 Actual derived scalar ALL aggregate predicate/arguments consume shared resolved
 carrier with explicit producer-row register location vs lexical cursor contract.
@@ -2512,6 +2489,7 @@ Local bindDerived/argument walker retired. Not AggInfo finalized-row or rewritte
 window identity ownership. Prior literal predicate rejection retained, producer
 NULL admitted; native/type/selected496 pass. Other consumers, phase/flags/merged
 metadata/resource/limit/error intersections and source0 admission remain debt.
+
 #### Window FILTER consuming handoff correction
 Owned FILTER expression carrier captured at rewrite construction and consumed by
 shared window-filter cursor/register binding; local walk/search retired, source
@@ -2584,79 +2562,1378 @@ errors and shared423/424 stale assertion failure recorded; isolated frozen test
 handoff/export remains d-owned, no manifest regeneration. R2 obligations paused,
 not full approval or delivery.
 
-### Third isolated checkpoint attribution
-
-Shared SELECT/WHERE prerequisites include lexical linked carriers, true-leaf
-lookup, noVisibleRowid, only two Mem flexnum relationship hunks, expression
-affinity/collation and coupled RIGHT bound/entry state. Physical cursor 0..30
-reservations and f5bb86 invalidation remain; no broad nTab migration.
-Compound aggregate source now streams with parent Coroutine/Yield/EndCoroutine
-and retains parent Mem/Exists/Set/LIMIT; no budget increase. This is bounded
-checkpoint evidence, not broad R1-R4 or optimizer acceptance.
-
-### Third checkpoint literal C1–C6 bounded bridge (2026-10-02)
-
-This maps root's literal cases, not B1–B5 and not a unified compatibility
-denominator. Pinned source3.53.4 source ID bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc;
-Chinook SHA2567651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15.
-Native capture and public bridge are test/conformance/capture-canonical-c1-c6-checkpoint.py,
-cases/canonical-c1-c6-checkpoint.json and canonical-c1-c6-checkpoint.test.mjs.
-The capture takes LIBRARY DB CASES arguments; checks pinned identity and database
-digest. Native C API column_type/int64/double/text/name and public APIs compare
-INTEGER/REAL/TEXT, raw IEEE bytes, columnText and names, then reset. Public
-requires CHINOOK_DB. Results:12 named obligations pass, not twelve independent
-canonical cases or proof of all owner coverage.
-
-| Literal | Existing owner/path | Original result and separate controls |
-|---|---|---|
-| C1 | l/m: expr.c sqlite3CodeSubselect LIMIT and select.c aggregate; select-scalar-child, expression-subquery-chinook | COUNT ordered LIMIT1 bigint4; MIN control bigint10. Control must not replace original. |
-| C2 | j/m: select.c selectInnerLoop SRT_Coroutine, vdbe Yield; select-derived-values-parent, subquery-view-foundation | derived VALUES1,2,3 are three INTEGER rows; paired descending rows 2,b then1,a. |
-| C3 | m: where.c IN terms/wherecode.c iterator, select.c GROUP; aggregate-group-chinook-regressions, selected-in-integration | literal Track grouped rows1,10 and2,1 INTEGER; derived InvoiceLine group_concat IN/OR individually captured equal TEXT sequences. Exact original group_concat SQL absent, no original credit. |
-| C4 | p/j: vdbe.c arithmetic, util.c sqlite3FpDecode, printf.c altform2; mem-numeric, Mem/printf owner tests | maxint+1 columnText/CAST/printf 9.2233720368547758e+18; overflow Inf; tiny9.9998886718268301e-321; public raw IEEE equals native, no REAL-to-INTEGER flattening. |
-| C5 | l/m: resolve.c lookupName correlation depth, expr.c subselect, select.c count; expression-subquery-chinook, select-scalar-linked-owner | Artist1 AC/DC and INTEGER2, not merely derived sample. |
-| C6 | m/p: func.c substr, select.c group/order/name; aggregate-group-chinook-regressions | fresh typed TEXT years2021..2025 and INTEGER counts83,83,83,83,80; names y and COUNT(*), two executions. |
-
-First checkpoint includes SELECT entry/producer and explicitly SHARED minimal
-Mem/schema/resolve/affinity/collation/RIGHT entry prerequisites, not exclusive t
-ownership. Raw patch3ea28e05 tree is handoff, not delivered tree: c&1 companion
-restored to HEAD's bounded exclusion, unrelated bitwise remains dirty. Source
-C-to-TS comparison of selectInnerLoop SRT_Coroutine matches parent Yield instead
-of ephemeral insertion. Compound aggregate Mem/Exists/Set dispatch precedes
-projection gate and parent final-row LIMIT; 24-byte lifecycle retained without
-budget increase. Physical0..30 and f5bb86 cursor invalidation preserved.
-
-Local disposable source checks: shared424/424, selected175/175, prerequisite50/50,
-61 pinned SELECT/window native scripts, typecheck0. Advanced-index manifest first
-failed with two missing upstream test-file errors in git archive; read-only pinned
-source symlink supplied and rerun11/11. No build script exists; tsconfig noEmit is
-the configured type/build boundary, not a fabricated npm build pass. Earlier
-h39 runtime/structural reds remain historical failures superseded only by these
-changed-source checks. No broad R1–R4, STAT4, optimizer or lifecycle acceptance.
-
-### Third incremental WHERE / stat seam validation (2026-10-02)
-
-The selected WHERE/Btree/index/private-state implementation seam is already
-committed in f5bb86 and earlier checkpoints; this incremental checkpoint does
-not invent extra source changes or import bitwise work. SELECT's RIGHT bound
-expression carrier and entry initialization are explicitly shared first closure.
-Existing source owners: where-plan.ts stat1 candidate/cost, schema.ts stat loader,
-vdbe.ts selected index/IN ordering and btree.ts cursor invalidation. Pinned
-where.c whereLoopAddBtreeIndex/stat1 cost and wherecode.c sqlite3WhereCodeOneLoopStart
-IN seek/continuation remain comparison references. No STAT4 or optimizer expansion.
-
-Independent local capture-in-range-stat.py --library pinned-library exit0 matched
-all SIX frozen cases/in-range-stat-native.json snapshots (before/after STAT1 x
-UTF8/UTF16LE/UTF16BE), with image hashes checked by capture; exact stat-choice
-SELECT id WHERE a=1 AND b IN(13,14) ORDER BY id and forced t_a/t_ab controls.
-Fresh stat-choice public tests6/6 assert existing current unforced choice and
-output; before t_a (native no sorter/0 IN probes), after t_ab (native sorter/2
-IN probes). TS accounting is implementation control, not native EQP/work identity.
-Historical parked sorterRows4-vs0 is not assumed current red; no counter waiver.
-Original c-e committed coverage rerun must be reopened only after actual commit.
-
 
 ### R1 partial Boolean implication correction (2026-10-02)
 
 `expr.c:exprImpliesNotNull` (6698–6768) distinguishes true-only from non-NULL proof and has no TK_AND/TK_OR cases. `where.c:whereUsablePartialIndex` (3700–3735) consumes that proof before choosing a partial index. The former TS unconditional AND recursion under NOT was unsound: NULL AND false is false, so NOT can be true while the partial predicate column is NULL. Nested AND now yields no proof; top-level conjunct splitting remains in `analyzeWhere`. Query-side OR is **not a direct translation of this switch**: the bounded true-only extension requires both arms independently prove the target and is disabled in every seenNot/non-NULL context. This compensates for absent upstream OR-derived analysis terms in the represented scalar path, rather than installing general OR optimization. If OR is true at least one arm is true; requiring both true-only proofs is sufficient. It cannot establish non-NULL OR operands (NULL OR true is true). Pinned public capture confirms `a=1 AND (c>0 OR c<0)` still admits forced p_live; removing this positive branch would reject a represented valid proof. Index-predicate-side OR remains a separate pinned `sqlite3ExprImpliesExpr` branch.
 
 Verified pinned 3.53.4 native read-only fixture behavior in UTF-8/UTF-16LE/UTF-16BE: `a=1 AND NOT(c>0 AND a=2)` and reversed arms reject forced p_live at prepare and return INTEGER ids 1,2 unforced/NOT INDEXED. Parameter neighbors `[1,1]` and `[NULL,2]` return empty controls. The public regression checks both orders, reset/rebind, NULL, forced preparation rejection, zero unsafe index seeks, damaged partial-root off-path isolation, and a valid c>0 selected neighbor. No output filtering is used to compensate for an incomplete index. Frozen 24/30 selected-access accounting is unchanged; no general optimizer or complete implication claim follows.
+
+
+#### R1 ordered enclosing entry ([[card:card-t-b]])
+R1 current continuation: bounded unlimited single-column ordered table UNION ALL entry now passes parent builder/parameters/output to existing shared composer and publishes one Program. Ordinal range diagnostic repaired at compound owner before merge-key eligibility. This supersedes independent ownership only on this entry slice; ordered general/set/recursive/ordinary ownership and phase obligations remain open. c828 streaming/destinations unchanged; recursive producer.ops ResultRow/Halt rewrite still live.
+
+R2 bounded GROUP source-key owner update: ordinary compileAggregateSelect GROUP
+keys now use resolvedExpressionCarrier + shared bindResolvedExpression with
+aggregate resultLocation (linked SrcItem/cursor and IPK physical payload slot),
+not resolve(aliasExpression(...)) spelling lookup before sorter capture. Deleted
+now-unused aliasExpression walker; resolve remains live for ON/subquery owners.
+Pinned resolve.c2081 GROUP ownership and expr.c4977 TK_AGG_COLUMN/select.c8579
+source-key capture comparison supports this edge only: full directMode /
+AggInfoColumnReg / sortingIdxPTab/iSorterColumn/REAL/RIGHT invalid-null and
+source→sorter→bare/accumulator/final relationships remain original R2 debt.
+Native source+alias/full-context tests and public phase/source/alias28 pass;
+current type/shared aggregate/select/resolver + digest-pinned Chinook487 pass.
+Earlier broad484/485 lacked CHINOOK_DB, rerun with existing pinned fixture, not
+suppression. c828 streaming/budget/destinations and b547 ordered shared entry
+remain unchanged. No new feature/admission/budget/WHERE reservation change.
+GROUP ordinal semantic production and ON/subquery/parent consumers remain
+explicit dependent seams; do not claim this bounded key edge completes R2.
+
+R2 aggregate ON source-row update (supersedes preceding live-resolver census):
+compileAggregateSelect grouped and ungrouped ON now consume aggregatePlan's
+resolved ON expression carrier through shared bindResolvedExpression and
+resultLocation, retaining linked lexical source identity/IPK/cursor/affinity.
+Pinned select.c504+ ON tagging and resolve.c1062+ join-expression scope own
+resolution, not a second spelling walker at predicate emission. Existing
+predicate/reject-level/LEFT match/null-row/WHERE ordering and subquery callback
+contracts are unchanged. Actual post-migration census finds no external calls
+to the local recursive resolve walker: it was deleted with its stale comment.
+The earlier claim that it remained a subquery consumer was incorrect; aggregate
+subquery emission has its own linked context path. This is not proof that all
+nested/parent contexts or AggInfo phases have migrated. No scope/admission or
+private budget change. Native-first paired ON cases (grouped LEFT NULL/IPK,
+ungrouped CASE/REAL/FILTER/DISTINCT/min bare tie) pass; focused31 and shared550
+including canonical C1–C6, pinned Chinook, recursive destinations and private
+lifecycle pass. Original full source→sorter→bare/accumulator/finalized column
+ownership (expr.c4977 directMode/AggInfoColumnReg/useSortingIdx/iSorterColumn,
+REAL extraction and RIGHT invalid-column NULL), GROUP ordinal production and
+parent consumers remain explicit dependencies, not completed by this edge.
+
+
+#### R1 recursive enclosing output entry ([[card:card-t-b]])
+R1 bounded ordinary recursive queue entry now passes its parent builder/parameters/output to the existing queue producer; terminal Program publication belongs entry. This supersedes independent ownership only on that fallback queue branch, not specialized window/SUM/multiple-CTE paths. d238 genuinely removed completed-program SUM and zero-source derived COUNT rewrites (COUNT was not recursive); c846 linked ON migration preserved. Native/public outer LIMIT and LIMIT0 lexical-resolution admission gaps remain unresolved.
+
+Current revision d outer-LIMIT repair supersedes b559/d241's two ordinary
+recursive outer LIMIT admission/error findings: separate outer destination
+limits preserve body decrement/restart and compile-time missing-column binding.
+Native/public regression controls cover both reproduced gaps. This does not
+supersede specialized recursive/set/ordinary ownership or R2 source/sorter/bare,
+REAL/RIGHT-null/subquery/parent findings. Selected integration is not full R1–R4.
+
+R2 grouped column-phase migration: compileAggregateSelect's linked binding now
+attaches shared columnOwner/iAgg identity to actual column expressions. Grouped
+payload production retains physical source-width layout; each payload column
+owns iSorterColumn and saved bare accumulator cell. Shared expression emission
+consumes directMode/useSortingIdx: source cursor before capture, sorter row
+register+iSorterColumn for arguments/FILTER/local aggregate ORDER, saved column
+cell for HAVING/output/unmatched ORDER after finalization. Removed independent
+rowColumns/savedColumns recursive walkers and register-range/group-index identity
+inference. select.c8579+ capture, updateAccumulator/reset/finalization and
+expr.c4977–5027 TK_AGG_COLUMN govern the relationship. Bare saved-cell copies and
+min/max tie change gating are retained. REAL sorter extraction copies into a
+fresh Mem and emits RealAffinity only for iColumn>=0 REAL, not rowid; absent
+column entry in phase lookup emits NULL. No RIGHT expression-index admission
+claim: native iAgg>=nColumn NULL branch is represented but exact upstream
+expression-index RIGHT invalidation producer remains unproved/dependent.
+Browser VM adaptation: SorterData already decodes payload into contiguous Mem
+registers rather than SQLite's pseudo-table cursor; sortingIndexRegister plus
+owned iSorterColumn addresses that same row, preserving shared sorter budget,
+async lifetime and Mem types. This replaces AST register rewrites, not a generic
+evaluator. Native source/alias and focused phase/private tests41 passed; added
+native-first BETWEEN/IN bare min tie + CASE REAL argument combination passes42.
+Initial broad556 passed; fresh final offset-field refinement broad557 passed.
+GROUP ordinal production, parent/subquery correlation phase contexts and full
+AggInfo analyzer/index-expression relationships remain unfinished. No budget,
+feature admission or public resource/lifecycle guarantee change; c828 streaming
+private24 and d244 separate recursive counters remain intact.
+
+Revision d after c855: ordinary GROUP integer ordinal now publishes selected
+result-expression identity and aggregate group lowering consumes that carrier
+instead of grouping by literal integer. d250 GROUP1 public divergence repaired;
+not full analyzer/parent/subquery/RIGHT acceptance. d250 grouped derived compound
+parent no-such-table:d divergence remains: specialized ungrouped stream isn't a
+linked grouped source capture. No stale canonical blocker or scope reduction.
+
+Revision d grouped-stream repair supersedes d250/253 grouped derived UNION ALL
+no-such-table:d finding for bounded unordered/unlimited producer. Shared transient
+binding/coroutine rows now feed existing grouped capture/phase consumers; no
+shadow table/evaluator. Metadata uses resolved descriptors. WHERE/ordinal/HAVING/
+local ORDER and private-entry cleanup controls added. Does not settle general
+parent/subquery/RIGHT analyzer ownership or original full R1–R4.
+
+R2 correlated aggregate EXISTS consumer repair (after d260): actual
+compileAggregateSubquery EXISTS branch now obtains aggregatePlan.nested linked
+select identity. Inner WHERE/ON reductions use shared resolvedExpressionCarrier
+and bindResolvedExpression; local sources map to allocated inner cursors, outer
+source identity maps through resultLocation to existing AggregateColumnOwner.
+Deleted this branch's owners[] name/depth guessing and independent recursive
+expression binder. Parent grouped HAVING (!directMode) reads saved bare cell;
+source WHERE reads live source, sorter argument phase remains owner-selected.
+expr.c analyzeAggregate7403+ source-column/nested traversal and TK_AGG_COLUMN4977+
+plus resolve.c linked NameContext lookup and select.c capture/update/finalization
+own this relationship. Existing sole-equality EXISTS ephemeral-key specialization
+retains Once/KeyInfo/local materialization and probes with the same linked outer
+phase; general predicate runs existing inner loops. Public native-first grouped
+HAVING red returned [] instead of two INTEGER groups; now repaired. Additional
+native controls for source WHERE, local alias shadow and sole equality were
+captured after repair (not all native-first). Native source/alias, type, focused63,
+changed-input broad664 including canonical/Chinook/index/private/recursive pass.
+No new engine, budgets or root cursor remapping. d260 grouped coroutine and
+ordinal, d247 recursive counters and c828 streaming private24 remain covered.
+This is the EXISTS consuming slice, not full aggregate-subquery migration:
+other scalar/IN contracts and full AggInfo analyzer/index-expression/RIGHT
+invalidation remain incomplete. Retained producer ORDER/LIMIT composition is
+separate coordination debt; no full R1/R2 architecture acceptance claimed.
+
+
+#### R1 scalar/set enclosing entry ([[card:card-t-b]])
+R1 continuation: final zero-source scalar/VALUES/set branch now passes enclosing builder/parameters/emitRow/output destination to actual compileScalarSelect and publishes terminal Program. This supersedes independent generator ownership only on that entry branch (including existing early owner-forwarding window/CTE paths); standalone callers and table/aggregate/specialized recursive public owners remain live. c864/d260/d247 carriers/recursive limits untouched; broader R1 architectural acceptance remains open.
+
+R2 ordered scalar parent consuming migration: compileAggregateSubquery's
+retained single-source ORDER BY/LIMIT1 SRT_Mem branch now binds actual result,
+WHERE and ORDER reductions through nested resolved select/carrier identity.
+Local source maps to its allocated cursor; outer reference maps via parent
+resultLocation to AggregateColumnOwner source/sorter/saved phase. Removed only
+this branch's independent local spelling/recursive walker. resolve.c linked
+NameContext lookup, expr.c analyzeAggregate7403+/TK_AGG_COLUMN4977+ and
+sqlite3CodeSubselect EP_VarSelect/Once branch govern actual consumers. Correlated
+nestedPlan omits Once; each evaluation initializes NULL and reopens existing
+sorter before reading local rows. Uncorrelated nestedPlan retains Once and
+cached SRT_Mem. Existing read/WHERE rejection/Next/empty SorterSort/topN1/end
+and shared async Mem/KeyInfo/private control remain unchanged; no new evaluator.
+Native-first grouped nearest-row red (wrong no-such-column t.a) passes with
+four distinct typed parent groups. Additional native controls captured after
+repair (before paired public additions) cover source WHERE correlation, saved
+output predicate with empty->NULL then populated groups, and local alias-shadow
+uncorrelated cached scalar; types/names/reset/done/finalize retained. Native
+source/alias, type/focused75 and changed-input selected broad670 pass including
+b568 entry/canonical/Chinook/private/index/recursive. No entry edit or budget,
+root reservation/admission guarantee change. c864 EXISTS/d260 ordinal+transient
+sourceRegisters/d247 counters/c828 private24 preserved. This bounded consuming
+migration does not complete scalar aggregate/IN/full nested depth, AggInfo
+index-expression/RIGHT invalidation producers or general retained ORDER/LIMIT
+composition. Parent architectural review remains revision_required.
+
+
+#### R1 ordinary aggregate enclosing entry ([[card:card-t-b]])
+R1 ordinary aggregate entry migrated to actual parent contract (not independent Program return); physical0..30 reservation preserved. Intermediate migration exposed parent admission decline for zero-source derived COUNT VALUES/compound, corrected producer parent state/destination/no-child-Halt contract. Source-phase c873/c864 and sourceRegisters d260 remain untouched. Table/window/specialized recursive enclosing entry and complete semantic preparation remain R1 debt; no architectural completion claim.
+
+R2 scalar aggregate argument consuming repair: compileAggregateSubquery's
+retained single-local-source aggregate scalar now binds actual aggregate
+reduction/arguments via nested resolved identity and shared carrier/binder.
+Local reference maps to inner cursor, outer reference through parent
+resultLocation to AggregateColumnOwner live source or saved finalized phase.
+Displaced local spelling/recursive argument walker removed. expr.c
+sqlite3CodeSubselect EP_VarSelect guard, analyzeAggregate7403+ and
+TK_AGG_COLUMN4977+ plus select.c resetAccumulator/update/finalize own state:
+correlated invocation omits Once and initializes accumulator NULL each time;
+uncorrelated retains Once. Empty Rewind goes to AggFinal, normal Next precedes
+AggFinal. Same shared Mem/KeyInfo/async/error cleanup, no new evaluator.
+Native-first SUM(local+parent) prepare-error red now passes distinct totals;
+post-repair native-before-public controls source WHERE, REAL arguments,
+local shadow/cache and NULL argument group then populated sums pass. Existing
+runner checks types/names/two reset iterations/done/finalize. Type/focused81
+pass. Selected broad676 has 25 failures (651 pass), NOT a green compatibility
+claim: same-input disposable baseline with only vdbe pre-repair restored
+reproduces all failing names across baseline suites. Existing enclosing
+aggregate retained derived/COUNT composition failures require coordinated
+follow-up; not waived as unsupported. No changes to b577 COUNT5268–5546/entry,
+c873/c864/d260/d247/private/root seam. Full scalar/IN nested-depth/analyzer,
+index-expression/RIGHT invalidation producers and retained composition remain
+unfinished; parent revision_required. Phase NULL is not RIGHT producer proof.
+
+
+#### R1 retained aggregate caller correction ([[card:card-t-b]])
+Changed-input broad c882651/676 (25 failures) exposed b574 narrow parent retained producer admission/columns[] regression, independently reproduced without c882 edits. Unified existing richer coroutine producer onto parent contracts and removed narrow parent walker. Focused foundation+retained179/179 after production repair. Initial broad675/676 remaining stale COUNT structural guard assertion corrected to compound/VALUES exclusion; exact fresh final broad recorded in card status. No carrier rollback, budget inflation or scope waiver; remaining original R1 architecture debt unchanged.
+
+R2 aggregate IN RHS consuming repair: retained one-column/one-local-source
+compileAggregateSubquery IN branch now consumes nested resolved select/result
+carrier through bindResolvedExpression. Local identity maps to allocated inner
+cursor; outer maps via parent resultLocation to AggregateColumnOwner live or
+saved phase. Deleted displaced local spelling/index/affinity column binder.
+expr.c sqlite3CodeRhsOfIN3592+ EP_VarSelect and SRT_Set3711+ govern conditional
+Once: correlated RHS reopens empty ephemeral set and recomputes child limits
+per invocation; uncorrelated retains cached set. Existing OpenRead/Rewind,
+OFFSET-before-insert, LIMIT-after-insert, Next/empty/end and shared InSet
+probe/NULL/negation remain unchanged. Parent phase follows TK_AGG_COLUMN4977+
+and linked resolve NameContext, not qualification text. Browser shared
+Mem/KeyInfo/async/private cleanup unchanged, no new evaluator or admission
+widening beyond correctly binding existing projected column contract.
+Native-first grouped outer RHS red no-such-column t.a passes hit1/0/0/0;
+post-repair native-before-public controls source WHERE, local shadow/cached
+set, NULL-left empty LIMIT0 and LEFT-null-parent NOT IN prove distinctions.
+Names/types/two resets/done/finalize and focused86/type/native source+alias
+pass; fresh selected broad681/681 includes C1-C6/Chinook/private/index/recursive
+and b unified compound aggregate repair. Previous c882 integration25 are
+resolved by b583, not waived. No b583 compound/COUNT/entry or c882/c873/c864/
+d260/d247/root reservation changes. Still unfinished: deeper aggregate lexical
+ownership, full AggInfo analyzer/index-expression/RIGHT invalidation producers,
+general retained ORDER/LIMIT/destination composition. NULL phase tests are not
+RIGHT producer parity; selected tests are not whole-card architecture approval.
+
+
+### Bounded lexical aggregate ownership repair ([[card:card-t-d]])
+Pinned resolve.c1356–1378 assigns TK_AGG_FUNCTION.op2 to nearest referenced
+SrcList NameContext (unreferenced count/constants stay local); expr.c7473
+analyzeAggregate enrolls only matching walkerDepth. resolve.ts now publishes
+function reduction→lexical depth separately from column location. Physical
+ordinary SELECT entry consults that resolved ownership when its aggregate
+exists only inside a scalar child; existing transient/set/window/recursive
+preparation branches retain their owners. Resolver exceptions become public
+SQLite errors before publication. General preparation migration is not done.
+
+compileAggregateSelect enrolls nested outer-owned functions into enclosing
+linked phase/AggStep/AggFinal entries before stepping. Nested SRT_Mem reads the
+final accumulator through a local source existence loop, initializing NULL,
+Rewind empty→end, WHERE failure→Next, first match Copy→end. It does not step an
+outer function once per inner row. Local-owning scalar aggregate still resets
+and steps its own accumulator. Browser reduction identity/depth map and shared
+registers adapt upstream Expr.op2/pAggInfo/iAgg; no independent evaluator or
+SQL-text substitution. Bare ungrouped result metadata now uses resolved result
+descriptors rather than unconditional computed/null origins.
+
+Paired select-aggregate-lexical-owner-native.py and .test.mjs retain native-first
+ungrouped/grouped red cases and local-owning control; added native-before-public
+empty scalar WHERE and REAL argument controls (after implementation). Five
+public cases check exact types/origins, completion, reset and finalize. This is
+bounded physical single-source scalar consuming coverage, not full lexical
+ownership parity: deeper transient/ordered/limited/compound producers, general
+AggInfo analyzer/index rewrite/RIGHT invalidation remain load-bearing. Missing
+column phase NULL is not RIGHT producer evidence. Root0..30/private24/recursive
+consumer/body LIMIT and peer b583/c891 consumers preserved. Commands, failed
+hypotheses and final verification live in card status and lexical-owner-repair
+work artifacts. No API scope or budget changes.
+
+R2 lexical aggregate scalar-expression consuming repair ([[card:card-t-c]]):
+d269 resolve.c1356–1386 aggregateUses depth and expr.c analyzeAggregate
+matching walkerDepth enrollment unchanged. Actual scalar result carrier now
+consumes enrolled aggregate leaf registers through optional aggregateOutput
+on existing shared expression binder, before argument binding. Retired
+whole-result sole-aggregate lookup/Copy restriction; linked composite
+arithmetic/CASE/cast codegen runs only on qualifying local scalar row, otherwise
+initialized NULL survives Rewind/WHERE rejection. Source local cursor and
+parent saved/source binding retained. Mixed unenrolled aggregate leaves remain
+atomic typed temporary; local aggregate branch still owns its accumulator.
+No generic evaluator, new graph walker or broad physical/transient/no-FROM
+preparation guard removal. Native-first ungrouped SUM(outer)+1=[1,17] and
+grouped totals2/4/6/8; native-before-public empty scalar and multi-leaf CASE
+REAL/overflow-short-circuit controls pass. Names/origin/types/two resets/done/
+finalize retained. Native lexical/source/type/focused260 and fresh selected
+broad690 pass including C1-C6/Chinook/private/index/recursive. b583/c891/d269
+and root WHERE0..30/sourceRegisters/private24/LIMIT contracts preserved.
+Deeper/transient owners, full AggInfo analyzer/index-expression/RIGHT
+invalidation producers, general retained producer/destination composition
+remain unfinished. Phase NULL is not RIGHT analyzer proof; selected coverage
+is not original architectural acceptance.
+
+
+#### R1 specialized recursive SUM entry ([[card:card-t-b]])
+Public recursive SUM selection now allocates enclosing builder/parameters/output destination before invoking compileRecursiveAggregateSelect. Existing queue producer and accumulator consume these allocations; finalize/Copy feeds emitSelectDestination rather than a hardcoded ResultRow. Parent entry alone adds Halt/finish; standalone helper mode remains for live callers. select.c generateWithRecursiveQuery/selectInnerLoop and sqlite3Select finalizeAggFunctions share Parse/Vdbe/destination; aggregate-expression queue destination is the existing bounded TS accumulator construction adaptation, not native SRT. Pre-emission decline preserves window/multiple-CTE ownership; selected errors remain terminal. No preparation guard broadening, lexical enrollment/binding change, flag removal or budget adjustment. Existing unsupported recursive SUM ORDER/LIMIT/other aggregate consumers remain honest exclusions, not silently discarded flags. Native INTEGER55/reset plus three-encoding public recursive controls precede migration; entry22/22 and destination/lexical/scalar/composition neighbors52/52 after migration, type/diff clean. Remaining table/window/multiple-CTE and general preparation R1 still incomplete; selected checks are not full architectural acceptance.
+
+
+#### R1 multiple recursive CTE enclosing composer ([[card:card-t-b]])
+compileSelect now supplies actual compileMultipleRecursiveCtes builder/parameters/output destination; existing producers materialize through sorter destinations in that same owner. Consumer row/output/order-key ranges now allocate through SelectProgramBuilder.range, not a separate manual counter; sorted and unsorted final events use supplied destination. Parent entry alone Halt/finishes; standalone callers remain live. select.c generateWithRecursiveQuery/selectInnerLoop SRT_Coroutine/SRT_Output and sorter output use one Parse/Vdbe; current zero-key FIFO sorter materialization/nested-loop representation is existing bounded browser adaptation, no new evaluator or finished-child relocation. Shared ParameterBuilder removes post-emission parameter decline: legitimate producer bindings now complete selected compilation and share numbering, independently native/public tested with rebinding/reset. Existing ORDER/collation/NULL support retained; LIMIT/OFFSET/other capability declines unchanged. Selected errors terminal, preparation depth/enrollment/composite binding guards unchanged. Fresh changed-input broad692/692 (includes prior SUM slice), initial focused52/52 and expanded CTE bindings31/31; native cross-join/bindings0/type/diff0. Remaining window/table/general preparation R1 unfinished; no architectural acceptance claim.
+
+
+#### R1 recursive window enclosing entry ([[card:card-t-b]])
+Public compileSelect now passes its builder/parameters/output destination through actual compileRecursiveWindowSelect transient preparation to existing compileWindowSelectLowering owner. sqlite3WindowRewrite/recursive source coroutine therefore consume enclosing state, output uses existing owner destination, root drain jumps past appended window subroutines to enclosing Halt; parent alone finishes. Standalone preparer/lowerer retained for live callers. select.c8314+ sqlite3WindowCodeStep/regGosub/addrGosub and window.c sqlite3WindowRewrite share Parse/Vdbe; existing async coroutine/window event representation unchanged adaptation. Lowerer initializes register highwater from supplied builder and publishes again after late frame/subroutine allocations, preventing enclosing continuation allocation overlap. No lexical guard, clause flag, queue/WHERE/root/private budget or error conversion changes. NameResolutionError remains public code1 and selected errors terminal; compound windows still explicitly reject. Source-first pinned recursive INTEGER row_number/reset/body LIMIT controls and cross-feature public baseline precede migration. Focused13/13 then final window/entry/CTE/private46/46, native/type/diff clean; fresh changed-input broad recorded in card status. Original ordinary window/table/general preparation convergence remains unfinished, not whole task acceptance.
+
+
+#### R1 ordinary physical window entry ([[card:card-t-b]])
+For a noncompound/no-WITH ordinary unqualified single physical table (not derived/CTE/flattened/function input), compileSelect allocates builder/parameters/output and reserves the live physical WHERE0..30 range, then passes shared state through actual compileTableSelect name preparation into compileWindowSelectLowering. Rewrite/WHERE/window/result destination and root continuation now consume enclosing owner; parent alone Halt/finishes. Other table specializations and qualified/multisource window inputs retain live standalone contracts, not unsupported flag dropping. Table preparer preserves NameResolutionError code1 and existing atomic zero-column incomplete-lowering rejection; unsupported translation is terminal, never a retry. Source select.c8318+ window step/Gosub/selectInnerLoop and window.c sqlite3WindowRewrite use same Parse/Vdbe; existing coroutine/event representation unchanged adaptation. Earlier late highwater/ownerExit contract retained, manual lowerer allocator convergence remains unfinished. Native paired physical FILTER/NULL/WHERE/EXCLUDE/order/limit rows/types/names/reset baseline before migration and after0; final focused49/49/type/diff0. Current fresh broad evidence in card status, not prior recursive694 reuse. Remaining ordinary table/general preparation, broader window branches/full allocator convergence and committed architecture proof remain original debt; bounded entry does not certify the full correction.
+
+Current d outer-window transient-source repair (post-b622/c900): reproduced
+retained UNION ALL/CTE FILTER windows were rejected before rewrite, despite
+native success. Existing retained-window table dispatch moved before ordinary
+scan/flattening; its source lowerer now sends compounds into existing shared
+multiSelect coroutine destination. Lexical guards, ordinary shared-entry fence,
+WHERE reservations and VM unchanged. Native/public seven-case regression plus
+selected integration evidence is bounded; full transient preparation/manual
+allocator/analyzer/RIGHT debt remains. Earlier broad698 structural assertion
+failure preserved in work artifacts; no runtime failure waiver.
+
+
+#### R1 window setup register owner ([[card:card-t-b]], after d278)
+compileWindowSelectLowering partition registers, partition-initialized/one/output-ready setup now allocate through enclosing SelectProgramBuilder.register (window.c1408–1418 sqlite3WindowCodeInit shared Parse.nMem). At each layer import still-manual prior consumer highwater before allocation, then publish frontier to remaining manual frame/buffer consumers; final late-subroutine highwater/ownerExit remains necessary. No independent setup counter, new evaluator or behavior flags; constant/null initialization and frame error ordering unchanged. Partition-initialized/output-ready are existing coroutine TS state, not new native registers claimed. Preserves d278 window-before-ORDER/flattening, retained compound+ordinary shared coroutine/common EndCoroutine/FILTER/independent LIMIT and standalone live callers, peer lexical/root/private/WHERE guards. Source-first linked native0 and public neighbors before migration; final focused88/88/native0/type/diff0 and changed-input selected broad in card status. Only these setup producers moved, not full lowerer allocation or ordinary table/general preparation convergence. Bounded ownership regression is not whole architecture approval; parent revision_required/original obligations remain.
+
+
+#### R1 frame expression register owner ([[card:card-t-b]], after setup)
+Actual compileWindowSelectLowering frame-bound compileExpressionTree callback now uses enclosing builder.register, retiring its independent ++registers producer. window.c sqlite3WindowCodeStep2881–2884 allocates offsets in shared Parse.nMem; 2941–2945 evaluates/checks them before partition processing. Existing TS once-before-producer evaluation/check adaptation unchanged; expression traversal, shared ParameterBuilder, ROWS/GROUPS integer vs RANGE numeric checking and error order unchanged. Published builder frontier back to still-manual exclusion/application/buffer consumers, keeping prior-layer import and final late-subroutine highwater/ownerExit. No flags/admission or root drain changes; d278 retained source rewrite/order/common coroutine/EndCoroutine/FILTER/independent limits and semantic/private/root WHERE guards preserved. Native-first ROWS1 PRECEDING..1 FOLLOWING and RANGE2 PRECEDING..CURRENT typed controls0; existing offset affinity/error/layered controls pass; final expanded focused183/183/native0/type/diff0, fresh selected broad in card status. Only frame expression owner moved; application/buffer/output/cursor/label/general table preparation still unfinished, not full architecture approval.
+
+
+#### R1 window application register/cursor owner ([[card:card-t-b]])
+Actual EXCLUDE rowid pair and EXCLUDE/lead/lag/first/nth application cursor producers now use enclosing builder.register/cursor (window.c1417–1422 sqlite3WindowCodeInit shared Parse.nMem/nTab). Import cursor next-free frontier with reserveCursorsThrough(frontier-1), preserving enclosing physical/rewrite reservations; publish builder register/cursor frontier to still-manual buffer/sorter/child/outer consumers. EXCLUDE-first branch, Integer1/0/OpenDup ordering, null application cursor when unused and existing cached-partition value/offset adaptation unchanged. Retired these ++registers/nextApplicationCursor++ producers only; shared late root/subroutine highwater, d278 rewrite/order/retained compound+ordinary coroutine/EndCoroutine/FILTER/independent LIMIT, semantic/private/root WHERE guards and standalone remain. Native-first typed EXCLUDE SUM/lag/first_value controls0; final focused184/184/native0/type/diff0 and fresh selected broad in card status. Remaining buffer/output/cursor/label/manual owners and ordinary table/general preparation plus committed architectural proof are unfinished; bounded producer migration is not full task approval.
+
+
+#### R1 window input/record/rowid/peer register owner ([[card:card-t-b]])
+Actual input range and four peer arrays now consume builder.range; record/rowid consume builder.register, retiring their ++registers producers (window.c2868–2902 sqlite3WindowCodeStep shared Parse.nMem). Zero input preserves next-free regNew without range(0); unused peers remain null/empty without allocation, contiguous range views are immutable arrays. Publish final builder register frontier to still-manual source/producer coroutines/output; setup/frame/application and late-root/subroutine handoffs remain necessary. Existing order/check/EXCLUDE/peer semantics and d278 rewrite/retained coroutine/EndCoroutine/FILTER/independent limits, semantic/private/root WHERE and standalone contracts unchanged. Native-first ROWS/RANGE/GROUPS typed controls0; final focused185/185/native0/type/diff0 and fresh broad in card status. Strengthened structural check initially sliced after regNew declaration (focused184/185, broad705/706); corrected test start boundary only, no production waiver. Buffer setup allocator moved, not remaining output/other cursor/label/manual allocation or real table/general preparation/committed architecture proof. Original task remains revision_required, not whole approval.
+
+
+#### d post-b658 bounded ROWS frame publication repair
+[[card:card-t-d]] independent native-first integration found two incorrect-row paths, not an allocator collision. Resolver frameForBuiltin agrees with window.c699–730 and does not coerce first_value. The actual divergence was callback sliding first/nth (inverse is a noop), plus missing executable following-EXCLUDE schedule and root readiness. `scannedRowsLayer` now selects unpartitioned moving ROWS first/nth ending CURRENT and following/current-only EXCLUDE CURRENT; ordinary sliding/exclusion schedules remain live outside this slice. Compiler caches producer rows, positions current independently, resets temporary aggregates for each frame, rewinds scan cursor, checks inclusive start/end and current-row exclusion before FILTER/AggStep, publishes AggValue, restores current payload and sets readiness before Yield. Root and parent consume only ready rows; late shared allocations import manual frontier and publish highwater. No VM/evaluator/parameter/error-order change; d278 preparation/source ordering, d269/c900/private24/WHERE0..30 and b setup/frame/application/buffer handoffs preserved.
+
+Source: window.c1814–1910 windowFullScan supplies reset/frame-bound/EXCLUDE/step/value ownership; windowReturnOneRow1930–1955 uses regApp-bounded seek for first/nth (not cumulative inverse). TS bounded first/nth uses the existing full-scan callback machinery instead of that optimized regApp seek: current browser representation lacks per-function regApp frame endpoints in this lowerer, and callback inverse cannot evict the first value. This explicit bounded substitution preserves frame membership, NULL/INTEGER results, nth validation/FILTER/error and lifecycle ownership through VM ops; full cache/frame rescans cost more work than upstream optimized seek. It is not resource-count parity or broader frame approval. Direct regApp production remains a concrete optimization/fidelity debt; do not reuse this branch for partitions or general frames without source-based tests.
+
+Independent native then public captures and exact scoped patch/hashes: work:///cards/card-t-d/window-cross-layer-repair/. Durable select-window-cross-layer-integration tests preserve both RED cases plus independently captured nth/current-only/FILTER/zero-width frame/empty controls and binding/error reset. Native narrow3 and expanded5 public differentials failures0; selected fresh type/focused192/broad713 passed before final extra binding test, which passes separately8/8. Prior intermediate partial/expanded-zero failures and test reset-contract mistake are recorded in status, not erased. Original R1–R4 revision_required and remaining ordinary/transient/manual producers unchanged; partition-expression and outer window-child preparation RED gaps from post-b658 report remain unresolved. No full compatibility or fresh canonical12 native recapture claim.
+
+
+#### d non-EXCLUDE bounded ROWS endpoint migration
+[[card:card-t-d]] supersedes the preceding first/nth rescan rationale for admitted unpartitioned ROWS PRECEDING/CURRENT..CURRENT without EXCLUDE. Missing implementation was not a browser constraint. `compileWindowSelectLowering` setup now gives each affected function builder-owned contiguous start/end registers and an OpenDup cursor (window.c1452–1460,2009–2010). `emitEndpointRowsDrain` admits one end row, advances start after offset+1, increments exclusive-start/inclusive-end instead of first/nth callbacks (1718–1724), restores current payload, initializes NULL, validates current nth through WindowCheck (1480–1520), adds start, guards end, seeks and reads the argument (1930–1955). Builder labels resolve at the enclosing owner's finish; allocation imports/publishes late manual highwater. Sorter reservation now includes per-function cursors: the initial draft omitted these and overwrote an OpenDup with SorterOpen. No VM seek cast workaround.
+
+Compiler owns this schedule/labels/register and cursor identities; VDBE still owns running PC, Mem arithmetic/affinity, cursor positioning, private budgets, Yield suspension, binding, saved-error reset/finalize. OpenDup/SeekRowid consumers compared with vdbe.c4480–4508/5495ff; duplicate positions remain independent over shared entries. Root [[card:card-s]] WHERE0..30/index/restart/RIGHT contracts untouched. No completed-program copying or independent evaluator added. Shared application cursor remains only for offset functions and specialized unconsumed first/nth branches; endpoint-only slice no longer allocates the superseded shared cursor. EXCLUDE retains reset/rewind/FILTER/step/value scan, including repaired readiness. Other partitions/frames, specialized callback schedules, source/producer/output manual frontiers and broader preparation gaps remain live debt, not migrated by this slice.
+
+Observable typed rows/NULL/zero/empty/current-only/FILTER, bindings and saved errors remain covered by cross-layer tests; endpoint ownership tests require no first/nth callback plus guarded seek and retain EXCLUDE scan control. Independent pinned narrow3/expanded5 baseline was captured before edits; public two-execution/reset/metadata comparison passes after migration. Fresh pinned nth NULL/0/-1/1.5/non-numeric TEXT errors and numeric TEXT2 values agree with public binding tests. Existing focused/private tests exercise cancellation/suspended reset/deadline/lifecycle; not an exhaustive new concurrency matrix. Evidence and exact commands/hashes: work:///cards/card-t-d/endpoint-owner-green/ and card status. No exact native work-count parity: endpoint bytecode removes repeated candidate AggStep scans, but EphemeralIndexCursor.seekRowid still linearly searches shared entries; source Btree seek complexity/storage and cache-retention differences remain explicit existing primitive debt. No change to owner scope or resource guarantees, no whole architecture/compatibility approval.
+
+Endpoint verification revision: typecheck and owner/cross-layer/private13 passed; final public narrow3/expanded5 failures0, focused197/197 and selected broad715/715 (C1–C6/Chinook/lifecycle/index/stat), zero skips/cancellations. Commands/logs in endpoint-owner-green; production SHA256 a336537d7cfec644416108183043a4c27b822ac4210ba183d7aad0801354b514 (final source comment only after runtime checks, typecheck rerun). No fresh full canonical12 native capture. Earlier typecheck and cursor-collision failures retained in card status.
+
+
+#### R1 window coroutine destination register ownership ([[card:card-t-b]], post-d296)
+Actual sourceCoroutine and per-rewrite-layer producerCoroutines now allocate on enclosing SelectProgramBuilder before InitCoroutine/body/SelectDest construction (select.c8058–8075 tag-select-0482 shared Parse.nMem, SRT_Coroutine, recursive sqlite3Select, EndCoroutine). Import register frontier then publish to still-manual source/buffer expression/output consumers; retired these independent ++registers producers only. Source/grouped/retained compound/recursive destinations use the same identity, payload/ParameterBuilder and common EndCoroutine; empty sources, predicates, child LIMIT and root readiness unchanged. d296 per-function endpoint cursors/labels and corrected sorter reservation, EXCLUDE scan, late highwater/ownerExit, d278 and semantic/private/root WHERE guards preserved. Final focused198/198, linked pinned native0 and independent previously captured narrow3/expanded5 public typed rows/reset/metadata controls0; fresh selected broad in status. Source/buffer callbacks, prior-peer/output-save/projection and other cursor/label/manual control plus ordinary table/general preparation and R1–R4 architectural proof remain unfinished; not whole approval or exact resource parity. No public contract narrowing or new algorithm substitution.
+
+
+#### R1 positioned window source/buffer expression allocation ([[card:card-t-b]])
+Actual source predicate, producer FILTER and constant unary/cast/parameter compileExpressionTree callbacks now allocate on enclosing builder.register, importing/publishing manual frontier around each actual expression producer. expr.c sqlite3GetTempReg7600+ consumes shared Parse.nMem (with native temporary reuse); existing TS monotonic temporary allocation remains, now shares enclosing ownership. Source IfNot-before-Yield and FILTER/carrier positioned-row evaluation before payload Copy remain unchanged; retained/grouped/recursive and prior-window identity copies precede expression branch as before. No new evaluator, late recomputation or flag narrowing. d296 endpoints/cursors/labels/sorter reservation/EXCLUDE/readiness, b coroutine identity, d278 child LIMIT, semantic/private/root WHERE0..30/late highwater preserved. Focused199/199/type/diff0 and native FILTER/public expanded controls0, fresh selected broad in status. Remaining prior-peer/save/output projection and manual cursor/label/control plus ordinary/general preparation/R1–R4 proof are not waived; no exact native work/temporary reuse parity claim.
+
+
+#### R1 retained output/peer range allocation ([[card:card-t-b]])
+Eleven actual cached-drain outputSave/endSave/startSave/currentPeer/previousPeer contiguous producers now use enclosing builder.range, preserving zero-width frontier without allocation and importing/publishing to live manual consumers. window.c2870–2904 shared Parse.nMem input/peer ranges compared. TS payload operations overwrite regNew while independent cursors advance; existing saved row Copy/restore before Yield remains necessary adaptation, not a new algorithm. No step/inverse/EXCLUDE/readiness/error branch reordered; d296 endpoint saved ranges/cursors/labels/sorter frontier untouched. Source/callback/coroutine handoffs, d278 child LIMIT and semantic/private/root guards preserved. Focused200/200/type/diff/native/public0, selected broad in status. This bounded saved-row/peer allocation repair does not certify output projection/callback ownership, other cursors/labels/control/general preparation, temporary reuse or full R1–R4 closure; no public narrowing.
+
+
+### Retained endpoint outer publication repair ([[card:card-t-d]], post-b685)
+
+The retained-window branch in `compileTableSelect` owns the outer
+`SelectProgramBuilder`; `compileWindowSelectLowering(owner)` deliberately returns
+unresolved shared ops so nested consumers do not finalize an enclosing graph.
+This outer caller previously returned those ops directly. Endpoint frame
+`builder.jump` fixups therefore retained zero targets: execution after the
+second child row reached the frame-value Goto and restarted at PC0, reopening
+private cursors until work exhaustion. Child LIMIT and coroutine continuation
+were correct; this is not evidence of an allocator or VM PC defect.
+
+The outer caller now appends Halt and publishes `builder.finish()` and the
+complete register frontier, following pinned vdbeaux.c610–654 label marking and
+850ff resolveP2Values (fixups only after all opcodes have been inserted).
+Pinned vdbe.c1174–1240 coroutine transitions retain their next-PC TS
+representation unchanged. SELECT owns relocation; VM still owns PC/Mem/cursors,
+budgets, suspension, bindings, saved-error reset/finalize. No parallel evaluator
+or source copying was added; root [[card:card-s]] WHERE0..30 contracts untouched.
+
+Preserved public regression `select-window-retained-endpoint-integration.test.mjs`
+uses independently captured pinned INTEGER/NULL rows for ordinary/CTE/compound
+children, outer ORDER/LIMIT/OFFSET and two executions/reset. All three now
+terminate and agree; native capture preceded edits. Focused203 passes. Exact
+commands, scoped patch and hashes: card status and
+work:///cards/card-t-d/endpoint-repair/. Existing EXCLUDE/specialized frame
+branches, linear ephemeral seek/storage and general preparation debt remain;
+no exact resource parity, broader compatibility approval, or scope change.
+
+Publication-repair verification: fresh typecheck, reproducer3/3, focused203/203
+and selected broad755/755 (canonical C1–C6/Chinook, index/stat, private lifecycle
+and parser/resolver/select included), no skips/cancellations; diff check clean.
+Expanded captured-native public12 probe still exits1: ten matches and two
+unchanged preparation gaps (aggregate compound derived child; CAST first_value).
+These are not repaired or waived by label publication. vdbe SHA256
+fe37a84027f2f4e98fd7a5d2a8a7e4a2cc4f363ded3b3be856f3378d7cbeb6b5.
+
+
+#### R1 window root projection/consumer limit register owner ([[card:card-t-b]])
+Actual outputStart contiguous row range and computeLimitRegisters callback now allocate on enclosing builder after frontier import, publishing to remaining manual output/late-subroutine consumers. select.c1177–1202 selectInnerLoop iSdst/nSdst shared Parse.nMem compared: allocation is conditional on emitting a nonempty admitted row, non-emitting remains0. Consumer OFFSET-before-SelectDest and LIMIT-after, direct/sorted projection and shared parameters unchanged. Existing sort prefix/key construction and manual other consumers remain debt, not source ownership completion. d305 outer Halt/finish after late subroutines and ownerExit retained (never finish nested builder); endpoint cursor/sorter/labels/EXCLUDE/readiness, retained child LIMIT/common coroutine and semantic/private/root WHERE0..30 untouched. Focused204/204/type/diff/public-three/native0; expanded native12/public still ten matches/two preparation failures aggregate compound child/first_value CAST, not waived. Fresh broad in status; no full R1–R4 or resource parity claim/public narrowing.
+
+
+#### R1 ordered root key/sorter allocation owner ([[card:card-t-b]])
+Actual outerSorter now consumes enclosing builder.cursor after conditional reservation through live application/rewrite sorter frontier; publishes next-free cursor to remaining manual callers. Actual SorterInsert keyStart contiguous range now builder.range with register handoff; no-sort branches allocate neither cursor nor key. select.c8215–8235 tag-select-0600 shared Parse.nTab cursor construction and1180–1207 sort prefix/iSdst Parse.nMem compared. Existing separate key/payload VM representation retained; readiness/Copy/SorterInsert/SorterData/SelectDest/OFFSET/LIMIT order unchanged. Reserved application endpoint cursors remain disjoint; d305 outer Halt/finish after late bodies and ownerExit, d296 labels/EXCLUDE/readiness, semantic/private/root WHERE0..30/peer dirty intact. Focused205/205/type/diff/native/public-three0; expanded12 still ten matches/two preparation failures, not waived. Fresh selected integration in status; broader register/frame temporary/cursor/control/general preparation/R1–R4 ownership remains debt, not full approval or exact resource parity.
+
+
+#### R1 late bounded-peer EXCLUDE scan construction ([[card:card-t-b]])
+sharedBoundedPeerExclusion now consumes shared builder registers for current/start/candidate rowids, temporary accumulators, constant width and ties identity. Rewind/first/bounds/peer/ties/FILTER/next/finish branches now shared labels marked in the same order; displaced per-op manual address writes retired only here. Enclosing finish resolves labels after late bodies (d305 Halt/ownerExit unchanged); existing application OpenDup cursor remains setup-owned, no replacement cursor. Compare pinned window.c1814–1910 windowFullScan: current identity, reset before scan, skip before start/stop after end, EXCLUDE GROUP or TIES current-row exemption, FILTER before step, aggregate value then payload restoration. Existing TS bounded-rowid start computation and monotonic temporaries remain adaptations, not a new evaluator/native temp-reuse or resource-count claim. Source/producer current payload is authoritative because candidate EphemeralData overwrites regNew. Pin-checked public GROUP/TIES/NO OTHERS FILTER rows/NULL/metadata/reset added; existing error/bind/limits/suspension controls retained. Shared parameters/destination and root output/key/limit unchanged; d296 endpoints/sorter cursor reservations/EXCLUDE/readiness, semantic/private/WHERE0..30/peer dirty preserved. Expanded12 remains two preparation RED gaps; earlier independent drains/general preparation/control/full R1–R4 ownership unfinished. Exact checks/patch/hashes in card status, no full compatibility approval.
+
+
+#### R1 late sliding/current-following drain control ([[card:card-t-b]])
+Actual sharedSliding/sharedFollowing FILTER skips and size-gated inverse/snapshot continuations now builder labels/jumps; displaced manual per-op PC fixups removed in both callers. Registers/bound parameters/duplicate cursors were already setup-owned; no replacement state/cursor or algorithm. Pinned window.c2995–3044 step/return/inverse branches and vdbeaux.c610 label production compared. Sliding step -> trim/inverse -> authoritative producer Copy restore -> value, following step -> readiness -> snapshot/value -> ready flag -> inverse remain distinct and ordered. Labels defer to d305 enclosing finish/Halt after late subroutines/ownerExit, never finish nested graph. Public pin-confirmed preceding/current, current/current, current/following FILTER INTEGER/NULL/metadata/reset controls added; existing binding/error/limits/suspension controls retained. b709 bounded-peer labels/frontiers, d296 endpoints/sorter cursor identity/EXCLUDE/readiness, semantic/private/root WHERE0..30/peer dirty preserved. Neighbor cached-offset/other frame drains have independent admission/readiness/return targets and remain debt, as do general preparation/WHERE/full R1–R4 and expanded12 two preparation RED gaps. No exact native work/temp-reuse/linear-seek parity claim; exact checks/patch/hashes in status.
+
+
+### Recursive window FILTER producer location ([[card:card-t-d]], post-b721)
+
+Independent changed-input native21/public integration found recursive SUM
+FILTER+bounded ROWS EXCLUDE TIES returning NULL instead of INTEGER2/5.
+`compileWindowSelectLowering.emitProducerBinding` copied direct recursive
+columns from the SRT_Coroutine payload but bound composite FILTER references
+to a nonexistent positioned physical source cursor. The first rewrite layer
+now binds retained **or recursive** FILTER carriers to `groupedPayload +
+columnIndex`, using the same destination identity as direct arguments. Physical
+sources keep cursor locations; grouped producer payload and later layer
+identity-copy branches remain unchanged. This fixes semantic production before
+caching, not output SQL or scan callbacks.
+
+Pinned window.c sqlite3WindowRewrite stores FILTER next to function arguments;
+windowAggStep1685–1701 reads `iArgCol+nArg` from the candidate cached row and
+IfNot gates stepping. select.c SRT_Coroutine producer-row ownership and current
+TS compileRecursiveCteSelect destination agree: the coroutine yields a complete
+row in registers, not the queue cursor. EXCLUDE scan and sliding/following
+consumers still read that cached predicate. SELECT owns the expression location
+and shared builder allocation; VM owns Mem/cursor/PC/budgets/suspension. d305
+outer Halt/finish after late bodies, b root projection/key/LIMIT/scan/drain
+labels, endpoint identities/readiness and root WHERE0..30 unchanged. No new
+evaluator, temporary reuse claim or algorithm substitution.
+
+Existing cross-layer regression preserves the failing SQL and adds independently
+pin-captured two-column recursive payload controls with GROUP/TIES/NO OTHERS
+and sliding default frames, ordered LIMIT, typed rows, metadata names and reset.
+Native21 was captured before product edits; native-extra4 was captured after
+repair to strengthen identity coverage, not a pre-edit baseline. Public21 now
+has18 matches/3 unchanged preparation gaps: aggregate compound child, CAST
+first_value and grouped nested-count FILTER window misuse error. These remain
+unwaived. Source comparison, scoped patch, commands/hashes and focused/broad
+evidence in card status and work:///cards/card-t-d/recursive-filter-repair/.
+Linear seek/storage/temp/resource complexity and broader R1–R4 remain unfinished;
+no origin-metadata parity or exhaustive new suspension/native-resource claim.
+
+Recursive FILTER repair verification: fresh focused218/218 and selected
+broad764/764 (C1–C6/Chinook, index/stat/private lifecycle/resources) pass without
+skips/cancellations. Initial focused and broad runs failed only stale source
+regex requiring a now-unneeded non-null assertion; updated that assertion to
+match guarded payload access, reran both. No functional assertion removed.
+Public21 remains exit1 with18 matches/3 preparation gaps, extra4 matches;
+type/diff pass. Final vdbe SHA256
+e6f0b01f6dba2f44ccf0ae866a3abdeb54b1ca12c6f4e82fb69112af868c22d2.
+
+Grouped ordinary aggregate/window FILTER consuming repair ([[card:card-t-c]]):
+resolve.c1320–1355 retains NC_AllowAgg for pWin, disables NC_AllowWin:
+ordinary aggregates in window args/FILTER are legal, nested windows remain
+misuse. TS nested-aggregate diagnostics now apply only to ordinary calls;
+ordinary aggregate FILTER misuse remains code1. window.c rewrite caches
+pWin->pFilter expression, not the FILTER-clause syntactic container.
+window-rewrite.ts now buffers that actual predicate reduction and the same
+resolved carrier; retired wrapper-as-buffer-value mechanism. Actual grouped
+producer's compileAggregateSelect destination evaluates/finalizes COUNT and
+predicate then copies its rewritten expression column into window cached
+FILTER slot; window.c1685–1701 cached IfNot/AggStep order preserved.
+No raw cursor substitution or evaluator, no vdbe/producer/index remap.
+Native-before-code original count/count FILTER gives INTEGER[4,4]; false and
+NULL FILTER give NULL, CAST(count AS REAL) arg gives REAL4. Two-run public
+metadata/reset/done/finalize tests and ordinary misuse code1 controls retained.
+Resolver expectations for window-over-aggregate permission/error category
+corrected to pinned context semantics (median unavailable in native build;
+supported SUM/JSON substitute confirms nested-window error category).
+Standalone first_value CAST argument and aggregate-compound derived window
+child remain separate unimplemented preparation gaps, not expanded here.
+Preserve d314 retained/recursive columnIndex vs grouped expression index vs
+previous-layer identity/physical cursors, b721 labels/frontiers, d305 finish,
+d296 endpoints/EXCLUDE/readiness, private24 and root WHERE0..30. Deeper/mixed/
+transient lexical/full analyzer/index-expression/RIGHT/general composition
+unfinished; no whole architecture/native-resource compatibility claim.
+
+Window producer expression consuming repair ([[card:card-t-c]], CAST tranche):
+pinned window.c1036–1060 appends full argument expressions/pFilter to the
+rewritten producer (SQLITE_SUBTYPE specialized branches remain distinct);
+expr.c5171 TK_CAST recursively codes child then OP_Cast; select.c preparation
+invokes rewrite before WHERE lowering. Actual emitProducerBinding now uses
+resolvedExpressionCarrier + bindResolvedExpression + compileExpressionTree
+for represented producer expressions, including CAST(column), composite args
+and FILTER. Retired literal opcode emitter/producerConstant private admission
+walker and separate FILTER evaluator at this caller; no new evaluator.
+Deferred window-result slots remain structural handoff NULLs, not scalar
+functions; previous-layer exact expression/window result copies precede new
+binding. Composite previous-layer columns bind to child regNew binding indexes
+or reject typed temporary if absent, never exhausted physical cursors.
+First retained/recursive expressions bind payload+resolved columnIndex;
+grouped finalized-expression-index copy remains earlier and distinct.
+Physical sources still bind positioned cursor, shared Mem/KeyInfo/Btree async,
+b721 labels/d305 finish/d296 endpoints/private24/root WHERE0..30 unchanged.
+Eight independent native/public controls in cross-layer suite check REAL vs
+INTEGER, NULL, TEXT, arithmetic/lag/default, FILTER, retained LIMIT and CTE,
+column names and two executions/reset/done/finalize. Original REAL CAST native
+before code; baseline driver incorrectly projected TEXT as NULL (missing text
+API), corrected independent native capture supplies TEXT "1" (not product
+waiver). Frame/binding/error/private lifecycle checks rerun as existing coverage.
+CAST first_value preparation gap closed for represented linked expressions;
+aggregate compound-derived child/full analyzer/deeper/mixed/transient/RIGHT/
+index-expression/general composition/linear-resource debt remains. Arbitrary
+residual expression/subtype/deeper previous-layer combinations are not declared
+supported merely by this tranche; no architecture-wide compatibility claim.
+
+Aggregate compound-derived window consuming closure ([[card:card-t-c]]):
+the preceding CAST suffix's aggregate-compound-child preparation gap is now
+closed for represented ordinary aggregate/GROUP/HAVING UNION ALL producers.
+select.c multiSelect TK_ALL shares destination and LIMIT state across complete
+arm SELECTs (3000ff); selectInnerLoop SRT_Coroutine1441ff copies result/yields;
+sqlite3Select prepares window rewrite7699 and analyzes aggregate ELists/HAVING
+before producer output. Actual compileTableSelect retained-window preparation
+now precedes older CTE/repeated/single-compound derived interceptors, retaining
+this existing specialized owner for eligible single source window consumers.
+compileWindowSelectLowering → compileTableCompoundProducer → compileCteUnionAll
+→ compileAggregateSelect(parent destination, compoundLimit) yields directly
+into enclosing window sourceCoroutine/payload. Ordered arms use existing
+compileOrderedCteUnionAll merge destination with child LIMIT/OFFSET. Noncompound
+aggregate retained child dispatches to the same aggregate owner, not raw scan.
+GROUP/HAVING arm carriers now preserved rather than flags with erased trees;
+GROUP-only arms use aggregate grouping owner. Complete arm dispatch precedes
+simple relational gate, without masking flags. Shared LIMIT initialized once,
+OFFSET checked before destination, aggregate stop branches patched to compound
+end, EndCoroutine child then enclosing finish/Halt; no child Program copying.
+Retired intercepted preparation for these callers and aggregate/window-only
+compound LIMIT exclusion where shared aggregate contract already exists.
+Missing tree/unsupported arm still aborts prepare typed temporary. SELECT
+outer WHERE/grouped/window-in-child/joins/general composition remains separately
+bounded; this is not generic AggInfo/analyzer/RIGHT/index-expression/subtype or
+linear-resource acceptance. Shared expression phases, c909 FILTER/!over, d314
+recursive payload, root WHERE0..30 and frame/private/label/finish seams unchanged.
+Independent pinned original + empty/child LIMIT0/1/order/group/HAVING/predicate/
+CAST outer LIMIT/OFFSET/noncompound aggregate/GROUP-only controls retained in
+cross-layer suite: typed rows and native names, two runs/reset/done/finalize;
+parameterized compound frame binds/error-reset validated. Existing selected
+suspension/private budgets/frame controls rerun, not newly comprehensive native
+metadata origin/encoding/BLOB/resource comparison. Broader debts unwaived.
+
+
+### Grouped aggregate identity across window layers ([[card:card-t-d]])
+Independent post-c927 original21 now all match: c909/c918/c927 closures remain
+GREEN. New grouped count + TEXT CAST first_value + incompatible current-row SUM
+FILTER prepared INTERNAL because a nested finalized aggregate reached scalar
+lowering in a subsequent window producer. Pinned window.c789–820
+selectWindowRewriteExprCb matches TK_AGG_FUNCTION against pSub expressions, then
+rewrites to TK_COLUMN/iEphCsr/iColumn. Current TS exact whole-expression copies
+did not cover aggregate nodes inside CAST or FILTER.
+
+The shared resolved expression binder now consumes an explicitly supplied
+aggregateOutput mapping before scalar recursion, independently of the ordinary
+aggregate enrollment policy. The later window producer supplies previous-layer
+buffer expression identity/equivalence → regNew+column. Ordinary aggregate
+enrollment, deferred slots, grouped first-layer finalized indexes and physical/
+retained/recursive column bindings are unchanged. No new aggregate evaluator,
+VM workaround, PC copy or algorithm substitution. An absent mapping does not
+pretend a source column is a finalized aggregate. d305 enclosing finish/Halt,
+b labels/frontiers, d296 endpoints/readiness/EXCLUDE, c predicate and destination
+contracts/root WHERE0..30/private24 preserved.
+
+Existing cross-layer reproducer retains native INTEGER/TEXT rows and names,
+two runs/reset, error/binding/lifecycle controls. Native capture preceded this
+repair; original21 captures reused unchanged. Public targeted6 now5 matches and
+one retained correlated subquery argument unsupported gap, not reclassified.
+No origin/BLOB/encoding/native resource equivalence claim. Exact scoped patch,
+hashes, attempts and verification in card status and
+work:///cards/card-t-d/grouped-layer-repair/. Broader analyzer/R1/R2/RIGHT/nTab/
+linear seek/storage/temp debt remains; selected totals not architecture proof.
+
+Scalar-subquery window producer consuming closure ([[card:card-t-c]], after
+d323 aggregateOutput handoff): complete window argument expression codegen now
+supplies the existing linked scalar-subselect lowering owner, extracted from
+compileInnerTableSelect into resolvedScalarSubqueryEmitter (not a second
+expression evaluator). resolve.c TK_SELECT links pNext and sets EP_VarSelect;
+expr.c sqlite3CodeSubselect initializes NULL SRT_Mem, uses Once only when not
+correlated, and first-row return/SELECT LIMIT. window.c selectWindowRewriteExprCb
+and argument projection keep the complete expression at producer evaluation.
+TS consumer uses resolved.nested identity/column carriers; local reader has its
+own builder cursor, outer source reads use actual window phase location callback
+(positioned physical, retained/recursive payload or previous regNew buffer).
+Predicate rejection advances Next, empty scalar remains NULL; ordinary aggregate
+scan finalizes even on empty input; scalar projection copies into Mem and exits
+on first row. LIMIT follows expr.c:sqlite3CodeSubselect X<>0 with numeric affinity, then
+select.c integer admission (NULL errors; nonzero TEXT/REAL admit one row),
+not ordinary raw LIMIT admission or SQL-text guards. Nested code recurses through same
+callback; zero-FROM scalar fallback preserved. DISTINCT/GROUP/HAVING/ORDER/set/
+OFFSET/other unrepresented subselect branches remain atomic typed temporary.
+Joined callers retain their original normal affinity/collation binding; window
+phase policy is supplied only by window consumer. A broad joined NULL identity
+regression exposed erroneous applying window policy everywhere (COUNT became1
+instead of2); corrected owning callback policy before acceptance. Opening nested
+reader at its consuming body replaces unconditional pre-opening; Once encloses
+open/initialization/scan for uncorrelated, correlated reinitializes each input.
+No VM/storage/WHERE change, Program copying or independent evaluator added.
+Full ordinary scalar owner broader implementation remains live, not claimed
+retired; new shared consumer is bounded to these existing resolved scan branches.
+
+Native-first eight cases + four connected LIMIT0/-1/REAL CAST/empty-aggregate
+controls, rows/types/names retained in cross-layer suite, twice/reset/done/finalize.
+Original inequality MAX first_value produces all NULL under pin (first frame
+argument is NULL), NOT inferred lack of correlation. CURRENT ROW equality checks
+1/3/5/7. CTE retained/grouped/incompatible previous-layer controls retained;
+parameter LIMIT0/1/-1 and NULL saved-error/reset plus nonzero TEXT/REAL admission, lexical missing column
+and width diagnostics checked. Existing frame/private/suspension tests rerun,
+not exhaustive new native origin/BLOB/encoding/resources/suspension comparison.
+d323 aggregateOutput/deferred/grouped/prior/physical, c909 permissions,c927 arm
+shared limits, d305 Halt/finish, d296 endpoints/b labels/root WHERE0..30/private24
+remain. Full analyzer/deeper transient/mixed/RIGHT/nTab/index/subtype/general
+preparation and linear seek/storage/resource debt unwaived; bounded ownership
+restoration, not architecture acceptance or blanket scalar/window compatibility.
+
+Scalar child LIMIT correction (current closure): exact expr.c3880–3946 comparison
+found original raw computeLimitRegisters admission was wrong. Pinned X<>0 numeric
+comparison admits nonzero TEXT/REAL, rejects NULL at integer admission, and skips
+numeric zero. Independently captured five native controls (bad TEXT, REAL0.5,
+NULL, TEXT0/1) in window-subquery-repair/oracle-limit.json; shared subquery owner
+now emits comparison before MustBeInt. This supersedes earlier invalid-TEXT
+code20 test/document claims; ordinary enclosing SELECT LIMIT remains unchanged.
+
+
+#### R1 joined direct/sorted destination exit closure ([[card:card-t-b]])
+compileInnerTableSelect now emits direct OFFSET continuation, producer LIMIT/first-row iBreak and sorter empty/data/OFFSET/next/break via shared builder labels; standalone consumer uses local builder. select.c1177ff selectInnerLoop and vdbeaux.c610 label contracts: destination is emitted before count decrement, OFFSET skips destination, empty sort skips all output. Removed outputLimitStops and producer Goto0 scanner, sortAt/offsetAt/limitAt drain mutations only within this consumer. Compound LIMIT stops deliberately remain enclosing-owned numeric handoff until that caller migrates; source WHERE/RIGHT rewinds/interior validation remain live. New resolveLabel resolves a closed producer's selected labels without freezing the enclosing program: RIGHT interior numeric validator requires resolved targets now; d305 enclosing finish/Halt still publishes all other deferred bodies. No nested finish or PC-copy rewrite. Shared c936 resolved scalar emitter/phase/X<>0+MustBeInt and d323 finalized aggregateOutput, b scan/drains, d296 endpoint/sorter readiness/EXCLUDE/physical0..30/private24 preserved. Native-first public joined direct/sorted LIMIT/OFFSET, scalar first-row and empty controls added with INTEGER/name/reset checks. Full analyzer/RIGHT/nTab/resource/general preparation/R1–R4 remain, no architecture acceptance/native resource-count parity claim. Exact checks and gaps in status.
+
+
+#### Linked scalar projection consumes ordinary SELECT destination ([[card:card-t-c]])
+Current consuming repair (supersedes census RED for projection only):
+resolvedScalarSubqueryEmitter now hands its already-admitted nonaggregate,
+one-local-physical-source projection to compileInnerTableSelect on the same full
+builder/parameters and initialized Mem destination. Removed its independent
+projection scan/first-row success Goto; specialized scalar aggregate scan remains
+live. Both complete window arguments and joined expression callers use this
+handoff. No child Program/PC relocation/finish or generic evaluator added.
+Pinned expr.c3841–3978 owns Once/NULL/numeric X<>0 child LIMIT admission;
+select.c1177ff/1422 owns WHERE→projection→Mem and first-row producer exit.
+Prepared scalar flag means admission was already emitted, not permission to
+ignore LIMIT; zero/NULL/nonzero TEXT/REAL controls retained. Linked child source
+identity is unchanged, cursorFor maps local physical reads consistently including
+Next; explicit window binding carries retained/prior/physical outer phase into
+projection and WHERE, whereas joined default retains affinity/collation. Actual
+full builder replaces the standalone legacy adapter; standalone nested cursor
+frontier999 stays, enclosing-owned callers retain their own frontier. Register
+allocation and final standalone register count now use that builder.
+
+For this bounded linked scalar handoff, existing source scan owner uses its
+ordinary full scan rather than physical candidate seeks: generated WHERE seek
+operands currently have no reduction/outer-phase identity, and cannot consume a
+prior-buffer outer register honestly. This does NOT add a scan evaluator or
+change root WHERE0..30. Ordinary scan result/predicate/Next branches are reused;
+root selected index/RIGHT callers unchanged. Native/public equality, inequality,
+empty, first-row and CURRENT ROW controls plus existing LIMIT/error/reset tests
+check observable preservation, not index/resource parity. Full linked preparation
+and a phase-aware root WHERE candidate operand interface remain prerequisites
+for later convergence. GROUP/HAVING/ORDER/DISTINCT/compound/OFFSET/IN/EXISTS and
+multisource admission not widened; supported shapes cannot be reclassified
+unsupported. d323 aggregateOutput,c927 limits,b730 RIGHT resolveLabel validation,
+d305 late finish/Halt,endpoints/EXCLUDE/readiness/frontiers/private24 unchanged.
+
+Production/source/prerequisite census:
+docs/research/card-t-c-linked-scalar-preparation-census.md. New durable ownership
+check and six independent pinned typed-row/name/reset controls:
+test/conformance/select-linked-scalar-preparation-owner.test.mjs. Existing scalar
+LIMIT window tests include NULL saved error/rebind and TEXT/REAL numeric admission;
+selected tests do not establish complete metadata/BLOB/encoding/resource parity.
+Full analyzer/RIGHT/nTab/storage/linear native work and general destinations remain
+unwaived. This is bounded consumer convergence, not architectural acceptance.
+
+
+### d direct scalar projection phase closure
+
+The c945 ordinary scalar producer handoff requires phase binding for **all**
+result productions, including direct resolved columns and merged expressions,
+not only composite expressions/WHERE. `compileInnerTableSelect` now routes
+results through the existing linked carrier binder when its caller supplies
+`expressionBinding`. Otherwise the ordinary physical source/affinity/collation
+fast paths are unchanged. Pinned select.c selectInnerLoop expression-list code
+then SRT_Mem (1418ff) owns result production before destination copy/first-row
+exit; an outer retained/recursive payload is not a positioned Btree cursor.
+No VM, NULL fallback, evaluator, or PC-copy repair. Local cursor mapping and
+Mem/Once/scalar LIMIT admission, late enclosing finish and RIGHT selective
+label closure remain unchanged. Native-first post-c945/oracle-phase.json
+controls (retained and recursive current-row first_value of SELECT q.a)
+previously returned NULL rather than current INTEGER; durable linked scalar
+owner tests retain typed rows/names/two executions/reset/finalize.
+This closes direct projection phase only, not aggregate preparation or the
+root seek-operand reduction/phase interface; full-scan adaptation/resource
+debt and R1–R4 remain unwaived. Public scope/API unchanged.
+
+
+### Linked scalar aggregate producer convergence ([[card:card-t-c]])
+Supersedes the earlier finding that the shared emitter retains a specialized
+aggregate scan. Window complete arguments (vdbe compileWindowSelectLowering) and
+joined expressions now hand their already-admitted one-physical-source aggregate
+to compileAggregateSelect using the enclosing builder/parameters, linked nested
+plan, physical cursor mapper, explicit outer phase binding when supplied and
+initialized Mem destination. Removed emitter OpenRead/Rewind/AggStep/Next/AggFinal.
+expr.c3841–3978 still owns Once/NULL/numeric X<>0 child LIMIT admission; prepared
+scalar prevents raw LIMIT readmission. select.c8390–8458 owns aggregate analysis,
+8860–8919 reset→WHERE→update→finalize→selectInnerLoop/Mem. The shared no-group
+producer now explicitly AggReset before positioning on every invocation (not
+merely relying on standalone initial NULL registers). Empty correlated COUNT/MAX
+and later nonempty invocations therefore retain source reset semantics.
+
+Linked preparation may supply a plan without schema: already-resolved source
+objects provide physical tables and local cursor mapping; no null-outer
+re-resolution or fabricated schema. Ordinary schema callers are unchanged.
+Outer references bypass local accumulator-column enrollment and consume explicit
+window phase location or ordinary linked physical cursor. Parent label/finish,
+shared Mem/Btree/KeyInfo and private limits remain owned by the enclosing program.
+FILTER/DISTINCT/ORDER/GROUP/HAVING and other previously rejected shapes in this
+emitter are not newly admitted. Ordinary physical scalar callbacks, general
+linked dispatcher, C subroutine reuse, deeper aggregate ownership and phase-aware
+root WHERE seeks remain unresolved, not architectural acceptance.
+
+Tests: select-linked-scalar-preparation-owner structural gate plus independently
+source-ID-asserted full enclosing native controls, including REAL SUM, retained
+CTE window MAX, joined COUNT and scalar LIMIT0; typed rows/names/reset/done/finalize.
+select-linked-correlated-owner retains linked carrier protection at its new shared
+producer rather than requiring the retired local traversal. Existing window LIMIT
+NULL saved errors/TEXT/REAL rebind controls remain. Selected tests do not prove
+full native origin/BLOB/encoding/resource parity; no scope or budget change.
+
+
+### d c955 grouped aggregate callback partial closure
+
+Grouped window scalar arguments reach compileAggregateSelect's expression
+callback, whose ordered LIMIT gate rejected scalar aggregate LIMIT1. Admitted
+one-source scalar aggregates now delegate to existing linked scalar emitter
+with resultLocation/enclosing builder and shared aggregate producer/Mem.
+No DISTINCT/FILTER/order/group/compound/OFFSET widening; specialized other
+callbacks remain live. Pinned expr.c sqlite3CodeSubselect and select.c AggInfo
+then SRT_Mem own admission/production; regression retains typed rows/names
+over reset/two runs. No Program finish/PC copying. Overall d integration RED:
+compound retained child LIMIT cardinality and resolve.c1356–1378 outer-only
+aggregate NameContext ownership remain defects, not resource parity approval.
+
+
+### d c955 compound producer order/LIMIT integration (next repair)
+
+Native EXPLAIN QUERY PLAN demonstrates MERGE(UNION ALL) under the window
+producer and plain derived consumer, not concatenation LIMIT then sort.
+window.c987–1038 moves the source clauses into its ordered inner producer;
+select.c flattenSubquery4390–4448/4478ff distributes that producer over
+UNION ALL, transfers LIMIT4695ff. Our retained-source lowering previously
+limited concatenation first. Bound generated producer keys now enter the
+existing source-owned ordered compound merge before LIMIT when the bounded
+flatten restrictions admit it (no child order/OFFSET, distinct/group/aggregate
+arm or non-UNION-ALL); plain prefix derived specialization likewise transfers
+parent ordering before its shared child output limit. Existing child order
+and OFFSET remain retained. Ordered merge resolves represented EList keys
+by structural expression/alias as well as ordinals, rather than falling back
+to an unordered simple loop for WHERE arms. No VM PC/cursor/Mem change.
+
+Owner/caller: window lowerer → compileTableCompoundProducer → ordered
+compound shared merge → compileInnerTableSelect; enclosing builder owns
+publication/labels, VM Yield/PC/budgets still execute those opcodes. Existing
+plain prefix specialization's sorter remains live (not a newly introduced
+substitute); this bounded handoff is not complete AST flatten/substitution
+parity. Eight durable pinned controls cover exact correlated SUM/window,
+plain ASC/DESC, row_number ASC/DESC, child OFFSET, child order and zero LIMIT
+with typed rows/names/reset/two runs. Native captures first; public7 matches.
+Broad first 972/976 exposed WHERE key fallback and three lexical aggregate
+regressions from the prior callback delegation: now delegate only local
+aggregateUses depths; outer-owned functions retain lexical AggInfo output
+callback. Corrected focused35/type/public local6 and broad976/976 pass,
+including C1–C6/Chinook and selected lifecycle/limits checks. Outer-only
+SUM/MAX in window arguments still fail: syntax-only grouped-producer trigger
+does not consume resolver aggregateUses owning a nested function. This is
+the next preparation/lifting dependency, not supported-shape permission.
+Evidence work:///cards/card-t-d/c955-next/; no resource/encoding/origin matrix
+or full R1–R4/analyzer/index approval. API contract unchanged.
+
+
+### d outer-window NameContext partial repair
+
+Physical-source window preparation now consumes resolver aggregateUses depths
+(resolve.c1356–1378), not only top-level GROUP syntax, to route its inner
+producer to the existing aggregate owner. No window-rewrite change: pinned
+window.c748–766 explicitly does not lift nested aggregates as local window
+terminals. The ordinary aggregate owner enrolls them through its existing
+linked nested-plan walk (expr.c analyzeAggregate7405ff). Its lexical scalar
+callback now precedes the specialized ORDER/LIMIT gate for unordered children
+and applies expr.c's numeric X<>0 scalar LIMIT before OpenRead/Rewind.
+
+Owning primitive correction: nested outer columns in WHERE/projection need
+AggInfo saved first-row values after accumulator finalization, just like bare
+output columns. The no-GROUP capture now enrolls those columnUses and maps
+their existing accumulator registers into AggregateColumnOwner; directMode
+is false for final output, matching select.c updateAccumulator6950–6966 and
+first-row regAcc8838–8864. Previously outer scalar predicates reread exhausted
+physical cursors. No independent evaluator, VM PC/Mem/Btree/budget change.
+Ordered lexical children remain specialized/rejected rather than silently
+ignoring ORDER. Existing local-aggregate delegation stays depth-guarded.
+
+Six fresh pinned controls (typed rows/names/reset/two runs) cover physical
+window outer SUM REAL+bad-TEXT LIMIT, bare outer SUM, grouped predicate, zero
+LIMIT, nonwindow predicate, and local+outer operands. Type/public6/focused128
+pass; broad982/982 including C1–C6/Chinook and selected lifecycle/limits passes.
+Evidence work:///cards/card-t-d/outer-window-owner/. Retained CTE outer-only
+SUM and recursive outer MAX remain red: retained preparation re-resolution
+and nested result substitution must preserve aggregate owning depth, and
+recursive aggregation needs its payload producer (not OpenRead on synthetic
+root). A trial broadening the trigger hit synthetic page11; it was restricted
+to physical callers, not labeled unsupported permission. Source graph versus
+VM ownership/R1–R4/resource/RIGHT gaps unchanged; API contract unchanged.
+
+
+### d retained ordinary-CTE outer aggregate repair
+
+Source comparison: select.c substExpr/substSelect3782–3940 traverses nested
+EList/GROUP/ORDER/HAVING/WHERE; TS substituteViewExpression updated only nested
+WHERE. The bounded ordinary derived flatten owner now also substitutes nested
+result and clause carriers, excluding locally shadowed qualifiers and bare
+local names. A producer qualifier is explicitly carried through this boundary
+so a replacement bare `a` cannot rebind to inner `u.a`. It is not stored as an
+output alias. This remains a bounded lexical representation adaptation, not
+general resolved-iTable substitution parity (unqualified correlated references,
+multi-source aliases, compound nested FROM and general flatten remain gaps).
+
+Window retained ordinary CTE caller now uses its existing bounded
+flattenOrdinaryDerived owner before retained-source lowering, when child is
+not aggregate. Child aggregate, DISTINCT/GROUP/ORDER/LIMIT/compound producers
+retain their existing specialization. Thus ordinary CTE nested outer SUM flows
+through physical window preparation -> shared aggregate owner -> lexical
+AggInfo scalar callback, preserving outer cardinality and saved bare row.
+No VM PC/register/Mem/Btree/budget/suspension changes or completed-PC copy.
+
+Fresh pinned native-first six CTE controls cover REAL+LIMIT0.5 outer SUM,
+outer-only predicate, local+outer operands, local-only SUM, qualifier shadowing,
+zero LIMIT; typed rows/names/two runs/reset/done/finalize pass. Initial rewrite
+failed because replacement `a` rebound locally; explicit producer qualification
+corrected it. First focused run found illegal aggregate-child flattening;
+restored that retained specialized branch, no test weakening. Guarded type,
+public6, focused282, broad988/988/C1–C6/Chinook/selected lifecycle+limits/diff
+pass. Evidence work:///cards/card-t-d/retained-owner/. Direct derived probes
+are still rejected by existing derived admission and remain a gap (not
+passed/waived); original recursive outer MAX still returns three rows rather
+than pinned [5,5]. Next recursive seam is common aggregate producer capture
+via coroutine payload, not opening synthetic root. Prior resource/RIGHT/index
+and R1–R4 debt unchanged; API contract unchanged.
+
+
+### d recursive outer aggregate input boundary closure
+
+The accepted recursive outer MAX window control now matches pin [5,5].
+Window preparation consumes nested owning aggregateUses for recursive sources
+as for physical sources. Its grouped inner producer receives the original
+linked resolved sources/nested carriers (with rewritten source result), not
+re-resolution against a synthetic schema root. It composes the existing
+recursive queue producer into a nested SRT_Coroutine payload on the enclosing
+builder and supplies a compile-time input emitter to compileAggregateSelect.
+The aggregate owner sets its existing AggregateColumnOwner.sourceRegisters
+to that payload: reset/WHERE/step/bare capture/finalize/projection remain
+aggregate-owned; recursive queue/Current/termination stay recursive-owned.
+No runtime evaluator, completed Program copy, or synthetic OpenRead.
+
+select.c updateAccumulator6915–6966 controls bare-row retention: one min/max
+uses the existing AggStep change register (CollSeq/regHit semantics) to capture
+the winning row; ordinary aggregates save the first admitted input row.
+Final output uses saved AggInfo columns with directMode false. Nested scalar
+WHERE/LIMIT observes finalized registers and saved outer row. Empty scans
+still finalize; correlated accumulator initialization remains explicit.
+Grouped/multiple-minmax general input and preparation remain outside this
+bounded handoff, not claimed compatible.
+
+Pinned vdbe.c OP_Yield1229ff/EndCoroutine return-PC swapping and vdbeaux.c
+ResolveLabel636ff compared: new source start/consumer end/backedge relocation
+belongs to SelectProgramBuilder labels, not VM PC copying. VM coroutine Mem,
+register/cursor/budget/suspension/reset/finalize remain unchanged. Existing
+retained compound/grouped/local aggregate specializations remain live. Root
+WHERE/index/RIGHT contracts not changed.
+
+Six native-first recursive typed/name/two-run/reset controls cover exact MAX
+with correlated WHERE, MIN, REAL SUM, zero LIMIT, local+outer MAX, empty child
+WHERE. Original post-c955 public integration controls now all pass. Guarded
+type/public/focused114/broad994/994 including C1–C6/Chinook and selected
+lifecycle/limits/diff pass; evidence work:///cards/card-t-d/recursive-aggregate-input/.
+Two initial type failures (syntax then exact optional linkedPlan) corrected
+before public verification. No resource/suspended native parity or general
+architecture/R1–R4 approval; direct-derived admission and general qualified
+substitution debt from previous revision remain. API unchanged.
+
+
+#### Ordinary physical output/drain graph closure ([[card:card-t-b]])
+compileTableSelect physical output now builds its direct/sorted destination graph in one local SelectProgramBuilder, publishing finish after SELECT-owned terminal Halt. select.c generateSortTail1673ff addrContinue/addrBreak and selectInnerLoop own DISTINCT/filter bypass, OFFSET-before-destination/count-after, empty sorter/drain/next. Removed tail arrays/splice/result-opcode scans and scanContinue/first IfPos/decrement/Halt searches. sqlite3WhereEnd3538ff now falls through to SELECT-owned drain instead of inserting premature Halt; the SELECT marks its continuation before source unwind; existing IN restart/seek/bound/NULL exits remain source-owned. Actual DISTINCT/residual/offset/limit/sorter consumers use builder labels, not an unused facade. Ordinary register/parameter/cursor preparation still manual; no general allocator or nTab closure claimed. Root phase-aware seek seam unchanged.
+Source-first DISTINCT INTEGER DESC LIMIT/OFFSET exposed planner-authorized reverse table loop emitted Rewind/Next despite consumed ORDER. Corrected owning positioning to Last and paired Prev for ordinary reverse table scans (wherecode.c aStartOp/aStep, where.c sqlite3WhereEnd7520ff). Intermediate Prev-with-Rewind error corrected at source positioning, not VM. Native3/public3 now agree including ordered empty/direct filtered controls; metadata/reset verified publicly, no native origin/resource parity. Joined b resolveLabel RIGHT validation, c/d scalar LIMIT/Once/NULL/phase/aggregateOutput/recursive input/compound limits and late d305 finish unchanged. Guide/source mapping boundedly updated, API signatures unchanged. General preparation/full analyzer/RIGHT/nTab/resources/direct-derived/grouped/multiple-minmax/unqualified substitution/R1–R4 remain unaccepted.
+
+### Physical scalar LIMIT integration repair ([[card:card-t-d]])
+Pinned expr.c3933–3962 sqlite3CodeSubselect normalizes scalar/EXISTS LIMIT X
+as numeric-affinity X<>0 before SELECT integer admission. Physical
+compileTableSelect.compileExpressionSubquery previously invoked ordinary
+computeLimitRegisters, rejecting REAL0.5 while shared linked/aggregate callers
+accepted it. computeScalarLimitRegisters now owns this normalization for the
+physical callback, resolvedScalarSubqueryEmitter and lexical aggregate callback.
+Destination NULL/Exists initialization precedes guard; correlated calls still
+reinitialize, uncorrelated Once still skips repeated execution. NULL comparison
+remains NULL and MustBeInt produces code20; finalize preserves that saved error.
+IN retains ordinary LIMIT/count decrement. No VM, WHERE, cursor, budget or graph
+finish changes. Physical independent scan remains live; this is guard semantic
+ownership consolidation, not migration of its whole producer. ORDER/OFFSET scalar
+admission remains rejected; no supported matrix narrowed to conceal that gap.
+Native-first ten controls (nine typed/name/two-run successes plus NULL code20)
+and fresh integration18 pass. Final type/focused268/broad1008 incl C1–C6/Chinook,
+selected lifecycle/limits/diff and unchanged-input hash comparison pass. Earlier
+NULL test failed by forgetting finalize rethrows saved error; fixed test cleanup,
+not runtime. Evidence work:///cards/card-t-d/physical-scalar-limit-repair/.
+Next seam remains physical scalarPlans linked carriers into shared scalarPrepared
+producer/destination, with allocation/cursor identity and Once/NULL/phase/reset
+preserved; full general preparation/AggInfo/nTab/R1–R4/native BLOB/origin/encoding/
+resource/suspension debt remains. API unchanged.
+
+
+### Physical linked scalar caller convergence ([[card:card-t-c]])
+Current physical compileTableSelect passes already-linked scalarPlans via
+resolvedScalarSubqueryEmitter to shared scalarPrepared compileInnerTableSelect
+(Mem or Exists) and compileAggregateSelect (Mem). Supported nonordered physical
+projection, correlated scalar aggregate and nonaggregate EXISTS now consume real
+shared production, not the physical callback's replayed scan. The caller syncs
+manual parent registers with builder.registers before/after production and
+reserves live nested/IN cursor ranges; enclosing destination/Halt/finish remains
+physical-owned. Explicit mappings retain local source versus positioned outer
+identity/affinity. expr.c3841–3978 owns Once, NULL/Exists0 initialization before
+shared numeric scalar LIMIT and error admission; resolve.c1392–1419 supplies
+correlation, selectInnerLoop SRT_Mem/Exists first-row exit and select.c8860–8919
+AggInfo reset/update/finalize supply actual producers. Per-invocation AggReset
+and d368 computeScalarLimitRegisters remain unchanged. Shared nonaggregate
+Exists now initializes0 and emits Exists destination, never a projected value.
+
+Physical ordered scalar, aggregate EXISTS, IN, zero-source and transient derived
+count/sum remain live specialized callers and are intentionally not deleted.
+Attempted ordered handoff returned first source row instead of sorted winner:
+shared producer suppresses sorter when no ordinary limit, but scalarPrepared
+already owns its guard. Retained ordered specialized production until that
+source-owned sort-tail contract migrates, and restored shared ORDER rejection.
+No supported physical route regressed/reclassified; ORDER/OFFSET remains prior
+admission debt. No new window/join ORDER or aggregate-Exists admission implied.
+No VM workaround, child Program/PC copy, generic evaluator or root WHERE changes.
+Preopened physical nested reads remain necessary for live fallback routes.
+Ordinary preparation/manual allocator/frontier, general dispatcher, zero-source,
+subroutine reuse, full identity/AggInfo/nTab/R1–R4 and native resource/origin/BLOB/
+encoding parity remain incomplete. Existing physical0..30/private24 and b
+Last/Prev/drain/late finish/RIGHT contracts preserved.
+
+Native-first eight full enclosing controls (source-ID asserted) cover correlated
+projection/REAL SUM/MAX/empty/zero/numeric LIMIT/local shadow/EXISTS and ordered
+fallback. Typed rows/names/reset/done/finalize in existing linked-scalar test;
+d numeric9/integration18 independently rerun (original19 ORDER/OFFSET gap not
+claimed green). Physical structural gate protects shared delegation/frontier;
+Mem gate now recognizes destination conditional for Exists as well as literal.
+
+
+### Ordered linked scalar destination closure ([[card:card-t-b]])
+Current resolvedScalarSubqueryEmitter now hands ordinary scalar projection ORDER/OFFSET to compileInnerTableSelect with scalarPrepared and explicit sharedLimit. expr.c3933–3962 normalization owns X<>0/numeric guard/NULL datatype20, initialized Mem/Exists and Once; SELECT gets count1 default or normalized count, integer OFFSET and combined/capacity ranges. select.c selectInnerLoop SRT_Mem and generateSortTail1673ff own OFFSET-before-destination, destination/count/first-row exit, empty NULL and drain labels. No ordinary raw-LIMIT reevaluation. Scalar-prepared producers intentionally retain c945 full scan adaptation (phase-aware candidate operand seam); now multiOrderConsumed cannot claim ordering from the planner path whose physical loops are suppressed. Otherwise DESC lost sorter and yielded1 instead of7. Scalar correlated sorter opens before scan each invocation, not only after first accepted WHERE input, fixing empty/first transitions without VM patch.
+Physical ordinary ordered scalar callers now delegate actual linked shared production; removed their superseded manual ORDER/SorterOpen/insert/drain/ClearSorter mechanism. IN/zero-source/transient/aggregate EXISTS live, no indiscriminate removal. Aggregate scalar ORDER singleton remains aggregate-owned; aggregate OFFSET admission still explicit temporary (not approved permanent exclusion). Nonaggregate physical OFFSET now translated using normalized scalar count; no product scope change. Shared cursor/register/parameters/outer phase/Once/frontier/late finish preserved. Public signatures unchanged. Native-before full enclosing8 includes existing correlated/empty crash and OFFSET admission gap; seven row controls plus NULL20 saved-finalize regression added. Selected typed/reset/origin controls are not full resources/BLOB/encoding/suspension fidelity. Full preparation/AggInfo/nTab/RIGHT/phase-aware seeks/R1–R4 remain unaccepted.
+
+### Finalized aggregate ordinary scalar destination integration ([[card:card-t-d]])
+compileAggregateSubquery now delegates child-local ordinary scalar result rows
+(including ORDER/OFFSET/normalized LIMIT) through resolvedScalarSubqueryEmitter
+and compileInnerTableSelect with resultLocation's saved/grouped AggInfo phase.
+Pinned expr.c3933–3962 preparation and select.c1418–1442 Mem/sort-tail remain
+shared owners; aggregate parent owns grouping/finalization and outer binding.
+Outer-owned lexical aggregate and specialized EXISTS/IN/transient producers stay
+live. The old ordered branch is retained for nonmigrated lexical cases, not
+claimed removed: trial deletion was reverted before final checks. No VM/WHERE
+index/physical0..30/private24 or public API changes. Fullscan phase adaptation
+remains; no general identity/AggInfo/nTab architectural completion claim.
+Accepted grouped count + ordered scalar REAL0.5 OFFSET1 reproducer now gives
+pinned [0,1,5],[1,2,5],[2,1,5]. Native-first8 found seven passing phase controls
+(grouped correlated/unrelated/empty/zero guarding bad OFFSET/text/REAL and MIN)
+and an adjacent MAX winning bare-row gap: max=7 but saved a=1 instead of7;
+scalar consequently NULL instead of3. That control is preserved in evidence,
+not included as a passing regression or claimed fixed. Physical aggregate bare
+capture still uses Once whereas recursive input's single-minmax change guard
+already mirrors select.c updateAccumulator6915ff. Next owning repair is that
+physical/join capture, not an ordered scalar SQL patch. Native errors/resources/
+suspension/general retained/recursive/IN/aggregate OFFSET debts remain.
+Final type/focused338/public7 and immutable all-src/test broad1033 including
+C1–C6/Chinook/selected lifecycle+limits pass; evidence and exact command logs
+work:///cards/card-t-d/grouped-scalar-owner/. API unchanged.
+
+
+### Physical/join AggInfo magnet capture repair ([[card:card-t-c]])
+Supersedes the adjacent MAX bare-row gap recorded under d377 above: native
+max=7/bare a=7/scalar3 now matches. compileAggregateSelect physical and joined
+no-GROUP owners invoke emitPhysicalAccumulator AFTER WHERE/ON admission. It
+steps before capture, and shares one captureChange (inverse polarity of pinned
+regHit/skipFlag) across invoked unordered min/max in aggregate-list order;
+last invoked NEEDCOLL function owns capture, not an asserted unique minmax.
+The ordinary no-minmax case retains first-row Once, now after steps. Empty
+input captures nothing. Reset initializes magnet/seen per invocation alongside
+AggReset; direct input versus saved resultLocation/accumulator phase unchanged.
+Shared scalar finalized binding observes winning saved columns, not a query
+specific patch or new scalar evaluator. Grouped sorter and recursive specialized
+capture remain their existing owners, not silently replaced or generalized.
+
+Source: select.c updateAccumulator6810–6977, sqlite3Select8870ff; func.c
+minmaxStep2107–2143. CollSeq initializes regHit only when invoked; duplicate
+DISTINCT bypass retains previous magnet, so DISTINCT ties may capture a later
+bare row (native max(DISTINCT a%3),a =>2,7), unlike ordinary ties =>2,5.
+The TS extrema callback now returns capture=true for NULL while no non-NULL
+best exists, matching minmaxStep's absent skipAccumulatorLoad. Once a best
+exists NULL/ties/nonwinning values suppress capture. This callback semantic
+fix applies to existing consumers without VM changes; shared Mem/budgets kept.
+FILTER's source copy-regAcc-before-jump is represented via seen/inverse magnet;
+physical FILTER admission itself currently raises baseline internal execution-
+only-lowering error on tested forms and is NOT claimed repaired/supported here.
+No scope change or reclassification. Aggregate ORDER-delayed min/max is not
+asserted to capture a winner at row ingestion. Multiple-minmax general grouping/
+recursive/filter combinations remain unproved; native sampled physical
+max(a),min(a),a follows last min's capture, not a unique-minmax guarantee.
+
+Native-first14 include physical/join max/min, ordinary ties/NULL/empty,
+DISTINCT ties/multiple minmax/ordinary count/grouping/correlated reset plus two
+FILTER baselines. Twelve admitted controls and d's enclosing MAX scalar added
+to existing typed/name/two-run/reset/done/finalize tests. FILTER errors retained
+explicitly in artifacts, not excluded to conceal row regressions. No SQL-text
+special case, VM/WHERE/root cursor0..30/private24/index/RIGHT/late finish change.
+General AggInfo/identity/nTab/admission/resources/R1–R4 remain open. Evidence:
+work:///cards/card-t-c/minmax-capture-repair/ native.py/oracle.json/public-before,
+public2 (FILTER errors), success12.json/public8/scoped.patch/final logs.
+
+### Grouped accumulator capture closure ([[card:card-t-d]])
+Grouped compileAggregateSelect sorter drain now mirrors select.c
+updateAccumulator6880–6977 shared regHit, represented by inverse changed magnet:
+all unordered NEEDCOLL min/max steps share it, last invoked controls capture;
+DISTINCT bypass preserves previous state. Per-group seen/regAcc and initial
+magnet reset alongside AggReset at first/next group, outside CompareGroup
+backedge. FILTER copies inverse seen before branch, suppressing saved payload
+overwrite on later rejected rows. Ordinary no-minmax retains first admitted
+payload after steps; columnOwner.directMode selects sorter then saved phase.
+No scalar output/VM/WHERE/private24 workaround or speculative recursive merge.
+Multiple grouped min/max and grouped FILTER reproductions now match pin;
+eight typed/name/two-run/reset controls include NULL/DISTINCT/empty filter,
+ordinary count, both minmax orders and enclosing saved-winner scalar OFFSET.
+Native18 full public remains exit1 only for physical minmax FILTER internal,
+aggregate+window internal lowering, and plain recursive aggregate admission.
+These remain obligations, not owner exclusions. Next preparation owner must
+preserve aggregate/window/FILTER carriers before execution-only scalar lowering;
+R1–R4/general AggInfo/nTab/resources/native origin/BLOB/encoding/suspend debts
+remain. Final type/focused359/original d8/native grouped8 and immutable broad1054
+C1–C6/Chinook/selected lifecycle+limits/diff pass. Evidence:
+work:///cards/card-t-d/grouped-capture/; API unchanged.
+
+
+### FILTER call arity and local aggregate window producer ([[card:card-t-c]])
+Supersedes d386's two INTERNAL carrier gaps, not its recursive admission debt.
+Physical max(a) FILTER(WHERE a<7),a now yields typed [5,5]. Its failure was
+BEFORE AggInfo: selectHasAggregate counted descendant expressions including
+FILTER as min/max arguments, routed to compileTableSelect projection5375,
+and leaked an execution-only aggregate to scalar lowering1893. Count arguments
+with the existing aggregateParts semantic production, not a second descendant
+walk; FILTER/ORDER/OVER children are separate. select-compiler aggregate entry
+now consumes shared compileAggregateSelect → lowerResult/AggInfo → emitSteps,
+FILTER-before-arguments → post-step magnet → saved result output. Scalar guard
+remains unchanged. No aggregate added to scalar evaluator or SQL special case.
+
+Aggregate+window failure was another producer classification gap: window
+rewrite lowered aggregate/column payloads correctly but groupedLayer selected
+only syntactic GROUP or nested outer aggregates. It now recognizes resolver
+aggregateUses owner depth0 in addition to existing nested ownership, selecting
+the existing aggregate coroutine producer even WITHOUT GROUP BY. Retained
+source still owns its separate production; no new generic evaluator/VM path.
+Window buffer receives finalized aggregate and saved winner from the same
+builder via compileAggregateSelect, then executes windows over that payload.
+Producer WHERE/empty/no-GROUP one-row aggregate, deferred window placeholders,
+window ORDER/sorter/lifecycle and scalar destinations retain existing owners.
+Pinned authority: resolve.c resolveExprStep1275–1356 separates x.pList arity
+from window/filter properties; select.c analyzeAggFuncArgs6518–6548 separately
+analyzes args/order/FILTER; sqlite3Select7699 runs window rewrite before aggregate
+analysis; window.c selectWindowRewriteExprCb780–835 lifts TK_AGG_FUNCTION and
+TK_COLUMN into sublist, sqlite3WindowRewrite996ff transfers aggregate/group/
+HAVING work to the subquery and clears outer SF_Aggregate. TS keeps its object/
+async/phase representations; this repair removes wrong scalar dispatch, not
+an algorithm substitution or a claim of complete AggInfo analyzer fidelity.
+
+Independent native FIRST14 over physical/join FILTER, REAL/NULL/empty/DISTINCT,
+local aggregate window/count/multiple and correlated scalar FILTER were captured
+BEFORE consuming edits. Thirteen now pass typed/name/two-run/reset/finalize
+public controls, added to existing linked scalar suite. Correlated scalar FILTER
+remains baseline temporary admission ('this scalar subquery shape is not
+implemented'); full14 is NOT green. Original d full18 now only plain recursive
+aggregate unsupported, not physical/window INTERNAL. Preserve this obligation,
+not an owner exclusion. No grouped/physical magnet/reset/callback modification;
+b count/OFFSET/order/Mem and d saved result phases untouched. Native metadata
+origins/BLOB/encoding/resource/suspension parity, deeper retained/recursive
+windows, general identity/AggInfo/nTab/preparation R1–R4 remain unproved.
+
+Fresh type/focused372/public13 pass; immutable final src/test broad1067/1067
+including C1–C6/Chinook fail/skip/cancel0, hashes OK. Evidence:
+work:///cards/card-t-c/carrier-repair/{before.ts,stack.mjs,native.py,oracle.json,
+public-before.log,public1.log,public18.log,success13.json,public13.log,focused.log,
+broad.log,inputs.sha,immutable.log,scoped.patch}. Baseline stack proves actual
+production callers; full matrices preserve residual admissions explicitly.
+
+
+### Ordinary recursive aggregate input closure ([[card:card-t-b]])
+Current compileSelect recursive branch now selects compileRecursiveAggregateSelect with real schema/database, replacing SUM-only argument/destination/evaluator specialization. It reuses recursive-window resolver-only transient SrcItem description (prepareRecursiveSource), resolves immutable linked NameContext, composes existing compileRecursiveCteSelect Queue/Current producer to SRT_Coroutine on same builder, then feeds compileAggregateSelect input.first/emit. No rootPage0 OpenRead, synthetic read producer, new runtime or completed Program relocation. TableNode metadata is the existing browser resolver representation of CTE SrcItem columns, not new physical schema. Input registers own direct AggInfo reads; saved/final binding owns output. SELECT owns WHERE/step/bare capture/AggReset/finalization/destination and consumer LIMIT/OFFSET; producerOnly keeps CTE body LIMIT separate. Enclosing entry publishes shared parameter names and late Halt/finish after all labels. Retired SUM aggregate-expression path only in this migrated consumer; other destinations stay live.
+Source: select.c generateWithRecursiveQuery2667–2830 Queue/Current/setup/recursive/destination/body limits, sqlite3Select preparation and SrcItem coroutine path, selectInnerLoop Mem/Output/Coroutine, updateAccumulator6880–6977 shared regHit/regAcc NEEDCOLL/FILTER, expr.c saved aggregate column phase. Streamed input now reuses existing emitPhysicalAccumulator rather than independent exactly-one-minmax capture: last invoked magnet controls bare row; FILTER regAcc-before-jump and DISTINCT bypass preserved; ordinary aggregate saves first admitted input; empty finalizes once. This closes plain recursive MAX+bare pin5/5. SUM/count/min/max/FILTER/WHERE-empty/DISTINCT/REAL/multiple-minmax/LIMIT0/OFFSET controls pass selected matrix. GROUP/HAVING and nonordinary multi-source/compound consumers remain explicitly unsupported, scalar nested output admission remains a separate debt; no silent partial grouping or scope exclusion. Nine native-first full enclosing typed/name/reset controls added; original public18 no longer has this admission failure. Grouped/correlated full matrix residuals remain documented, no resource/origin/BLOB/encoding/suspension parity claim from selected controls. General preparation/AggInfo/nTab/R1–R4 remain open. Public method signatures unchanged; admitted recursive ordinary aggregate output broadened through existing semantic owner, not SQL-text special cases.
+
+### Linked scalar aggregate FILTER caller closure ([[card:card-t-d]])
+resolvedScalarSubqueryEmitter and finalized/grouped compileAggregateSubquery
+now admit FILTER for child-local ordinary aggregate result into existing linked
+compileAggregateSelect (not scalar evaluation). FILTER semantic carrier binds
+inner cursor and outer current/saved AggInfo phase; shared emitSteps owns
+predicate-before-args/step, AggReset per invocation, capture/finalization and Mem.
+Pinned select.c updateAccumulator6880ff separates FILTER from arguments and
+copies regAcc before branch; expr.c scalar preparation remains NULL/Once and
+numeric limit guard. DISTINCT/order/offset/EXISTS/outer-owned aggregate
+restrictions stay live; no general guard removal or VM/WHERE/private24 edit.
+Accepted correlated MAX FILTER returns [1,NULL],[3,1],[5,3],[7,5]. Eight public
+native controls cover MAX/MIN/SUM REAL/count, uncorrelated Once, zero/REAL limit
+and grouped saved-winner outer binding, two-run/reset/finalize. Original native15
+now only recursive GROUP/nested scalar and grouped FILTER-window admissions
+remain (not exclusions). Additional8 captured post-first edit, pre-grouped-caller
+edit; original15 preconsuming capture is primary independent repair oracle.
+Type/focused410/immutable broad1084 C1–C6/Chinook/selected lifecycle+limits/diff
+pass; evidence work:///cards/card-t-d/scalar-filter/. No general identity/AggInfo/
+nTab R1–R4/native origins/BLOB/encoding/suspension/resource parity claim.
+
+
+### Recursive grouped input closure ([[card:card-t-b]])
+Supersedes the prior ordinary-input GROUP/HAVING admission debt for bounded
+single recursive SrcItem aggregate consumers. compileRecursiveAggregateSelect
+now passes GROUP/HAVING through the real linked plan and same Queue/Current →
+Coroutine input. compileAggregateSelect's existing grouped sorter population
+consumes input.emit(insertGroupedRow), evaluating consumer WHERE then GROUP keys
+and copying queue payload registers. Physical OpenRead/Next and groupedStream
+production are bypassed only when genuine parent.input exists; neither is removed
+for live callers. WHERE rejection returns to the input owner's next Yield.
+SorterSort empty exit, key comparison, AggReset, seen/magnet reset, shared
+FILTER-before-arguments/DISTINCT/last-invoked minmax capture, saved/final phase,
+HAVING and result destination/ORDER/LIMIT/OFFSET remain the existing group owner.
+The queue body LIMIT/OFFSET stays producer-owned; no new runtime/evaluator,
+rootPage0 physical read or completed Program relocation. Same enclosing builder,
+parameters/register/cursor labels and late finish remain. TS register payloads
+are the browser representation of the C coroutine SrcItem and AggInfo sorter
+payload, not an exceptional grouping algorithm substitution.
+Pinned select.c: generateWithRecursiveQuery2790–2835 emits Current before
+recursive resume; sqlite3Select8570–8615 constructs GROUP key/AggInfo payload
+sorter and switches useSortingIdx; 8650–8745 compares groups, outputs/resets on
+transition and final exhaustion; updateAccumulator6830–6970 owns FILTER regAcc,
+NEEDCOLL regHit/DISTINCT and saved bare capture. Existing sorter/group bytecode
+is retained, not newly asserted as complete AggInfo analyzer parity.
+Native FIRST11 before consuming edits covers exact grouped MAX+bare, multiple
+minmax, FILTER, DISTINCT, all-NULL aggregate, REAL/ordinary first bare, empty,
+HAVING/ORDER/consumer limits, NULL key and body LIMIT/OFFSET. Additional five
+post-migration native controls cover ties, all-filtered first bare, multiple
+FILTER, NULL source and saved correlated scalar FILTER. Public typed/name/two-run
+reset/done/finalize regressions reside in the existing linked scalar suite.
+Full original15 now retains two admissions: recursive nested zero-source scalar
+and combined grouped FILTER-window. No full15 success, origin/BLOB/encoding/
+resources/suspension parity or R1–R4/general identity/AggInfo/nTab claim.
+Evidence: work:///cards/card-t-b/recursive-group-repair/; public API signatures
+unchanged, bounded recursive grouping admission broadened rather than narrowed.
+
+### Prepared zero-source scalar consumer closure ([[card:card-t-d]])
+Finalized/grouped compileAggregateSubquery delegates child-local zero-source
+SELECT to resolvedScalarSubqueryEmitter. Removed its unbound compileExpressionTree
+shortcut: linked Mem/Exists producer now initializes NULL/0 and Once/normalized
+scalar count, skips on WHERE/offset, binds result with enclosing saved AggInfo
+and visits selectInnerLoop/destination once without physical WHERE planning.
+bindResolvedExpression no longer preserves prebound cursor when a semantic
+binding is supplied; rebind owns coroutine/sorter/saved phase. Pinned expr.c
+sqlite3CodeSubselect3841–3950 owns correlation/Once/init/limit and select.c
+selectInnerLoop owns destination; zero SrcList needs no cursor loop. Failed
+empty-SrcList physical planner trial produced invalid cursor; rejected, not VM
+patched. DISTINCT/GROUP/compound/VALUES/outer-owned aggregates stay guarded.
+Eight typed/name/two-run/reset controls cover recursive ordinary/grouped saved
+winner, child WHERE false/true, scalar REAL/zero LIMIT and OFFSET; original
+pre-edit14 supplies accepted independent oracle, extra10 was captured post-code.
+Full extra10 retains unrelated physical zero-source WHERE defects (literal WHERE0
+returns42; correlated physical child admission rejects), not exclusions. Combined
+grouped FILTER-window remains the original15 admission. General preparation,
+identity/AggInfo/nTab/R1–R4/origin/BLOB/encoding/resource/suspend parity unproved.
+Type/focused434/immutable broad1108/public8+original18 pass. Evidence
+work:///cards/card-t-d/zero-scalar/. Public contracts/signatures unchanged.
+
+
+### Physical singleton scalar caller migration ([[card:card-t-c]])
+Supersedes d404's physical zero-source bypass only. compileTableSelect's
+compileExpressionSubquery now hands scalar zero-source children (including
+EXISTS) to existing resolvedScalarSubqueryEmitter/prepared singleton SELECT.
+The caller supplies linked outer CURRENT cursor binding and synchronizes the
+manual register frontier/cursor reservation before and after handoff, just as
+its physical child producer. Removed old unconditional Copy/Exists1 shortcut,
+which ignored WHERE/count/offset and failed correlation/Once. No empty SrcList
+physical WHERE loop, child Program/manual PC copy, SQL-specific evaluator or VM
+change. Physical source bound at cursor0, nested source reads keep relocated
+cursors; prepared producer initializes NULL/0, skips Once only if correlated,
+normalizes count, evaluates WHERE then offset then one destination visit.
+Retained IN/derived/aggregate-EXISTS/lexical/GROUP/compound/VALUES restrictions
+remain separate, no unsupported shape silently emits a partial result.
+Authority: expr.c sqlite3CodeSubselect3841–3964 correlated/Once/NULL/count;
+select.c selectInnerLoop SRT_Mem1422ff publishes after OFFSET/predicate admission;
+resolve.c NameContext.nRef/pNext/correlated ownership. Shared Mem/Btree/KeyInfo,
+async and d saved/grouped/recursive phase semantics unchanged. R1–R4/full
+preparation/identity/AggInfo/nTab and index/resource/suspension parity not proved.
+
+Existing independently pinned full10 reused BEFORE consuming edit, eight matched
+two failed: physical42 WHERE0 gave42 notNULL; correlated WHERE/count/OFFSET
+rejected. After caller migration full10 and original18 pass typed/name/two-run/
+reset/finalize. Existing linked scalar suite adds both accepted controls and nine
+post-code native boundary expansion cases (NULL/WHERE/count0/REALcount/OFFSET1,
+REAL/correlated/EXISTS/descending output). Initial extra10 exposed deeper nested correlated singleton NULL for all rows
+(pin5/7 on last rows), then the first broad run failed six existing UTF8/16
+correlated-two-level/nested EXISTS regressions. Full extra10 now passes after
+owning NameContext/producer fixes below. Capture is postrepair expansion, not
+FIRST; not relabeled pre-code evidence. Original15 still only grouped FILTER-
+window temporary admission. Passing focused445/public10+18 does not waive these.
+Evidence work:///cards/card-t-c/physical-singleton-repair/ including baseline
+before.ts, extra native script/oracle, public10/public18/public15/public-extra,
+focused-final.log, broad.log, inputs.sha/immutable.log; native baseline reused
+from work:///cards/card-t-d/zero-scalar/. No owner API signature change.
+
+
+Physical singleton affected-path integration: first broad run1119 tests had six
+failures (existing two-level correlation and nested EXISTS in all three
+encodings), not erased by focused445/public10+18. resolve.c lookupName848–853
+increments contexts up to the matching context; TS incremented only innermost
+owner, so a singleton containing a correlated SELECT was wrongly Once cached.
+TS nRef is a correlation-only marker (local refs are NOT correlation); increment
+all intervening contexts before the matched context for outer references,
+retaining this representation contract. Initial literal C inclusive increment
+made local SELECT correlated and failed existing resolver-facing tests; adjusted
+to preserve local=false. Nested physical compileInnerTableSelect also created a
+fresh scalar emitter without passing its active cursor/outer-binding map;
+resolve.c assigns global SrcItem cursor identities whereas TS linked sources
+still use relocated mapping. Supply nested binding: local refs map via cursorFor,
+outer refs via enclosing expressionBinding. Shared singleton callback then sees
+correct current physical row and transitive Once state; scalar guard untouched.
+This correction belongs to resolver+consumer, not a nested SQL workaround.
+New deeper singleton regression and existing UTF8/16 full174 foundation suite
+now pass. Final focused620 (prior11 files plus foundation) and full native10,
+extra10, original18 pass. Original15 still only grouped FILTER-window temporary
+admission; this repair does not widen GROUP/compound/outer-owned lexical work.
+Artifacts preserve broad.log failure, nested.log inclusive-nRef trial failure,
+nested2.log174 success, public-extra2/3/final, focused-own-final.log and final
+immutable broad evidence. General correlation/identity/index/resource parity
+is not established by these finite matrices. No VM/root/private-budget changes.
+
+Final resolver contract alignment: second broad had1119 pass/1 failure: old
+parser/resolver test explicitly expected intermediate deep.nested[0].correlated
+false. Pinned lookupName848–853 plus native/public execution require true to
+avoid stale Once. Updated that assertion with source note, retaining top-level
+local=false and inner=true, source cursors/shadowing/ambiguity tests. This is
+source-backed correction of an obsolete internal expectation, not suppression of
+an SQL regression. Final focused650 includes resolver30 + foundation174; final
+broad-complete and immutable-complete logs are the final acceptance evidence;
+earlier broad logs retain actual failures. No src/test edits while final broad
+runs. Full native10/extra10/original18 successful; original15 grouped FILTER-
+window still temporary. Current bounded green is not R1–R4 approval.
+
+
+### Grouped-to-window outer expression ownership ([[card:card-t-c]])
+Supersedes the retained original15 grouped FILTER-window admission prediction.
+Native-first full9 sibling baseline (source-ID asserted) and original15/18
+are at work:///cards/card-t-c/group-filter-window-red/. All9 siblings rejected
+before this slice; inner lowering returned columns0, not an accumulator/frame
+exception. window.c selectWindowRewriteExprCb744ff rewrites terminals while
+sqlite3WindowRewrite958ff moves GROUP/HAVING and persists AggInfo in the child.
+TS lifted terminals correctly but outer output required whole-expression identity:
+a%3 had lifted a, not a%3, so publication remained atomic unsupported.
+
+compileWindowSelectLowering now binds surviving outer expressions through the
+existing resolver carrier/expr lowering to finalized root payload registers.
+Lifted aggregates consume their finalized payload; columns consume saved group
+winner values, never raw source cursor; existing shared scalar producer receives
+the same producer-row binding for correlated subqueries. The first trial omitted
+that callback and admitted NULL for (SELECT t.a); corrected owning callback and
+builder frontier synchronization. Ordinary outer ORDER/result aliases use the
+same compiled entries. Existing window execution admission remains intact.
+No new evaluator, guard-only acceptance, Program relocation, VM or WHERE change.
+Grouped producer/updateAccumulator remains unchanged, preserving FILTER/regAcc,
+NEEDCOLL/magnet/NULL/tie capture, resets and coroutine boundaries. Pinned expr.c
+column/aggregate register consumption and resolve linked carrier identities own
+expression lowering, not SQL-text recognition. No allocation/entry seam change
+requiring b coordination was identified.
+
+Regression matrix adds9 native-first cases to existing cross-layer public suite:
+with/without FILTER, NULL/ties/filter0, incompatible windows/multiple aggregates,
+empty GROUP input, saved correlation and descending ORDER/LIMIT/OFFSET. Public
+full9/original15/original18 pass typed rows/two runs/reset; existing suite verifies
+names/done/finalize. Evidence work:///cards/card-t-c/group-filter-window-repair/.
+Type/focused437 pass; broad/immutable result must be read from current status,
+not inferred from this note. No full origins/BLOB/encoding/error/resource parity
+claim. Parent status79 R1–R4/reviewv3 and general preparation/identity/AggInfo/nTab
+and C-subroutine/retained destination fidelity remain open. Public API unchanged;
+unimplemented output expressions still reject atomically typed temporary.
+
+
+### Recursive GROUP→window moved-column identity ([[card:card-t-d]])
+Native-first post-c1000 public integration found INTERNAL for recursive GROUP
+with `(SELECT (SELECT q.a))` plus first_value: pinned rows
+[0,3,3,3],[1,7,7,3],[2,5,5,3]. Physical sibling matched. Stack evidence
+places the first failure in compileAggregateSelect result binding, not VM step.
+window.c selectWindowRewriteExprCb744–829 copies outer-source TK_COLUMN even
+inside scalar children into the grouped producer and rewrites its consumer to
+an ephemeral payload column. Recursive lowering reuses the resolver-only queue
+source plan: replacing only plan.source omitted the moved child's columnUses.
+The producer now publishes moved outer-source uses with local selectDepth0,
+retaining original source/reduction identities and nested correlation metadata.
+No token re-resolution, scalar evaluator or VM exception workaround is added.
+
+The next divergence was producer publication: recursive grouped expressions
+were being rebound/recomputed from queue positions; bound columns used raw
+queue columnIndex instead of grouped payload position. All grouped producers
+now copy their finalized expression payload by producer/buffer position through
+emitProducerBinding. Ordinary recursive non-grouped producers still use queue
+columnIndex and current expression binding: their dependency is different. An
+initial overbroad trial broke that live branch (focused failures retained) and
+was narrowed at this ownership distinction. This retires the grouped recursive
+raw-source recomputation only; other manual PC/allocation branches remain live.
+Compiler owns moved semantic graph, allocation, labels and coroutine payload
+contract. VM retains InitCoroutine/Yield/Once PC/register/Mem/budget/reset and
+suspension; root WHERE/index/RIGHT/private24 contracts unchanged. No API change.
+
+Regression adds exact original SQL plus six independently pinned siblings to
+select-window-cross-layer-integration: shallow/deeper correlation, FILTER saved
+winner, singleton WHERE/numeric LIMIT, window argument, incompatible windows,
+empty groups; names/types/two executions/reset/done/finalize. Original oracle
+was captured before consuming edits; extra6 after edits, not native-first.
+Evidence work:///cards/card-t-d/recursive-window-identity/ and post-c1000/;
+current status contains exact commands/hashes/outcomes. Four unrelated scalar
+DISTINCT/GROUP/compound/multisource admissions remain unresolved, not exclusions.
+No general identity/AggInfo/nTab/subroutine/metadata/error/storage/resource or
+R1–R4 architecture acceptance follows from this bounded closure.
+
+
+### Ordinary physical entry construction ownership ([[card:card-t-b]])
+Pinned select.c sqlite3Select7590–7695 obtains the enclosing Parse Vdbe and
+SelectDest; selectInnerLoop1140–1205 assigns its result range from Parse.nMem;
+vdbeaux.c610–650 and2647–2685 keep label resolution and MakeReady on that owner.
+The ordinary single-table producer now consumes the actual entry builder,
+parameters and destination. Result, expression/IN/LIMIT/scalar registers, sort
+keys, nested and private sorter cursors allocate on that frontier; scan and
+sorter drain dispose through the supplied destination. Local register counters,
+scalar highwater handoffs and hardcoded result register1/output are retired in
+this branch. Entry emits the terminal Halt and finishes after producer exits;
+the standalone compileTableSelect wrapper does the same for still-live callers.
+
+Fixed physical WHERE cursors0/3 and reserved0..30/private24 remain deliberate
+partial-migration contracts; nested physical cursor namespace starts beyond999
+via builder reservation, not a separate counter. They are not general nTab
+fidelity. Ordinary labels/WHERE positioning, reverse/seek/IN/error gates, result
+metadata and VM/Mem/Btree/budgets are unchanged. Other JSON/derived/join/compound
+specializations still return independently published programs: the entry only
+finishes its builder when the producer returned that same ops identity. This
+identity distinguishes live ownership (no completed-child splice), not shape
+reclassification or fallback after error. Those producers remain R1 obligations.
+
+Seven independent native-first controls (source-ID asserted) exercise ordinary
+scan/sort/DISTINCT/IPK seek, nested singleton, INTEGER/REAL/NULL, empty and LIMIT0.
+Durable test checks typed rows/two runs/reset/done/finalize and names, recording
+existing rowid public-name versus native IPK-name divergence explicitly. This
+migration does not repair that prior naming gap. Existing broader tests supply
+bindings, atomic errors, physical index and lifecycle coverage, not a new full
+native cross-shape oracle claim. Evidence/actual command outcomes are in current
+status and work:///cards/card-t-b/ordinary-entry-repair/. No new supported shapes,
+algorithm substitution, full metadata parity or R1–R4 acceptance claimed.
+
+### Bounded fourth-checkpoint compound collation correction
+
+The independently pinned 3.53.4 matrix exposed wrong UNION/INTERSECT/EXCEPT
+rows when explicit compound ORDER COLLATE differed from set equality. The
+existing two KeyInfo objects alone were insufficient: `select.c:5502–5584`
+`convertCompoundSelectToSubquery` runs before merge and moves ORDER/LIMIT to
+an outer SELECT whenever a set prefix and explicit ORDER collation coexist
+(ALL-only remains mergeable). `emitScalarCompoundMerge` now composes the
+unordered set producer into a same-builder coroutine, then sorts surviving
+payload using the outer ORDER KeyInfo. Inner merge/duplicate KeyInfo remain
+independent (`select.c:2600–2630,3502–3523`); equality is never ORDER equality.
+No SQL-text special case, VM workaround or extra DISTINCT evaluator was added.
+Compound LIMIT/OFFSET apply only while draining outer sorting.
+
+The checkpoint's repeated NOT MATERIALIZED VALUES CTE structural red also
+proved a real producer-ownership divergence, not justification for deleting
+its assertion. `fromClauseTermCanBeCoroutine:7266–7290` permits independent
+repeated NOT MATERIALIZED sources. The compound CTE arm delegates its retained
+producer into the shared destination/builder rather than the shared CteUse
+spool branch; the table compound caller publishes that builder's columns/ops.
+The original two-InitCoroutine assertion remains intact. Public INTEGER8,8
+rows already matched before repair; the structural ownership obligation is
+separate from the runtime compound wrong-row defect.
+
+Native-first typed/reset controls and the original checkpoint regressions are
+retained in `test/conformance/compound-collation.test.mjs` and
+`test/conformance/cte-opcodes.test.mjs`; bounded command/results and attempted
+hypotheses live in [[card:card-t-c]] status and checkpoint-collation-red/repair
+work artifacts. This is not R1–R4 architecture acceptance or new breadth;
+metadata/origins, general resources/storage and unrepresented shapes retain
+previous qualifications. No bitwise excluded changes are part of this repair.
