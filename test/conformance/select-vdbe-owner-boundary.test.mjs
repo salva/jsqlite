@@ -85,7 +85,8 @@ test('residual physical compound consumes the production multiSelect dispatch wi
  const branch=derived.match(/else if\(compoundDestinationProducer\)\{([\s\S]*?)\n  \}else/);assert.ok(branch);
  assert.match(branch[1],/compileTableCompoundProducer\([\s\S]*builder,parameters,destination:/);
  assert.doesNotMatch(branch[1],/child.ops|pcMap/);
- assert.match(source.slice(source.indexOf('export function compileTableSelect(')),/return compileTableCompoundProducer\(/);
+ assert.match(source.slice(source.indexOf('export function compileTableSelect(')),/const compiled=compileTableCompoundProducer\([^;]*privateStateLimits,shared\)/);
+ assert.match(source,/ops:shared\.builder\.ops,registers:shared\.builder\.registers[^\n]*columns:compiled\.columns/,'shared compound publication keeps the owning builder and metadata');
  assert.match(derived,/const inner=nestedProducer\?\{columns:compoundArmColumns[\s\S]*:residualCompoundColumns\?\{columns:residualCompoundColumns/);
 });
 
@@ -108,7 +109,7 @@ test('residual aggregate compound forwards the production arm accumulator owner'
  const admission=derived.slice(derived.indexOf('const compoundDestinationProducer='),derived.indexOf('let residualCompoundColumns:'));
  assert.doesNotMatch(admission,/!selectHasAggregate/);
  const all=source.slice(source.indexOf('function compileCteUnionAll('),source.indexOf('function compileSimpleTableCompound('));
- assert.match(all,/if\(selectHasAggregate\(arm\)\)\{[\s\S]*compileAggregateSelect\(arm,[\s\S]*builder,ops,parameters,destination/);
+ assert.match(all,/if\(selectHasAggregate\(arm\)\|\|arm\.hasGroupBy\|\|arm\.hasHaving\)\{[\s\S]*compileAggregateSelect\(arm,[\s\S]*builder,ops,parameters,destination/);
 });
 
 test('persistent compound scan admission preserves transient SrcItem ownership',()=>{
@@ -125,7 +126,7 @@ test('window lowering preserves compound owner before rewriting its first arm',(
 test('window compound arms share allocation, parameters, destination and explicit exit',()=>{
  assert.match(source,/const parameters:ParameterBuilder=owner\?\.parameters\?\?/);
  assert.match(source,/compileWindowSelectLowering\(expanded,[^\n]*builder,parameters,destination/);
- assert.match(source,/if\(owner\)\(ops\[ownerExit\]/);
+ assert.match(source,/if\(owner\)\{[\s\S]*?owner\.builder\.registers=Math\.max\(owner\.builder\.registers,registers\);[\s\S]*?\(ops\[ownerExit\] as \{p2:number\}\)\.p2=ops\.length/);
  assert.match(source,/ends:number\[\]=compilation.ownerExit/);
 });
 
@@ -148,11 +149,13 @@ test('retained derived compound arms call existing shared destination before sch
 test('retained physical source feeds window payload without a finished child splice',()=>{
  const window=source.slice(source.indexOf('export function compileWindowSelectLowering('),source.indexOf('export function programOpcodeNames('));
  const branch=window.slice(window.indexOf('if(owner?.retainedSource){'),window.indexOf('}else if(groupedProducer){'));
- assert.match(branch,/compileInnerTableSelect\([\s\S]*destination:\{kind:'coroutine'/);
+ assert.match(branch,/const destination:SelectDest=\{kind:'coroutine'/);
+ assert.match(branch,/compileInnerTableSelect\([\s\S]*\{builder,ops,parameters,destination\}/);
+ assert.match(branch,/compileTableCompoundProducer\([\s\S]*\{builder,parameters,destination\}/);
  assert.match(branch,/groupedPayload=builder.range\(owner.retainedSource.result.length\)/);
  assert.match(branch,/EndCoroutine/);
  assert.doesNotMatch(branch,/child.ops|pcMap|compileTableSelect\(/);
- assert.match(window,/kind:'register',register:groupedPayload!\+ref.columnIndex,phase:'producer-row'/);
+ assert.match(window,/kind:'register',register:groupedPayload\+ref.columnIndex,phase:'producer-row'/);
  assert.match(window,/ownedFilter.filterCarrier/);
 });
 
@@ -174,4 +177,25 @@ test('residual retained producer metadata and emission use semantic owners on on
  const metadata=derived.slice(derived.indexOf('  const inner=nestedProducer'),derived.indexOf('  const alias='));
  assert.match(metadata,/compoundArmColumns\(derived.select,schema\)/);
  assert.doesNotMatch(metadata,/compileTableSelect|compileScalarSelect/);
+});
+test('recursive aggregate and zero-source count consume source destinations before Program publication',()=>{
+ const recursive=source.slice(source.indexOf('export function compileRecursiveAggregateSelect('),source.indexOf('export function compileRecursiveWindowSelect('));
+ const count=source.slice(source.indexOf('// Retain this count-only admission;'),source.indexOf('export function compileAggregateSelect('));
+ for(const owner of [recursive,count]){
+  assert.doesNotMatch(owner,/producer\.ops|original\.code|op\.code/,'completed opcode rewriting is not a SELECT destination');
+  assert.match(owner,/builder\.finish\(\)/);
+ }
+ assert.match(count,/aggregate-expression/);
+ assert.doesNotMatch(recursive,/aggregate-expression|OpenRead/);
+ assert.match(recursive,/prepareRecursiveSource\(select,owner,schema\)/);
+ assert.match(recursive,/compileRecursiveCteSelect\([\s\S]*true,\{builder,parameters,destination:\{kind:'coroutine',register:coroutine,first\}\}/);
+ assert.match(recursive,/EndCoroutine[\s\S]*Yield[\s\S]*consume\(\)/);
+ assert.match(recursive,/compileAggregateSelect\([\s\S]*\{builder,ops,parameters,linkedPlan,input,destination:shared\?\.destination/);
+ assert.match(recursive,/parameters:Object\.freeze\(parameters\.names/);
+ const grouped=source.slice(source.indexOf(' if(select.hasGroupBy){',source.indexOf('export function compileAggregateSelect(')),source.indexOf(' // select.c:resetAccumulator precedes WHERE positioning'));
+ assert.match(grouped,/if\(!parent\?\.input&&groupedStream\)/);
+ assert.match(grouped,/else if\(!parent\?\.input\)\{[\s\S]*OpenRead/);
+ assert.match(grouped,/parent\.input\.emit\(insertGroupedRow\)/);
+ assert.match(grouped,/inputReject[\s\S]*SorterInsert[\s\S]*inputReject/);
+ assert.match(grouped,/streamScan===undefined&&!parent\?\.input/);
 });

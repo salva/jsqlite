@@ -251,3 +251,19 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} recu
     await reusable(db);db.close();
   }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
+
+test('multiple recursive producer bindings share parent indices and reset independently',async()=>{
+ const {server,db}=await openBytes(fs.readFileSync(path.join(generated,'subquery-utf8.db')));
+ try{
+  const statement=db.prepare('WITH RECURSIVE a(x) AS (VALUES(?1) UNION ALL SELECT x+1 FROM a WHERE x<2), b(y) AS (VALUES(?2) UNION ALL SELECT y+10 FROM b WHERE y<20) SELECT x,y FROM a,b ORDER BY y DESC,x').statement;
+  try{
+   assert.equal(statement.parameterCount,2);
+   for(const [first,second,expected] of [[1n,10n,[[1n,20n],[2n,20n],[1n,10n],[2n,10n]]],[2n,20n,[[2n,20n]]]]){
+    statement.bind(1,first);statement.bind(2,second);
+    const rows=[];while(await statement.step()==='row'){assert.equal(statement.columnType(0),'integer');assert.equal(statement.columnType(1),'integer');rows.push([statement.columnInteger(0),statement.columnInteger(1)]);}
+    assert.deepEqual(rows,expected);statement.reset();
+   }
+  }finally{statement.finalize()}
+  await reusable(db);db.close();
+ }finally{try{db.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+});

@@ -39,7 +39,7 @@ type Expression =
  | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";index:number;name:string;cursor?:number;payloadIndex?:number;collation?:BuiltinCollation;affinity?:MemAffinity}
+ | {kind:"column";index:number;name:string;cursor?:number;payloadIndex?:number;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
@@ -142,7 +142,7 @@ type Op =
   | { readonly code: "IfEphemeralHasNext"; readonly p1:number; readonly jump:number }
   | { readonly code: "EphemeralResetPosition"; readonly p1:number }
   | { readonly code: "MustBeInt"; readonly p1:number }
-  | { readonly code: "WindowCheck"; readonly p1:number; readonly boundary:"starting"|"ending"; readonly numeric:boolean }
+  | { readonly code: "WindowCheck"; readonly p1:number; readonly boundary:"starting"|"ending"|"nth"; readonly numeric:boolean }
   | { readonly code: "OffsetLimit"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "IfNotZero"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfPos"; readonly p1:number; readonly p2:number; readonly p3:number }
@@ -252,6 +252,7 @@ export interface WindowSetupLayer {
   readonly regStartRowid:number|null;
   readonly regEndRowid:number|null;
   readonly applicationCursor:number|null;
+  readonly valueApplications:readonly Readonly<{result:number;start:number;end:number;cursor:number}>[];
   readonly deleteMode:WindowDeleteMode;
   readonly partitionKeyInfo:KeyInfo|null;
   readonly peerKeyInfo:KeyInfo|null;
@@ -291,6 +292,20 @@ interface WindowCodeArg {
   readonly layer:WindowCodeLayer;
   readonly state:WindowSetupLayer;
   readonly collationOf:(bufferColumn:number)=>BuiltinCollation;
+}
+
+// window.c windowFullScan / windowReturnOneRow: value functions with a
+// moving ROWS start cannot use callback xInverse (first/nth inverse is a noop).
+// Explicit EXCLUDE also owns a frame scan instead of a cumulative callback.
+function scannedRowsLayer(layer:WindowCodeLayer):boolean {
+  return layer.windows.length>0&&layer.windows.every(win=>{
+    const f=win.window.frame;
+    return win.window.partitionBy.length===0&&f.type==='rows'&&(f.start.kind==='preceding'||f.start.kind==='current')
+      &&(f.end.kind==='following'||f.end.kind==='current')
+      &&(f.exclusion===null||f.exclusion==='no-others'||f.exclusion==='current-row')
+      &&!!aggregateDefinition(win.window.functionName);
+  })&&((layer.windows[0]!.window.frame.exclusion==='current-row'&&(layer.windows[0]!.window.frame.end.kind==='following'||layer.windows[0]!.window.frame.start.kind==='current'))
+    ||(layer.windows[0]!.window.frame.end.kind==='current'&&layer.windows.some(win=>win.window.functionName==='first_value'||win.window.functionName==='nth_value')));
 }
 
 /** A lead/lag layer is partition-cached by windowCacheFrame. Compatible
@@ -410,7 +425,7 @@ export function compileWindowSelectLowering(
   const builder=owner?.builder??new SelectProgramBuilder<Op>();
   const ops:Op[]=builder.ops;
   const parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
-  let registers=Math.max(0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
+  let registers=Math.max(builder.registers,0,...rewrite.layers.flatMap(layer=>[layer.regGosub,...layer.windows.flatMap(win=>[win.regAccum,win.regResult])]));
   const setup:WindowSetupLayer[]=[];
   const frameDeleteMode=(frame:NonNullable<WindowRewriteGraph["layers"][number]["windows"][number]>["window"]["frame"]):WindowDeleteMode=>{
     const gtZero=(boundary:typeof frame.start)=>!!boundary.expr?.reduction&&windowConstantIntegerGtZero(expressionFromReduction(boundary.expr.reduction));
@@ -444,11 +459,16 @@ export function compileWindowSelectLowering(
     const keyInfo=new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:0,terms:[]});
     ops.push({code:"OpenEphemeral",p1:layer.iEphCsr,keyInfo});
     for(const cursor of layer.duplicateCursors)ops.push({code:"OpenDup",p1:cursor,p2:layer.iEphCsr});
+    // window.c:sqlite3WindowCodeInit allocates partition/constant state in
+    // the enclosing Parse. Prior layers still have bounded manual consumers;
+    // import their high-water, then hand the updated frontier back to them.
+    builder.registers=Math.max(builder.registers,registers);
     const partitionRegisters:number[]=[];
-    for(const _term of layer.producerOrderBy.filter(term=>term.source==="partition")){const reg=++registers;partitionRegisters.push(reg);ops.push({code:"Null",p2:reg});}
-    const regPartInitialized=partitionRegisters.length?++registers:null;if(regPartInitialized!==null)ops.push({code:"Integer",p1:0n,p2:regPartInitialized});
-    const regOne=++registers;ops.push({code:"Integer",p1:1n,p2:regOne});
-    const regOutputReady=++registers;ops.push({code:"Integer",p1:0n,p2:regOutputReady});
+    for(const _term of layer.producerOrderBy.filter(term=>term.source==="partition")){const reg=builder.register();partitionRegisters.push(reg);ops.push({code:"Null",p2:reg});}
+    const regPartInitialized=partitionRegisters.length?builder.register():null;if(regPartInitialized!==null)ops.push({code:"Integer",p1:0n,p2:regPartInitialized});
+    const regOne=builder.register();ops.push({code:"Integer",p1:1n,p2:regOne});
+    const regOutputReady=builder.register();ops.push({code:"Integer",p1:0n,p2:regOutputReady});
+    registers=builder.registers;
     for(const win of layer.windows)ops.push({code:"Null",p2:win.regAccum});
     // window.c:windowCheckValue evaluates offsets once, outside the producer
     // loop. ROWS/GROUPS require integers; RANGE admits numeric values.
@@ -457,11 +477,13 @@ export function compileWindowSelectLowering(
     if(frame){
       for(const [boundary,value] of [["starting",frame.start],["ending",frame.end]] as const){
         if(!value.expr?.reduction)continue;
-        const register=compileExpressionTree(expressionFromReduction(value.expr.reduction),ops,()=>++registers,parameters);
+        const register=compileExpressionTree(expressionFromReduction(value.expr.reduction),ops,()=>builder.register(),parameters);
         boundRegisters[boundary==="starting"?"start":"end"]=register;
         ops.push({code:"WindowCheck",p1:register,boundary,numeric:frame.type==="range"});
       }
     }
+    // Exclusion/application/buffer consumers still use the manual frontier.
+    registers=builder.registers;
     // window.c:sqlite3WindowCodeInit checks eExclude before function-specific
     // state. Any explicit EXCLUDE (including NO OTHERS/TK_NO) owns rowid bounds
     // and a duplicate application cursor used by windowCodeOp's full scan.
@@ -475,14 +497,27 @@ export function compileWindowSelectLowering(
     // application cursor for their non-EXCLUDE windowReturnOneRow fast path.
     // Explicit EXCLUDE continues to use the full-scan cursor allocated above.
     const valueApplication=exclusion===null&&layer.windows.some(win=>win.window.functionName==="first_value"||win.window.functionName==="nth_value");
+    // window.c:sqlite3WindowCodeInit consumes the shared nMem/nTab frontier.
+    // Rewrite/physical identities remain reserved; later sorters and children
+    // still consume the bounded manual frontier until their migration.
+    builder.reserveCursorsThrough(nextApplicationCursor-1);
     let regStartRowid:number|null=null,regEndRowid:number|null=null,applicationCursor:number|null=null;
     if(exclusion!==null){
-      regStartRowid=++registers;regEndRowid=++registers;applicationCursor=nextApplicationCursor++;
+      regStartRowid=builder.register();regEndRowid=builder.register();applicationCursor=builder.cursor();
       ops.push({code:"Integer",p1:1n,p2:regStartRowid},{code:"Integer",p1:0n,p2:regEndRowid},{code:"OpenDup",p1:applicationCursor,p2:layer.iEphCsr});
-    }else if(offsetApplication||valueApplication){
-      applicationCursor=nextApplicationCursor++;
+    }else if(offsetApplication||(valueApplication&&!scannedRowsLayer(layer))){
+      applicationCursor=builder.cursor();
       ops.push({code:"OpenDup",p1:applicationCursor,p2:layer.iEphCsr});
     }
+    const valueApplications:Readonly<{result:number;start:number;end:number;cursor:number}>[]=[];
+    if(valueApplication&&scannedRowsLayer(layer))for(const win of layer.windows){
+      if(win.window.functionName!=="first_value"&&win.window.functionName!=="nth_value")continue;
+      const start=builder.range(2),cursor=builder.cursor();
+      valueApplications.push(Object.freeze({result:win.regResult,start,end:start+1,cursor}));
+      ops.push({code:"OpenDup",p1:cursor,p2:layer.iEphCsr},{code:"Integer",p1:0n,p2:start},{code:"Integer",p1:0n,p2:start+1});
+    }
+    registers=builder.registers;
+    nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
     const owner=layer.windows[0]?.window;
     const partitionExpressions=owner?.partitionBy??[];
     const peerExpressions=owner?.orderBy??[];
@@ -493,28 +528,40 @@ export function compileWindowSelectLowering(
     const peerKeyInfo=(frame?.type!=="rows"||exclusionPeers)&&peerExpressions.length?keyInfoFor(peerExpressions,peerTerms.map(term=>term.binding),peerTerms,true):null;
     // window.c allocates regNew[nInput], regRecord and regRowid before the
     // producer loop. Non-ROWS frames additionally own four nPeer arrays.
-    const inputRegisters=Object.freeze(Array.from({length:width},()=>++registers));
-    const regNew=inputRegisters[0]??registers+1;
-    const regRecord=++registers,regRowid=++registers;
-    const peerRegisters=():readonly number[]=>Object.freeze(Array.from({length:peerExpressions.length},()=>++registers));
-    const regPeer=(frame?.type!=="rows"||exclusionPeers)&&peerExpressions.length?registers+1:null;
+    const regNew=width?builder.range(width):builder.registers+1;
+    const inputRegisters=Object.freeze(Array.from({length:width},(_value,index)=>regNew+index));
+    const regRecord=builder.register(),regRowid=builder.register();
+    const peerRegisters=():readonly number[]=>{
+      const count=peerExpressions.length;
+      const first=count?builder.range(count):builder.registers+1;
+      return Object.freeze(Array.from({length:count},(_value,index)=>first+index));
+    };
+    const regPeer=(frame?.type!=="rows"||exclusionPeers)&&peerExpressions.length?builder.registers+1:null;
     const mainPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
     const startPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
     const currentPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
     const endPeerRegisters=regPeer===null?Object.freeze([] as number[]):peerRegisters();
-    setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,regPartInitialized,partitionRegisters:Object.freeze(partitionRegisters),regOne,regOutputReady,boundRegisters:Object.freeze(boundRegisters),regStartRowid,regEndRowid,applicationCursor,deleteMode:frame?frameDeleteMode(frame):"retain",partitionKeyInfo,peerKeyInfo,regNew,inputRegisters,regRecord,regRowid,regPeer,startPeerRegisters,currentPeerRegisters,endPeerRegisters}));
+    // Source/producer coroutine and output consumers remain manual for now.
+    registers=builder.registers;
+    setup.push(Object.freeze({compatibleGroup:layer.compatibleGroup,regPart:partitionRegisters[0]??null,regPartInitialized,partitionRegisters:Object.freeze(partitionRegisters),regOne,regOutputReady,boundRegisters:Object.freeze(boundRegisters),regStartRowid,regEndRowid,applicationCursor,valueApplications:Object.freeze(valueApplications),deleteMode:frame?frameDeleteMode(frame):"retain",partitionKeyInfo,peerKeyInfo,regNew,inputRegisters,regRecord,regRowid,regPeer,startPeerRegisters,currentPeerRegisters,endPeerRegisters}));
   }
   // Realize the recursive rewrite as coroutine producers. The innermost
   // producer alone owns the original FROM scan. Each incompatible outer layer
   // consumes the prior layer's coroutine instead of being flattened into that
   // scan. Producer ORDER terms are materialized through the ordinary sorter
   // op family before rows cross each boundary.
-  const maxCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]),...setup.flatMap(layer=>layer.applicationCursor===null?[]:[layer.applicationCursor]));
+  const maxCursor=Math.max(0,...resolved.sources.map(source=>source.cursorId),...rewrite.layers.flatMap(layer=>[layer.iEphCsr,...layer.duplicateCursors]),...setup.flatMap(layer=>[...(layer.applicationCursor===null?[]:[layer.applicationCursor]),...layer.valueApplications.map(app=>app.cursor)]));
   // select.c finalizes the ordinary GROUP BY before the rewritten window
   // subquery consumes it. Lifted aggregates therefore cannot be read from a
   // raw source cursor. Build the existing AggInfo/sorter program as the
   // innermost coroutine producer on this builder and destination.
-  const groupedLayer=compileLayers[0]?.lifted.some(item=>item.kind==="aggregate")&&resolved.source.hasGroupBy?compileLayers[0]:null;
+  // resolve.c1356ff: nested TK_AGG_FUNCTION.op2 owns the outer aggregate
+  // even without a syntactic GROUP BY/top-level aggregate. window.c moves
+  // those expressions into its inner producer before window stepping.
+  const ownsNestedAggregate=(plan:import('./resolve.ts').ResolvedSelect,depth:number):boolean=>
+    [...(plan.aggregateUses?.values()??[])].some(owner=>owner===depth)||plan.nested.some(child=>ownsNestedAggregate(child,depth+1));
+  const nestedAggregate=resolved.nested.some(child=>ownsNestedAggregate(child,1));
+  const groupedLayer=compileLayers[0]&&(resolved.source.hasGroupBy||([...resolved.aggregateUses?.values()??[]].some(depth=>depth===0)||nestedAggregate)&&!owner?.retainedSource)?compileLayers[0]:null;
   const groupedProducer=groupedLayer&&database&&schema?(()=>{
     const source=resolved.source,arm=source.arms[0]!,result=groupedLayer.bufferExpressions;
     // The rewritten buffer contains deferred window-result slots alongside the
@@ -524,12 +571,17 @@ export function compileWindowSelectLowering(
     // grouped expression placeholder so coroutine payload column indexes
     // remain source-shaped.
     const hasOver=(node:LemonValue<SqlToken>):boolean=>node.kind==="reduction"&&(node.signature.toLowerCase().includes("over_clause ::= over")||node.children.some(hasOver));
-    const groupedResult=Object.freeze(result.map(item=>item.reduction&&hasOver(item.reduction)?source.groupBy[0]!:item));
+    const groupedResult=Object.freeze(result.map(item=>item.reduction&&hasOver(item.reduction)?(source.groupBy[0]??result.find(value=>value.reduction&&!hasOver(value.reduction))!):item));
     const producer:SelectNode=Object.freeze({...source,result:groupedResult,orderBy:Object.freeze([]),limit:null,offset:null,windowNames:Object.freeze([]),windowDefinitions:Object.freeze([]),hasOrderBy:false,hasLimit:false,hasSubquery:false,arms:Object.freeze([Object.freeze({...arm,result:groupedResult,orderBy:Object.freeze([])})])});
     return producer;
   })():null;
-  const sourceCoroutine=++registers;
-  const producerCoroutines=compileLayers.map(()=>++registers);
+  // select.c tag-select-0482: the coroutine destination identity belongs to
+  // the enclosing Parse, before its source SELECT body is constructed.
+  builder.registers=Math.max(builder.registers,registers);
+  const sourceCoroutine=builder.register();
+  const producerCoroutines=compileLayers.map(()=>builder.register());
+  // Source/buffer expressions and later output producers are still manual.
+  registers=builder.registers;
   const sorterCursors=compileLayers.map((_layer,index)=>maxCursor+1+index);
   const equivalentBufferExpression=(expressions:readonly WindowCodeLayer["bufferExpressions"][number][],value:WindowCodeLayer["bufferExpressions"][number]):number=>{
     const identical=expressions.findIndex(expression=>expression.reduction===value.reduction);
@@ -561,8 +613,23 @@ export function compileWindowSelectLowering(
     builder.registers=registers;
     builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
     groupedPayload=builder.range(owner.retainedSource.result.length);
-    const sourcePlan=expandAndResolveSelect(owner.retainedSource,schema!,null,builder.cursors);
-    compileInnerTableSelect(owner.retainedSource,sourcePlan,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload}});
+    const destination:SelectDest={kind:'coroutine',register:sourceCoroutine,first:groupedPayload};
+    if(owner.retainedSource.hasCompound){
+      // multiSelect emits each arm into the same SRT_Coroutine payload.
+      // No child Program/PC relocation, and child limits remain child-owned.
+      // window.c transfers producer ordering before select.c flattenSubquery
+      // distributes that producer over UNION ALL (and transfers child LIMIT).
+      // Bind generated keys to the retained EList, not its synthetic cursor.
+      const terms=compileLayers[0]!.producerOrderBy;
+      const canFlattenOrder=!owner.retainedSource.hasOrderBy&&!owner.retainedSource.offset&&owner.retainedSource.arms.every(arm=>!arm.hasDistinct&&!arm.hasGroupBy&&!arm.hasHaving&&arm.from.items.length>0&&!selectHasAggregate({...owner.retainedSource!,result:arm.result} as SelectNode)&&(arm.operatorFromPrior===null||arm.operatorFromPrior==='union-all'))&&terms.every(term=>term.binding&&term.binding.columnIndex>=0);
+      const source=canFlattenOrder?Object.freeze({...owner.retainedSource,hasOrderBy:terms.length>0,orderBy:Object.freeze(terms.map(term=>Object.freeze({expr:owner.retainedSource!.result[term.binding!.columnIndex]!,descending:term.descending,nulls:term.nulls})))}):owner.retainedSource;
+      compileTableCompoundProducer(source,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination});
+    }else if(selectHasAggregate(owner.retainedSource)||owner.retainedSource.hasGroupBy||owner.retainedSource.hasHaving){
+      compileAggregateSelect(owner.retainedSource,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
+    }else{
+      const sourcePlan=expandAndResolveSelect(owner.retainedSource,schema!,null,builder.cursors);
+      compileInnerTableSelect(owner.retainedSource,sourcePlan,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
+    }
     registers=builder.registers;
     nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
     ops.push({code:'EndCoroutine',p1:sourceCoroutine,p2:0});
@@ -573,7 +640,29 @@ export function compileWindowSelectLowering(
     builder.registers=registers;
     builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
     groupedPayload=builder.range(groupedProducer.result.length);
-    compileAggregateSelect(groupedProducer,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload}});
+    let input: {first:number;emit:(consume:()=>void)=>void}|undefined;
+    if(recursiveProducer){
+      const recursiveOwner=recursiveProducer.select.with!.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))))!;
+      const first=builder.range(recursiveOwner.select.arms[0]!.result.length),coroutine=builder.register();
+      const ready=builder.label();
+      builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
+      compileRecursiveCteSelect(recursiveProducer.select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,recursiveProducer.maxRows,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
+      ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
+      input={first,emit:consume=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
+    }
+    // window.c selectWindowRewriteExprCb moves outer TK_COLUMN terminals
+    // out of scalar children into the grouped producer. Their lexical source
+    // identity survives, but they are now local producer expressions (depth 0).
+    // The recursive producer reuses its prepared plan instead of resolving a
+    // new physical SrcList, so publish the moved column uses on that plan too.
+    const movedColumns:import('./resolve.ts').ResolvedColumnUse[]=[];
+    const collectMovedColumns=(plan:import('./resolve.ts').ResolvedSelect):void=>{
+      for(const use of plan.columnUses)if(resolved.sources.includes(use.source)&&groupedProducer.result.some(item=>item.reduction===use.expression))movedColumns.push(Object.freeze({...use,selectDepth:0}));
+      plan.nested.forEach(collectMovedColumns);
+    };
+    if(recursiveProducer)resolved.nested.forEach(collectMovedColumns);
+    const linkedPlan=recursiveProducer?Object.freeze({...resolved,source:groupedProducer,columnUses:Object.freeze([...resolved.columnUses,...movedColumns])}):undefined;
+    compileAggregateSelect(groupedProducer,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload},...(input?{input,linkedPlan:linkedPlan!}:{})});
     registers=builder.registers;
     nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
     ops.push({code:'EndCoroutine',p1:sourceCoroutine,p2:0});
@@ -597,7 +686,7 @@ export function compileWindowSelectLowering(
     const sourceLocation:ResolvedExpressionBinding={policy:'window-source',location:ref=>({kind:'cursor',cursor:ref.source.cursorId})};
     const predicateSkips:number[]=[];
     const emitSourceLevel=(index:number):void=>{
-      if(index===resolved.sources.length){for(const predicate of sourcePredicates){const register=compileExpressionTree(bindResolvedExpression(expressionFromReduction(predicate.reduction),predicate,ref=>ref.cursorId,true,sourceLocation),ops,()=>++registers,parameters,undefined,true);predicateSkips.push(ops.length);ops.push({code:"IfNot",p1:register,p2:0});}ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
+      if(index===resolved.sources.length){for(const predicate of sourcePredicates){builder.registers=Math.max(builder.registers,registers);const register=compileExpressionTree(bindResolvedExpression(expressionFromReduction(predicate.reduction),predicate,ref=>ref.cursorId,true,sourceLocation),ops,()=>builder.register(),parameters,undefined,true);registers=builder.registers;predicateSkips.push(ops.length);ops.push({code:"IfNot",p1:register,p2:0});}ops.push({code:"Yield",p1:sourceCoroutine,p2:0});return;}
       const cursor=resolved.sources[index]!.cursorId,rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;emitSourceLevel(index+1);const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});if(index===resolved.sources.length-1)for(const at of predicateSkips)(ops[at] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;
     };
     if(resolved.sources.length)emitSourceLevel(0);else ops.push({code:"Yield",p1:sourceCoroutine,p2:0});
@@ -622,46 +711,47 @@ export function compileWindowSelectLowering(
     // duplicate names make that unsound.
     const emitProducerBinding=(binding:typeof layer.bufferBindings[number],target:number,value?:typeof layer.bufferExpressions[number],producerColumn?:number):void=>{
       if(index===0&&owner?.retainedSource&&binding){ops.push({code:"Copy",p1:groupedPayload!+binding.columnIndex,p2:target});return;}
-      if(index===0&&!owner?.retainedSource&&groupedPayload!==null&&(!recursiveProducer||binding)){const column=recursiveProducer?binding!.columnIndex:(producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):value?equivalentBufferExpression(groupedLayer!.bufferExpressions,value):-1));if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
+      if(index===0&&!owner?.retainedSource&&groupedPayload!==null&&(!recursiveProducer||groupedLayer||binding)){const column=recursiveProducer&&!groupedLayer?binding!.columnIndex:producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):value?equivalentBufferExpression(groupedLayer!.bufferExpressions,value):-1);if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
       if(index>0&&value?.reduction){const child=compileLayers[index-1]!,childState=setup[index-1]!;const win=child.windows.find(item=>item.window.owner.reduction===value.reduction);if(win){ops.push({code:"Copy",p1:win.regResult,p2:target});return;}const column=equivalentBufferExpression(child.bufferExpressions,value);if(column>=0){ops.push({code:"Copy",p1:childState.regNew+column,p2:target});return;}const bound=binding?child.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):-1;if(bound>=0){ops.push({code:"Copy",p1:childState.regNew+bound,p2:target});return;}}
       if(!binding){
         // FILTER is a complete producer expression, not a direct column
         // binding. Evaluate it while the source cursors are positioned and
         // retain its boolean value in the shared ephemeral payload. This is
         // window.c's FILTER register ownership, not output-time recomputation.
-        const ownedFilter=producerColumn!==undefined&&layer.windows.find(win=>win.filterColumn===producerColumn);
+        const ownedFilter=producerColumn!==undefined?layer.windows.find(win=>win.filterColumn===producerColumn):undefined;
         const valueReduction=value?.reduction;
-        if(ownedFilter&&valueReduction?.kind==="reduction"){
-          if(!ownedFilter.filterCarrier)throw new JSQLiteError('internal','window FILTER rewrite lost its carrier');
-          const location:ResolvedExpressionBinding={policy:'window-filter',location:ref=>owner?.retainedSource
-            ?{kind:'register',register:groupedPayload!+ref.columnIndex,phase:'producer-row'}
-            :{kind:'cursor',cursor:ref.source.cursorId}};
-          const predicate=bindResolvedExpression(expressionFromReduction(ownedFilter.filterCarrier.reduction),ownedFilter.filterCarrier,ref=>ref.cursorId,true,location);
-          const reg=compileExpressionTree(predicate,ops,()=>++registers,parameters);ops.push({code:'Copy',p1:reg,p2:target});return;
-        }
-        // Constant aggregate arguments have no resolver column binding, but
-        // sqlite3WindowRewrite still stores their value in every ephemeral row.
-        let expression:ReturnType<typeof expressionFromReduction>|null=null;
-        try{expression=value?.reduction?expressionFromReduction(value.reduction):null;}catch{/* Preserve the existing unrepresented-expression rejection below. */}
-        if(expression?.kind==="literal"){
-          const literal=expression.value;
-          if(literal===null)ops.push({code:"Null",p2:target});
-          else if(typeof literal==="bigint")ops.push({code:"Integer",p1:literal,p2:target});
-          else if(typeof literal==="number")ops.push({code:"Real",p1:literal,p2:target});
-          else if(typeof literal==="string")ops.push({code:"String",p1:literal,p2:target});
-          else ops.push({code:"Blob",p1:literal,p2:target});
-          return;
-        }
-        const producerConstant=(candidate:Expression):boolean=>candidate.kind==="literal"||candidate.kind==="variable"||((candidate.kind==="unary"||candidate.kind==="cast"||candidate.kind==="collate")&&producerConstant(candidate.value));
-        if(expression&&producerConstant(expression)){
-          // Unary/cast parameter expressions are evaluated while the rewritten
-          // producer row is current, then copied into its ephemeral payload.
-          // This is the general expression-code path used by select.c, not a
-          // spelling-specific ntile admission rule.
-          const register=compileExpressionTree(expression,ops,()=>++registers,parameters);ops.push({code:"Copy",p1:register,p2:target});return;
-        }
         const windowAlias=value?.tokens.length===1?resolved.result.find(result=>result.expression.alias!==undefined&&result.expression.alias!==null&&sqliteIdentifierEqual(result.expression.alias,sqlName(value.tokens[0]!.text))&&rewrite.layers.some(owner=>owner.windows.some(win=>win.window.owner===result.expression))):undefined;
-        const generatedZeroArgWindowSlot=value?.tokens.length===0&&layer.windows.some(win=>win.window.argumentCount===0);const deferred=generatedZeroArgWindowSlot||!!windowAlias||!!(value?.reduction&&compileLayers.slice(index+1).some(owner=>owner.windows.some(win=>win.window.owner.reduction===value.reduction)));if(!deferred)allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;
+        const generatedZeroArgWindowSlot=value?.tokens.length===0&&layer.windows.some(win=>win.window.argumentCount===0);const deferred=generatedZeroArgWindowSlot||!!windowAlias||!!(value?.reduction&&compileLayers.slice(index).some(owner=>owner.windows.some(win=>win.window.owner.reduction===value.reduction)));if(deferred){ops.push({code:'Null',p2:target});return;}
+        // window.c appends complete argument expressions to the producer
+        // SELECT. Bind those expressions to the current source phase before
+        // expr.c code generation, just as for the cached FILTER predicate.
+        if(valueReduction?.kind==='reduction'){
+          if(ownedFilter&&!ownedFilter.filterCarrier)throw new JSQLiteError('internal','window FILTER rewrite lost its carrier');
+          const carrier=ownedFilter?.filterCarrier??resolvedExpressionCarrier(resolved,valueReduction);
+          // window.c selectWindowRewriteExprCb (TK_AGG_FUNCTION) replaces
+          // finalized nested aggregates with columns of the previous layer.
+          // Match that payload expression identity before scalar child binding;
+          // raw source columns are not an aggregate's finalized value.
+          const location:ResolvedExpressionBinding={policy:'window-filter',aggregateOutput:reduction=>{
+            if(index===0)return undefined;
+            const column=equivalentBufferExpression(compileLayers[index-1]!.bufferExpressions,{kind:'tokens',tokens:[],reduction});
+            return column<0?undefined:setup[index-1]!.regNew+column;
+          },location:ref=>{
+            if(index>0){
+              const child=compileLayers[index-1]!,column=child.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===ref.source.cursorId&&candidate.columnIndex===ref.columnIndex);
+              if(column<0)throw new JSQLiteError('unsupported','window producer expression column is not represented',{unsupportedClassification:'temporary'});
+              return {kind:'register',register:setup[index-1]!.regNew+column,phase:'producer-row'};
+            }
+            return groupedPayload!==null&&(owner?.retainedSource||recursiveProducer)
+              ?{kind:'register',register:groupedPayload+ref.columnIndex,phase:'producer-row'}
+              :{kind:'cursor',cursor:ref.source.cursorId};
+          }};
+          const expression=bindResolvedExpression(expressionFromReduction(valueReduction),carrier,ref=>ref.cursorId,true,location);
+          builder.registers=Math.max(builder.registers,registers);
+          const subquery=resolvedScalarSubqueryEmitter(resolved,builder,parameters,{database:database!,maxRows:recursiveProducer?.maxRows??Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits},location);
+          const register=compileExpressionTree(expression,ops,()=>builder.register(),parameters,subquery);registers=builder.registers;ops.push({code:'Copy',p1:register,p2:target});return;
+        }
+        allProducerExpressionsRepresented=false;ops.push({code:'Null',p2:target});return;
       }
       const column=binding.columnIndex<0||isIntegerPrimaryKeyAlias(binding.source.table,binding.columnIndex)?-1:binding.columnIndex;
       if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
@@ -686,6 +776,7 @@ export function compileWindowSelectLowering(
     // cached end/start/output cursor family: fill, publish, then inverse the row.
     const currentUnbounded=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="current"&&frame.end.kind==="unbounded"&&(frame.exclusion===null||frame.exclusion==="no-others");});
     const precedingUnbounded=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.partitionBy.length===0&&frame.start.kind==="preceding"&&frame.end.kind==="unbounded"&&!!frame.start.expr?.reduction&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const scannedRows=scannedRowsLayer(layer);
     const directOffset=cachedDirectOffsetLayer(layer);
     const wholePartition=layer.windows.length>0&&!directOffset&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.exclusion===null||frame.exclusion==="no-others")&&((frame.type==="rows"&&frame.start.kind==="unbounded"&&frame.end.kind==="unbounded")||(frame.type==="range"&&win.window.orderBy.length===0&&frame.start.kind==="unbounded"&&frame.end.kind==="current")||(frame.type==="groups"&&win.window.orderBy.length===0&&frame.start.kind==="current"&&frame.end.kind==="unbounded"));});
     const wholePartitionExcludeGroup=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="unbounded"&&frame.exclusion==="group";});
@@ -719,7 +810,7 @@ export function compileWindowSelectLowering(
       // positioned cursors. Our cursor payload operations share regNew, so the
       // end-step and start-inverse reads below must not replace the current row
       // that crosses the producer Yield boundary.
-      const outputSave=registers+1;registers+=rangeState!.inputRegisters.length;
+      builder.registers=Math.max(builder.registers,registers);const outputSave=rangeState!.inputRegisters.length?builder.range(rangeState!.inputRegisters.length):builder.registers+1;registers=builder.registers;
       const reversed=ops.length;ops.push({code:"IfRegisterGt",left:rangeState!.boundRegisters.end!,right:rangeState!.boundRegisters.start!,jump:0});
       ops.push({code:"Copy",p1:rangeState!.boundRegisters.end!,p2:rangeEndCount!},{code:"Copy",p1:rangeState!.boundRegisters.start!,p2:rangeStartCount!},{code:"Binary",op:"+",p1:rangeStartCount!,p2:rangeState!.regOne,p3:rangeStartCount!,collation:"binary"});
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
@@ -762,13 +853,13 @@ export function compileWindowSelectLowering(
     };
     const emitGroupsOnePrecedingExcludeGroupDrain=():void=>{
       const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,initialized=++registers,hasPrevious=++registers;
-      const currentPeer=registers+1;registers+=peerCount;const previousPeer=registers+1;registers+=peerCount;const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      builder.registers=Math.max(builder.registers,registers);const currentPeer=peerCount?builder.range(peerCount):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const previousPeer=peerCount?builder.range(peerCount):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers);
       ops.push({code:"Integer",p1:0n,p2:initialized},{code:"Integer",p1:0n,p2:hasPrevious});const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});
       const first=ops.length;ops.push({code:"IfNot",p1:initialized,p2:0});const sameGroup=ops.length;ops.push({code:"CompareGroup",left:outputSave+peerStart,right:currentPeer,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:currentPeer+i,p2:previousPeer+i});for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:outputSave+peerStart+i,p2:currentPeer+i});ops.push({code:"Integer",p1:1n,p2:hasPrevious},{code:"Goto",p2:0});const initialize=ops.length;(ops[first] as {p2:number}).p2=initialize;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:outputSave+peerStart+i,p2:currentPeer+i});ops.push({code:"Integer",p1:1n,p2:initialized});const scanStart=ops.length;(ops[sameGroup] as {jump:number}).jump=scanStart;(ops[initialize-1] as {p2:number}).p2=scanStart;ops.push({code:"AggReset",registers:temporary});const noPrevious=ops.length;ops.push({code:"IfNot",p1:hasPrevious,p2:0});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:previousPeer,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer] as {jump:number}).jump=step;windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP",state.regNew,temporary);const next=ops.length;(ops[peer+1] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[noPrevious] as {p2:number}).p2=snapshot;(ops[rewind] as {p2:number}).p2=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
     };
     const emitGroupsCumulativeExcludeCurrentDrain=():void=>{
       const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,currentRowid=++registers,candidateRowid=++registers,same=++registers;
-      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers);
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"AggReset",registers:temporary});
       const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});
       const afterCurrent=ops.length;ops.push({code:"IfRegisterGt",left:candidateRowid,right:currentRowid,jump:0},{code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});const beforeIdentity=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});
@@ -779,14 +870,14 @@ export function compileWindowSelectLowering(
     const emitRangeOffsetExcludeCurrentDrain=():void=>{
       const state=followingState!,frame=layer.windows[0]!.window.frame,orderIndex=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length,currentRowid=++registers,candidateRowid=++registers,same=++registers;
       const cumulativeRangeTies=frame.exclusion==="ties"&&frame.start.kind==="unbounded"&&frame.end.kind==="current";
-      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers),term=layer.producerOrderBy.find(item=>item.source==="order")!;const coll=typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary";
+      builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers),term=layer.producerOrderBy.find(item=>item.source==="order")!;const coll=typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary";
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"AggReset",registers:temporary});
       const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const startUnbounded=layer.windows[0]!.window.frame.start.kind==="unbounded",beforeStart=ops.length;ops.push(startUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,collation:coll,jump:0});const endUnbounded=layer.windows[0]!.window.frame.end.kind==="unbounded",endEligible=ops.length;ops.push(endUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,collation:coll,jump:0},{code:"Goto",p2:0});const eligible=ops.length;if(startUnbounded)(ops[beforeStart] as {p2:number}).p2=eligible;if(endUnbounded)(ops[endEligible] as {p2:number}).p2=eligible;else (ops[endEligible] as {jump:number}).jump=eligible;let skipCurrent:number,identityStep:number|null=null;if(layer.windows[0]!.window.frame.exclusion==="no-others"){skipCurrent=ops.length;ops.push({code:"Goto",p2:skipCurrent+1});identityStep=skipCurrent+1;}else if(layer.windows[0]!.window.frame.exclusion==="group"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer+1] as {p2:number}).p2=step;skipCurrent=peer;identityStep=step;}else if(cumulativeRangeTies){ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const nonIdentity=ops.length;(ops[skipCurrent] as {p2:number}).p2=nonIdentity;ops.push({code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,collation:coll,jump:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[skipCurrent+1] as {p2:number}).p2=step;}else if(layer.windows[0]!.window.frame.exclusion==="ties"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[peer+1] as {p2:number}).p2=step;}else{ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;(ops[skipCurrent] as {p2:number}).p2=step;}windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP",state.regNew,temporary);
       const next=ops.length;if(!startUnbounded)(ops[beforeStart] as {jump:number}).jump=next;if(identityStep!==null){if(layer.windows[0]!.window.frame.exclusion==="group")(ops[skipCurrent] as {jump:number}).jump=next;else if(layer.windows[0]!.window.frame.exclusion==="ties"&&layer.windows[0]!.window.frame.start.kind==="unbounded"&&layer.windows[0]!.window.frame.end.kind==="current"){(ops[skipCurrent+2] as {jump:number}).jump=identityStep;(ops[skipCurrent+3] as {p2:number}).p2=next;}else if(layer.windows[0]!.window.frame.exclusion!=="no-others"){(ops[skipCurrent] as {p2:number}).p2=next;(ops[skipCurrent+1] as {p2:number}).p2=identityStep;}}else (ops[skipCurrent+1] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[rewind] as {p2:number}).p2=snapshot;(ops[endEligible+1] as {p2:number}).p2=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
     };
     const emitRangeCurrentTiesDrain=():void=>{
       const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount,currentRowid=++registers,candidateRowid=++registers,same=++registers;
-      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers);
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});
       ops.push({code:"AggReset",registers:temporary});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const pastCurrent=ops.length;ops.push({code:"IfRegisterGt",left:candidateRowid,right:currentRowid,jump:0});const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+peerStart,right:outputSave+peerStart,count:peerCount,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});const skip=ops.length;ops.push({code:"IfNot",p1:same,p2:0});windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP",state.regNew,temporary);const next=ops.length;(ops[peer+1] as {p2:number}).p2=orderedCumulativePeerExclusion?skip+1:next;(ops[skip] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[rewind] as {p2:number}).p2=snapshot;(ops[pastCurrent] as {jump:number}).jump=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
     };
@@ -842,7 +933,7 @@ export function compileWindowSelectLowering(
     };
     const emitOrderedRangePrecedingCurrentDrain=():void=>{
       const state=followingState!,orderIndex=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length,currentKey=++registers,endFlag=++registers,startFlag=++registers;
-      const outputSave=registers+1;registers+=state.inputRegisters.length;const endSave=registers+1;registers+=state.inputRegisters.length;const startSave=registers+1;registers+=state.inputRegisters.length;
+      builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const endSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const startSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;
       const term=layer.producerOrderBy.find(term=>term.source==="order")!;ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Integer",p1:0n,p2:startFlag});
       const output=ops.length;const outputAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"Copy",p1:state.regNew+orderIndex,p2:currentKey});
       const endLoop=ops.length;const endUse=ops.length;ops.push({code:"IfNot",p1:endFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:endSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Goto",p2:0});const endAdvance=ops.length;(ops[endUse] as {p2:number}).p2=endAdvance;const endFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const endHave=ops.length;(ops[endAdvance-1] as {p2:number}).p2=endHave;const endEligible=ops.length;ops.push(layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.end.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-unbounded",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:endSave+i});ops.push({code:"Integer",p1:1n,p2:endFlag},{code:"Goto",p2:0});const endStep=ops.length;(ops[endEligible] as {jump:number}).jump=endStep;for(const win of layer.windows){emitStep(win,state.regNew);}ops.push({code:"Goto",p2:endLoop});const startLoop=ops.length;(ops[endEligible+state.inputRegisters.length+2] as {p2:number}).p2=startLoop;(ops[endFirst] as {emptyJump:number}).emptyJump=startLoop;
@@ -872,6 +963,85 @@ export function compileWindowSelectLowering(
       // Start cursor removes exactly one complete peer group once the starting
       // distance has elapsed. This is windowCodeOp's GROUPS inverse phase.
       const startScan=ops.length;(ops[delay+1] as {p2:number}).p2=startScan;const startUse=ops.length;ops.push({code:"IfNot",p1:startLookaheadFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:startLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:startLookaheadFlag},{code:"Goto",p2:0});const startAdvance=ops.length;(ops[startUse] as {p2:number}).p2=startAdvance;const startFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const startHave=ops.length;(ops[startAdvance-1] as {p2:number}).p2=startHave;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.startPeerRegisters[i]!});const inverse=ops.length;for(const win of layer.windows){emitStep(win,state.regNew,true);}const startNext=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.startPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:inverse});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:startLookahead+i});ops.push({code:"Integer",p1:1n,p2:startLookaheadFlag});const startRet=ops.length;ops.push({code:"Return",p1:startReturn});(ops[startFirst] as {emptyJump:number}).emptyJump=startRet;(ops[startNext] as {emptyJump:number}).emptyJump=startRet;(ops[skipSubroutines] as {p2:number}).p2=ops.length;
+    };
+    // window.c windowAggStep/windowReturnOneRow: non-EXCLUDE regApp
+    // endpoints belong to each function. Construction labels stay in the
+    // enclosing builder; VM PC and duplicate cursor positions remain runtime state.
+    const emitEndpointRowsDrain=():void=>{
+      const state=followingState!,frame=layer.windows[0]!.window.frame;
+      builder.registers=Math.max(builder.registers,registers);
+      const current=builder.register(),threshold=builder.register(),target=builder.register();
+      const saved=builder.range(state.inputRegisters.length),seekPayload=builder.range(state.inputRegisters.length);
+      registers=builder.registers;
+      const step=(inverse:boolean):void=>{
+        for(const win of layer.windows){
+          const app=state.valueApplications.find(app=>app.result===win.regResult);
+          if(app){const register=inverse?app.start:app.end;ops.push({code:"Binary",op:"+",p1:register,p2:state.regOne,p3:register,collation:"binary"});}
+          else emitStep(win,state.regNew,inverse);
+        }
+      };
+      const done=builder.label(),output=builder.label();builder.mark(output);
+      builder.jump(done,{code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},(op,pc)=>({...op,emptyJump:pc}));
+      for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:saved+i});
+      ops.push({code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:current});
+      // windowCodeOp: admit end row once, then evict start row only after
+      // the bounded frame grows past its offset. regApp counts admitted/evicted
+      // rows, so start is exclusive and end inclusive (windowReturnOneRow).
+      ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length});step(false);
+      if(frame.start.kind==='preceding')ops.push({code:"Binary",op:"+",p1:state.boundRegisters.start!,p2:state.regOne,p3:threshold,collation:"binary"});
+      else ops.push({code:"Copy",p1:state.regOne,p2:threshold});
+      const inverse=builder.label(),value=builder.label();
+      builder.jump(inverse,{code:"IfRegisterGt",left:current,right:threshold,jump:0},(op,pc)=>({...op,jump:pc}));
+      builder.jump(value,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(inverse);
+      ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});step(true);
+      builder.mark(value);
+      for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:saved+i,p2:state.regNew+i});
+      for(const win of layer.windows){
+        const app=state.valueApplications.find(app=>app.result===win.regResult);
+        if(!app){ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});continue;}
+        ops.push({code:"Null",p2:win.regResult});
+        if(win.window.functionName==='nth_value')ops.push({code:"Copy",p1:state.regNew+win.argumentColumn+1,p2:target},{code:"WindowCheck",p1:target,boundary:"nth",numeric:false});
+        else ops.push({code:"Integer",p1:1n,p2:target});
+        ops.push({code:"Binary",op:"+",p1:target,p2:app.start,p3:target,collation:"binary"});
+        const absent=builder.label();
+        builder.jump(absent,{code:"IfRegisterGt",left:target,right:app.end,jump:0},(op,pc)=>({...op,jump:pc}));
+        builder.jump(absent,{code:"EphemeralSeekRowid",p1:app.cursor,rowid:target,jump:0},(op,pc)=>({...op,jump:pc}));
+        ops.push({code:"EphemeralData",p1:app.cursor,p2:seekPayload,count:state.inputRegisters.length},{code:"Copy",p1:seekPayload+win.argumentColumn,p2:win.regResult});builder.mark(absent);
+      }
+      ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0});
+      builder.jump(output,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);
+    };
+    const emitScannedRowsDrain=():void=>{
+      const state=followingState!,frame=layer.windows[0]!.window.frame;
+      builder.registers=Math.max(builder.registers,registers);
+      const current=builder.register(),start=builder.register(),end=builder.register(),candidate=builder.register(),same=builder.register();
+      const saved=builder.range(state.inputRegisters.length),temporary=layer.windows.map(()=>builder.register());
+      // Import all preceding manual drain allocations before sharing this range.
+      registers=Math.max(registers,builder.registers);
+      const output=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+      for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+i,p2:saved+i});
+      ops.push({code:'EphemeralRowid',p1:layer.duplicateCursors[2],p2:current},{code:'Copy',p1:current,p2:start},{code:'Copy',p1:current,p2:end});
+      if(frame.start.kind==='preceding')ops.push({code:'Binary',op:'-',p1:current,p2:state.boundRegisters.start!,p3:start,collation:'binary'});
+      if(frame.end.kind==='following')ops.push({code:'Binary',op:'+',p1:current,p2:state.boundRegisters.end!,p3:end,collation:'binary'});
+      windowFullScan({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},state.applicationCursor??layer.duplicateCursors[0],temporary,scan=>{
+        const cursor=state.applicationCursor??layer.duplicateCursors[0];
+        ops.push({code:'EphemeralData',p1:cursor,p2:state.regNew,count:state.inputRegisters.length},{code:'EphemeralRowid',p1:cursor,p2:candidate});
+        const before=ops.length;ops.push({code:'IfRegisterGt',left:start,right:candidate,jump:0});
+        const after=ops.length;ops.push({code:'IfRegisterGt',left:candidate,right:end,jump:0});
+        let excluded:number|null=null;
+        if(frame.exclusion==='current-row'){
+          ops.push({code:'Eq',p1:candidate,p2:current,p3:same,affinity:'numeric',collation:'binary'});
+          excluded=ops.length;ops.push({code:'IfNot',p1:same,p2:0},{code:'Goto',p2:0});
+          (ops[excluded] as {p2:number}).p2=ops.length;
+        }
+        windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},'WINDOW_AGGSTEP',state.regNew,temporary);
+        const next=ops.length;(ops[before] as {jump:number}).jump=next;(ops[after] as {jump:number}).jump=next;
+        if(excluded!==null)(ops[excluded+1] as {p2:number}).p2=next;
+        ops.push({code:'EphemeralNext',p1:cursor,p2:scan});
+      });
+      for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:saved+i,p2:state.regNew+i});
+      ops.push({code:'Integer',p1:1n,p2:state.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0},{code:'Goto',p2:output});
+      (ops[output] as {emptyJump:number}).emptyJump=ops.length;
     };
     const emitDirectOffsetDrain=():void=>{
       const state=followingState!;
@@ -903,7 +1073,7 @@ export function compileWindowSelectLowering(
     };
     const emitWholePartitionExcludeGroupDrain=():void=>{
       const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-peerCount;
-      const outputSave=registers+1;registers+=state.inputRegisters.length;const temporary=layer.windows.map(()=>++registers);
+      builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers);
       // windowCodeOp's EXCLUDE path scans the cached frame with the application
       // cursor for each output row. EXCLUDE GROUP omits all ORDER BY peers.
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"AggReset",registers:temporary});
@@ -1076,13 +1246,14 @@ export function compileWindowSelectLowering(
       if(noOrderFollowingGroups&&followingState)emitNoOrderFollowingGroupsDrain();
       if(orderedRangePrecedingCurrent&&followingState)emitOrderedRangePrecedingCurrentDrain();
       if(orderedAdjacentGroups&&followingState)emitOrderedAdjacentGroupsDrain();
-      if(directOffset&&followingState)emitDirectOffsetDrain();
+      if(scannedRows&&followingState){if(layer.windows[0]!.window.frame.exclusion===null)emitEndpointRowsDrain();else emitScannedRowsDrain();}
+      if(!scannedRows&&directOffset&&followingState)emitDirectOffsetDrain();
       if(wholePartitionExcludeGroup&&followingState)emitWholePartitionExcludeGroupDrain();
       if((wholePartition||singlePeerGroups)&&followingState)emitWholePartitionDrain();
       if(followingUnbounded&&followingState)emitFollowingUnboundedDrain();
       if(currentUnbounded&&followingState)emitCurrentUnboundedDrain();
       if(precedingUnbounded&&followingState)emitPrecedingUnboundedDrain();
-      if(precedingFollowing&&followingState)emitPrecedingFollowingDrain();
+      if(!scannedRows&&precedingFollowing&&followingState)emitPrecedingFollowingDrain();
       if(precedingRange&&followingState)emitPrecedingRangeDrain();
       if(followingRange&&followingState&&rangeEndCount!==null&&rangeStartCount!==null)emitFollowingRangeDrain();
     });
@@ -1099,18 +1270,43 @@ export function compileWindowSelectLowering(
     bindingsPending.push({layer,producerCoroutine,childCoroutine,loopBody,gosub,sorterCursor,payload,ownedClauses:index===0?rewrite.movedClauses:Object.freeze([])});
     childCoroutine=producerCoroutine;childStart=producerStart;
   }
-  // The outer SELECT drives only the root rewritten producer. The narrow
-  // aggregate-only streaming tranche can now consume regResult directly;
-  // mixed/lifted result expressions remain nonpublishable until ordinary
-  // expression lowering is attached to this boundary.
+  // The outer SELECT drives only the root rewritten producer. Live window
+  // results use regResult; surviving ordinary expressions consume the lifted
+  // terminal payload through the resolver-linked expression owner below.
   // sqlite3WindowRewrite makes the outermost rewritten SELECT the publication
   // owner. Results produced by an inner incompatible layer are ordinary lifted
   // payload columns by the time they reach this boundary; only windows owned by
   // the root layer remain live regResult values. This avoids any rendezvous by
   // source rowid and preserves duplicate/reordered rows through the coroutine.
   const outputLayer=rewrite.layers.at(-1);
-  const outputEntries=outputLayer?resolved.result.map(result=>{const win=outputLayer.windows.find(item=>item.window.owner===result.expression);if(win)return Object.freeze({kind:"window" as const,win});const lifted=outputLayer.lifted.find(item=>item.expression.reduction===result.expression.reduction);return lifted?Object.freeze({kind:"column" as const,bufferColumn:lifted.bufferColumn}):null;}):[];
-  const outerOrderEntries=outputLayer?rewrite.outer.orderBy.map(term=>{const resultIndex=resolved.orderResultColumns[resolved.source.orderBy.indexOf(term)];if(resultIndex!==null&&resultIndex!==undefined){const entry=outputEntries[resultIndex];if(entry)return entry.kind==="window"?Object.freeze({kind:"window" as const,win:entry.win,term}):Object.freeze({kind:"column" as const,bufferColumn:entry.bufferColumn,term});}const lifted=outputLayer.lifted.find(item=>item.expression.reduction===term.expr.reduction);if(lifted)return Object.freeze({kind:"column" as const,bufferColumn:lifted.bufferColumn,term});let tree:Expression|null=null;try{tree=term.expr.reduction?expressionFromReduction(term.expr.reduction):null}catch{}if(tree?.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(outputEntries.length)){const entry=outputEntries[Number(tree.value)-1];if(entry)return entry.kind==="window"?Object.freeze({kind:"window" as const,win:entry.win,term}):Object.freeze({kind:"column" as const,bufferColumn:entry.bufferColumn,term});}return null;}):[];
+  // window.c selectWindowRewriteExprCb rewrites terminals, not the whole
+  // outer expression. Compile the surviving expression against the finalized
+  // producer payload; never reread a grouped source cursor here.
+  const outputBinding:ResolvedExpressionBinding={policy:'window-source',aggregateOutput:reduction=>{
+    const lifted=outputLayer?.lifted.find(item=>item.expression.reduction===reduction);
+    return lifted?setup.at(-1)!.regNew+lifted.bufferColumn:undefined;
+  },location:ref=>{
+    const column=outputLayer?.bufferBindings.findIndex(candidate=>candidate?.source===ref.source&&candidate.columnIndex===ref.columnIndex)??-1;
+    if(column<0)throw new JSQLiteError('unsupported','window output column is not represented',{unsupportedClassification:'temporary'});
+    return {kind:'register',register:setup.at(-1)!.regNew+column,phase:'producer-row'};
+  }};
+  const outputSubquery=database?resolvedScalarSubqueryEmitter(resolved,builder,parameters,{database,maxRows:Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits},outputBinding):undefined;
+  const compileOutputExpression=(expression:Expression):number=>{builder.registers=Math.max(builder.registers,registers);const result=compileExpressionTree(expression,ops,()=>builder.register(),parameters,outputSubquery);registers=builder.registers;return result;};
+  const outputEntry=(expression:ExprNode)=>{
+    const win=outputLayer?.windows.find(item=>item.window.owner===expression);
+    if(win)return Object.freeze({kind:'window' as const,win});
+    const lifted=outputLayer?.lifted.find(item=>item.expression.reduction===expression.reduction);
+    if(lifted)return Object.freeze({kind:'column' as const,bufferColumn:lifted.bufferColumn});
+    if(!expression.reduction)return null;
+    try{return Object.freeze({kind:'expression' as const,expression:bindResolvedExpression(expressionFromReduction(expression.reduction),resolvedExpressionCarrier(resolved,expression.reduction as Reduction),source=>source.cursorId,true,outputBinding)});}
+    catch(error){if(error instanceof JSQLiteError&&error.kind==='unsupported')return null;throw error;}
+  };
+  const outputEntries=outputLayer?resolved.result.map(result=>outputEntry(result.expression)):[];
+  const outerOrderEntries=outputLayer?rewrite.outer.orderBy.map(term=>{
+    const resultIndex=resolved.orderResultColumns[resolved.source.orderBy.indexOf(term)];
+    const entry=resultIndex!==null&&resultIndex!==undefined?outputEntries[resultIndex]:outputEntry(term.expr);
+    return entry?Object.freeze({...entry,term}):null;
+  }):[];
   const outputWindows=outputEntries.map(entry=>entry?.kind==="window"?entry.win:null);
   const boundedRowsOffset=(win:NonNullable<typeof outputWindows[number]>):number|null=>{const frame=win.window.frame;if(frame.type!=="rows"||frame.start.kind!=="preceding"||frame.end.kind!=="current"||frame.exclusion!==null||!frame.start.expr?.reduction)return null;return windowConstantInteger(expressionFromReduction(frame.start.expr.reduction));};
   const runtimeBoundedRows=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const frame=win.window.frame;return frame.type==="rows"&&((frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current")||(frame.start.kind==="current"&&frame.end.kind==="current"))&&frame.exclusion===null;};
@@ -1142,19 +1338,26 @@ export function compileWindowSelectLowering(
   const cumulativeExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";};
   const boundedPeerExclusion=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties"||f.exclusion==="no-others");};
   const boundedExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&f.exclusion==="current-row";};
-  const executableOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>directOffsetOutput(win)||(!!aggregateDefinition(win.window.functionName)&&((win.window.frame.type==="rows"&&win.window.frame.start.kind==="unbounded"&&win.window.frame.end.kind==="current"&&(win.window.frame.exclusion===null||win.window.frame.exclusion==="no-others"))||cumulativeExcludeCurrent(win)||boundedExcludeCurrent(win)||boundedPeerExclusion(win)||runtimeBoundedRows(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)||currentFollowing(win)||followingFollowing(win)||reversedFollowing(win)));
+  const executableOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>directOffsetOutput(win)||compileLayers.some(layer=>layer.windows.includes(win)&&scannedRowsLayer(layer))||(!!aggregateDefinition(win.window.functionName)&&((win.window.frame.type==="rows"&&win.window.frame.start.kind==="unbounded"&&win.window.frame.end.kind==="current"&&(win.window.frame.exclusion===null||win.window.frame.exclusion==="no-others"))||cumulativeExcludeCurrent(win)||boundedExcludeCurrent(win)||boundedPeerExclusion(win)||runtimeBoundedRows(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)||currentFollowing(win)||followingFollowing(win)||reversedFollowing(win)));
   const outerOrderRepresented=outerOrderEntries.length===rewrite.outer.orderBy.length&&outerOrderEntries.every(entry=>entry!==null);
-  const emitsRows=outputEntries.length===resolved.result.length&&outputEntries.length>0&&outerOrderRepresented&&outputEntries.every(entry=>entry!==null&&(entry.kind==="column"||executableOutput(entry.win)));
-  const outputStart=emitsRows?registers+1:0;if(emitsRows)registers+=outputEntries.length;
-  const outerSorter=emitsRows&&outerOrderEntries.length?(Math.max(nextApplicationCursor,...sorterCursors)+1):null;
-  const outerLimit=emitsRows&&(rewrite.outer.limit!==null||rewrite.outer.offset!==null)?computeLimitRegisters(resolved.source,ops,()=>++registers,parameters):undefined;
+  const emitsRows=outputEntries.length===resolved.result.length&&outputEntries.length>0&&outerOrderRepresented&&outputEntries.every(entry=>entry!==null&&(entry.kind!=="window"||executableOutput(entry.win)));
+  builder.registers=Math.max(builder.registers,registers);
+  const outputStart=emitsRows?builder.range(outputEntries.length):0;
+  // Import the live application/rewrite sorter frontier before allocating the
+  // enclosing ORDER BY cursor (select.c: sSort.iECursor = pParse->nTab++).
+  if(emitsRows&&outerOrderEntries.length)builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
+  const outerSorter=emitsRows&&outerOrderEntries.length?builder.cursor():null;
+  nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
+  const outerLimit=emitsRows&&(rewrite.outer.limit!==null||rewrite.outer.offset!==null)?computeLimitRegisters(resolved.source,ops,()=>builder.register(),parameters):undefined;
+  // Publish projection and consumer-limit allocations to remaining manual code.
+  registers=builder.registers;
   if(outerSorter!==null)ops.push({code:"SorterOpen",p1:outerSorter,keyInfo:new KeyInfo({encoding,totalFieldCount:outerOrderEntries.length+outputEntries.length,keyFieldCount:outerOrderEntries.length,terms:outerOrderEntries.map(entry=>({collation:collation(expressionFromReduction(entry!.term.expr.reduction!)),desc:entry!.term.descending,nullsLarge:entry!.term.nulls==="last"?!entry!.term.descending:entry!.term.nulls==="first"?entry!.term.descending:false}))})});
   // select.c's inner-loop output destination owns OFFSET before ResultRow and
   // LIMIT after it. Keep this in the VDBE stream for both direct and sorted
   // window output; Statement never slices host rows.
   const emitOuterResult=():Readonly<{offsetSkip:number|null;limitDone:number|null}>=>{let offsetSkip:number|null=null;if(outerLimit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:'output'},outputStart,outputEntries.length);let limitDone:number|null=null;if(outerLimit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:outerLimit.count,p2:0});}return{offsetSkip,limitDone};};
   const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
-  if(emitsRows){const rootState=setup.at(-1),needsReady=outputWindows.some(win=>win!==null&&(directOffsetOutput(win)||currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:setup.at(-1)!.regNew+entry.bufferColumn,p2:outputStart+index});}if(outerSorter!==null){const keyStart=registers+1;registers+=outerOrderEntries.length;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:setup.at(-1)!.regNew+entry.bufferColumn,p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else{const {offsetSkip}=emitOuterResult();if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=ops.length;}if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
+  if(emitsRows){const rootState=setup.at(-1),needsReady=scannedRowsLayer(compileLayers.at(-1)!)||outputWindows.some(win=>win!==null&&(directOffsetOutput(win)||currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:outputStart+index});}if(outerSorter!==null){builder.registers=Math.max(builder.registers,registers);const keyStart=builder.range(outerOrderEntries.length);registers=builder.registers;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else{const {offsetSkip}=emitOuterResult();if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=ops.length;}if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
   ops.push({code:"Goto",p2:rootLoop});const outerDrain=ops.length;(ops[rootLoop] as {p2:number}).p2=outerDrain;if(outerSorter===null&&outerLimit){(ops[outerLimit.ifZero] as {p2:number}).p2=outerDrain;for(const op of ops)if(op.code==="DecrJumpZero"&&op.p1===outerLimit.count&&op.p2===0)(op as {p2:number}).p2=outerDrain;}if(outerSorter!==null){const sort=ops.length;ops.push({code:"SorterSort",p1:outerSorter,emptyJump:0},{code:"SorterData",p1:outerSorter,p2:outputStart,count:outputEntries.length});const {offsetSkip,limitDone}=emitOuterResult();const next=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"SorterNext",p1:outerSorter,p2:sort+1});const done=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=done;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=done;if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;}const ownerExit=ops.length;ops.push(owner?{code:"Goto",p2:0}:{code:"Halt"});
   if(owner){owner.builder.registers=Math.max(owner.builder.registers,registers);owner.builder.reserveCursorsThrough(Math.max(outerSorter??0,...sorterCursors,nextApplicationCursor));}
   const loopBindings:WindowLoopBinding[]=[];
@@ -1162,7 +1365,7 @@ export function compileWindowSelectLowering(
     const target=ops.length;(ops[pending.gosub] as {p2:number}).p2=target;
     const state=setup.find(item=>item.compatibleGroup===pending.layer.compatibleGroup);if(!state)throw new JSQLiteError("internal","window setup layer is missing");
     for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
-    const streaming=pending.layer.windows.every(win=>{const frame=win.window.frame;return !!aggregateDefinition(win.window.functionName)&&frame.type==="rows"&&(((frame.exclusion===null||frame.exclusion==="no-others")&&(frame.end.kind==="current"&&(frame.start.kind==="unbounded"||frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction))))||(frame.exclusion==="current-row"&&frame.end.kind==="current"&&(frame.start.kind==="unbounded"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)))||((frame.exclusion==="no-others"||((frame.exclusion==="group"||frame.exclusion==="ties")&&win.window.orderBy.length>0))&&frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current"));});
+    const streaming=!scannedRowsLayer(pending.layer)&&pending.layer.windows.every(win=>{const frame=win.window.frame;return !!aggregateDefinition(win.window.functionName)&&frame.type==="rows"&&(((frame.exclusion===null||frame.exclusion==="no-others")&&(frame.end.kind==="current"&&(frame.start.kind==="unbounded"||frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction))))||(frame.exclusion==="current-row"&&frame.end.kind==="current"&&(frame.start.kind==="unbounded"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)))||((frame.exclusion==="no-others"||((frame.exclusion==="group"||frame.exclusion==="ties")&&win.window.orderBy.length>0))&&frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current"));});
     if(streaming&&state.partitionRegisters.length){
       const partitionStart=state.regNew+pending.layer.windows[0]!.argumentColumn-state.partitionRegisters.length-pending.layer.windows[0]!.window.orderBy.length;
       const firstAt=ops.length;ops.push({code:"IfNot",p1:state.regPartInitialized!,p2:0});
@@ -1205,21 +1408,42 @@ export function compileWindowSelectLowering(
       for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
     }
     if(sharedBoundedPeerExclusion){
+      builder.registers=Math.max(builder.registers,registers);
       const frame=pending.layer.windows[0]!.window.frame,offset=windowConstantInteger(expressionFromReduction(frame.start.expr!.reduction!));
-      const endRowid=++registers,startRowid=++registers,candidateRowid=++registers;const temporary=pending.layer.windows.map(()=>++registers);
+      const endRowid=builder.register(),startRowid=builder.register(),candidateRowid=builder.register();
+      const temporary=pending.layer.windows.map(()=>builder.register());
+      const loop=builder.label(),next=builder.label(),finish=builder.label(),step=builder.label(),identity=builder.label();
       ops.push({code:"AggReset",registers:temporary},{code:"Copy",p1:state.regRowid,p2:endRowid});
-      if(offset!==null){const width=++registers;ops.push({code:"Integer",p1:BigInt(offset),p2:width},{code:"Subtract",p1:endRowid,p2:width,p3:startRowid});}else ops.push({code:"Subtract",p1:endRowid,p2:state.boundRegisters.start!,p3:startRowid});
-      const seek=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const loop=ops.length;ops.push({code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const beforeStart=ops.length;ops.push({code:"IfRegisterGt",left:startRowid,right:candidateRowid,jump:0});const beyond=ops.length;ops.push({code:"IfRegisterGt",left:candidateRowid,right:endRowid,jump:0},{code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});
-      const exclusion=frame.exclusion,orderCount=pending.layer.windows[0]!.window.orderBy.length,orderStart=pending.layer.windows[0]!.argumentColumn-orderCount;const peer=exclusion==="no-others"?null:ops.length;if(peer!==null)ops.push({code:"CompareGroup",left:state.regNew+orderStart,right:pending.payload+orderStart,count:orderCount,keyInfo:state.peerKeyInfo!,jump:0});
-      const stepJumps:number[]=[];let identitySkip:number|null=null;if(exclusion==="ties"){stepJumps.push(ops.length);ops.push({code:"Goto",p2:0});const identity=ops.length;(ops[peer!] as {jump:number}).jump=identity;const same=++registers;ops.push({code:"Eq",p1:candidateRowid,p2:endRowid,p3:same,affinity:"numeric",collation:"binary"});identitySkip=ops.length;ops.push({code:"IfNot",p1:same,p2:0});stepJumps.push(ops.length);ops.push({code:"Goto",p2:0});}
-      const step=ops.length;for(const jump of stepJumps)(ops[jump] as {p2:number}).p2=step;for(let i=0;i<pending.layer.windows.length;i++){const win=pending.layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
-      const next=ops.length;if(exclusion==="group")(ops[peer!] as {jump:number}).jump=next;if(identitySkip!==null)(ops[identitySkip] as {p2:number}).p2=next;(ops[beforeStart] as {jump:number}).jump=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:loop});const finish=ops.length;(ops[seek] as {jump:number}).jump=finish;(ops[beyond] as {jump:number}).jump=finish;for(let i=0;i<pending.layer.windows.length;i++)ops.push({code:"AggValue",name:pending.layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:pending.layer.windows[i]!.regResult});for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+      if(offset!==null){const width=builder.register();ops.push({code:"Integer",p1:BigInt(offset),p2:width},{code:"Subtract",p1:endRowid,p2:width,p3:startRowid});}else ops.push({code:"Subtract",p1:endRowid,p2:state.boundRegisters.start!,p3:startRowid});
+      builder.jump(finish,{code:"EphemeralRewind",p1:state.applicationCursor!,p2:0},(op,pc)=>({...op,jump:pc} as Op));
+      builder.mark(loop);ops.push({code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});
+      builder.jump(next,{code:"IfRegisterGt",left:startRowid,right:candidateRowid,jump:0},(op,pc)=>({...op,jump:pc} as Op));
+      builder.jump(finish,{code:"IfRegisterGt",left:candidateRowid,right:endRowid,jump:0},(op,pc)=>({...op,jump:pc} as Op));
+      ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length});
+      const exclusion=frame.exclusion,orderCount=pending.layer.windows[0]!.window.orderBy.length,orderStart=pending.layer.windows[0]!.argumentColumn-orderCount;
+      if(exclusion!=="no-others")builder.jump(exclusion==="ties"?identity:next,{code:"CompareGroup",left:state.regNew+orderStart,right:pending.payload+orderStart,count:orderCount,keyInfo:state.peerKeyInfo!,jump:0},(op,pc)=>({...op,jump:pc} as Op));
+      if(exclusion==="ties"){
+        builder.jump(step,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(identity);
+        const same=builder.register();ops.push({code:"Eq",p1:candidateRowid,p2:endRowid,p3:same,affinity:"numeric",collation:"binary"});
+        builder.jump(next,{code:"IfNot",p1:same,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+        builder.jump(step,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));
+      }
+      builder.mark(step);
+      for(let i=0;i<pending.layer.windows.length;i++){
+        const win=pending.layer.windows[i]!,args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index),after=builder.label();
+        if(win.filterColumn!==null)builder.jump(after,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+        ops.push({code:"AggStep",name:win.window.functionName,args,p2:temporary[i]!,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(after);
+      }
+      builder.mark(next);builder.jump(loop,{code:"EphemeralNext",p1:state.applicationCursor!,p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(finish);
+      for(let i=0;i<pending.layer.windows.length;i++)ops.push({code:"AggValue",name:pending.layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:pending.layer.windows[i]!.regResult});
+      for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
+      registers=builder.registers;
     }
-    const sharedSliding=pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others")&&(frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction));});
+    const sharedSliding=!scannedRowsLayer(pending.layer)&&pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others")&&(frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction));});
     if(sharedSliding){
-      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;}
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);}
       const frame=pending.layer.windows[0]!.window.frame,bounded=frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
-      const skip=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(frame.start.kind==="current"?{threshold:1}:bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0});const done=ops.length;ops.push({code:"Goto",p2:0});const inverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});windowCodeOp({ops,layer:pending.layer,state,collationOf:column=>collation(expressionFromReduction(pending.layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGINVERSE");(ops[skip] as {jump:number}).jump=inverse;(ops[done] as {p2:number}).p2=ops.length;
+      const inverse=builder.label(),done=builder.label();builder.jump(inverse,{code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(frame.start.kind==="current"?{threshold:1}:bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0},(op,pc)=>({...op,jump:pc} as Op));builder.jump(done,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(inverse);ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});windowCodeOp({ops,layer:pending.layer,state,collationOf:column=>collation(expressionFromReduction(pending.layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGINVERSE");builder.mark(done);
       // windowReturnOneRow publishes the current output row, not the row most
       // recently loaded through the start cursor for xInverse. Restore the
       // layer-owned producer payload at this explicit value boundary. This is
@@ -1232,20 +1456,21 @@ export function compileWindowSelectLowering(
     if(sharedFollowing){
       for(const win of pending.layer.windows){
         const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
-        let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}
-        const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;
+        const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+        ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);
       }
-      const ready=ops.length;ops.push({code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,thresholdRegister:state.boundRegisters.end!,registerAdjustment:0,jump:0});
-      const done=ops.length;ops.push({code:"Goto",p2:0});const snapshot=ops.length;
+      const snapshot=builder.label(),done=builder.label();
+      builder.jump(snapshot,{code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,thresholdRegister:state.boundRegisters.end!,registerAdjustment:0,jump:0},(op,pc)=>({...op,jump:pc} as Op));
+      builder.jump(done,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(snapshot);
       for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
       ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});
       windowCodeOp({ops,layer:pending.layer,state,collationOf:column=>collation(expressionFromReduction(pending.layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGINVERSE");
-      (ops[ready] as {jump:number}).jump=snapshot;(ops[done] as {p2:number}).p2=ops.length;
+      builder.mark(done);
     }
     const cachedDirectOffset=cachedDirectOffsetLayer(pending.layer);
     for(const win of pending.layer.windows){
       const frame=win.window.frame,definition=aggregateDefinition(win.window.functionName);
-      if(cachedDirectOffset)continue;
+      if(cachedDirectOffset||scannedRowsLayer(pending.layer))continue;
       const bounded=frame.start.kind==="preceding"&&frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
       const cumulative=frame.type==="rows"&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");
       const sliding=frame.type==="rows"&&((frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)||(frame.start.kind==="current"))&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");
@@ -1277,7 +1502,12 @@ export function compileWindowSelectLowering(
     const returnAddress=ops.length;ops.push({code:"Return",p1:pending.layer.regGosub});
     loopBindings.push(Object.freeze({compatibleGroup:pending.layer.compatibleGroup,producerKind:pending.layer.producer.kind,producerCoroutine:pending.producerCoroutine,childCoroutine:pending.childCoroutine,loopBody:pending.loopBody,gosub:pending.gosub,returnAddress,sorterCursor:pending.sorterCursor,ownedClauses:Object.freeze(pending.ownedClauses),producerOrderBy:pending.layer.producerOrderBy}));
   }
-  if(owner)(ops[ownerExit] as {p2:number}).p2=ops.length;
+  if(owner){
+    // Late frame/return subroutines allocate after the root drain. Publish the
+    // complete Parse high-water before the enclosing caller allocates again.
+    owner.builder.registers=Math.max(owner.builder.registers,registers);
+    (ops[ownerExit] as {p2:number}).p2=ops.length;
+  }
   const program=Object.freeze({ops:owner?ops:builder.finish(),registers,columns:Object.freeze(emitsRows&&allProducerExpressionsRepresented?resolved.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})):[]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
   return Object.freeze({rewrite,setup:Object.freeze(setup),loopBindings:Object.freeze(loopBindings),program,...(owner?{ownerExit}:{})});
 }
@@ -1352,7 +1582,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
       const children=carrier.children;
       const child=(index:number):ResolvedExpressionCarrier=>{const found=children[index];if(!found)throw new JSQLiteError('internal','resolved joined scalar expression child lost identity');return found;};
       if(value.kind==='column'){
-        if(preserveScalarLeaves&&value.cursor!==undefined)return value;
+        if(preserveScalarLeaves&&value.cursor!==undefined&&!binding)return value;
         const use=carrier.column;
         if(!use)throw new JSQLiteError('internal',`resolved correlated column lost identity: ${value.name}`);
         const bindColumn=(ref:{source:typeof use.source;columnIndex:number}):Expression=>{
@@ -1363,7 +1593,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
           const column=ref.columnIndex>=0?ref.source.table.columns[ref.columnIndex]:null;
           const named=index<0?'binary':sqliteAsciiFold(column?.collation??'binary');
           if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});
-          return {...value,...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
+          return {...value,...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
     }
 
         // resolve.c lookupName TK_FUNCTION/AFF_DEFER argument list, not the
@@ -1373,6 +1603,10 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
       }
       if(value.kind==='unary'||value.kind==='cast'||value.kind==='collate')return {...value,value:bindResolvedExpression(value.value,child(0),cursorFor,preserveScalarLeaves,binding)};
       if(value.kind==='binary')return {...value,left:bindResolvedExpression(value.left,child(0),cursorFor,preserveScalarLeaves,binding),right:bindResolvedExpression(value.right,child(1),cursorFor,preserveScalarLeaves,binding)};
+      if(value.kind==='aggregate'){
+        const output=binding?.aggregateOutput?.(carrier.reduction);
+        if(output!==undefined)return {kind:'register',index:output};
+      }
       if(value.kind==='aggregate'&&binding?.policy==='ordinary-aggregate'){
         const sortlist=directReduction(carrier.reduction,'sortlist ::=');
         const ordered=sortlist?sortListItems(sortlist):[];
@@ -1495,7 +1729,9 @@ export function rejectUnimplementedAggregateSelect(select:SelectNode):void{
   if(node.kind!=="reduction")return false;
   if(node.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){
    const token=exprLeaves(node)[0];
-   if(token){const name=sqliteAsciiFold(token.text),count=descendantExprs(node).length;if(aggregateDefinition(name)!==undefined&&(!['min','max'].includes(name)||count===1))return true;}
+   if(token){// Count the call argument list only: FILTER/ORDER/OVER are separate
+   // semantic children, not additional min/max arguments (resolve.c).
+   const name=sqliteAsciiFold(token.text),count=aggregateParts(node).args.length;if(aggregateDefinition(name)!==undefined&&(!['min','max'].includes(name)||count===1))return true;}
   }
   return node.children.some(visit);
  };
@@ -1520,7 +1756,9 @@ export function selectHasAggregate(select:SelectNode):boolean {
   }
   if(node.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){
    const token=exprLeaves(node)[0];
-   if(token){const name=sqliteAsciiFold(token.text),count=descendantExprs(node).length;if(aggregateDefinition(name)!==undefined&&((name!=="min"&&name!=="max")||count===1))return true;}
+   if(token){// Count the call argument list only: FILTER/ORDER/OVER are separate
+   // semantic children, not additional min/max arguments (resolve.c).
+   const name=sqliteAsciiFold(token.text),count=aggregateParts(node).args.length;if(aggregateDefinition(name)!==undefined&&((name!=="min"&&name!=="max")||count===1))return true;}
   }
   return node.children.some(visit);
  };
@@ -1650,7 +1888,21 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     if(!expression.negated)return result;
     const negated=allocate();ops.push({code:"Not",p1:result,p2:negated});return negated;
   }
-  if(expression.kind==="column") { const r=allocate();if(expression.index<0)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
+  if(expression.kind==="column") {
+    const aggregate=expression.aggregateColumn;
+    if(aggregate?.owner.directMode&&!aggregate.owner.useSortingIdx&&aggregate.owner.sourceRegisters!==undefined){
+      const target=allocate();ops.push({code:"Copy",p1:aggregate.owner.sourceRegisters+aggregate.iAgg,p2:target});
+      if(expression.index>=0&&expression.affinity==="real")ops.push({code:"RealAffinity",p1:target});
+      return target;
+    }
+    if(aggregate&&(!aggregate.owner.directMode||aggregate.owner.useSortingIdx)){
+      const column=aggregate.owner.columns.get(aggregate.iAgg);
+      if(!column){const target=allocate();ops.push({code:"Null",p2:target});return target;}
+      if(!aggregate.owner.directMode)return column.accumulatorRegister;
+      if(expression.index>=0&&expression.affinity==="real"){const target=allocate();ops.push({code:"Copy",p1:aggregate.owner.sortingIndexRegister+column.iSorterColumn,p2:target},{code:"RealAffinity",p1:target});return target;}
+      return aggregate.owner.sortingIndexRegister+column.iSorterColumn;
+    }
+    const r=allocate();if(expression.index<0)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { if(expression.op==="-"&&expression.value.kind==="literal"&&typeof expression.value.value==="number"){const r=allocate();ops.push({code:"Real",p1:-expression.value.value,p2:r});return r}const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
@@ -1732,6 +1984,16 @@ function compileExpression(expression: SelectNode["result"][number], ops: Op[], 
 }
 
 interface LimitRegisters { count:number; offset?:number; combined:number; capacity:number; ifZero:number }
+// expr.c:sqlite3CodeSubselect3933–3958 rewrites scalar/EXISTS X to
+// X<>0 with numeric affinity before SELECT integer admission. IN retains
+// ordinary row-count LIMIT. Caller initializes destination before this guard.
+function computeScalarLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder,subquery?:(expression:SubqueryExpression)=>number):{count:number;ifZero:number}|undefined {
+ if(!select.limit)return undefined;
+ const value=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters,subquery),zero=allocate(),count=allocate();
+ ops.push({code:'Integer',p1:0n,p2:zero},{code:'Binary',op:'!=',p1:value,p2:zero,p3:count,affinity:'numeric',collation:'binary'},{code:'MustBeInt',p1:count});
+ const ifZero=ops.length;ops.push({code:'IfNot',p1:count,p2:0});return {count,ifZero};
+}
+
 function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder):LimitRegisters|undefined {
  if(!select.limit)return undefined;
  // select.c:computeLimitRegisters emits OP_Goto for an integer literal zero
@@ -1769,13 +2031,15 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  }
  const outerRecursiveIndex=select.from.items.findIndex(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
  const joinedDerived=select.from.items.length===2&&outerRecursiveIndex===0&&select.from.derived?.index===1&&!select.from.derived.select.from.items.length&&!select.from.derived.select.where&&!select.from.derived.select.hasCompound&&!select.from.derived.select.hasGroupBy&&!select.from.derived.select.hasHaving&&!select.from.derived.select.hasDistinct&&!select.from.derived.select.limit&&!select.from.derived.select.offset;
- if(!producerOnly&&(((select.from.items.length!==1||outerRecursiveIndex!==0)&&!joinedDerived)||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset))throw new JSQLiteError("unsupported","this recursive common table expression consumer is not implemented",{unsupportedClassification:"temporary"});
+ if(!producerOnly&&(((select.from.items.length!==1||outerRecursiveIndex!==0)&&!joinedDerived)||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy))throw new JSQLiteError("unsupported","this recursive common table expression consumer is not implemented",{unsupportedClassification:"temporary"});
  const names=owner.columns??arms[0]!.result.map(expressionName);const lookup=(name:string)=>names.findIndex(candidate=>sqliteIdentifierEqual(candidate,sqlName(name.split(".").at(-1)!)));
  const bind=(tree:Expression,current:number):Expression=>{if(tree.kind==="column"){const index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:current+index}}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bind(tree.value,current)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,current),right:bind(tree.right,current)};if(tree.kind==="between")return{...tree,value:bind(tree.value,current),lower:bind(tree.lower,current),upper:bind(tree.upper,current)};if(tree.kind==="call")return{...tree,args:tree.args.map(value=>bind(value,current))};if(tree.kind==="case")return{...tree,operand:tree.operand?bind(tree.operand,current):null,pairs:tree.pairs.map(([a,b])=>[bind(a,current),bind(b,current)]),otherwise:tree.otherwise?bind(tree.otherwise,current):null};return tree};
  const selectProgramBuilder=shared?.builder??new SelectProgramBuilder<Op>();const ops=selectProgramBuilder.ops,parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()};// Cursor 0 is reserved by the current recursive VM convention. Keep Queue
  // and Distinct adjacent, as generateWithRecursiveQuery requires.
  if(!shared)selectProgramBuilder.cursor();const queue=selectProgramBuilder.cursor(),history=distinct?selectProgramBuilder.cursor():undefined;
  const allocate=()=>selectProgramBuilder.register();
+ // Outer SELECT limits its destination, independently of queue-body LIMIT.
+ const consumerLimit=producerOnly?undefined:computeLimitRegisters(select,ops,allocate,parameters);
  const limit=computeLimitRegisters(body,ops,allocate,parameters);
  const order=body.orderBy.map(term=>{if(!term.expr.reduction)throw new JSQLiteError("internal","recursive ORDER BY lost expression");const tree=expressionFromReduction(term.expr.reduction);let index=-1;if(tree.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(width))index=Number(tree.value)-1;else if(tree.kind==="column")index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});return{index,collation:collation(expressionFromReduction(arms[0]!.result[index]!.reduction!)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};});
  if(order.length)ops.push({code:"OpenPriorityQueue",p1:queue,keyInfo:new KeyInfo({encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order})});else ops.push({code:"OpenFifo",p1:queue});
@@ -1791,7 +2055,11 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
  const bindOutput=(tree:Expression):Expression=>{if(tree.kind==="column"){const parts=tree.name.split(".").map(sqlName),qualifier=parts.length>1?parts.at(-2):undefined,name=parts.at(-1)!;if(joinedDerived&&qualifier&&sqliteIdentifierEqual(qualifier,select.from.items[1]!.alias??select.from.items[1]!.tableName)){const index=joinedNames.findIndex(candidate=>sqliteIdentifierEqual(candidate,name));if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:joinedStart!+index};}return bind(tree,current);}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bindOutput(tree.value)};if(tree.kind==="binary")return{...tree,left:bindOutput(tree.left),right:bindOutput(tree.right)};if(tree.kind==="call")return{...tree,args:tree.args.map(bindOutput)};if(tree.kind==="case")return{...tree,operand:tree.operand?bindOutput(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bindOutput(a),bindOutput(b)]),otherwise:tree.otherwise?bindOutput(tree.otherwise):null};return tree};
  let consumerSkip:number|undefined;if(joinedDerived&&select.from.items[1]!.on?.reduction){const predicate=compileExpressionTree(bindOutput(expressionFromReduction(select.from.items[1]!.on!.reduction!)),ops,allocate,parameters);consumerSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+ let consumerOffsetSkip:number|undefined;if(consumerLimit?.offset!==undefined){consumerOffsetSkip=ops.length;ops.push({code:"IfPos",p1:consumerLimit.offset,p2:0,p3:1});}
  const outputWidth=producerOnly?width:select.result.length,output=selectProgramBuilder.range(outputWidth);if(producerOnly){for(let index=0;index<width;index++)ops.push({code:"Copy",p1:current+index,p2:output+index});}else select.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive result lost expression");const value=compileExpressionTree(bindOutput(expressionFromReduction(expression.reduction)),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:output+index});});emitSelectDestination(ops,shared?.destination??{kind:"output"},output,outputWidth);
+ let consumerBreak:number|undefined;if(consumerLimit){consumerBreak=ops.length;ops.push({code:"DecrJumpZero",p1:consumerLimit.count,p2:0});}
+ // Skipping an outer row still consumes the body row and runs its recursive step.
+ if(consumerOffsetSkip!==undefined)(ops[consumerOffsetSkip] as {p2:number}).p2=ops.length;
  let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
  const recursiveStart=ops.length;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=recursiveStart;if(consumerSkip!==undefined)(ops[consumerSkip] as {p2:number}).p2=recursiveStart;
  for(const recursive of recursiveArms){
@@ -1799,42 +2067,59 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
   const next=selectProgramBuilder.range(width);recursive.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive term lost expression");const value=compileExpressionTree(bind(expressionFromReduction(expression.reduction),current),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:next+index});});enqueue(next);if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;
  }
  ops.push({code:"Goto",p2:loop});selectProgramBuilder.mark(breakLabel);const done=ops.length;if(!shared)ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=done;if(limitBreak!==undefined)(ops[limitBreak] as {p2:number}).p2=done;}
+ if(consumerLimit){(ops[consumerLimit.ifZero] as {p2:number}).p2=done;if(consumerBreak!==undefined)(ops[consumerBreak] as {p2:number}).p2=done;}
  return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(producerOnly?names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})):select.result.map((expression,index)=>Object.freeze({name:expression.alias??names[index]??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
 }
 
 
-/** select.c generateWithRecursiveQuery's queue producer feeding the ordinary
- * aggregate destination. Replacing each producer ResultRow one-for-one keeps
- * every existing queue-loop address stable; inserting finalization immediately
- * before the terminal Halt also makes all completion branches finalize once. */
-export function compileRecursiveAggregateSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER):Program|undefined {
- const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
- if(!owner||!selectHasAggregate(select))return undefined;
- if(select.result.length!==1||select.where||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||select.limit||select.offset||select.hasCompound||select.from.items.length!==1)throw new JSQLiteError("unsupported","this recursive aggregate consumer is not implemented",{unsupportedClassification:"temporary"});
- const result=select.result[0];if(!result?.reduction)throw new JSQLiteError("internal","recursive aggregate result lost expression");const tree=expressionFromReduction(result.reduction);
- if(tree.kind!=="aggregate"||tree.name!=="sum"||tree.distinct||tree.filter||tree.orderBy.length||tree.args.length!==1||tree.args[0]!.kind!=="column")throw new JSQLiteError("unsupported","this recursive aggregate consumer is not implemented",{unsupportedClassification:"temporary"});
- const argument=tree.args[0],names=owner.columns??owner.select.arms[0]!.result.map(expressionName),parts=argument.name.split('.').map(sqlName);if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,select.from.items[0]!.alias??owner.name))throw new JSQLiteError("sqlite",`no such column: ${argument.name}`,{code:1});const column=names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));if(column<0)throw new JSQLiteError("sqlite",`no such column: ${argument.name}`,{code:1});
- const producer=compileRecursiveCteSelect(select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true),accumulator=producer.registers+1,output=accumulator+1,ops:Op[]=[];
- for(const op of producer.ops){if(op.code==="ResultRow"){ops.push({code:"AggStep",name:"sum",args:[op.p1+column],p2:accumulator,collation:tree.collation});continue;}if(op.code==="Halt")ops.push({code:"AggFinal",name:"sum",p1:accumulator},{code:"Copy",p1:accumulator,p2:output},{code:"ResultRow",p1:output,p2:1});ops.push(op);}
- return Object.freeze({...producer,ops:Object.freeze(ops),registers:output,columns:Object.freeze([Object.freeze({name:expressionName(result),declaredType:null,database:null,table:null,origin:null})])});
-}
-
-export function compileRecursiveWindowSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows=Number.MAX_SAFE_INTEGER,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS):Program|undefined {
- const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
- if(!owner||!selectHasWindow(select))return undefined;
+/** select.c generateWithRecursiveQuery's queue producer feeds the enclosing
+ * aggregate destination during construction. Queue completion precedes parent
+ * finalization in the same builder; no completed Program addresses are copied. */
+// Existing recursive-window semantic source description, shared by consumers.
+// This is NameContext column metadata only, never a synthetic OpenRead producer.
+function prepareRecursiveSource(select:SelectNode,owner:NonNullable<SelectNode['with']>['ctes'][number],schema:SchemaGraph):{transient:SchemaGraph;expanded:ReturnType<typeof expandAndResolveSelect>} {
  const names=owner.columns??owner.select.arms[0]!.result.map(expressionName);
  const columns=names.map(name=>Object.freeze({name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
  const table:TableNode=Object.freeze({kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
  const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
  try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
- const compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,transient,{select,maxRows});
+ return {transient,expanded};
+}
+
+export function compileRecursiveAggregateSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
+ const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+ if(!owner||!selectHasAggregate(select))return undefined;
+ // Admit the ordinary single recursive SrcItem before emitting queue code.
+ // GROUP/HAVING consume the shared aggregate sorter and saved/final phases.
+ if(select.hasCompound||select.from.items.length!==1||!sqliteIdentifierEqual(select.from.items[0]!.tableName,owner.name))throw new JSQLiteError('unsupported','this recursive aggregate consumer is not implemented',{unsupportedClassification:'temporary'});
+ // Same resolver-only SrcItem description as the recursive window consumer.
+ // rootPage is never opened: input.first binds AggInfo columns to queue payload.
+ const {transient,expanded:linkedPlan}=prepareRecursiveSource(select,owner,schema);
+ const builder=shared?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()};
+ const first=builder.range(linkedPlan.sources[0]!.table.columns.length),coroutine=builder.register(),ready=builder.label();
+ builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
+ // Only the CTE body LIMIT belongs to queue production. Consumer LIMIT/WHERE
+ // belong to the aggregate, after queue exhaustion/finalization respectively.
+ compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,Number.MAX_SAFE_INTEGER,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
+ ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
+ const input={first,emit:(consume:()=>void)=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
+ const program=compileAggregateSelect(select,transient,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,linkedPlan,input,destination:shared?.destination??{kind:'output'}});
+ if(!shared)ops.push({code:'Halt'});
+ return Object.freeze({...program,ops:shared?ops:builder.finish(),registers:builder.registers,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name})))});
+}
+
+export function compileRecursiveWindowSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows=Number.MAX_SAFE_INTEGER,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
+ const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+ if(!owner||!selectHasWindow(select))return undefined;
+ const {transient,expanded}=prepareRecursiveSource(select,owner,schema);
+ const compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,transient,{select,maxRows},shared);
  return Object.freeze({...compilation.program,database,maxRows});
 }
 
 /** Compose multiple bounded recursive producers by redirecting each iterative
  * queue's output into a VDBE sorter, then draining the materializations with an
  * ordinary nested loop. No recursive host-language evaluation is introduced. */
-export function compileMultipleRecursiveCtes(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER):Program|undefined {
+export function compileMultipleRecursiveCtes(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
  const owners=(select.with?.ctes??[]).filter(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(owners.length<2||select.from.items.length!==owners.length||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.limit||select.offset)return undefined;
  const sourceOwners=select.from.items.map(item=>owners.find(owner=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name)));
@@ -1846,7 +2131,8 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
  // Keep this first composition seam exact: every producer column is projected
  // once. Expression consumers remain on the ordinary compiler backlog.
  for(let source=0;source<names.length;source++)for(let column=0;column<names[source]!.length;column++)if(!locations.some(location=>location?.source===source&&location.column===column))return undefined;
- const selectProgramBuilder=new SelectProgramBuilder<Op>();
+ const selectProgramBuilder=shared?.builder??new SelectProgramBuilder<Op>();
+ const parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()};
  const ops=selectProgramBuilder.ops,sorters:number[]=[],children:{columns:readonly {name:string}[]}[]=[];
  // select.c:generateWithRecursiveQuery materializes each queue in the same
  // Parse/Vdbe. Each producer owns its queue loop, not a completed Program to
@@ -1859,39 +2145,38 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
   const child=Object.freeze({...select,result,from,where:null,groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,hasDistinct:false,hasGroupBy:false,hasHaving:false,hasOrderBy:false,hasLimit:false,hasCompound:false,with:Object.freeze({recursive:true,ctes:Object.freeze([owner])}),arms:Object.freeze([arm])});
   const sorter=selectProgramBuilder.cursor();sorters.push(sorter);
   ops.push({code:'SorterOpen',p1:sorter,keyInfo:new KeyInfo({encoding,totalFieldCount:0,keyFieldCount:0,terms:[]})});
-  const producer=compileRecursiveCteSelect(child,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,false,{builder:selectProgramBuilder,destination:{kind:'sorter',cursor:sorter,keyCount:0}});
-  if(producer.parameters.length)return undefined;
+  const producer=compileRecursiveCteSelect(child,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,false,{builder:selectProgramBuilder,parameters,destination:{kind:'sorter',cursor:sorter,keyCount:0}});
   children.push(producer);
  }
- let registers=selectProgramBuilder.registers;
- const rowBases=children.map(child=>{const base=++registers;registers+=child.columns.length-1;return base}),rewinds:number[]=[],starts:number[]=[];
+ const rowBases=children.map(child=>selectProgramBuilder.range(child.columns.length)),rewinds:number[]=[],starts:number[]=[];
  let finalSorter:number|undefined,orderIndexes:readonly number[]=[];
  if(select.orderBy.length){
   const terms=select.orderBy.map(term=>{if(!term.expr.reduction)throw new JSQLiteError('internal','recursive consumer ORDER BY lost expression');const tree=expressionFromReduction(term.expr.reduction),identity=tree.kind==='collate'?tree.value:tree,location=locateColumn(identity);if(!location)throw new JSQLiteError('unsupported','this recursive common table expression consumer ORDER BY is not implemented',{unsupportedClassification:'temporary'});const resultIndex=locations.findIndex(candidate=>candidate?.source===location.source&&candidate.column===location.column);if(resultIndex<0)throw new JSQLiteError('sqlite','ORDER BY term does not match any column in the result set',{code:1});return{resultIndex,collation:explicitCollation(tree)??'binary',desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}});
   orderIndexes=terms.map(term=>term.resultIndex);finalSorter=selectProgramBuilder.cursor();ops.push({code:'SorterOpen',p1:finalSorter,keyInfo:new KeyInfo({encoding,totalFieldCount:terms.length,keyFieldCount:terms.length,terms})});
  }
  for(let source=0;source<children.length;source++){rewinds[source]=ops.length;ops.push({code:'SorterSort',p1:sorters[source]!,emptyJump:0});starts[source]=ops.length;ops.push({code:'SorterData',p1:sorters[source]!,p2:rowBases[source]!,count:children[source]!.columns.length});}
- const output=++registers;registers+=select.result.length-1;locations.forEach((location,index)=>ops.push({code:'Copy',p1:rowBases[location!.source]!+location!.column,p2:output+index}));
- if(finalSorter!==undefined){const key=++registers;registers+=orderIndexes.length-1;orderIndexes.forEach((resultIndex,index)=>ops.push({code:'Copy',p1:output+resultIndex,p2:key+index}));ops.push({code:'SorterInsert',p1:finalSorter,keyStart:key,keyCount:orderIndexes.length,payload:output,payloadCount:select.result.length});}else emitSelectDestination(ops,{kind:'output'},output,select.result.length);
+ const output=selectProgramBuilder.range(select.result.length);locations.forEach((location,index)=>ops.push({code:'Copy',p1:rowBases[location!.source]!+location!.column,p2:output+index}));
+ if(finalSorter!==undefined){const key=selectProgramBuilder.range(orderIndexes.length);orderIndexes.forEach((resultIndex,index)=>ops.push({code:'Copy',p1:output+resultIndex,p2:key+index}));ops.push({code:'SorterInsert',p1:finalSorter,keyStart:key,keyCount:orderIndexes.length,payload:output,payloadCount:select.result.length});}else emitSelectDestination(ops,shared?.destination??{kind:'output'},output,select.result.length);
  const next:number[]=[];for(let source=children.length-1;source>=0;source--){next[source]=ops.length;ops.push({code:'SorterNext',p1:sorters[source]!,p2:starts[source]!});(ops[rewinds[source]!] as {emptyJump:number}).emptyJump=source===0?ops.length:next[source-1]!;}
- if(finalSorter!==undefined){const sort=ops.length;ops.push({code:'SorterSort',p1:finalSorter,emptyJump:0},{code:'SorterData',p1:finalSorter,p2:output,count:select.result.length},{code:'ResultRow',p1:output,p2:select.result.length},{code:'SorterNext',p1:finalSorter,p2:sort+1});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;}
- ops.push({code:'Halt'});return Object.freeze({ops:selectProgramBuilder.finish(),registers,columns:Object.freeze(select.result.map(expression=>Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze([]),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+ if(finalSorter!==undefined){const sort=ops.length;ops.push({code:'SorterSort',p1:finalSorter,emptyJump:0},{code:'SorterData',p1:finalSorter,p2:output,count:select.result.length});emitSelectDestination(ops,shared?.destination??{kind:'output'},output,select.result.length);ops.push({code:'SorterNext',p1:finalSorter,p2:sort+1});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;}
+ if(!shared)ops.push({code:'Halt'});return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(select.result.map(expression=>Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
 }
 
-export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER, owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;emitRow:(first:number,count:number)=>void}): Program {
+export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER, owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;emitRow:(first:number,count:number)=>void;destination?:SelectDest}): Program {
   // select.c applies sqlite3WindowRewrite to every SELECT after name/function
   // resolution, including a SELECT without a FROM clause. Public prepare passes
   // the schema here, so resolve before scalar lowering can misclassify the owner.
   if(selectHasWindow(select)){
     if(select.hasCompound&&schema&&database){
-      const compound=compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-      if(compound)return compound;
+      const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+      if(compound){if('ops' in compound)return compound;
+      return Object.freeze({columns:compound.columns,ops:owner!.builder.ops,registers:owner!.builder.registers,parameters:Object.freeze(owner!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});}
     }
     if(!schema)throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
     let expanded:ReturnType<typeof expandAndResolveSelect>;
     try{expanded=expandAndResolveSelect(select,schema)}
     catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
-    const compilation=compileWindowSelectLowering(expanded,encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema);
+    const compilation=compileWindowSelectLowering(expanded,encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,owner?.destination?{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}:undefined);
     // Publish only a completely represented result list. This is the same
     // atomic gate used by table-backed window lowering.
     if(compilation.program.columns.length===expanded.result.length&&expanded.result.length>0)
@@ -1908,8 +2193,9 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   }
   rejectUnsupportedSelectClauses(singleton?{...select,hasDistinct:false}:select);
   if(select.hasCompound&&!select.hasOrderBy&&schema&&database&&select.arms.some(arm=>arm.from.items.length||arm.where!==null||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving)&&select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all')){
-    const compound=compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-    if(compound)return compound;
+    const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    if(compound){if('ops' in compound)return compound;
+      return Object.freeze({columns:compound.columns,ops:owner!.builder.ops,registers:owner!.builder.registers,parameters:Object.freeze(owner!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});}
   }
   if(select.hasCompound){
     // select.c:multiSelect's unordered UNION ALL route emits each arm to one
@@ -1926,13 +2212,13 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     if(distinctSet||orderedAll){
       if(distinctSet&&select.hasOrderBy&&(select.orderBy.length!==1||width!==1))throw new JSQLiteError('unsupported','multi-column compound ORDER BY merge is not implemented',{unsupportedClassification:'temporary'});
       if(!schema||!database)throw new JSQLiteError('unsupported','compound merge requires database context',{unsupportedClassification:'temporary'});
-      const mergeBuilder=new SelectProgramBuilder<Op>(),mergeParameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
-      emitScalarCompoundMerge(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,mergeBuilder,mergeParameters,{kind:'output'});
-      mergeBuilder.ops.push({code:'Halt'});
+      const mergeBuilder=owner?.builder??new SelectProgramBuilder<Op>(),mergeParameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
+      emitScalarCompoundMerge(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,mergeBuilder,mergeParameters,owner?.destination??{kind:'output'});
+      if(!owner)mergeBuilder.ops.push({code:'Halt'});
       const names=select.arms[0]!.result.map(expression=>expressionName(expression));
-      return Object.freeze({database,maxRows,ops:Object.freeze(mergeBuilder.ops),registers:mergeBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(mergeParameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
+      return Object.freeze({database,maxRows,ops:owner?mergeBuilder.ops:Object.freeze(mergeBuilder.ops),registers:mergeBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(mergeParameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
-    const compoundBuilder=new SelectProgramBuilder<Op>(),ops=compoundBuilder.ops,parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
+    const compoundBuilder=owner?.builder??new SelectProgramBuilder<Op>(),ops=compoundBuilder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
     const limit=computeLimitRegisters(select,ops,()=>compoundBuilder.register(),parameters),haltJumps:number[]=[];
     // multiSelect TK_ALL compiles each arm to the same output destination;
     // common LIMIT/OFFSET belong to the compound, never an individual row.
@@ -1941,14 +2227,14 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
       compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder:compoundBuilder,parameters,emitRow:(first,count)=>{
         const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
-        emitSelectDestination(ops,{kind:'output'},first,count);
+        if(owner)owner.emitRow(first,count);else emitSelectDestination(ops,{kind:'output'},first,count);
         if(limit){haltJumps.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}
         if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;
       }});
     }
-    const halt=ops.length;ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
+    const halt=ops.length;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
     const names=select.arms[0]!.result.map((expression,index)=>select.arms[0]!.origin==='values'?`column${index+1}`:expressionName(expression));
-    return Object.freeze({... (database?{database,maxRows}:{}),ops:Object.freeze(ops),registers:compoundBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
+    return Object.freeze({... (database?{database,maxRows}:{}),ops:owner?ops:Object.freeze(ops),registers:compoundBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
   }
   if (select.hasValues) {
     const arm=select.arms[0],rows=arm?.valuesRows;
@@ -3010,9 +3296,59 @@ function resolvedResultKeyTerms(plan:ReturnType<typeof expandAndResolveSelect>):
  });
 }
 
+function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding):(expression:SubqueryExpression)=>number {
+  const ops=builder.ops,allocate=()=>builder.register();
+  const nestedPlans=new Map<SelectNode,{plan:ReturnType<typeof expandAndResolveSelect>;cursor:number}>();
+  const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
+  const compileJoinSubquery=(expression:SubqueryExpression):number=>{
+    if(expression.select.result.length!==1)throw new JSQLiteError('sqlite',`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
+    const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
+    if(!entry||entry.plan.sources.length>1||!item?.reduction||expression.kind==='in-subquery'||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasCompound||expression.select.hasValues)throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
+    const source=entry.plan.sources[0],tree=expressionFromReduction(item.reduction);if(tree.kind==='aggregate'&&(expression.select.offset||expression.exists||tree.distinct||tree.orderBy.length))throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
+    // resolve.c:lookupName already assigned each reduction's lexical source
+    // and iColumn through pNext. This joined consumer must not re-search SQL
+    // spelling across the inner and outer SrcLists (rowid is not a column).
+    const cursorFor=(ref:ResolvedSource)=>ref===source?entry.cursor:ref.cursorId;
+    const binding:ResolvedExpressionBinding|undefined=outerBinding?{policy:outerBinding.policy,location:ref=>ref.source===source?{kind:'cursor',cursor:entry.cursor}:outerBinding?.location(ref,0)??{kind:'cursor',cursor:ref.source.cursorId}}:undefined;
+    const result=allocate(),once=entry.plan.correlated?undefined:allocate(),onceAt=once===undefined?-1:ops.length;if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});ops.push(expression.exists?{code:'Integer',p1:0n,p2:result}:{code:'Null',p2:result});const limit=computeScalarLimitRegisters(expression.select,ops,allocate,parameters);
+    if(tree.kind!=='aggregate'){
+      // expr.c installs scalar LIMIT 1 (or X<>0), keeping OFFSET. Build
+      // SELECT's sorter capacity from that prepared count, not raw child X.
+      const count=limit?.count??allocate();if(!limit)ops.push({code:'Integer',p1:1n,p2:count});
+      const ifZero=limit?.ifZero??ops.length;if(!limit)ops.push({code:'IfNot',p1:count,p2:0});
+      let offset:number|undefined;
+      if(expression.select.offset){offset=compileExpressionTree(expressionFromReduction(expression.select.offset.reduction!),ops,allocate,parameters);ops.push({code:'MustBeInt',p1:offset});}
+      const combined=allocate(),capacity=allocate();
+      ops.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});
+      const preparedLimit:LimitRegisters={count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
+      // expr.c supplies the initialized Mem destination and normalized scalar
+      // LIMIT; select.c owns projection, WHERE positioning and first-row exit.
+      // Keep the linked NameContext/source objects, mapping only physical reads.
+      if(!source){
+        // select.c: a SELECT without SrcItems visits its inner loop once.
+        // Do not enter WHERE's physical-loop planner with an empty SrcList.
+        const bind=(reduction:Reduction)=>bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(entry.plan,reduction),cursorFor,true,binding);
+        const end=builder.label();
+        if(expression.select.where){const predicate=compileExpressionTree(bind(expression.select.where.reduction! as Reduction),ops,allocate,parameters,compileJoinSubquery);builder.jump(end,{code:'IfNot',p1:predicate,p2:0},(op,pc)=>({...op,p2:pc}));}
+        if(offset!==undefined)builder.jump(end,{code:'IfPos',p1:offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc}));
+        const value=compileExpressionTree(bind(item.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);
+        emitSelectDestination(ops,expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},value,1);
+        builder.mark(end);builder.resolveLabel(end);
+      }else       compileInnerTableSelect(expression.select,entry.plan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination:expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},scalarPrepared:true,sharedLimit:preparedLimit,...(binding?{expressionBinding:binding}:{}),cursorFor});
+      if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;
+      if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
+      return result;
+    }
+    // select.c owns analysis, accumulator reset/finalization and Mem production.
+    compileAggregateSelect(expression.select,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination:{kind:'mem',register:result},linkedPlan:entry.plan,scalarPrepared:true,cursorFor,...(binding?{expressionBinding:binding}:{})});
+    if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
+  };
+  return compileJoinSubquery;
+}
+
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):void;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|void {
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):void;
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|void {
   if(expanded.sources.some((source,index)=>index>0&&source.joinFromLeft.error))throw new JSQLiteError("unsupported","invalid joins are not implemented",{unsupportedClassification:"temporary"});
   const rightLevels=expanded.sources.flatMap((source,index)=>index>0&&source.joinFromLeft.right?[index]:[]),rightLevel=rightLevels[0]??-1;
   // Pinned wherecode.c owns a WhereRightJoin per barrier. Until this compiler
@@ -3024,12 +3360,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // consume the immutable where.c handoff for candidate/path identity and
   // accounting. Global ordering is deliberately not requested/proved here.
   let multiWhere:ReturnType<typeof planWhere>,whereAccounting:Readonly<{plannerCandidates:number;plannerPaths:number}>;
-  const ops:Op[]=owner?.ops??[],parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
+  const builder=owner?.builder??new SelectProgramBuilder<Op>();
+  const ops:Op[]=owner?.ops??builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
   const resultStart=owner?owner.builder.range(expanded.result.length):1;
   let registers=owner?.builder.registers??expanded.result.length;
-  const allocate=()=>owner?owner.builder.register():++registers;
-  const range=(count:number)=>owner?owner.builder.range(count):(registers+=count,registers-count+1);
-  const resolveTree=(tree:Expression,reduction?:Reduction):Expression=>{const visit=(node:Expression,reduction?:Reduction):Expression=>{
+  builder.registers=Math.max(builder.registers,registers);
+  const allocate=()=>{const register=builder.register();registers=builder.registers;return register;};
+  const range=(count:number)=>{const first=builder.range(count);registers=builder.registers;return first;};
+  const cursorFor=owner?.cursorFor??((source:ResolvedSource)=>source.cursorId);
+  const resolveTree=(tree:Expression,reduction?:Reduction):Expression=>{if(owner?.expressionBinding&&reduction)return bindResolvedExpression(tree,resolvedExpressionCarrier(expanded,reduction),cursorFor,true,owner.expressionBinding);const visit=(node:Expression,reduction?:Reduction):Expression=>{
     if(reduction)reduction=expressionIdentityReduction(reduction);
     const children=reduction?descendantExprs(reduction).filter((child):child is Reduction=>child.kind==='reduction'):[];
     let index=0;const operand=(value:Expression):Expression=>{const child=children[index++];if(reduction&&!child)throw new JSQLiteError('internal','resolved join operand lost identity');return visit(value,child);};
@@ -3044,7 +3383,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const index=ref.columnIndex<0||isIntegerPrimaryKeyAlias(ref.source.table,ref.columnIndex)?-1:ref.columnIndex;
         const c=index<0?'binary':sqliteAsciiFold(ref.source.table.columns[index]!.collation??'binary');
         if(c!=='binary'&&c!=='nocase'&&c!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${c}`,{code:1});
-        return {...node,cursor:ref.source.cursorId,index,affinity:index<0?'integer':ref.source.table.columns[index]!.affinity,collation:c};
+        return {...node,cursor:cursorFor(ref.source),index,affinity:index<0?'integer':ref.source.table.columns[index]!.affinity,collation:c};
       };
       const merged='mergedSources' in use?use.mergedSources:undefined;
       return merged?{kind:'call',name:'coalesce',args:merged.map(column),deferredAffinity:true}:column(use);
@@ -3063,15 +3402,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     return node;};return visit(tree,reduction);};
   // select.c:multiSelect(TK_ALL) forwards the compound iLimit/iOffset into
   // each arm; only the enclosing producer initializes those registers.
-  const limit=owner?.compoundLimit?owner.compoundLimit.registers:owner?.sharedLimit??computeLimitRegisters(select,ops,allocate,parameters);
+  const limit=owner?.compoundLimit?owner.compoundLimit.registers:owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,allocate,parameters));
   const multiOrder=select.orderBy.flatMap(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=="column")return [];const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,sourceOrdinal=expanded.sources.findIndex(source=>(parts.length===1||sqliteIdentifierEqual(parts.at(-2)!,source.alias??source.table.name))&&source.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)));if(sourceOrdinal<0)return [];const column=expanded.sources[sourceOrdinal]!.table.columns.find(column=>sqliteIdentifierEqual(column.name,name))!;return [{sourceOrdinal,column,descending:term.descending,collation:sqliteAsciiFold(column.collation??'binary') as BuiltinCollation}];});
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
   multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,ROWID_NEEDED])),orderBy:multiOrder});
   whereAccounting=Object.freeze({plannerCandidates:multiWhere.plannerCandidates,plannerPaths:multiWhere.plannerPaths});
-  const multiOrderConsumed=multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
+  const multiOrderConsumed=!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!),identity=tree;while(identity.kind==='collate')identity=identity.value;let resultIndex=-1;if(identity.kind==='literal'&&typeof identity.value==='bigint'){if(identity.value<1n||identity.value>BigInt(expanded.result.length)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${expanded.result.length}`,{code:1});}resultIndex=Number(identity.value-1n);}else if(identity.kind==='column'&&!identity.name.includes('.'))resultIndex=expanded.result.findIndex(result=>sqliteIdentifierEqual(result.name,sqlName(identity.name)));return{tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};});
-  if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>source.cursorId)));
+  if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
   const sorterCursor=owner?owner.builder.cursor():expanded.sources.length,distinctCursor=owner?owner.builder.cursor():sorterCursor+1,rightMatchCursor=owner?owner.builder.cursor():distinctCursor+1;
   if(orderTerms.length)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:term.resultIndex>=0?sqliteAsciiFold(expanded.result[term.resultIndex]!.descriptor.collation) as BuiltinCollation:collation(term.tree),desc:term.descending,nullsLarge:term.nullsLarge}))})});
   if(select.hasDistinct)ops.push({code:'OpenEphemeral',p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:expanded.result.length,keyFieldCount:expanded.result.length,terms:resolvedResultKeyTerms(expanded)})});
@@ -3083,25 +3422,22 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // expr.c:sqlite3CodeSubselect lowers into the caller's VDBE. The
   // bounded join route likewise emits a correlated aggregate in the joined-row
   // body, where it observes the current outer cursors.
-  const nestedPlans=new Map<SelectNode,{plan:ReturnType<typeof expandAndResolveSelect>;cursor:number}>();let nestedCursor=owner?.builder.cursors??1000;
-  const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:owner?owner.builder.cursor():nestedCursor++});rememberNested(child);}};rememberNested(expanded);
-  const compileJoinSubquery=(expression:SubqueryExpression):number=>{
-    const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
-    if(!entry||entry.plan.sources.length!==1||!item?.reduction||expression.kind==='in-subquery'||expression.exists||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasOrderBy||expression.select.hasCompound||expression.select.hasValues||expression.select.limit||expression.select.offset)throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
-    const source=entry.plan.sources[0]!,tree=expressionFromReduction(item.reduction);if(tree.kind!=='aggregate'||tree.distinct||tree.filter||tree.orderBy.length)throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
-    // resolve.c:lookupName already assigned each reduction's lexical source
-    // and iColumn through pNext. This joined consumer must not re-search SQL
-    // spelling across the inner and outer SrcLists (rowid is not a column).
-    const cursorFor=(ref:ResolvedSource)=>ref===source?entry.cursor:ref.cursorId;
-    const result=allocate(),once=entry.plan.correlated?undefined:allocate(),onceAt=once===undefined?-1:ops.length;if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});ops.push({code:'Null',p2:result});const rewind=ops.length;ops.push({code:'Rewind',p1:entry.cursor,p2:0});const loop=ops.length;let skip:number|undefined;if(expression.select.where?.reduction){const predicate=compileExpressionTree(bindResolvedExpression(expressionFromReduction(expression.select.where.reduction),resolvedExpressionCarrier(entry.plan,expression.select.where.reduction as Reduction),cursorFor),ops,allocate,parameters,compileJoinSubquery);skip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}const argNodes=resolvedExpressionCarrier(entry.plan,item.reduction as Reduction).children;const args=tree.args.map((arg,index)=>compileExpressionTree(bindResolvedExpression(arg,argNodes[index]!,cursorFor),ops,allocate,parameters,compileJoinSubquery));ops.push({code:'AggStep',name:tree.name,args,p2:result,collation:tree.collation});const next=ops.length;ops.push({code:'Next',p1:entry.cursor,p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;ops.push({code:'AggFinal',name:tree.name,p1:result});if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
-  };
+  // Standalone joined consumers retain their existing nested cursor range.
+  // Parent-owned consumers already reserved their physical source frontier.
+  builder.registers=Math.max(builder.registers,registers);
+  if(!owner)builder.reserveCursorsThrough(999);
+  const nestedBinding:ResolvedExpressionBinding={policy:owner?.expressionBinding?.policy??'scalar',location:(ref,depth)=>expanded.sources.includes(ref.source)?{kind:'cursor',cursor:cursorFor(ref.source)}:owner?.expressionBinding?.location(ref,depth)??{kind:'cursor',cursor:ref.source.cursorId}};
+  const compileJoinSubquery=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},nestedBinding);
   const compilePredicate=(expression:SelectNode['where'])=>{if(!expression?.reduction)return undefined;const value=compileExpressionTree(resolveTree(expressionFromReduction(expression.reduction),expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0,residual:true});return at;};
-  for(const {plan,cursor} of nestedPlans.values()){const source=plan.sources[0];if(source)ops.push({code:'OpenRead',p1:source.table.rootPage,p2:cursor});}
-  expanded.sources.forEach(source=>ops.push({code:'OpenRead',p1:source.table.rootPage,p2:source.cursorId}));
+  expanded.sources.forEach(source=>ops.push({code:'OpenRead',p1:source.table.rootPage,p2:cursorFor(source)}));
   // wherecode.c opens and advances the selected secondary cursor, then leaves
   // table positioning deferred until an uncovered read.  Keep cursor identity
   // distinct from source, sorter and RIGHT-join cursors.
-  const selectedBySource=new Map(multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
+  // Linked scalar preparation supplies a normalized first-row Mem consumer.
+  // Generated candidate seek operands lack reduction/outer phase identity;
+  // retain its existing full scan through this ordinary WHERE loop until the
+  // root WHERE interface carries those operands (see scalar owner census).
+  const selectedBySource=new Map(owner?.scalarPrepared?[]:multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
   // where.c:wherePathSolver chooses both access and loop order. wherecode.c
   // evaluates each RHS only after its prereqRight cursors are positioned.
   // Keep the existing source-order NULL-row continuation for outer/right joins.
@@ -3111,7 +3447,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
   for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=owner?owner.builder.cursor():rightMatchCursor+1+ordinal;indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
   const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>();
-  for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??source.cursorId;if(isLeft){leftMatches[level]=allocate();ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!});}rewinds.push(ops.length);const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;if(rowEq){const tree=expressionFromReduction(rowEq.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:source.cursorId,key,p2:0});singleRows[level]=true; }else {
+  for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){leftMatches[level]=allocate();ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!});}rewinds.push(ops.length);const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;if(rowEq){const tree=expressionFromReduction(rowEq.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
     const usable=indexCursor!==undefined&&capability&&(capability.equalityPrefix.length||capability.lower||capability.upper);
     const reverseRange=!!usable&&(capability.reverse!==!!capability.physicalIndex?.fields[capability.equalityPrefix.length]?.descending);
@@ -3160,24 +3496,27 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const rangeEnd=end;
       if(rangeEnd&&rangeEnd.operator!=='in'&&(rangeEnd.term.prereqRight&~readyMask)===0n){const expression=expressionFromReduction(rangeEnd.term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined range bound lost binary expression');const bound=rangeEnd.term.originalIndexedOperand==='left'?expression.right:expression.left;const key=compileExpressionTree(resolveTree(bound),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'IndexRangeEnd',p1:indexCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.affinity:'blob',collation:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.collation:'binary',operator:rangeEnd.operator as 'lt'|'le'|'gt'|'ge',p2:0});indexEnds.push({at:ops.length-1,level});}
     }
-    ops.push({code:'DeferredSeek',p1:indexCursor,p2:source.cursorId});
+    ops.push({code:'DeferredSeek',p1:indexCursor,p2:cursorFor(source)});
   }
-  const rowUpperCandidate=selected?.capability?.rowidUpper,rowUpper=rowUpperCandidate&&(rowUpperCandidate.term.prereqRight&~readyMask)===0n?rowUpperCandidate:null;if(rowUpper&&!singleRows[level]){const tree=expressionFromReduction(rowUpper.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid upper bound lost binary expression');const key=compileExpressionTree(resolveTree(rowUpper.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'RowidUpperBound',p1:source.cursorId,key,inclusive:rowUpper.bound==='upper-inclusive',p2:0});jumps.push({at,level:-1});}const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});if(level===rightLevel)ops.push({code:'Rowid',p1:source.cursorId,p2:rightKey!},{code:'IdxInsert',p1:rightMatchCursor,keyStart:rightKey!,keyCount:1});if(level===rightLevel){ops.push({code:'BeginSubrtn',p2:rightReturn!});rightBody.entry=ops.length;}bodies[level]=ops.length;}
+  const rowUpperCandidate=selected?.capability?.rowidUpper,rowUpper=rowUpperCandidate&&(rowUpperCandidate.term.prereqRight&~readyMask)===0n?rowUpperCandidate:null;if(rowUpper&&!singleRows[level]){const tree=expressionFromReduction(rowUpper.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid upper bound lost binary expression');const key=compileExpressionTree(resolveTree(rowUpper.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'RowidUpperBound',p1:cursorFor(source),key,inclusive:rowUpper.bound==='upper-inclusive',p2:0});jumps.push({at,level:-1});}const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});if(level===rightLevel)ops.push({code:'Rowid',p1:cursorFor(source),p2:rightKey!},{code:'IdxInsert',p1:rightMatchCursor,keyStart:rightKey!,keyCount:1});if(level===rightLevel){ops.push({code:'BeginSubrtn',p2:rightReturn!});rightBody.entry=ops.length;}bodies[level]=ops.length;}
   const joinedBodyStart=ops.length;
   // Delayed inner-join ON clauses can reference a source positioned later in
   // the chosen path. Their residual is evaluated only at the complete row.
   for(const ordinal of loopOrdinals){const source=expanded.sources[ordinal]!;if(!source.on?.reduction||source.joinFromLeft.left)continue;const terms=multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual);const at=loopOrdinals.indexOf(ordinal),ready=loopOrdinals.slice(0,at+1).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n);if(terms.some(term=>(term.prereqAll&~ready)!==0n)){const predicate=compilePredicate(source.on);if(predicate!==undefined)jumps.push({at:predicate,level:expanded.sources.length-1});}}
-  const where=compilePredicate(select.where);if(where!==undefined)jumps.push({at:where,level:expanded.sources.length-1});expanded.result.forEach((result,index)=>{if(result.resolution==='coalesce'){const refs=result.mergedSources!;const ends:number[]=[];for(const ref of refs){const value=allocate();if(ref.columnIndex<0)ops.push({code:'Rowid',p1:ref.source.cursorId,p2:value});else ops.push({code:'Column',p1:ref.columnIndex,p2:value,p3:ref.source.cursorId});const at=ops.length;ops.push({code:'NotNull',p1:value,p2:resultStart+index,jump:0});ends.push(at);}ops.push({code:'Null',p2:resultStart+index});for(const at of ends)(ops[at] as {jump:number}).jump=ops.length;}else if(result.source&&result.columnIndex!==null){if(result.columnIndex<0)ops.push({code:'Rowid',p1:result.source.cursorId,p2:resultStart+index});else {const value=allocate();ops.push({code:'Column',p1:result.columnIndex,p2:value,p3:result.source.cursorId},{code:'Copy',p1:value,p2:resultStart+index});}}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}});
+  // selectInnerLoop codes the result expression list before SRT_Mem. A
+  // phase-aware caller may bind even a direct column to an outer payload
+  // register, so its resolved result must not take the physical-column shortcut.
+  const where=compilePredicate(select.where);if(where!==undefined)jumps.push({at:where,level:expanded.sources.length-1});expanded.result.forEach((result,index)=>{if(owner?.expressionBinding){if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else if(result.resolution==='coalesce'){const refs=result.mergedSources!;const ends:number[]=[];for(const ref of refs){const value=allocate();if(ref.columnIndex<0)ops.push({code:'Rowid',p1:cursorFor(ref.source),p2:value});else ops.push({code:'Column',p1:ref.columnIndex,p2:value,p3:cursorFor(ref.source)});const at=ops.length;ops.push({code:'NotNull',p1:value,p2:resultStart+index,jump:0});ends.push(at);}ops.push({code:'Null',p2:resultStart+index});for(const at of ends)(ops[at] as {jump:number}).jump=ops.length;}else if(result.source&&result.columnIndex!==null){if(result.columnIndex<0)ops.push({code:'Rowid',p1:cursorFor(result.source),p2:resultStart+index});else {const value=allocate();ops.push({code:'Column',p1:result.columnIndex,p2:value,p3:cursorFor(result.source)},{code:'Copy',p1:value,p2:resultStart+index});}}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}});
   // selectInnerLoop's LIMIT break belongs to this producer, including the
   // unmatched RIGHT invocation below. Resolve producer exits together; a zero
   // address must never escape into the enclosing scalar/compound program.
-  const outputLimitStops:number[]=[];
+  const destinationExit=builder.label();
   let distinctAt:number|undefined;if(select.hasDistinct){distinctAt=ops.length;ops.push({code:'Found',p1:distinctCursor,keyStart:resultStart,keyCount:expanded.result.length,jump:0},{code:'IdxInsert',p1:distinctCursor,keyStart:resultStart,keyCount:expanded.result.length});}
   if(orderTerms.length){const keyStart=range(orderTerms.length);orderTerms.forEach((term,index)=>{if(term.resultIndex>=0)ops.push({code:'Copy',p1:resultStart+term.resultIndex,p2:keyStart+index});else{const value=compileExpressionTree(term.tree,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:keyStart+index});}});ops.push({code:'SorterInsert',p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:resultStart,payloadCount:expanded.result.length,...(limit?{topN:limit.capacity}:{})});}
-  else {let offsetAt:number|undefined;if(limit?.offset!==undefined){offsetAt=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}if(owner)emitSelectDestination(ops,owner.destination,resultStart,expanded.result.length);else ops.push({code:'ResultRow',p1:resultStart,p2:expanded.result.length});if(limit){outputLimitStops.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))ops.push({code:'Goto',p2:0});if(offsetAt!==undefined)jumps.push({at:offsetAt,level:expanded.sources.length-1});}
+  else {const afterOutput=builder.label();if(limit?.offset!==undefined)builder.jump(afterOutput,{code:'IfPos',p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));if(owner)emitSelectDestination(ops,owner.destination,resultStart,expanded.result.length);else ops.push({code:'ResultRow',p1:resultStart,p2:expanded.result.length});if(limit){if(owner?.compoundLimit){owner.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}else builder.jump(destinationExit,{code:'DecrJumpZero',p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));}if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))builder.jump(destinationExit,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(afterOutput);builder.resolveLabel(afterOutput);}
   const joinedBodyEnd=ops.length;
   const nextAt:number[]=[],rewindEmpty:number[]=[];for(let level=expanded.sources.length-1;level>=0;level--){// where.c:sqlite3WhereEnd resolves RIGHT continue to the inline Return.
-  nextAt[level]=ops.length;if(level===rightLevel){rightBody.continue=ops.length;ops.push({code:'Return',p1:rightReturn!,fallthrough:true});}if(singleRows[level])ops.push({code:'Goto',p2:0});else {const ordinal=loopOrdinals[level]!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined?{code:reverse?'Prev':'Next',p1:loopSources[level]!.cursorId,p2:starts[level]!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor,p2:starts[level]!});}const restart=inRestarts.get(level);if(restart){
+  nextAt[level]=ops.length;if(level===rightLevel){rightBody.continue=ops.length;ops.push({code:'Return',p1:rightReturn!,fallthrough:true});}if(singleRows[level])ops.push({code:'Goto',p2:0});else {const ordinal=loopOrdinals[level]!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined?{code:reverse?'Prev':'Next',p1:cursorFor(loopSources[level]!),p2:starts[level]!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor,p2:starts[level]!});}const restart=inRestarts.get(level);if(restart){
     // where.c:sqlite3WhereEnd unwinds each equality-slot IN from inner to outer.
     for(let i=restart.iterators.length-1;i>=0;i--){
       const iterator=restart.iterators[i]!;
@@ -3228,7 +3567,19 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     (ops[restart.iterators[0]!] as {p2:number}).p2=exit;
   }
   let halt:number;
-  if(orderTerms.length){const sortAt=ops.length;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:resultStart,count:expanded.result.length});let offsetAt:number|undefined;if(limit?.offset!==undefined){offsetAt=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}if(owner)emitSelectDestination(ops,owner.destination,resultStart,expanded.result.length);else ops.push({code:'ResultRow',p1:resultStart,p2:expanded.result.length});const limitAt=limit?ops.length:undefined;if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))ops.push({code:'Goto',p2:0});const next=ops.length;ops.push({code:'SorterNext',p1:sorterCursor,p2:sortAt+1});halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(offsetAt!==undefined)(ops[offsetAt] as {p2:number}).p2=next;if(limitAt!==undefined){if(owner?.compoundLimit)owner.compoundLimit.stops.push(limitAt);else (ops[limitAt] as {p2:number}).p2=halt;}}else {halt=ops.length;if(!owner)ops.push({code:'Halt'});for(const at of outputLimitStops){const op=ops[at]!;if(op.code==='DecrJumpZero'&&op.p2===0){if(owner?.compoundLimit)owner.compoundLimit.stops.push(at);else (op as {p2:number}).p2=halt;}}}
+  if(orderTerms.length){
+    const drain=builder.label(),next=builder.label();
+    builder.jump(destinationExit,{code:'SorterSort',p1:sorterCursor,emptyJump:0},(op,pc)=>({...op,emptyJump:pc} as Op));
+    builder.mark(drain);ops.push({code:'SorterData',p1:sorterCursor,p2:resultStart,count:expanded.result.length});
+    if(limit?.offset!==undefined)builder.jump(next,{code:'IfPos',p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));
+    emitSelectDestination(ops,owner?.destination??{kind:'output'},resultStart,expanded.result.length);
+    if(limit){if(owner?.compoundLimit){owner.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}else builder.jump(destinationExit,{code:'DecrJumpZero',p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));}
+    if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))builder.jump(destinationExit,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc} as Op));
+    builder.mark(next);builder.jump(drain,{code:'SorterNext',p1:sorterCursor,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+    builder.resolveLabel(drain);builder.resolveLabel(next);
+  }
+  halt=ops.length;builder.mark(destinationExit);builder.resolveLabel(destinationExit);
+  if(!owner)ops.push({code:'Halt'});
   for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!+(level===rightLevel?1:0)] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
   // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn: ordinary continuation
   // targets must stay inside the interior or reach its Return. Producer
@@ -3247,16 +3598,10 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     }
   };
   if(owner){
-    // selectInnerLoop's iBreak is the enclosing continuation, not OP_Halt.
-    // Patch only this producer's first-row exits, including the sorter drain.
-    for(let at=joinedBodyStart;at<halt;at++){
-      const op=ops[at]!;
-      if(op.code==='Goto'&&op.p2===0)(op as {p2:number}).p2=halt;
-    }
     validateRightInterior();return;
   }
   validateRightInterior();
-  const columns=expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
+  const columns=expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
 }
 
 function sqlName(text: string): string {
@@ -3282,10 +3627,10 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
     if(i<iterators.length-1)(ops[iterators[i+1]!] as {p2:number}).p2=ops.length;
     ops.push({code:"Goto",p2:iterators[i]!});
   }
-  const halt=ops.length;
-  ops.push({code:"Halt"});
-  if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=halt;
-  const exit=iterators.at(-1)??halt;
+  const scanExit=ops.length;
+  // Scan exhaustion falls through to the SELECT-owned drain/exit.
+  if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=scanExit;
+  const exit=iterators.at(-1)??scanExit;
   (ops[plan.rewindIndex] as {p2:number}).p2=exit;
   for(const at of plan.startNullGuards??[])(ops[at] as {p2:number}).p2=exit;
   for(const op of ops)if((op.code==="RowidLowerBound"||op.code==="RowidUpperBound"||op.code==="IndexPrefixEnd"||op.code==="IndexRangeEnd")&&op.p2===0)(op as {p2:number}).p2=exit;
@@ -3305,10 +3650,10 @@ function compileJoinedUnionAll(select:SelectNode,schema:SchemaGraph,database:Btr
   return Object.freeze({ops:Object.freeze(ops),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
-function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined;
-function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): {columns:Program['columns']}|undefined;
-function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|undefined {
-  if(!select.orderBy.length||!select.hasCompound||select.limit||select.offset||select.arms.slice(1).some(arm=>arm.operatorFromPrior!=="union-all"))return undefined;
+export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined;
+export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): {columns:Program['columns']}|undefined;
+export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|undefined {
+  if(!select.orderBy.length||!select.hasCompound||select.arms.slice(1).some(arm=>arm.operatorFromPrior!=="union-all"))return undefined;
   const arms=select.arms.map(arm=>({...select,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,hasValues:arm.origin==='values',arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])} as SelectNode));
   // Keep the existing bounded single-use CTE flatten restriction carrier,
   // but substitute before merge admission/key resolution as sqlite3Select does.
@@ -3332,7 +3677,9 @@ function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   if(arms.some(arm=>arm.hasGroupBy&&!arm.groupBy.length||arm.hasHaving&&!arm.having))throw new JSQLiteError('unsupported','unrepresented compound GROUP/HAVING carrier',{unsupportedClassification:'temporary'});
   const width=arms[0]!.result.length;
   if(arms.some(arm=>arm.result.length!==width))throw new JSQLiteError('sqlite','SELECTs to the left and right of UNION ALL do not have the same number of result columns',{code:1});
-  const orderIndexes=select.orderBy.map(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=='literal'||typeof tree.value!=='bigint'||tree.value<1n||tree.value>BigInt(width))return -1;return Number(tree.value)-1;});
+  // resolve.c:resolveCompoundOrderBy checks integer range before deciding
+  // whether a specialized merge ordering can consume the resolved keys.
+  const orderIndexes=select.orderBy.map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=='literal'||typeof tree.value!=='bigint'){return arms[0]!.result.findIndex(item=>item.reduction&&(sameExpression(tree,expressionFromReduction(item.reduction))||tree.kind==='column'&&sqliteIdentifierEqual(tree.name,item.alias??expressionName(item))));}if(tree.value<1n||tree.value>BigInt(width)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${width}`,{code:1});}return Number(tree.value)-1;});
   if(orderIndexes.length!==width||orderIndexes.some((value,index)=>value!==index))return undefined;
   // Physical/scalar/aggregate/window arms compose the shared merge. Keep
   // retained derived specializations until their destination contract
@@ -3428,12 +3775,12 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   if(select.arms.some(arm=>arm.hasDistinct&&arm.origin==='values'))return undefined;
   const arms=select.arms.map(arm=>({...select,result:arm.result,from:arm.from,where:arm.where,
     hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,
-    groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,
+    groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,
     hasOrderBy:false,hasLimit:false,hasCompound:false,
     arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])} as SelectNode)).map(flattenOrdinaryDerived);
   // Limited producers need the ordinary scan's shared iLimit/iOffset contract.
   // Other specialized destinations must carry that contract before admission.
-  if((select.limit||select.offset)&&arms.some(arm=>arm.from.cteDerived?.length||selectHasAggregate(arm)||selectHasWindow(arm)||arm.hasGroupBy||arm.hasHaving))return undefined;
+  if((select.limit||select.offset)&&arms.some(arm=>arm.from.cteDerived?.length||selectHasWindow(arm)))return undefined;
   const width=arms[0]!.result.length;
   if(arms.some(arm=>arm.result.length!==width))throw new JSQLiteError('sqlite','SELECTs to the left and right of UNION ALL do not have the same number of result columns',{code:1});
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops;
@@ -3464,6 +3811,14 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
     }
     const sources=arm.from.cteDerived;
     if(sources?.length){
+      // select.c fromClauseTermCanBeCoroutine (2a)/(2b): NOT MATERIALIZED
+      // permits independent repeated producers. Preserve the arm destination
+      // in this builder instead of taking the shared CteUse spool branch.
+      if(sources.length===1&&arm.from.items.length===1&&sources[0]!.materialization==='not-materialized'){
+        const produced=compileDerivedProducer(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination,emitRow});
+        if(!produced)throw new JSQLiteError('unsupported','non-materialized compound CTE producer is not represented',{unsupportedClassification:'temporary'});
+        columns??=produced.columns;continue;
+      }
       const unsupported=()=>new JSQLiteError('unsupported','this compound CTE arm is not implemented',{unsupportedClassification:'temporary'});
       if(sources.length!==1||arm.from.items.length!==1||arm.from.derived?.index!==0||arm.where||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving||arm.result.length!==1)throw unsupported();
       const source=sources[0]!,producer=source.select;
@@ -3496,8 +3851,8 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
       (ops[rewind] as {p2:number}).p2=ops.length;
       continue;
     }
-    if(selectHasAggregate(arm)){
-      const result=compileAggregateSelect(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
+    if(selectHasAggregate(arm)||arm.hasGroupBy||arm.hasHaving){
+      const result=compileAggregateSelect(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,compoundLimit:{registers:limit,stops}});
       columns??=result.columns;
     }else if(arm.from.derived){
       // select.c flattenSubquery restrictions (4),(13)-(15): this retained
@@ -3545,8 +3900,8 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
 }
 
 function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
-function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):void;
-function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|void {
+function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): {columns:Program['columns']};
+function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']} {
   // select.c:sqlite3Select owns GROUP/HAVING in AggInfo, never the raw
   // multiSelect table scan. SelectArm currently lacks a GROUP expression list;
   // preserve the flags and reject before emitting any parent instructions.
@@ -3606,7 +3961,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   }
   if(orderKeyInfo){const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:row,count:1});const skip=emitResult(),next=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(ops[sortAt] as {emptyJump:number}).emptyJump=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;}
   const halt=ops.length;if(!owner)ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
-  if(owner)return;
+  if(owner)return {columns:Object.freeze([Object.freeze({name:outputName,declaredType:leftColumn.declaredType,database:"main",table:left.table.name,origin:leftColumn.name})])};
   return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze([Object.freeze({name:outputName,declaredType:leftColumn.declaredType,database:"main",table:left.table.name,origin:leftColumn.name})]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
@@ -3634,7 +3989,8 @@ function compileSingleCompoundDerived(select:SelectNode,schema:SchemaGraph,datab
  // Allocate the sorter before resolving arm cursors: all producer cursor and
  // register identities now belong to this one Parse/Vdbe analogue.
  const sorter=select.hasOrderBy?builder.cursor():-1;
- const childSorter=derived.select.hasOrderBy?builder.cursor():-1;
+ const flattenedOrder=!derived.select.hasOrderBy&&!derived.select.offset&&select.hasOrderBy;
+ const childSorter=derived.select.hasOrderBy||flattenedOrder?builder.cursor():-1;
  const plans=arms.map(arm=>{
   let plan:ReturnType<typeof expandAndResolveSelect>;
   try{plan=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
@@ -3650,12 +4006,13 @@ function compileSingleCompoundDerived(select:SelectNode,schema:SchemaGraph,datab
  const indices=names.map(name=>transientNames.findIndex(column=>sqliteIdentifierEqual(column,name!)));if(indices.some(index=>index<0))return undefined;
  const ordinal=select.orderBy.map(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;return tree.kind==='literal'&&typeof tree.value==='bigint'&&tree.value>=1n&&tree.value<=BigInt(indices.length)?Number(tree.value-1n):-1;});
  if(ordinal.some(index=>index<0)||indices.some((index,i)=>index!==i)||ordinal.some((index,i)=>index!==i))return undefined;
- const childOrder=derived.select.orderBy.map(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;return tree.kind==='literal'&&typeof tree.value==='bigint'&&tree.value>=1n&&tree.value<=BigInt(firstColumns.length)?Number(tree.value-1n):-1;});
+ const childTerms=flattenedOrder?select.orderBy:derived.select.orderBy;
+ const childOrder=childTerms.map(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;return tree.kind==='literal'&&typeof tree.value==='bigint'&&tree.value>=1n&&tree.value<=BigInt(firstColumns.length)?Number(tree.value-1n):-1;});
  // The sorter destination reads a prefix of the result row; non-prefix
  // keys require select.c:multiSelectByMerge permutation lowering.
  if(childOrder.some((index,position)=>index!==position))return undefined;
  const destination:SelectDest=childSorter>=0?{kind:'sorter',cursor:childSorter,keyCount:childOrder.length}:sorter>=0?{kind:'sorter',cursor:sorter,keyCount:ordinal.length}:{kind:'output'};
- if(childSorter>=0)ops.push({code:'SorterOpen',p1:childSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:childOrder.length,keyFieldCount:childOrder.length,terms:derived.select.orderBy.map(term=>({collation:'binary',desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}))})});
+ if(childSorter>=0)ops.push({code:'SorterOpen',p1:childSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:childOrder.length,keyFieldCount:childOrder.length,terms:childTerms.map(term=>({collation:'binary',desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}))})});
  if(sorter>=0)ops.push({code:"SorterOpen",p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:ordinal.length,keyFieldCount:ordinal.length,terms:select.orderBy.map(term=>({collation:'binary',desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}))})});
  // select.c:multiSelect(TK_ALL) forwards iLimit/iOffset to both arms in one
  // Vdbe, and tests exhausted LIMIT before the right arm. Compute once in the
@@ -3709,13 +4066,14 @@ function flattenOrdinaryDerived(select:SelectNode):SelectNode {
   const derived=select.from.derived;
   if(select.hasCompound||!derived||derived.index!==0||select.from.items.length!==1||selectHasWindow(derived.select)||derived.select.hasDistinct||derived.select.hasGroupBy||derived.select.hasHaving||derived.select.hasOrderBy||derived.select.hasLimit||derived.select.hasCompound||derived.select.from.items.length!==1)return select;
     const names=uniqueTransientColumnNames(derived.select.result.map(expression=>expression.alias??expressionName(expression)));
+    const producerQualifier=derived.select.from.items[0]!.alias??derived.select.from.items[0]!.tableName;
     const columns=new Map(derived.select.result.map((expression,index)=>[sqliteAsciiFold(names[index]!),expression]));
     const qualifier=select.from.items[0]!.alias??select.from.items[0]!.tableName;
-    const result=Object.freeze(select.result.map(expression=>substituteViewExpression(expression,columns,qualifier)));
-    const groupBy=Object.freeze(select.groupBy.map(expression=>substituteViewExpression(expression,columns,qualifier)));
-    const having=select.having?substituteViewExpression(select.having,columns,qualifier):null;
-    const orderBy=Object.freeze(select.orderBy.map(term=>Object.freeze({...term,expr:substituteViewExpression(term.expr,columns,qualifier)})));
-    const outerWhere=select.where?substituteViewExpression(select.where,columns,qualifier):null;
+    const result=Object.freeze(select.result.map(expression=>substituteViewExpression(expression,columns,qualifier,false,producerQualifier)));
+    const groupBy=Object.freeze(select.groupBy.map(expression=>substituteViewExpression(expression,columns,qualifier,false,producerQualifier)));
+    const having=select.having?substituteViewExpression(select.having,columns,qualifier,false,producerQualifier):null;
+    const orderBy=Object.freeze(select.orderBy.map(term=>Object.freeze({...term,expr:substituteViewExpression(term.expr,columns,qualifier,false,producerQualifier)})));
+    const outerWhere=select.where?substituteViewExpression(select.where,columns,qualifier,false,producerQualifier):null;
     const where=andViewPredicates(derived.select.where,outerWhere);
     const flattened=Object.freeze({...select,result,groupBy,having,orderBy,from:derived.select.from,where,hasSubquery:select.hasSubquery||derived.select.hasSubquery,tokens:select.tokens});
     return flattened;
@@ -3756,12 +4114,15 @@ function compileTableCompoundProducer(select:SelectNode,schema:SchemaGraph,datab
     const ordered=owner?compileOrderedCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner):compileOrderedCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
     if(ordered)return ordered;
   }
+  // select.c multiSelect dispatches complete arm SELECTs before the simple
+  // relational fallback gate. GROUP/HAVING are not compound-level clauses.
+  const all=owner
+    ?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner)
+    :compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  if(all)return all;
   rejectUnsupportedSelectClauses(select,true);
-  if(owner){
-    const all=compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);if(all)return all;
-    return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
-  }
-  return compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileJoinedUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  if(owner)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
+  return compileJoinedUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits)??compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
 }
 
 // select.c sqlite3SubqueryColumnTypes: names and collation of transient
@@ -3827,6 +4188,30 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph,database:Bt
       if(resultIndex<0)throw new JSQLiteError('sqlite',`${index+1}${index===0?'st':index===1?'nd':index===2?'rd':'th'} ORDER BY term does not match any column in the result set`,{code:1});
       return {resultIndex,collation:explicitCollation(tree)??terms[resultIndex]!.collation!,desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};
     });
+    // select.c convertCompoundSelectToSubquery5502ff: set equality cannot
+    // use an alternative ORDER collation. Produce the un-ordered compound
+    // with its own merge/duplicate KeyInfo, then sort its surviving payload.
+    if(child.arms.slice(1).some(arm=>arm.operatorFromPrior!=='union-all')&&child.orderBy.some(term=>explicitCollation(expressionFromReduction(term.expr.reduction!))!==undefined)){
+      const cursor=builder.cursor(),row=builder.range(width),keys=builder.range(order.length),coroutine=builder.register();
+      ops.push({code:'SorterOpen',p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order})});
+      const init=ops.length;ops.push({code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1});
+      emitScalarCompoundMerge({...child,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false},schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,builder,parameters,{kind:'coroutine',register:coroutine,first:row},emitArm);
+      ops.push({code:'EndCoroutine',p1:coroutine,p2:0});(ops[init] as {p2:number}).p2=ops.length;
+      const limit=computeLimitRegisters(child,ops,()=>builder.register(),parameters);
+      const loop=ops.length;ops.push({code:'Yield',p1:coroutine,p2:0});
+      order.forEach((term,index)=>ops.push({code:'Copy',p1:row+term.resultIndex,p2:keys+index}));
+      ops.push({code:'SorterInsert',p1:cursor,keyStart:keys,keyCount:order.length,payload:row,payloadCount:width},{code:'Goto',p2:loop});
+      const sort=ops.length;(ops[loop] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:cursor,emptyJump:0});
+      const read=ops.length;ops.push({code:'SorterData',p1:cursor,p2:row,count:width});
+      const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
+      emitSelectDestination(ops,destination,row,width);
+      const done=limit?ops.length:-1;if(done>=0)ops.push({code:'DecrJumpZero',p1:limit!.count,p2:0});
+      if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;
+      ops.push({code:'SorterNext',p1:cursor,p2:read});const end=ops.length;
+      (ops[sort] as {emptyJump:number}).emptyJump=end;
+      if(limit){(ops[limit.ifZero] as {p2:number}).p2=end;(ops[done] as {p2:number}).p2=end;}
+      return;
+    }
     // select.c OP_Permutation maps ORDER terms to payload result slots.
     const mergeOrder=order.length?order:Array.from({length:width},(_,resultIndex)=>({resultIndex,...terms[resultIndex]!,desc:false,nullsLarge:false}));
     const mergeKeyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:mergeOrder.length,keyFieldCount:mergeOrder.length,terms:mergeOrder});
@@ -4266,16 +4651,27 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
 
 type ExprReduction=Extract<LemonValue<SqlToken>,{kind:"reduction"}>;
 /** Bounded select.c:flattenSubquery substitution over generated reductions. */
-function substituteViewExpression(expression:SelectNode["result"][number],columns:ReadonlyMap<string,SelectNode["result"][number]>,qualifier?:string):SelectNode["result"][number]{
+function substituteViewExpression(expression:SelectNode["result"][number],columns:ReadonlyMap<string,SelectNode["result"][number]>,qualifier?:string,qualifiedOnly=false,producerQualifier?:string):SelectNode["result"][number]{
   const directName=expression.tokens.length===1?sqlName(expression.tokens[0]!.text):null;
-  const direct=directName===null?undefined:columns.get(sqliteAsciiFold(directName));
+  const direct=qualifiedOnly||directName===null?undefined:columns.get(sqliteAsciiFold(directName));
   if(direct)return Object.freeze({...direct,...(expression.alias===undefined?{}:{alias:expression.alias})});
   const replace=(node:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
     if(node.kind==='terminal')return node;
     if(node.signature.startsWith('select ::=')&&node.semantic&&typeof node.semantic==='object'&&'kind' in node.semantic&&node.semantic.kind==='select'){
       const nested=node.semantic as SelectNode;
-      const where=nested.where?substituteViewExpression(nested.where,columns,qualifier):null;
-      return Object.freeze({...node,semantic:Object.freeze({...nested,where})});
+      // select.c substSelect visits nested EList as well as WHERE. Only
+      // qualified references can cross this lexical boundary; local bare
+      // names must not be substituted by the enclosing transient EList.
+      if(!qualifier)return node;
+      const qualified=new Map(columns);
+      const local=nested.from.items.some(item=>sqliteIdentifierEqual(item.alias??item.tableName,qualifier));
+      if(local)return node;
+      const substitute=(value:SelectNode['result'][number])=>substituteViewExpression(value,qualified,qualifier,true,producerQualifier);
+      const result=Object.freeze(nested.result.map(substitute)),where=nested.where?substitute(nested.where):null;
+      const groupBy=Object.freeze(nested.groupBy.map(substitute)),having=nested.having?substitute(nested.having):null;
+      const orderBy=Object.freeze(nested.orderBy.map(term=>Object.freeze({...term,expr:substitute(term.expr)})));
+      const arms=Object.freeze(nested.arms.map((arm,index)=>Object.freeze({...arm,result:index===0?result:Object.freeze(arm.result.map(substitute)),where:index===0?where:arm.where?substitute(arm.where):null})));
+      return Object.freeze({...node,semantic:Object.freeze({...nested,result,where,groupBy,having,orderBy,arms})});
     }
     if(qualifier&&node.signature==='expr ::= nm DOT nm'){
       // The Lemon nm reductions can wrap terminal tokens in multiple layers.
@@ -4283,9 +4679,19 @@ function substituteViewExpression(expression:SelectNode["result"][number],column
       // than assuming the terminal is an immediate nm child.
       const names=exprLeaves(node).map(token=>sqlName(token.text));
       const replacement=names.length===3&&names[1]==='.'&&sqliteIdentifierEqual(names[0]!,qualifier)?columns.get(sqliteAsciiFold(names[2]!)):undefined;
-      if(replacement?.reduction)return replacement.reduction;
+      if(replacement?.reduction){
+        // Keep the substituted source's lexical qualifier inside a child
+        // NameContext; a bare `a` would bind to the child's local table.
+        const tokens=exprLeaves(replacement.reduction);
+        if(qualifiedOnly&&tokens.length===1&&producerQualifier){
+          const leaves=exprLeaves(node),mapped=leaves.map((token,index)=>({...token,text:index===0?producerQualifier!:index===2?tokens[0]!.text:token.text}));let at=0;
+          const rename=(value:LemonValue<SqlToken>):LemonValue<SqlToken>=>value.kind==='terminal'?Object.freeze({...value,value:mapped[at++]!}):Object.freeze({...value,children:Object.freeze(value.children.map(rename))});
+          return rename(node);
+        }
+        return replacement.reduction;
+      }
     }
-    if(node.signature==='expr ::= ID|INDEXED|JOIN_KW'){
+    if(!qualifiedOnly&&node.signature==='expr ::= ID|INDEXED|JOIN_KW'){
       const terminal=node.children.find(child=>child.kind==='terminal'&&child.value);
       const replacement=terminal?.kind==='terminal'?columns.get(sqliteAsciiFold(sqlName(terminal.value.text))):undefined;
       if(replacement?.reduction)return replacement.reduction;
@@ -4541,7 +4947,18 @@ function compileCteDerivedSourcesFallback(select:SelectNode,schema:SchemaGraph,d
 }
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
-export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS): Program {
+export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): Program {
+  if(shared)return compileTableSelectProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
+  const builder=new SelectProgramBuilder<Op>();
+  builder.reserveCursorsThrough(30);
+  const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
+  const produced=compileTableSelectProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:"output"}});
+  if(produced.ops!==builder.ops)return produced; // still-live specialized publisher
+  builder.ops.push({code:"Halt"});
+  return Object.freeze({...produced,ops:builder.finish(),registers:builder.registers});
+}
+
+function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): Program {
   // The parser's bounded flattenSubquery translation retains the generated
   // child in flattenedDerived even though its SrcList has already been spliced.
   // Preserve the accepted outer-ORDER boundary using that semantic carrier;
@@ -4643,11 +5060,33 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   }
   // Route a compound owner before treating its select-level first-arm carrier
   // as a standalone derived source, which would silently discard later arms.
-  if(select.hasCompound)return compileTableCompoundProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits) as Program;
+  if(select.hasCompound){
+    const compiled=compileTableCompoundProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
+    if(compiled&&'ops' in compiled)return compiled;
+    if(!shared||!compiled)throw new JSQLiteError('internal','compound destination did not publish columns');
+    return Object.freeze({ops:shared.builder.ops,registers:shared.builder.registers,encoding:database.encoding,columns:compiled.columns,parameters:Object.freeze(shared.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  }
+  const derived=select.from.derived;
+  // Window rewrite owns the outer ORDER/FILTER before ordinary flatten/scan
+  // admission. A retained source supplies rows to its existing coroutine.
+  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(select)&&!select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!select.where&&derived.select.from.items.length===1&&!derived.select.from.derived&&!selectHasWindow(derived.select)&&!derived.select.hasDistinct&&!derived.select.hasValues){
+    // select.c flattenSubquery runs before window rewrite. Preserve the
+    // represented bounded ordinary derived route rather than inventing a
+    // second aggregate scan over its synthetic transient schema root.
+    const flattened=flattenOrdinaryDerived(select);
+    if(!flattened.from.derived&&!selectHasAggregate(derived.select))return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    const resolved=resolveTransientArm(select,schema),builder=new SelectProgramBuilder<Op>();
+    const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,destination:{kind:'output'},retainedSource:derived.select});
+    if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','retained window expression lowering is not implemented',{unsupportedClassification:'temporary'});
+    // This branch is the enclosing Parse owner, not a nested consumer. Resolve
+    // window frame labels only after all late subroutines and the terminal
+    // instruction exist (vdbeaux.c sqlite3VdbeResolveLabel/MakeReady).
+    builder.ops.push({code:'Halt'});
+    return Object.freeze({...compilation.program,ops:builder.finish(),registers:builder.registers});
+  }
   const cteSources=compileCteDerivedSources(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(cteSources)return cteSources;
   const repeatedView=compileRepeatedImmutableView(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(repeatedView)return repeatedView;
   const compoundDerived=compileSingleCompoundDerived(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(compoundDerived)return compoundDerived;
-  const derived=select.from.derived;
   // Keep the accepted derived-table ORDER BY boundary ahead of flattening.
   // flattenSubquery would otherwise erase the derived owner before
   // compileDerivedProducer can reject this physical-table producer shape.
@@ -4656,12 +5095,6 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     throw new JSQLiteError("unsupported","this derived table scan shape is not implemented",{unsupportedClassification:"temporary"});
   const flattened=flattenOrdinaryDerived(select);
   if(flattened!==select)return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(select)&&!select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!select.where&&derived.select.from.items.length===1&&!derived.select.from.derived&&!derived.select.hasCompound&&!selectHasWindow(derived.select)&&!selectHasAggregate(derived.select)&&!derived.select.hasOrderBy&&!derived.select.hasDistinct&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&!derived.select.hasValues){
-    const resolved=resolveTransientArm(select,schema),builder=new SelectProgramBuilder<Op>();
-    const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,destination:{kind:'output'},retainedSource:derived.select});
-    if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','retained window expression lowering is not implemented',{unsupportedClassification:'temporary'});
-    return compilation.program;
-  }
   const materialized=compileDerivedProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);if(materialized)return materialized;
   // select.c resolves a CTE SrcItem to its Select before ordinary schema-table
   // lookup. If a represented derived/CTE owner reaches this point, none of the
@@ -4687,7 +5120,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // atomically below, before a Program or Statement is exposed to the caller.
   if(expanded.windows.length){
     let compilation:WindowLoweringCompilation;
-    try{compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema);}
+    try{compilation=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,shared);}
     catch(error){if(error instanceof JSQLiteError&&error.kind==="unsupported"){throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});}throw error;}
     // Publish only the source-shaped tranche whose complete result list and
     // frame execution were proven by the lowering. A zero-column Program is
@@ -4778,7 +5211,10 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name, realAffinity: column>=0&&affinityOf(table.columns[column]!.declaredType??"")==="real" }); }
     catch(error){if(!expression.reduction)throw error;projected.push({expression:resolveExpression(expression),name:expressionName(expression)});} }
   }
-  let registers = projected.length;
+  const builder=shared?.builder??new SelectProgramBuilder<Op>();
+  builder.reserveCursorsThrough(30);
+  const resultStart=builder.range(projected.length);
+  const destination=shared?.destination??{kind:"output"} as SelectDest;
   const tokens=select.tokens,orderAt=tokens.findIndex(t=>t.text.toUpperCase()==="ORDER"),limitAt=tokens.findIndex(t=>t.text.toUpperCase()==="LIMIT");
   // resolve.c:resolveOrderGroupBy walks every ExprList item. Preserve that
   // cardinality here so select.c:pushOntoSorter receives a complete key.
@@ -4828,10 +5264,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const scalarPlans=new Map<SelectNode,ReturnType<typeof expandAndResolveSelect>>();
   const rememberNested=(parent:ReturnType<typeof expandAndResolveSelect>):void=>{for(const nested of parent.nested){scalarPlans.set(nested.source,nested);rememberNested(nested);}};
   rememberNested(expanded);
-  const ops: Op[] = [];
-  const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
-  const limit=computeLimitRegisters(select,ops,()=>++registers,parameters);
-  const sorterCursor=1,distinctCursor=2,keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
+  const ops=builder.ops;
+  const producerExit=builder.label(),scanNext=builder.label();
+  const parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()};
+  const limit=computeLimitRegisters(select,ops,()=>builder.register(),parameters);
+  const sorterCursor=builder.cursor(),distinctCursor=builder.cursor(),keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   const accessCursor=selectedPhysical&&selectedNeedsTableLookup?3:0;
   if(selectedPhysical){
     if(selectedNeedsTableLookup){
@@ -4845,11 +5282,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   // these plans execute in this one VDBE. Relocate child-owned read cursors so
   // an inner scan cannot replace the positioned outer cursor (SQLite keeps
   // SrcList.iCursor unique within the parent Parse/Vdbe).
-  let expressionCursor=1000;
+  builder.reserveCursorsThrough(999);
   const nestedReadCursors=new Map<object,number>();
   for(const nested of scalarPlans.values())for(const source of nested.sources){
     if(nestedReadCursors.has(source))continue;
-    const cursor=expressionCursor++;
+    const cursor=builder.cursor();
     nestedReadCursors.set(source,cursor);
     if(!nested.source.from.derived?.select.hasCompound)ops.push({code:"OpenRead",p1:source.table.rootPage,p2:cursor});
   }
@@ -4866,11 +5303,11 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     const equality=expressionFromReduction(rowidEquality.expression.reduction);
     if(equality.kind!=="binary")throw new JSQLiteError("internal","rowid equality lost binary expression");
     const rhs=rowidEquality.originalIndexedOperand==="left"?equality.right:equality.left;
-    const key=compileExpressionTree(rhs,ops,()=>++registers,parameters);
+    const key=compileExpressionTree(rhs,ops,()=>builder.register(),parameters);
     rewindIndex=ops.length;
     ops.push({code:"SeekRowid",key,p2:0});
   }else if((rowidReverse?rowidUpper:rowidLower)?.expression.reduction){
-    const start=rowidReverse?rowidUpper!:rowidLower!,key=compileExpressionTree(boundRhs(start),ops,()=>++registers,parameters);rewindIndex=ops.length;ops.push({code:"SeekRowidRange",key,inclusive:start.operator==="le"||start.operator==="ge",reverse:rowidReverse,p2:0});
+    const start=rowidReverse?rowidUpper!:rowidLower!,key=compileExpressionTree(boundRhs(start),ops,()=>builder.register(),parameters);rewindIndex=ops.length;ops.push({code:"SeekRowidRange",key,inclusive:start.operator==="le"||start.operator==="ge",reverse:rowidReverse,p2:0});
   }else if(selectedPhysical&&(selectedEqualities.length||selectedIndexLower||selectedIndexUpper)){
     const rangeField=selectedPhysical.fields[selectedEqualities.length];
     const backwardsOnRange=selectedIndexReverse!==!!rangeField?.descending;
@@ -4882,15 +5319,15 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       // each inner cursor on a new outer RHS value.
       const targets=new Map<typeof admissions[number],number>();
       for(const admission of inAdmissions){
-        const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>++registers,parameters)),indexRegister=++registers,target=++registers;
+        const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register(),target=builder.register();
         ops.push({code:"Integer",p1:0n,p2:indexRegister});
         const iterator=ops.length;
         ops.push({code:"InListValue",values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==="comparison"?admission.comparison.affinity:"blob",keyInfo:selectedPhysical.keyInfo,fieldOrdinal:admissions.indexOf(admission),reverse:selectedIndexReverse!==!!selectedPhysical.fields[admissions.indexOf(admission)]?.descending}});
         inIterators.push(iterator);
         targets.set(admission,target);
       }
-      keys=admissions.map(admission=>targets.get(admission)??compileExpressionTree(boundRhs(admission.term),ops,()=>++registers,parameters));
-    }else keys=admissions.map(admission=>compileExpressionTree(boundRhs(admission.term),ops,()=>++registers,parameters));
+      keys=admissions.map(admission=>targets.get(admission)??compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters));
+    }else keys=admissions.map(admission=>compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters));
     // wherecode.c Case 4 emits OP_IsNull on the nullable range start RHS
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.
@@ -4902,29 +5339,35 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     rewindIndex=ops.length;
     ops.push(selectedPhysical
       ? {code:selectedIndexReverse?"IndexLast":"IndexRewind",p1:accessCursor,p2:0}
-      : {code:"Rewind",p2:0});
+      : {code:rowidReverse?"Last":"Rewind",p2:0});
   }
   const selectedPrimarySingleRow=selectedPhysical?.index.origin==="primary-key"&&selectedEqualities.length===selectedPhysical.keyInfo.keyFieldCount;
   // Pinned where.c whereLoopAddBtreeIndex marks a PRIMARY KEY loop WHERE_ONEROW
   // once nEq reaches nKeyCol. wherecode.c then omits the loop-step opcode. This
   // is safe for WITHOUT ROWID PKs because every key term is non-NULL and unique.
-  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(rowidLower||rowidUpper?{reverse:rowidReverse}:{})};
+  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
   if(selectedPhysical&&selectedEqualities.length){const seek=ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedEqualities.length),affinities:seek.affinities.slice(0,selectedEqualities.length),keyInfo:selectedPhysical.keyInfo,p2:0});}
   const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedEqualities.length]?.descending;
   const indexEnd=rangeBackwards?selectedIndexLower:selectedIndexUpper,indexStart=rangeBackwards?selectedIndexUpper:selectedIndexLower;
   // wherecode.c emits a prefix seek and an Idx* termination check. For a
   // range that begins at the prefix edge in physical scan order, the retained
   // bound is the termination test; no independently reconstructed key exists.
-  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>++registers,parameters);ops.push({code:"IndexRangeEnd",p1:accessCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
-  const end=rowidReverse?rowidLower:rowidUpper;if(end?.expression.reduction){const key=compileExpressionTree(boundRhs(end),ops,()=>++registers,parameters);ops.push({code:rowidReverse?"RowidLowerBound":"RowidUpperBound",key,inclusive:end.operator==="le"||end.operator==="ge",p2:0});}
+  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>builder.register(),parameters);ops.push({code:"IndexRangeEnd",p1:accessCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
+  const end=rowidReverse?rowidLower:rowidUpper;if(end?.expression.reduction){const key=compileExpressionTree(boundRhs(end),ops,()=>builder.register(),parameters);ops.push({code:rowidReverse?"RowidLowerBound":"RowidUpperBound",key,inclusive:end.operator==="le"||end.operator==="ge",p2:0});}
   if(selectedPhysical&&selectedNeedsTableLookup){
     if(table.withoutRowid){const primary=table.indexes.find(index=>index.origin==="primary-key")?.physical!;const primaryKeyFields=selectedPhysical.primaryKeyFields;if(primaryKeyFields.length!==primary.keyInfo.keyFieldCount)throw new JSQLiteError("unsupported","WITHOUT ROWID secondary primary-key mapping is not represented",{unsupportedClassification:"temporary"});ops.push({code:"DeferredIndexSeek",p1:accessCursor,p2:0,primaryKeyFields,physical:primary});}
     else ops.push({code:"DeferredSeek",p1:accessCursor,p2:0});
   }
-  let ifNotIndex: number | undefined;
+  // select.c/expr.c consume the same Parse register/cursor frontier for
+  // the scan, result, and linked scalar producers. Fixed WHERE cursor slots
+  // remain reserved; no child publishes or finishes a separate Program.
+  // resolve.c pNext references consume the positioned enclosing table row.
+  // Linked singleton production must not inherit the child SrcList cursor.
+  const physicalScalarBinding:ResolvedExpressionBinding={policy:'scalar',location:ref=>({kind:'cursor',cursor:ref.source===expanded.sources[0]?0:nestedReadCursors.get(ref.source)??ref.source.cursorId})};
+  const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
-    if(!nested||nested.sources.length>1||!item?.reduction||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasCompound||expression.select.hasValues||expression.select.offset)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
+    if(!nested||nested.sources.length>1||!item?.reduction||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving||expression.select.hasCompound||expression.select.hasValues||(expression.select.offset&&expression.kind!=='scalar-subquery'))throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     const derived=expression.select.from.derived;
     if(derived){
       // select.c:multiSelect(TK_ALL) feeds the scalar aggregate in the same
@@ -4938,7 +5381,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       const tree=expressionFromReduction(item.reduction);
       if(tree.kind!=="aggregate"||(tree.name!=="count"&&tree.name!=="sum")||tree.distinct||tree.filter||tree.orderBy.length||tree.args.length>1||(tree.name==="sum"&&tree.args.length!==1))
         throw new JSQLiteError("unsupported","this derived scalar aggregate is not implemented",{unsupportedClassification:"temporary"});
-      const rows=arms[0]!.result.map(()=>++registers),result=++registers;
+      const rows=arms[0]!.result.map(()=>builder.register()),result=builder.register();
       // resolve.c:lookupName already fixed the source and iColumn while walking
       // NameContext.pNext. Bind the same reduction nodes the resolver visited,
       // not another SQL spelling search (which loses implicit rowid and scope).
@@ -4956,32 +5399,31 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
       ops.push({code:"Null",p2:result});
       for(const arm of arms){
         arm.result.forEach((term,index)=>{
-          const value=compileExpressionTree(expressionFromReduction(term.reduction!),ops,()=>++registers,parameters,compileExpressionSubquery);
+          const value=compileExpressionTree(expressionFromReduction(term.reduction!),ops,()=>builder.register(),parameters,compileExpressionSubquery);
           ops.push({code:"Copy",p1:value,p2:rows[index]!});
         });
-        const test=compileExpressionTree(predicate,ops,()=>++registers,parameters,compileExpressionSubquery);
+        const test=compileExpressionTree(predicate,ops,()=>builder.register(),parameters,compileExpressionSubquery);
         const skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});
-        const input=args.map(arg=>compileExpressionTree(arg,ops,()=>++registers,parameters,compileExpressionSubquery));
+        const input=args.map(arg=>compileExpressionTree(arg,ops,()=>builder.register(),parameters,compileExpressionSubquery));
         ops.push({code:"AggStep",name:tree.name,args:input,p2:result,collation:tree.collation});
         (ops[skip] as {p2:number}).p2=ops.length;
       }
       ops.push({code:"AggFinal",name:tree.name,p1:result});
       return result;
     }
+    if(expression.kind==='scalar-subquery'&&!(expression.exists&&expressionFromReduction(item.reduction).kind==='aggregate')){
+          const result=sharedPhysicalScalar(expression);
+      return result;
+    }
+    if(!source)throw new JSQLiteError('unsupported','this expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
     // resolve.c:lookupName has already selected the lexical NameContext,
     // SrcItem cursor and iColumn. The generated expression reduction is the
     // identity shared by resolution and expr.c-style target lowering.
     const cursorFor=(ref:ResolvedSource)=>nestedReadCursors.get(ref)??ref.cursorId;
-    const result=++registers,cursor=expressionCursor++,isIn=expression.kind==="in-subquery";
+    const result=builder.register(),cursor=builder.cursor(),isIn=expression.kind==="in-subquery";
     const aggregate=bindResolvedExpression(expressionFromReduction(item.reduction),resolvedExpressionCarrier(nested,item.reduction as Reduction),cursorFor,true);
-    const onceRegister=nested.sources.length>0&&!nested.correlated?++registers:undefined,onceAt=onceRegister===undefined?-1:ops.length;
+    const onceRegister=nested.sources.length>0&&!nested.correlated?builder.register():undefined,onceAt=onceRegister===undefined?-1:ops.length;
     if(onceRegister!==undefined)ops.push({code:"Once",p1:onceRegister,p2:0});
-    if(!source){
-      if(isIn)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
-      ops.push(expression.exists?{code:"Integer",p1:1n,p2:result}:{code:"Null",p2:result});
-      if(!expression.exists){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});}
-      return result;
-    }
     if(!isIn&&!expression.exists&&aggregate.kind==="aggregate"){
       if(aggregate.distinct||aggregate.filter||aggregate.orderBy.length)throw new JSQLiteError("unsupported","this scalar subquery aggregate is not implemented",{unsupportedClassification:"temporary"});
       ops.push({code:"Null",p2:result});
@@ -4991,26 +5433,22 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     // otherwise caps scalar/EXISTS at one row). Initialize SRT_Mem/Exists
     // before the guard, then skip child scan and result disposal entirely.
     // This cursor-local guard is part of the parent Vdbe, not a child Program.
-    const childLimit=expression.select.limit?computeLimitRegisters(expression.select,ops,()=>++registers,parameters):undefined;
+    const childLimit=isIn?computeLimitRegisters(expression.select,ops,()=>builder.register(),parameters):computeScalarLimitRegisters(expression.select,ops,()=>builder.register(),parameters,compileExpressionSubquery);
     const sourceCursor=nestedReadCursors.get(source)??source.cursorId;
     const rewind=ops.length;ops.push({code:"Rewind",p1:sourceCursor,p2:0});const loop=ops.length;let skip:number|undefined;
-    if(expression.select.where?.reduction){const predicate=compileExpressionTree(bindResolvedExpression(expressionFromReduction(expression.select.where.reduction),resolvedExpressionCarrier(nested,expression.select.where.reduction as Reduction),cursorFor,true),ops,()=>++registers,parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+    if(expression.select.where?.reduction){const predicate=compileExpressionTree(bindResolvedExpression(expressionFromReduction(expression.select.where.reduction),resolvedExpressionCarrier(nested,expression.select.where.reduction as Reduction),cursorFor,true),ops,()=>builder.register(),parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     let done=-1, setLimitExit=-1;
-    const orderTerms=!isIn&&!expression.exists&&aggregate.kind!=="aggregate"?expression.select.orderBy.map(term=>{const tree=bindResolvedExpression(expressionFromReduction(term.expr.reduction!),resolvedExpressionCarrier(nested,term.expr.reduction as Reduction),cursorFor,true);return{tree,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};}):[];
-    const orderCursor=orderTerms.length?expressionCursor++:-1;
-    if(orderTerms.length)ops.push({code:"SorterOpen",p1:orderCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.tree),desc:term.desc,nullsLarge:term.nullsLarge}))})});
-    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"IdxInsert",p1:cursor,keyStart:value,keyCount:1});if(childLimit){setLimitExit=ops.length;ops.push({code:"DecrJumpZero",p1:childLimit.count,p2:0});}}
+    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"IdxInsert",p1:cursor,keyStart:value,keyCount:1});if(childLimit){setLimitExit=ops.length;ops.push({code:"DecrJumpZero",p1:childLimit.count,p2:0});}}
     else if(expression.exists){ops.push({code:"Integer",p1:1n,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
-    else if(aggregate.kind==="aggregate"){const args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,()=>++registers,parameters,compileExpressionSubquery));ops.push({code:"AggStep",name:aggregate.name,args,p2:result,collation:aggregate.collation});}
-    else if(orderTerms.length){const key=++registers;registers+=orderTerms.length-1;orderTerms.forEach((term,index)=>{const value=compileExpressionTree(term.tree,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:key+index});});const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery),payload=++registers;ops.push({code:"Copy",p1:value,p2:payload},{code:"SorterInsert",p1:orderCursor,keyStart:key,keyCount:orderTerms.length,payload,payloadCount:1});}
-    else {const value=compileExpressionTree(aggregate,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
+    else if(aggregate.kind==="aggregate"){const args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,()=>builder.register(),parameters,compileExpressionSubquery));ops.push({code:"AggStep",name:aggregate.name,args,p2:result,collation:aggregate.collation});}
+    else {const value=compileExpressionTree(aggregate,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
     const next=ops.length;ops.push({code:"Next",p1:sourceCursor,p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(done>=0)(ops[done] as {p2:number}).p2=finish;
-    if(orderTerms.length){ops.push({code:"Null",p2:result});const sort=ops.length;ops.push({code:"SorterSort",p1:orderCursor,emptyJump:0},{code:"SorterData",p1:orderCursor,p2:result,count:1},{code:"ClearSorter",p1:orderCursor});(ops[sort] as {emptyJump:number}).emptyJump=ops.length-1;}
+
     if(!isIn&&!expression.exists&&aggregate.kind==="aggregate")ops.push({code:"AggFinal",name:aggregate.name,p1:result});
     if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
     if(childLimit)(ops[childLimit.ifZero] as {p2:number}).p2=ops.length;
     if(setLimitExit>=0)(ops[setLimitExit] as {p2:number}).p2=ops.length;
-    if(isIn){const left=compileExpressionTree(expression.left,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"InSet",p1:cursor,key:left,output:result,affinity:expressionAffinity(aggregate)??"numeric",negated:expression.negated});if(nested.correlated)ops.push({code:"ClearEphemeral",p1:cursor});}
+    if(isIn){const left=compileExpressionTree(expression.left,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"InSet",p1:cursor,key:left,output:result,affinity:expressionAffinity(aggregate)??"numeric",negated:expression.negated});if(nested.correlated)ops.push({code:"ClearEphemeral",p1:cursor});}
     return result;
   };
   const selectedConstraints=[...selectedEqualities,selectedIndexLower,selectedIndexUpper].filter((item):item is IndexConstraintAdmission=>item!==null);
@@ -5029,47 +5467,45 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
     const compilePredicate=(tree:Expression):number=>{
       if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")return compileExpressionSubquery(tree);
       if(tree.kind==="binary"&&(tree.op==="AND"||tree.op==="OR")){
-        const left=compilePredicate(tree.left),output=++registers,guard=ops.length;
+        const left=compilePredicate(tree.left),output=builder.register(),guard=ops.length;
         ops.push({code:"ShortCircuit",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:output,jump:0});
         const right=compilePredicate(tree.right);ops.push({code:"Boolean",kind:tree.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:output});(ops[guard] as {jump:number}).jump=ops.length;return output;
       }
-      return compileExpressionTree(tree,ops,()=>++registers,parameters,compileExpressionSubquery);
+      return compileExpressionTree(tree,ops,()=>builder.register(),parameters,compileExpressionSubquery);
     };
     const output=compilePredicate(predicate);
-    ifNotIndex=ops.length; ops.push({code:"IfNot",p1:output,p2:0,residual:true});
+    builder.jump(scanNext,{code:"IfNot",p1:output,p2:0,residual:true},(op,pc)=>({...op,p2:pc} as Op));
   }
   const body=ops.length;
-  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:i+1});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>++registers,parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:i+1})}else{const physicalField=selectedPhysical?.fields.findIndex(field=>field.column===table.columns[x.column!]);if(selectedPhysical&&physicalField!==undefined&&physicalField>=0)ops.push({code:"Column",p1:physicalField,p2:i+1,p3:accessCursor});else ops.push({code:"Column",p1:x.column,p2:i+1});if(x.realAffinity)ops.push({code:"RealAffinity",p1:i+1});}});
-  let distinctFound: number | undefined;
-  if(select.hasDistinct){distinctFound=ops.length;ops.push({code:"Found",p1:distinctCursor,keyStart:1,keyCount:projected.length,jump:0},{code:"IdxInsert",p1:distinctCursor,keyStart:1,keyCount:projected.length});}
-  if(keyInfo){const keyStart=registers+1;registers+=orderTerms.length;orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:term.resultIndex+1,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>++registers);ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:1,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
-  else emitSelectDestination(ops,{kind:"output"},1,projected.length);
-  sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
-  if(keyInfo){const sortAt=ops.length-1,tail:Op[]=[{code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:1,count:projected.length}];if(limit?.offset!==undefined)tail.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});tail.push({code:"ResultRow",p1:1,p2:projected.length});if(limit)tail.push({code:"DecrJumpZero",p1:limit.count,p2:0});const nextIndex=sortAt+tail.length;tail.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(tail[0] as {emptyJump:number}).emptyJump=nextIndex+1;for(const op of tail){if(op.code==="IfPos") (op as {p2:number}).p2=nextIndex;if(op.code==="DecrJumpZero") (op as {p2:number}).p2=nextIndex+1;}ops.splice(sortAt,0,...tail);}else if(limit){const resultAt=(()=>{for(let i=ops.length-1;i>=0;i--)if(ops[i]!.code==="ResultRow")return i;return -1})();if(limit.offset!==undefined)ops.splice(resultAt,0,{code:"IfPos",p1:limit.offset,p2:0,p3:1});const adjusted=(()=>{for(let i=ops.length-1;i>=0;i--)if(ops[i]!.code==="ResultRow")return i;return -1})();ops.splice(adjusted+1,0,{code:"DecrJumpZero",p1:limit.count,p2:0});}
-  // Patch scan-continuation labels only after the result tail has its final
-  // layout. Duplicate and filtered rows must bypass OFFSET/result/LIMIT work.
-  let scanContinue=-1;if(scan.singleRow){scanContinue=ops.findIndex((op,index)=>index>=scan.loopStart&&op.code==="Halt");}else for(let i=ops.length-1;i>=scan.loopStart;i--){const op=ops[i]!;if(((op.code==="Next"||op.code==="Prev")&&op.p1===undefined)||((op.code==="IndexNext"||op.code==="IndexPrev")&&op.p1===scan.indexCursor)){scanContinue=i;break;}}
-  if(scanContinue<0)throw new Error("table scan has no continuation target");
-  if(distinctFound!==undefined)(ops[distinctFound] as {jump:number}).jump=scanContinue;
-  if(ifNotIndex!==undefined) (ops[ifNotIndex] as {code:"IfNot";p1:number;p2:number}).p2=scanContinue;
-  if(!keyInfo&&limit){
-    const halt=ops.findIndex((op,index)=>index>scanContinue&&op.code==="Halt");
-    if(halt<0)throw new Error("LIMIT program has no halt target");
-    const offset=ops.find(op=>op.code==="IfPos") as Extract<Op,{code:"IfPos"}>|undefined;
-    if(offset) (offset as {p2:number}).p2=scanContinue;
-    const decrement=ops.find(op=>op.code==="DecrJumpZero") as Extract<Op,{code:"DecrJumpZero"}>|undefined;
-    if(!decrement)throw new Error("LIMIT program has no decrement operation");
-    (decrement as {p2:number}).p2=halt;
+  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:resultStart+i});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:resultStart+i})}else{const physicalField=selectedPhysical?.fields.findIndex(field=>field.column===table.columns[x.column!]);if(selectedPhysical&&physicalField!==undefined&&physicalField>=0)ops.push({code:"Column",p1:physicalField,p2:resultStart+i,p3:accessCursor});else ops.push({code:"Column",p1:x.column,p2:resultStart+i});if(x.realAffinity)ops.push({code:"RealAffinity",p1:resultStart+i});}});
+  if(select.hasDistinct){builder.jump(scanNext,{code:"Found",p1:distinctCursor,keyStart:resultStart,keyCount:projected.length,jump:0},(op,pc)=>({...op,jump:pc} as Op));ops.push({code:"IdxInsert",p1:distinctCursor,keyStart:resultStart,keyCount:projected.length});}
+  if(keyInfo){const keyStart=builder.range(orderTerms.length);orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:resultStart+term.resultIndex,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>builder.register());ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:resultStart,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
+  if(!keyInfo){
+    if(limit?.offset!==undefined)builder.jump(scanNext,{code:"IfPos",p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));
+    emitSelectDestination(ops,destination,resultStart,projected.length);
+    if(limit)builder.jump(producerExit,{code:"DecrJumpZero",p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));
   }
-  if(limit){let halt=ops.length-1;while(halt>=0&&ops[halt]!.code!=="Halt")halt--;if(halt<0)throw new Error("LIMIT program has no halt target");(ops[limit.ifZero] as {p2:number}).p2=halt;}
+  builder.mark(scanNext);
+  sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
+  if(keyInfo){
+    const drain=builder.label(),drainNext=builder.label();
+    builder.jump(producerExit,{code:"SorterSort",p1:sorterCursor,emptyJump:0},(op,pc)=>({...op,emptyJump:pc} as Op));
+    builder.mark(drain);ops.push({code:"SorterData",p1:sorterCursor,p2:resultStart,count:projected.length});
+    if(limit?.offset!==undefined)builder.jump(drainNext,{code:"IfPos",p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));
+    emitSelectDestination(ops,destination,resultStart,projected.length);
+    if(limit)builder.jump(producerExit,{code:"DecrJumpZero",p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+    builder.mark(drainNext);builder.jump(drain,{code:"SorterNext",p1:sorterCursor,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+  }
+  builder.mark(producerExit);
+  if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;
   const columns=expanded.result.map((x,i)=>{
     let descriptor=x.descriptor;
     const expression=projected[i]?.expression;
     if(x.resolution==='expression'&&expression?.kind==='scalar-subquery'&&!expression.exists){const inner=scalarPlans.get(expression.select)?.result[0]?.descriptor;if(inner)descriptor=inner;}
     return Object.freeze({name:x.resolution==='expression'?projected[i]!.name:descriptor.name,declaredType:descriptor.declaredType,database:descriptor.database,table:descriptor.table,origin:descriptor.origin});
   });
-  registers=Math.max(registers,...ops.filter((op):op is Extract<Op,{code:"Variable"}>=>op.code==="Variable").map(op=>op.p2),0);
-  return Object.freeze({ops:Object.freeze(ops),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),table,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
+  builder.registers=Math.max(builder.registers,...ops.filter((op):op is Extract<Op,{code:"Variable"}>=>op.code==="Variable").map(op=>op.p2),0);
+  return Object.freeze({ops,registers:builder.registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),table,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
 }
 
 function sameExpression(a:Expression,b:Expression):boolean {
@@ -5126,49 +5562,10 @@ function compileCompoundDerivedAggregate(select:SelectNode,schema:SchemaGraph,da
  // decline, including LIMIT0: execution skipping cannot mask prepare errors.
  if(derived&&derived.index===0&&select.from.items.length===1&&derived.select.hasCompound)resolveTransientArm(select,schema);
  if(!derived||derived.index!==0||select.from.items.length!==1||!derived.select.hasCompound||select.where||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasOrderBy||(!parent&&(select.limit||select.offset))||derived.select.arms.slice(1).some(arm=>arm.operatorFromPrior!=='union-all'))return undefined;
- // select.c:multiSelect TK_ALL emits arm rows into one accumulator before
- // selectInnerLoop publishes the finalized row to expr.c's enclosing SRT.
- if(parent){
-  const source=derived.select;
-  if(source.hasOrderBy||source.limit||source.offset||source.hasValues||source.arms.some(arm=>arm.from.items.length||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving||!arm.result.length||arm.result.some(item=>!item.reduction)||(arm.where&&!arm.where.reduction))||source.arms.some(arm=>arm.result.length!==source.arms[0]!.result.length)||select.result.length!==1||!select.result[0]!.reduction)return undefined;
-  const aggregate=expressionFromReduction(select.result[0]!.reduction);
-  if(aggregate.kind!=='aggregate'||aggregate.distinct||aggregate.filter||aggregate.orderBy.length||!((aggregate.name==='count'&&aggregate.args.length===0)||(['sum','avg','total','min','max'].includes(aggregate.name)&&aggregate.args.length===1)))return undefined;
-  const names=uniqueTransientColumnNames(source.arms[0]!.result.map(item=>item.alias??expressionName(item)));
-  const qualifier=select.from.items[0]!.alias??select.from.items[0]!.tableName;
-  const bind=(arg:Expression,first:number):Expression=>{
-   if(arg.kind==='column'){
-    const parts=arg.name.split('.').map(sqlName);
-    const index=parts.length<=2&&(parts.length===1||sqliteIdentifierEqual(parts[0]!,qualifier))?names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!)):-1;
-    if(index<0)throw new JSQLiteError('sqlite',`no such column: ${arg.name}`,{code:1});
-    return {kind:'register',index:first+index};
-   }
-   if(arg.kind==='unary'||arg.kind==='cast'||arg.kind==='collate')return {...arg,value:bind(arg.value,first)};
-   if(arg.kind==='binary')return {...arg,left:bind(arg.left,first),right:bind(arg.right,first)};
-   return arg;
-  };
-  const {builder,ops,parameters,destination}=parent,allocate=()=>builder.register();
-  const limit=computeLimitRegisters(select,ops,allocate,parameters);
-  const accumulator=allocate();ops.push({code:'Null',p2:accumulator});
-  for(const arm of source.arms){
-   let skip=-1;
-   if(arm.where?.reduction){const predicate=compileExpressionTree(expressionFromReduction(arm.where.reduction),ops,allocate,parameters);skip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}
-   const first=builder.range(arm.result.length);
-   arm.result.forEach((item,index)=>{const value=compileExpressionTree(expressionFromReduction(item.reduction!),ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:first+index});});
-   const args=aggregate.args.map(arg=>compileExpressionTree(bind(arg,first),ops,allocate,parameters));
-   ops.push({code:'AggStep',name:aggregate.name,args,p2:accumulator,collation:aggregate.collation});
-   if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;
-  }
-  ops.push({code:'AggFinal',name:aggregate.name,p1:accumulator});
-  const offsetAt=limit?.offset===undefined?-1:ops.length;
-  if(offsetAt>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
-  emitSelectDestination(ops,destination,accumulator,1);
-  if(offsetAt>=0)(ops[offsetAt] as {p2:number}).p2=ops.length;
-  if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;
-  return Object.freeze({ops,registers:builder.registers,columns:Object.freeze([]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
- }
  // select.c SRT_Coroutine: stream compound rows; only aggregate-local ORDER owns a queue.
- const builder=new SelectProgramBuilder<Op>(),ops=builder.ops;
- const parameters:ParameterBuilder={maximum:0,names:[],named:new Map()};
+ const builder=parent?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops;
+ const parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()};
+ const outerLimit=computeLimitRegisters(select,ops,()=>builder.register(),parameters);
  const producerReturn=builder.register();
  const width=derived.select.arms[0]!.result.length;
  const producerRows=builder.range(width);
@@ -5227,10 +5624,16 @@ function compileCompoundDerivedAggregate(select:SelectNode,schema:SchemaGraph,da
  (ops[scan] as {p2:number}).p2=ops.length;
  for(const entry of entries){if(entry.sorter!==undefined){const args=builder.range(entry.args.length);const at=ops.length;ops.push({code:'SorterSort',p1:entry.sorter,emptyJump:0},{code:'SorterData',p1:entry.sorter,p2:args,count:entry.args.length},{code:'AggStep',name:entry.name,args:Array.from({length:entry.args.length},(_,i)=>args+i),p2:entry.phase.accumulator.register,collation:entry.collation},{code:'SorterNext',p1:entry.sorter,p2:at+1});(ops[at] as {emptyJump:number}).emptyJump=ops.length}ops.push({code:'AggFinal',name:entry.name,p1:entry.register})}
  // select.c:finalizeAggFunctions precedes selectInnerLoop on the same Parse.
- const outputStart=builder.range(outputs.length),destination:SelectDest={kind:'output'};
+ const outputStart=builder.range(outputs.length),destination:SelectDest=parent?.destination??{kind:'output'};
  outputs.forEach((output,index)=>{const value=compileExpressionTree(output,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:outputStart+index})});
- emitSelectDestination(ops,destination,outputStart,outputs.length);ops.push({code:'Halt'});
- return Object.freeze({ops:Object.freeze(ops),registers:builder.registers,columns:Object.freeze(select.result.map(item=>Object.freeze({name:expressionName(item),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
+ const offsetAt=outerLimit?.offset!==undefined?ops.length:-1;
+ if(offsetAt>=0)ops.push({code:'IfPos',p1:outerLimit!.offset!,p2:0,p3:1});
+ emitSelectDestination(ops,destination,outputStart,outputs.length);
+ const done=ops.length;
+ if(offsetAt>=0)(ops[offsetAt] as {p2:number}).p2=done;
+ if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;
+ if(!parent)ops.push({code:'Halt'});
+ return Object.freeze({ops:parent?ops:builder.finish(),registers:builder.registers,columns:Object.freeze(select.result.map(item=>Object.freeze({name:expressionName(item),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
 }
 
 /** select.c restriction (7) prevents flattening a FROM term whose producer has
@@ -5248,7 +5651,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
    (name==="sum"||name==="avg"||name==="total"||name==="min"||name==="max")&&args===1;
  if(result.kind!=="aggregate"||!admittedAggregate(result.name,result.args.length)||
     (result.distinct&&result.args.length!==1)||(result.orderBy.length>0&&result.args.length===0))return undefined;
- if(parent){
+ if(parent&&!derived.select.hasCompound&&!derived.select.hasValues){
   // select.c:flattenSubquery restriction (7): keep the zero-source producer
   // separate, but feed its result event directly into the aggregate owner.
   const source=derived.select;
@@ -5505,27 +5908,30 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=outerDone;
   return Object.freeze({ops,registers:builder.registers,columns:Object.freeze([Object.freeze({name:expressionName(select.result[0]!),declaredType:null,database:null,table:null,origin:null})]),parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
  }
- // This completed-producer bridge counts result events only; non-count
- // aggregate arguments require a row consumer, not this count accumulator.
+ // Retain this count-only admission; compile the source to its semantic
+ // accumulator destination before publication, never rewrite completed ops.
  if(result.name!=="count"||result.args.length!==0||result.distinct||result.filter||result.orderBy.length||select.hasHaving||select.hasOrderBy||select.limit||select.offset)return undefined;
- const producer=compileScalarSelect(derived.select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows);
- const accumulator=producer.registers+1,output=accumulator+1,ops:Op[]=[],endJumps:number[]=[];
- for(const original of producer.ops){
-  if(original.code==="ResultRow"){ops.push({code:"AggStep",name:"count",args:[],p2:accumulator,collation:"binary"});continue;}
-  if(original.code==="Halt"){endJumps.push(ops.length);ops.push({code:"Goto",p2:0});continue;}
-  ops.push(original);
- }
- const finish=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=finish;
- ops.push({code:"AggFinal",name:"count",p1:accumulator},{code:"Copy",p1:accumulator,p2:output},{code:"ResultRow",p1:output,p2:1},{code:"Halt"});
- return Object.freeze({ops:Object.freeze(ops),registers:output,columns:Object.freeze([Object.freeze({name:expressionName(select.result[0]!),declaredType:null,database:null,table:null,origin:null})]),parameters:producer.parameters,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
+ const builder=parent?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},accumulator=builder.register(),output=builder.register();
+ const destination:SelectDest={kind:"aggregate-expression",name:"count",register:accumulator,collation:"binary",emitArgument:()=>[]};
+ const producer=compileScalarSelect(derived.select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,destination,emitRow:(first,count)=>emitSelectDestination(ops,destination,first,count)});
+ ops.push({code:"AggFinal",name:"count",p1:accumulator},{code:"Copy",p1:accumulator,p2:output});
+ emitSelectDestination(ops,parent?.destination??{kind:"output"},output,1);
+ if(!parent)ops.push({code:"Halt"});
+ return Object.freeze({...producer,ops:parent?ops:builder.finish(),registers:builder.registers,columns:Object.freeze([Object.freeze({name:expressionName(select.result[0]!),declaredType:null,database:null,table:null,origin:null})])});
 }
 
 /** select.c:sqlite3Select aggregate-without-GROUP tranche. AggInfo entries own
  * accumulator registers; ordinary expression lowering consumes AggFinal values. */
-export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, parent?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:import("./select-program.ts").SelectDest;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program {
+export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|undefined,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, parent?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:import("./select-program.ts").SelectDest;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]};linkedPlan?:ReturnType<typeof expandAndResolveSelect>;scalarPrepared?:boolean;cursorFor?:(source:ResolvedSource)=>number;expressionBinding?:ResolvedExpressionBinding;input?:{first:number;emit:(consume:()=>void)=>void}}):Program {
 
- const zeroSourceDerivedCount=compileZeroSourceDerivedCount(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent);if(zeroSourceDerivedCount)return zeroSourceDerivedCount;
- const compoundDerived=compileCompoundDerivedAggregate(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent);if(compoundDerived)return compoundDerived;
+ // select.c retained SrcItem coroutine feeds the same grouped sorter capture.
+ const groupedStream=select.hasGroupBy&&select.from.derived?.index===0&&select.from.items.length===1&&select.from.derived.select.hasCompound&&select.from.derived.select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all')?select.from.derived.select:undefined;
+ const selectProgramBuilder=parent?.builder??new SelectProgramBuilder<Op>();const ops=parent?.ops??selectProgramBuilder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()};const allocate=()=>selectProgramBuilder.register();
+ if(groupedStream&&(groupedStream.hasOrderBy||groupedStream.limit||groupedStream.offset))throw new JSQLiteError('unsupported','this grouped compound producer ordering or limit is not implemented',{unsupportedClassification:'temporary'});
+ const sourceRegisters=parent?.input?.first??(groupedStream?selectProgramBuilder.range(groupedStream.arms[0]!.result.length):undefined);
+ if(!schema&&!parent?.linkedPlan)throw new JSQLiteError("internal","aggregate preparation requires schema or linked plan");
+ const zeroSourceDerivedCount=schema&&!parent?.linkedPlan?compileZeroSourceDerivedCount(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent):undefined;if(zeroSourceDerivedCount)return zeroSourceDerivedCount;
+ const compoundDerived=schema&&!parent?.linkedPlan?compileCompoundDerivedAggregate(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent):undefined;if(compoundDerived)return compoundDerived;
  const derived=select.from.derived;
  if(derived&&derived.index===0&&select.from.items.length===1&&!derived.select.hasDistinct&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&!derived.select.hasOrderBy&&!derived.select.hasLimit&&!derived.select.hasCompound&&derived.select.from.items.length===1){
   // select.c:flattenSubquery, bounded aggregate-parent form. Substitute the
@@ -5548,7 +5954,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  // view column names, origin/type/affinity and inherited collation reach the
  // grouping KeyInfo without mutating the schema-owned Select.
  if(!select.hasCompound&&select.from.items.length===1){
-  const source=select.from.items[0]!,view=schema.views.get(sqliteAsciiFold(sqlName(source.tableName)));
+  const source=select.from.items[0]!,view=schema?.views.get(sqliteAsciiFold(sqlName(source.tableName)));
   if(view)return compileAggregateSelect(flattenImmutableView(select,view),schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent);
  }
  if(select.hasCompound){
@@ -5569,7 +5975,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
   const beforeParameters=parameters.maximum;
   for(const arm of select.arms){
     const single:SelectNode={...select,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])};
-    const metadata=compileAggregateSelect(single,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:"sorter",cursor:sorter,keyCount:1}});
+    const metadata=compileAggregateSelect(single,schema!,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:"sorter",cursor:sorter,keyCount:1}});
     if(!columns.length)columns=metadata.columns;
   }
   if(parameters.maximum!==beforeParameters)throw new JSQLiteError("unsupported","parameters in aggregate compounds are not implemented",{unsupportedClassification:"temporary"});
@@ -5590,7 +5996,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  // expression form, but it must not bypass resolver diagnostics (notably 0 or
  // an in-range signed 32-bit ordinal beyond the result width).
  let aggregatePlan:ReturnType<typeof expandAndResolveSelect>;
- try { aggregatePlan=expandAndResolveSelect(select,schema); }
+ try { aggregatePlan=parent?.linkedPlan??(groupedStream?resolveTransientArm(select,schema!):expandAndResolveSelect(select,schema!)); }
  catch(error){
   if(error instanceof NameResolutionError){
    // Keep the aggregate SELECT public diagnostic produced by this compiler
@@ -5601,9 +6007,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
   }
   throw error;
  }
- const aggregateSources=select.from.items.map((item,cursor)=>{const name=sqlName(item.tableName),found=schema.tables.get(sqliteAsciiFold(name));if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.withoutRowid||found.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});return{item,table:found,cursor:parent?parent.builder.cursor():select.from.items.length===1?0:cursor+3,base:0}});let sourceWidth=0;for(const source of aggregateSources){source.base=sourceWidth;sourceWidth+=source.table.columns.length;}if(aggregateSources.length===1)table=aggregateSources[0]!.table;
- // resolve.c:resolveExprStep descends through every expression node. IN-list operands must own the same physical source-column binding as equivalent OR comparisons.
- const resolve=(e:Expression):Expression=>{if(e.kind==="column"){if(!aggregateSources.length)throw new JSQLiteError("sqlite",`no such column: ${e.name}`,{code:1});const parts=e.name.split('.').map(sqlName),name=parts.at(-1)!,candidates=aggregateSources.flatMap(source=>{if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,source.item.alias??source.table.name))return[];const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));return at<0?[]:[{source,at}]});if(candidates.length!==1)throw new JSQLiteError("sqlite",candidates.length?`ambiguous column name: ${e.name}`:`no such column: ${e.name}`,{code:1});const {source,at}=candidates[0]!;e.index=isIntegerPrimaryKeyAlias(source.table,at)?-1:at;e.cursor=source.cursor;e.payloadIndex=source.base+at;e.affinity=affinityOf(source.table.columns[at]!.declaredType??"");const c=sqliteAsciiFold(source.table.columns[at]!.collation??"binary");if(c!=="binary"&&c!=="nocase"&&c!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${c}`,{code:1});e.collation=c;return e}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=resolve(e.value);else if(e.kind==="binary"){e.left=resolve(e.left);e.right=resolve(e.right)}else if(e.kind==="between"){e.value=resolve(e.value);e.lower=resolve(e.lower);e.upper=resolve(e.upper)}else if(e.kind==="in-list"){e.left=resolve(e.left);e.values=e.values.map(resolve)}else if(e.kind==="in-subquery")e.left=resolve(e.left);else if(e.kind==="call")e.args=e.args.map(resolve);else if(e.kind==="aggregate"){e.args=e.args.map(resolve);if(e.filter)e.filter=resolve(e.filter);e.orderBy=e.orderBy.map(term=>({...term,expression:resolve(term.expression)}));}else if(e.kind==="case"){if(e.operand)e.operand=resolve(e.operand);e.pairs=e.pairs.map(([a,b])=>[resolve(a),resolve(b)]);if(e.otherwise)e.otherwise=resolve(e.otherwise)}return e};
+ const aggregateSources=select.from.items.map((item,cursor)=>{const name=sqlName(item.tableName),found=parent?.linkedPlan?aggregatePlan.sources[cursor]!.table:groupedStream?aggregatePlan.sources[cursor]!.table:schema?.tables.get(sqliteAsciiFold(name));if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.withoutRowid||found.columns.some(c=>c.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});return{item,table:found,cursor:parent?.cursorFor?parent.cursorFor(aggregatePlan.sources[cursor]!):parent?parent.builder.cursor():select.from.items.length===1?0:cursor+3,base:0}});let sourceWidth=0;for(const source of aggregateSources){source.base=sourceWidth;sourceWidth+=source.table.columns.length;}if(aggregateSources.length===1)table=aggregateSources[0]!.table;
  const rawTrees=select.result.map(x=>expressionFromReduction(x.reduction!));
  // resolve.c resolves aggregate arguments under NC_InAggFunc and rejects a
  // second aggregate before select.c/AggInfo lowering. Keep that diagnostic at
@@ -5613,14 +6017,15 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  const whereTree=select.where?expressionFromReduction(select.where.reduction!):null;
  if(whereTree){const aggregate=nestedAggregate(whereTree,true);if(aggregate)throw new JSQLiteError("sqlite",`misuse of aggregate: ${aggregate}()`,{code:1});}
  // resolve.c:resolveOrderGroupBy preserves a matching source name, then substitutes a result expression when source lookup misses.
- const aliasExpression=(e:Expression):Expression=>{if(e.kind==="column"&&!e.name.includes(".")){const source=aggregateSources.some(item=>item.table.columns.some(column=>sqliteIdentifierEqual(column.name,e.name)));if(!source){const at=select.result.findIndex(item=>item.alias!==undefined&&sqliteIdentifierEqual(item.alias,e.name));if(at>=0)return expressionFromReduction(select.result[at]!.reduction!)}}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=aliasExpression(e.value);else if(e.kind==="binary"){e.left=aliasExpression(e.left);e.right=aliasExpression(e.right)}else if(e.kind==="between"){e.value=aliasExpression(e.value);e.lower=aliasExpression(e.lower);e.upper=aliasExpression(e.upper)}else if(e.kind==="in-list"){e.left=aliasExpression(e.left);e.values=e.values.map(aliasExpression)}else if(e.kind==="in-subquery")e.left=aliasExpression(e.left);else if(e.kind==="call")e.args=e.args.map(aliasExpression);else if(e.kind==="aggregate"){e.args=e.args.map(aliasExpression);if(e.filter)e.filter=aliasExpression(e.filter);e.orderBy=e.orderBy.map(term=>({...term,expression:aliasExpression(term.expression)}));}else if(e.kind==="case"){if(e.operand)e.operand=aliasExpression(e.operand);e.pairs=e.pairs.map(([a,b])=>[aliasExpression(a),aliasExpression(b)]);if(e.otherwise)e.otherwise=aliasExpression(e.otherwise)}return e};
+ const columnOwner:import("./resolve.ts").AggregateColumnOwner={directMode:true,useSortingIdx:false,sortingIndexRegister:0,columns:new Map(),...(sourceRegisters===undefined?{}:{sourceRegisters})};
  const resultLocation:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:reference=>{
   const index=aggregatePlan.sources.indexOf(reference.source),source=aggregateSources[index];
-  if(!source)throw new JSQLiteError('internal','aggregate source identity lost');
-  return{kind:'cursor',cursor:source.cursor,payloadIndex:source.base+(reference.columnIndex<0?source.table.columns.findIndex((_,index)=>isIntegerPrimaryKeyAlias(source.table,index)):reference.columnIndex)};
+  if(!source){if(parent?.expressionBinding)return parent.expressionBinding.location(reference,0);return {kind:'cursor',cursor:parent?.cursorFor?.(reference.source)??reference.source.cursorId};}
+  const payload=source.base+(reference.columnIndex<0?source.table.columns.findIndex((_,index)=>isIntegerPrimaryKeyAlias(source.table,index)):reference.columnIndex);
+  return{kind:'cursor',cursor:source.cursor,payloadIndex:payload,aggregateColumn:{owner:columnOwner,iAgg:payload}};
  }};
- const trees=rawTrees.map((tree,index)=>bindResolvedExpression(tree,resolvedExpressionCarrier(aggregatePlan,select.result[index]!.reduction! as Reduction),ref=>ref.cursorId,true,resultLocation)),where=whereTree?bindResolvedExpression(whereTree,resolvedExpressionCarrier(aggregatePlan,select.where!.reduction! as Reduction),ref=>ref.cursorId,true,resultLocation):null,groups=select.groupBy.map(x=>resolve(aliasExpression(expressionFromReduction(x.reduction!)))),havingCarrier=select.having?resolvedExpressionCarrier(aggregatePlan,select.having.reduction! as Reduction):null,havingTree=select.having?bindResolvedExpression(expressionFromReduction(select.having.reduction!),havingCarrier!,ref=>ref.cursorId,true,resultLocation):null;
- const selectProgramBuilder=parent?.builder??new SelectProgramBuilder<Op>();const ops=parent?.ops??selectProgramBuilder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()};const allocate=()=>selectProgramBuilder.register();const outputStart=selectProgramBuilder.range(select.result.length);
+ const trees=rawTrees.map((tree,index)=>bindResolvedExpression(tree,resolvedExpressionCarrier(aggregatePlan,select.result[index]!.reduction! as Reduction),ref=>ref.cursorId,true,resultLocation)),where=whereTree?bindResolvedExpression(whereTree,resolvedExpressionCarrier(aggregatePlan,select.where!.reduction! as Reduction),ref=>ref.cursorId,true,resultLocation):null,groups=select.groupBy.map(x=>{const carrier=resolvedExpressionCarrier(aggregatePlan,x.reduction! as Reduction);return bindResolvedExpression(expressionFromReduction(carrier.reduction as Reduction),carrier,ref=>ref.cursorId,true,resultLocation);}),havingCarrier=select.having?resolvedExpressionCarrier(aggregatePlan,select.having.reduction! as Reduction):null,havingTree=select.having?bindResolvedExpression(expressionFromReduction(select.having.reduction!),havingCarrier!,ref=>ref.cursorId,true,resultLocation):null;
+const outputStart=selectProgramBuilder.range(select.result.length);
  // expr.c:sqlite3CodeSubselect + select.c SRT_Mem. Group output is emitted
  // once per completed group, but an uncorrelated scalar aggregate is guarded by
  // Once and retains its destination register across those emissions. Keeping
@@ -5628,17 +6033,37 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  // Reserve the still-fixed parent source, sorter, distinct, and modifier ranges
  // before any expression subquery takes a cursor from the enclosing builder.
  const aggregateSubqueryCursor=()=>selectProgramBuilder.cursor();
+ const lexicalAggregateRegisters=new Map<Reduction,number>();
  const compileAggregateSubquery=(expression:SubqueryExpression):number=>{
+  const delegatedScalar=resolvedScalarSubqueryEmitter(aggregatePlan,selectProgramBuilder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},resultLocation);
+  if(expression.kind==='scalar-subquery'&&!expression.exists){
+   const nested=expression.select,item=nested.result[0],linked=aggregatePlan.nested.find(plan=>plan.source===nested);
+   const local=!linked?.aggregateUses||[...linked.aggregateUses.values()].every(depth=>depth===0);
+   if(item?.reduction&&nested.result.length===1&&nested.from.items.length<=1&&!nested.from.derived&&!nested.hasDistinct&&!nested.hasGroupBy&&!nested.hasHaving&&!nested.hasCompound&&!nested.hasValues&&local){
+    const tree=expressionFromReduction(item.reduction);
+    // Ordinary scalar rows consume the same prepared SELECT destination and
+    // sorter in finalized AggInfo phase. Outer-owned aggregates stay lexical.
+    if(tree.kind!=='aggregate'||(!nested.hasOrderBy&&!nested.offset&&!tree.distinct&&!tree.orderBy.length))return delegatedScalar(expression);
+   }
+  }
   const nested=expression.select,item=nested.result[0];
   if(expression.kind==='scalar-subquery'&&expression.exists){
    // expr.c:sqlite3CodeSubselect(SRT_Exists) emits correlated loops in the
-   // parent VDBE. Inner cursors are disjoint; outer references retain the
-   // aggregate consumer's current cursor, and correlated execution has no Once.
+   // parent VDBE. Inner cursors are disjoint; linked outer references retain
+   // the aggregate consumer's source/sorter/saved phase, not an exhausted cursor.
    if(!item?.reduction||nested.from.items.length<1||nested.from.items.some((source,index)=>index>0&&(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.cross))||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasOrderBy||nested.hasCompound||nested.hasValues)throw new JSQLiteError('unsupported','this aggregate EXISTS subquery shape is not implemented',{unsupportedClassification:'temporary'});
-   const sources=nested.from.items.map(source=>{const name=sqlName(source.tableName),table=schema.tables.get(sqliteAsciiFold(name));if(!table)throw new JSQLiteError('sqlite',`no such table: ${name}`,{code:1});if(table.withoutRowid||table.columns.some(column=>column.generatedExpr))throw new JSQLiteError('unsupported','this table storage shape is not implemented',{unsupportedClassification:'temporary'});return{source,table,cursor:aggregateSubqueryCursor()};});
-   const owners=[...sources.map(({source,table,cursor})=>({table,alias:source.alias,cursor})),...aggregateSources.map(({item,table,cursor})=>({table,alias:item.alias,cursor}))];
-   const bind=(node:Expression):Expression=>{if(node.kind==='column'){const parts=node.name.split('.').map(sqlName),name=parts.at(-1)!,qualifier=parts.length>1?parts.at(-2):undefined;let matches=owners.flatMap(owner=>{if(qualifier!==undefined&&!sqliteIdentifierEqual(qualifier,owner.alias??owner.table.name))return[];const index=owner.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));return index<0?[]:[{owner,index}];});if(qualifier===undefined){const local=matches.filter(match=>sources.some(source=>source.cursor===match.owner.cursor));if(local.length)matches=local;}if(matches.length!==1)throw new JSQLiteError('sqlite',matches.length?`ambiguous column name: ${node.name}`:`no such column: ${node.name}`,{code:1});const {owner,index}=matches[0]!;node.cursor=owner.cursor;node.index=isIntegerPrimaryKeyAlias(owner.table,index)?-1:index;node.affinity=node.index<0?'integer':affinityOf(owner.table.columns[index]!.declaredType??'');const named=node.index<0?'binary':sqliteAsciiFold(owner.table.columns[index]!.collation??'binary');if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});node.collation=named;return node;}if(node.kind==='unary'||node.kind==='cast'||node.kind==='collate')node.value=bind(node.value);else if(node.kind==='binary'){node.left=bind(node.left);node.right=bind(node.right);}else if(node.kind==='call')node.args=node.args.map(bind);else if(node.kind==='case'){if(node.operand)node.operand=bind(node.operand);node.pairs=node.pairs.map(([a,b])=>[bind(a),bind(b)]);if(node.otherwise)node.otherwise=bind(node.otherwise);}else if(node.kind==='scalar-subquery'||node.kind==='in-subquery'||node.kind==='aggregate')throw new JSQLiteError('unsupported','this aggregate EXISTS subquery shape is not implemented',{unsupportedClassification:'temporary'});return node;};
-   const where=nested.where?.reduction?bind(expressionFromReduction(nested.where.reduction)):null;
+   const sources=nested.from.items.map(source=>{const name=sqlName(source.tableName),table=schema?.tables.get(sqliteAsciiFold(name));if(!table)throw new JSQLiteError('sqlite',`no such table: ${name}`,{code:1});if(table.withoutRowid||table.columns.some(column=>column.generatedExpr))throw new JSQLiteError('unsupported','this table storage shape is not implemented',{unsupportedClassification:'temporary'});return{source,table,cursor:aggregateSubqueryCursor()};});
+   const nestedPlan=aggregatePlan.nested.find(plan=>plan.source===nested);
+   if(!nestedPlan)throw new JSQLiteError('internal','aggregate EXISTS lost linked select context');
+   const binding:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:(reference,depth)=>{
+    const local=nestedPlan.sources.indexOf(reference.source);
+    if(local>=0)return{kind:'cursor',cursor:sources[local]!.cursor};
+    // analyzeAggregate walks correlated columns with the enclosing AggInfo.
+    // The existing parent binding supplies its source/sorter/saved phase owner.
+    return resultLocation.location(reference,depth);
+   }};
+   const bind=(reduction:LemonValue<SqlToken>):Expression=>{if(reduction.kind!=="reduction")throw new JSQLiteError("internal","aggregate EXISTS lost expression reduction");return bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(nestedPlan,reduction),ref=>ref.cursorId,true,binding);};
+   const where=nested.where?.reduction?bind(nested.where.reduction):null;
    const isLocal=(node:Expression):boolean=>node.kind==='column'&&sources.some(source=>source.cursor===node.cursor),isOuter=(node:Expression):boolean=>node.kind==='column'&&aggregateSources.some(source=>source.cursor===node.cursor);
    if(where?.kind==='binary'&&['=','=='].includes(where.op)&&((isLocal(where.left)&&isOuter(where.right))||(isLocal(where.right)&&isOuter(where.left)))){
     // where.c may implement this semijoin with an index. This bounded VDBE uses
@@ -5648,7 +6073,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
     // still run before insertion.
     const local=(isLocal(where.left)?where.left:where.right) as Extract<Expression,{kind:'column'}>,outer=(isOuter(where.left)?where.left:where.right) as Extract<Expression,{kind:'column'}>,set=aggregateSubqueryCursor(),once=allocate(),result=allocate(),onceAt=ops.length;
     ops.push({code:'Once',p1:once,p2:0},{code:'OpenEphemeral',p1:set,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(local)}]})});
-    const joinOn=sources.length===2&&sources[1]!.source.on?.reduction?bind(expressionFromReduction(sources[1]!.source.on!.reduction!)):null;
+    const joinOn=sources.length===2&&sources[1]!.source.on?.reduction?bind(sources[1]!.source.on!.reduction!):null;
     const sourceIndex=(node:Expression):number=>node.kind==='column'?sources.findIndex(source=>source.cursor===node.cursor):-1;
     const indexedJoin=joinOn?.kind==='binary'&&['=','==','IS'].includes(joinOn.op)&&sourceIndex(joinOn.left)>=0&&sourceIndex(joinOn.right)>=0&&sourceIndex(joinOn.left)!==sourceIndex(joinOn.right);
     if(indexedJoin){
@@ -5676,7 +6101,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
     }else{
       for(const source of sources)ops.push({code:'OpenRead',p1:source.table.rootPage,p2:source.cursor});
       const rewinds:number[]=[],bodies:number[]=[],rejects:{at:number;level:number}[]=[];
-      for(let level=0;level<sources.length;level++){const source=sources[level]!;rewinds[level]=ops.length;ops.push({code:'Rewind',p1:source.cursor,p2:0});bodies[level]=ops.length;if(source.source.on?.reduction){const test=compileExpressionTree(bind(expressionFromReduction(source.source.on.reduction)),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}}
+      for(let level=0;level<sources.length;level++){const source=sources[level]!;rewinds[level]=ops.length;ops.push({code:'Rewind',p1:source.cursor,p2:0});bodies[level]=ops.length;if(source.source.on?.reduction){const test=compileExpressionTree(bind(source.source.on.reduction),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}}
       const key=compileExpressionTree(local,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'IdxInsert',p1:set,keyStart:key,keyCount:1});
       const nextAt:number[]=[];for(let level=sources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:'Next',p1:sources[level]!.cursor,p2:bodies[level]!});}
       const end=ops.length;for(let level=0;level<sources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?end:nextAt[level-1]!;for(const reject of rejects)(ops[reject.at] as {p2:number}).p2=nextAt[reject.level]!;
@@ -5689,37 +6114,97 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
    const childLimit=computeLimitRegisters(nested,ops,allocate,parameters);
    for(const source of sources)ops.push({code:'OpenRead',p1:source.table.rootPage,p2:source.cursor});
    const localLevel=(node:Expression):number=>{let level=node.kind==='column'?sources.findIndex(source=>source.cursor===node.cursor):-1;const take=(child:Expression)=>{level=Math.max(level,localLevel(child));};if(node.kind==='unary'||node.kind==='cast'||node.kind==='collate')take(node.value);else if(node.kind==='binary'){take(node.left);take(node.right);}else if(node.kind==='call'){node.args.forEach(take);}else if(node.kind==='case'){if(node.operand)take(node.operand);for(const [a,b] of node.pairs){take(a);take(b);}if(node.otherwise)take(node.otherwise);}return level;};
-   const whereLevel=Math.max(0,where?localLevel(where):0),rewinds:number[]=[],bodies:number[]=[],rejects:{at:number;level:number}[]=[];for(let level=0;level<sources.length;level++){const source=sources[level]!;rewinds[level]=ops.length;ops.push({code:'Rewind',p1:source.cursor,p2:0});bodies[level]=ops.length;if(source.source.on?.reduction){const test=compileExpressionTree(bind(expressionFromReduction(source.source.on.reduction)),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}if(where&&level===whereLevel){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}}
+   const whereLevel=Math.max(0,where?localLevel(where):0),rewinds:number[]=[],bodies:number[]=[],rejects:{at:number;level:number}[]=[];for(let level=0;level<sources.length;level++){const source=sources[level]!;rewinds[level]=ops.length;ops.push({code:'Rewind',p1:source.cursor,p2:0});bodies[level]=ops.length;if(source.source.on?.reduction){const test=compileExpressionTree(bind(source.source.on.reduction),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}if(where&&level===whereLevel){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}}
    const offsetSkip=childLimit?.offset===undefined?-1:ops.length;
    if(childLimit?.offset!==undefined)ops.push({code:'IfPos',p1:childLimit.offset,p2:0,p3:1});
    ops.push({code:'Integer',p1:1n,p2:result});const found=ops.length;ops.push({code:'Goto',p2:0});const nextAt:number[]=[];for(let level=sources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:'Next',p1:sources[level]!.cursor,p2:bodies[level]!});}const end=ops.length;if(childLimit)(ops[childLimit.ifZero] as {p2:number}).p2=end;if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=nextAt[sources.length-1]!;(ops[found] as {p2:number}).p2=end;for(let level=0;level<sources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?end:nextAt[level-1]!;for(const reject of rejects)(ops[reject.at] as {p2:number}).p2=nextAt[reject.level]!;return result;
   }
   if(expression.kind==='in-subquery'){
    if(!item?.reduction||nested.result.length!==1||nested.from.items.length!==1||nested.where||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasOrderBy||nested.hasCompound||nested.hasValues)throw new JSQLiteError('unsupported','this aggregate IN subquery shape is not implemented',{unsupportedClassification:'temporary'});
-   const sourceName=sqlName(nested.from.items[0]!.tableName),sourceTable=schema.tables.get(sqliteAsciiFold(sourceName));if(!sourceTable)throw new JSQLiteError('sqlite',`no such table: ${sourceName}`,{code:1});
-   let value=expressionFromReduction(item.reduction);if(value.kind!=='column')throw new JSQLiteError('unsupported','this aggregate IN subquery shape is not implemented',{unsupportedClassification:'temporary'});const parts=value.name.split('.').map(sqlName),name=parts.at(-1)!;if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,nested.from.items[0]!.alias??sourceTable.name))throw new JSQLiteError('sqlite',`no such column: ${value.name}`,{code:1});const at=sourceTable.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));if(at<0)throw new JSQLiteError('sqlite',`no such column: ${value.name}`,{code:1});value.index=isIntegerPrimaryKeyAlias(sourceTable,at)?-1:at;value.cursor=aggregateSubqueryCursor();value.affinity=affinityOf(sourceTable.columns[at]!.declaredType??'');value.collation=sqliteAsciiFold(sourceTable.columns[at]!.collation??'binary') as BuiltinCollation;
-   const result=allocate(),once=allocate(),set=aggregateSubqueryCursor(),onceAt=ops.length;ops.push({code:'Once',p1:once,p2:0},{code:'OpenEphemeral',p1:set,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});const childLimit=computeLimitRegisters(nested,ops,allocate,parameters);ops.push({code:'OpenRead',p1:sourceTable.rootPage,p2:value.cursor});const rewind=ops.length;ops.push({code:'Rewind',p1:value.cursor,p2:0});const loop=ops.length,cell=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);const offsetSkip=childLimit?.offset===undefined?-1:ops.length;if(childLimit?.offset!==undefined)ops.push({code:'IfPos',p1:childLimit.offset,p2:0,p3:1});emitSelectDestination(ops,{kind:'set',cursor:set},cell,1);const limitStop=childLimit===undefined?-1:ops.length;if(childLimit)ops.push({code:'DecrJumpZero',p1:childLimit.count,p2:0});const next=ops.length;ops.push({code:'Next',p1:value.cursor,p2:loop});const end=ops.length;if(childLimit){(ops[childLimit.ifZero] as {p2:number}).p2=end;(ops[limitStop] as {p2:number}).p2=end;}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=end;(ops[onceAt] as {p2:number}).p2=end;const left=compileExpressionTree(expression.left,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:left,output:result,affinity:expressionAffinity(value)??'numeric',negated:expression.negated});return result;
+   const sourceName=sqlName(nested.from.items[0]!.tableName),sourceTable=schema?.tables.get(sqliteAsciiFold(sourceName));if(!sourceTable)throw new JSQLiteError('sqlite',`no such table: ${sourceName}`,{code:1});
+   const tree=expressionFromReduction(item.reduction);if(tree.kind!=='column')throw new JSQLiteError('unsupported','this aggregate IN subquery shape is not implemented',{unsupportedClassification:'temporary'});
+   const nestedPlan=aggregatePlan.nested.find(plan=>plan.source===nested);
+   if(!nestedPlan||item.reduction.kind!=='reduction')throw new JSQLiteError('internal','aggregate IN lost linked select context');
+   const cursor=aggregateSubqueryCursor();
+   const binding:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:(reference,depth)=>{
+    if(nestedPlan.sources.includes(reference.source))return{kind:'cursor',cursor};
+    return resultLocation.location(reference,depth);
+   }};
+   const value=bindResolvedExpression(tree,resolvedExpressionCarrier(nestedPlan,item.reduction),ref=>ref.cursorId,true,binding);
+   const result=allocate(),once=nestedPlan.correlated?undefined:allocate(),set=aggregateSubqueryCursor(),onceAt=once===undefined?-1:ops.length;
+   if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
+   // expr.c sqlite3CodeRhsOfIN: correlated RHS rebuilds the set per invocation.
+   ops.push({code:'OpenEphemeral',p1:set,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});const childLimit=computeLimitRegisters(nested,ops,allocate,parameters);ops.push({code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length,cell=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);const offsetSkip=childLimit?.offset===undefined?-1:ops.length;if(childLimit?.offset!==undefined)ops.push({code:'IfPos',p1:childLimit.offset,p2:0,p3:1});emitSelectDestination(ops,{kind:'set',cursor:set},cell,1);const limitStop=childLimit===undefined?-1:ops.length;if(childLimit)ops.push({code:'DecrJumpZero',p1:childLimit.count,p2:0});const next=ops.length;ops.push({code:'Next',p1:cursor,p2:loop});const end=ops.length;if(childLimit){(ops[childLimit.ifZero] as {p2:number}).p2=end;(ops[limitStop] as {p2:number}).p2=end;}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=end;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=end;const left=compileExpressionTree(expression.left,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:left,output:result,affinity:expressionAffinity(value)??'numeric',negated:expression.negated});return result;
   }
   if(expression.exists)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
   if(!item?.reduction||nested.result.length!==1||nested.from.items.length!==1||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasCompound||nested.hasValues||nested.offset)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
-  const sourceName=sqlName(nested.from.items[0]!.tableName),sourceTable=schema.tables.get(sqliteAsciiFold(sourceName));if(!sourceTable)throw new JSQLiteError('sqlite',`no such table: ${sourceName}`,{code:1});
+  const sourceName=sqlName(nested.from.items[0]!.tableName),sourceTable=schema?.tables.get(sqliteAsciiFold(sourceName));if(!sourceTable)throw new JSQLiteError('sqlite',`no such table: ${sourceName}`,{code:1});
   const tree=expressionFromReduction(item.reduction);
+  const nestedPlan=aggregatePlan.nested.find(plan=>plan.source===nested);
+  if(!nestedPlan)throw new JSQLiteError('internal','aggregate scalar lost linked select context');
+  // A function owned by an outer NameContext reads that AggInfo output;
+  // the local SELECT still decides whether a scalar row exists (SRT_Mem).
+  if(item.reduction.kind!=='reduction')throw new JSQLiteError('internal','lexical scalar lost expression reduction');
+  const carrier=resolvedExpressionCarrier(nestedPlan,item.reduction);
+  const hasLexicalOutput=(part:ResolvedExpressionCarrier):boolean=>lexicalAggregateRegisters.has(part.reduction)||part.children.some(hasLexicalOutput);
+  if(!nested.hasOrderBy&&hasLexicalOutput(carrier)){
+   const cursor=aggregateSubqueryCursor(),result=allocate();
+   const binding:ResolvedExpressionBinding={policy:'ordinary-aggregate',aggregateOutput:reduction=>{
+    const output=lexicalAggregateRegisters.get(reduction);
+    if(output===undefined)throw new JSQLiteError('unsupported','mixed lexical aggregate scalar ownership is not implemented',{unsupportedClassification:'temporary'});
+    return output;
+   },location:(reference,depth)=>nestedPlan.sources.includes(reference.source)?{kind:'cursor',cursor}:resultLocation.location(reference,depth)};
+   const value=bindResolvedExpression(tree,carrier,ref=>ref.cursorId,true,binding);
+   const predicate=nested.where?.reduction?bindResolvedExpression(expressionFromReduction(nested.where.reduction),resolvedExpressionCarrier(nestedPlan,nested.where.reduction as Reduction),ref=>ref.cursorId,true,binding):null;
+   ops.push({code:'Null',p2:result});
+   let limitSkip:number|undefined;
+   const scalarLimit=computeScalarLimitRegisters(nested,ops,allocate,parameters,compileAggregateSubquery);limitSkip=scalarLimit?.ifZero;
+   ops.push({code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});
+   const empty=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length;
+   let reject:number|undefined;
+   if(predicate){const test=compileExpressionTree(predicate,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:'IfNot',p1:test,p2:0});}
+   const output=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);
+   ops.push({code:'Copy',p1:output,p2:result});const found=ops.length;ops.push({code:'Goto',p2:0});
+   const next=ops.length;if(reject!==undefined)(ops[reject] as {p2:number}).p2=next;
+   ops.push({code:'Next',p1:cursor,p2:loop});const end=ops.length;
+   (ops[empty] as {p2:number}).p2=end;(ops[found] as {p2:number}).p2=end;if(limitSkip!==undefined)(ops[limitSkip] as {p2:number}).p2=end;return result;
+  }
   if(nested.hasOrderBy||nested.limit){
    // expr.c:sqlite3CodeSubselect initializes SRT_Mem to NULL, guards an
    // uncorrelated producer with Once, and replaces its limit with one row.
    // Lower into this Program so sorter, Mem, cursor, and budgets are shared.
    const limit=nested.limit?.reduction?expressionFromReduction(nested.limit.reduction):null;
    if(!nested.hasOrderBy||limit?.kind!=='literal'||limit.value!==1n||tree.kind==='aggregate')throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
-   const cursor=aggregateSubqueryCursor(),sorter=aggregateSubqueryCursor(),result=allocate(),once=allocate(),capacity=allocate();
-   const bind=(node:Expression):Expression=>{if(node.kind==='column'){const parts=node.name.split('.').map(sqlName),name=parts.at(-1)!;if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,nested.from.items[0]!.alias??sourceTable.name))throw new JSQLiteError('sqlite',`no such column: ${node.name}`,{code:1});const at=sourceTable.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));if(at<0)throw new JSQLiteError('sqlite',`no such column: ${node.name}`,{code:1});node.index=isIntegerPrimaryKeyAlias(sourceTable,at)?-1:at;node.cursor=cursor;node.affinity=affinityOf(sourceTable.columns[at]!.declaredType??'');const named=sqliteAsciiFold(sourceTable.columns[at]!.collation??'binary');if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});node.collation=named;return node}if(node.kind==='unary'||node.kind==='cast'||node.kind==='collate')node.value=bind(node.value);else if(node.kind==='binary'){node.left=bind(node.left);node.right=bind(node.right)}else if(node.kind==='between'){node.value=bind(node.value);node.lower=bind(node.lower);node.upper=bind(node.upper)}else if(node.kind==='in-list'){node.left=bind(node.left);node.values=node.values.map(bind)}else if(node.kind==='call')node.args=node.args.map(bind);else if(node.kind==='case'){if(node.operand)node.operand=bind(node.operand);node.pairs=node.pairs.map(([a,b])=>[bind(a),bind(b)]);if(node.otherwise)node.otherwise=bind(node.otherwise)}else if(node.kind==='scalar-subquery'||node.kind==='in-subquery'||node.kind==='aggregate')throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});return node};
-   const order=nested.orderBy.map(term=>({term,expression:bind(expressionFromReduction(term.expr.reduction!))})),value=bind(tree),predicate=nested.where?.reduction?bind(expressionFromReduction(nested.where.reduction)):null,onceAt=ops.length;
-   ops.push({code:'Once',p1:once,p2:0},{code:'Null',p2:result},{code:'Integer',p1:1n,p2:capacity},{code:'SorterOpen',p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order.map(({term,expression})=>({collation:collation(expression),desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}))})},{code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});
-   const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length;let reject:number|undefined;if(predicate){const test=compileExpressionTree(predicate,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:'IfNot',p1:test,p2:0});}const keyStart=selectProgramBuilder.range(Math.max(1,order.length));order.forEach(({expression},index)=>{const key=compileExpressionTree(expression,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'Copy',p1:key,p2:keyStart+index});});const payload=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'SorterInsert',p1:sorter,keyStart,keyCount:order.length,payload,payloadCount:1,topN:capacity});const next=ops.length;if(reject!==undefined)(ops[reject] as {p2:number}).p2=next;ops.push({code:'Next',p1:cursor,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:sorter,emptyJump:0},{code:'SorterData',p1:sorter,p2:result,count:1});const end=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=end;(ops[onceAt] as {p2:number}).p2=end;return result;
+   const nestedPlan=aggregatePlan.nested.find(plan=>plan.source===nested);
+   if(!nestedPlan)throw new JSQLiteError('internal','ordered aggregate scalar lost linked select context');
+   const cursor=aggregateSubqueryCursor(),sorter=aggregateSubqueryCursor(),result=allocate(),once=nestedPlan.correlated?undefined:allocate(),capacity=allocate();
+   const binding:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:(reference,depth)=>{
+    if(nestedPlan.sources.includes(reference.source))return{kind:'cursor',cursor};
+    return resultLocation.location(reference,depth);
+   }};
+   const bind=(reduction:LemonValue<SqlToken>):Expression=>{if(reduction.kind!=='reduction')throw new JSQLiteError('internal','ordered aggregate scalar lost expression reduction');return bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(nestedPlan,reduction),ref=>ref.cursorId,true,binding);};
+   const order=nested.orderBy.map(term=>({term,expression:bind(term.expr.reduction!)})),value=bind(item.reduction),predicate=nested.where?.reduction?bind(nested.where.reduction):null,onceAt=once===undefined?-1:ops.length;
+   if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
+   ops.push({code:'Null',p2:result},{code:'Integer',p1:1n,p2:capacity},{code:'SorterOpen',p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order.map(({term,expression})=>({collation:collation(expression),desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}))})},{code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});
+   const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length;let reject:number|undefined;if(predicate){const test=compileExpressionTree(predicate,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:'IfNot',p1:test,p2:0});}const keyStart=selectProgramBuilder.range(Math.max(1,order.length));order.forEach(({expression},index)=>{const key=compileExpressionTree(expression,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'Copy',p1:key,p2:keyStart+index});});const payload=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'SorterInsert',p1:sorter,keyStart,keyCount:order.length,payload,payloadCount:1,topN:capacity});const next=ops.length;if(reject!==undefined)(ops[reject] as {p2:number}).p2=next;ops.push({code:'Next',p1:cursor,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:sorter,emptyJump:0},{code:'SorterData',p1:sorter,p2:result,count:1});const end=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=end;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=end;return result;
   }
-  if(nested.where||tree.kind!=='aggregate'||tree.distinct||tree.filter||tree.orderBy.length)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
-  const cursor=aggregateSubqueryCursor(),result=allocate(),once=allocate(),onceAt=ops.length;ops.push({code:'Once',p1:once,p2:0},{code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});
-  const bind=(node:Expression):Expression=>{if(node.kind==='column'){const parts=node.name.split('.').map(sqlName),name=parts.at(-1)!;if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,nested.from.items[0]!.alias??sourceTable.name))throw new JSQLiteError('sqlite',`no such column: ${node.name}`,{code:1});const at=sourceTable.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));if(at<0)throw new JSQLiteError('sqlite',`no such column: ${node.name}`,{code:1});node.index=isIntegerPrimaryKeyAlias(sourceTable,at)?-1:at;node.cursor=cursor;node.affinity=affinityOf(sourceTable.columns[at]!.declaredType??'');const named=sqliteAsciiFold(sourceTable.columns[at]!.collation??'binary');if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});node.collation=named;return node}if(node.kind==='unary'||node.kind==='cast'||node.kind==='collate')node.value=bind(node.value);else if(node.kind==='binary'){node.left=bind(node.left);node.right=bind(node.right)}else if(node.kind==='call')node.args=node.args.map(bind);else if(node.kind==='case'){if(node.operand)node.operand=bind(node.operand);node.pairs=node.pairs.map(([a,b])=>[bind(a),bind(b)]);if(node.otherwise)node.otherwise=bind(node.otherwise)}return node};
-  const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length,args=tree.args.map(arg=>compileExpressionTree(bind(arg),ops,allocate,parameters,compileAggregateSubquery));ops.push({code:'AggStep',name:tree.name,args,p2:result,collation:tree.collation},{code:'Next',p1:cursor,p2:loop});(ops[rewind] as {p2:number}).p2=ops.length;ops.push({code:'AggFinal',name:tree.name,p1:result});(ops[onceAt] as {p2:number}).p2=ops.length;return result;
+
+  if(tree.kind!=='aggregate'||tree.distinct||tree.filter||tree.orderBy.length)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
+  if(nested.where)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
+  const cursor=aggregateSubqueryCursor(),result=allocate(),once=nestedPlan.correlated?undefined:allocate();
+  const binding:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:(reference,depth)=>{
+   if(nestedPlan.sources.includes(reference.source))return{kind:'cursor',cursor};
+   return resultLocation.location(reference,depth);
+  }};
+  if(item.reduction.kind!=='reduction')throw new JSQLiteError('internal','aggregate scalar lost expression reduction');
+  const bound=bindResolvedExpression(tree,resolvedExpressionCarrier(nestedPlan,item.reduction),ref=>ref.cursorId,true,binding);
+  if(bound.kind!=='aggregate')throw new JSQLiteError('internal','aggregate scalar lost aggregate expression');
+  const onceAt=once===undefined?-1:ops.length;
+  if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
+  // sqlite3Select resetAccumulator: each correlated invocation owns fresh state,
+  // including the empty-input AggFinal path. Once retains uncorrelated state.
+  ops.push({code:'Null',p2:result},{code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});
+  const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length,args=bound.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters,compileAggregateSubquery));ops.push({code:'AggStep',name:bound.name,args,p2:result,collation:bound.collation},{code:'Next',p1:cursor,p2:loop});(ops[rewind] as {p2:number}).p2=ops.length;ops.push({code:'AggFinal',name:bound.name,p1:result});if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
  };
  type Entry={name:string;args:Expression[];collation:BuiltinCollation;register:number;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[];phase?:ResolvedAggregatePhaseCarrier;distinctCursor?:number;orderCursor?:number};const entries:Entry[]=[];
  // Original and alias-substituted expressions share linked phase lowering.
@@ -5742,6 +6227,20 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
   else if(e.kind==='case'){let i=0;if(e.operand)e.operand=lowerResult(e.operand,child(i++));e.pairs=e.pairs.map(([x,y])=>[lowerResult(x,child(i++)),lowerResult(y,child(i++))]);if(e.otherwise)e.otherwise=lowerResult(e.otherwise,child(i));}
   return e;
  };
+ // expr.c analyzeAggregate visits nested SELECTs at matching function depth.
+ // Register their outer-owned functions before any accumulator stepping.
+ const enrollNested=(plan:import('./resolve.ts').ResolvedSelect,depth:number):void=>{
+  for(const [reduction,owner] of plan.aggregateUses??[]){
+   if(owner!==depth||lexicalAggregateRegisters.has(reduction))continue;
+   const carrier=resolvedExpressionCarrier(plan,reduction);
+   const expression=bindResolvedExpression(expressionFromReduction(reduction),carrier,ref=>ref.cursorId,true,resultLocation);
+   const output=lowerResult(expression,carrier);
+   if(output.kind!=='register')throw new JSQLiteError('internal','lexical aggregate lost accumulator');
+   lexicalAggregateRegisters.set(reduction,output.index);
+  }
+  for(const child of plan.nested)enrollNested(child,depth+1);
+ };
+ for(const child of aggregatePlan.nested)enrollNested(child,1);
  const outputs=trees.map((x,index)=>lowerResult(x,resolvedExpressionCarrier(aggregatePlan,select.result[index]!.reduction! as Reduction))),having=havingTree?lowerResult(havingTree,havingCarrier!):null;
  // resolve.c:resolveOrderGroupBy substitutes aliases/ordinals; unmatched
  // expressions are resolved in this same NameContext and lowered into AggInfo.
@@ -5757,9 +6256,16 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  const bareColumns:{source:Expression;register:number}[]=[];
  const cacheBare=(e:Expression):Expression=>{if(e.kind==="column"){const existing=bareColumns.find(item=>{const column=item.source as Extract<Expression,{kind:"column"}>;return column.cursor===e.cursor&&column.index===e.index});const register=existing?.register??allocate();if(!existing)bareColumns.push({source:e,register});return{kind:"register",index:register}}if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=cacheBare(e.value);else if(e.kind==="binary"){e.left=cacheBare(e.left);e.right=cacheBare(e.right)}else if(e.kind==="call")e.args=e.args.map(cacheBare);else if(e.kind==="case"){if(e.operand)e.operand=cacheBare(e.operand);e.pairs=e.pairs.map(([a,b])=>[cacheBare(a),cacheBare(b)]);if(e.otherwise)e.otherwise=cacheBare(e.otherwise)}return e};
  if(!select.hasGroupBy){outputs.forEach((output,index)=>outputs[index]=cacheBare(output));if(having)cacheBare(having);orderExpressions.forEach((order,index)=>{if(order)orderExpressions[index]=cacheBare(order)});}
+ // analyzeAggregate owns columns reached through nested SELECTs too. Save
+ // their first input row for post-finalization scalar WHERE/projection reads.
+ if(!select.hasGroupBy){
+  const capture=(plan:import('./resolve.ts').ResolvedSelect):void=>{for(const use of plan.columnUses){if(!aggregatePlan.sources.includes(use.source))continue;const carrier=resolvedExpressionCarrier(plan,use.expression);cacheBare(bindResolvedExpression(expressionFromReduction(use.expression),carrier,ref=>ref.cursorId,true,resultLocation));}plan.nested.forEach(capture);};
+  aggregatePlan.nested.forEach(capture);
+  for(const item of bareColumns){const column=item.source as Extract<Expression,{kind:'column'}>;if(column.aggregateColumn)columnOwner.columns.set(column.aggregateColumn.iAgg,{iSorterColumn:0,accumulatorRegister:item.register});}
+ }
  const bareOnce=bareColumns.length?allocate():undefined;
  // select.c:computeLimitRegisters gates the no-GROUP accumulator too.
- const groupLimit=parent?.compoundLimit?parent.compoundLimit.registers:computeLimitRegisters(select,ops,allocate,parameters);
+ const groupLimit=parent?.compoundLimit?parent.compoundLimit.registers:parent?.scalarPrepared?undefined:computeLimitRegisters(select,ops,allocate,parameters);
  const resolvedOrderResultIndices=select.hasGroupBy&&select.hasOrderBy?select.orderBy.map(term=>aggregateOrderResultIndex(select,term)):[];
  const resolvedOrderGroupIndices=select.hasGroupBy&&select.hasOrderBy?select.orderBy.map(term=>aggregateOrderGroupIndex(select,term)):[];
  const orderKeys=resolvedOrderResultIndices.map((index,i)=>index>=0?{result:index}:resolvedOrderGroupIndices[i]!>=0?{group:resolvedOrderGroupIndices[i]!}:{expression:orderExpressions[i]!});
@@ -5769,27 +6275,87 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
  let modifierCursor=Math.max(distinctResultCursor??0,2,...aggregateSources.map(source=>source.cursor))+10;for(const entry of entries){if(entry.distinct){entry.distinctCursor=modifierCursor++;ops.push({code:"OpenEphemeral",p1:entry.distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:entry.args.length,keyFieldCount:entry.args.length,terms:entry.args.map(arg=>({collation:collation(arg)}))})});}if(entry.orderBy.length){entry.orderCursor=modifierCursor++;ops.push({code:"SorterOpen",p1:entry.orderCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:entry.orderBy.length,keyFieldCount:entry.orderBy.length,terms:entry.orderBy.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))})});}}
  selectProgramBuilder.reserveCursorsThrough(Math.max(modifierCursor-1,...aggregateSources.map(source=>source.cursor)));
  const groupLimitJumps:number[]=[];
- const emitSteps=(changed?:number)=>{for(const entry of entries){let filterJump:number|undefined;if(entry.filter){const test=compileExpressionTree(entry.filter,ops,allocate,parameters);filterJump=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const args=entry.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));let duplicate:number|undefined;if(entry.distinctCursor!==undefined){const distinctStart=selectProgramBuilder.range(Math.max(1,args.length));args.forEach((arg,index)=>ops.push({code:"Copy",p1:arg,p2:distinctStart+index}));duplicate=ops.length;ops.push({code:"Found",p1:entry.distinctCursor,keyStart:distinctStart,keyCount:args.length,jump:0},{code:"IdxInsert",p1:entry.distinctCursor,keyStart:distinctStart,keyCount:args.length});}if(entry.orderCursor!==undefined){const keyStart=selectProgramBuilder.range(Math.max(1,entry.orderBy.length));entry.orderBy.forEach((term,index)=>{const value=compileExpressionTree(term.expression,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:keyStart+index});});const payload=selectProgramBuilder.range(Math.max(1,args.length));args.forEach((arg,index)=>ops.push({code:"Copy",p1:arg,p2:payload+index}));ops.push({code:"SorterInsert",p1:entry.orderCursor,keyStart,keyCount:entry.orderBy.length,payload,payloadCount:args.length});}else ops.push({code:"AggStep",name:entry.name,args,p2:entry.phase?.accumulator.register??entry.register,collation:entry.collation,...((entry.name==="min"||entry.name==="max")&&changed!==undefined?{changed}: {})});const end=ops.length;if(filterJump!==undefined)(ops[filterJump] as {p2:number}).p2=end;if(duplicate!==undefined)(ops[duplicate] as {jump:number}).jump=end;}};
+ const emitSteps=(changed?:number,seen?:number)=>{for(const entry of entries){if(changed!==undefined&&seen!==undefined&&entry.filter&&(entry.name==="min"||entry.name==="max")){ops.push({code:"Not",p1:seen,p2:changed});}let filterJump:number|undefined;if(entry.filter){const test=compileExpressionTree(entry.filter,ops,allocate,parameters);filterJump=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const args=entry.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));let duplicate:number|undefined;if(entry.distinctCursor!==undefined){const distinctStart=selectProgramBuilder.range(Math.max(1,args.length));args.forEach((arg,index)=>ops.push({code:"Copy",p1:arg,p2:distinctStart+index}));duplicate=ops.length;ops.push({code:"Found",p1:entry.distinctCursor,keyStart:distinctStart,keyCount:args.length,jump:0},{code:"IdxInsert",p1:entry.distinctCursor,keyStart:distinctStart,keyCount:args.length});}if(entry.orderCursor!==undefined){const keyStart=selectProgramBuilder.range(Math.max(1,entry.orderBy.length));entry.orderBy.forEach((term,index)=>{const value=compileExpressionTree(term.expression,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:keyStart+index});});const payload=selectProgramBuilder.range(Math.max(1,args.length));args.forEach((arg,index)=>ops.push({code:"Copy",p1:arg,p2:payload+index}));ops.push({code:"SorterInsert",p1:entry.orderCursor,keyStart,keyCount:entry.orderBy.length,payload,payloadCount:args.length});}else ops.push({code:"AggStep",name:entry.name,args,p2:entry.phase?.accumulator.register??entry.register,collation:entry.collation,...((entry.name==="min"||entry.name==="max")&&changed!==undefined?{changed}: {})});const end=ops.length;if(filterJump!==undefined)(ops[filterJump] as {p2:number}).p2=end;if(duplicate!==undefined)(ops[duplicate] as {jump:number}).jump=end;}};
  const emitFinals=()=>{for(const entry of entries){if(entry.orderCursor!==undefined){const args=selectProgramBuilder.range(Math.max(1,entry.args.length));const sort=ops.length;ops.push({code:"SorterSort",p1:entry.orderCursor,emptyJump:0},{code:"SorterData",p1:entry.orderCursor,p2:args,count:entry.args.length},{code:"AggStep",name:entry.name,args:Array.from({length:entry.args.length},(_,i)=>args+i),p2:entry.phase?.accumulator.register??entry.register,collation:entry.collation},{code:"SorterNext",p1:entry.orderCursor,p2:sort+1});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;}ops.push({code:"AggFinal",name:entry.name,p1:entry.phase?.accumulator.register??entry.register});}};
  if(select.hasGroupBy){
   const width=sourceWidth,keyCount=groups.length,sorter=parent?selectProgramBuilder.cursor():1,sortedBase=selectProgramBuilder.range(2*(keyCount+width)),savedBase=sortedBase+keyCount+width;
   const keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:keyCount,keyFieldCount:keyCount,terms:groups.map(group=>({collation:collation(group)}))});
-  ops.push({code:"SorterOpen",p1:sorter,keyInfo});aggregateSources.forEach(source=>ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursor}));const rewinds:number[]=[],bodies:number[]=[],afterOn:number[]=[],predicateJumps:{at:number;level:number}[]=[],leftMatches:(number|undefined)[]=[],emptyAt:number[]=[];for(let level=0;level<aggregateSources.length;level++){const source=aggregateSources[level]!,isLeft=level>0&&source.item.joinFromLeft.left;if(isLeft){leftMatches[level]=allocate();ops.push({code:"Integer",p1:0n,p2:leftMatches[level]!});}rewinds[level]=ops.length;ops.push({code:"Rewind",p1:source.cursor,p2:0});bodies[level]=ops.length;const on=source.item.on;if(on){const test=compileExpressionTree(resolve(expressionFromReduction(on.reduction!)),ops,allocate,parameters);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});predicateJumps.push({at,level});}afterOn[level]=ops.length;if(isLeft)ops.push({code:"Integer",p1:1n,p2:leftMatches[level]!});}
-  if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});predicateJumps.push({at,level:aggregateSources.length-1});}
+  ops.push({code:"SorterOpen",p1:sorter,keyInfo});
+  let streamReturn:number|undefined,streamScan:number|undefined;
+  const rewinds:number[]=[],bodies:number[]=[],afterOn:number[]=[],predicateJumps:{at:number;level:number}[]=[],leftMatches:(number|undefined)[]=[],emptyAt:number[]=[];
+  if(!parent?.input&&groupedStream){
+   streamReturn=allocate();const init=ops.length;ops.push({code:'InitCoroutine',p1:streamReturn,p2:0,p3:0});const start=ops.length;
+   for(const arm of groupedStream.arms){
+    const single:SelectNode={...groupedStream,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])};
+    const destination:SelectDest={kind:'coroutine',register:streamReturn,first:sourceRegisters!};
+    const plan=expandAndResolveSelect(single,schema!,null,selectProgramBuilder.cursors);
+    if(selectHasAggregate(single))compileAggregateSelect(single,schema!,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops,parameters,destination});
+    else if(plan.sources.length)compileInnerTableSelect(single,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops,parameters,destination});
+    else compileScalarSelect(single,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema!,database,maxRows,{builder:selectProgramBuilder,parameters,destination,emitRow:(first,count)=>emitSelectDestination(ops,destination,first,count)});
+   }
+   ops.push({code:'EndCoroutine',p1:streamReturn,p2:0});(ops[init] as {p2:number;p3:number}).p2=ops.length;(ops[init] as {p3:number}).p3=start;
+   streamScan=ops.length;ops.push({code:'Yield',p1:streamReturn,p2:0});
+  }else if(!parent?.input){
+  aggregateSources.forEach(source=>ops.push({code:"OpenRead",p1:source.table.rootPage,p2:source.cursor}));for(let level=0;level<aggregateSources.length;level++){const source=aggregateSources[level]!,isLeft=level>0&&source.item.joinFromLeft.left;if(isLeft){leftMatches[level]=allocate();ops.push({code:"Integer",p1:0n,p2:leftMatches[level]!});}rewinds[level]=ops.length;ops.push({code:"Rewind",p1:source.cursor,p2:0});bodies[level]=ops.length;const on=source.item.on;if(on){const test=compileExpressionTree(bindResolvedExpression(expressionFromReduction(on.reduction!),resolvedExpressionCarrier(aggregatePlan,on.reduction! as Reduction),ref=>ref.cursorId,true,resultLocation),ops,allocate,parameters);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});predicateJumps.push({at,level});}afterOn[level]=ops.length;if(isLeft)ops.push({code:"Integer",p1:1n,p2:leftMatches[level]!});}
+  }
+  const insertGroupedRow=()=>{
+  let inputReject:number|undefined;
+  if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});if(parent?.input)inputReject=at;else predicateJumps.push({at,level:aggregateSources.length-1});}
   // where.c:sqlite3WhereBegin with zero sources still visits one candidate.
   // Its WHERE rejection skips SorterInsert; no Next cursor exists to branch to.
-  const keys=groups.map(group=>compileExpressionTree(group,ops,allocate,parameters)),combined=selectProgramBuilder.range(keyCount+width);keys.forEach((value,i)=>ops.push({code:"Copy",p1:value,p2:combined+i}));for(const source of aggregateSources)for(let i=0;i<source.table.columns.length;i++)ops.push(isIntegerPrimaryKeyAlias(source.table,i)?{code:"Rowid",p1:source.cursor,p2:combined+keyCount+source.base+i}:{code:"Column",p1:i,p2:combined+keyCount+source.base+i,p3:source.cursor});ops.push({code:"SorterInsert",p1:sorter,keyStart:combined,keyCount,payload:combined,payloadCount:keyCount+width});
-  const nextAt:number[]=[];for(let level=aggregateSources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:"Next",p1:aggregateSources[level]!.cursor,p2:bodies[level]!});const match=leftMatches[level];if(match!==undefined){emptyAt[level]=ops.length;const guard=ops.length;ops.push({code:"IfPos",p1:match,p2:0,p3:0},{code:"Integer",p1:1n,p2:match},{code:"NullRow",p1:aggregateSources[level]!.cursor},{code:"Goto",p2:afterOn[level]!});(ops[guard] as {p2:number}).p2=ops.length;}}const sortAt=ops.length;for(let level=0;level<aggregateSources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=emptyAt[level]??(level===0?sortAt:nextAt[level-1]!);for(const jump of predicateJumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?sortAt:nextAt[jump.level]!;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sortedBase,count:keyCount+width});
+  const keys=groups.map(group=>compileExpressionTree(group,ops,allocate,parameters)),combined=selectProgramBuilder.range(keyCount+width);keys.forEach((value,i)=>ops.push({code:"Copy",p1:value,p2:combined+i}));for(const source of aggregateSources)for(let i=0;i<source.table.columns.length;i++)ops.push(sourceRegisters!==undefined?{code:"Copy",p1:sourceRegisters+i,p2:combined+keyCount+source.base+i}:isIntegerPrimaryKeyAlias(source.table,i)?{code:"Rowid",p1:source.cursor,p2:combined+keyCount+source.base+i}:{code:"Column",p1:i,p2:combined+keyCount+source.base+i,p3:source.cursor});ops.push({code:"SorterInsert",p1:sorter,keyStart:combined,keyCount,payload:combined,payloadCount:keyCount+width});
+  if(inputReject!==undefined)(ops[inputReject] as {p2:number}).p2=ops.length;
+  };
+  if(parent?.input)parent.input.emit(insertGroupedRow);else insertGroupedRow();
+  const nextAt:number[]=[];if(streamScan!==undefined){nextAt[0]=ops.length;ops.push({code:"Goto",p2:streamScan});}else if(!parent?.input)for(let level=aggregateSources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:"Next",p1:aggregateSources[level]!.cursor,p2:bodies[level]!});const match=leftMatches[level];if(match!==undefined){emptyAt[level]=ops.length;const guard=ops.length;ops.push({code:"IfPos",p1:match,p2:0,p3:0},{code:"Integer",p1:1n,p2:match},{code:"NullRow",p1:aggregateSources[level]!.cursor},{code:"Goto",p2:afterOn[level]!});(ops[guard] as {p2:number}).p2=ops.length;}}const sortAt=ops.length;if(streamScan!==undefined)(ops[streamScan] as {p2:number}).p2=sortAt;for(let level=0;streamScan===undefined&&!parent?.input&&level<aggregateSources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=emptyAt[level]??(level===0?sortAt:nextAt[level-1]!);for(const jump of predicateJumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?sortAt:nextAt[jump.level]!;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sortedBase,count:keyCount+width});
   for(let i=0;i<keyCount+width;i++)ops.push({code:"Copy",p1:sortedBase+i,p2:savedBase+i});
   const accumulatorRegisters=entries.map(x=>x.register);ops.push({code:"AggReset",registers:accumulatorRegisters});
-  const rowColumns=(e:Expression):Expression=>{if(e.kind==="column")return{kind:"register",index:sortedBase+keyCount+(e.payloadIndex??e.index)};if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=rowColumns(e.value);else if(e.kind==="binary"){e.left=rowColumns(e.left);e.right=rowColumns(e.right)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(rowColumns);else if(e.kind==="case"){if(e.operand)e.operand=rowColumns(e.operand);e.pairs=e.pairs.map(([a,b])=>[rowColumns(a),rowColumns(b)]);if(e.otherwise)e.otherwise=rowColumns(e.otherwise)}return e};
-  entries.forEach(entry=>{entry.args=entry.args.map(rowColumns);if(entry.filter)entry.filter=rowColumns(entry.filter);entry.orderBy=entry.orderBy.map(term=>({...term,expression:rowColumns(term.expression)}));});if(having)rowColumns(having);const savedColumns=(e:Expression):Expression=>{if(e.kind==="register"&&e.index>=sortedBase+keyCount&&e.index<sortedBase+keyCount+width){const column=e.index-sortedBase-keyCount,group=groups.findIndex(g=>g.kind==="column"&&g.index===column);return{kind:"register",index:group>=0?savedBase+group:savedBase+keyCount+column}};if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=savedColumns(e.value);else if(e.kind==="binary"){e.left=savedColumns(e.left);e.right=savedColumns(e.right)}else if(e.kind==="call")e.args=e.args.map(savedColumns);else if(e.kind==="case"){if(e.operand)e.operand=savedColumns(e.operand);e.pairs=e.pairs.map(([a,b])=>[savedColumns(a),savedColumns(b)]);if(e.otherwise)e.otherwise=savedColumns(e.otherwise)}return e};outputs.forEach((x,i)=>outputs[i]=savedColumns(rowColumns(x)));orderExpressions.forEach((x,i)=>{if(x)orderExpressions[i]=savedColumns(rowColumns(x));});if(having)savedColumns(having);const change=entries.filter(e=>e.name==="min"||e.name==="max").length===1?allocate():undefined;const stepAt=ops.length;emitSteps(change);if(change!==undefined){const unchanged=ops.length;ops.push({code:"IfNot",p1:change,p2:0});for(let i=0;i<width;i++)ops.push({code:"Copy",p1:sortedBase+keyCount+i,p2:savedBase+keyCount+i});(ops[unchanged] as {p2:number}).p2=ops.length}const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:advance+2},{code:"Goto",p2:0},{code:"SorterData",p1:sorter,p2:sortedBase,count:keyCount+width});ops.push({code:"CompareGroup",left:sortedBase,right:savedBase,count:keyCount,keyInfo,jump:stepAt});
-  const emitGroup=()=>{emitFinals();let reject=-1;if(having){const test=compileExpressionTree(having,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0})}outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:outputStart+index})});let duplicate=-1;if(distinctResultCursor!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length,jump:0},{code:"IdxInsert",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length});}if(resultSorter!==undefined){const keyStart=selectProgramBuilder.range(Math.max(1,orderKeys.length));orderKeys.forEach((key,index)=>{const value='result' in key!?outputStart+key.result:'group' in key!?savedBase+key.group:compileExpressionTree(orderExpressions[index]!,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:keyStart+index});});ops.push({code:"SorterInsert",p1:resultSorter,keyStart,keyCount:orderKeys.length,payload:outputStart,payloadCount:outputs.length,...(groupLimit?{topN:groupLimit.capacity}:{})});}else{let offsetAt:number|undefined;if(groupLimit?.offset!==undefined){offsetAt=ops.length;ops.push({code:"IfPos",p1:groupLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(groupLimit){groupLimitJumps.push(ops.length);ops.push({code:"DecrJumpZero",p1:groupLimit.count,p2:0});}if(offsetAt!==undefined)(ops[offsetAt] as {p2:number}).p2=ops.length;}if(duplicate>=0)(ops[duplicate] as {jump:number}).jump=ops.length;if(reject>=0)(ops[reject] as {p2:number}).p2=ops.length;};
-  emitGroup();ops.push({code:"AggReset",registers:accumulatorRegisters});for(const entry of entries){if(entry.distinctCursor!==undefined)ops.push({code:"ClearEphemeral",p1:entry.distinctCursor});if(entry.orderCursor!==undefined)ops.push({code:"ClearSorter",p1:entry.orderCursor});}for(let i=0;i<keyCount+width;i++)ops.push({code:"Copy",p1:sortedBase+i,p2:savedBase+i});ops.push({code:"Goto",p2:stepAt});const finalAt=ops.length;(ops[advance+1] as {p2:number}).p2=finalAt;emitGroup();let resultSortAt:number|undefined,resultOffsetAt:number|undefined,resultLimitAt:number|undefined;if(resultSorter!==undefined){resultSortAt=ops.length;ops.push({code:"SorterSort",p1:resultSorter,emptyJump:0},{code:"SorterData",p1:resultSorter,p2:outputStart,count:outputs.length});if(groupLimit?.offset!==undefined){resultOffsetAt=ops.length;ops.push({code:"IfPos",p1:groupLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(groupLimit){resultLimitAt=ops.length;ops.push({code:"DecrJumpZero",p1:groupLimit.count,p2:0});}const resultNext=ops.length;ops.push({code:"SorterNext",p1:resultSorter,p2:resultSortAt+1});if(resultOffsetAt!==undefined)(ops[resultOffsetAt] as {p2:number}).p2=resultNext;}const halt=ops.length;if(!parent)ops.push({code:"Halt"});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(resultSortAt!==undefined)(ops[resultSortAt] as {emptyJump:number}).emptyJump=halt;if(resultLimitAt!==undefined)(ops[resultLimitAt] as {p2:number}).p2=halt;if(parent?.compoundLimit)parent.compoundLimit.stops.push(...groupLimitJumps);else for(const at of groupLimitJumps)(ops[at] as {p2:number}).p2=halt;if(groupLimit&&!parent?.compoundLimit)(ops[groupLimit.ifZero] as {p2:number}).p2=halt;
-  const columns=select.result.map((expression,i)=>{const tree=trees[i]!;if(tree.kind==="column"){const source=aggregateSources.find(item=>item.cursor===(tree.cursor??0))!,columnIndex=tree.index<0?(tree.payloadIndex??source.base)-source.base:tree.index,c=source.table.columns[columnIndex]!;return Object.freeze({name:expression.alias??c.name,declaredType:c.declaredType,database:"main",table:source.table.name,origin:c.name})}return Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null})});return Object.freeze({ops:parent?ops:Object.freeze(ops),registers:selectProgramBuilder.registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
+  // select.c: sorter payload columns and bare accumulator cells belong to
+  // the same AggInfo column; consumers select phase at emission, never by AST rewrite.
+  for(let column=0;column<width;column++)columnOwner.columns.set(column,{iSorterColumn:keyCount+column,accumulatorRegister:savedBase+keyCount+column});
+  columnOwner.sortingIndexRegister=sortedBase;columnOwner.useSortingIdx=true;
+  // select.c:updateAccumulator shares regHit across all NEEDCOLL calls.
+  // This inverse magnet retains DISTINCT's previous state; FILTER copies
+  // regAcc before jumping. Reset both cells at each group boundary.
+  const change=entries.some(e=>(e.name==='min'||e.name==='max')&&e.orderCursor===undefined)?allocate():undefined,seen=allocate();
+  ops.push({code:'Integer',p1:0n,p2:seen});if(change!==undefined)ops.push({code:'Integer',p1:1n,p2:change});
+  const stepAt=ops.length;columnOwner.directMode=true;emitSteps(change,seen);
+  const unchanged=ops.length;ops.push(change===undefined?{code:'IfPos',p1:seen,p2:0,p3:0}:{code:'IfNot',p1:change,p2:0});
+  for(let i=0;i<width;i++)ops.push({code:'Copy',p1:sortedBase+keyCount+i,p2:savedBase+keyCount+i});
+  (ops[unchanged] as {p2:number}).p2=ops.length;ops.push({code:'Integer',p1:1n,p2:seen});
+  const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:advance+2},{code:"Goto",p2:0},{code:"SorterData",p1:sorter,p2:sortedBase,count:keyCount+width});ops.push({code:"CompareGroup",left:sortedBase,right:savedBase,count:keyCount,keyInfo,jump:stepAt});
+  const emitGroup=()=>{columnOwner.directMode=false;emitFinals();let reject=-1;if(having){const test=compileExpressionTree(having,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0})}outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:outputStart+index})});let duplicate=-1;if(distinctResultCursor!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length,jump:0},{code:"IdxInsert",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length});}if(resultSorter!==undefined){const keyStart=selectProgramBuilder.range(Math.max(1,orderKeys.length));orderKeys.forEach((key,index)=>{const value='result' in key!?outputStart+key.result:'group' in key!?savedBase+key.group:compileExpressionTree(orderExpressions[index]!,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:keyStart+index});});ops.push({code:"SorterInsert",p1:resultSorter,keyStart,keyCount:orderKeys.length,payload:outputStart,payloadCount:outputs.length,...(groupLimit?{topN:groupLimit.capacity}:{})});}else{let offsetAt:number|undefined;if(groupLimit?.offset!==undefined){offsetAt=ops.length;ops.push({code:"IfPos",p1:groupLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(groupLimit){groupLimitJumps.push(ops.length);ops.push({code:"DecrJumpZero",p1:groupLimit.count,p2:0});}if(offsetAt!==undefined)(ops[offsetAt] as {p2:number}).p2=ops.length;}if(duplicate>=0)(ops[duplicate] as {jump:number}).jump=ops.length;if(reject>=0)(ops[reject] as {p2:number}).p2=ops.length;};
+  emitGroup();ops.push({code:"AggReset",registers:accumulatorRegisters});ops.push({code:'Integer',p1:0n,p2:seen});if(change!==undefined)ops.push({code:'Integer',p1:1n,p2:change});for(const entry of entries){if(entry.distinctCursor!==undefined)ops.push({code:"ClearEphemeral",p1:entry.distinctCursor});if(entry.orderCursor!==undefined)ops.push({code:"ClearSorter",p1:entry.orderCursor});}for(let i=0;i<keyCount+width;i++)ops.push({code:"Copy",p1:sortedBase+i,p2:savedBase+i});ops.push({code:"Goto",p2:stepAt});const finalAt=ops.length;(ops[advance+1] as {p2:number}).p2=finalAt;emitGroup();let resultSortAt:number|undefined,resultOffsetAt:number|undefined,resultLimitAt:number|undefined;if(resultSorter!==undefined){resultSortAt=ops.length;ops.push({code:"SorterSort",p1:resultSorter,emptyJump:0},{code:"SorterData",p1:resultSorter,p2:outputStart,count:outputs.length});if(groupLimit?.offset!==undefined){resultOffsetAt=ops.length;ops.push({code:"IfPos",p1:groupLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(groupLimit){resultLimitAt=ops.length;ops.push({code:"DecrJumpZero",p1:groupLimit.count,p2:0});}const resultNext=ops.length;ops.push({code:"SorterNext",p1:resultSorter,p2:resultSortAt+1});if(resultOffsetAt!==undefined)(ops[resultOffsetAt] as {p2:number}).p2=resultNext;}const halt=ops.length;if(!parent)ops.push({code:"Halt"});(ops[sortAt] as {emptyJump:number}).emptyJump=halt;if(resultSortAt!==undefined)(ops[resultSortAt] as {emptyJump:number}).emptyJump=halt;if(resultLimitAt!==undefined)(ops[resultLimitAt] as {p2:number}).p2=halt;if(parent?.compoundLimit)parent.compoundLimit.stops.push(...groupLimitJumps);else for(const at of groupLimitJumps)(ops[at] as {p2:number}).p2=halt;if(groupLimit&&!parent?.compoundLimit)(ops[groupLimit.ifZero] as {p2:number}).p2=halt;
+  const columns=select.result.map((expression,i)=>{if(groupedStream){const result=aggregatePlan.result[i]!;return Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin});}const tree=trees[i]!;if(tree.kind==="column"){const source=aggregateSources.find(item=>item.cursor===(tree.cursor??0))!,columnIndex=tree.index<0?(tree.payloadIndex??source.base)-source.base:tree.index,c=source.table.columns[columnIndex]!;return Object.freeze({name:expression.alias??c.name,declaredType:c.declaredType,database:"main",table:source.table.name,origin:c.name})}return Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null})});return Object.freeze({ops:parent?ops:Object.freeze(ops),registers:selectProgramBuilder.registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
  }
+ // select.c:resetAccumulator precedes WHERE positioning on every invocation.
+ // Standalone execution starts NULL too, but linked correlated production does not.
+ ops.push({code:"AggReset",registers:entries.map(entry=>entry.register)});
  let rewind=-1,body=0,skip=-1;
- if(aggregateSources.length>1){
+ // select.c:updateAccumulator uses one regHit for NEEDCOLL functions.
+ // changed is the inverse polarity of skipFlag. FILTER copies regAcc before
+ // its jump; DISTINCT skips retain the previous magnet value.
+ const captureChange=bareColumns.length&&entries.some(entry=>(entry.name==='min'||entry.name==='max')&&entry.orderCursor===undefined)?allocate():undefined;
+ const captureSeen=captureChange!==undefined?allocate():undefined;
+ if(captureSeen!==undefined)ops.push({code:'Integer',p1:0n,p2:captureSeen},{code:'Integer',p1:1n,p2:captureChange!});
+ const emitPhysicalAccumulator=()=>{
+  emitSteps(captureChange,captureSeen);
+  const guard=ops.length;
+  if(captureChange!==undefined)ops.push({code:'IfNot',p1:captureChange,p2:0});
+  else if(bareOnce!==undefined)ops.push({code:'Once',p1:bareOnce,p2:0});
+  for(const item of bareColumns){const value=compileExpressionTree(item.source,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:item.register});}
+  if(captureChange!==undefined||bareOnce!==undefined)(ops[guard] as {p2:number}).p2=ops.length;
+  if(captureSeen!==undefined)ops.push({code:'Integer',p1:1n,p2:captureSeen});
+ };
+ if(parent?.input){
+  parent.input.emit(()=>{
+   let reject:number|undefined;
+   if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:'IfNot',p1:test,p2:0});}
+   emitPhysicalAccumulator();
+   if(reject!==undefined)(ops[reject] as {p2:number}).p2=ops.length;
+  });
+ }
+ else if(aggregateSources.length>1){
   // select.c:sqlite3WhereBegin/updateAccumulator/WhereEnd. Keep the source
   // cursor positioned at each depth; an ON failure advances that depth,
   // whereas WHERE failure advances the innermost cursor. The accumulator
@@ -5800,20 +6366,19 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph,data
    const source=aggregateSources[level]!;
    rewinds[level]=ops.length;ops.push({code:"Rewind",p1:source.cursor,p2:0});
    bodies[level]=ops.length;
-   if(source.item.on?.reduction){const test=compileExpressionTree(resolve(expressionFromReduction(source.item.on.reduction)),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});rejects.push({at,level});}
+   if(source.item.on?.reduction){const test=compileExpressionTree(bindResolvedExpression(expressionFromReduction(source.item.on.reduction),resolvedExpressionCarrier(aggregatePlan,source.item.on.reduction as Reduction),ref=>ref.cursorId,true,resultLocation),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});rejects.push({at,level});}
   }
   if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:"IfNot",p1:test,p2:0});rejects.push({at,level:aggregateSources.length-1});}
-  if(bareOnce!==undefined){const onceAt=ops.length;ops.push({code:"Once",p1:bareOnce,p2:0});for(const item of bareColumns){const value=compileExpressionTree(item.source,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:item.register});}(ops[onceAt] as {p2:number}).p2=ops.length;}
-  emitSteps();
+  emitPhysicalAccumulator();
   const nextAt:number[]=[];
   for(let level=aggregateSources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:"Next",p1:aggregateSources[level]!.cursor,p2:bodies[level]!});}
   const done=ops.length;
   for(let level=0;level<rewinds.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?done:nextAt[level-1]!;
   for(const reject of rejects)(ops[reject.at] as {p2:number}).p2=nextAt[reject.level]!;
  }
- else if(table){const tableCursor=aggregateSources[0]!.cursor;ops.push({code:"OpenRead",p1:table.rootPage,p2:tableCursor});rewind=ops.length;ops.push({code:"Rewind",p1:tableCursor,p2:0});body=ops.length;if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}if(bareOnce!==undefined){const onceAt=ops.length;ops.push({code:"Once",p1:bareOnce,p2:0});for(const item of bareColumns){const value=compileExpressionTree(item.source,ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:item.register});}(ops[onceAt] as {p2:number}).p2=ops.length;}emitSteps();const next=ops.length;ops.push({code:"Next",p1:aggregateSources[0]!.cursor,p2:body});if(skip>=0)(ops[skip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;}else {if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;}
- emitFinals();let reject=-1;if(having){const test=compileExpressionTree(having,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0})}outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:outputStart+index})});let duplicate=-1;if(distinctResultCursor!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length,jump:0},{code:"IdxInsert",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length});}const offsetSkip=groupLimit?.offset===undefined?-1:ops.length;if(offsetSkip>=0)ops.push({code:"IfPos",p1:groupLimit!.offset!,p2:0,p3:1});emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(parent?.compoundLimit&&groupLimit){parent.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:groupLimit.count,p2:0});}const afterDestination=ops.length;if(duplicate>=0)(ops[duplicate] as {jump:number}).jump=afterDestination;if(reject>=0)(ops[reject] as {p2:number}).p2=ops.length;const halt=ops.length;if(!parent)ops.push({code:"Halt"});if(groupLimit){if(!parent?.compoundLimit)(ops[groupLimit.ifZero] as {p2:number}).p2=halt;if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=halt;}
- const columns=select.result.map(expression=>Object.freeze({name:expressionName(expression),declaredType:null,database:null,table:null,origin:null}));if(parent)return Object.freeze({ops,registers:selectProgramBuilder.registers,columns,parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});return Object.freeze({ops:Object.freeze(ops),registers:selectProgramBuilder.registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
+ else if(table){const tableCursor=aggregateSources[0]!.cursor;ops.push({code:"OpenRead",p1:table.rootPage,p2:tableCursor});rewind=ops.length;ops.push({code:"Rewind",p1:tableCursor,p2:0});body=ops.length;if(where){const test=compileExpressionTree(where,ops,allocate,parameters,compileAggregateSubquery);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitPhysicalAccumulator();const next=ops.length;ops.push({code:"Next",p1:aggregateSources[0]!.cursor,p2:body});if(skip>=0)(ops[skip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=ops.length;}else {if(where){const test=compileExpressionTree(where,ops,allocate,parameters);skip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}emitSteps();if(skip>=0)(ops[skip] as {p2:number}).p2=ops.length;}
+ columnOwner.directMode=false;emitFinals();let reject=-1;if(having){const test=compileExpressionTree(having,ops,allocate,parameters,compileAggregateSubquery);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0})}outputs.forEach((tree,index)=>{const value=compileExpressionTree(tree,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:"Copy",p1:value,p2:outputStart+index})});let duplicate=-1;if(distinctResultCursor!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length,jump:0},{code:"IdxInsert",p1:distinctResultCursor,keyStart:outputStart,keyCount:outputs.length});}const offsetSkip=groupLimit?.offset===undefined?-1:ops.length;if(offsetSkip>=0)ops.push({code:"IfPos",p1:groupLimit!.offset!,p2:0,p3:1});emitSelectDestination(ops,parent?.destination??{kind:"output"},outputStart,outputs.length);if(parent?.compoundLimit&&groupLimit){parent.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:groupLimit.count,p2:0});}const afterDestination=ops.length;if(duplicate>=0)(ops[duplicate] as {jump:number}).jump=afterDestination;if(reject>=0)(ops[reject] as {p2:number}).p2=ops.length;const halt=ops.length;if(!parent)ops.push({code:"Halt"});if(groupLimit){if(!parent?.compoundLimit)(ops[groupLimit.ifZero] as {p2:number}).p2=halt;if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=halt;}
+ const columns=aggregatePlan.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));if(parent)return Object.freeze({ops,registers:selectProgramBuilder.registers,columns,parameters:Object.freeze([]),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});return Object.freeze({ops:Object.freeze(ops),registers:selectProgramBuilder.registers,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding:database.encoding});
 }
 
 
@@ -6035,7 +6600,7 @@ const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Obj
  json_group_array:jsonAggregateDefinition("json_group_array"),jsonb_group_array:jsonAggregateDefinition("jsonb_group_array"),
  json_group_object:jsonAggregateDefinition("json_group_object"),jsonb_group_object:jsonAggregateDefinition("jsonb_group_object"),
 });
-function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:c=>({values:[],bytes:0,inverseCapable:c.inverseCapable}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return false;const state=c.state(),bytes=valueBytes(value);if(!state.inverseCapable&&state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}let at=0;while(at<state.values.length&&(name==="min"?compareMem(state.values[at]!,next,c.collation)<=0:compareMem(state.values[at]!,next,c.collation)>=0))at++;state.values.splice(at,0,next);state.bytes+=bytes;return at===0},inverse:(c,a)=>{const value=a[0],state=c.currentState();if(!value||value.initialStorageClass==="null"||!state)return;if(!state.inverseCapable)throw new JSQLiteError("internal",`${name} inverse without inverse-capable state`);const at=state.values.findIndex(candidate=>compareMem(candidate,value,c.collation)===0);if(at<0)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const [removed]=state.values.splice(at,1),bytes=valueBytes(removed!);removed!.release();state.bytes-=bytes;c.budget.release(bytes)},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
+function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:c=>({values:[],bytes:0,inverseCapable:c.inverseCapable}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return !c.currentState()?.values.length;const state=c.state(),bytes=valueBytes(value);if(!state.inverseCapable&&state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}let at=0;while(at<state.values.length&&(name==="min"?compareMem(state.values[at]!,next,c.collation)<=0:compareMem(state.values[at]!,next,c.collation)>=0))at++;state.values.splice(at,0,next);state.bytes+=bytes;return at===0},inverse:(c,a)=>{const value=a[0],state=c.currentState();if(!value||value.initialStorageClass==="null"||!state)return;if(!state.inverseCapable)throw new JSQLiteError("internal",`${name} inverse without inverse-capable state`);const at=state.values.findIndex(candidate=>compareMem(candidate,value,c.collation)===0);if(at<0)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const [removed]=state.values.splice(at,1),bytes=valueBytes(removed!);removed!.release();state.bytes-=bytes;c.budget.release(bytes)},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
 function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",",state=c.state(),prefix=state.values.length?separator:"",bytes=new TextEncoder().encode(prefix+text).byteLength;if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.values.push({text,separator:prefix,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:(c,a)=>{if(!a[0]||a[0]!.initialStorageClass==="null")return;const state=c.currentState();if(!state?.values.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.values.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes);if(state.values.length){const first=state.values[0]!,separatorBytes=new TextEncoder().encode(first.separator).byteLength;first.separator="";first.bytes-=separatorBytes;state.bytes-=separatorBytes;c.budget.release(separatorBytes)}},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.values.length=0}}
 function aggregateText(input:Mem):string{const copy=new Mem();copy.copyFrom(input);if(copy.initialStorageClass!=="text")copy.stringify("utf-8");return copy.textValue()}
 function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.values.length)out.setText(new TextEncoder().encode(state.values.map(value=>value.separator+value.text).join("")),"utf-8");c.setResult(out)}
@@ -6163,7 +6728,7 @@ export class VdbeStatement implements Statement {
           }
           case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
           case "WindowCheck": {
-            const value=this.#registers[op.p1]!,message=`frame ${op.boundary} offset must be a non-negative ${op.numeric?"number":"integer"}`;
+            const value=this.#registers[op.p1]!,message=op.boundary==="nth"?"second argument to nth_value must be a positive integer":`frame ${op.boundary} offset must be a non-negative ${op.numeric?"number":"integer"}`;
             // window.c:windowCheckValue uses numeric affinity for both the
             // OP_MustBeInt path and the RANGE comparison path. Apply it to the
             // register itself so accepted numeric TEXT has the same subsequent
@@ -6175,7 +6740,7 @@ export class VdbeStatement implements Statement {
               else throw new JSQLiteError("sqlite",message,{code:1});
             }else{
               if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)value.setInt64(BigInt(value.realValue()));
-              if(value.initialStorageClass!=="integer"||value.integerValue()<0n)throw new JSQLiteError("sqlite",message,{code:1});
+              if(value.initialStorageClass!=="integer"||value.integerValue()<(op.boundary==="nth"?1n:0n))throw new JSQLiteError("sqlite",message,{code:1});
             }
             break;
           }

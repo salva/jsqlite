@@ -19,6 +19,12 @@ export class SelectProgramBuilder<Op extends {readonly code:string}> {
   mark(label:number):void {if(this.labels.has(label))throw new Error("duplicate label");this.labels.set(label,this.ops.length);}
   emit(op:Op):number{return this.ops.push(op)-1;}
   jump(label:number,op:Op,resolve:(op:Op,pc:number)=>Op):void {this.pending.push({at:this.emit(op),label,resolve});}
+  // Resolve one closed producer boundary without publishing/freezing the
+  // enclosing Vdbe (RIGHT interior validation consumes numeric targets).
+  resolveLabel(label:number):void {
+    const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");
+    this.pending=this.pending.filter(entry=>{if(entry.label!==label)return true;this.ops[entry.at]=entry.resolve(this.ops[entry.at]!,pc);return false;});
+  }
   finish():readonly Op[]{for(const {at,label,resolve} of this.pending){const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");this.ops[at]=resolve(this.ops[at]!,pc);}return Object.freeze(this.ops);}
 }
 export function emitSelectDestination<Op extends {readonly code:string}>(ops:Op[],dest:SelectDest,first:number,count:number):void {

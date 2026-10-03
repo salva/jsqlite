@@ -509,7 +509,7 @@ test('zero-source derived count child emits producer cardinality into parent agg
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const producer=text.slice(text.indexOf('function compileZeroSourceDerivedCount('),text.indexOf('/** select.c:sqlite3Select aggregate-without-GROUP'));
  const caller=text.slice(text.indexOf('export function compileScalarSelect('),text.indexOf('function compileInnerTableSelect('));
- assert.match(producer,/if\(parent\)[^]*?computeLimitRegisters\(source,ops,allocate,parameters\)[^]*?AggStep[^]*?AggFinal[^]*?emitSelectDestination\(ops,destination,output,1\)/);
+ assert.match(producer,/if\(parent&&!derived\.select\.hasCompound&&!derived\.select\.hasValues\)[^]*?computeLimitRegisters\(source,ops,allocate,parameters\)[^]*?AggStep[^]*?AggFinal[^]*?emitSelectDestination\(ops,destination,output,1\)/);
  assert.match(text,/compileZeroSourceDerivedCount\(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent\)/);
  assert.match(caller,/compileAggregateSelect\(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder:selectProgramBuilder/);
 });

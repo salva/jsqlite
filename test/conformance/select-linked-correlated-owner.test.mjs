@@ -28,9 +28,10 @@ for(const {sql,names,rows} of cases)test(`derived compound destination: ${sql}`,
 
 test('joined correlated consumer uses reusable resolved-expression carrier',async()=>{
  const {readFileSync}=await import('node:fs');const source=readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- const start=source.indexOf('  const compileJoinSubquery='),end=source.indexOf('  rememberNested(',start);
+ const start=source.indexOf('  const compileJoinSubquery='),end=source.indexOf('function compileInnerTableSelect(',start);
  assert.ok(start>=0&&end>start);
- assert.match(source.slice(start,end),/resolvedExpressionCarrier\(entry.plan/);
+ assert.match(source.slice(start,end),/compileAggregateSelect\([\s\S]*linkedPlan:entry.plan/);
+ assert.match(source,/resolvedExpressionCarrier\(aggregatePlan/);
  assert.match(source,/function bindResolvedExpression\(value:Expression,carrier:ResolvedExpressionCarrier/);
  assert.doesNotMatch(source.slice(start,end),/const bind=\(value:Expression,node:Reduction\)|entry.plan.columnUses.find/,'live consumer duplicates linked resolved expression traversal');
 });

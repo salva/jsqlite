@@ -117,7 +117,7 @@ test('physical compound DISTINCT filters each arm before destination and limits'
 
 test('physical compound scan rejects unrepresented GROUP/HAVING before emission',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- const start=source.indexOf('owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|void');
+ const start=source.indexOf('function compileSimpleTableCompound(');
  const guard=source.indexOf('arm.hasGroupBy||arm.hasHaving',start);
  assert.ok(guard>start);
  assert.ok(guard<source.indexOf('const resolved=select.arms.map',start));
@@ -138,7 +138,8 @@ test('grouped ALL owns per-arm GROUP carrier and common exhaustion',()=>{
 test('mixed grouped ALL ordinary arm uses parent producer and common break',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  assert.match(source,/compileInnerTableSelect\(armSelect,plan.*destination:dest,compoundLimit:\{registers:limit,stops\}/);
- assert.match(source,/if\(op.code==='DecrJumpZero'&&op.p2===0\)\{if\(owner\?\.compoundLimit\)owner.compoundLimit.stops.push\(at\)/);
+ assert.match(source,/if\(owner\?\.compoundLimit\)\{owner.compoundLimit.stops.push\(ops.length\);ops.push\(\{code:'DecrJumpZero'/);
+ assert.match(source,/builder.jump\(destinationExit,\{code:'DecrJumpZero'/);
  assert.match(source,/if\(limit&&!owner\?\.compoundLimit\)\(ops\[limit.ifZero\]/);
 });
 
@@ -178,7 +179,9 @@ test('ordered compound producers retain arm GROUP/HAVING and dispatch groups to 
  assert.match(branch,/groupBy:arm.groupBy\?\?Object.freeze\(\[\]\),having:arm.having\?\?null/);
  assert.match(branch,/if\(selectHasAggregate\(arm\)\|\|arm.hasGroupBy\)/);
  assert.match(branch,/compileAggregateSelect\(arm.*builder,ops,parameters,destination/);
- assert.match(source,/if\(select.hasCompound\)return compileTableCompoundProducer/);
+ assert.match(source,/if\(select.hasCompound\)\{\s*const compiled=compileTableCompoundProducer\([^;]*privateStateLimits,shared\)/);
+ assert.match(source,/if\(compiled&&'ops' in compiled\)return compiled/);
+ assert.match(source,/ops:shared\.builder\.ops,registers:shared\.builder\.registers[^\n]*columns:compiled\.columns/);
  assert.match(source.slice(source.indexOf('function compileTableCompoundProducer('),source.indexOf('function compileDerivedProducer(')),/if\(select.orderBy.length\)\{[\s\S]*compileOrderedCteUnionAll[\s\S]*rejectUnsupportedSelectClauses/);
 });
 

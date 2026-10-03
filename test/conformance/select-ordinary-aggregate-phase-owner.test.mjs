@@ -34,6 +34,8 @@ for(const {sql,names,rows} of cases)test(`derived compound destination: ${sql}`,
 test('ordinary aggregate lower consumes resolved phase owner',async()=>{
  const {readFileSync}=await import('node:fs');const source=readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  assert.doesNotMatch(source,/rawTrees.map\(resolve\)/);
+ assert.doesNotMatch(source,/groups=select\.groupBy\.map\(x=>resolve\(aliasExpression\(/,'GROUP key producer must consume resolved linked source identity before sorter capture');
+ assert.doesNotMatch(source,/const rowColumns=\(e:Expression\)/,'GROUP sorter argument and bare-result consumers must use linked AggInfo column phase state, not an independent payload-index rewrite');
  assert.match(source,/phase.output.register/);
  assert.match(source,/entry.phase\?\.accumulator.register/);
  assert.doesNotMatch(source,/const lower=\(e:Expression,inside=false\)/,'ordinary aggregate lowering lacks linked phase carrier');

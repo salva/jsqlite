@@ -25,9 +25,10 @@ export interface ResolvedResult {readonly name:string;readonly expression:ExprNo
 export interface ResolvedWindow {readonly functionName:string;readonly argumentCount:number;readonly owner:ExprNode;readonly filter:ExprNode|null;readonly definitionName:string|null;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode;readonly compatibleGroup:number}
 export interface ResolvedWindowDefinition {readonly name:string;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode}
 export interface ResolvedColumnUse {readonly expression:ExprReduction;readonly source:ResolvedSource;readonly columnIndex:number;readonly selectDepth:number;readonly mergedSources?:readonly ResolvedColumnRef[]|null}
-export interface ResolvedSelect {readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
+// resolve.c TK_AGG_FUNCTION.op2: lexical depth relative to this SELECT.
+export interface ResolvedSelect {readonly aggregateUses?:ReadonlyMap<ExprReduction,number>;readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
 /** Transient resolve.c NameContext frame; never attached to immutable schema AST. */
-interface NameContext {readonly aliasUses?:Map<ExprReduction,ExprReduction>;readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
+interface NameContext {readonly aggregateUses?:Map<ExprReduction,number>;readonly aliasUses?:Map<ExprReduction,ExprReduction>;readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:'reduction'};
 export function expressionStructurallyEqual(left:ExprNode,right:ExprNode,sources:SelectNode['arms'][number]['from']['items'],ignoreTopLevelCollate=true):boolean{
  if(!left.reduction||!right.reduction)return false;
@@ -217,7 +218,9 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
 function lookupName(expression:ExprNode,context:NameContext,owner:NameContext=context,reduction?:ExprReduction):{resolved:ResolvedColumnRef;mergedSources:readonly ResolvedColumnRef[]|null}|null{
  let frame:NameContext|null=context,depth=0;
  while(frame){
-  try{const match=direct(expression,frame.sources);if(match){if(depth>0)owner.nRef++;if(reduction){
+  try{const match=direct(expression,frame.sources);if(match){// resolve.c lookupName848: every intermediate NameContext records
+    // the reference so its SELECT cannot cache a transitive correlation.
+    if(depth>0)for(let linked:NameContext|null=owner;linked&&linked!==frame;linked=linked.pNext)linked.nRef++;if(reduction){
     // resolveExprStep resolves TK_ID below TK_COLLATE/parentheses. direct()
     // unwraps these for lookup, so publish that same leaf identity for linked
     // lowering as well as the wrapper used by result metadata consumers.
@@ -299,7 +302,7 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    if(rejectAggregateFunctions&&!over&&hasAggregate({kind:'tokens',tokens:[],reduction:node})&&token)throw new NameResolutionError(`misuse of aggregate function ${identifier(token.text)}()`);
    if(ownerName==='likelihood'&&ownerCount===2){let argumentList=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));if(argumentList?.kind==='reduction'&&argumentList.signature==='exprlist ::= nexprlist')argumentList=argumentList.children[0];const allArguments:(typeof argumentList)[]=[];const collectArguments=(part:typeof argumentList):void=>{if(part?.kind!=='reduction')return;if(part.signature.includes('::= nexprlist COMMA')){collectArguments(part.children[0]);allArguments.push(part.children.at(-1));}else allArguments.push(part.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::=')));};collectArguments(argumentList);const second=allArguments[1],literal=second?tokens(second).map(item=>item.text).join(''):'';let unwrapped=literal;while(unwrapped.startsWith('(')&&unwrapped.endsWith(')'))unwrapped=unwrapped.slice(1,-1);const probability=/^(?:\d+\.\d+|\.\d+|\d+(?:\.\d+)?[eE][+-]?\d+)$/.test(unwrapped)?Number(unwrapped):NaN;if(!Number.isFinite(probability)||probability<0||probability>1)throw new NameResolutionError('second argument to likelihood() must be a constant between 0.0 and 1.0');}
    if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),known=['avg','count','group_concat','string_agg','sum','total','min','max','abs','lower','upper','quote','zeroblob','randomblob','unistr','unistr_quote','hex','length','octet_length','typeof','unicode','nullif','replace','substr','coalesce','char','likely','unlikely','likelihood','random','sqlite_version','changes','total_changes','last_insert_rowid','ltrim','rtrim','trim','instr','printf','format','unhex','subtype','round','concat','concat_ws','ifnull','sqlite_source_id','sqlite_log','unistr','unistr_quote','substring','iif','if','date','time','datetime','julianday','unixepoch','strftime','timediff','like','glob','load_extension','json','jsonb','json_array','jsonb_array','json_array_length','json_error_position','json_patch','jsonb_patch','json_pretty','json_quote','json_type','json_valid','json_extract','jsonb_extract','json_insert','jsonb_insert','json_object','jsonb_object','json_remove','jsonb_remove','json_replace','jsonb_replace','json_set','jsonb_set','json_array_insert','jsonb_array_insert','json_parse','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc','sqlite_compileoption_used','sqlite_compileoption_get','sign','ceil','ceiling','floor','trunc','ln','log','log10','log2','exp','pow','power','mod','acos','asin','atan','atan2','cos','sin','tan','cosh','sinh','tanh','acosh','asinh','atanh','sqrt','radians','degrees','pi','median','percentile','percentile_cont','percentile_disc','sqlite_offset','row_number','rank','dense_rank','percent_rank','cume_dist','ntile','lag','lead','first_value','last_value','nth_value'].includes(name);if(!known)throw new NameResolutionError(`no such function: ${identifier(token.text)}`);}
-   if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name)||(['min','max'].includes(name)&&count===1),argumentsNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));const nested=aggregate&&argumentsNode?firstAggregateName({kind:'tokens',tokens:[],reduction:argumentsNode}):null;if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
+   if(token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name)||(['min','max'].includes(name)&&count===1),argumentsNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));const nested=aggregate&&!over&&argumentsNode?firstAggregateName({kind:'tokens',tokens:[],reduction:argumentsNode}):null;if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
    if(over&&token&&rejectWindowFunctions)throw new NameResolutionError(`misuse of window function ${identifier(token.text)}()`);
    if(over&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),window=['row_number','rank','dense_rank','percent_rank','cume_dist','ntile','lag','lead','first_value','last_value','nth_value','avg','count','group_concat','string_agg','sum','total','min','max','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name);if(!window)throw new NameResolutionError(`${identifier(token.text)}() may not be used as a window function`);}
    if(over&&firstWindowName({kind:'tokens',tokens:[],reduction:over}))throw new NameResolutionError(`misuse of window function ${firstWindowName({kind:'tokens',tokens:[],reduction:over})}()`);
@@ -308,7 +311,20 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    if(argumentsNode&&firstWindowName({kind:'tokens',tokens:[],reduction:argumentsNode}))throw new NameResolutionError(`misuse of window function ${firstWindowName({kind:'tokens',tokens:[],reduction:argumentsNode})}()`);
    if(filter&&firstWindowName({kind:'tokens',tokens:[],reduction:filter}))throw new NameResolutionError(`misuse of window function ${firstWindowName({kind:'tokens',tokens:[],reduction:filter})}()`);
    if(filter)walk(filter);
-   if(filter){const nested=firstAggregateName({kind:'tokens',tokens:[],reduction:filter});if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
+   if(filter&&!over){const nested=firstAggregateName({kind:'tokens',tokens:[],reduction:filter});if(nested)throw new NameResolutionError(`misuse of aggregate function ${nested}()`);}
+   // resolve.c1356: arguments determine the nearest referenced SrcList.
+   // Publish depth on the function, not on its independently bound columns.
+   if(!over&&token&&count!==null){
+    const name=sqliteAsciiFold(identifier(token.text));
+    const aggregate=['avg','count','group_concat','string_agg','sum','total','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name)||(['min','max'].includes(name)&&count===1);
+    if(aggregate){
+     const contains=(part:ExprReduction,target:ExprReduction):boolean=>part===target||part.children.some(child=>child.kind==='reduction'&&contains(child,target));
+     const references=context.columnUses.filter(use=>contains(node,use.expression));
+     let owner:NameContext|null=context,depth=0;
+     while(owner&&!references.some(use=>owner!.sources.includes(use.source))){owner=owner.pNext;depth++;}
+     context.aggregateUses?.set(node,owner?depth:0);
+    }
+   }
    if(filter&&token&&count!==null){const name=sqliteAsciiFold(identifier(token.text)),aggregate=['avg','count','group_concat','string_agg','sum','total','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc'].includes(name)||(['min','max'].includes(name)&&count===1);if(over&&!aggregate)throw new NameResolutionError('FILTER clause may only be used with aggregate window functions');if(!over&&!aggregate)throw new NameResolutionError(`FILTER may not be used with non-aggregate ${identifier(token.text)}()`);}
    return;
   }
@@ -409,7 +425,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
  const columnUses:ResolvedColumnUse[]=[];
- const context:NameContext={sources,pNext:outer,columnUses,aliasUses:new Map(),nRef:0},nested:ResolvedSelect[]=[];
+ const context:NameContext={sources,pNext:outer,columnUses,aliasUses:new Map(),aggregateUses:new Map(),nRef:0},nested:ResolvedSelect[]=[];
  let nextCursor=cursorBase+sources.length;
  const lastCursor=(resolved:ResolvedSelect):number=>Math.max(-1,...resolved.sources.map(source=>source.cursorId),...resolved.nested.map(lastCursor));
  const seenNested=new Set<SelectNode>();
@@ -455,6 +471,10 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    if(ordinal<1||ordinal>output.length){const n=i+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new NameResolutionError(`${n}${suffix} GROUP BY term out of range - should be between 1 and ${output.length}`);}
    if(firstWindowName(select.result[ordinal-1]!))throw new NameResolutionError(`misuse of window function ${firstWindowName(select.result[ordinal-1]!)}()`);
    if(hasAggregate(select.result[ordinal-1]!))throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
+   // resolve.c:sqlite3ResolveOrderGroupBy substitutes the selected expression,
+   // retaining its already-resolved lexical identity for all lowering callers.
+   const selected=select.result[ordinal-1]!.reduction;
+   if(expression.reduction?.kind==='reduction'&&selected?.kind==='reduction')context.aliasUses!.set(expression.reduction,selected);
    continue;
   }
   resolveAgainstSources(expression,sources,select.result,bareName(expression)===null&&collatedBareName(expression)===null,false,true,select.windowNames,select.windowDefinitions,context,resolveNested);
@@ -485,7 +505,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   if(aggregate&&!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);
  }
  const resolvedWindowGraph=collectResolvedWindows(select,windowDefinitions);
- const plan:ResolvedSelect=Object.freeze({aliasUses:context.aliasUses!,orderResultColumns:Object.freeze(orderResultColumns),source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
+ const plan:ResolvedSelect=Object.freeze({aggregateUses:context.aggregateUses!,aliasUses:context.aliasUses!,orderResultColumns:Object.freeze(orderResultColumns),source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
  const metadataResults=plan.result.map(item=>{
   const expression=item.expression.reduction;
   if(!expression||!linkedScalarMetadataExpression(expression))return item;
@@ -761,10 +781,17 @@ export function resolvedExpressionCarrier(plan:ResolvedSelect,reduction:ExprRedu
  * Producer-row registers are distinct from aggregate finalized-row registers.
  * The latter phase has no consumer here and must not be inferred from a number.
  */
+/** expr.c TK_AGG_COLUMN: shared compile-time state, consumed during emission. */
+export interface AggregateColumnOwner {
+ directMode:boolean;useSortingIdx:boolean;sortingIndexRegister:number;sourceRegisters?:number;
+ readonly columns:Map<number,{iSorterColumn:number;accumulatorRegister:number}>;
+}
 export type ResolvedExpressionLocation =
- | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number}
+ | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number;readonly aggregateColumn?:{owner:AggregateColumnOwner;iAgg:number}}
  | {readonly kind:'register';readonly register:number;readonly phase:'producer-row'|'source-row'};
 export interface ResolvedExpressionBinding {
+ /** Already-enrolled AggInfo output; absent for source argument binding. */
+ readonly aggregateOutput?:(reduction:ExprReduction)=>number|undefined;
  readonly location:(reference:ResolvedColumnRef,selectDepth:number)=>ResolvedExpressionLocation;
  readonly policy:'joined-aggregate'|'scalar'|'derived-predicate'|'window-filter'|'window-source'|'aggregate-source'|'ordinary-aggregate';
 }

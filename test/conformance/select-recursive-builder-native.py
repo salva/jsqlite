@@ -14,7 +14,13 @@ cases=[
  ('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c',[1,2,3,4]),
  ('WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3 UNION SELECT x FROM c) SELECT x FROM c',[1,2,3]),
  ('WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x*2 FROM q WHERE x<4 UNION ALL SELECT x*2+1 FROM q WHERE x<4 ORDER BY 1 DESC) SELECT x FROM q',[1,3,7,6,2,5,4]),
+ ('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT 2 OFFSET 1',[2,3]),
+ ('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8 LIMIT 3 OFFSET 1) SELECT x FROM c LIMIT 2 OFFSET 1',[3,4]),
+ ('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT 0',[]),
+ ('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT -1 OFFSET 2',[3,4]),
 ]
+L.sqlite3_bind_int64.argtypes=[P,C.c_int,C.c_longlong];L.sqlite3_bind_int64.restype=C.c_int
+L.sqlite3_errmsg.argtypes=[P];L.sqlite3_errmsg.restype=C.c_char_p
 db=P();assert L.sqlite3_open(b':memory:',C.byref(db))==0
 try:
  for sql,expected in cases:
@@ -30,4 +36,19 @@ try:
    print(json.dumps({'sourceId':source,'sql':sql,'names':['x'],'rows':rows,'iterations':2}))
   finally:
    if stmt:assert L.sqlite3_finalize(stmt)==0
+ # Independent binding/reset and compile-time LIMIT0 resolution controls.
+ stmt=P();sql='WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8 LIMIT ?1 OFFSET ?2) SELECT x FROM c LIMIT ?3 OFFSET ?4'
+ assert L.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(stmt),None)==0
+ try:
+  for values,expected in [([3,1,2,1],[3,4]),([3,1,0,1],[]),([3,1,-1,0],[2,3,4])]:
+   for i,v in enumerate(values,1):assert L.sqlite3_bind_int64(stmt,i,v)==0
+   rows=[]
+   while (rc:=L.sqlite3_step(stmt))==100:rows.append((L.sqlite3_column_type(stmt,0),L.sqlite3_column_int64(stmt,0)))
+   assert rc==101 and rows==[(1,x) for x in expected],(values,rows)
+   assert L.sqlite3_reset(stmt)==0
+ finally:assert L.sqlite3_finalize(stmt)==0
+ stmt=P();sql='WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT missing FROM c LIMIT 0'
+ assert L.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(stmt),None)==1
+ assert L.sqlite3_errmsg(db)==b'no such column: missing'
+ print('outer binding/reset and LIMIT0 code1 controls pass')
 finally:assert L.sqlite3_close(db)==0

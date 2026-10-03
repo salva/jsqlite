@@ -8,6 +8,10 @@ const cases=[
  ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c',[1n,2n,3n,4n]],
  ['WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<3 UNION SELECT x FROM c) SELECT x FROM c',[1n,2n,3n]],
  ['WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x*2 FROM q WHERE x<4 UNION ALL SELECT x*2+1 FROM q WHERE x<4 ORDER BY 1 DESC) SELECT x FROM q',[1n,3n,7n,6n,2n,5n,4n]],
+ ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT 2 OFFSET 1',[2n,3n]],
+ ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8 LIMIT 3 OFFSET 1) SELECT x FROM c LIMIT 2 OFFSET 1',[3n,4n]],
+ ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT 0',[]],
+ ['WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c LIMIT -1 OFFSET 2',[3n,4n]],
 ];
 test('public recursive queue, distinct and priority consumers retain pinned types, metadata and reset',async()=>{
  const server=await startFixtureServer(path.resolve('test/fixtures'));let db;
@@ -31,4 +35,11 @@ test('recursive producer allocates queue/history cursors, register ranges and ex
  assert.match(producer,/selectProgramBuilder\.cursor\(\)/);
  assert.match(producer,/selectProgramBuilder\.label\(\)/);
  assert.doesNotMatch(producer,/maximum\s*\+=/);
+});
+
+test('recursive outer LIMIT0 still resolves missing output before execution',async()=>{
+ const server=await startFixtureServer(path.resolve('test/fixtures'));let db;
+ try{db=await openFixture(new Request(`http://127.0.0.1:${server.port}/fixture/${server.token}/empty`));
+ assert.throws(()=>db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT missing FROM c LIMIT 0'),e=>e.code===1&&e.message==='no such column: missing');
+ }finally{db?.closeDeferred();await new Promise(r=>server.server.close(r))}
 });

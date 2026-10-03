@@ -11,7 +11,9 @@ test('linked NameContext preserves shadowing, ambiguity, correlation depth, and 
  const lexical=resolve('SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o');
  assert.equal(lexical.correlated,false);assert.equal(lexical.nested.length,1);assert.equal(lexical.nested[0].correlated,true);assert.deepEqual(lexical.nested[0].sources.map(source=>source.cursorId),[1]);
  const deep=resolve('SELECT o.a,(SELECT (SELECT o.b+x FROM t2 i WHERE i.x=o.a LIMIT 1)) FROM t1 o');
- assert.equal(deep.nested[0].correlated,false);assert.equal(deep.nested[0].nested[0].correlated,true);assert.deepEqual(deep.nested[0].nested[0].sources.map(source=>source.cursorId),[1]);
+ // resolve.c lookupName increments intervening NameContexts: this singleton
+ // is correlated through its child and must not receive OP_Once.
+ assert.equal(deep.nested[0].correlated,true);assert.equal(deep.nested[0].nested[0].correlated,true);assert.deepEqual(deep.nested[0].nested[0].sources.map(source=>source.cursorId),[1]);
  const siblings=resolve('SELECT (SELECT x FROM t2),(SELECT y FROM t2) FROM t1');
  assert.deepEqual(siblings.nested.flatMap(item=>item.sources.map(source=>source.cursorId)),[1,2]);
  assert.throws(()=>resolve('SELECT (SELECT a) FROM t1 x JOIN t1 y'),error=>error instanceof NameResolutionError&&error.message==='ambiguous column name: a');
@@ -182,7 +184,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY missing) FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT sum(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT lag(DISTINCT missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
- assert.throws(()=>resolve('SELECT median(json_group_array(x) OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function json_group_array()');
+ assert.throws(()=>resolve('SELECT median(json_group_array(x) OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function json_group_array()');
  assert.throws(()=>resolve('SELECT row_number(missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT nosuch(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such function: nosuch');
  assert.throws(()=>resolve('SELECT abs(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='abs() may not be used as a window function');
@@ -194,7 +196,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT median(x) OVER (PARTITION BY row_number() OVER ()) FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
  assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE row_number() OVER ()) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of window function row_number()');
- assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE median(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
+ assert.doesNotThrow(()=>resolve('SELECT median(x) FILTER (WHERE median(x)) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT median(x) FILTER (WHERE missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT percentile(x,missing) FILTER (WHERE x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.doesNotThrow(()=>resolve('SELECT median(x) FILTER (WHERE x) OVER (), percentile(x,50) FILTER (WHERE x) OVER () FROM a'));
@@ -225,8 +227,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT percentile(a.x,50) FILTER (WHERE a.x) FROM a HAVING 1'));
  assert.throws(()=>resolve('SELECT json_group_array(DISTINCT x,x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
  assert.throws(()=>resolve('SELECT percentile(DISTINCT x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='DISTINCT is not supported for window functions');
- assert.throws(()=>resolve('SELECT sum(sum(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function sum()');
- assert.throws(()=>resolve('SELECT json_group_array(median(x)) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
+ assert.doesNotThrow(()=>resolve('SELECT sum(sum(x)) OVER () FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT json_group_array(median(x)) OVER () FROM a'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT json_group_array(a.x) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');
  assert.throws(()=>resolve('SELECT percentile(a.x,50) OVER () FROM a HAVING 1'),e=>e instanceof NameResolutionError&&e.message==='HAVING clause on a non-aggregate query');

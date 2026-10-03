@@ -1,9 +1,12 @@
+import { sqliteAsciiFold } from './sqlite-case.ts';
+import { NameResolutionError, expandAndResolveSelect, type ResolvedSelect } from './resolve.ts';
+import { JSQLiteError } from '../index.ts';
 import type { SelectNode } from "./parse.ts";
 import type { SchemaGraph } from "./schema.ts";
 import type { BtreeDatabase } from "./btree.ts";
 import type { Program } from "./vdbe.ts";
-import { SelectProgramBuilder, type SelectDest } from "./select-program.ts";
-import { compileAggregateSelect, compileCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
+import { SelectProgramBuilder, emitSelectDestination, type SelectDest } from "./select-program.ts";
+import { compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
 
 /**
  * Production SELECT program entry. The graph has already passed public parse,
@@ -28,10 +31,50 @@ export function compileSelect(
   recursive: boolean,
 ): Program {
   if (recursive) {
-    return compileRecursiveWindowSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits)
-      ?? compileRecursiveAggregateSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows)
-      ?? compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows)
-      ?? compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows);
+    // Specialized recursive consumers retain their current admission. A
+    // selected compiler error is terminal; only undefined declines the branch.
+    {
+      const builder = new SelectProgramBuilder<Program["ops"][number]>();
+      const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+      const destination: SelectDest = { kind: "output" };
+      const windowProgram = compileRecursiveWindowSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+      if (windowProgram) {
+        builder.ops.push({ code: "Halt" });
+        return Object.freeze({ ...windowProgram, ops: builder.finish(), registers: builder.registers });
+      }
+    }
+    // The ordinary recursive aggregate consumer shares enclosing Parse allocation and output.
+    // Admission declines before emission; selected diagnostics are terminal.
+    {
+      const builder = new SelectProgramBuilder<Program["ops"][number]>();
+      const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+      const destination: SelectDest = { kind: "output" };
+      const aggregateProgram = compileRecursiveAggregateSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+      if (aggregateProgram) {
+        builder.ops.push({ code: "Halt" });
+        return Object.freeze({ ...aggregateProgram, ops: builder.finish(), registers: builder.registers });
+      }
+    }
+    {
+      const builder = new SelectProgramBuilder<Program["ops"][number]>();
+      const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+      const destination: SelectDest = { kind: "output" };
+      const multipleProgram = compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, { builder, parameters, destination });
+      if (multipleProgram) {
+        builder.ops.push({ code: "Halt" });
+        return Object.freeze({ ...multipleProgram, ops: builder.finish(), registers: builder.registers });
+      }
+    }
+    // generateWithRecursiveQuery consumes the enclosing Parse/Vdbe and dest.
+    // Reserve the current VM's physical zero convention before queue/history
+    // allocation, just as the standalone producer did; do not remap WHERE.
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    builder.reserveCursorsThrough(0);
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    const produced = compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, false, { builder, parameters, destination });
+    builder.ops.push({ code: "Halt" });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
   }
   // select.c:sqlite3Select dispatches a compound to multiSelect before
   // coding the rightmost arm's aggregate. Each arm owns its own aggregate
@@ -56,18 +99,75 @@ export function compileSelect(
   }
   // select.c:sqlite3Select dispatches the compound before any arm's
   // SF_Aggregate production. Keep this bounded ordered composer in that owner.
-  if (select.hasCompound && select.from.items.length && !select.limit && !select.offset && select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all') && select.orderBy.length===1 && select.result.length===1 && select.orderBy[0]!.expr.tokens.length===1 && select.orderBy[0]!.expr.tokens[0]!.text==='1') {
+  if (select.hasCompound && select.arms.some(arm=>arm.from.items.length) && !select.limit && !select.offset && select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all') && select.orderBy.length===1 && select.result.length===1) {
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    // Compound ORDER resolution belongs to the selected composer, not token
+    // admission. Invalid ordinals must reach its native code-1 diagnostics.
+    const compiled = compileOrderedCteUnionAll(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+    if (compiled) {
+      builder.ops.push({ code: "Halt" });
+      return Object.freeze({ ops: builder.finish(), registers: builder.registers, encoding,
+        columns: compiled.columns, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))),
+        database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits });
+    }
     return compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
   }
-  const aggregate = selectHasAggregate(select) || select.hasGroupBy || select.hasHaving;
+  // Existing transient/window/set entry owners still prepare their own graphs.
+  // For physical ordinary entry, resolved aggregate depth—not nested spelling—
+  // selects the enclosing AggInfo path. Do not publish resolver errors raw.
+  const hasNestedSelect=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>node.kind==='reduction'&&(((node.signature==='expr ::= LP select RP'||node.signature==='expr ::= EXISTS LP select RP'||node.signature==='expr ::= expr in_op LP select RP')&&node.children.some(child=>child.kind==='reduction'&&child.signature.startsWith('select ::=')&&child.semantic&&typeof child.semantic==='object'&&'kind' in child.semantic&&child.semantic.kind==='select'&&selectHasAggregate(child.semantic as SelectNode)))||node.children.some(hasNestedSelect));
+  const resolveLexical=()=>{try{return expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}};
+  const hasTransientSelect=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):boolean=>node.kind==='reduction'&&((!!node.semantic&&typeof node.semantic==='object'&&'kind' in node.semantic&&node.semantic.kind==='select'&&!!((node.semantic as SelectNode).from.derived||(node.semantic as SelectNode).from.cteDerived?.length))||node.children.some(hasTransientSelect));
+  const lexicalPlan = select.from.items.length>0&&!select.result.some(expression=>expression.reduction&&hasTransientSelect(expression.reduction))&&select.result.some(expression=>expression.reduction&&hasNestedSelect(expression.reduction))&&!selectHasAggregate(select)&&!select.hasGroupBy&&!select.hasHaving&&!select.hasCompound&&!select.hasValues&&!select.from.derived&&!select.from.cteDerived?.length ? resolveLexical() : undefined;
+  const ownsNestedAggregate=(plan:ResolvedSelect,depth=0):boolean=>[...(plan.aggregateUses?.values()??[])].some(owner=>owner===depth)||plan.nested.some(child=>ownsNestedAggregate(child,depth+1));
+  const aggregate = selectHasAggregate(select) || (lexicalPlan!==undefined&&ownsNestedAggregate(lexicalPlan)) || select.hasGroupBy || select.hasHaving;
   const window = selectHasWindow(select);
   const jsonTableAggregate = aggregate && select.from.items.length === 1 &&
     ["json_each", "json_tree", "jsonb_each", "jsonb_tree"].includes(select.from.items[0]!.tableName.toLowerCase());
   if (aggregate && !window && !jsonTableAggregate) {
-    return compileAggregateSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
+    // Aggregate analysis/capture/finalization consumes the enclosing Parse/Vdbe.
+    // The physical WHERE range remains reserved until its callers migrate.
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    builder.reserveCursorsThrough(30);
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    const produced = compileAggregateSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, ops: builder.ops, parameters, destination });
+    builder.ops.push({ code: "Halt" });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+  }
+  // Only the ordinary physical window consumer below has migrated here.
+  // Retained/JSON/CTE specializations keep their live preparation contracts.
+  if (selectHasWindow(select) && !select.hasCompound && !select.with && !select.from.derived && !select.from.cteDerived?.length && !select.from.flattenedDerived && select.from.items.length === 1 && !select.from.items[0]!.arguments && !select.from.items[0]!.databaseName && schema.tables.has(sqliteAsciiFold(select.from.items[0]!.tableName))) {
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    builder.reserveCursorsThrough(30);
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    const produced = compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+    builder.ops.push({ code: "Halt" });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
   }
   if (select.from.items.length || select.where) {
-    return compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits);
+    const builder = new SelectProgramBuilder<Program["ops"][number]>();
+    builder.reserveCursorsThrough(30);
+    const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+    const destination: SelectDest = { kind: "output" };
+    const produced = compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
+    // Specialized retained/JSON/join consumers still publish independently.
+    // Only a producer that actually consumed this Parse can be finalized here.
+    if (produced.ops !== builder.ops) return produced;
+    builder.ops.push({ code: "Halt" });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
   }
-  return compileScalarSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, schema, database, maxRows);
+  // select.c:multiSelect/selectInnerLoop consume the enclosing allocation and
+  // destination even for zero-source arms. Early window/CTE consumers forward
+  // this same owner; selected errors cannot publish or retry a child Program.
+  const builder = new SelectProgramBuilder<Program["ops"][number]>();
+  const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+  const destination: SelectDest = { kind: "output" };
+  const emitRow = (first: number, count: number) => emitSelectDestination(builder.ops, destination, first, count);
+  const produced = compileScalarSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, schema, database, maxRows, { builder, parameters, emitRow, destination });
+  builder.ops.push({ code: "Halt" });
+  return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
 }
