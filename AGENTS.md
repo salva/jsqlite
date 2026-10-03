@@ -28,7 +28,14 @@ under SPEC, initially seeded with proposed mappings and source-backed notes.
 Before decomposing, implementing or reviewing a relevant slice, read its core
 and needed sections and consult the mapped upstream source. Refine technical
 choices autonomously as evidence develops, keeping guide, source map, applicable
-API contracts, examples and tests coherent. Decide needed representations before
+API contracts, examples and tests coherent within the assigned work. Keep the guide's
+current contracts, decisions, source rationale and relevant limitations concise;
+replace or consolidate superseded current assertions rather than append competing
+accounts. Keep detailed revision/test inventories, hashes, commands and results in
+existing card records or research/evidence documents, linked from relevant guidance;
+preserve provenance rather than delete history merely to shorten documents. Keep the
+source map a navigable current upstream-to-TS/test mapping with evidence links, not
+an execution diary. Decide needed representations before
 their consuming implementation, not every structure before engine work. Re-read
 relevant current sections when changed or contradicted by context, not every turn.
 
