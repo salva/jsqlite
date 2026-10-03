@@ -4150,3 +4150,16 @@ across all encodings plus six exact errors, metadata and genuine expression
 seek/nonmatching scan controls. This is not a blanket fidelity approval;
 independent re-review is required. Advanced selected credit stays 24/30,
 not 30/30 by counting fallback. No production compiler edit was needed.
+
+### R2 ORDER-consumption repair evidence (2026-10-03)
+
+Root review v6 correctly found that finding10's sorter-route resolver guarantees
+did not cover planner bypass. Independent native/public RED: 30 wrong-order
+executions in 57 cases, all encodings. Token-spelling handoff is now replaced by
+existing SELECT alias/ordinal and column ownership; NULL placement is explicit.
+Only true represented IPK, not arbitrary primaryKeyPosition, supplies rowid
+order. Nondefault NULL index traversal retains sorter (no BIGNULL claim).
+Public discrimination now passes 114 executions plus six errors, with actual
+sorter/index accounting. Tied-key ordering is not an observable guarantee; the
+exact NULL-discriminator fixture uses distinct keys. Advanced24/30 and default
+order consumption remain separately tested. Independent review remains needed.

@@ -6872,3 +6872,16 @@ non-driveable residuals. No VM eligibility recomputation added.
 public execution and real private seek/scan accounting in three encodings,
 with genuine expression-positive/negative controls. Existing RIGHT/FULL
 fallback and LEFT masks remain covered by shared analysis regressions.
+
+### R2 resolved physical ORDER handoff (2026-10-03)
+
+`resolve.c:resolveOrderGroupBy` → existing `resolve.ts:orderResultColumns` plus
+columnUses/result identity → `where-plan.ts:resolvedWhereOrder` → single-table
+`vdbe.ts` planner handoff. The helper consumes existing semantic resolution;
+there is no second name/alias resolver. `where.c:wherePathSatisfiesOrderBy`
+5246–5445 resolved column/collation/direction/BIGNULL branches →
+`OrderRequirement.nulls`, `orderContribution`, true IPK scan order. Unsupported
+nondefault NULL index traversal retains SorterOpen/Insert instead of asserting
+consumption. WR physical primary order remains separate. Source-based native
+and public tests: capture-where-order-consumption.py and
+where-order-consumption-public.test.mjs, with private traversal/sorter evidence.

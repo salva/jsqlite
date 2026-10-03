@@ -20,7 +20,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
-import { planWhere, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
+import { planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
@@ -5205,7 +5205,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       ...select.orderBy.flatMap(term=>{const tokens=term.expr.tokens,name=tokens.length===1?sqlName(tokens[0]!.text):tokens.length===3&&tokens[1]!.text==="."?sqlName(tokens[2]!.text):null;const column=name===null?undefined:table.columns.find(candidate=>sqliteIdentifierEqual(candidate.name,name));return column?[column]:[];}),
     ]);
     if(expanded.result.some(result=>result.source===expanded.sources[0]&&result.columnIndex===-1))needed.add(ROWID_NEEDED as never);
-    const orderBy=select.orderBy.flatMap(term=>{const tokens=term.expr.tokens,name=tokens.length===1?sqlName(tokens[0]!.text):tokens.length===3?sqlName(tokens[2]!.text):null;if(name===null)return [];const column=table.columns.find(column=>sqliteIdentifierEqual(column.name,name));return column?[{sourceOrdinal:0,column,descending:term.descending,collation:(sqliteAsciiFold(column.collation??"binary") as "binary"|"nocase"|"rtrim")}]:[];});
+    const orderBy=resolvedWhereOrder(expanded);
     const selection=planWhere(expanded,{neededColumns:[needed],orderBy}),loop=selection.path?.loops[0];
     whereAccounting=Object.freeze({plannerCandidates:selection.plannerCandidates,plannerPaths:selection.plannerPaths});selectedLoopTerms=loop?.terms??Object.freeze([]);
     if(loop?.kind==="table-scan"&&loop.capability){rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}

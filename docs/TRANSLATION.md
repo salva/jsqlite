@@ -11459,3 +11459,33 @@ assertions distinguish real expression seeks from negative forced full scans;
 fallback is not selected credit. Before repair id+1=2 returned id=2 rather than
 native id=1; after repair it scans/residual-tests and returns id=1. Direct id
 controls still seek. Advanced selected credit remains bounded to 24/30.
+
+### R2 resolved ORDER consumption boundary (2026-10-03)
+
+`resolvedWhereOrder` reuses SELECT resolution's `orderResultColumns` and exact
+column-use/result ownership before single-table WHERE handoff. Alias and ordinal
+precedence are not reconstructed from names in the VM. Requirements retain
+effective explicit/declared collation, direction and NULL placement. A list not
+fully representable as resolved direct columns remains sorter-owned, rather
+than publishing a shortened ORDER proof. Expression alias collisions therefore
+cannot masquerade as physical columns. Existing expression-index access stays
+eligible independently of whether ORDER needs a sorter.
+
+`where.c:wherePathSatisfiesOrderBy` (5246–5445) consumes resolved expressions,
+true iPKey/XN_ROWID identities, collations and KEYINFO_ORDER_BIGNULL. Rowid
+scan/order now uses only represented INTEGER PRIMARY KEY identity, excluding
+WITHOUT ROWID and descending primary layouts; ordinary TEXT/composite primary
+keys are not rowid. WITHOUT ROWID uses its existing physical primary descriptor.
+Nondefault NULL placement receives zero index order contribution and retains
+the existing typed sorter: BIGNULL two-pass lowering is **not** claimed.
+Default NULL placement and true IPK directions retain consumed-order execution.
+No algorithm replacement or public API change is introduced.
+
+`capture-where-order-consumption.py` checks the manifest source ID and captures
+57 cases/114 native runs plus six errors in three encodings. Its public companion
+compares typed rows, name/declared-type metadata, errors and reset/rebind, and
+asserts actual index traversal/sorter consumption. The initial RED had 30 wrong
+order executions. A tied-key native/TS sorter traversal difference was removed
+from exact-sequence discrimination by using distinct nullable ORDER keys (tie
+order is not guaranteed); it was not fixed by claiming a native tie guarantee.
+R1/ordinary69 and bounded advanced24/30 remain preservation requirements.

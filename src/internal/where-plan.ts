@@ -24,7 +24,7 @@ export interface RowidConstraint {readonly term:WhereTerm;readonly operator:Wher
 export interface BtreeCapability {readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly equalityPrefix:readonly IndexConstraintAdmission[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
 export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index";readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
-export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation}
+export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
 export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect}
@@ -56,10 +56,10 @@ export function admitIndexConstraint(term:WhereTerm,physical:PhysicalIndex,field
  else {const affinity=field.column?comparisonAffinity(field.column,term.rightAffinity):"blob";if((field.column&&!affinityOk(field.column,affinity))||term.effectiveCollation!==field.collation){byOrdinal.set(fieldOrdinal,null);return null;}comparison=freeze({kind:"comparison",affinity,collation:term.effectiveCollation});}
  const admission=freeze({term,physicalIndex:physical,fieldOrdinal,field,keyInfoTerm,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison,bound:bound(term.operator)});byOrdinal.set(fieldOrdinal,admission);return admission;
 }
-function isIntegerPrimaryKeyAlias(table:IndexNode["table"],column:ColumnNode):boolean {return !table.withoutRowid&&table.primaryKey.length===1&&table.primaryKey[0]===column&&column.declaredType?.trim().toUpperCase()==="INTEGER";}
+function isIntegerPrimaryKeyAlias(table:IndexNode["table"],column:ColumnNode):boolean {return !table.withoutRowid&&table.primaryKey.length===1&&table.primaryKey[0]===column&&column.declaredType?.trim().toUpperCase()==="INTEGER"&&!table.primaryKeyTerms?.[0]?.descending;}
 function fieldMatchesColumn(physical:PhysicalIndex,field:PhysicalIndexField,wanted:ColumnNode):boolean {return field.column===wanted||(field.role==="rowid-tail"&&isIntegerPrimaryKeyAlias(physical.index.table,wanted));}
 function orderContribution(physical:PhysicalIndex,equality:readonly IndexConstraintAdmission[],order:readonly OrderRequirement[],ordinal:number):{count:number;reverse:boolean}{
- const relevant=order.filter(item=>item.sourceOrdinal===ordinal);if(!relevant.length)return {count:0,reverse:false};let direction:boolean|null=null,count=0,requested=0,fieldOrdinal=0;
+ const relevant=order.filter(item=>item.sourceOrdinal===ordinal);if(!relevant.length||relevant.some(item=>item.nulls!=null&&item.nulls!==(item.descending?"last":"first")))return {count:0,reverse:false};let direction:boolean|null=null,count=0,requested=0,fieldOrdinal=0;
  // where.c:wherePathSatisfiesOrderBy (eqOpMask): EQ/IS/ISNULL
  // may be skipped to reach later ORDER terms. IN is not a fixed column:
  // it must itself match the next ORDER term or the suffix is not ordered.
@@ -150,12 +150,12 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(options.forcedIndex&&options.forcedIndex.table!==source.table)throw new WherePlanningUnsupportedError("forced index does not belong to source table");
  if(options.forcedIndex&&!options.forcedIndex.physical)throw new WherePlanningUnsupportedError(`unsupported physical index layout: ${options.forcedIndex.name}`);
  const sourcePrereq=options.sourcePrereq??0n;
- const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&options.orderBy[0]!.column.primaryKeyPosition!==null?options.orderBy[0]:null;
+ const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  const scanCapability:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:0,orderTermsSatisfied:scanOrder?1:0,reverse:scanOrder?.descending??false,covering:true,needsTableLookup:false,rowidEquality:null,rowidLower:null,rowidUpper:null});
  const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=owned.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:115n,outputRows:99n,terms:Object.freeze(owned)});
  const loops:WhereLoop[]=[];if(!options.forcedIndex)loops.push(scan);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
- const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&options.orderBy[0]!.column.primaryKeyPosition!==null?options.orderBy[0]:null;
+ const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  if(!options.forcedIndex&&(rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):void=>{const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});loops.push(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",setupCost:0n,runCost:rowEq?20n:40n,outputRows:rowEq?0n:40n,terms:Object.freeze(owned)}));};if(rowEquals.length)rowEquals.forEach(term=>propose(term,null,null));else for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null])propose(null,lower,upper);}
  if(!options.notIndexed)for(const index of source.table.indexes){if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&cap.constrainedFields===0&&cap.orderTermsSatisfied===0&&(!cap.covering||options.orderBy.length>0))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap);loops.push(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}));}}
  if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(adjustIndexSubsets(loops));
@@ -300,4 +300,26 @@ export function planWhere(resolved:ResolvedSelect,request:WherePlanRequest):Wher
  let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved});});
  const unsorted=wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length));
  const path=request.orderBy.length?wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length),request.orderBy.length,resolved.result.length,unsorted.rows+1n):unsorted;return freeze({analysis,path,plannerCandidates:groups.reduce((sum,group)=>sum+group.length,0),plannerPaths:path.loops.length});
+}
+
+/** SELECT resolver owns alias/ordinal precedence. Only a complete resolved
+ * direct-column ORDER list may authorize this bounded physical-order proof.
+ * Expression aliases retain the sorter; no token-spelling reconstruction. */
+export function resolvedWhereOrder(resolved:ResolvedSelect):readonly OrderRequirement[] {
+ const requirements:OrderRequirement[]=[];
+ for(const [index,term] of resolved.source.orderBy.entries()){
+  const resultIndex=resolved.orderResultColumns[index],expression=resultIndex!=null?resolved.result[resultIndex]?.expression:term.expr;
+  if(!expression?.reduction||expression.reduction.kind!=="reduction")return Object.freeze([]);
+  const node=expression.reduction as ExprReduction,use=columnUse(resolved,node);
+  // Result columns expanded from star still carry exact resolver ownership.
+  const result=resultIndex!=null?resolved.result[resultIndex]:null;
+  const source=use?.source??(result?.resolution==="direct"?result.source:null),columnIndex=use?.columnIndex??result?.columnIndex;
+  if(!source||columnIndex==null)return Object.freeze([]);
+  const column=columnIndex<0?source.table.columns.find(candidate=>isIntegerPrimaryKeyAlias(source.table,candidate)):source.table.columns[columnIndex];if(!column)return Object.freeze([]);
+  const override=term.expr.reduction?.kind==="reduction"?explicitExprCollation(term.expr.reduction as ExprReduction):null;
+  const collation=override??explicitExprCollation(node)??sqliteAsciiFold(column.collation??"binary");
+  if(collation!=="binary"&&collation!=="nocase"&&collation!=="rtrim")return Object.freeze([]);
+  requirements.push(freeze({sourceOrdinal:resolved.sources.indexOf(source),column,descending:term.descending,collation,nulls:term.nulls}));
+ }
+ return Object.freeze(requirements);
 }
