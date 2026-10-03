@@ -6838,3 +6838,21 @@ reset/reexecution, shared replacement/missing/failure position checks pass.
 Exact attempts/native temporal provenance/export evidence in card-t-d status and
 work:///cards/card-t-d/endpoint-seek-repair/. Grouped RIGHT remains delegated
 in-scope feature debt; general nTab/resource/native error parity is not certified.
+
+
+### 2026-10-03 original-e integration correction: shared join plan accounting
+
+The accepted stabilization's enclosing-builder multi-source path planned real
+WHERE loops but discarded its `whereAccounting` when the producer returned to
+`compileTableSelectProducer`. Preserve that owning planner result across the
+shared producer return; do not invent counters at execution or weaken the frozen
+LEFT JOIN ON-provenance assertion. Pinned `select.c:8292–8314` retains the
+`sqlite3WhereBegin` result for the actual loop producer; TS planning remains
+`planWhere`-owned (including ON prerequisites/null-extension). This is private
+prepare accounting propagation, not a new access algorithm or public API.
+The unchanged ordinary public driver now passes 23 cases/69 encoding assertions
+including exact zero index seeks on this LEFT JOIN control; selected/storage204
+also passes on isolated committed source plus this repair. Earlier e0f6913
+ordinary failures (twice, plannerCandidates0<1) remain historical evidence.
+No advanced24/30 selection inflation, optimizer/architecture breadth or native
+work-equivalence claim follows. See [[card:card-s-c-e]] repair status for commands.

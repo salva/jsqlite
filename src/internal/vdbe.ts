@@ -3364,8 +3364,8 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
 }
 
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):void;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|void {
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
   if(expanded.sources.some((source,index)=>index>0&&source.joinFromLeft.error))throw new JSQLiteError("unsupported","invalid joins are not implemented",{unsupportedClassification:"temporary"});
   const rightLevels=expanded.sources.flatMap((source,index)=>index>0&&source.joinFromLeft.right?[index]:[]),rightLevel=rightLevels[0]??-1;
   // Pinned wherecode.c owns a WhereRightJoin per barrier. Until this compiler
@@ -3615,7 +3615,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     }
   };
   if(owner){
-    validateRightInterior();return;
+    validateRightInterior();return whereAccounting;
   }
   validateRightInterior();
   const columns=expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
@@ -5177,8 +5177,8 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   rejectUnsupportedSelectClauses(select, true);
   if (select.from.items.length > 1) {
     if(!shared)return compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
-    compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...shared,ops:shared.builder.ops});
-    return Object.freeze({ops:shared.builder.ops,registers:shared.builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(shared.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+    const whereAccounting=compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...shared,ops:shared.builder.ops});
+    return Object.freeze({ops:shared.builder.ops,registers:shared.builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(shared.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
   }
   if (select.from.items.length !== 1) throw new JSQLiteError("unsupported", "joins and complex FROM clauses are not implemented", { unsupportedClassification: "temporary" });
   const tableName = sqlName(select.from.items[0]!.tableName), folded = sqliteAsciiFold(tableName);
