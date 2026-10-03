@@ -6856,3 +6856,19 @@ also passes on isolated committed source plus this repair. Earlier e0f6913
 ordinary failures (twice, plannerCandidates0<1) remain historical evidence.
 No advanced24/30 selection inflation, optimizer/architecture breadth or native
 work-equivalence claim follows. See [[card:card-s-c-e]] repair status for commands.
+
+### R1 operand indexability and RHS overlap (2026-10-03)
+
+Pinned `whereexpr.c:1034–1099 exprMightBeIndexed`, `1155–1257 exprAnalyze` →
+`where-plan.ts:columnUse/binding/indexedBinding/rhsPrereq/analyzeWhere` and
+`admitIndexConstraint`. Exact column lookup is separate from recursive
+`prereq`; parentheses/COLLATE alone are transparent for ordinary binding.
+Represented structural expression matches own a source-identified XN_EXPR
+binding and retain physical descriptor identity. RHS/list usage is independent
+of all-use; original and commuted terms with overlapping sources remain
+non-driveable residuals. No VM eligibility recomputation added.
+`capture-where-operand-admission.py` and
+`where-operand-admission-public.test.mjs` prove the omitted-row repair through
+public execution and real private seek/scan accounting in three encodings,
+with genuine expression-positive/negative controls. Existing RIGHT/FULL
+fallback and LEFT masks remain covered by shared analysis regressions.

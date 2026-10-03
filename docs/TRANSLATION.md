@@ -11430,3 +11430,32 @@ also passes on isolated committed source plus this repair. Earlier e0f6913
 ordinary failures (twice, plannerCandidates0<1) remain historical evidence.
 No advanced24/30 selection inflation, optimizer/architecture breadth or native
 work-equivalence claim follows. See [[card:card-s-c-e]] repair status for commands.
+
+### R1 operand admission correction (2026-10-03)
+
+`where-plan.ts` now distinguishes recursive dependency discovery from operand
+indexability, following pinned `whereexpr.c:exprMightBeIndexed` (1034–1099) and
+`exprAnalyze` (1155–1257). Only an exact resolved column, skipping parentheses
+and COLLATE, binds an ordinary column/rowid constraint. Arithmetic, unary,
+CAST and function descendants are not ordinary columns. An actual represented
+expression-index structural match retains its exact source and XN_EXPR (-2)
+binding; admission also requires the descriptor's owning table identity.
+
+RHS usage is computed independently in each original/commuted orientation.
+IN usage includes every RHS reduction/list member. Overlap with indexed operand
+usage or its owning source prevents driveable publication, preserving the
+residual and safe scan/full forced-index scan. LEFT provenance remains intact.
+This is a source-control-flow repair, not an exceptional algorithm substitution.
+No compiler bypass or SQL-text exception was added: existing selected-access
+callers consume the corrected admissions and opposite operand unchanged.
+
+Reproducible evidence: run `capture-where-operand-admission.py --library <pinned
+library> --output-dir "$SAIVAGE_CARD_WORK_ROOT/r1-native"`, then
+`node --experimental-strip-types --test test/conformance/where-operand-admission-public.test.mjs`.
+117 prepared cases/234 executions cover all encodings, forced/unforced ordinary
+and expression indexes, changed-value reset/rebind, typed cells and column
+name/declared-type metadata, plus six exact native prepare errors. Private access
+assertions distinguish real expression seeks from negative forced full scans;
+fallback is not selected credit. Before repair id+1=2 returned id=2 rather than
+native id=1; after repair it scans/residual-tests and returns id=1. Direct id
+controls still seek. Advanced selected credit remains bounded to 24/30.

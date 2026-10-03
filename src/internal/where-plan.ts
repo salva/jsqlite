@@ -49,7 +49,7 @@ export function admitIndexConstraint(term:WhereTerm,physical:PhysicalIndex,field
  let byPhysical=admissionCache.get(term);if(!byPhysical){byPhysical=new WeakMap();admissionCache.set(term,byPhysical);}let byOrdinal=byPhysical.get(physical);if(!byOrdinal){byOrdinal=new Map();byPhysical.set(physical,byOrdinal);}if(byOrdinal.has(fieldOrdinal))return byOrdinal.get(fieldOrdinal)!;
  const field=physical.fields[fieldOrdinal],keyInfoTerm=physical.keyInfo.terms[fieldOrdinal];
  if(!field||!keyInfoTerm||field.role!=="declared"||term.operator===null||!term.outerJoinSafe.mayDrive){byOrdinal.set(fieldOrdinal,null);return null;}
- const expressionMatch=field.expression!==null&&indexedOperandIdentity(term)===expressionStructuralIdentity(field.expression,true);
+ const expressionMatch=term.left?.source.table===physical.index.table&&term.left?.columnIndex===-2&&field.expression!==null&&indexedOperandIdentity(term)===expressionStructuralIdentity(field.expression,true);
  if(field.column?term.left?.column!==field.column:!expressionMatch){byOrdinal.set(fieldOrdinal,null);return null;}
  let comparison:SeekComparisonMode;
  if(term.operator==="is-null")comparison=freeze({kind:"is-null"});
@@ -238,8 +238,28 @@ function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signatur
 function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?sqliteAsciiFold(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
 function reductionContains(root:ExprReduction,needle:ExprReduction):boolean {return root===needle||root.children.some(x=>x.kind==="reduction"&&reductionContains(x,needle));}
-function columnUse(resolved:ResolvedSelect,node:ExprReduction){const plain=unwrap(node);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain)??resolved.columnUses.find(use=>use.selectDepth===0&&reductionContains(plain,use.expression));}
+function columnUse(resolved:ResolvedSelect,node:ExprReduction){const plain=unwrap(node);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
 function binding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {const use=columnUse(resolved,node);if(!use)return null;const column=use.columnIndex<0?null:use.source.table.columns[use.columnIndex]??null;return freeze({source:use.source,sourceOrdinal:resolved.sources.indexOf(use.source),column,columnIndex:use.columnIndex,rowid:use.columnIndex<0});}
+/** whereexpr.c:exprMightBeIndexed: recursive uses are dependencies, not
+ * ordinary bindings. A non-column operand may bind only an actual expression
+ * field on the exact source whose uses it contains. -2 is XN_EXPR, not rowid. */
+function indexedBinding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {
+ const direct=binding(resolved,node);if(direct)return direct;
+ const mask=prereq(resolved,node);if(mask===0n)return null;
+ const identity=expressionStructuralIdentity(asExpr(unwrap(node)),true);
+ for(const [sourceOrdinal,source] of resolved.sources.entries()){
+  if(mask!==sourceBit(sourceOrdinal))continue;
+  if(source.table.indexes.some(index=>index.physical?.fields.some(field=>field.expression!==null&&expressionStructuralIdentity(field.expression,true)===identity)))return freeze({source,sourceOrdinal,column:null,columnIndex:-2,rowid:false});
+ }
+ return null;
+}
+function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"|"right",operator:WhereOperator|null):SourceMask {
+ const children=exprChildren(node);
+ if(operator!=="in")return operator==="is-null"?0n:children[orientation==="left"?1:0]?prereq(resolved,children[orientation==="left"?1:0]!):0n;
+ // IN's RHS is an exprlist (not a direct expr child). Visit every reduction
+ // except the LHS so a dependency in any list member cannot disappear.
+ const lhs=children[0];let mask=0n;for(const child of node.children)if(child.kind==="reduction"&&child!==lhs)mask|=prereq(resolved,child);return mask;
+}
 function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){const at=resolved.sources.indexOf(use.source);if(at>=0)mask|=sourceBit(at);}return mask;}
 function splitAnd(node:ExprReduction,out:ExprReduction[]):void {if(node.signature==="expr ::= expr AND expr"){for(const child of exprChildren(node))splitAnd(child,out);}else out.push(node);}
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
@@ -254,14 +274,14 @@ export function analyzeWhere(resolved:ResolvedSelect):WhereAnalysis {
  resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
  type Draft={node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
  const drafts:Draft[]=[];
- for(const {node,origin} of specs){let op=comparisonOperator(node);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=binding(resolved,originalLeftNode),originalRight=binding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
+ for(const {node,origin} of specs){let op=comparisonOperator(node);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=indexedBinding(resolved,originalLeftNode),originalRight=indexedBinding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
   if(!left&&originalRight&&op&&op!=="in"){orientation="right";op=reverseOperator(op);leftNode=originalRightNode;rightNode=originalLeftNode;left=originalRight;}
-  const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,originalLeft,originalRight),parentId=drafts.length;
-  const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:left?all&~sourceBit(left.sourceOrdinal):all,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
+  const rightUse=rhsPrereq(resolved,node,orientation,op),leftUse=prereq(resolved,leftNode);const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&(rightUse&leftUse)===0n&&!(rightUse&sourceBit(left.sourceOrdinal))&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,originalLeft,originalRight),parentId=drafts.length;
+  const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
   // whereexpr.c:exprAnalyze creates a virtual commuted child when both
   // operands are indexable columns. It retains original expression collation
   // but owns independent left binding and RHS prerequisites.
-  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childMayDrive=!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:all&~sourceBit(childLeft.sourceOrdinal),collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:false}});}
+  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:false}});}
  }
  const terms:WhereTerm[]=drafts.map((draft,id)=>freeze({id,expression:asExpr(draft.node),origin:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId,childIds:Object.freeze([...draft.childIds]),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  return freeze({clause:whereClause(terms),plannerEligible:true,fallback:null});

@@ -4132,3 +4132,21 @@ also passes on isolated committed source plus this repair. Earlier e0f6913
 ordinary failures (twice, plannerCandidates0<1) remain historical evidence.
 No advanced24/30 selection inflation, optimizer/architecture breadth or native
 work-equivalence claim follows. See [[card:card-s-c-e]] repair status for commands.
+
+### R1 shared WHERE operand boundary — corrected evidence (2026-10-03)
+
+Root immutable review `record:///review.md?card=card-s&v=3` correctly identified
+a blocking wrong-row plan: recursive column use promoted id+1 into id and
+all-use minus owner erased same-source RHS dependencies. New independent pinned
+native/public RED obtained 72 failing executions among 117 prepared cases;
+id+1=2 returned id=2 instead of native id=1 with an actual table seek.
+
+The owner now separates exact ordinary column binding from recursive use and
+source-identified actual expression-index matching. RHS usage (including full
+IN lists) is independently retained and overlap prevents original/commuted
+seek eligibility. Residuals, safe scans, forced full-index scans and LEFT
+provenance survive. Public rerun passes 117 cases/234 changed-binding executions
+across all encodings plus six exact errors, metadata and genuine expression
+seek/nonmatching scan controls. This is not a blanket fidelity approval;
+independent re-review is required. Advanced selected credit stays 24/30,
+not 30/30 by counting fallback. No production compiler edit was needed.

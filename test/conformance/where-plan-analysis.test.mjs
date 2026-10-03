@@ -96,3 +96,20 @@ test('covering analysis retains non-index residual reads instead of projection-o
     assert.ok(selection.analysis.clause.terms.some(term=>term.left?.column===s.blob&&!term.virtual),encoding);
   }
 });
+
+test('only direct ordinary operands bind; same-source RHS including every IN member stays residual',()=>{
+ const s=schema();
+ for(const predicate of ['id+1=2','2=id+1','+id=2','CAST(id AS INTEGER)=2','abs(id)=2','a+1=2']){
+  const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),analysis=analyzeWhere(r),term=analysis.clause.terms[0];
+  assert.equal(term.left,null,predicate);assert.equal(term.outerJoinSafe.mayDrive,false,predicate);
+  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalityPrefix.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
+ }
+ for(const predicate of ['id=a','a=b','id IN (99,a)','a IN (\'x\',b)']){
+  const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),analysis=analyzeWhere(r);
+  for(const term of analysis.clause.terms){assert.equal(term.prereqRight,sourceBit(0),predicate);assert.equal(term.outerJoinSafe.mayDrive,false,predicate);}
+  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalityPrefix.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
+ }
+ for(const predicate of ['id=2','(id)=2','id COLLATE BINARY=2','2=id']){
+  const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),term=analyzeWhere(r).clause.terms[0];assert.ok(term.left,predicate);assert.equal(term.prereqRight,0n);assert.equal(term.outerJoinSafe.mayDrive,true);
+ }
+});
