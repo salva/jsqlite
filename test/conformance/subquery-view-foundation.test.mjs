@@ -369,3 +369,63 @@ for(const encoding of ['utf8','utf16le','utf16be'])for(const composition of expr
     assert.deepEqual(rows,composition.rows);
   }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 });
+
+// select.c restriction (11) retains both ORDER owners; tag 0482 feeds the
+// complete derived EList, not just the parent's visible projection.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`retained hidden ORDER key and shared sorter budget (${encoding})`,async()=>{
+  const {PrivateStateByteBudget}=await import('../../src/internal/private-state.ts');
+  const prototype=PrivateStateByteBudget.prototype, reserve=prototype.reserve;
+  const events=[];
+  prototype.reserve=function(bytes,...args){const before=this.usedBytes;try{return reserve.call(this,bytes,...args)}finally{events.push({budget:this,before,after:this.usedBytes,bytes});}};
+
+  const server=await serve(encoding);let db;
+  const sql='SELECT a FROM (SELECT a,b FROM t1 ORDER BY b LIMIT 4) ORDER BY b DESC';
+  try{
+    const url=`http://127.0.0.1:${server.address().port}/`;
+    db=await openFixture(new Request(url),{limits:{maxPrivateBytes:300}});
+    const statement=db.prepare(sql).statement;
+    assert.deepEqual(metadata(statement),[{name:'a',declaredType:'INTEGER',database:'main',table:'t1',origin:'a'}]);
+    async function rows(s){const result=[];while(await s.step()==='row')result.push([s.column(0)]);return result;}
+    assert.deepEqual(await rows(statement),[[7n],[5n],[3n],[1n]]);
+    assert.ok(events.some(event=>event.before>=128&&event.after>150),'same budget overlaps producer and consumer reservations');
+    statement.reset();assert.deepEqual(await rows(statement),[[7n],[5n],[3n],[1n]]);statement.finalize();
+    for(const query of [
+      'SELECT a FROM (SELECT b,a FROM t1 ORDER BY b LIMIT 4) ORDER BY b DESC',
+      'SELECT a AS z FROM (SELECT b,a FROM t1 ORDER BY b LIMIT 4) ORDER BY z DESC',
+      'SELECT a FROM (SELECT b,a FROM t1 ORDER BY b LIMIT 4) AS d ORDER BY d.b DESC',
+      'SELECT a FROM (SELECT b,a FROM t1 ORDER BY b LIMIT 4) ORDER BY 1 DESC',
+    ]){const neighbor=db.prepare(query).statement;try{assert.deepEqual(await rows(neighbor),[[7n],[5n],[3n],[1n]]);}finally{neighbor.finalize();}}
+    const suspended=db.prepare(sql).statement;
+    assert.equal(await suspended.step(),'row');assert.equal(suspended.column(0),7n);
+    suspended.reset();assert.deepEqual(await rows(suspended),[[7n],[5n],[3n],[1n]]);suspended.finalize();
+    for(const [operation,kind] of [[{signal:AbortSignal.abort()},'cancelled'],[{timeoutMs:0},'timeout']]){
+      const interrupted=db.prepare(sql).statement;
+      await assert.rejects(interrupted.step(operation),error=>error.kind===kind);
+      assert.throws(()=>interrupted.finalize(),error=>error.kind===kind);
+      await scalarAdmission(db);
+    }
+    db.close();db=undefined;
+    db=await openFixture(new Request(url),{limits:{maxPrivateBytes:150}});
+    const limited=db.prepare(sql).statement;
+    let first;try{await rows(limited)}catch(error){first=error;}
+    assert.equal(first?.kind,'limit');
+    assert.throws(()=>limited.reset(),error=>error===first);
+    limited.finalize();
+    const fresh=db.prepare('SELECT a FROM t1 ORDER BY b DESC').statement;
+    assert.deepEqual(await rows(fresh),[[7n],[5n],[3n],[1n]]);fresh.finalize();
+    assert.ok(events.every(event=>event.budget.usedBytes===0),'all observed budgets released after finalize');
+  }finally{db?.closeDeferred();prototype.reserve=reserve;await new Promise(resolve=>server.close(resolve));}
+});
+
+
+test('retained ORDER/LIMIT uses coroutine and two distinct sorters',()=>{
+  const storage=ImmutableStorage.open(fs.readFileSync(path.join(generated,'subquery-utf8.db'))),owner={[storageOwner]:storage};
+  try{
+    const schema=loadSchemaGraph(owner),database=btreeFromStorage(storage);
+    const parsed=parseSql('SELECT a FROM (SELECT a,b FROM t1 ORDER BY b LIMIT 4) ORDER BY b DESC');
+    const codes=programOpcodeNames(compileTableSelect(parsed.statement,schema,database,100));
+    for(const code of ['InitCoroutine','Yield','EndCoroutine'])assert.ok(codes.includes(code),code);
+    assert.equal(codes.filter(code=>code==='SorterOpen').length,2);
+    assert.ok(!codes.includes('OpenEphemeral'),'sole source is coroutine eligible, not materialized');
+  }finally{storage.close();}
+});

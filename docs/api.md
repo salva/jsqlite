@@ -375,3 +375,8 @@ external modules and other explicitly named environment boundaries. Everything
 else unavailable within broad read-only scope remains temporary unsupported.
 This consolidation preserves accepted bounded outcomes and adds no compatibility
 credit; historical case counts and exact commands remain in linked evidence.
+
+Retained single-source derived SELECTs with represented column ORDER keys may
+order by a producer column omitted from the parent projection. Child ORDER/LIMIT
+remains independent of parent ORDER/LIMIT. Both sorters charge the same execution
+private-byte limit; prepare success does not guarantee sufficient runtime bytes.

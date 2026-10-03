@@ -143,3 +143,14 @@ Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
 `json_pretty` remains temporary unsupported; built-in JSON is not a blanket gap.
 Exact function tranche runs/IDs remain in existing oracle/conformance research,
 not duplicated here.
+
+### Retained FROM hidden ORDER key correction (2026-10-03)
+
+`resolve.c:resolveOrderGroupBy` EList alias/ordinal then NameContext column
+ownership -> `vdbe.ts:compileDerivedProducer` orderIndex now denotes producer
+register index, not parent projected register index. `select.c:flattenSubquery`
+(11), `fromClauseTermCanBeCoroutine` (1a), 0482 / SRT_Coroutine -> existing
+InitCoroutine/Yield/EndCoroutine and separate child/parent sorters. Tests:
+`subquery-view-foundation.test.mjs` retained hidden ORDER key / route cases.
+Original browser gap lane now executes both original probes successfully;
+no general retained expression ORDER or full FROM compatibility claim.

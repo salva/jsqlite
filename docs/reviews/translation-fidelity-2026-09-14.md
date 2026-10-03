@@ -4199,3 +4199,21 @@ work-only extended90/180 discriminator also passes; earlier12 failures remain
 recorded. This closes the concrete residual failure noted above, not full
 BIGNULL optimization or broader optimizer equivalence. Selected credit24/30
 and conservative nondefault NULL sorter contract remain unchanged.
+
+### Retained ORDER/LIMIT hidden-key repair (2026-10-03, current working revision)
+
+Independent source-ID-verified capture and public Fetch red showed the original
+browser composition rejected at prepare in all encodings. Parent ORDER lookup
+searched only projected indices and returned undefined for hidden b. Owning
+consumer now maps alias/ordinal through parent EList and source key through the
+complete producer EList, copying from coroutine producer registers. Restriction
+(11) preserves both ORDER owners; sole-source coroutine (1a)/0482 remains intact.
+No host slicing, evaluator, flatten override or materialization substitution.
+
+Three-encoding regressions prove rows/origin metadata, 300-byte success,
+simultaneous shared reservations beyond 150, 150-byte step failure, saved reset
+error, full release and fresh admission; reset after suspension, cancellation
+and deadline also pass. Route test asserts coroutine controls/two sorters.
+Original Chromium gap lane passes 2/2 (153.0.8010.12, Playwright 1.63.0), without
+changing expectations or previously accepted browser milestone accounting.
+Broader FROM runtime and general expression ORDER are not established here.

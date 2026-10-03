@@ -4478,7 +4478,27 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
     if(values||ordered||setProducer||mixedProducer||tableCompoundPlan||tablePlan||scalarProducer||unionProducer||aggregateProducer)throw new JSQLiteError('unsupported','retained derived parent expression destination is not implemented',{unsupportedClassification:'temporary'});
     return undefined;
   }
-  let orderIndex=-1;if(select.hasOrderBy){const term=select.orderBy[0]!;let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind==='literal'&&tree.value===1n)orderIndex=0;else if(tree.kind==='column'){const parts=tree.name.split('.').map(sqlName);orderIndex=indices.findIndex(index=>sqliteIdentifierEqual(names[index]!,parts.at(-1)!));}if(orderIndex<0||term.nulls!==null)return undefined;}
+  // resolve.c:resolveOrderGroupBy resolves aliases/ordinals through the
+  // parent's EList, then source columns through its NameContext. The sorter
+  // key is owned by the complete coroutine row, not the visible projection.
+  let orderIndex=-1;
+  if(select.hasOrderBy){
+    const term=select.orderBy[0]!;
+    let tree=expressionFromReduction(term.expr.reduction!);
+    while(tree.kind==='collate')tree=tree.value;
+    if(tree.kind==='literal'&&typeof tree.value==='bigint'&&tree.value>=1n&&tree.value<=BigInt(indices.length)){
+      orderIndex=indices[Number(tree.value)-1]!;
+    }else if(tree.kind==='column'){
+      const parts=tree.name.split('.').map(sqlName);
+      if(parts.length===1){
+        const resultIndex=select.result.findIndex(result=>result.alias!=null&&sqliteIdentifierEqual(result.alias,parts[0]!));
+        orderIndex=resultIndex>=0?indices[resultIndex]!:names.findIndex(name=>sqliteIdentifierEqual(name,parts[0]!));
+      }else if(parts.length===2&&alias&&sqliteIdentifierEqual(parts[0]!,alias)){
+        orderIndex=names.findIndex(name=>sqliteIdentifierEqual(name,parts[1]!));
+      }
+    }
+    if(orderIndex<0||term.nulls!==null)return undefined;
+  }
   // select.c:multiSelectValues supplies the same coroutine destination to
   // every VALUES term. Other retained producers likewise receive the shared
   // coroutine destination instead of a finished-child register/PC copy.
@@ -4608,7 +4628,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   }
   const consumer=ops.length;(ops[init] as {p2:number}).p2=consumer;(ops[init] as {p3:number}).p3=producerBase;
   let registers=builder.registers;const allocate=()=>++registers,limit=computeLimitRegisters(select,ops,allocate,parameters),output=allocate();registers+=indices.length-1;const key=allocate();
-  if(select.hasOrderBy)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary',desc:select.orderBy[0]!.descending}]})});const resume=ops.length;ops.push({code:'Yield',p1:returnRegister,p2:0});indices.forEach((index,result)=>ops.push({code:'Copy',p1:producerOutput+index,p2:output+result}));if(select.hasOrderBy){ops.push({code:'Copy',p1:output+orderIndex,p2:key},{code:'SorterInsert',p1:sorterCursor,keyStart:key,keyCount:1,payload:output,payloadCount:indices.length},{code:'Goto',p2:resume});const sort=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:output,count:indices.length});const emit=ops.length;if(limit?.offset!==undefined)ops.push({code:'IfPos',p1:limit.offset,p2:emit+3,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}ops.push({code:'SorterNext',p1:sorterCursor,p2:sort+1});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}else{const emit=ops.length;const offsetSkip=limit?.offset!==undefined?ops.length:-1;if(offsetSkip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=ops.length;ops.push({code:'Goto',p2:resume});const halt=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=halt;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}
+  if(select.hasOrderBy)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary',desc:select.orderBy[0]!.descending}]})});const resume=ops.length;ops.push({code:'Yield',p1:returnRegister,p2:0});indices.forEach((index,result)=>ops.push({code:'Copy',p1:producerOutput+index,p2:output+result}));if(select.hasOrderBy){ops.push({code:'Copy',p1:producerOutput+orderIndex,p2:key},{code:'SorterInsert',p1:sorterCursor,keyStart:key,keyCount:1,payload:output,payloadCount:indices.length},{code:'Goto',p2:resume});const sort=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:output,count:indices.length});const emit=ops.length;if(limit?.offset!==undefined)ops.push({code:'IfPos',p1:limit.offset,p2:emit+3,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}ops.push({code:'SorterNext',p1:sorterCursor,p2:sort+1});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}else{const emit=ops.length;const offsetSkip=limit?.offset!==undefined?ops.length:-1;if(offsetSkip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=ops.length;ops.push({code:'Goto',p2:resume});const halt=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=halt;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}
   builder.registers=Math.max(builder.registers,registers);
   builder.registers=Math.max(builder.registers,registers);const columns=indices.map((index,result)=>Object.freeze({...inner.columns[index]!,name:(bareStar?names[index]:select.result[result]!.alias)??names[index]!}));return Object.freeze({ops:owner?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
  }

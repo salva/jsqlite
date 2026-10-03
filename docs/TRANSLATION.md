@@ -313,3 +313,20 @@ optimizer/index proofs and native intermediate scheduling equivalence remain
 visible roadmap work. Historical predictions are verified at the next consuming
 slice. No new implementation, compatibility credit, whole-project completion,
 operator/configuration changes or all-project cleanup gate is authorized here.
+
+### Retained derived hidden ORDER key (2026-10-03)
+
+The single-source coroutine consumer now binds an admitted column ORDER key in
+its complete producer EList, independently of visible projection. As in pinned
+`resolve.c:resolveOrderGroupBy`, parent aliases/ordinals first map through parent
+EList; qualified/unqualified source columns map through transient source names.
+`select.c:flattenSubquery` restriction (11) retains both ORDER owners;
+`fromClauseTermCanBeCoroutine` (1a), tag 0482 and SRT_Coroutine retain producer
+LIMIT before consumer sorting. No replacement algorithm or materialization is
+introduced. Existing one-key column consumer boundaries remain.
+
+Foundation regressions exercise hidden/reordered/qualified/alias/ordinal keys,
+two SorterOpen operations and coroutine controls. Reservation instrumentation
+observes one execution budget crossing 150 bytes while child/parent sorters are
+live; 300 succeeds, 150 fails on step, saved reset error and cleanup restore
+admission. These are implementation logical bytes, not native allocation parity.

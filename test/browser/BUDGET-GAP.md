@@ -31,3 +31,14 @@ report work:///cards/card-v-b/browser-e2e/report.json SHA256
 Chromium 148.0.7778.96 / Playwright 1.60.0. Existing 33 cases and corruption plus
 two standalone sorter companions all pass. Independent/global acceptance remains
 absent; no new upstream test compatibility credit claimed.
+
+## Engine follow-up 2026-10-03 — original gap now executable
+
+[[card:card-m-f-b]] corrected retained consumer hidden ORDER-key ownership,
+without changing the original SQL or expectations. Fresh built Chromium gap lane
+passes **2/2**: `budget/budget-composed` at 300 and `control/private-shared` at
+150 (limit/reset/cleanup). Chromium 153.0.8010.12 / Playwright 1.63.0. Historical
+prepare failures above remain historical evidence. This does not relabel the
+accepted bounded current-lane milestone or establish general release acceptance.
+Foundation tests independently instrument shared budget reservations and verify
+all three encodings. See TRANSLATION.md and mutable fidelity audit follow-up.
