@@ -577,9 +577,8 @@ and `--disable-shared`, builds `sqlite3.c sqlite3.h libsqlite3.a`, and compiles
 
 ```sh
 tools/oracle/build.sh
-SOURCE_ID=$(python3 -c 'import json; print(json.load(open("reference/sqlite/manifest.json"))["sqliteSourceId"])')
 "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/sqlite-oracle" \
-  --self-check "$SOURCE_ID"
+  --self-check "$PWD/reference/sqlite/manifest.json"
 python3 tools/oracle/generate-fixtures.py \
   --manifest reference/sqlite/manifest.json \
   --profile "$SAIVAGE_CARD_WORK_ROOT/oracle-build/profile.json" \

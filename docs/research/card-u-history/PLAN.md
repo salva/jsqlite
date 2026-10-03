@@ -6,17 +6,14 @@ contract. This plan does not authorize expanding its read-only exclusions.
 Stage 0, the **NONFUNCTIONAL contract work of Stage 1**, and the bounded Stage 2
 native-oracle/fixture/harness milestone are complete. Stage 2 evidence is limited
 to the exact 38 upstream IDs plus 9 no-credit companions in the machine manifest;
-the TS harness invokes the singular public adapter. Stage 3 has progressed beyond the original first-SELECT tranche: the current
-engine includes represented joins, compounds, aggregates, subqueries/views,
-ordinary/recursive CTEs, windows, ordinary/math/date-time/JSON functions and
-selected WHERE/index routes. Accepted bounded t/s and prior r/o/k outcomes are
-retained; these do not establish complete SQLite compatibility or all cross-feature
-compositions. Current admission and ownership are in [api.md](api.md),
-[TRANSLATION.md](TRANSLATION.md) and [SQLITE_SOURCE_MAP.md](SQLITE_SOURCE_MAP.md).
-The original first-SELECT checkpoint is historical evidence, preserved in
-[card-u history](research/card-u-history/README.md), not a current ceiling.
-Remaining progressive read-only work continues under SPEC; this bounded docs
-handoff is not an architecture reopening or whole-project completion gate.
+the TS harness invokes the singular public adapter. Historically, the first Stage 3 storage milestone let every mapped case complete
+real Fetch acquisition and stop at `prepare`. The current Stage 3 foundation also
+implements UTF-8 tokenization, generated Lemon parsing/reductions, exact tails and
+empty SQL, limits, immutable internal schema discovery, and a compiled VDBE slice.
+Public `prepare()` executes no-FROM integer/parameter projections and bounded
+one-rowid-table projection/integer-equality scans; the canonical first-SELECT
+tranche is promoted at 8/8 TS credit. Broader resolver/planner/VDBE work remains
+unattempted and receives no credit.
 The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 

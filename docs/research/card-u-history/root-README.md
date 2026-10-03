@@ -7,18 +7,16 @@ C, native SQLite, or WebAssembly.
 The complete product contract is [docs/SPEC.md](docs/SPEC.md); the owner-directed
 [roadmap](docs/PLAN.md) starts with a JS/TS-friendly C-equivalent API, then an
 upstream-test harness and first test tranche, followed by progressive translation
-with tests ahead of each slice. The public API, pinned development oracle, test
-harness and progressive TypeScript engine now exist. Represented joins,
-compounds, aggregates, subqueries/views, CTEs, windows, functions (including JSON)
-and selected index planning execute at documented bounded admission gates. This
-is not full read-only SQLite compatibility or whole-project completion. Native
-SQLite is development-only, never the runtime backend.
+with tests ahead of each slice. This is an input-only baseline: no API scaffold,
+engine, test pipeline, or compatibility evidence is present. No stage is claimed
+complete. Native SQLite is permitted only for development oracles and fixture
+generation, never as the runtime backend.
 
-[Current translation guidance](docs/TRANSLATION.md), [public API](docs/api.md),
-[source map](docs/SQLITE_SOURCE_MAP.md), [oracle setup](docs/oracle.md), and
-[conformance evidence](docs/CONFORMANCE.md) are available. Technical choices remain
-mutable under SPEC. The original baseline and subsequent guidance are preserved
-with provenance in [documentation history](docs/research/card-u-history/README.md).
+[docs/TRANSLATION.md](docs/TRANSLATION.md) is living project-owned engineering
+guidance: its proposed mappings can be refined through source/test evidence.
+`docs/api.md`, `docs/SQLITE_SOURCE_MAP.md`, `docs/oracle.md`, and
+`docs/CONFORMANCE.md` are future deliverables, authored when their stage warrants
+them, not missing prerequisites to read now. Technical choices remain provisional.
 
 The official SQLite 3.53.4 full source/test archive, latest stable as checked on
 2026-09-12, is available locally under

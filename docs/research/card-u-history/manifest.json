@@ -1,0 +1,48 @@
+{
+  "captureHead": "adfd6a4ba6e7da9b8ca7d9d3f23117b23472f654",
+  "meaning": "Exact workspace documents before card-u consolidation; original headings and line numbers retained. Not current contracts. Dirty source and peer research excluded from this docs-only capture.",
+  "documents": [
+    {
+      "originalPath": "docs/TRANSLATION.md",
+      "archivePath": "docs/research/card-u-history/TRANSLATION.md",
+      "sha256": "c943b826059b32b0c6ff72d8fbdda58ae532873a4ab607c36b90024682fd22c7",
+      "bytes": 865257,
+      "lines": 11527
+    },
+    {
+      "originalPath": "docs/SQLITE_SOURCE_MAP.md",
+      "archivePath": "docs/research/card-u-history/SQLITE_SOURCE_MAP.md",
+      "sha256": "6b9e4503f88d49cc1ecf7bb34144beb238bd76839a38d26c723069965c66bf77",
+      "bytes": 594444,
+      "lines": 6923
+    },
+    {
+      "originalPath": "docs/api.md",
+      "archivePath": "docs/research/card-u-history/api.md",
+      "sha256": "077caebfd24689c95e58be031229d49819886d0f8cd47930e8c84966dec19c8e",
+      "bytes": 236419,
+      "lines": 2958
+    },
+    {
+      "originalPath": "docs/PLAN.md",
+      "archivePath": "docs/research/card-u-history/PLAN.md",
+      "sha256": "eec6daa3968e919fb80ac62367d77fc62fdc417f5a72e1be72b4d22367fe3b66",
+      "bytes": 6507,
+      "lines": 109
+    },
+    {
+      "originalPath": "README.md",
+      "archivePath": "docs/research/card-u-history/root-README.md",
+      "sha256": "d858d038ff03454dc6a2b33ccbb65a2f52dec4e19fea4755f8a6b010c119d8cf",
+      "bytes": 1647,
+      "lines": 28
+    },
+    {
+      "originalPath": "docs/oracle.md",
+      "archivePath": "docs/research/card-u-history/oracle.md",
+      "sha256": "0317350c5ec89980cbf3cb31479b17577a29d463913cb2504cbc04bd2043bf89",
+      "bytes": 43958,
+      "lines": 726
+    }
+  ]
+}
