@@ -6885,3 +6885,20 @@ nondefault NULL index traversal retains SorterOpen/Insert instead of asserting
 consumption. WR physical primary order remains separate. Source-based native
 and public tests: capture-where-order-consumption.py and
 where-order-consumption-public.test.mjs, with private traversal/sorter evidence.
+
+### R2 consuming integration: physical WITHOUT ROWID NOT INDEXED storage
+
+The additional advanced public discriminator `SELECT k FROM wr NOT INDEXED
+ORDER BY k ASC NULLS LAST` exposed a rowid-table cursor on an index-btree root.
+Pinned `where.c:whereLoopAddBtree` (4035–4058) chooses the real WITHOUT ROWID
+index chain instead of the synthetic rowid index; NOT INDEXED cannot remove
+physical primary storage. The shared candidate owner now never publishes a
+rowid table scan for WR and always retains its represented primary capability,
+including unconstrained/non-consumed ORDER cases. Optional secondary indexes
+remain suppressed. No compiler/VM change or BIGNULL optimization is introduced.
+The public regression covers all encodings, primary physical access, both
+nondefault NULL directions, reset/rebind and sorter counters. Ordinary69,
+selected/storage206 and R1/R2 focused24 pass on the isolated parent plus patch.
+Additional exploratory expression-index ORDER scans still produce wrong rows
+(repeated id1); those failures are not waived by this repair or existing greens.
+Integration remains withheld pending their separate owner/caller diagnosis.

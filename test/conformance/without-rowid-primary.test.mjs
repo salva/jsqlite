@@ -126,3 +126,23 @@ test('WITHOUT ROWID secondary primary-key remapping handles declared, reordered,
     }
   });
 });
+
+// where.c:4035: the WITHOUT ROWID primary remains physical table storage,
+// even with NOT INDEXED. Never offer a rowid TableScanCursor for its root.
+test('WITHOUT ROWID NOT INDEXED retains primary storage across NULL-order sorter and rebind',async()=>{
+ for(const [encoding,file] of Object.entries(fixtures))await withFixture(file,async db=>{
+  for(const direction of ['ASC NULLS LAST','DESC NULLS FIRST']){
+   const statement=db.prepare(`SELECT a,b,payload FROM wr NOT INDEXED WHERE b>=?1 ORDER BY a ${direction},b`).statement;
+   try{
+    for(const minimum of [1n,2n]){
+     statement.bind(1,minimum);
+     const rows=[];while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1),statement.column(2)]);
+     const expected=direction.startsWith('ASC')?[['Alpha',1n,'w1'],['alpha',2n,'w2'],['beta',1n,'w3'],['gamma',2n,'w4']]:[['gamma',2n,'w4'],['beta',1n,'w3'],['Alpha',1n,'w1'],['alpha',2n,'w2']];
+     assert.deepEqual(rows,expected.filter(row=>row[1]>=minimum),encoding);
+     const counters=privateAccounting(statement);assert.equal(counters.tableNext,0);assert.ok(counters.indexNext>0);assert.ok(counters.sorterRows>0);
+     await statement.reset();statement.clearBindings();
+    }
+   }finally{statement.finalize()}
+  }
+ });
+});
