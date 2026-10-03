@@ -47,16 +47,21 @@ Without `JSQLITE_CHINOOK`, that optional case is omitted and selection reports i
 ## Current versus roadmap gap lanes
 
 See [LANES.md](LANES.md) for source ownership, live-budget evidence and scope.
-The two unchanged derived-composition probes remain runnable **failures**, not
-conformance passes or dependencies for current-admission browser validation:
+The two unchanged derived-composition probes now pass their original assertions
+after retained ORDER-key repair `58a22728c6c6d9bf8261aa3154359de8695c47ec`.
+Independent review reran **current 38/38 pass** and **original gap 2/2 pass**
+with Chromium 153.0.8010.12 / Playwright 1.63.0. These remain separate
+denominators, not a 40/40 conformance claim or new SQL compatibility credit.
+Historical unsupported prepare failures are retained in BUDGET-GAP.md; the
+accepted bounded current-admission milestone is unchanged:
 
 ```sh
 # Archive the current report before running another lane.
 cp "$SAIVAGE_CARD_WORK_ROOT/browser-e2e/report.json" "$SAIVAGE_CARD_WORK_ROOT/browser-e2e/current-report.json"
 JSQLITE_BROWSER_LANE=gap timeout 180s node test/browser/run.mjs
-# Currently exits 1: 2 executed, 2 fail unsupported at prepare.
+# After repair: exits 0, original gap 2/2 pass (300 success, 150 runtime limit).
 cp "$SAIVAGE_CARD_WORK_ROOT/browser-e2e/report.json" "$SAIVAGE_CARD_WORK_ROOT/browser-e2e/gap-report.json"
-# Optional combined lane; retains failures, not a 40/40 pass claim.
+# Optional combined execution; does not merge the compatibility denominators.
 JSQLITE_BROWSER_LANE=all timeout 180s node test/browser/run.mjs
 # Development-only emitted-ESM shared-ownership observation:
 timeout 30s node test/browser/observe-window-budget.mjs
@@ -121,7 +126,7 @@ fixtures execute locally. Package closure/security checks supplement real browse
 execution, not replace it or certify universal security.
 
 Independent [[card:card-v-d]] review rebuilt/checked current package identity
-(31 emitted JS modules), reran current38, failing gap2, ownership, native captures
+(31 emitted JS modules), historically reran current38, failing gap2, ownership, native captures
 and demo sequentially. See [its exact findings and historical failures](record:///status.md?card=card-v-d&v=6).
 Earlier harness authoring failures, historical 29/33-case runs and preliminary
 unproved gaps are retained in [card-v-b history](record:///status.md?card=card-v-b&v=24)
@@ -133,5 +138,15 @@ owners; never rewrite expected values for engine defects.
 Only Chromium has been tested. Representative scoped coverage is not exhaustive
 corruption/CORS/parser/storage/scalar lifetime coverage, a numerical whole-SQLite
 denominator, temporal native parity, or proof of monolithic termination. Broader
-source-fidelity/admission debt remains; the two gap probes explicitly expose some
-of it. Independent bounded delivery acceptance does not waive global product debt.
+source-fidelity/admission debt remains despite the original gap2 repair. Passing
+these probes does not establish arbitrary derived-query support. Independent
+bounded delivery acceptance does not waive global product debt.
+
+Documentation consistency check (no browser installation required):
+
+```sh
+node --test test/browser/lane-documentation.test.mjs
+```
+
+This checks current versus historical gap guidance and unchanged SQL/thresholds;
+it supplements, and never substitutes for, actual Chromium execution.

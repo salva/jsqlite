@@ -1,23 +1,30 @@
 # Current admission and explicit roadmap lane
 
 Owner decision: new derived CTE admission is not a dependency for browser E2E.
-The two exact unsupported probes remain unchanged, runnable and failing; they
-are not deleted or converted to conformance passes.
+The two original gap probes remain unchanged and separately runnable. After
+retained ORDER-key repair `58a22728c6c6d9bf8261aa3154359de8695c47ec`, both pass
+their original assertions; neither SQL nor expectations were changed. Historical
+unsupported prepare failures remain recorded in BUDGET-GAP.md. This does not
+change the accepted bounded browser milestone or award SQL compatibility credit.
 
 Use the README environment setup, then:
 
 ```sh
 timeout 180s node test/browser/run.mjs                      # current (default)
-JSQLITE_BROWSER_LANE=gap timeout 180s node test/browser/run.mjs # debt, exit 1 today
+JSQLITE_BROWSER_LANE=gap timeout 180s node test/browser/run.mjs # original gap, exit 0 after repair
 JSQLITE_BROWSER_LANE=all timeout 180s node test/browser/run.mjs # both
 ```
 
 Report selection records lane, declared counts and gap IDs/SQL/provenance.
-Archive report.json after each invocation; each run overwrites it. Latest saved
-current-report.json has 38/38 pass; gap-report.json has 2/2 fail unsupported at
-prepare. Those denominators are separate, not a 40/40 conformance claim.
+Archive report.json after each invocation; each run overwrites it. Independent
+review [[card:card-m-f-d]] reran **current 38/38 pass** and **original gap 2/2 pass**
+in Chromium 153.0.8010.12 / Playwright 1.63.0. Those denominators are separate,
+not a 40/40 conformance claim. Gap success checks exact native rows at
+maxPrivateBytes=300; the 150-byte control requires a runtime limit, saved error
+and cleanup, not unsupported prepare success. Evidence and archived report hashes:
+[review status](record:///status.md?card=card-m-f-d&v=39).
 
-Admitted replacement: existing aggregate-window-private-controls ordinal44 SQL
+The previously admitted replacement remains in current coverage: existing aggregate-window-private-controls ordinal44 SQL
 on digest-bound w2rows.db, `sum(d)` with one preceding/following frame. Native
 capture-window.py independently captures successful ordered metadata/typed rows.
 Browser success at maxPrivateBytes=336 checks those exact native values and reset
