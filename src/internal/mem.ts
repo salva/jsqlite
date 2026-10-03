@@ -493,6 +493,18 @@ export class Mem {
       if (realSameAsInt(real, candidate)) { this.#replaceWithNumeric({ kind: "integer", value: candidate }); }
     }
   }
+  /** vdbe.c:sqlite3_value_numeric_type/applyNumericAffinity(bTryForInt=0).
+   * Unlike arithmetic numericType, nonnumeric TEXT and BLOB retain their type.
+   * Work on a copy so aggregate coercion cannot mutate its producer payload. */
+  valueNumericTypeCopy(): Mem {
+    const value = new Mem();
+    value.copyFrom(this);
+    if (value.#manifest === "text" && value.#numeric === null) {
+      const numeric = value.#numericFromBytes(false, false);
+      if (numeric !== null) value.#replaceWithNumeric(numeric);
+    }
+    return value;
+  }
   /** vdbe.c:numericType/computeNumericType on a private register copy. */
   numericTypeCopy(): Mem {
     const value = new Mem();

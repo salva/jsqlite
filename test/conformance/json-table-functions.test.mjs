@@ -190,7 +190,7 @@ test('JSON table scan feeds ordinary aggregate consumers',async()=>{
 
 test('JSON table scan feeds grouped aggregate consumers',async()=>{
   const bridge=await startFixtureServer(fixtureRoot);let db,statement;
-  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));statement=db.prepare(`SELECT type, count(*), sum(atom) FROM json_each(?1) GROUP BY type`).statement;statement.bind(1,'[1,2,"x",4]');const rows=[];while(await statement.step()==='row')rows.push([statement.columnText(0),statement.columnInteger(1),statement.column(2)]);assert.deepEqual(rows,[['integer',3n,7n],['string',1n,0n]]);}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
+  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));statement=db.prepare(`SELECT type, count(*), sum(atom) FROM json_each(?1) GROUP BY type`).statement;statement.bind(1,'[1,2,"x",4]');const rows=[];while(await statement.step()==='row')rows.push([statement.columnText(0),statement.columnInteger(1),statement.column(2)]);assert.deepEqual(rows,[['integer',3n,7n],['text',1n,0]]);}finally{try{statement?.finalize()}catch{}db?.closeDeferred();await closeServer(bridge.server);}
 });
 
 test('physical rows correlate into JSON table arguments',async()=>{

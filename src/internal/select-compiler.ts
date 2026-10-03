@@ -15,9 +15,10 @@ import { compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, 
  * any compilation error must propagate rather than try a different generator.
  *
  * select.c:sqlite3Select / selectInnerLoop separate resolution, destination and
- * code generation. These currently independent generators still own their
- * respective destinations; consolidating their register/cursor builders requires
- * migrating those consumers, not replacing their programs after construction.
+ * code generation. Admitted production generators consume the enclosing builder,
+ * parameters and destination; specialized algorithms retain their source-shaped
+ * schedules. Publication belongs to the enclosing entry, not relocated child
+ * Programs. This construction ownership is separate from VM execution control.
  */
 export function compileSelect(
   select: SelectNode,
@@ -154,9 +155,8 @@ export function compileSelect(
     const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
     const destination: SelectDest = { kind: "output" };
     const produced = compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
-    // Specialized retained/JSON/join consumers still publish independently.
-    // Only a producer that actually consumed this Parse can be finalized here.
-    if (produced.ops !== builder.ops) return produced;
+    // Every admitted table-entry branch consumes this enclosing Parse.
+    if (produced.ops !== builder.ops) throw new JSQLiteError("internal", "table producer did not consume enclosing builder");
     builder.ops.push({ code: "Halt" });
     return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
   }

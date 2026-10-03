@@ -11194,3 +11194,221 @@ hypotheses live in [[card:card-t-c]] status and checkpoint-collation-red/repair
 work artifacts. This is not R1–R4 architecture acceptance or new breadth;
 metadata/origins, general resources/storage and unrepresented shapes retain
 previous qualifications. No bitwise excluded changes are part of this repair.
+
+
+### Correlated scalar destination admission repair ([[card:card-t-d]], 2026-10-03)
+Supersedes only the four unresolved scalar admissions recorded above. Fresh
+source-ID asserted native-first DISTINCT, GROUP/ORDER, ordered UNION ALL and
+multi-source physical scalar children reproduced temporary prepare failures.
+Pinned expr.c:sqlite3CodeSubselect (3870–3970) initializes NULL/Exists on each
+correlated invocation, applies Once only without correlation, converts scalar
+LIMIT X to X<>0 (retaining OFFSET), and calls sqlite3Select with SRT_Mem.
+select.c:selectInnerLoop/SRT_Mem (1412ff), generateSortTail and multiSelect
+own projection, DISTINCT/grouping, OFFSET before destination and count after.
+
+Current owner/caller chain: physical compileExpressionSubquery delegates to
+resolvedScalarSubqueryEmitter; linked resolver plans retain NameContext sources
+and original reductions. Local cursor maps adapt physical addresses without
+re-resolving correlated names. Ordinary DISTINCT/multiple-source children call
+compileInnerTableSelect on the enclosing builder/parameters/Mem destination;
+GROUP/HAVING calls compileAggregateSelect with the normalized sharedLimit, so
+sorted group draining cannot overwrite the scalar with later groups. Nested
+compoundArms are resolved in the same outer context and ordered UNION ALL uses
+emitScalarCompoundMerge with linked plans/common normalized root LIMIT. The
+unordered ALL path emits sequential arm coroutines, not an invented merge of
+the first arm with itself; OFFSET and destination remain at the root drain.
+Physical arms consume existing linked full-scan admission (scalarPrepared),
+not the selected WHERE bound-operand path that lacked reduction identity for
+an outer reference. Root [[card:card-s]] WHERE/index/private24 contracts are
+unchanged; this is a retained optimization gap, not a root defect finding.
+
+Compiler still owns graph/allocation/labels and coroutine payload contracts.
+No completed Program copying, independent evaluator or VM opcode special case
+was introduced. VM retains PC/register/cursor/Mem/KeyInfo/Btree, budget and
+suspension/reset/finalize ownership. Existing manual-PC/specialized publishers
+remain live outside this bounded slice and must not be removed prematurely.
+Correlated set operators, VALUES, aggregate/transient compound arms remain
+honest temporary rejections; this is not general compound scalar acceptance.
+No exceptional algorithm substitution or public contract/product-scope change.
+
+Durable select-correlated-scalar-destination.test.mjs embeds independent pinned
+rows/names for the four reproducers plus five LIMIT0/OFFSET/exhausted DISTINCT
+and ordered/unordered ALL controls, checks INTEGER/NULL, two executions/reset,
+done/finalize. Original ten-case cross-feature oracle remains in
+work:///cards/card-t-d/finite-assessment/red-current/; controls and commands,
+failed hypotheses and final hashes are in scalar-admission-repair/ and current
+status. These tests do not establish full metadata/origins/encoding/BLOB/error
+or storage/resource parity, nor finish the seven-item R1–R4 assessment.
+
+### Bounded R1 specialized parent publications (2026-10-03)
+
+`compileJoinedUnionAll`, `compileSingleCompoundDerived`,
+`compileRepeatedImmutableView`, and `compileCteDerivedSources` (including fallback)
+now accept the **actual** enclosing builder, ParameterBuilder and SelectDest. The
+table producer forwards its shared owner, publishes those same ops/registers with
+the returned columns, and leaves Halt/finish to compileSelect/standalone table
+wrapper. Shared compound dispatch also tries joined UNION ALL before its simple
+table arm route. Standalone paths retain independent publication only without a
+parent; compound-derived aggregate was already shared and is unchanged.
+
+Pinned select.c sqlite3Select7590ff, FROM tags0482/0486/0488 and selectInnerLoop1139ff
+recursively consume one Parse/Vdbe and chosen destination. Local child ephemeral/
+sorter destinations remain distinct from enclosing output: CteUse identity,
+OpenDup positioning, shared one-fill, coroutine labels and existing limit drains
+are not replaced by finished-Program copying. Register/label allocation uses the
+existing builder. Joined compound sources resolve beyond the enclosing cursor
+frontier; its sorter reserves a private cursor beyond both frontier and sources.
+This is not a blind remap of fixed physical0..30/private24 or a claim of complete
+Parse.nTab/WHERE fidelity. Other JSON/retained-window publishers and their live
+fall-through publication ownership remain outside this bounded correction.
+
+Construction regression `select-specialized-parent-entry-owner.test.mjs` retains
+the initial five failing edge checks and adds actual parent allocation, destination,
+no raw ResultRow, conditional Halt and columns publication/caller obligations.
+Existing repeated-view, CTE fallback, derived-table/compound, ordinary-entry,
+scalar/window and lifecycle public tests retain typed rows/names/reset/finalize,
+limits and error guards. Source-ID-asserted native joined-derived, CTE fallback
+and derived-bind probes ran before consuming edits; repeated-view native probe
+was run **after** edits (not native-FIRST). Those finite captures do not certify
+all origins/encoding/BLOB/error/destination combinations or parent architecture.
+Exact commands, immutable input hashes and attempted-script failure are retained
+in [[card:card-t-b]] status and its specialized-entry-repair evidence.
+
+### Bounded IPK result metadata repair (2026-10-03, card-t-d)
+
+The ordinary-entry pinned witness no longer exempts `rowid` naming: direct
+negative-column addressing now produces the declared INTEGER PRIMARY KEY name
+(or canonical `rowid` when no IPK exists). `resolve.ts` keeps lookup spelling,
+source identity and negative physical columnIndex intact; only resolved-result
+name production and descriptor column selection consume iPKey identity.
+Explicit AS aliases still win. Pinned `select.c:sqlite3GenerateColumnNames`
+2141–2210 and `columnTypeImpl` around2009 own these two consumers; VM cursor/PC,
+WHERE/index and suspended execution are unchanged. No algorithm substitution.
+
+`select-ordinary-entry-owner.test.mjs` preserves the original native-first
+rows/types/names/reset witness and adds freshly source-ID-asserted native-before-
+repair controls for rowid/_rowid_/oid on IPK/no-IPK tables, qualified/AS access,
+origin/declaredType and leftmost compound naming. Disposable native capture and
+unchanged RED diagnostic are retained under
+work:///cards/card-t-d/ipk-metadata-repair/ and finite-combined-assessment/.
+This supersedes the earlier bounded IPK naming qualification only, not complete
+metadata parity. COLLATE expression-name/metadata and transient-table name
+production have distinct upstream branches and are not certified by this slice;
+JSON/retained-window publication, nTab, exact export and broader resource
+qualifications remain. No root WHERE fault or scope change is asserted.
+
+
+### Bounded JSON/retained-window enclosing publication correction (2026-10-03)
+
+[[card:card-t-b]] forwards the actual table-entry builder, ParameterBuilder and
+SelectDest through mixed physical/JSON, two correlated JSON sources, and single
+JSON scan/group/aggregate/sorter drains. Their local contiguous ranges begin at
+the enclosing register frontier; manual range increments are synchronized back
+to the builder before expression allocation and return. Shared paths neither
+freeze ops nor emit terminal Halt/finish. The retained-window path forwards
+parameters/destination, including its flattened recursive caller, and leaves
+window labels/subroutine finalization to the enclosing late Halt/finish. Actual
+standalone wrappers remain. Source: select.c sqlite3Select7615, selectInnerLoop
+1139ff/SRT_Output1442ff, coroutine/materialization tags0482/0488 recursively use
+the same Parse/Vdbe with chosen destinations; vdbeaux label resolution remains
+late. Objects/register indices are TS representation adaptations, not a new
+algorithm or evaluator. Fixed JSON cursor0/1 and physical/private fences remain;
+this is not general nTab/WHERE equivalence or RIGHT acceptance.
+
+Native source-ID checked JSON five-case and retained-window probes ran BEFORE
+product edits. Public JSON metadata/bind/reset/limit/error controls and window
+controls are preserved; construction checks assert consumed ownership and late
+publication, not SQL compatibility. A native grouped JSON control independently
+shows existing TEXT `text`/REAL0.0 versus public retained `string`/INTEGER0 for a
+text input: this pre-existing semantic discrepancy is not repaired or concealed
+by the construction migration. No blanket metadata/type parity claim.
+
+Revision 2026-10-03, five-caller correction: the previous omitted-edge census
+above is superseded for ordinary flatten, materialized derived, immutable-view
+recursion, zero-source scalar and multisource table entry. These now consume the
+enclosing builder/parameters/destination. See
+`docs/research/card-t-b-fallthrough-owner-census.md` for the finite branch census,
+source comparison, specialization/admission constraints and verification limits.
+The ops-identity escape is now an internal invariant failure, not publication of
+a private Program. This does not close parent R1–R4, RIGHT or exported-candidate
+acceptance, and does not repair the documented grouped JSON type discrepancy.
+
+### Bounded grouped JSON storage-class correction (card-t-c)
+
+The b818 grouped JSON witness is now repaired at semantic owners, not at the
+SELECT drain: `json.c:jsonEachColumn`/`aJsonType` uses TEXT label `text` for
+JSON strings. The table producer now shares `jsonTypeName` with `json_type`,
+removing its duplicate label rule. Internal parser kind remains `string`.
+`vdbe.c:sqlite3_value_numeric_type` applies numeric affinity only to fully
+numeric TEXT with bTryForInt=0; nonnumeric TEXT/BLOB keep their type.
+`Mem.valueNumericTypeCopy` mirrors that classification without mutating the
+producer payload; arithmetic `numericTypeCopy` remains unchanged.
+`func.c:sumStep1929ff` and `sumInverse1963ff` now consume this classification
+and use the existing `valueDouble` accessor for non-INTEGER contributions,
+so nonnumeric text contributes REAL zero, not INTEGER zero. Sum/total/avg
+share the same accumulator. No new evaluator or change to group builder,
+destination, parameters, cursor allocation, reset or error lifetimes.
+
+Source-ID-checked native controls captured before consuming edits and public
+storage-class/reset/rebind regressions are retained in
+`test/conformance/json-group-numeric-types.test.mjs`; the existing grouped
+JSON assertion now expects `text`/REAL0.0. Exact commands, failed intermediate
+hypotheses and immutable input evidence live in [[card:card-t-c]] status and
+json-group-semantic-red/repair artifacts. This supersedes only the b818
+specific unresolved grouped witness, not general JSON/storage/resource parity,
+parent R1–R4 or independent RIGHT/export proof. Metadata origins remain qualified.
+
+### 2026-10-03 d: physical outer-join aggregate input closure
+
+Supersedes only the admitted ungrouped RIGHT failure in
+`docs/research/card-t-d-final-finite-assessment.md`. `compileAggregateSelect`
+now hands physical LEFT/RIGHT/FULL input to `compileInnerTableSelect` using an
+emission-time `consumeRow` continuation, not a SELECT result projection or a
+finished child Program. The aggregate owner retains WHERE/FILTER, DISTINCT,
+bare-column capture, single finalization, HAVING and result destination/LIMIT;
+the joined owner retains ON, matched-key tracking, downstream joins, unmatched
+completion and continue/Return boundaries. Its NullRow and RHS Rewind/Rowid/Next
+now all consume the same `cursorFor` map as OpenRead and ordinary positioning.
+This fixes a real previously latent remapping divergence, not the VM crash site.
+
+Pinned select.c8884–8904 emits WhereBegin → updateAccumulator → WhereEnd →
+finalizeAggFunctions; wherecode.c2842ff nulls left table/index cursors and invokes
+the same interior for unmatched RHS. vdbeaux.c610ff labels remain compiler-owned;
+vdbe.c1152 Return and6204 NullRow execution remains VM-owned. No VM opcode,
+Mem/KeyInfo/Btree, binding or lifecycle changes. The browser callback emits
+bytecode during prepare, not a runtime evaluator or algorithm substitution.
+The independent nested aggregate loops remain live for INNER/CROSS callers;
+recursive/transient `parent.input`, grouped and specialized admissions remain.
+Grouped RIGHT still rejects honestly; multiple RIGHT barriers remain unsupported.
+No general nTab, metadata or native resource-count parity claim.
+
+Original native-before two witnesses plus six post-first-edit independent pinned
+controls are in `select-outer-join-aggregate-input.test.mjs`: INTEGER types/names,
+two executions/reset/finalize, ON0, WHERE/FILTER, DISTINCT FULL, LEFT, empty input,
+result OFFSET and downstream INNER continuation. Native sourceid is asserted by
+the disposable ctypes capture. Exact attempts/commands/hashes are in
+[[card:card-t-d]] status and work:///cards/card-t-d/right-aggregate-repair/.
+Full frozen conformance with C1–C6/Chinook/lifecycle/limits:1347/1347, no skips;
+not 1347 fresh native differentials. Root [[card:card-s]] index/table NullRow
+contracts preserved; no new root planner finding.
+
+
+### F1 endpoint lookup control repair (card-t-d, 2026-10-03)
+Supersedes provisional uncontrolled linear-seek acceptance. Pinned window.c1948–1950
+bounds regApp target and emits SeekRowid; vdbe.c5495–5568 performs Btree lookup
+and propagates errors before position publication. Browser shared finite records
+still use sequence+1 linear identity lookup (not native Btree complexity), avoiding
+new shared mutation/index bookkeeping. EphemeralIndexCursor.seekRowid now requires
+PrivateStateControl, charges one deterministic unit per visited entry, checks even
+empty/completed searches and publishes position only after successful checks.
+EphemeralSeekRowid awaits it with VM private control: host yield every256 total
+work units, cancellation/deadline/limit checks within traversal. NULL target still
+branches without lookup; OpenDup positions remain independent. No regApp/result
+or destination lowering change, no guarantee narrowing or native work equality.
+Existing primary-error/exhaustive cleanup/reset/finalize ownership is unchanged.
+Primitive and public600-row bounded PRECEDING endpoint tests isolate600 visited
+units by public budget delta; actual host yields inside seek, cancellation/deadline,
+reset/reexecution, shared replacement/missing/failure position checks pass.
+Exact attempts/native temporal provenance/export evidence in card-t-d status and
+work:///cards/card-t-d/endpoint-seek-repair/. Grouped RIGHT remains delegated
+in-scope feature debt; general nTab/resource/native error parity is not certified.

@@ -39,10 +39,25 @@ test('ordinary physical shared entry preserves native rows types names and lifec
  const old=globalThis.fetch;let db;
  try {globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/ordinary-entry');} finally {globalThis.fetch=old;}
  try {for(const c of nativeCases){const statement=db.prepare(c.sql).statement;
-  try {// Existing IPK alias naming divergence: public rowid vs native declared a.
-   // Keep visible as a gap; this migration changes construction, not naming.
-   assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i).name),c.sql.startsWith('SELECT rowid,')?['rowid','a','b']:c.names);
+  try {
+   assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i).name),c.names);
    for(let pass=0;pass<2;pass++){const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>[statement.columnType(i),typeof statement.column(i)==='bigint'?String(statement.column(i)):statement.column(i)]));
+    assert.deepEqual(rows,c.rows,c.sql);assert.equal(await statement.step(),'done');if(pass===0)statement.reset();}
+  } finally {statement.finalize();}
+ }} finally {db.close();}
+});
+
+// Independently captured pinned source-ID oracle before this repair; negative
+// rowid addressing, AS precedence, no-IPK aliases and leftmost compound naming.
+const rowidMetadataCases = [{"sql": "SELECT rowid,_rowid_,oid,t.a,t.rowid AS chosen FROM t1 t ORDER BY a LIMIT 1", "metadata": [{"name": "a", "origin": "a", "declaredType": "INTEGER"}, {"name": "a", "origin": "a", "declaredType": "INTEGER"}, {"name": "a", "origin": "a", "declaredType": "INTEGER"}, {"name": "a", "origin": "a", "declaredType": "INTEGER"}, {"name": "chosen", "origin": "a", "declaredType": "INTEGER"}], "rows": [[[1, "1"], [1, "1"], [1, "1"], [1, "1"], [1, "1"]]]}, {"sql": "SELECT rowid,_rowid_,oid,x FROM t2 ORDER BY rowid LIMIT 1", "metadata": [{"name": "rowid", "origin": "rowid", "declaredType": "INTEGER"}, {"name": "rowid", "origin": "rowid", "declaredType": "INTEGER"}, {"name": "rowid", "origin": "rowid", "declaredType": "INTEGER"}, {"name": "x", "origin": "x", "declaredType": "INTEGER"}], "rows": [[[1, "1"], [1, "1"], [1, "1"], [1, "1"]]]}, {"sql": "SELECT rowid FROM t1 UNION ALL SELECT x FROM t2 LIMIT 1", "metadata": [{"name": "a", "origin": "a", "declaredType": "INTEGER"}], "rows": [[[1, "1"]]]}];
+test('rowid metadata uses physical IPK identity without changing lookup or lifecycle', async () => {
+ const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
+ const bytes=fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/subquery-utf8.db`,import.meta.url));
+ const old=globalThis.fetch;let db;
+ try {globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/ipk-metadata');} finally {globalThis.fetch=old;}
+ try {for(const c of rowidMetadataCases){const statement=db.prepare(c.sql).statement;
+  try {assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>{const m=statement.columnMetadata(i);return {name:m.name,origin:m.origin,declaredType:m.declaredType};}),c.metadata,c.sql);
+   for(let pass=0;pass<2;pass++){const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>[statement.columnType(i)==='integer'?1:statement.columnType(i),String(statement.column(i))]));
     assert.deepEqual(rows,c.rows,c.sql);assert.equal(await statement.step(),'done');if(pass===0)statement.reset();}
   } finally {statement.finalize();}
  }} finally {db.close();}

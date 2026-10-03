@@ -178,7 +178,19 @@ export class EphemeralIndexCursor {
    this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#shared.entries.length>0}
-  seekRowid(rowid:bigint):boolean{this.#live();this.#at=this.#shared.entries.findIndex(entry=>BigInt(entry.sequence+1)===rowid);return this.#at>=0}
+  /** window.c1948ff / vdbe.c OP_SeekRowid: publish positioning only after
+   * lookup succeeds. Browser linear lookup charges every visited shared record;
+   * the VM control supplies bounded yielding, cancellation and deadline checks. */
+  async seekRowid(rowid:bigint,control:PrivateStateControl):Promise<boolean>{
+   this.#live();await control.checkpoint(0);
+   let at=-1;
+   for(let i=0;i<this.#shared.entries.length;i++){
+    await control.checkpoint(1);
+    this.#live();
+    if(BigInt(this.#shared.entries[i]!.sequence+1)===rowid){at=i;break}
+   }
+   await control.checkpoint(0);this.#live();this.#at=at;return at>=0;
+  }
   rowid():bigint{this.#live();if(this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return BigInt(this.#shared.entries[this.#at]!.sequence+1)}
   next():boolean{this.#live();return ++this.#at<this.#shared.entries.length}
   rewindBeforeFirst():void{this.#live();this.#at=-1}

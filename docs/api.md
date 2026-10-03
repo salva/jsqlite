@@ -2852,3 +2852,107 @@ hypotheses live in [[card:card-t-c]] status and checkpoint-collation-red/repair
 work artifacts. This is not R1–R4 architecture acceptance or new breadth;
 metadata/origins, general resources/storage and unrepresented shapes retain
 previous qualifications. No bitwise excluded changes are part of this repair.
+
+#### Specialized SELECT construction checkpoint
+
+Joined UNION ALL, bounded compound-derived, repeated immutable-view and CTE-derived
+preparation now use the same enclosing program/destination owner. This is an
+internal construction change, not new SQL admission or changed lifecycle/API
+semantics. Existing names/types/metadata, bindings/reset/finalize, LIMIT and atomic
+preparation errors are preserved by bounded consumer tests. Standalone internal
+compiler wrappers remain; remaining JSON/retained-window publication and general
+cursor/metadata fidelity are not certified by this checkpoint. In particular, the
+recorded rowid/IPK output-name qualification is unchanged.
+
+### Direct rowid result metadata (bounded repair, 2026-10-03)
+
+For admitted direct rowid projections on ordinary physical tables, display names
+and origins use the declared INTEGER PRIMARY KEY column when present; otherwise
+rowid/_rowid_/oid display the canonical `rowid` name and origin. An explicit AS
+alias overrides the display name but not the physical origin. Negative rowid
+addressing and name lookup are unchanged. This bounded repair is tested through
+public columnMetadata, typed rows, reset and finalize; it does not certify all
+expression or transient-source metadata branches. See TRANSLATION's bounded IPK
+repair entry for the pinned source and retained qualifications.
+
+
+### Bounded JSON/retained-window enclosing publication correction (2026-10-03)
+
+[[card:card-t-b]] forwards the actual table-entry builder, ParameterBuilder and
+SelectDest through mixed physical/JSON, two correlated JSON sources, and single
+JSON scan/group/aggregate/sorter drains. Their local contiguous ranges begin at
+the enclosing register frontier; manual range increments are synchronized back
+to the builder before expression allocation and return. Shared paths neither
+freeze ops nor emit terminal Halt/finish. The retained-window path forwards
+parameters/destination, including its flattened recursive caller, and leaves
+window labels/subroutine finalization to the enclosing late Halt/finish. Actual
+standalone wrappers remain. Source: select.c sqlite3Select7615, selectInnerLoop
+1139ff/SRT_Output1442ff, coroutine/materialization tags0482/0488 recursively use
+the same Parse/Vdbe with chosen destinations; vdbeaux label resolution remains
+late. Objects/register indices are TS representation adaptations, not a new
+algorithm or evaluator. Fixed JSON cursor0/1 and physical/private fences remain;
+this is not general nTab/WHERE equivalence or RIGHT acceptance.
+
+Native source-ID checked JSON five-case and retained-window probes ran BEFORE
+product edits. Public JSON metadata/bind/reset/limit/error controls and window
+controls are preserved; construction checks assert consumed ownership and late
+publication, not SQL compatibility. A native grouped JSON control independently
+shows existing TEXT `text`/REAL0.0 versus public retained `string`/INTEGER0 for a
+text input: this pre-existing semantic discrepancy is not repaired or concealed
+by the construction migration. No blanket metadata/type parity claim.
+
+Revision 2026-10-03, five-caller correction: the previous omitted-edge census
+above is superseded for ordinary flatten, materialized derived, immutable-view
+recursion, zero-source scalar and multisource table entry. These now consume the
+enclosing builder/parameters/destination. See
+`docs/research/card-t-b-fallthrough-owner-census.md` for the finite branch census,
+source comparison, specialization/admission constraints and verification limits.
+The ops-identity escape is now an internal invariant failure, not publication of
+a private Program. This does not close parent R1–R4, RIGHT or exported-candidate
+acceptance, and does not repair the documented grouped JSON type discrepancy.
+
+### Bounded grouped JSON storage-class correction (card-t-c)
+
+The b818 grouped JSON witness is now repaired at semantic owners, not at the
+SELECT drain: `json.c:jsonEachColumn`/`aJsonType` uses TEXT label `text` for
+JSON strings. The table producer now shares `jsonTypeName` with `json_type`,
+removing its duplicate label rule. Internal parser kind remains `string`.
+`vdbe.c:sqlite3_value_numeric_type` applies numeric affinity only to fully
+numeric TEXT with bTryForInt=0; nonnumeric TEXT/BLOB keep their type.
+`Mem.valueNumericTypeCopy` mirrors that classification without mutating the
+producer payload; arithmetic `numericTypeCopy` remains unchanged.
+`func.c:sumStep1929ff` and `sumInverse1963ff` now consume this classification
+and use the existing `valueDouble` accessor for non-INTEGER contributions,
+so nonnumeric text contributes REAL zero, not INTEGER zero. Sum/total/avg
+share the same accumulator. No new evaluator or change to group builder,
+destination, parameters, cursor allocation, reset or error lifetimes.
+
+Source-ID-checked native controls captured before consuming edits and public
+storage-class/reset/rebind regressions are retained in
+`test/conformance/json-group-numeric-types.test.mjs`; the existing grouped
+JSON assertion now expects `text`/REAL0.0. Exact commands, failed intermediate
+hypotheses and immutable input evidence live in [[card:card-t-c]] status and
+json-group-semantic-red/repair artifacts. This supersedes only the b818
+specific unresolved grouped witness, not general JSON/storage/resource parity,
+parent R1–R4 or independent RIGHT/export proof. Metadata origins remain qualified.
+
+
+### F1 endpoint lookup control repair (card-t-d, 2026-10-03)
+Supersedes provisional uncontrolled linear-seek acceptance. Pinned window.c1948–1950
+bounds regApp target and emits SeekRowid; vdbe.c5495–5568 performs Btree lookup
+and propagates errors before position publication. Browser shared finite records
+still use sequence+1 linear identity lookup (not native Btree complexity), avoiding
+new shared mutation/index bookkeeping. EphemeralIndexCursor.seekRowid now requires
+PrivateStateControl, charges one deterministic unit per visited entry, checks even
+empty/completed searches and publishes position only after successful checks.
+EphemeralSeekRowid awaits it with VM private control: host yield every256 total
+work units, cancellation/deadline/limit checks within traversal. NULL target still
+branches without lookup; OpenDup positions remain independent. No regApp/result
+or destination lowering change, no guarantee narrowing or native work equality.
+Existing primary-error/exhaustive cleanup/reset/finalize ownership is unchanged.
+Primitive and public600-row bounded PRECEDING endpoint tests isolate600 visited
+units by public budget delta; actual host yields inside seek, cancellation/deadline,
+reset/reexecution, shared replacement/missing/failure position checks pass.
+Exact attempts/native temporal provenance/export evidence in card-t-d status and
+work:///cards/card-t-d/endpoint-seek-repair/. Grouped RIGHT remains delegated
+in-scope feature debt; general nTab/resource/native error parity is not certified.
