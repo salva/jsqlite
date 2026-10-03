@@ -13,9 +13,10 @@ queries=['SELECT k FROM p NOT INDEXED ORDER BY k','SELECT k,v FROM cp NOT INDEXE
 for order in ['a','a ASC','a DESC','a ASC NULLS FIRST','a ASC NULLS LAST','a DESC NULLS FIRST','a DESC NULLS LAST']:
  queries.append('SELECT id,a FROM t INDEXED BY t_a ORDER BY '+order)
 queries+=['SELECT id,a FROM t INDEXED BY t_ab WHERE a=?1 ORDER BY b','SELECT -id AS id FROM t ORDER BY 1','SELECT id FROM t ORDER BY t.id','SELECT id FROM t ORDER BY (id)','SELECT a FROM t INDEXED BY t_a ORDER BY a COLLATE BINARY','SELECT k FROM p NOT INDEXED ORDER BY k COLLATE NOCASE']
+queries += ['SELECT id FROM ep INDEXED BY ep_expr ORDER BY (a+1) ASC NULLS LAST,id','SELECT id FROM ep INDEXED BY ep_expr ORDER BY (a+1) DESC NULLS FIRST,id']
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  file=root/(enc+'.sqlite');file.unlink(missing_ok=True);db=C.c_void_p();assert d.sqlite3_open(str(file).encode(),C.byref(db))==0
- m.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE p(k TEXT PRIMARY KEY,v); INSERT INTO p VALUES('z',1),('a',2); CREATE TABLE cp(k TEXT,v INTEGER,PRIMARY KEY(k,v)); INSERT INTO cp VALUES('z',1),('a',2),('a',1); CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER); INSERT INTO t VALUES(1,2,3),(2,NULL,2),(3,1,4),(4,3,1); CREATE INDEX t_a ON t(a); CREATE INDEX t_ab ON t(a,b);")
+ m.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE p(k TEXT PRIMARY KEY,v); INSERT INTO p VALUES('z',1),('a',2); CREATE TABLE cp(k TEXT,v INTEGER,PRIMARY KEY(k,v)); INSERT INTO cp VALUES('z',1),('a',2),('a',1); CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER); INSERT INTO t VALUES(1,2,3),(2,NULL,2),(3,1,4),(4,3,1); CREATE INDEX t_a ON t(a); CREATE INDEX t_ab ON t(a,b); CREATE TABLE ep(id INTEGER PRIMARY KEY,a INTEGER); INSERT INTO ep VALUES(1,NULL),(2,3),(3,1),(4,2); CREATE INDEX ep_expr ON ep(a+1);")
  cases=[]
  for sql in queries:
   runs=[]
@@ -28,4 +29,4 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
  for sql in ['SELECT id FROM t ORDER BY 9','SELECT id FROM t ORDER BY id COLLATE missing']:
   st=C.c_void_p();code=d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None);assert code!=0;errors.append(dict(sql=sql,code=code,message=d.sqlite3_errmsg(db).decode()))
  d.sqlite3_close(db);variants.append(dict(encoding=enc,fixture=str(file),cases=cases,errors=errors))
-(root/'capture.json').write_text(json.dumps(dict(sourceId=pin['sqliteSourceId'],variants=variants)));print('Pinned R2 capture: 57 queries/114 executions and 6 errors')
+(root/'capture.json').write_text(json.dumps(dict(sourceId=pin['sqliteSourceId'],variants=variants)));print('Pinned R2 capture: 63 queries/126 executions and 6 errors')

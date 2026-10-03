@@ -4180,3 +4180,22 @@ selected/storage206 and R1/R2 focused24 pass on the isolated parent plus patch.
 Additional exploratory expression-index ORDER scans still produce wrong rows
 (repeated id1); those failures are not waived by this repair or existing greens.
 Integration remains withheld pending their separate owner/caller diagnosis.
+
+### R2 consuming loop restart correction (expression-index full scans)
+
+The WR repair exposed twelve native/public wrong-row comparisons on forced
+expression-index ORDER scans without WHERE: indexNext advanced four records,
+but tableSeeks stayed one and every projected id reused the first base row.
+Pinned `where.c:sqlite3WhereEnd` (7593–7595) jumps to the WHERE loop position,
+not the SELECT result body; `vdbe.c:OP_DeferredSeek` (6740–6753) marks each new
+base target/cache stale. The TS DeferredSeek owner already did that correctly,
+but the shared SELECT caller skipped it on next/previous when WHERE was absent.
+The caller now always restarts at scan.loopStart, including termination and
+deferred positioning, before result/sorter evaluation. No VM cache workaround,
+SQL special case or algorithm substitution is introduced. Source-ID checked
+R2 native/public matrix now includes both expression ORDER NULL orientations:
+63 prepared cases/126 executions plus six errors across all encodings. The
+work-only extended90/180 discriminator also passes; earlier12 failures remain
+recorded. This closes the concrete residual failure noted above, not full
+BIGNULL optimization or broader optimizer equivalence. Selected credit24/30
+and conservative nondefault NULL sorter contract remain unchanged.

@@ -5529,7 +5529,9 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(limit)builder.jump(producerExit,{code:"DecrJumpZero",p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));
   }
   builder.mark(scanNext);
-  sqlite3WhereEnd(ops,scan,select.where?scan.loopStart:body);
+  // Every advance re-enters WHERE positioning/termination and deferred lookup,
+  // even when no residual WHERE predicate exists (where.c sqlite3WhereEnd).
+  sqlite3WhereEnd(ops,scan,scan.loopStart);
   if(keyInfo){
     const drain=builder.label(),drainNext=builder.label();
     builder.jump(producerExit,{code:"SorterSort",p1:sorterCursor,emptyJump:0},(op,pc)=>({...op,emptyJump:pc} as Op));
