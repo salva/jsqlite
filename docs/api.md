@@ -2,10 +2,16 @@
 
 Status: implemented browser-safe read-only API with bounded progressive SQL admission.
 [SPEC](SPEC.md) owns the product target; this document does not turn temporary
-implementation gaps into exclusions. Declarations live in `src/index.ts`.
+implementation gaps into exclusions. Public declarations are authored in `src/index.ts` and emitted to `dist/index.d.ts`.
 Detailed historical contracts/runs are preserved in [card-u history](research/card-u-history/README.md).
 
 ## Import and values
+
+`npm run build` emits browser-resolvable named ESM and declarations. Install a
+local `npm pack` tarball to consume the package import below; in an unbundled
+browser, serve the complete `dist/` tree and import its `index.js` URL. The
+private `0.0.0-local-translated` package is experimental local output, not release
+acceptance. See [local build instructions](../README.md#local-browser-esm-build).
 
 ```ts
 import { open, JSQLiteError } from "jsqlite2";

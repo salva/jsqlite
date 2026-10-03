@@ -12,6 +12,15 @@ records exact capture identity. [Oracle](oracle.md) owns reproducible developmen
 setup. Baseline findings in the [mutable audit](reviews/translation-fidelity-2026-09-14.md)
 require current producer/consumer verification, not automatic acceptance.
 
+## Distributable integration
+
+The existing translated API/runtime closure is emitted unchanged by
+[tsconfig.build.json](../tsconfig.build.json) and [build tooling](../tools/package/build.mjs).
+[Package regression](../test/package-distributable.test.mjs) validates the actual
+local tarball, named ESM/public declarations and browser-global execution;
+[evidence](research/card-v-a-package-evidence.md) records inventory and limitations.
+This integration has no new C algorithm mapping or SQL coverage credit.
+
 ## API and immutable database
 
 | Pinned implementing owners | Current TS owners | Tests/evidence navigation |

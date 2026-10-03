@@ -1,0 +1,546 @@
+{
+  "node": "v24.18.0",
+  "fixtureGeneration": "g-0582cc5beeb76cd457bd4115944a1a70bbc4d70442bff1998fc79f4b5ec82b56",
+  "tarball": {
+    "filename": "jsqlite2-0.0.0-local-translated.tgz",
+    "sha256": "132e5994fd7bdb126b971d5bbde4ac37d117f507ccf6f4ff590498948a1e8750",
+    "shasum": "f5d83a2b4c0983992fb4e5e5b20cdf82ab045273",
+    "integrity": "sha512-ThEA3LKOVWbnd4hHRkm/uApQGga4Tkliusai2uhCGja6O8vkstdfB+5CHyuLm/gEAOnfmq8hH34C/FTFAuidpg==",
+    "size": 355076,
+    "unpackedSize": 1827755
+  },
+  "runtimeModules": 31,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3466,
+      "sha256": "eca656443767556b5736ba4368486b9ebe8851854798b5fee5d4b1b21dd3b660"
+    },
+    {
+      "path": "dist/generated/keyword-table.d.ts",
+      "bytes": 4530,
+      "sha256": "d8ae7adb2326fb71390a617a65353df85ddb1aa07da4025ac22da22461eb5c31"
+    },
+    {
+      "path": "dist/generated/keyword-table.js",
+      "bytes": 3738,
+      "sha256": "d02f793b07969b85af8866f16e9ef17c51ba04e396adbb53333429eda2085dcb"
+    },
+    {
+      "path": "dist/generated/parser-tables.d.ts",
+      "bytes": 78690,
+      "sha256": "087f16716d882d76b6f612ce04b6516fa020941069e3a472cd6420a763de1075"
+    },
+    {
+      "path": "dist/generated/parser-tables.js",
+      "bytes": 67340,
+      "sha256": "9b4e6a30969da3fa13b3972b4b43d8c7f6850461871112ea9b4f4e1727e508cc"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 3246,
+      "sha256": "1a56b10105d40d7a1f86936b3f3f072b5d647990e135eb514252a882db094736"
+    },
+    {
+      "path": "dist/index.js",
+      "bytes": 14488,
+      "sha256": "f656334195fa8348a393b098d4e8b3eeacbbc590346336e0efdbd933d052fd4a"
+    },
+    {
+      "path": "dist/internal/admission.d.ts",
+      "bytes": 697,
+      "sha256": "e62cdcf473e98b771ccc3278a7fb587e6429badc338eafef9812d4ef247e5484"
+    },
+    {
+      "path": "dist/internal/admission.js",
+      "bytes": 3676,
+      "sha256": "3039c212a67f068442547f8abdeae78d438e397ad6eaff382aa04fe770354f0b"
+    },
+    {
+      "path": "dist/internal/btree.d.ts",
+      "bytes": 5190,
+      "sha256": "93138aef3db8ceaf9d03f5b420edc61239892ec10182dafa4d913522e5048d43"
+    },
+    {
+      "path": "dist/internal/btree.js",
+      "bytes": 25914,
+      "sha256": "1a53d7bcfaf8d4a07c4275affe2aba1a464084e527542b4f92c8d6b0338a8447"
+    },
+    {
+      "path": "dist/internal/comparison.d.ts",
+      "bytes": 3611,
+      "sha256": "0009a5ef18bde2029ef4089ad4d11c7ab9997df6f0ae1d3da33e707aa6615592"
+    },
+    {
+      "path": "dist/internal/comparison.js",
+      "bytes": 15499,
+      "sha256": "9abe8bd3209b0d8033675edbcff3d559981b857d36a9f242aecd01ed894521dd"
+    },
+    {
+      "path": "dist/internal/cte.d.ts",
+      "bytes": 1399,
+      "sha256": "9614adeb078bbdb7473cfe938ae6900cff8be8df2fe58553c4d48b5b9c8a79be"
+    },
+    {
+      "path": "dist/internal/cte.js",
+      "bytes": 9307,
+      "sha256": "1d768d725abfe7a47d51f75cdef75254b4cf19e6ea23be9df21ddccb135664f4"
+    },
+    {
+      "path": "dist/internal/date-time.d.ts",
+      "bytes": 992,
+      "sha256": "f782d8a3db88da245e1384c95b1aaca872f367bfced1d1246da0d1577a7a40d6"
+    },
+    {
+      "path": "dist/internal/date-time.js",
+      "bytes": 24914,
+      "sha256": "d48594091f6663a1ae82728bac8811b48fad7808a3df2ed5f8a911e611206740"
+    },
+    {
+      "path": "dist/internal/functions.d.ts",
+      "bytes": 864,
+      "sha256": "ad44a8063e036ccc16d6172003970395944fbce5ff3c6d3176d5a7fa24a2b0dd"
+    },
+    {
+      "path": "dist/internal/functions.js",
+      "bytes": 6702,
+      "sha256": "1828973f0a3963fe9ddb02c190ab6d2489ee6359f34dc1206a38d205f863f15f"
+    },
+    {
+      "path": "dist/internal/json.d.ts",
+      "bytes": 3932,
+      "sha256": "0c0e9f73b0bdc17633da6ab500d5ad4596a8907b63a8bbbc70ada2361b977e3f"
+    },
+    {
+      "path": "dist/internal/json.js",
+      "bytes": 37670,
+      "sha256": "bc503f919c3033193bb9b77d4ec71068da133c287e5ee17a4abfcf4d9c0caaf8"
+    },
+    {
+      "path": "dist/internal/lemon-runtime.d.ts",
+      "bytes": 1288,
+      "sha256": "03e03c455bd2afb926576abaf9e8fc59b08c2323db959942909b8a11f9bba2aa"
+    },
+    {
+      "path": "dist/internal/lemon-runtime.js",
+      "bytes": 4873,
+      "sha256": "cc59b13bc51bb03a28c9f65c67afbe465ca9f01db60fc57834fd5e7883a3c1be"
+    },
+    {
+      "path": "dist/internal/math.d.ts",
+      "bytes": 263,
+      "sha256": "85031b551287088f1280db3d2f19ba716561dc18d0d856ff1f670fce341640b9"
+    },
+    {
+      "path": "dist/internal/math.js",
+      "bytes": 3900,
+      "sha256": "51563a09499806aa64419bd9e049eb328f6e6fd902765e1f3f457574e0f6a68b"
+    },
+    {
+      "path": "dist/internal/mem.d.ts",
+      "bytes": 5512,
+      "sha256": "3c1c6f6de8aab663cce66339ed8ca10acc26304d959131203ddd1038bae284c3"
+    },
+    {
+      "path": "dist/internal/mem.js",
+      "bytes": 39673,
+      "sha256": "fdf7cdbbe29d1e47c7c7c7c0c619238deebc0f3ba83b7e057ce180482e078ba5"
+    },
+    {
+      "path": "dist/internal/ordinary-scalars.d.ts",
+      "bytes": 932,
+      "sha256": "71264f50177b3ca6c880c12ac12580f90165a5d73115fa54be38e10fbf5f79b4"
+    },
+    {
+      "path": "dist/internal/ordinary-scalars.js",
+      "bytes": 5153,
+      "sha256": "f3906aaa2257e4a5b925f7d2db07d1b3e780529b333df21fff7dc18d93852983"
+    },
+    {
+      "path": "dist/internal/parse.d.ts",
+      "bytes": 7524,
+      "sha256": "2f785fc7dd699cb865566dc1f2a79100584a0439dc6f7a0a24ccb6b6a6e683da"
+    },
+    {
+      "path": "dist/internal/parse.js",
+      "bytes": 52247,
+      "sha256": "9e16ea85b123b1750ab8d9f74e16bc09c1fb14c239ac93c2b1f282ee0e995bf9"
+    },
+    {
+      "path": "dist/internal/pattern.d.ts",
+      "bytes": 646,
+      "sha256": "961b536d132a7e2293834f043efda3a4c988b32a61ec0c0c291b062aef8eac19"
+    },
+    {
+      "path": "dist/internal/pattern.js",
+      "bytes": 3807,
+      "sha256": "7ff8a6b5b309e97e709b8e256c150fc08f051b6719b16801b089c920729d0904"
+    },
+    {
+      "path": "dist/internal/printf.d.ts",
+      "bytes": 359,
+      "sha256": "7b7c2ed510256704b81769ba6432e298152c7ecaa5e5dadcfc782ac0c2ae90c8"
+    },
+    {
+      "path": "dist/internal/printf.js",
+      "bytes": 16098,
+      "sha256": "6ad38d8ebc5895a428be00e149ba201d02fe290bff94bfffe3407e9e7f877fae"
+    },
+    {
+      "path": "dist/internal/private-state.d.ts",
+      "bytes": 4883,
+      "sha256": "95a02d5866bb339af1fbb4480cf1c6bb31e64977047d2e8cf2fcd7ddf0327ba4"
+    },
+    {
+      "path": "dist/internal/private-state.js",
+      "bytes": 22492,
+      "sha256": "22e5554724f2ab9eab7f256962756ccfcbccf7e16ea1cb4b34ebed2f2b416a30"
+    },
+    {
+      "path": "dist/internal/record.d.ts",
+      "bytes": 2447,
+      "sha256": "1c6d6c122b1a9f0c53d78885abc5804884a4d1a5eb6e6ecff489de015c45c358"
+    },
+    {
+      "path": "dist/internal/record.js",
+      "bytes": 5719,
+      "sha256": "781a2e3f500278e58eb084ff4f0e84bbf8a7997fc148ce3250f7bb6d86afe87a"
+    },
+    {
+      "path": "dist/internal/resolve.d.ts",
+      "bytes": 8373,
+      "sha256": "d88f96e0edde6abaa5ec5526879651dfd30f33a654ac0f9cb018307251ed0abb"
+    },
+    {
+      "path": "dist/internal/resolve.js",
+      "bytes": 108320,
+      "sha256": "1992df5898d8f4e3d9dac990d0ed06b0b5fa3f257496c2196a4a27cd446ee2d5"
+    },
+    {
+      "path": "dist/internal/schema.d.ts",
+      "bytes": 6864,
+      "sha256": "993826cd35254c45af1609d1449bdf6b44bebeec14015265060d339072a059ac"
+    },
+    {
+      "path": "dist/internal/schema.js",
+      "bytes": 28151,
+      "sha256": "746e6f2667a2d139562d3348a354f9518dd119ccded06ea4bf279373acb3aa3b"
+    },
+    {
+      "path": "dist/internal/select-compiler.d.ts",
+      "bytes": 1193,
+      "sha256": "0e99a7b417270262b266bea45c5eb9d5319373ac49b1bc845cf5b4898c45e6c1"
+    },
+    {
+      "path": "dist/internal/select-compiler.js",
+      "bytes": 13375,
+      "sha256": "4f6dc63c75deb1089195cc7a71acf8b3e794f9096d26f05f989f7cc56a2ab87d"
+    },
+    {
+      "path": "dist/internal/select-program.d.ts",
+      "bytes": 1792,
+      "sha256": "1ed6647e4f21564c16448fd687f7747a8e4b76a2cc5eac659337fc689b95e3be"
+    },
+    {
+      "path": "dist/internal/select-program.js",
+      "bytes": 5052,
+      "sha256": "105a2d4abc5dcad56da47d4c99d73fead5b015f7fc7a7458588365773defa494"
+    },
+    {
+      "path": "dist/internal/sqlite-case.d.ts",
+      "bytes": 341,
+      "sha256": "465dc129f056ddbe7f43de924128bc957ea7f7ed8629b93f2ffa687a6d81c99a"
+    },
+    {
+      "path": "dist/internal/sqlite-case.js",
+      "bytes": 453,
+      "sha256": "4b38d21a1819589e894dec066ce464f0198b609a86d367ae926350f4cdbf7b42"
+    },
+    {
+      "path": "dist/internal/storage.d.ts",
+      "bytes": 1044,
+      "sha256": "d68db40c112809169e96bee8917630fb25b3e05a0cd1a99211d3949ae71625c1"
+    },
+    {
+      "path": "dist/internal/storage.js",
+      "bytes": 4229,
+      "sha256": "6b5fa063dac8bc177953bb6a4fcc4593a2da16884f802c791a81ffb87e8c393c"
+    },
+    {
+      "path": "dist/internal/tokenize.d.ts",
+      "bytes": 432,
+      "sha256": "a14b32767557512350dc5c0a5e5db698039e9d92e9c8106f29d01a94081d817f"
+    },
+    {
+      "path": "dist/internal/tokenize.js",
+      "bytes": 7225,
+      "sha256": "7b3d9912afbcfb7d0ee92d2e1d5c9daf10e955b91c138296c217687fd9857111"
+    },
+    {
+      "path": "dist/internal/utf.d.ts",
+      "bytes": 368,
+      "sha256": "c3bd5e8339083186043cfe29a0d2395aa9cfc67c8dc11d715e6819aeedae6ca8"
+    },
+    {
+      "path": "dist/internal/utf.js",
+      "bytes": 2160,
+      "sha256": "434f34ab32c481be4f20642ca75406bc16919ae4044cefc1e26b4f014c628d88"
+    },
+    {
+      "path": "dist/internal/vdbe-primitives.d.ts",
+      "bytes": 1276,
+      "sha256": "41d4c416a931f6f02e04724a4b5ec4da20b6e370bbe2dcf5d472f1b59641050c"
+    },
+    {
+      "path": "dist/internal/vdbe-primitives.js",
+      "bytes": 5501,
+      "sha256": "8c495b89c5e28534fea47ca02ea42d1635aa69c3bcf888b616d6963cb289caf5"
+    },
+    {
+      "path": "dist/internal/vdbe.d.ts",
+      "bytes": 26588,
+      "sha256": "a41406950972f60a1cc108035ecdf16108fb3c5ec00efa22dc18c3d8b5f47822"
+    },
+    {
+      "path": "dist/internal/vdbe.js",
+      "bytes": 1025683,
+      "sha256": "15ddd6e634079933449b8c9d50a9a4e4abaf557647ce82fe7c4c39da247dd8d0"
+    },
+    {
+      "path": "dist/internal/where-plan.d.ts",
+      "bytes": 7944,
+      "sha256": "3e532521fc847444f43f8cb981e9f3368978132dda37efc11ae1914288162e5a"
+    },
+    {
+      "path": "dist/internal/where-plan.js",
+      "bytes": 47783,
+      "sha256": "f062458256b35523056e3f4d2136aad07e1846f486643a141a32ccdf9c716d06"
+    },
+    {
+      "path": "dist/internal/window-rewrite.d.ts",
+      "bytes": 4118,
+      "sha256": "f39f80717afb5611b53c808ff821f78f5a3bf720edfa1291cada550a4a7c8aba"
+    },
+    {
+      "path": "dist/internal/window-rewrite.js",
+      "bytes": 17453,
+      "sha256": "49cd1f822774b205f5e036976ec49b3594e514c1a9611024ac26a773a9aa314c"
+    },
+    {
+      "path": "package.json",
+      "bytes": 8356,
+      "sha256": "87b41ad92f837d50c25c634af30a17c9d21f3682e25549e9953704f678122bde"
+    }
+  ],
+  "browserRequests": [
+    {
+      "url": "https://fixture.invalid/main.db",
+      "credentials": "omit"
+    },
+    {
+      "url": "https://fixture.invalid/main.db",
+      "credentials": "omit"
+    },
+    {
+      "url": "https://fixture.invalid/main.db",
+      "credentials": "omit"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "\n> jsqlite2@0.0.0-local-translated build\n> node tools/package/build.mjs\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "\n> jsqlite2@0.0.0-local-translated build\n> node tools/package/build.mjs\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "\n> jsqlite2@0.0.0-local-translated typecheck\n> tsc -p tsconfig.json\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test:package-boundary"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "\n> jsqlite2@0.0.0-local-translated test:package-boundary\n> python3 test/package-boundary.test.py\n\npackage boundary passed: private local ESM allowlist, no runtime native/tool/fixture imports or dynamic code generation\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "pack",
+        "--dry-run",
+        "--json"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "[\n  {\n    \"id\": \"jsqlite2@0.0.0-local-translated\",\n    \"name\": \"jsqlite2\",\n    \"version\": \"0.0.0-local-translated\",\n    \"size\": 355076,\n    \"unpackedSize\": 1827755,\n    \"shasum\": \"f5d83a2b4c0983992fb4e5e5b20cdf82ab045273\",\n    \"integrity\": \"sha512-ThEA3LKOVWbnd4hHRkm/uApQGga4Tkliusai2uhCGja6O8vkstdfB+5CHyuLm/gEAOnfmq8hH34C/FTFAuidpg==\",\n    \"filename\": \"jsqlite2-0.0.0-local-translated.tgz\",\n    \"files\": [\n      {\n        \"path\": \"README.md\",\n        \"size\": 3466,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.d.ts\",\n        \"size\": 4530,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.js\",\n        \"size\": 3738,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.d.ts\",\n        \"size\": 78690,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.js\",\n        \"size\": 67340,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts\",\n        \"size\": 3246,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 14488,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.d.ts\",\n        \"size\": 697,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.js\",\n        \"size\": 3676,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.d.ts\",\n        \"size\": 5190,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.js\",\n        \"size\": 25914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.d.ts\",\n        \"size\": 3611,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.js\",\n        \"size\": 15499,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.d.ts\",\n        \"size\": 1399,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.js\",\n        \"size\": 9307,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.d.ts\",\n        \"size\": 992,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.js\",\n        \"size\": 24914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.d.ts\",\n        \"size\": 864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.js\",\n        \"size\": 6702,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.d.ts\",\n        \"size\": 3932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.js\",\n        \"size\": 37670,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.d.ts\",\n        \"size\": 1288,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.js\",\n        \"size\": 4873,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.d.ts\",\n        \"size\": 263,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.js\",\n        \"size\": 3900,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.d.ts\",\n        \"size\": 5512,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.js\",\n        \"size\": 39673,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.d.ts\",\n        \"size\": 932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.js\",\n        \"size\": 5153,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.d.ts\",\n        \"size\": 7524,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.js\",\n        \"size\": 52247,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.d.ts\",\n        \"size\": 646,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.js\",\n        \"size\": 3807,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.d.ts\",\n        \"size\": 359,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.js\",\n        \"size\": 16098,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.d.ts\",\n        \"size\": 4883,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.js\",\n        \"size\": 22492,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.d.ts\",\n        \"size\": 2447,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.js\",\n        \"size\": 5719,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.d.ts\",\n        \"size\": 8373,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.js\",\n        \"size\": 108320,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.d.ts\",\n        \"size\": 6864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.js\",\n        \"size\": 28151,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.d.ts\",\n        \"size\": 1193,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.js\",\n        \"size\": 13375,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.d.ts\",\n        \"size\": 1792,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.js\",\n        \"size\": 5052,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.d.ts\",\n        \"size\": 341,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.js\",\n        \"size\": 453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.d.ts\",\n        \"size\": 1044,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.js\",\n        \"size\": 4229,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.d.ts\",\n        \"size\": 432,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.js\",\n        \"size\": 7225,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.d.ts\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.js\",\n        \"size\": 2160,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.d.ts\",\n        \"size\": 1276,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.js\",\n        \"size\": 5501,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.d.ts\",\n        \"size\": 26588,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.js\",\n        \"size\": 1025683,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.d.ts\",\n        \"size\": 7944,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.js\",\n        \"size\": 47783,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.d.ts\",\n        \"size\": 4118,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.js\",\n        \"size\": 17453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 8356,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 64,\n    \"bundled\": []\n  }\n]\n",
+      "stderr": "\n> jsqlite2@0.0.0-local-translated prepack\n> npm run build\n\n\n> jsqlite2@0.0.0-local-translated build\n> node tools/package/build.mjs\n\n"
+    },
+    {
+      "command": [
+        "npm",
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "[\n  {\n    \"id\": \"jsqlite2@0.0.0-local-translated\",\n    \"name\": \"jsqlite2\",\n    \"version\": \"0.0.0-local-translated\",\n    \"size\": 355076,\n    \"unpackedSize\": 1827755,\n    \"shasum\": \"f5d83a2b4c0983992fb4e5e5b20cdf82ab045273\",\n    \"integrity\": \"sha512-ThEA3LKOVWbnd4hHRkm/uApQGga4Tkliusai2uhCGja6O8vkstdfB+5CHyuLm/gEAOnfmq8hH34C/FTFAuidpg==\",\n    \"filename\": \"jsqlite2-0.0.0-local-translated.tgz\",\n    \"files\": [\n      {\n        \"path\": \"README.md\",\n        \"size\": 3466,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.d.ts\",\n        \"size\": 4530,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.js\",\n        \"size\": 3738,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.d.ts\",\n        \"size\": 78690,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.js\",\n        \"size\": 67340,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts\",\n        \"size\": 3246,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 14488,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.d.ts\",\n        \"size\": 697,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.js\",\n        \"size\": 3676,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.d.ts\",\n        \"size\": 5190,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.js\",\n        \"size\": 25914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.d.ts\",\n        \"size\": 3611,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.js\",\n        \"size\": 15499,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.d.ts\",\n        \"size\": 1399,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.js\",\n        \"size\": 9307,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.d.ts\",\n        \"size\": 992,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.js\",\n        \"size\": 24914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.d.ts\",\n        \"size\": 864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.js\",\n        \"size\": 6702,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.d.ts\",\n        \"size\": 3932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.js\",\n        \"size\": 37670,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.d.ts\",\n        \"size\": 1288,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.js\",\n        \"size\": 4873,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.d.ts\",\n        \"size\": 263,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.js\",\n        \"size\": 3900,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.d.ts\",\n        \"size\": 5512,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.js\",\n        \"size\": 39673,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.d.ts\",\n        \"size\": 932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.js\",\n        \"size\": 5153,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.d.ts\",\n        \"size\": 7524,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.js\",\n        \"size\": 52247,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.d.ts\",\n        \"size\": 646,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.js\",\n        \"size\": 3807,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.d.ts\",\n        \"size\": 359,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.js\",\n        \"size\": 16098,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.d.ts\",\n        \"size\": 4883,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.js\",\n        \"size\": 22492,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.d.ts\",\n        \"size\": 2447,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.js\",\n        \"size\": 5719,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.d.ts\",\n        \"size\": 8373,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.js\",\n        \"size\": 108320,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.d.ts\",\n        \"size\": 6864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.js\",\n        \"size\": 28151,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.d.ts\",\n        \"size\": 1193,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.js\",\n        \"size\": 13375,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.d.ts\",\n        \"size\": 1792,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.js\",\n        \"size\": 5052,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.d.ts\",\n        \"size\": 341,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.js\",\n        \"size\": 453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.d.ts\",\n        \"size\": 1044,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.js\",\n        \"size\": 4229,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.d.ts\",\n        \"size\": 432,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.js\",\n        \"size\": 7225,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.d.ts\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.js\",\n        \"size\": 2160,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.d.ts\",\n        \"size\": 1276,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.js\",\n        \"size\": 5501,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.d.ts\",\n        \"size\": 26588,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.js\",\n        \"size\": 1025683,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.d.ts\",\n        \"size\": 7944,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.js\",\n        \"size\": 47783,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.d.ts\",\n        \"size\": 4118,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.js\",\n        \"size\": 17453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 8356,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 64,\n    \"bundled\": []\n  }\n]\n",
+      "stderr": "\n> jsqlite2@0.0.0-local-translated prepack\n> npm run build\n\n\n> jsqlite2@0.0.0-local-translated build\n> node tools/package/build.mjs\n\n"
+    },
+    {
+      "command": [
+        "npm",
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "[\n  {\n    \"id\": \"jsqlite2@0.0.0-local-translated\",\n    \"name\": \"jsqlite2\",\n    \"version\": \"0.0.0-local-translated\",\n    \"size\": 355076,\n    \"unpackedSize\": 1827755,\n    \"shasum\": \"f5d83a2b4c0983992fb4e5e5b20cdf82ab045273\",\n    \"integrity\": \"sha512-ThEA3LKOVWbnd4hHRkm/uApQGga4Tkliusai2uhCGja6O8vkstdfB+5CHyuLm/gEAOnfmq8hH34C/FTFAuidpg==\",\n    \"filename\": \"jsqlite2-0.0.0-local-translated.tgz\",\n    \"files\": [\n      {\n        \"path\": \"README.md\",\n        \"size\": 3466,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.d.ts\",\n        \"size\": 4530,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.js\",\n        \"size\": 3738,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.d.ts\",\n        \"size\": 78690,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.js\",\n        \"size\": 67340,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts\",\n        \"size\": 3246,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 14488,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.d.ts\",\n        \"size\": 697,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.js\",\n        \"size\": 3676,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.d.ts\",\n        \"size\": 5190,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.js\",\n        \"size\": 25914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.d.ts\",\n        \"size\": 3611,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.js\",\n        \"size\": 15499,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.d.ts\",\n        \"size\": 1399,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.js\",\n        \"size\": 9307,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.d.ts\",\n        \"size\": 992,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.js\",\n        \"size\": 24914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.d.ts\",\n        \"size\": 864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.js\",\n        \"size\": 6702,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.d.ts\",\n        \"size\": 3932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.js\",\n        \"size\": 37670,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.d.ts\",\n        \"size\": 1288,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.js\",\n        \"size\": 4873,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.d.ts\",\n        \"size\": 263,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.js\",\n        \"size\": 3900,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.d.ts\",\n        \"size\": 5512,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.js\",\n        \"size\": 39673,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.d.ts\",\n        \"size\": 932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.js\",\n        \"size\": 5153,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.d.ts\",\n        \"size\": 7524,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.js\",\n        \"size\": 52247,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.d.ts\",\n        \"size\": 646,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.js\",\n        \"size\": 3807,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.d.ts\",\n        \"size\": 359,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.js\",\n        \"size\": 16098,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.d.ts\",\n        \"size\": 4883,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.js\",\n        \"size\": 22492,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.d.ts\",\n        \"size\": 2447,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.js\",\n        \"size\": 5719,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.d.ts\",\n        \"size\": 8373,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.js\",\n        \"size\": 108320,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.d.ts\",\n        \"size\": 6864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.js\",\n        \"size\": 28151,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.d.ts\",\n        \"size\": 1193,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.js\",\n        \"size\": 13375,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.d.ts\",\n        \"size\": 1792,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.js\",\n        \"size\": 5052,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.d.ts\",\n        \"size\": 341,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.js\",\n        \"size\": 453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.d.ts\",\n        \"size\": 1044,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.js\",\n        \"size\": 4229,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.d.ts\",\n        \"size\": 432,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.js\",\n        \"size\": 7225,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.d.ts\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.js\",\n        \"size\": 2160,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.d.ts\",\n        \"size\": 1276,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.js\",\n        \"size\": 5501,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.d.ts\",\n        \"size\": 26588,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.js\",\n        \"size\": 1025683,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.d.ts\",\n        \"size\": 7944,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.js\",\n        \"size\": 47783,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.d.ts\",\n        \"size\": 4118,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.js\",\n        \"size\": 17453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 8356,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 64,\n    \"bundled\": []\n  }\n]\n",
+      "stderr": "\n> jsqlite2@0.0.0-local-translated prepack\n> npm run build\n\n\n> jsqlite2@0.0.0-local-translated build\n> node tools/package/build.mjs\n\n"
+    },
+    {
+      "command": [
+        "tar",
+        "-xzf",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/jsqlite2-0.0.0-local-translated.tgz",
+        "-C",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/jsqlite2-0.0.0-local-translated.tgz"
+      ],
+      "cwd": "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/consumer",
+      "exit": 0,
+      "stdout": "\nadded 1 package in 309ms\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/node-v24.18.0-linux-x64/bin/node",
+        "import.mjs"
+      ],
+      "cwd": "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/consumer",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/node-v24.18.0-linux-x64/bin/node",
+        "/work/jsqlite2/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/consumer",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/node-v24.18.0-linux-x64/bin/node",
+        "/work/jsqlite2/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--strict",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/generated/keyword-table.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/generated/parser-tables.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/index.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/admission.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/btree.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/comparison.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/cte.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/date-time.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/functions.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/json.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/lemon-runtime.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/math.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/mem.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/ordinary-scalars.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/parse.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/pattern.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/printf.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/private-state.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/record.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/resolve.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/schema.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/select-compiler.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/select-program.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/sqlite-case.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/storage.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/tokenize.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/utf.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/vdbe-primitives.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/vdbe.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/where-plan.d.ts",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/extracted/package/dist/internal/window-rewrite.d.ts"
+      ],
+      "cwd": "/work/jsqlite2/",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "npm",
+        "publish",
+        "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/jsqlite2-0.0.0-local-translated.tgz",
+        "--dry-run",
+        "--json",
+        "--ignore-scripts",
+        "--tag",
+        "local"
+      ],
+      "cwd": "/work/jsqlite2/.saivage/work/cards/card-v-a/package-validation/consumer",
+      "exit": 0,
+      "stdout": "{\n  \"jsqlite2\": {\n    \"id\": \"jsqlite2@0.0.0-local-translated\",\n    \"name\": \"jsqlite2\",\n    \"version\": \"0.0.0-local-translated\",\n    \"size\": 355076,\n    \"unpackedSize\": 1827755,\n    \"shasum\": \"f5d83a2b4c0983992fb4e5e5b20cdf82ab045273\",\n    \"integrity\": \"sha512-ThEA3LKOVWbnd4hHRkm/uApQGga4Tkliusai2uhCGja6O8vkstdfB+5CHyuLm/gEAOnfmq8hH34C/FTFAuidpg==\",\n    \"filename\": \"jsqlite2-0.0.0-local-translated.tgz\",\n    \"files\": [\n      {\n        \"path\": \"README.md\",\n        \"size\": 3466,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.d.ts\",\n        \"size\": 4530,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/keyword-table.js\",\n        \"size\": 3738,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.d.ts\",\n        \"size\": 78690,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/generated/parser-tables.js\",\n        \"size\": 67340,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.d.ts\",\n        \"size\": 3246,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/index.js\",\n        \"size\": 14488,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.d.ts\",\n        \"size\": 697,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/admission.js\",\n        \"size\": 3676,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.d.ts\",\n        \"size\": 5190,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/btree.js\",\n        \"size\": 25914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.d.ts\",\n        \"size\": 3611,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/comparison.js\",\n        \"size\": 15499,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.d.ts\",\n        \"size\": 1399,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/cte.js\",\n        \"size\": 9307,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.d.ts\",\n        \"size\": 992,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/date-time.js\",\n        \"size\": 24914,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.d.ts\",\n        \"size\": 864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/functions.js\",\n        \"size\": 6702,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.d.ts\",\n        \"size\": 3932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/json.js\",\n        \"size\": 37670,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.d.ts\",\n        \"size\": 1288,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/lemon-runtime.js\",\n        \"size\": 4873,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.d.ts\",\n        \"size\": 263,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/math.js\",\n        \"size\": 3900,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.d.ts\",\n        \"size\": 5512,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/mem.js\",\n        \"size\": 39673,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.d.ts\",\n        \"size\": 932,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/ordinary-scalars.js\",\n        \"size\": 5153,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.d.ts\",\n        \"size\": 7524,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/parse.js\",\n        \"size\": 52247,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.d.ts\",\n        \"size\": 646,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/pattern.js\",\n        \"size\": 3807,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.d.ts\",\n        \"size\": 359,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/printf.js\",\n        \"size\": 16098,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.d.ts\",\n        \"size\": 4883,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/private-state.js\",\n        \"size\": 22492,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.d.ts\",\n        \"size\": 2447,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/record.js\",\n        \"size\": 5719,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.d.ts\",\n        \"size\": 8373,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/resolve.js\",\n        \"size\": 108320,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.d.ts\",\n        \"size\": 6864,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/schema.js\",\n        \"size\": 28151,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.d.ts\",\n        \"size\": 1193,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-compiler.js\",\n        \"size\": 13375,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.d.ts\",\n        \"size\": 1792,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/select-program.js\",\n        \"size\": 5052,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.d.ts\",\n        \"size\": 341,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/sqlite-case.js\",\n        \"size\": 453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.d.ts\",\n        \"size\": 1044,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/storage.js\",\n        \"size\": 4229,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.d.ts\",\n        \"size\": 432,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/tokenize.js\",\n        \"size\": 7225,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.d.ts\",\n        \"size\": 368,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/utf.js\",\n        \"size\": 2160,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.d.ts\",\n        \"size\": 1276,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe-primitives.js\",\n        \"size\": 5501,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.d.ts\",\n        \"size\": 26588,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/vdbe.js\",\n        \"size\": 1025683,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.d.ts\",\n        \"size\": 7944,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/where-plan.js\",\n        \"size\": 47783,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.d.ts\",\n        \"size\": 4118,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/internal/window-rewrite.js\",\n        \"size\": 17453,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"package.json\",\n        \"size\": 8356,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 64,\n    \"bundled\": []\n  }\n}\n",
+      "stderr": "npm warn publish This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)\nnpm notice Publishing to https://registry.npmjs.org/ with tag local and default access (dry-run)\n"
+    }
+  ]
+}

@@ -46,6 +46,17 @@ current guidance. [Card-u reconciliation evidence](research/card-u-consolidation
 records verification and open evidence gaps. Consult history for provenance, not
 as an alternative current contract.
 
+## Local distributable boundary
+
+`tsconfig.build.json` emits only the current `src/` engine through pinned TS 5.9.3,
+with relative JS import rewriting; `tools/package/build.mjs` cleans output and
+normalizes declaration module specifiers via their AST. No bundler, runtime
+dependency or evaluator substitution is introduced. The private experimental
+package allowlists emitted JS/declarations; native/reference/test/tool inputs
+remain outside the tarball. [Package evidence](research/card-v-a-package-evidence.md)
+records exact local build/consumer/artifact checks and their browser-VM limitation.
+This is packaging readiness, not translation compatibility or registry approval.
+
 ## Shared representations and ownership
 
 - `sqlite3` → the public connection plus internal schema/database/limits state.

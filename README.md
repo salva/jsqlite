@@ -28,3 +28,34 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
+## Local browser ESM build
+
+Requires Node.js 24 and the lockfile-pinned TypeScript 5.9.3 for development:
+
+```sh
+npm ci
+npm run build
+npm pack --pack-destination /your/local/output
+```
+
+`dist/index.js` is the named ESM entry (`open`, `JSQLiteError`);
+`dist/index.d.ts` supplies the public TypeScript contract. Relative JS imports
+are browser-resolvable; serve the complete `dist/` tree, not just its entry file.
+For package consumers, install the local tarball and import from `"jsqlite2"`.
+For browsers without a bundler, import from the served `dist/index.js` URL.
+Requires ES2022 (including BigInt), Fetch/Streams, AbortController, text codecs,
+and Web Crypto for SQL randomness. No runtime dependencies, Node APIs, native
+SQLite, WASM, dynamic code generation or telemetry are shipped.
+
+The package remains **private**, versioned `0.0.0-local-translated`: locally
+consumable experimental output, not registry release approval or a claim of full
+SQLite compatibility. SQL admission remains bounded as described above.
+Packaging explicitly includes only emitted JS/declarations, plus npm's mandatory
+package metadata and this README; reference sources, fixtures, tools and research
+are development-only. `npm pack` rebuilds before packing.
+
+`npm run test:package` requires `SAIVAGE_CARD_WORK_ROOT` pointing at a disposable
+work directory. It checks clean byte-identical builds, actual local tarball
+contents/security closure, strict consumer types, named package imports, and
+browser-global execution across the three database encodings. It uses an isolated
+VM browser-global realm, not a GUI browser; no remote publication occurs.

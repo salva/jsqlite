@@ -1,9 +1,9 @@
 {
   "name": "jsqlite2",
   "private": true,
-  "version": "0.0.0-stage3-first-select",
+  "version": "0.0.0-local-translated",
   "type": "module",
-  "description": "Private Stage 3 source-translated foundation with bounded prepared SELECT execution, including documented multi-source joins; broader SQL remains unsupported.",
+  "description": "Experimental browser-safe read-only SQLite translation with bounded progressive SQL admission; not full SQLite compatibility.",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "generate:parser": "node tools/parser/generate.mjs",
@@ -45,9 +45,23 @@
     "test:conformance:special-window:ts": "node --experimental-strip-types --test test/conformance/run-special-window-ts.mjs",
     "test:conformance:cte:manifest": "python3 test/conformance/cte-architecture-manifest.test.py",
     "test:conformance:advanced-index:manifest": "python3 test/conformance/advanced-index-manifest.test.py",
-    "test:conformance:advanced-index:native": "python3 test/conformance/recapture-advanced-index.py --library $SAIVAGE_CARD_WORK_ROOT/advanced-index-build/libsqlite3.so --output $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json && cmp test/conformance/cases/stage3-advanced-index.json $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json"
+    "test:conformance:advanced-index:native": "python3 test/conformance/recapture-advanced-index.py --library $SAIVAGE_CARD_WORK_ROOT/advanced-index-build/libsqlite3.so --output $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json && cmp test/conformance/cases/stage3-advanced-index.json $SAIVAGE_CARD_WORK_ROOT/advanced-index-recapture.json",
+    "build": "node tools/package/build.mjs",
+    "prepack": "npm run build",
+    "test:package": "node --experimental-vm-modules test/package-distributable.test.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3"
-  }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts"
+  ]
 }
