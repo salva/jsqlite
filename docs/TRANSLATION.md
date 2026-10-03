@@ -56,6 +56,10 @@ package allowlists emitted JS/declarations; native/reference/test/tool inputs
 remain outside the tarball. [Package evidence](research/card-v-a-package-evidence.md)
 records exact local build/consumer/artifact checks and their browser-VM limitation.
 This is packaging readiness, not translation compatibility or registry approval.
+The [static demo](../examples/browser/README.md) consumes that same public ESM
+closure with local immutable Chinook bytes, indexed typed rows and explicit
+cleanup; [real-browser evidence](research/card-v-c-demo-evidence.md) is bounded
+smoke coverage, not an additional evaluator or full compatibility claim.
 
 ## Shared representations and ownership
 

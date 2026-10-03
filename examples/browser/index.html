@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>JSQLite2 local read-only demo</title>
+<style>
+body { font: 16px system-ui; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+textarea { width: 100%; min-height: 10rem; font: 14px monospace; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #eee; padding: 1rem; }
+button, select { margin: .5rem; padding: .5rem; }
+</style>
+<h1>JSQLite2: static browser demo</h1>
+<p>Experimental translated read-only TypeScript engine, not full SQLite compatibility.
+No C, WASM, native engine or query server at runtime. All assets and database bytes are local.</p>
+<p><a href="../../docs/api.md">API</a> · <a href="../../docs/TRANSLATION.md">Current limitations</a> ·
+<a href="CHINOOK-LICENSE.md">Chinook license</a> · <a href="README.md">Evidence and reproduction</a></p>
+<label>Example <select id="example"><option value="albums">Album / Track join</option><option value="types">INTEGER / REAL / NULL / BLOB</option></select></label>
+<label>Visible SQL (editable)<textarea id="sql" spellcheck="false"></textarea></label>
+<button id="run" disabled>Run query</button><button id="bad-open" disabled>Try failed open (missing fixture)</button>
+<p id="status" role="status">Loading local expectations…</p>
+<h2>Expected ordered typed results (pinned native SQLite)</h2><pre id="expected"></pre>
+<h2>Actual positional metadata, typed rows, errors and cleanup</h2><pre id="actual">Not run yet.</pre>
+<script type="module" src="app.js"></script>
+</html>

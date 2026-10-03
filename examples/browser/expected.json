@@ -1,0 +1,108 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixture": {
+    "schemaVersion": 1,
+    "name": "Chinook_Sqlite.sqlite",
+    "url": "https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite",
+    "bytes": 1007616,
+    "sha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15"
+  },
+  "cases": [
+    {
+      "id": "albums",
+      "sql": "SELECT a.AlbumId, a.Title, t.TrackId, t.Name AS track\nFROM Album AS a JOIN Track AS t ON t.AlbumId = a.AlbumId\nORDER BY a.AlbumId, t.TrackId\nLIMIT 3;\n",
+      "columns": [
+        "AlbumId",
+        "Title",
+        "TrackId",
+        "track"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock (We Salute You)"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "value": "Put The Finger On You"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "value": "Let's Get It Up"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "types",
+      "sql": "SELECT 9223372036854775807 AS exact_integer, 1.0 AS integral_real,\n       NULL AS missing, x'00ff' AS bytes;\n",
+      "columns": [
+        "exact_integer",
+        "integral_real",
+        "missing",
+        "bytes"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9223372036854775807"
+          },
+          {
+            "type": "real",
+            "value": 1.0
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "blob",
+            "value": "00ff"
+          }
+        ]
+      ]
+    }
+  ]
+}

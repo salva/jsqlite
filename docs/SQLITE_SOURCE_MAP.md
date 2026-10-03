@@ -20,6 +20,10 @@ The existing translated API/runtime closure is emitted unchanged by
 local tarball, named ESM/public declarations and browser-global execution;
 [evidence](research/card-v-a-package-evidence.md) records inventory and limitations.
 This integration has no new C algorithm mapping or SQL coverage credit.
+[Static demo consumer](../examples/browser/query.js) uses those public lifecycle
+and column APIs; [browser regression](../test/demo/browser.test.mjs) and
+[evidence](research/card-v-c-demo-evidence.md) check local Fetch, positional types,
+failed-open and operation/finalize/close ordering without a query backend.
 
 ## API and immutable database
 

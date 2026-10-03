@@ -28,6 +28,30 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
+## Static browser demo quickstart
+
+From the repository root, build the same local ESM artifact described below and
+serve only static files (Python 3 is development serving tooling):
+
+```sh
+npm ci
+npm run build
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+Open <http://127.0.0.1:8000/examples/browser/index.html>. The
+[small demo](examples/browser/index.html) imports public named `open` and
+`JSQLiteError` from `../../dist/index.js`; it fetches the bundled immutable
+Chinook fixture locally, not from a live service. Choose the Album/Track join or
+INTEGER/REAL/NULL/BLOB discriminator, inspect visible SQL and pinned-native
+expected typed rows, and click Run. A failed-open button and editable SQL show
+errors and cleanup diagnostics. No server query backend is involved.
+[Demo instructions/provenance](examples/browser/README.md) and
+[real-browser evidence](docs/research/card-v-c-demo-evidence.md) cover reproduction
+and bounded results. This is a smoke demo, not a compatibility percentage or
+release claim. Serve the repository root, not just the demo folder; `file://`
+is not supported.
+
 ## Local browser ESM build
 
 Requires Node.js 24 and the lockfile-pinned TypeScript 5.9.3 for development:
