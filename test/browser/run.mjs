@@ -26,6 +26,7 @@ addNative('stage3-subquery-view',['derived-basic'],c=>fixture(c.fixture,c.fixtur
 addNative('stage3-multisource-select',['comma-order','duplicate-names'],()=>register('test/conformance/fixtures/multisource-inner-oracle.db'));
 const wm=json('test/fixtures/special-window/manifest.json');
 addNative('stage3-special-window',['window1-7.3','window1-5.1'],c=>register(`test/fixtures/special-window/${c.setup}.db`,wm.fixtures[`${c.setup}.db`]));
+const prepareCapture=capture('stage3-special-window');const pc=prepareCapture.cases.find(c=>c.id==='window1-7.1.1');cases.push({id:'prepare/window1-7.1.1',kind:'prepare-error',url:register(`test/fixtures/special-window/${pc.setup}.db`,wm.fixtures[`${pc.setup}.db`]),sql:pc.sql,error:{kind:'sqlite',code:pc.native.prepareCode,message:pc.native.errorMessage},provenance:{capture:'stage3-special-window',source:prepareCapture.source,file:pc.sourceFile,case:pc.sourceCase,bodySha256:pc.sourceBodySha256}});
 const index=capture('stage3-advanced-index');for(const v of index.variants){const c=v.cases.find(c=>c.id==='wr-primary-exact');cases.push({id:`index/${v.id}/${c.id}`,kind:'capture',url:register(v.fixture.path,v.fixture),sql:c.sql,bindings:c.bindings,rows:c.rows,provenance:{capture:'stage3-advanced-index',id:c.id,source:index.source}})}
 const empty=fixture('empty');
 const j=json('test/browser/json-native.json');evidence.push({path:'test/browser/json-native.json',sha256:hash(fs.readFileSync('test/browser/json-native.json'))});for(const c of j.cases)cases.push({...c,id:`json/${c.id}`,kind:'capture',url:empty});
@@ -40,8 +41,10 @@ for(const [id,sql,openOptions,stepOptions,error,abort]of [
  ['rows','VALUES(1),(2)',{limits:{maxRows:1}}, {},{kind:'limit'},false],
  ['result',"SELECT printf('%100s','x')",{limits:{maxResultBytes:32}}, {},{kind:'limit'},false],
  ['private','SELECT a FROM t1 ORDER BY b',{limits:{maxPrivateEntries:1}}, {},{kind:'limit'},false],
-])cases.push({id:`control/${id}`,kind:'control',url:id==='private'?fixture('subquery-utf8'):empty,sql,openOptions,stepOptions,error,abort,provenance:'api.md bounded-work/lifecycle browser controls; not native work-count parity'});
-cases.push({id:'open/file-limit',kind:'open-error',url:empty,openOptions:{limits:{maxFileBytes:1}},error:{kind:'limit'}},{id:'open/http',kind:'open-error',url:'/missing',error:{kind:'transport'}},{id:'open/malformed',kind:'open-error',url:'/malformed',error:{kind:'sqlite'}});
+ ['private-key','SELECT a FROM t1 ORDER BY b',{limits:{maxPrivateKeyBytes:1}}, {},{kind:'limit'},false],
+ ['private-bytes','SELECT a FROM t1 ORDER BY b',{limits:{maxPrivateBytes:1}}, {},{kind:'limit'},false],
+])cases.push({id:`control/${id}`,kind:'control',url:id.startsWith('private')?fixture('subquery-utf8'):empty,sql,openOptions,stepOptions,error,abort,provenance:'api.md bounded-work/lifecycle browser controls; not native work-count parity'});
+cases.push({id:'open/stream-truncated',kind:'open-error',url:'/truncated',error:{kind:'transport'}},{id:'open/file-limit',kind:'open-error',url:empty,openOptions:{limits:{maxFileBytes:1}},error:{kind:'limit'}},{id:'open/http',kind:'open-error',url:'/missing',error:{kind:'transport'}},{id:'open/malformed',kind:'open-error',url:'/malformed',error:{kind:'sqlite'}});
 const dist=fs.readdirSync('dist',{recursive:true}).filter(p=>p.endsWith('.js')).sort().map(p=>({path:`dist/${p}`,sha256:hash(fs.readFileSync(`dist/${p}`))}));
 // Exact allowlist static server + existing immutable fixture server proxy, same origin.
 const staticFiles=new Map([['/assertions.mjs',fs.readFileSync('test/browser/assertions.mjs')],...dist.map(f=>[`/${f.path}`,fs.readFileSync(f.path)])]);
@@ -50,6 +53,7 @@ const server=http.createServer((req,res)=>{requests.push({url:req.url,method:req
  if(req.url.startsWith(`/fixture/${bridge.token}/`)){http.get({host:'127.0.0.1',port:bridge.port,path:req.url},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res)}).on('error',()=>res.destroy());return}
  const b=staticFiles.get(req.url)??files.get(req.url);if(b){res.writeHead(200,{'Content-Type':staticFiles.has(req.url)?'text/javascript':'application/vnd.sqlite3','Content-Length':b.length,'Cache-Control':'no-store'});res.end(b);return}
  if(req.url==='/'){res.writeHead(200,{'Content-Type':'text/html','Content-Security-Policy':"default-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'"});res.end('<!doctype html><title>jsqlite real browser test</title>');return}
+ if(req.url==='/truncated'){res.writeHead(200,{'Content-Length':10000});res.write('SQLite format 3\0');setTimeout(()=>res.destroy(),20);return}
  if(req.url==='/malformed'){res.writeHead(200);res.end('not sqlite');return}res.writeHead(404).end();});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin=`http://127.0.0.1:${server.address().port}`;

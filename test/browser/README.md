@@ -75,6 +75,21 @@ deadline, work, rows, result bytes, private entries and file bytes, malformed fi
 and HTTP errors, saved reset errors and connection reuse. Cleanup continues after
 errors and keeps the primary error.
 
+## Added verify-gap coverage
+
+Four further cases now exercise a native-captured **prepare** error
+`window1-7.1.1` (nth_value without OVER), private serialized-key and aggregate
+private-byte limits, and a deliberately truncated HTTP response body. The prepare
+error preserves pinned code/message and proves subsequent SELECT 1 usable;
+control failures preserve reset's primary error and release state. The stream
+route sends a declared 10,000-byte body but destroys the socket after its prefix;
+this is a deterministic local transport fault, not an engine expectation or
+native compatibility credit. Current scoped run: 33/33 pass on the same Chromium.
+The key/byte limit checks demonstrate enforcement, not exact byte accounting or
+simultaneously live multi-cursor aggregation. Corrupt-page traversal and broader
+suite accounting remain unproved; these tests do not establish independent
+acceptance or require artificially forcing an engine failure.
+
 ## Evidence and limitations
 
 Chromium 148.0.7778.96 executed 29/29 scoped cases successfully (including two
