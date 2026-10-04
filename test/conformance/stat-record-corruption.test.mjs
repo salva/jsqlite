@@ -23,6 +23,6 @@ for(const v of capture.variants)test(`${v.kind} physically invalid stat1 record 
  let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
-  for(const sql of Object.values(capture.sql))for(let i=0;i<2;i++)assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaFormatError'&&/sqlite_stat1/.test(String(e)));
+  for(const sql of Object.values(capture.sql))for(let i=0;i<2;i++)assert.throws(()=>db.prepare(sql),e=>e.kind==='sqlite'&&e.code===11&&e.cause?.name==='SchemaFormatError'&&/sqlite_stat1/.test(String(e)));
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
 });

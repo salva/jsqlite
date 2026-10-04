@@ -56,3 +56,20 @@ export function decodeSqliteText(bytes: Uint8Array, encoding: DatabaseEncoding):
   if (encoding === "utf-8") return decodeUtf8(bytes);
   return decodeUtf16(bytes, encoding === "utf-16le");
 }
+
+/** utf.c sqlite3VdbeMemTranslate UTF16→UTF8, default build without
+ * SQLITE_REPLACE_INVALID_UTF. Write code points directly: an unpaired final
+ * surrogate is three bytes, not a WHATWG replacement character. */
+export function sqliteUtf16ToUtf8(bytes:Uint8Array,encoding:DatabaseEncoding):Uint8Array {
+  const out:number[]=[],little=encoding==="utf-16le";
+  const unit=(at:number)=>little?bytes[at]!+bytes[at+1]!*256:bytes[at]!*256+bytes[at+1]!;
+  for(let at=0;at+1<bytes.length;){
+    let c=unit(at);at+=2;
+    if(c>=0xd800&&c<0xe000&&at+1<bytes.length){const c2=unit(at);at+=2;c=(c2&0x3ff)+((c&0x3f)<<10)+(((c&0x3c0)+0x40)<<10);}
+    if(c<0x80)out.push(c);
+    else if(c<0x800)out.push(0xc0+(c>>6),0x80+(c&0x3f));
+    else if(c<0x10000)out.push(0xe0+(c>>12),0x80+((c>>6)&0x3f),0x80+(c&0x3f));
+    else out.push(0xf0+(c>>18),0x80+((c>>12)&0x3f),0x80+((c>>6)&0x3f),0x80+(c&0x3f));
+  }
+  return Uint8Array.from(out);
+}

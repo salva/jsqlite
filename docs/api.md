@@ -291,7 +291,10 @@ compatibility credit.
   filters and selected index/WITHOUT ROWID access execute. Multi-source comma,
   CROSS, INNER and LEFT joins are present. One RIGHT/FULL barrier, including
   downstream ordinary joins and USING/NATURAL metadata, is admitted; repeated
-  RIGHT/FULL barriers remain temporary unsupported.
+  RIGHT/FULL barriers remain temporary unsupported. Joined WITHOUT ROWID
+  comma/CROSS/INNER/LEFT sources use primary-index storage and represented
+  secondary access; WITHOUT ROWID RIGHT/FULL match tracking remains temporary
+  unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
   complete projected keys. Equal complete ORDER keys have no public deterministic
@@ -380,3 +383,9 @@ Retained single-source derived SELECTs with represented column ORDER keys may
 order by a producer column omitted from the parent projection. Child ORDER/LIMIT
 remains independent of parent ORDER/LIMIT. Both sorters charge the same execution
 private-byte limit; prepare success does not guarantee sufficient runtime bytes.
+
+An index whose schema names an unavailable collation retains structural metadata
+but cannot provide executable access. Forced use reports SQLite `no query
+solution` (code 1); an unavailable WITHOUT ROWID primary storage collation reports
+SQLite `no such collation sequence` (code 1), not an untranslated-feature
+classification. This does not add host-registered collation support.

@@ -1,3 +1,4 @@
+import {integerPrimaryKeyColumn,freezeTransientTable} from './schema.ts';
 import {windowFrame,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
 import type {ColumnNode,TableNode} from './schema.ts';
 import {sqliteAsciiFold,sqliteIdentifierEqual} from './sqlite-case.ts';
@@ -189,11 +190,8 @@ function hasAggregate(expression:ExprNode):boolean{
  return expression.reduction?visit(expression.reduction):false;
 }
 function identifier(text:string):string{if(text[0]==='['&&text.at(-1)===']')return text.slice(1,-1);if((text[0]==='"'||text[0]==='`')&&text.at(-1)===text[0])return text.slice(1,-1).replaceAll(text[0]+text[0],text[0]);return text;}
-function integerPrimaryKeyIndex(table:TableNode):number{
- if(table.withoutRowid||table.primaryKey.length!==1)return -1;
- const column=table.primaryKey[0]!;
- return column.declaredType?.trim().toUpperCase()==='INTEGER'?table.columns.indexOf(column):-1;
-}
+function integerPrimaryKeyIndex(table:TableNode):number{const column=integerPrimaryKeyColumn(table);return column===null?-1:table.columns.indexOf(column);}
+
 function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved:ResolvedColumnRef;mergedSources:readonly ResolvedColumnRef[]|null}|null{
  let expressionTokens=[...expression.tokens];
  let reduction=expression.reduction;
@@ -452,9 +450,9 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    const armPlans=derived.select.arms.map(arm=>expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,arms:Object.freeze([arm]),hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema,null,nextCursor));
    const firstResolved=armPlans[0]!;
    const names=transientColumnNames(firstResolved.result.map(item=>item.name));
-   const columns=names.map((name,index)=>({name,declaredType:transientDeclaredType(resolvedExpressionDeclaredType(firstResolved.result[index]!.expression.reduction!,firstResolved),resolvedCompoundAffinity(armPlans,index)),affinity:resolvedCompoundAffinity(armPlans,index),collation:resolvedExpressionCollation(firstResolved.result[index]!.expression.reduction!,firstResolved)??'binary',primaryKeyPosition:null} as ColumnNode));
+   const columns=names.map((name,index)=>({szEst:0,name,declaredType:transientDeclaredType(resolvedExpressionDeclaredType(firstResolved.result[index]!.expression.reduction!,firstResolved),resolvedCompoundAffinity(armPlans,index)),affinity:resolvedCompoundAffinity(armPlans,index),collation:resolvedExpressionCollation(firstResolved.result[index]!.expression.reduction!,firstResolved)??'binary',primaryKeyPosition:null} as ColumnNode));
    const name=child.from.items[0]!.tableName;
-   const table={kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
+   const table={integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
    bindTransientProducer(table,armPlans.at(-1)!);
    childBindings.set(derived.index,table);
   }
@@ -763,7 +761,7 @@ export function resolvedExpressionDeclaredType(expression:LemonValue<SqlToken>,p
 // SrcItem.u4.pSubq metadata relationship: WeakMap preserves shared TableNode
 // representation without pretending rootPage=0 is a physical origin.
 const transientProducerPlans=new WeakMap<TableNode,ResolvedSelect>();
-export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{transientProducerPlans.set(table,producer);}
+export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{freezeTransientTable(table);transientProducerPlans.set(table,producer);}
 
 /** resolve.c linked lookup results retained through expression code generation.
  * Reduction identity, not SQL spelling, owns the lexical source and depth.
@@ -802,7 +800,7 @@ export interface AggregateColumnOwner {
  readonly columns:Map<number,{iSorterColumn:number;accumulatorRegister:number}>;
 }
 export type ResolvedExpressionLocation =
- | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number;readonly aggregateColumn?:{owner:AggregateColumnOwner;iAgg:number}}
+ | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number;readonly physicalColumnIndex?:number;readonly aggregateColumn?:{owner:AggregateColumnOwner;iAgg:number}}
  | {readonly kind:'register';readonly register:number;readonly phase:'producer-row'|'source-row'};
 export interface ResolvedExpressionBinding {
  /** Already-enrolled AggInfo output; absent for source argument binding. */

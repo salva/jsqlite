@@ -35,12 +35,11 @@ for(const variant of capture.variants){
   try{
    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
    for(const sql of Object.values(capture.sql)){
-    if(variant.kind==='table-only'||variant.kind==='unknown-table'||variant.kind==='unknown-index'){
+    if(variant.kind!=='stat4-sample'){
      const expected=variant.cases[sql===capture.sql.forced?'forced':'unforced'].rows.map(row=>BigInt(row[0].value));
      assert.deepEqual(await run(db,sql),expected);
     }else{
-     // Even a forced t_a query cannot silently pretend the other existing
-     // index's unsupported stat is a numeric-only estimate.
+     // Nonempty STAT4 remains unsupported independently of stat1 admission.
      const pattern=variant.kind==='stat4-sample'?/sqlite_stat4/:/sqlite_stat1/;
      for(let attempt=0;attempt<2;attempt++)assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaUnsupportedError'&&e.classification==='temporary'&&pattern.test(String(e)));
     }

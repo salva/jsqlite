@@ -2,13 +2,13 @@
 // Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
 // whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
-import type {ExprNode} from "./parse.ts";
+import {SqlParseError,type ExprNode} from "./parse.ts";
 import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {SqlToken} from "./tokenize.ts";
 import {sqliteAsciiFold} from "./sqlite-case.ts";
 import type {ColumnNode,IndexNode,PhysicalIndexField,PhysicalIndex} from "./schema.ts";
-import {statisticsForIndex,sqliteLogEst} from "./schema.ts";
+import {statisticsForIndex,sqliteLogEst,integerPrimaryKeyColumn} from "./schema.ts";
 import type {BuiltinCollation,KeyTerm} from "./comparison.ts";
 
 export type SourceMask=bigint;
@@ -57,7 +57,7 @@ export function admitIndexConstraint(term:WhereTerm,physical:PhysicalIndex,field
  else {const affinity=field.column?comparisonAffinity(field.column,term.rightAffinity):"blob";if((field.column&&!affinityOk(field.column,affinity))||term.effectiveCollation!==field.collation){byOrdinal.set(fieldOrdinal,null);return null;}comparison=freeze({kind:"comparison",affinity,collation:term.effectiveCollation});}
  const admission=freeze({term,physicalIndex:physical,fieldOrdinal,field,keyInfoTerm,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison,bound:bound(term.operator)});byOrdinal.set(fieldOrdinal,admission);return admission;
 }
-function isIntegerPrimaryKeyAlias(table:IndexNode["table"],column:ColumnNode):boolean {return !table.withoutRowid&&table.primaryKey.length===1&&table.primaryKey[0]===column&&column.declaredType?.trim().toUpperCase()==="INTEGER"&&!table.primaryKeyTerms?.[0]?.descending;}
+function isIntegerPrimaryKeyAlias(table:IndexNode["table"],column:ColumnNode):boolean {return integerPrimaryKeyColumn(table)===column;}
 function fieldMatchesColumn(physical:PhysicalIndex,field:PhysicalIndexField,wanted:ColumnNode):boolean {return field.column===wanted||(field.role==="rowid-tail"&&isIntegerPrimaryKeyAlias(physical.index.table,wanted));}
 function orderContribution(physical:PhysicalIndex,equality:readonly IndexConstraintAdmission[],order:readonly OrderRequirement[],ordinal:number):{count:number;reverse:boolean}{
  const relevant=order.filter(item=>item.sourceOrdinal===ordinal);if(!relevant.length||relevant.some(item=>item.nulls!=null&&item.nulls!==(item.descending?"last":"first")))return {count:0,reverse:false};let direction:boolean|null=null,count=0,requested=0,fieldOrdinal=0;
@@ -154,39 +154,102 @@ function usablePartialIndex(index:IndexNode,terms:readonly WhereTerm[],source:Re
  const required:ExprNode[]=[];splitExpressionAnd(index.partialWhere,required);
  const bit=sourceBit(ordinal);return required.every(predicate=>terms.some(term=>!term.virtual&&(term.prereqAll&bit)!==0n&&exprImpliesExpr(term.expression,predicate,sameResolvedExpression)&&(!source.joinFromLeft.left||(term.origin.kind==="join-on"&&term.origin.rightSource===ordinal))));
 }
+/** where.c:indexMightHelpWithOrderBy tests usefulness before full proof. */
+function indexMightHelpWithOrderBy(index:IndexNode|null,ordinal:number,table:ResolvedSource["table"],order:readonly OrderRequirement[]):boolean {
+ return !index?.unordered&&order.some(term=>term.sourceOrdinal===ordinal&&(isIntegerPrimaryKeyAlias(table,term.column)||!!index?.physical?.fields.some(field=>field.role==="declared"&&fieldMatchesColumn(index.physical!,field,term.column))));
+}
+/** expr.c:2899 sqlite3ExprIsInteger with pParse=0: EP_IntValue only,
+ * unary signs recurse; parentheses are transparent parse nodes. Do not use
+ * runtime INTEGER conversion or constant folding to manufacture EP_IntValue. */
+function exprInteger32(value:ExprReduction):bigint|null {
+ if(value.signature==="expr ::= LP expr RP")return exprInteger32(exprChildren(value)[0]!);
+ if(value.signature==="expr ::= PLUS|MINUS expr"){
+  const child=exprInteger32(exprChildren(value)[0]!);if(child===null)return null;
+  return value.children.some(c=>c.kind==="terminal"&&c.value.text==="-")?-child:child;
+ }
+ if(value.signature!=="expr ::= term")return null;
+ const term=value.children.find(c=>c.kind==="reduction");
+ if(term?.kind!=="reduction"||term.signature!=="term ::= INTEGER")return null;
+ const token=term.children.find(c=>c.kind==="terminal");if(token?.kind!=="terminal")return null;
+ try{const n=BigInt(token.value.text.replaceAll("_",""));return n>=0n&&n<=2147483647n?n:null;}catch{return null;}
+}
+/** where.c:3037 whereLoopOutputAdjust. Cardinality is adjusted after run
+ * costing, before insertion; residual predicates do not reduce physical work.
+ * Likelihood/truthProb producers are not yet represented. TERM_HEURTRUTH
+ * only feeds the STAT4 HIGHTRUTH/second-pass branch (where.c3519/7086),
+ * unreachable while schema.ts rejects nonempty STAT4. Do not invent shared
+ * mutable clause state for that unsupported path. SELFCULL only feeds the
+ * unsupported Bloom-filter generation path (where.c6606), not this costing. */
+function outputAdjust(loop:WhereLoop,clause:WhereClause):bigint {
+ const cap=loop.capability,used=cap?[...cap.equalityPrefix.map(a=>a.term),cap.lower?.term,cap.upper?.term,cap.rowidEquality?.term,cap.rowidLower?.term,cap.rowidUpper?.term].filter((t):t is WhereTerm=>!!t):[];
+ const self=sourceBit(loop.sourceOrdinal),allowed=loop.prereq|self;
+ let rows=loop.outputRows,reduce=0n;
+ for(const term of clause.terms){
+  if(term.virtual||(term.prereqAll&~allowed)!==0n||(term.prereqAll&self)===0n)continue;
+  if(used.some(t=>t===term||t.parentId===term.id))continue;
+  rows--;
+  if(term.operator==="eq"||term.operator==="is"){
+   // sqlite3ExprIsInteger tests the syntactic right operand, not the indexed
+   // orientation. Only literal +/- integer leaves qualify, not folded math.
+   const root=term.expression.reduction,rhs=root?.kind==="reduction"?exprChildren(root)[1]:undefined;
+   const smallValue=rhs?exprInteger32(rhs):null,small=smallValue!==null&&smallValue>=-1n&&smallValue<=1n;
+   const k=small?10n:20n;if(reduce<k)reduce=k;
+  }
+ }
+ const limit=BigInt(loop.source.table.nRowLogEst)-reduce;
+ return rows>limit?limit:rows;
+}
 /** whereLoopAddBtree's deterministic no-stat candidate subset. */
 export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:WhereClause,options:CandidateOptions):readonly WhereLoop[] {
  if(options.forcedIndex&&options.notIndexed)throw new WherePlanningUnsupportedError("INDEXED BY and NOT INDEXED conflict");
  if(options.forcedIndex&&options.forcedIndex.table!==source.table)throw new WherePlanningUnsupportedError("forced index does not belong to source table");
- if(options.forcedIndex&&!options.forcedIndex.physical)throw new WherePlanningUnsupportedError(`unsupported physical index layout: ${options.forcedIndex.name}`);
+ // build.c:sqlite3KeyInfoOfIndex deactivates unknown-CollSeq indexes;
+ // where.c:wherePathSolver reports no query solution for forced use.
+ const missingCollation=(index:IndexNode):string|undefined=>index.layout?.fields.find(field=>!["binary","nocase","rtrim"].includes(field.collation))?.collation;
+ if(options.forcedIndex&&!options.forcedIndex.physical){
+   if(missingCollation(options.forcedIndex))throw new SqlParseError("no query solution");
+   throw new WherePlanningUnsupportedError(`unsupported physical index layout: ${options.forcedIndex.name}`);
+ }
+ // WITHOUT ROWID's primary index is storage, not an optional access path.
+ const primary=source.table.withoutRowid?source.table.indexes.find(index=>index.origin==="primary-key"):undefined;
+ if(primary&&!primary.physical){const collation=missingCollation(primary);if(collation)throw new SqlParseError(`no such collation sequence: ${collation}`);}
  const sourcePrereq=options.sourcePrereq??0n;
  const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  const scanCapability:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:0,orderTermsSatisfied:scanOrder?1:0,reverse:scanOrder?.descending??false,covering:true,needsTableLookup:false,rowidEquality:null,rowidLower:null,rowidUpper:null});
- const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=owned.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:115n,outputRows:99n,terms:Object.freeze(owned)});
+ const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=owned.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
  // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
- const insert=(loop:WhereLoop):boolean=>whereLoopInsert(loops,freeze({...loop,sortIdentity:!(loop.capability?.index&&statisticsForIndex(loop.capability.index)?.unordered)&&options.orderBy.some(order=>order.sourceOrdinal===sourceOrdinal&&(isIntegerPrimaryKeyAlias(source.table,order.column)||(loop.capability?.physicalIndex?loop.capability.physicalIndex.fields.some(field=>field.role!=="rowid-tail"&&fieldMatchesColumn(loop.capability!.physicalIndex!,field,order.column)):false)))?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0}),budget);
+ const insert=(loop:WhereLoop):boolean=>whereLoopInsert(loops,freeze({...loop,outputRows:outputAdjust(loop,clause),sortIdentity:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0}),budget);
  if(!options.forcedIndex&&!source.table.withoutRowid)insert(scan);
  if(budget.remaining===0)return Object.freeze(loops);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
  const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
- if(!options.forcedIndex&&(rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):boolean=>{const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});return insert(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",setupCost:0n,runCost:rowEq?20n:40n,outputRows:rowEq?0n:40n,terms:Object.freeze(owned)}));};if(rowEquals.length){for(const term of rowEquals){if(!propose(term,null,null)||budget.remaining===0)break;}}else {rowRanges:for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null]){if(!propose(null,lower,upper)||budget.remaining===0)break rowRanges;}}}
+ if(!options.forcedIndex&&(rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):boolean=>{const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});return insert(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",indexRowSize:3n,setupCost:0n,runCost:logEstAdd(BigInt(source.table.nRowLogEst)<=10n?0n:BigInt(sqliteLogEst(BigInt(source.table.nRowLogEst))-33),(rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper))+16n),outputRows:rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper),terms:Object.freeze(owned)}));};if(rowEquals.length){for(const term of rowEquals){if(!propose(term,null,null)||budget.remaining===0)break;}}else {rowRanges:for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null]){if(!propose(null,lower,upper)||budget.remaining===0)break rowRanges;}}}
  if(budget.remaining===0)return Object.freeze(loops);
- indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&!physicalPrimary&&cap.constrainedFields===0&&cap.orderTermsSatisfied===0&&(!cap.covering||options.orderBy.length>0))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))||budget.remaining===0)break indexes;}}
+ indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))||budget.remaining===0)break indexes;}}
 
  if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */
-function indexLoopEstimate(index:IndexNode,cap:BtreeCapability):{run:bigint;rows:bigint}{
- const stats=statisticsForIndex(index),defaults=[33,32,30,28,26];
- const estimates=stats?.rowLogEst??[99,...Array.from({length:index.terms.length},(_,i)=>i===index.terms.length-1&&index.unique?0:defaults[i]??23)];
+function rangeRows(rows:bigint,lower:boolean,upper:boolean):bigint {
+ // whereRangeScanEst: clamp nNew before choosing min(nOut-boundCount,nNew).
+ const bounds=BigInt(Number(lower)+Number(upper));
+ if(bounds===0n)return rows;
+ const adjusted=rows-20n*bounds-(bounds===2n?20n:0n);
+ const nNew=adjusted<10n?10n:adjusted;
+ return rows-bounds<nNew?rows-bounds:nNew;
+}
+function indexLoopEstimate(index:IndexNode,cap:BtreeCapability,source:ResolvedSource,clause:WhereClause,resolved?:ResolvedSelect):{run:bigint;rows:bigint}{
+ const estimates=index.rowLogEst;
  const size=BigInt(estimates[0]??99),logSize=size<=10n?0n:BigInt(sqliteLogEst(size)-33);
  let rows=size,inMul=0n;
  for(let i=0;i<cap.equalityPrefix.length;i++){
    const admission=cap.equalityPrefix[i]!;
    rows+=BigInt((estimates[i+1]??23)-(estimates[i]??99));
+   // where.c:3533–3539: WO_ISNULL doubles the estimated equality rows.
+   if(admission.operator==="is-null")rows+=10n;
    if(admission.operator==="in"){
      // whereLoopAddBtreeIndex: literal list contributes seek iterations.
      const n=admission.term.expression.tokens.filter(t=>t.text===",").length+1;
@@ -196,13 +259,24 @@ function indexLoopEstimate(index:IndexNode,cap:BtreeCapability):{run:bigint;rows
  // where.c:whereRangeScanEst/whereRangeAdjust: each bound reduces by 20,
  // paired default bounds subtract another 20, clamp to 10 and at most
  // saved_nOut minus the number of bounds. Not a 10/20 total reduction.
- if(cap.lower||cap.upper){
-   const bounds=BigInt(Number(!!cap.lower)+Number(!!cap.upper));
-   const adjusted=rows-20n*bounds-(bounds===2n?20n:0n);
-   rows=rows-bounds<adjusted?rows-bounds:adjusted<10n?10n:adjusted;
+ rows=rangeRows(rows,!!cap.lower,!!cap.upper);
+ const ratio=15n*BigInt(index.szIdxRow)/BigInt(index.table.szTabRow);
+ const idx=cap.constrainedFields===0?rows+1n+ratio:logEstAdd(logSize,rows+1n+ratio);
+ let lookup=rows+16n;
+ if(cap.constrainedFields===0&&cap.needsTableLookup&&resolved){
+  // where.c:4258–4278 and expr.c:exprIdxCover: stop at the FIRST
+  // noncovered clause term. Other cursors do not require this table lookup.
+  for(const term of clause.terms){
+   const root=term.expression.reduction;
+   if(!root||root.kind!=="reduction")break;
+   const covered=resolved.columnUses.filter(use=>use.source===source&&reductionContains(root,use.expression)).every(use=>
+    use.columnIndex<0?cap.physicalIndex!.fields.some(field=>field.role==="rowid-tail"):
+    cap.physicalIndex!.fields.some(field=>fieldMatchesColumn(cap.physicalIndex!,field,source.table.columns[use.columnIndex]!)));
+   if(!covered)break;
+   lookup-=term.operator==="eq"||term.operator==="is"?20n:1n;
+  }
  }
- const idx=logEstAdd(logSize,rows+(cap.needsTableLookup?16n:1n));
- return {run:(cap.needsTableLookup?logEstAdd(idx,rows+16n):idx)+inMul,rows:rows+inMul};
+ return {run:(cap.needsTableLookup?logEstAdd(idx,lookup):idx)+inMul,rows:rows+inMul};
 }
 /** where.c:whereSortingCost, ordinary ORDER BY (no LIMIT/DISTINCT). */
 function sortCost(rows:bigint,columns:number,orderTerms:number,ordered:number):bigint {
@@ -260,7 +334,9 @@ export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCou
 export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null):WherePath {
  if(!Number.isSafeInteger(maxChoices)||maxChoices<1)throw new RangeError("invalid WHERE choice width");
  let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:orderTerms&&sourceCount?null:0})];
- const noBetter=(candidate:WhereLoop,baseline:WhereLoop):boolean=>candidate.kind!=="index"||baseline.kind!=="index"||candidate.indexRowSize===undefined||baseline.indexRowSize===undefined||candidate.indexRowSize>=baseline.indexRowSize;
+ // where.c:5812: indexed production loops always carry their immutable width.
+ const indexedWidth=(loop:WhereLoop):bigint=>{if(loop.indexRowSize===undefined)throw new Error("indexed WHERE loop missing row width");return loop.indexRowSize;};
+ const noBetter=(candidate:WhereLoop,baseline:WhereLoop):boolean=>candidate.kind!=="index"||baseline.kind!=="index"||indexedWidth(candidate)>=indexedWidth(baseline);
  for(let depth=0;depth<sourceCount;depth++){
   const next:WherePath[]=[];let worst=0,mxCost=0n,mxUnsort=0n;
   for(const path of paths)for(const group of candidates)for(const loop of group){

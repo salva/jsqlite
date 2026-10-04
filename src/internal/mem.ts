@@ -3,7 +3,7 @@
 // semantic ownership and checked lifetimes rather than exposed bit masks.
 import type { SqliteValue } from "../index.ts";
 import type { DatabaseEncoding, RawRecordValue } from "./record.ts";
-import { decodeSqliteText } from "./utf.ts";
+import { decodeSqliteText, sqliteUtf16ToUtf8 } from "./utf.ts";
 
 const INT64_MIN = -(1n << 63n);
 const INT64_MAX = (1n << 63n) - 1n;
@@ -469,7 +469,7 @@ export class Mem {
       // SQLite's endian-swap path preserves an unmatched trailing byte.
     } else {
       const source = old.encoding === "utf-8" ? old.bytes : old.bytes.subarray(0, old.bytes.byteLength & ~1);
-      bytes = encodeSqliteString(decodeSqliteText(source, old.encoding), encoding);
+      bytes = old.encoding !== "utf-8" ? sqliteUtf16ToUtf8(source,old.encoding) : encodeSqliteString(decodeSqliteText(source, old.encoding), encoding);
     }
     checkedLength(bytes.byteLength, limits.maxLength);
     this.#generation.invalidate();

@@ -1,0 +1,5349 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "producer": "test/conformance/capture-without-rowid-joined.py",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "cases": [
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=?1 ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "00"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 4
+            }
+          ]
+        }
+      ],
+      "lookupFixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "lookup": [
+        {
+          "sql": "SELECT y.a,y.b FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 10,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 24,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT y.a,y.payload FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 22,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 11,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 29,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 7
+            }
+          ]
+        }
+      ],
+      "postRuntimeNativeControls": [
+        {
+          "kind": "progress-interrupt",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 9,
+          "resetCode": 9,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4646"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        },
+        {
+          "kind": "length-limit",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(zeroblob(100)) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 18,
+          "resetCode": 18,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "cases": [
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=?1 ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "00"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 4
+            }
+          ]
+        }
+      ],
+      "lookupFixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "lookup": [
+        {
+          "sql": "SELECT y.a,y.b FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 10,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 24,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT y.a,y.payload FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 22,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 11,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 29,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 7
+            }
+          ]
+        }
+      ],
+      "postRuntimeNativeControls": [
+        {
+          "kind": "progress-interrupt",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 9,
+          "resetCode": 9,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4646"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        },
+        {
+          "kind": "length-limit",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(zeroblob(100)) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 18,
+          "resetCode": 18,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "cases": [
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=?1 ORDER BY x.a,y.b",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            },
+            {
+              "name": "hex(y.c)",
+              "decltype": null,
+              "database_name": null,
+              "table_name": null,
+              "origin_name": null
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "00"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "3030"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                {
+                  "type": "blob",
+                  "hex": "ff"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "4646"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 4
+            }
+          ]
+        }
+      ],
+      "lookupFixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "lookup": [
+        {
+          "sql": "SELECT y.a,y.b FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 17,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 16,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 10,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 24,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 1,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 5
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING COVERING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 10,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 24,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 5
+            }
+          ]
+        },
+        {
+          "sql": "SELECT y.a,y.payload FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b",
+          "runs": [
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                1.0
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "416c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7731"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "rows": [],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            },
+            {
+              "bindings": [
+                2.5
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "616c706861"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7732"
+                  }
+                ]
+              ],
+              "eqp": [
+                "SCAN x USING COVERING INDEX wr_c",
+                "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+                "USE TEMP B-TREE FOR ORDER BY"
+              ],
+              "program": [
+                {
+                  "opcode": "SorterOpen",
+                  "p1": 2,
+                  "p2": 5,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 3,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 1,
+                  "p2": 2,
+                  "p3": 0
+                },
+                {
+                  "opcode": "OpenRead",
+                  "p1": 4,
+                  "p2": 3,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Rewind",
+                  "p1": 3,
+                  "p2": 22,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 3,
+                  "p2": 1,
+                  "p3": 2
+                },
+                {
+                  "opcode": "SeekGE",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "IdxGT",
+                  "p1": 4,
+                  "p2": 21,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 3
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 4
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 1,
+                  "p2": 3,
+                  "p3": 7
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 1,
+                  "p3": 5
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 4,
+                  "p2": 2,
+                  "p3": 6
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 4,
+                  "p2": 11,
+                  "p3": 1
+                },
+                {
+                  "opcode": "Next",
+                  "p1": 3,
+                  "p2": 6,
+                  "p3": 0
+                },
+                {
+                  "opcode": "SorterSort",
+                  "p1": 2,
+                  "p2": 29,
+                  "p3": 0
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 2,
+                  "p3": 8
+                },
+                {
+                  "opcode": "Column",
+                  "p1": 5,
+                  "p2": 0,
+                  "p3": 7
+                }
+              ]
+            }
+          ],
+          "eqpBindings": [
+            2.5
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wr_c",
+            "SEARCH y USING INDEX wr_c (c=? AND a=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 22,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 11,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 29,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 7
+            }
+          ]
+        }
+      ],
+      "postRuntimeNativeControls": [
+        {
+          "kind": "progress-interrupt",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 9,
+          "resetCode": 9,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "4646"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        },
+        {
+          "kind": "length-limit",
+          "timing": "post-runtime",
+          "sql": "SELECT x.a,y.b,hex(zeroblob(100)) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b",
+          "bindings": [],
+          "stepCode": 18,
+          "resetCode": 18,
+          "recoveryRows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "41"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "c3a9"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "3030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030"
+              }
+            ]
+          ],
+          "recoveryCode": 101,
+          "finalizeCode": 0,
+          "tsBudgetEquivalent": false
+        }
+      ]
+    }
+  ]
+}

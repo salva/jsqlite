@@ -4218,6 +4218,263 @@ Original Chromium gap lane passes 2/2 (153.0.8010.12, Playwright 1.63.0), withou
 changing expectations or previously accepted browser milestone accounting.
 Broader FROM runtime and general expression ORDER are not established here.
 
+### Revision 2026-10-04 — row-width pre-runtime evidence (proposal only)
+
+[[card:card-s-e-a]] compared pinned build.c column/default/physical widths,
+analyze.c callback-text/fakeIdx parser and where.c width consumers with current
+schema.ts/where-plan.ts. The 2026-09-29 six stat-choice successes do not cover
+NULL idx/table sz or default declared widths: current loader rejects sz tokens,
+skips NULL idx and produced indexed loops lack width metadata. New pinned
+three-encoding development snapshots and public/real-plan/production-root
+preimplementation assertions precede runtime edits; their failures are retained,
+not weakened or assigned compatibility credit. Decision/denominators/commands:
+[card-s-e-row-width](../research/card-s-e-row-width.md). Planner assessment pending;
+STAT4/noSkipScan/automatic query indexes and other residuals unchanged.
+
+### Revision 2026-10-04b — row-width proposal review response (no runtime repair)
+
+[[card:card-s-e-a]] responds to immutable review
+`record:///review.md?card=card-s-e-a&v=3`: correct argv[0] table assignment,
+post-load defaults, unsigned hex parser ordering, reset-retained executions and
+real planWhere ordinary/joined cost/path and width-tie/full-scan discriminators.
+120 pinned exports, independent recapture exit0; TS237 attempted/9 pass/228 fail,
+exit1. Before roots and coincident table-only roots are not width fidelity credit.
+Current runtime still lacks estimate owners and rejects sz; join row defect
+remains. Decisions/artifact hashes/bounded gaps in research/card-s-e-row-width.md.
+Planner assessment required; no src runtime changes or corpus-wide acceptance.
+
+### Revision 2026-10-04c — path-cost acceptance correction only
+
+[[card:card-s-e-a]] addresses immutable component review
+`record:///review.md?card=card-s-e-a&v=6`: joined acceptance now feeds prior
+biased unsorted cost per round, not prior total. Dedicated real joined path-bias
+control expects total51/unsorted49 versus erroneous52/50, with pinned native
+chosen access and typed rows. No runtime repair or corpus-wide acceptance claimed.
+
+### Revision 2026-10-04d — row-width runtime checkpoint, not acceptance
+[[card:card-s-e-b]] implements approved SECOND producer/consumer ownership:
+local defaults/stat1/post-load/freeze replaces competing stats, physical fields
+own width, WHERE consumes explicit BigInt costs; parse preserves declared type
+spans. No source algorithm substitution claimed. Runtime fresh117/240 passes,
+123 failures unwaived; all120 public nodes stop at joins before later lifecycle
+assertions, but additional ordinary failures were hidden. Before-ANALYZE empty
+join predates repair. Ordinary-only diagnostic11/120 reveals rowid number binds:
+TS SeekRowid lacks vdbe.c5495 numeric-copy coercion, unchanged from HEAD;
+BigInt-only rowid diagnostic120/120 supports ownership, not acceptance.
+Three remaining auxiliary no-ORDER tie assertions conflict with fresh pinned
+native tb (captured ORDER query correctly chooses ta). Dominance omits width in
+upstream, so adding width to insertion would be a false repair. Bounded IPK
+singleton ordering proof fixes three small-b joined root checks. Third checkpoint
+repairs IS NULL/range/clamp and full-scan covered-prefix costs; fresh affected
+169/170 still fails preserved reverse sorter expectation. Independent native
+sort0 (NOT INDEXED control1) contradicts that assertion; parent disposition is
+still required before revision. Supplemental cost/order6/6 and resource50/50
+pass; no complete resource or optimizer claim. STAT4 unsupported; truthProb,
+invalid bytes, wider metadata and WR/transient census remain gaps. Fourth
+checkpoint native-first quoted declared-type hex/overflow/doubled-quote fixtures
+exposed missing build.c1584 Dequote in the type producer; parse now translates
+util.c299 dequoting of the exact span. Fresh3/3 validates bounded widths and
+complete direct-column origin metadata/typed reset rows across encodings, not
+full metadata fidelity. Fifth checkpoint independently captures encoded BLOB/NUL
+stat1 records, exposes false WR-only equal-name PK lookup, and repairs its
+analyze.c1611/build.c1069 owner plus persistent UNIQUE distinction. Bounded
+callback ownership tests pass; invalid byte conversion and complex autoindex
+constraint/ordinal census remain open. Sixth checkpoint native-first WR duplicate
+key fixtures expose omitted build.c2417/isDupColumn compaction. Corrected key
+producer before physical widths/stat1/defaults and secondary PK mapping; bounded
+three-encoding tests pass. Distinct collation duplicate and full constructor
+census remain uncertified. Seventh checkpoint closes inconsistent inferred IPK
+identity: build.c AddPrimaryKey distinguishes inline DESC from table-list DESC,
+while TS width/autoindex/resolver/WHERE/VDBE disagreed. Real schema publishes
+one identity; transient constructors null; native-first all-encoding typed tests
+pass. Private legacy mocks alone retain fallback. Eighth checkpoint independent
+WR distinct-collation/noncovering oracle reproduces BLOB instead of TEXT payload
+because ordinary lowering used table column ordinal after correct PK seek.
+Mapped expr.c4462 primary physical column owner for direct/residual reads;
+three-encoding regression passes, joined mapping still uncertified.
+Selected greens are not acceptance. Ninth checkpoint callback path decoded
+UTF8 before byte hash lookup, incorrectly aliasing overlong e083a9 to canonical
+é/c3a9. Native exec callback preserves raw bytes. Schema now keeps Mem-converted
+UTF8 bytes through ASCII-only name lookup/token parsing; bounded three-encoding
+regression passes. Tenth checkpoint implicit producer grouped PK first then
+UNIQUE, wrong physical columns/widths and stat ownership for UNIQUE-before-PK.
+Grammar now retains ordered actions and schema translates build.c equivalence
+merge ignoring direction/retaining first, promoting PK origin. Bounded native
+rowid tests pass. Eleventh checkpoint WR primary name hardcoded ordinal1 and
+implicit UNIQUE rejected: native UNIQUE-before-PK requires primary ordinal2 and
+secondary1/3. Shared ordered definitions now publish correct names/roots and
+ordinary physical secondary fields/default/stat ownership; bounded native typed
+noncovering/reset tests pass. Twelfth checkpoint WR merged PK direction was
+still rebuilt from later declared PK, losing earlier UNIQUE direction. Retained
+merged primary now owns pre-compaction/storageKey construction; independent
+all-encoding fixture reproduces false ASC→true DESC and covering typed reset
+passes. Thirteenth checkpoint shared Mem UTF16→UTF8 replaced final lone
+surrogate via Unicode string re-encoding, unlike pinned default utf.c. Direct
+source read/write loop repairs bytes; pinned column_text12 cases reproduce8/12
+then12/12. Fourteenth checkpoint encoded stat1 caller fixtures prove bounded
+malformed-name ignored/unknown-token conversion boundary/default width/public
+typed reset parity; inherited sz=8 assertion was wrong (space consumed into
+surrogate pair, so source ignores sz within token), corrected against callback
+hex/source not production. Fifteenth rowid PK promotion native index_xinfo
+and noncovering typed reset pass all encodings, no runtime edit. Constructor
+census exposes omitted onError grammar/conflict merge and REPLACE linkage:
+source branch ownership remains incomplete despite ordinary default tests.
+Sixteenth checkpoint onError retained/merged before PK promotion, first-REPLACE
+source list bubbling translated. Native index_list3/1/2 tests pass, formerly3/2/1;
+constructor explicit-conflict error/inheritance oracle pending, census not closed.
+Seventeenth promotion native1/2 exposes final-policy reconstruction2/1:
+producer now retains grammar-action prepend/cleanup even when merge promotes
+policy/origin. Native all-encoding list/typed reset passes. Explicit conflicting
+error branch/public cleanup remains independently untested.
+Eighteenth native corrupted-schema conflict exposes raw SchemaFormatError;
+merge now preserves corruptSchema object context, public prepare maps schema
+failure to sqlite11/cause. All-encoding native code/message/repeated failure
+passes. WR+APPDEF list oracle matches current publication. Error mapping beyond
+schema formats and full resource/constructor census remain unclaimed.
+Nineteenth publication removes late implicit-slot reorder: automatic identities
+and grammar linkage exist before APPDEF insertion/cleanup on actual list, before
+width/stat publication. Native conflict families13/13 preserved; no universal
+constructor/optimizer claim. Twentieth isolated original-native ordinary cases1080/1080 preserve full typed
+runs/column names/reset-retained/rebind-clear, avoiding hidden assertions after
+joined failure. Cost/root9/9 source-derived private checks, not independent
+native internal cost capture. No joined/full metadata closure. Full invalid
+matrix/conflict policy/census open.
+Twenty-first new independent direct-column metadata/REAL-noncover fixtures
+49,152 bytes all encodings3/3: five metadata fields, typed values and public
+clear/rebind/reset. No alias/expression/join metadata closure; no runtime edit.
+Twenty-second WR IPK source census identifies missing delayed persistent-PK
+creation after other grammar indexes. Native-first three-encoding fixture
+reproduces rowLogEst crash; ordinal/identity repair, not undefined-stat default,
+passes focused19/19,typecheck0. Constructor closure remains unclaimed.
+Twenty-third nine encoded native controls184,320 bytes verify inline DESC vs
+table DESC timing and delayed UNIQUE merge; shared AddPrimaryKey identity
+removes duplicate inference. Focused15/15,typecheck0, no universal closure.
+Twenty-fourth transient census compares select.c zero-allocated columns/unused
+szEst/nonzero table1. Resolver/VDBE synthetic owners now0/1,not persistent1/16.
+Nested source-derived check3/3, no native metadata/private cost credit.
+Checkpoint25 estimate-census research file supplies review inventory, not closure.
+Fresh complementary candidate/stat/WR/order/resources94/94; prior width1410
+1287/123 and lifecycle118117/1 reused unchanged. No original red waiver.
+Checkpoint26 missing matrix80:74 pass6 fail; joined two-slot IN crashes at
+iteration register integerValue. Isolated HEAD identical tests6/6 pass, so new
+checkout regression cannot be labeled preexisting. Advanced resources8/8;
+path/lowering/register lifetime isolation remains required.
+Checkpoint27 trace localizes first-IN empty→LEFT null-row→uninitialized inner
+restart. where.c7627 IfNotOpen analogue now fences synthetic null continuation
+past physical/IN advance with per-outer reset.45/45 selected tests; fresh
+width1287/123 and affected143/1 unchanged residuals, no universal closure.
+Checkpoint28 independently native retained reset/clear/rebind NULL sets6
+snapshot controls public6/6/pre-guard0/6.184,320 existing fixture bytes reused;
+no new native DB construction or universal joined credit.
+Checkpoint29 isolated mixed VDBE11 owned versus2 preserved bitwise peer hunks,
+reverse-check only,no staging. Fresh width14161293/123,affected/resources229
+228/1,typecheck0; original expectation/root conflicts and review remain open.
+Checkpoint30 declared hex controls20×3 native direct metadata/rows3/3,
+36,864 new bytes; internal widths source-derived. Invalid raw declaration
+bytes and alias/expression/join metadata still unclosed, no universal credit.
+Checkpoint31 raw schema ff/c183 control UTF8 accepted,width5; UTF16 retained
+UTF8 bytes rejected native/TS CORRUPT11,3/3. Not actual malformed UTF16
+declared-type coverage; immutable error publication checked repeated prepare.
+Checkpoint32 actual malformed UTF16 encoded schema surrogate+X consumption
+native raw UTF8 metadata hex all5 fields/TEXT/reset2/2,24,576 new bytes;
+declared combined8/8. Bounded control only,not full raw-byte closure.
+Checkpoint33 reviewer handoff authored,not reviewed. Fresh width14241301/123
+and affected/resource229228/1; original public/tie/sorter dispositions unwaived.
+Checkpoint34 original-bound isolated join/rowid/path-bias36011/349 vs HEAD
+0/360; diagnostic INTEGER360/360 vs HEAD135/225 narrows rowid semantic
+owner,not native REAL-binding acceptance. Original tests unchanged.
+Checkpoint35 exact no-ORDER tie query pinned EQP tb9/9; TS plan/OpenIndex/
+public reset9/9. Original3 ta assertions conflict with native exact query,
+remain unmodified pending parent review; no universal width-tie credit.
+Checkpoint36 reverse outer LEFT two-IN native8 sets×6 controls6/6,including
+unmatched→matched→unmatched and retained reset. No universal LEFT credit.
+Checkpoint37 joined WR native nonempty controls current/HEAD0/3 both
+unsupported storage-shape fence3376,not new width regression or joined
+mapping proof. Native expectations retained,broader SELECT work unwaived.
+Checkpoint38 persistent single-owner/cache/freeze/read-only invariant120/120
+original snapshots; source-derived not native compatibility/cleanup closure.
+Checkpoint39 invalid stat1 no publication fresh errors6/6 plus existing
+public corruption6/6; native permissive corruption behavior not equivalence.
+Checkpoint40 fresh all width1928:1453/475,affected129:128/1 reverse-sorter,
+zero skips/cancels,standalone typecheck0; review draft not acceptance.
+Checkpoint41 exact reverse-order native forced SORT0/scan SORT1×3,
+TS rows/reset/sorter parity6/6; original sorter>=3 unchanged pending review.
+Checkpoint43 residual output heuristic before insertion now translated;
+truthProb/HIGHTRUTH/LIKE/self-cull producers still absent. Initial matrix
+1942:1464/478 included3 stale internal cost expectations; corrected owned
+source expectation3/3,native unchanged; no final whole rerun yet.
+
+
+Checkpoint44 residual literal production corrected to expr.c2899 EP_IntValue
+not runtime INTEGER;source19/19,fresh width1951:1476/475 and resource/affected
+178:177/1,zero skips/cancels. Full truthProb/HIGHTRUTH/LIKE/self-cull gap persists.
+
+Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+where.c3519/7086 second-pass; nonempty STAT4 rejects before publication.
+No missing admitted shared-state consumer; no mutable clause workaround.
+SELFCULL consumer6606 Bloom generation unsupported,not width cost.
+Fresh selected55/55,WR/residual complement43/43,stat/STAT4 boundary36/36;
+44 changed-runtime width1951:1476/475 and resources178:177/1 reused.
+
+Checkpoint46 current constructor census: transient result tables column0/table1/
+rows200 (select.c2376/2432/2464) now consistently freeze completed metadata at
+publication via schema freezeTransientTable; not persistent default/stat1 pass.
+See refreshed estimate census and implementation handoff; independent review pending.
+
+Checkpoint47 transient publication regression targets real withTransientTable:
+3/3 current versus isolated freeze-call removal0/3; broad publication200/200,
+typecheck0,width1956:1481/475,resources49/49,affected170:168/2 (sorter assertion,
+missing r2-native artifact). No new runtime edits; independent review pending.
+
+Checkpoint48 transient guard-before-freeze/repeated-identity controls pass;
+publication/WR/STAT4/corruption159/159. Persistent PhysicalIndex-null fallback
+width1 flagged as open source ownership branch (build.c2236 versus schema574);
+unsupported access does not automatically justify fabricated width estimates.
+
+Checkpoint49 real unknown-collation index reproduces fabricated width (3/3 red).
+Pinned native ordinary q scan succeeds with A in all encodings; forced qi returns
+SQLITE_ERROR/no query solution. Tried whole-schema rejection,then reverted:
+that blocks legitimate table scan and is not a coherent source-faithful policy.
+Need structural field ownership separate from executable built-in KeyInfo;
+no width1 fallback or global rejection credit. Final tests retain expected
+structural width LogEst(108) (CHAR100=26 plus rowid1),still0/3. No runtime change
+retained this checkpoint; missing four Chinook tests remain unwaived.
+
+Checkpoint50 replaces fabricated nullable-physical width with shared immutable
+PhysicalIndexLayout owner; executable built-in KeyInfo uses same fields/PK
+mapping only when collations available (build.c2236,5653–5700). Unknown collation
+preserves structural width and ordinary table read,declines index access;
+no competing statistics or host callback support. Review pending.
+
+Checkpoint51 native WR unknown-CollSeq exact index_xinfo records agree with
+shared layout fields: PK a custom DESC,b,c; same-collation suffix dedups a;
+different-collation suffix repeats a custom DESC and maps PK [1,2]. Three
+encodings frozen metadata/source widths pass3/3; independent native ordinary
+WR read and forced secondary reads fail prepare1,TS rejects too (not exact
+code/message parity). New36,864 fixture bytes; no WR executable access credit.
+Fresh complement156:153/3 includes existing joined-WR storage fence failures,
+not new owner regressions. Checkpoint50 width/affected evidence reused runtime
+unchanged; independent review/root/parent/native-input gaps remain unwaived.
+
+Checkpoint52 unknown-CollSeq caller now preserves native SQLite error1 rather
+than temporary unsupported: forced unavailable index => no query solution;
+unforced WR unavailable primary storage => no such collation sequence.
+Owning btreeLoops uses retained layout names; existing capability gating/cost
+ordering unchanged. build.c5653–5700/where.c6169 branches; six encoding controls
+assert exact public kind/code/extendedCode/message/null classification across
+repeated prepares,stable graph and immediate close. First harness syntax error
+corrected;final6/6. Fresh affected173:170/3 existing joined-WR fence only.
+
+### Revision 2026-10-04d — post-runtime auxiliary acceptance correction
+
+[[card:card-s-e-a]] freshly captures exact no-ORDER/ORDER BY a controls after
+implementation: tb for all no-ORDER tie fixtures; ORDER ta for small-a, tb for
+small-b/equal. Three false no-ORDER ta expectations corrected; forced cost equality
+and ORDER solver width discrimination retained. Dominance remains width-free.
+No runtime repair or public semantic waiver; peer reverse-sorter contradiction
+is not authored acceptance ownership here. Original reported475 root failures
+remain outstanding. Commands/current outcomes/hashes in row-width decision note.
+
 
 ### Revision 2026-10-04 — bounded numeric seek / LEFT continuation supersession
 
@@ -4256,3 +4513,32 @@ Runtime commit/tree and fresh five-fix delivery evidence are in current executor
 status for [[card:card-s-b-a-a-b-a-a-a]]. Native fixtures/pin evidence are not TS
 execution credit. Shared dirty work is NOT a clean export; e aggregate1962/1490/472,
 cFAILED, joined-WR and broader historical reds remain unwaived/separately owned.
+
+### 2026-10-04 revision: bounded joined WR caller repaired
+
+Checkpoint37 historical current/HEAD0/3 is now superseded for the original
+three-encoding public reproducer. Joined lowering consumes existing BLOBKEY
+primary identity, physical column ordinals and secondary PK lookup, not a new
+evaluator or removal of the fence alone. New typed/native metadata/reset controls,
+selected/off-path corruption and LEFT/resources tests are in
+`without-rowid-joined.test.mjs`; manifest-checked capture script is retained.
+WR RIGHT/FULL Rowid match tracking remains honestly rejected; broader SELECT
+fences and parent width-owning rerun are not waived. Ordinary69 and advanced
+runner verification are recorded with exact results in this card's status; no
+clean mixed-checkout/export or whole-goal approval follows from these tests.
+
+
+### Joined column-location correction (2026-10-04)
+The semantic location contract now distinguishes `physicalColumnIndex` (table
+primary/secondary storage ordinal) from aggregate `payloadIndex`/iAgg bookkeeping.
+Joined columnAccess produces the former; binding replaces any prior physical
+location when rebinding, and expression emission consumes only that location.
+Logical transient indices and aggregate registers retain their own owners.
+Pinned expr.c:sqlite3ExprCodeGetColumnOfTable4462 maps table storage;
+TK_AGG_COLUMN4995–5015 uses accumulator/sorter locations first, and select.c
+AggInfo production owns those locations. vdbe.c OP_Column reads the already
+chosen cursor record ordinal, not a universal semantic-to-physical conversion.
+This repairs the source-only45/68 cross-layer regression without reverting real
+WR collation-aware mapping. Exact corrected candidate tests: discriminator68/68,
+broad910/910,joined/shared184/184. Historical24/30 credit, wider fences and
+post-runtime/native-FIRST shortfall remain unchanged; no B4-cause claim.

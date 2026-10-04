@@ -3,7 +3,7 @@ import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.t
 import { aggregateShapeSupported, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
 import { compileSelect } from "./internal/select-compiler.ts";
 import { rejectBareBuiltinWindowFunctions } from "./internal/resolve.ts";
-import { loadSchemaGraph } from "./internal/schema.ts";
+import { SchemaFormatError, loadSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
 import { selectGraphContainsWith } from "./internal/admission.ts";
 import { lowerOrdinaryCtes, recursiveCteOwner } from "./internal/cte.ts";
@@ -203,6 +203,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       return { statement, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
     } catch (error) {
       if (error instanceof SqlUnsupportedError) return failure("unsupported", error.message, { unsupportedClassification: "temporary" });
+      if (error instanceof SchemaFormatError) return failure("sqlite", error.message, { code: 11, cause: error });
       if (error instanceof SqlParseError) return failure("sqlite", error.message, { code: 1 });
       if (error instanceof RangeError) return failure("limit", error.message);
       throw error;
