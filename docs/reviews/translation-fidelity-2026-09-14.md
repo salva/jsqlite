@@ -4561,3 +4561,27 @@ reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
 STAT4 unsupported, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
 OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
+
+
+### Current bounded infix caller repair — card-p-b-c (2026-10-04)
+
+Pinned `parse.y:1363–1383` creates LIKE/GLOB function lists as RHS pattern,
+LHS candidate, optional ESCAPE. Syntax reduction children remain LHS/RHS/ESCAPE.
+`vdbe.ts:bindResolvedExpression` and joined `resolveTree` now use the same
+infix child permutation in every applicable caller policy, not only windows;
+infix NOT binds its synthesized unary child against the same infix carrier.
+Explicit function-call children remain unchanged. No patternCompare algorithm,
+function breadth, fixture, or expected-count change was needed.
+
+Fresh source-ID-pinned C API on actual UTF-8/UTF-16LE/UTF-16BE users files
+confirms Alice/Bob/Cara LIKE results 1/0/1 and filtered count 2. Public infix
+aggregate/join/NOT/ESCAPE and explicit-call controls now agree. Executable evidence:
+`ordinary-scalars-pattern-native.test.py` (36 INTEGER checks),
+`run-ordinary-scalars-pattern-ts.mjs` (5 observations, 24 boundaries,
+90 discriminators, 33 compositions, 9 lifecycle cases). Detailed chronology and
+commands: `docs/research/card-p-b-c-pattern-count-diagnosis.md`.
+The 50 active ordinary non-pattern registry rows / 0 absent count is unchanged;
+this caller repair is not new aggregate/window or excluded-family support.
+Original broad exit1 1539/1543 four reds are not universally dispositioned by
+this focused repair. C4 and direct REAL/expression-subquery regressions remain
+retained; no global cleanliness or universal acceptance claim.

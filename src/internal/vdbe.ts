@@ -1577,6 +1577,10 @@ function resolveBuiltinFunction(name:string,argc:number):NonNullable<ReturnType<
 }
 function exprLeaves(n:LemonValue<SqlToken>):SqlToken[]{return n.kind==="terminal"?(n.value?[n.value]:[]):n.children.flatMap(exprLeaves)}
 // parse.y1176 returns the operand Expr, while Lemon retains LP/RP reductions.
+/** parse.y infix function lists are RHS, LHS, ESCAPE, unlike syntax children. */
+function infixFunctionChild(signature:string,index:number):number {
+ return signature.startsWith('expr ::= expr likeop ')&&index<2?1-index:index;
+}
 function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarrier,cursorFor:(source:ResolvedSource)=>number,preserveScalarLeaves=false,binding?:ResolvedExpressionBinding):Expression {
       // An alias carrier owns the substituted result reduction, not the ID.
       if(value.kind==='column'&&!carrier.column&&carrier.reduction.signature!=='expr ::= ID')value=expressionFromReduction(carrier.reduction as Reduction);
@@ -1602,6 +1606,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
         if(use.mergedSources)return {kind:'call',name:'coalesce',args:use.mergedSources.map(bindColumn),deferredAffinity:true};
         return bindColumn(use);
       }
+      if(value.kind==='unary'&&value.op==='NOT'&&carrier.reduction.signature.startsWith('expr ::= expr likeop '))return {...value,value:bindResolvedExpression(value.value,carrier,cursorFor,preserveScalarLeaves,binding)};
       if(value.kind==='unary'||value.kind==='cast'||value.kind==='collate')return {...value,value:bindResolvedExpression(value.value,child(0),cursorFor,preserveScalarLeaves,binding)};
       if(value.kind==='binary')return {...value,left:bindResolvedExpression(value.left,child(0),cursorFor,preserveScalarLeaves,binding),right:bindResolvedExpression(value.right,child(1),cursorFor,preserveScalarLeaves,binding)};
       if(value.kind==='aggregate'){
@@ -1621,7 +1626,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
           filter:value.filter&&filterExpr?bindResolvedExpression(value.filter,owned(filterExpr),cursorFor,true,binding):value.filter,
           orderBy:value.orderBy.map((term,index)=>{const node=ordered[index]?.children.find((part):part is Reduction=>part.kind==='reduction'&&(part.signature.startsWith('expr ::=')||part.signature.startsWith('term ::=')));if(!node)throw new JSQLiteError('internal','aggregate order lost reduction');return {...term,expression:bindResolvedExpression(term.expression,owned(node),cursorFor,true,binding)};})};
       }
-      if(value.kind==='call'||value.kind==='aggregate'&&binding?.policy!=='derived-predicate'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,args:value.args.map((arg,index)=>bindResolvedExpression(arg,child((binding?.policy==='window-filter'||binding?.policy==='window-source')&&(carrier.reduction.signature.startsWith('expr ::= expr likeop ')||carrier.reduction.signature.startsWith('expr ::= expr MATCH '))&&index<2?1-index:index),cursorFor,preserveScalarLeaves,binding))};
+      if(value.kind==='call'||value.kind==='aggregate'&&binding?.policy!=='derived-predicate'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,args:value.args.map((arg,index)=>bindResolvedExpression(arg,child(infixFunctionChild(carrier.reduction.signature,index)),cursorFor,preserveScalarLeaves,binding))};
       if(preserveScalarLeaves){
         const bindChild=(expression:Expression,index:number)=>bindResolvedExpression(expression,child(index),cursorFor,true,binding);
         if(value.kind==='in-list'&&(binding?.policy==='window-filter'||binding?.policy==='window-source'||binding?.policy==='ordinary-aggregate'))return {...value,left:bindChild(value.left,0),values:value.values.map((term,index)=>bindChild(term,index+1))};
@@ -3432,12 +3437,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // owning NameContext before expr.c:sqlite3ExprCodeIN reads the left value.
     // The joined predicate must retain the exact source cursor even when the
     // column is nested rather than the immediate child of a binary operator.
-    if(node.kind==="unary"||node.kind==="cast"||node.kind==="collate")node.value=operand(node.value);
+    if(node.kind==="unary"&&node.op==='NOT'&&reduction?.signature.startsWith('expr ::= expr likeop '))node.value=visit(node.value,reduction);
+    else if(node.kind==="unary"||node.kind==="cast"||node.kind==="collate")node.value=operand(node.value);
     else if(node.kind==="binary"){node.left=operand(node.left);node.right=operand(node.right);}
     else if(node.kind==="in-list"){node.left=operand(node.left);node.values=node.values.map(operand);}
     else if(node.kind==="in-subquery")node.left=operand(node.left);
     else if(node.kind==="between"){node.value=operand(node.value);node.lower=operand(node.lower);node.upper=operand(node.upper);}
-    else if(node.kind==="call"||node.kind==="aggregate")node.args=node.args.map(operand);
+    else if(node.kind==="call"||node.kind==="aggregate")node.args=node.args.map((arg,index)=>{const child=children[infixFunctionChild(reduction?.signature??'',index)];if(reduction&&!child)throw new JSQLiteError('internal','resolved join operand lost identity');return visit(arg,child);});
     else if(node.kind==="case"){if(node.operand)node.operand=operand(node.operand);node.pairs=node.pairs.map(([a,b])=>[operand(a),operand(b)]);if(node.otherwise)node.otherwise=operand(node.otherwise);}
     return node;};return visit(tree,reduction);};
   // select.c:multiSelect(TK_ALL) forwards the compound iLimit/iOffset into

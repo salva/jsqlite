@@ -108,6 +108,18 @@ try{
       assert.equal(await scalar(db,"SELECT u.name GLOB 'A*' FROM users u JOIN users v ON u.id=v.id WHERE v.id=1"),1n);compositions++;
       assert.equal(await scalar(db,"SELECT name LIKE '%a%' FROM (SELECT name FROM users WHERE id=3)"),1n);compositions++;
 
+      // parse.y RHS/LHS argument ownership must survive aggregate/join binding.
+      const callerCases=[
+        ["SELECT count(*) FROM users WHERE like('%a%',name)",2n],
+        ["SELECT sum(name LIKE '%a%') FROM users",2n],
+        ["SELECT count(*) FROM users WHERE name NOT LIKE '%a%'",1n],
+        ["SELECT count(*) FROM users WHERE name GLOB '*a*'",1n],
+        ["SELECT count(*) FROM users WHERE name NOT GLOB '*a*'",2n],
+        ["SELECT count(*) FROM users WHERE name LIKE '!%a!%' ESCAPE '!'",0n],
+        ["SELECT u.name NOT GLOB 'B*' FROM users u JOIN users v ON u.id=v.id WHERE v.id=1",1n],
+      ];
+      for(const [sql,expected] of callerCases){assert.equal(await scalar(db,sql),expected,sql);compositions++;}
+
       // A failed pattern invocation retains first-error identity through reset,
       // then the same statement/context route is reusable with rebound values.
       {const statement=db.prepare('SELECT ?1 LIKE ?2').statement;statement.bind(1,'x');statement.bind(2,'x'.repeat(50001));let first;

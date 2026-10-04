@@ -37,3 +37,28 @@ A disposable diagnostic runner under `$SAIVAGE_CARD_WORK_ROOT/pattern-count` log
 C4/REAL/formatter and Mem affected suite: `node --experimental-strip-types --test test/conformance/run-ordinary-scalars-format-ts.mjs test/select/real-column-affinity.test.mjs test/value/mem-core.test.mjs test/value/mem-numeric.test.mjs` PASS 20/20; `npm run typecheck` PASS. Artifact `work:///cards/card-p-b-c/processes/proc-59eb846e8f3a/stdout.log`.
 
 No universal green claim, no broadened function scope, and no stopped s work resumed. This evidence report is the only owned project change.
+
+
+## Authorized bounded repair (subsequent repair node)
+
+The repair instruction authorized fixing the concrete semantic owner above.
+`infixFunctionChild` now maps syntax children into the existing function argument
+order for every `bindResolvedExpression` policy and joined `resolveTree`.
+Synthesized infix NOT keeps the same carrier; optional ESCAPE retains index 2.
+Missing-child error admission remains intact. No evaluator or pattern algorithm
+substitution was introduced, and the expected count remains 2.
+
+Added source-ID-pinned physical-fixture C ABI regression
+`ordinary-scalars-pattern-native.test.py`: 36 INTEGER checks across three encodings.
+Expanded public caller regressions include sum, NOT LIKE/GLOB, ESCAPE, explicit
+like, and joined NOT GLOB. Exact commands:
+
+* `python3 test/conformance/ordinary-scalars-pattern-native.test.py --library /work/jsqlite2/.saivage/work/cards/card-p-a-a/oracle-build/build/libsqlite3-oracle.so` — PASS 36 checks.
+* `node --experimental-strip-types --test test/conformance/run-ordinary-scalars-pattern-ts.mjs` — PASS; 5 observations/24 boundaries/90 discriminators/33 compositions/9 lifecycle cases. Combined native/public artifact: `work:///cards/card-p-b-c/processes/proc-77584bc7a80a/stdout.log`.
+* `python3 test/conformance/ordinary-scalars-format-native.test.py --library "$ORACLE"` — PASS seven groups; `python3 test/conformance/ordinary-scalars-manifest.test.py --library "$ORACLE"` — PASS 50/37/59 (12/38 in its output is historical allocation).
+* `node --experimental-strip-types --test test/conformance/run-ordinary-scalars-*-ts.mjs test/select/real-column-affinity.test.mjs test/conformance/subquery-view-foundation.test.mjs test/value/mem-core.test.mjs test/value/mem-numeric.test.mjs` — PASS 202/202; `npm run typecheck` PASS. Full artifact: `work:///cards/card-p-b-c/processes/proc-fa3f99377ca1/stdout.log`.
+* After restoring explicit missing-child admission, pattern runner, typecheck, and scoped `git diff --check` all PASS (`work:///cards/card-p-b-c/processes/proc-6bab6dcb3b2a/stdout.log`).
+
+Guide/map/mutable audit append this precise repair and its denominator, without
+waiving original broad four reds. Only owned infix VDBE hunks are staged;
+pre-existing dirty bitwise VDBE hunks and other index/research edits remain dirty.
