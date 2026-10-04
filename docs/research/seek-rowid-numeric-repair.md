@@ -95,3 +95,15 @@ B1–B5 historical53/3 mismatch is not erased; current audit is56/56.
 Pinned native window scope, aggregate rows, CTE architecture and exact audit
 recaptures acquired; CTE/audit cmp exact. All command/artifact and per-suite
 mapping details reside in current card status. e/root/WR qualifications retained.
+
+### Follow-up: exact C5 metadata expectation reconciled
+
+The materially informed next attempt changes only the stale declaredType
+expectation to pin-observed `NVARCHAR(120)`; SQL, native rows, column names,
+origins, reset rows and runtime remain unchanged. This reconciles the expectation
+to the exact catalog span rather than suppressing the metadata assertion. The
+prior9/10 and repeat0/1 failures remain in evidence. Fresh full aggregate
+composition + Chinook suite now **10/10** (6/6+4/4); C5 reaches both AC/DC,2
+runs and disjoint correlated destinations yielding AC/DC,4. No new production
+repair/refactor or public contract change. Other four named-fix semantic lanes
+recorded above apply unchanged; complete command inventory is in card status.

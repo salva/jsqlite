@@ -52,7 +52,9 @@ test('C5 SELECT-list aggregate subquery retains qualified outer ownership',async
  let statement=db.prepare(sql).statement;
  try{
   assert.deepEqual(Array.from({length:2},(_,i)=>statement.columnMetadata(i)),[
-   {name:'Name',declaredType:'NVARCHAR ( 120 )',database:'main',table:'Artist',origin:'Name'},
+   // Pinned sqlite3_column_decltype on this identical C5 SQL returns the
+   // catalog's exact type span, not the former reconstructed token spacing.
+   {name:'Name',declaredType:'NVARCHAR(120)',database:'main',table:'Artist',origin:'Name'},
    {name:'(SELECT COUNT(*) FROM Album a WHERE a.ArtistId=ar.ArtistId)',declaredType:null,database:null,table:null,origin:null},
   ]);
   assert.deepEqual(await all(statement),[['AC/DC',2n]]);
