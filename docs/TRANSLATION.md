@@ -829,3 +829,31 @@ unit inventories may change with source-shaped lowering and must be justified,
 not silently raised to make a failing test pass. The runner separately exercises
 actual yielded cancellation, injected deadlines, output limits and all three
 fixture encodings. Historical unrelated conformance reds are not cleared here.
+
+### Revision 2026-10-04 — exact ORDER/LIMIT expression-subquery adjudication
+
+[[card:card-m-f-j]] independently source-ID-checked SQLite 3.53.4 before
+changing the historical ORDER/LIMIT prepare-only assertions. The exact compound
+query returns INTEGER 0, the bare derived query returns INTEGER 0 natively but
+remains a truthful TS temporary unsupported boundary, and the exact unordered
+scalar query returns INTEGER 31 (not 0). All three have full origin metadata
+`x / INT / main / t1 / x`. The test now executes compound/scalar routes through
+singular Fetch in UTF-8/16le/16be, compares independently captured metadata/typed
+rows, and checks reset, inner-empty/NULL/LIMIT 0, ordered OFFSET, outer LIMIT 0/
+OFFSET, partial-step reset, finalize/restored admission, and deferred close.
+No runtime admission change or relational credit is inferred.
+
+Pinned `expr.c:sqlite3CodeSubselect` lines 3933–3958 rewrite existing scalar
+LIMIT X to X<>0 (numeric comparison) before `select.c:computeLimitRegisters`.
+A new discriminator exposes a genuine remaining divergence: scalar child
+`LIMIT 'x'` natively returns INTEGER 31, while TS reports step-time code 20.
+The generic table child of `compileScalarSelect` still calls ordinary
+`computeLimitRegisters` (around `vdbe.ts:2908`) instead of the existing scalar
+normalization owner; IN must retain ordinary LIMIT, and OFFSET/error ordering
+must remain source-shaped. This is reported to the runtime ownership chain, not
+patched by weakening the expectation or broadening derived admission.
+Native capture/validator: `order-limit-subquery-native.py`; fixtures have the
+same insertion order as the digest-pinned expr-relational image. Current scoped
+suite is 9/10, including a deliberately red exact-source discriminator; selected
+all-encoding promoted destinations are 3/3. Historical combined 1539/1543 remains
+nonpassing and has not been rerun by this slice.

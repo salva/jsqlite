@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import http from 'node:http';
 import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
 import {JSQLiteError} from '../../src/index.ts';
@@ -113,27 +114,49 @@ test('ORDER result aliases resolve through explicit COLLATE while retaining that
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('ORDER/LIMIT bounded table compounds are admitted while subqueries remain typed unsupported',async()=>{
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
+// Exact native captures preserve the historically unordered scalar's first row
+// (31), rather than silently adding ORDER BY to make an easier assertion.
+const subqueryOracle=JSON.parse(fs.readFileSync(new URL('./cases/order-limit-subquery-native.json',import.meta.url),'utf8'));
+for(const encoding of ['utf8','utf16le','utf16be'])test(`ORDER/LIMIT ${encoding} compound and scalar destinations execute; derived boundary stays atomic`,async()=>{
+ const current=JSON.parse(fs.readFileSync('test/fixtures/CURRENT.json','utf8'));
+ const body=fs.readFileSync(encoding==='utf8'?`test/fixtures/generations/${current.generationId}/generated/expr-relational.db`:`test/conformance/fixtures/order-limit-relational-${encoding}.db`);
+ const server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':body.length});r.end(body)});
+ await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',resolve).once('error',reject));let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const c of subqueryOracle.cases.filter(c=>c.encoding===encoding)){
+   // Native accepts this derived query; the represented TS flattening boundary
+   // still rejects outer ORDER on a bare table child. Do not broaden runtime.
+   if(c.sql==='SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1'){
+    assert.throws(()=>db.prepare(c.sql),temporary,c.sql);continue;
+   }
+   statement=db.prepare(c.sql).statement;
+   assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),c.columns,c.sql);
+   if(c.sql.includes("LIMIT 'x'"))continue; // Separate source-divergence discriminator below.
+   if(c.first.kind==='error'){
+    const check=e=>e instanceof JSQLiteError&&e.kind==='sqlite'&&e.code===c.first.error.code&&e.message===c.first.error.message;
+    await assert.rejects(()=>rows(statement),check);assert.throws(()=>statement.reset(),check);await assert.rejects(()=>rows(statement),check);assert.throws(()=>statement.finalize(),check);statement=undefined;
+   }else{
+    const expected=c.first.rows.map(r=>r.map(decodeCell));
+    assert.deepEqual(await rows(statement),expected,c.sql);statement.reset();assert.deepEqual(await rows(statement),expected,`reset: ${c.sql}`);statement.finalize();statement=undefined;
+   }
+   const probe=db.prepare('SELECT 1').statement;assert.deepEqual(await rows(probe),[[1n]]);probe.finalize();
+  }
+  // Reset a partially stepped scalar; finalize then reuse connection admission.
+  statement=db.prepare('SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1').statement;
+  assert.equal(await statement.step(),'row');assert.equal(statement.column(0),31n);statement.reset();assert.deepEqual(await rows(statement),[[31n]]);statement.finalize();statement=undefined;
+  statement=db.prepare('SELECT 1').statement;db.closeDeferred();assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse');statement.finalize();statement=undefined;
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});
+
+test('scalar pre-existing text LIMIT is normalized by sqlite3CodeSubselect before MustBeInt',async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,s;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
-  const observed=[];
-  for(const sql of [
-   'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',
-   'SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1',
-   'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1',
-  ]){
-   let statement;
-   try{statement=db.prepare(sql).statement;observed.push({sql,outcome:'accepted'})}
-   catch(error){observed.push({sql,outcome:temporary(error)?'temporary-unsupported':String(error)})}
-   finally{try{statement?.finalize()}catch{}}
-  }
-  assert.deepEqual(observed,[
-   {sql:'SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1',outcome:'accepted'},
-   {sql:'SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
-   {sql:'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1',outcome:'temporary-unsupported'},
-  ]);
- }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+  const c=subqueryOracle.cases.find(c=>c.encoding==='utf8'&&c.sql.includes("LIMIT 'x'"));
+  s=db.prepare(c.sql).statement;assert.deepEqual(s.columnMetadata(0),c.columns[0]);
+  assert.deepEqual(await rows(s),c.first.rows.map(r=>r.map(decodeCell)));
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
 test('captured pinned expectations retain typed storage order, multi-term order, and explicit error phase',()=>{

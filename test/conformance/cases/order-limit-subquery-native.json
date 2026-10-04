@@ -1,0 +1,1073 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "encoding": "utf8",
+      "sql": "SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 WHERE x<0 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT NULL FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 0) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 ORDER BY x LIMIT 1 OFFSET 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 0",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1 OFFSET 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf8",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 WHERE x<0 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT NULL FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 0) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 ORDER BY x LIMIT 1 OFFSET 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 0",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1 OFFSET 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16le",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "989bbcbf035afbeab69b76bfdfbbde7aa3e13397d312193cad4ab07b9d0ad891",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT x FROM t1 UNION ALL SELECT x FROM t1 ORDER BY 1 LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT x FROM (SELECT x FROM t1) ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 WHERE x<0 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT NULL FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 0) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "null"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 ORDER BY x LIMIT 1 OFFSET 1) AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 0",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1 OFFSET 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": []
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": []
+      },
+      "finalizeCode": 0
+    },
+    {
+      "encoding": "utf16be",
+      "sql": "SELECT (SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
+      "fixtureSha256": "1bc539a9977bd92631763ee86bb3e0cd279860b8a523d64f2d19079d1b56f58f",
+      "prepareCode": 0,
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INT",
+          "database": "main",
+          "table": "t1",
+          "origin": "x"
+        }
+      ],
+      "first": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "resetCode": 0,
+      "afterReset": {
+        "kind": "done",
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            }
+          ]
+        ]
+      },
+      "finalizeCode": 0
+    }
+  ]
+}

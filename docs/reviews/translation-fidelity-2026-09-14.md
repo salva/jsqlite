@@ -4626,3 +4626,21 @@ Typecheck, focused rerun, preserved expression budget check pass
 stale scalar-subquery unsupported expectation remains intentionally untouched.
 No broad-green/clean-workspace/extra upstream-credit claim. Prior `54a2face`
 22-reject/23-pass expectation-only work and `6a7c8d5` infix repair are preserved.
+
+### Revision 2026-10-04 — ORDER/LIMIT stale assertion versus scalar LIMIT defect
+
+[[card:card-m-f-j]] source-ID-verified pinned 3.53.4: exact compound returns
+INTEGER 0; exact bare-derived ORDER query also returns 0 natively but remains
+TS temporary unsupported; exact unordered scalar returns 31 with full table
+origin metadata. Public all-encoding compound/scalar execution/reset/NULL/empty/
+LIMIT/lifecycle replacement passes 3/3. This does not credit the derived gap.
+An additional source discriminator is genuinely red: scalar `LIMIT 'x'` returns
+31 natively, but current generic scalar table-child lowering uses ordinary
+`computeLimitRegisters` and errors at step with code 20. Compare pinned
+`expr.c:sqlite3CodeSubselect` 3933–3958 (X<>0 normalization) to
+`vdbe.ts:compileScalarSelect` child LIMIT handoff around 2908. Existing
+`computeScalarLimitRegisters` is not reached by this route. Owner correction
+must preserve IN ordinary LIMIT and OFFSET/error ordering. Native capture is
+`test/conformance/cases/order-limit-subquery-native.json`; scoped suite is 9/10,
+not a compatibility pass; historical combined 1539/1543 remains nonpass until an
+actual combined run. Prior budget/LIKE/LIMIT0-offset corrections are untouched.
