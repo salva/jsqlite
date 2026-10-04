@@ -357,3 +357,42 @@ for a statically nonnullable equality adds a no-op, not a comparison change.
 captured before consuming test edits: six encoding/stat snapshots, persistent
 alternatives, dependency/LEFT, typed values/metadata/reset/rebind/errors. Controls
 were captured after product implementation, not retroactive native-FIRST.
+
+
+### Revision 2026-10-04 — bounded numeric seek / LEFT continuation supersession
+
+This revision supersedes **only** the earlier absent NUMERIC-copy claims in the
+row-width checkpoints (including checkpoint34 and audit2026-10-04d), not their
+historical reds or pending e/root qualifications. See
+[causal repair/evidence note](research/seek-rowid-numeric-repair.md).
+Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
+`5713c0f68bfb733ecb4e527fc74841394066ceac` correct these bounded owners:
+
+- Pinned `vdbe.c:5495 OP_SeekRowid` copies the input Mem and applies NUMERIC
+  affinity before integer gating/cursor access, preserving original binding
+  payload/type. `vdbemem.c:sqlite3VdbeIntegerAffinity` uses the **exact bigint
+  slot for IntReal**, including both signed64 endpoints and values above2^53.
+  Existing REAL instead uses double-to-integer roundtrip equality and **strict
+  signed64 endpoint exclusion**. This is distinct from the narrower
+  `sqlite3RealSameAsInt` text-numericization rule; it is not a text shortcut.
+- `where.c:sqlite3WhereEnd` distinguishes continuation, advancement and LEFT
+  synthetic-null re-entry. TS `nextAt` enters LEFT null-pass / RIGHT Return
+  guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
+  Singleton target patching now uses advanceAt, not an offset into nextAt.
+  ON matching remains before null extension; WHERE remains after positioning.
+- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
+  represented proof: **FINAL ordered producer after exact rowid-equality
+  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
+  before later fanout is NEVER promoted by this proof. Other joined paths retain
+  zero global order; this is not general multi-source ordering acceptance.
+
+Fresh strict singular-public ordinary execution on the disclosed peer-dirty
+runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors
+and every exact/min/max private bound, with no prepare waiver or increased limit.
+Earlier63/69 with six LEFT limits and66/69 with three sorter minima remain
+historical failures, causally repaired rather than waived. Primitive IntReal
+coverage is not a claim of a public IntReal producer. No public API change.
+Runtime commit/tree and fresh five-fix delivery evidence are in current executor
+status for [[card:card-s-b-a-a-b-a-a-a]]. Native fixtures/pin evidence are not TS
+execution credit. Shared dirty work is NOT a clean export; e aggregate1962/1490/472,
+cFAILED, joined-WR and broader historical reds remain unwaived/separately owned.

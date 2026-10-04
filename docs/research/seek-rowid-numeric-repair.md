@@ -70,3 +70,28 @@ First repaired strict run terminated correctly but failed3 sorter minima: peer o
 Permanent ordinary public harness now requires work root, rejects every unexpected prepare error, and counts only completed row/private-bound comparisons toward69 credit; disposable stricter reproducer retained under acceptance-refresh. This preserves the six-failure reproducer rather than masking it with larger budgets or altered rows.
 
 Final corrected runtime: ordinary69/69 exact rows/private bounds; broad171/171 (ordinary, LEFT, RIGHT/FULL, selected-IN/controls, advanced/storage/shared/numeric); R1/R2/lifecycle/isolated-joined/endpoints388/388 (117+63 prepared comparisons zero failures). Full commands and verification attribution in current card status. Intermediate six limits and subsequent three sorter-min failures retained. No parent e aggregate rerun, WR repair or historical failure waiver.
+
+## Renewed delivery R1/R2 (review v11)
+
+Guide/map/mutable audit now have explicit revision-labeled supersession, not
+historical deletion. Fresh existing five-fix semantic execution on5713c0f mixed
+runtime: window lead tests5/5 (actual digest-bound Chinook present); aggregate
+composition6/6 and Chinook3/4; CTE admission31/31, execution9/9, opcodes1/1,
+Chinook3/3; BETWEEN controls/lowering2/2 plus exact-span audit56/56 matches
+(zero credit companion corpus); JSON naming/composition17/17. Counts overlap
+and are not additive compatibility credit. Fresh ordinary69/69 retained.
+
+**R2 residual:** C5 aggregate Chinook test fails ONLY at its preserved metadata
+assertion: expected `NVARCHAR ( 120 )`, actual `NVARCHAR(120)`. Repeat reproduces.
+Pinned independent public-C metadata for the **identical SQL** returns
+`NVARCHAR(120)`; captured native row remains AC/DC,2. Existing test stops before
+row assertions, so C5 is NOT TS row credit. No SQL, rows, expectation or runtime
+changed. Review explicitly requires preserving expectations: this observed
+stale metadata mismatch needs bounded disposition before that test can be
+reported green. No production defect is established by it. Other aggregate
+scalar/derived/inner-join EXISTS semantic branches passed unchanged. Existing
+B1–B5 historical53/3 mismatch is not erased; current audit is56/56.
+
+Pinned native window scope, aggregate rows, CTE architecture and exact audit
+recaptures acquired; CTE/audit cmp exact. All command/artifact and per-suite
+mapping details reside in current card status. e/root/WR qualifications retained.
