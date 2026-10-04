@@ -399,7 +399,7 @@ test('frozen unforced executions open the expected runtime index root only on se
     if(expected){
      const contract=spec.futurePrivateExpected;
      if(run===1){
-      assert.equal(privateAccounting(statement).indexSeeks,contract.counters.indexSeeks.exact,`${variant.id}/${spec.id}/${run}: NULL index seek`);
+      assert.equal(privateAccounting(statement).indexSeeks,0,`${variant.id}/${spec.id}/${run}: NULL equality exits before seek`);
       assert.equal(privateAccounting(statement).tableSeeks,0,`${variant.id}/${spec.id}/${run}: empty seek avoids base lookup`);
      }else assertAccounting(privateAccounting(statement),contract,`${variant.id}/${spec.id}/${run}: selected counters`);
     }else if(run===1){
