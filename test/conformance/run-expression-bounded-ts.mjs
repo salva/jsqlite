@@ -8,12 +8,24 @@ const bridge=await startFixtureServer(path.join(root,"test/fixtures"));
 const request=name=>new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${name}`);
 const text="x".repeat(1024);
 const errorShape=e=>({kind:e.kind,code:e.code,extendedCode:e.extendedCode,message:e.message});
-async function scalar(db,sql,value,options){const s=db.prepare(sql).statement;assert.ok(s);s.bind(1,value);try{return await s.step(options)}finally{try{s.finalize()}catch{}}}
 try {
   const db=await open(request("empty"),{limits:{maxWorkUnits:100000,maxResultBytes:1000000}});
-  // Exact accounting: 1024-byte input, hex scan/output and result copy admit at 20 units.
-  await assert.rejects(()=>scalar(db,"SELECT hex(?1)",text,{maxWorkUnits:19}),e=>assert.deepEqual(errorShape(e),{kind:"limit",code:null,extendedCode:null,message:"statement exceeds maxWorkUnits"})===undefined);
-  assert.equal(await scalar(db,"SELECT hex(?1)",text,{maxWorkUnits:20}),"row");
+  // Current shared SELECT routing: 7 executed ops to ROW (3 Gotos,
+  // Variable, Function, Copy, ResultRow) + input4 + hex scan4 + copy8 =23.
+  // f1a5b3b had 4 ops /20 units; 48bf18c8 added setup/body routing.
+  // vdbe.c counts Goto too. Do not exempt routing or increase connection limits.
+  const boundary=db.prepare("SELECT hex(?1)").statement;assert.ok(boundary);
+  boundary.bind(1,text);
+  let workError;
+  try{await boundary.step({maxWorkUnits:22})}catch(e){workError=e}
+  assert.deepEqual(errorShape(workError),{kind:"limit",code:null,extendedCode:null,message:"statement exceeds maxWorkUnits"});
+  await assert.rejects(()=>boundary.step(),e=>e===workError);
+  assert.throws(()=>boundary.reset(),e=>e===workError);
+  boundary.bind(1,text);
+  assert.equal(await boundary.step({maxWorkUnits:23}),"row");
+  assert.equal(boundary.columnType(0),"text");
+  assert.equal(boundary.columnText(0),"78".repeat(1024));
+  boundary.finalize();
 
   // Abort is observed at a yielded internal input checkpoint, not only pre-step.
   const abort=new AbortController(),long="z".repeat(256*1024),s=db.prepare("SELECT hex(?1)").statement;assert.ok(s);s.bind(1,long);
@@ -59,5 +71,5 @@ try {
     assert.throws(()=>growing.finalize(),e=>e===growingError);
     const reusable=encoded.prepare("SELECT k FROM storage_values NOT INDEXED").statement;assert.ok(reusable);assert.equal(await reusable.step(),"row");assert.equal(reusable.columnText(0),"min");reusable.finalize();encoded.close();
   }
-  console.log(JSON.stringify({schema:"jsqlite-expression-bounded-ts/1",outcome:"pass",checks:["exact-work-19-20","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}));
+  console.log(JSON.stringify({schema:"jsqlite-expression-bounded-ts/1",outcome:"pass",checks:["exact-work-22-23-and-reset-reuse","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}));
 } finally {await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()));}

@@ -803,3 +803,29 @@ this caller repair is not new aggregate/window or excluded-family support.
 Original broad exit1 1539/1543 four reds are not universally dispositioned by
 this focused repair. C4 and direct REAL/expression-subquery regressions remain
 retained; no global cleanliness or universal acceptance claim.
+
+### Expression safety-budget fixture repair (2026-10-04)
+
+`run-expression-bounded-ts.mjs` pins the current `SELECT hex(?1)` inventory
+for 1024 ASCII bytes: seven executed VM operations through ROW (three setup/body
+Gotos, Variable, Function, Copy, ResultRow), four started 256-byte input chunks,
+four hex traversal chunks, and eight output-copy chunks =23 units. The original
+`f1a5b3b` inventory was four operations plus the same sixteen chunk units =20;
+shared SELECT setup/body routing introduced by `48bf18c8` added three charged
+jumps. The old 19/20 assertion was therefore stale, not evidence of removed
+checkpoints. The repaired 22/23 boundary also checks saved error identity,
+reset/rebind/reuse and the exact TEXT payload. No default, limit or runtime owner
+is changed, and routing is not exempted from accounting.
+
+Pinned `src/vdbe.c` increments `nVmStep` before opcode dispatch (including
+`OP_Goto`, whose jump path also checks interruption); `src/func.c:hexFunc`
+converts input bytes into two uppercase output digits per byte. Browser chunk
+charges/yields are an adaptation, not native VM-step parity. A source-ID-checked
+native prepare/bind/step probe independently verified TEXT/2048 bytes, exact
+payload, progress interruption (9), reset (9), and subsequent successful reuse.
+Native progress control is not an asynchronous JS cancellation proof. This
+finite repair retains the API's implementation-defined safety-counter contract;
+unit inventories may change with source-shaped lowering and must be justified,
+not silently raised to make a failing test pass. The runner separately exercises
+actual yielded cancellation, injected deadlines, output limits and all three
+fixture encodings. Historical unrelated conformance reds are not cleared here.

@@ -523,3 +523,15 @@ this caller repair is not new aggregate/window or excluded-family support.
 Original broad exit1 1539/1543 four reds are not universally dispositioned by
 this focused repair. C4 and direct REAL/expression-subquery regressions remain
 retained; no global cleanliness or universal acceptance claim.
+
+### Expression work-budget boundary repair (2026-10-04)
+
+Pinned `src/func.c:hexFunc` and `src/vdbe.c` dispatch counter / `OP_Goto`
+→ shared scalar SELECT setup/body routing in `vdbe.ts` and its input/function/copy
+checkpoints → `test/conformance/run-expression-bounded-ts.mjs` (22 rejects,
+23 reaches ROW with exact TEXT payload, saved error/reset/rebind). The old
+`f1a5b3b` 19/20 boundary predates three executed routing jumps from `48bf18c8`.
+The [living guide](TRANSLATION.md#expression-safety-budget-fixture-repair-2026-10-04)
+records the inventory and independent pinned-native semantic/control comparison.
+No runtime change, native/TS unit equivalence, new product coverage or default
+budget increase is claimed.
