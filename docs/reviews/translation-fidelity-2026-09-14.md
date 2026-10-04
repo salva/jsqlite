@@ -4644,3 +4644,15 @@ must preserve IN ordinary LIMIT and OFFSET/error ordering. Native capture is
 `test/conformance/cases/order-limit-subquery-native.json`; scoped suite is 9/10,
 not a compatibility pass; historical combined 1539/1543 remains nonpass until an
 actual combined run. Prior budget/LIKE/LIMIT0-offset corrections are untouched.
+
+### Revision 2026-10-04 — generic scalar table-child LIMIT correction
+
+The immediately preceding text-LIMIT defect is repaired by [[card:card-m-f-j]]:
+`compileScalarSelect` selects existing scalar X<>0 normalization for Mem/Exists
+at the shared LIMIT setup, before OFFSET admission. IN and retained derived
+post-predicate producer row-count LIMITs stay ordinary. Public exact-discriminator
+and all-encoding controls pass, with independently pinned 51-case typed captures
+including NULL/zero/OFFSET errors and IN/outer LIMIT counterexamples. The original
+9/10 failure is retained as historical evidence; neither derived admission nor
+conformance credit expands. Combined historical 1539/1543 remains nonpass unless
+and until an actual combined command produces a new denominator/outcome.

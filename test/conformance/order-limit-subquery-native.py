@@ -21,6 +21,13 @@ queries=[
  'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 0',
  'SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 1 OFFSET 1',
  "SELECT (SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
+ "SELECT (SELECT x FROM t1 LIMIT 'x' OFFSET 1) AS x ORDER BY x LIMIT 1",
+ "SELECT (SELECT x FROM t1 LIMIT 0 OFFSET 'x') AS x ORDER BY x LIMIT 1",
+ "SELECT (SELECT x FROM t1 LIMIT NULL) AS x ORDER BY x LIMIT 1",
+ "SELECT (SELECT x FROM t1 LIMIT 1 OFFSET 'x') AS x ORDER BY x LIMIT 1",
+ "SELECT 31 IN (SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
+ "SELECT (SELECT x FROM t1 LIMIT 1) AS x ORDER BY x LIMIT 'x'",
+ "SELECT EXISTS(SELECT x FROM t1 LIMIT 'x') AS x ORDER BY x LIMIT 1",
 ]
 out=[]
 for enc in ['utf8','utf16le','utf16be']:
@@ -36,4 +43,4 @@ actual={'sourceId':d.sqlite3_sourceid().decode(),'cases':out}
 capture=root/'test/conformance/cases/order-limit-subquery-native.json'
 if '--write' in sys.argv:capture.write_text(json.dumps(actual,indent=2)+'\n')
 else:assert actual==json.loads(capture.read_text())
-print('ORDER/LIMIT subquery oracle: pinned source ID; 30 native assertions, exact metadata/typed rows/error phase/reset/finalize; no TS credit inferred')
+print('ORDER/LIMIT subquery oracle: pinned source ID; 51 native assertions, exact metadata/typed rows/error phase/reset/finalize; no TS credit inferred')

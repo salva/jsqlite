@@ -548,3 +548,15 @@ OFFSET at execution, not prepare-time name resolution. Native source-ID-checked
 encodings (48 preparations/96 executions per lane including reset/finalize).
 The old ORDER runner zero-OFFSET error expectation was stale; no runtime edit.
 See mutable audit adjudication for errors, exploratory gates and remaining reds.
+
+- Generic scalar table-child LIMIT destination (revision 2026-10-04,
+  [[card:card-m-f-j]]): pinned `expr.c:sqlite3CodeSubselect` 3933–3958 X<>0
+  numeric normalization → `computeScalarLimitRegisters`, selected by
+  `compileScalarSelect`'s table-child handoff to `computeLimitRegisters`;
+  pinned `select.c:computeLimitRegisters` zero-before-OFFSET and combined
+  sorter capacity → the remaining shared LIMIT register setup. Mem/Exists
+  normalize; Set/IN and retained post-predicate producers keep row-count LIMIT.
+  `order-limit-subquery-native.py` source-ID-verifies 51 exact typed native
+  captures; `run-order-limit-contract-ts.mjs` compares full metadata and
+  all-encoding rows/errors/reset/finalize, including text/NULL/zero/OFFSET and
+  IN/outer-limit distinction. Bare derived outer ORDER admission is unchanged.

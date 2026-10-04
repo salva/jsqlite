@@ -2000,13 +2000,18 @@ function computeScalarLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>num
  const ifZero=ops.length;ops.push({code:'IfNot',p1:count,p2:0});return {count,ifZero};
 }
 
-function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder):LimitRegisters|undefined {
+function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder,scalarDestination=false):LimitRegisters|undefined {
  if(!select.limit)return undefined;
  // select.c:computeLimitRegisters emits OP_Goto for an integer literal zero
  // (or OP_IfNot for an evaluated LIMIT) before compiling the OFFSET expression.
- const count=compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters);
- ops.push({code:"MustBeInt",p1:count});
- const ifZero=ops.length;ops.push({code:"IfNot",p1:count,p2:0});
+ // expr.c normalizes the SELECT owned by Mem/Exists, not IN or a retained
+ // derived producer feeding a post-producer predicate. Reuse its semantic owner
+ // before OFFSET admission; count/combined/capacity still belong to this SELECT.
+ const scalar=scalarDestination?computeScalarLimitRegisters(select,ops,allocate,parameters):undefined;
+ const count=scalar?.count??compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters);
+ let ifZero:number;
+ if(scalar)ifZero=scalar.ifZero;
+ else {ops.push({code:"MustBeInt",p1:count});ifZero=ops.length;ops.push({code:"IfNot",p1:count,p2:0});}
  let offset:number|undefined;
  if(select.offset){offset=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters);ops.push({code:"MustBeInt",p1:offset});}
  const combined=allocate();if(offset===undefined){ops.push({code:"Copy",p1:count,p2:combined});}else ops.push({code:"OffsetLimit",p1:count,p2:combined,p3:offset});
@@ -2905,7 +2910,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         if(isIn)resultOps.push({code:"OpenEphemeral",p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
         if(!isIn)resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
         resultOps.push({code:"OpenRead",p1:source.table.rootPage,p2:cursor});
-        const childLimit=nested.limit?computeLimitRegisters(nested,resultOps,allocate,parameters):undefined;
+        const childLimit=nested.limit?computeLimitRegisters(nested,resultOps,allocate,parameters,!isIn&&!postTree):undefined;
         const rewind=resultOps.length;resultOps.push({code:"Rewind",p1:cursor,p2:0});
         // where.c:sqlite3WhereCodeOneLoopStart / select.c:selectInnerLoop:
         // a rejected source row advances the scan, without consuming LIMIT.

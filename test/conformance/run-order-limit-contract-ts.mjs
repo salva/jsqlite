@@ -132,7 +132,6 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`ORDER/LIMIT ${encoding}
    }
    statement=db.prepare(c.sql).statement;
    assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),c.columns,c.sql);
-   if(c.sql.includes("LIMIT 'x'"))continue; // Separate source-divergence discriminator below.
    if(c.first.kind==='error'){
     const check=e=>e instanceof JSQLiteError&&e.kind==='sqlite'&&e.code===c.first.error.code&&e.message===c.first.error.message;
     await assert.rejects(()=>rows(statement),check);assert.throws(()=>statement.reset(),check);await assert.rejects(()=>rows(statement),check);assert.throws(()=>statement.finalize(),check);statement=undefined;

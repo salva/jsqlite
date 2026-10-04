@@ -857,3 +857,32 @@ same insertion order as the digest-pinned expr-relational image. Current scoped
 suite is 9/10, including a deliberately red exact-source discriminator; selected
 all-encoding promoted destinations are 3/3. Historical combined 1539/1543 remains
 nonpassing and has not been rerun by this slice.
+
+### Revision 2026-10-04 — scalar LIMIT normalization repair
+
+[[card:card-m-f-j]] repairs the preceding concrete discriminator, not the
+unmatched derived admission boundary. The generic table child now selects the
+existing `computeScalarLimitRegisters` owner for Mem/Exists before the ordinary
+OFFSET/combined-capacity computation. Pinned `expr.c:sqlite3CodeSubselect`
+3933–3958 normalizes X<>0 with numeric affinity; `select.c:computeLimitRegisters`
+then checks zero before admitting OFFSET. IN retains ordinary row-count LIMIT;
+a retained producer feeding a post-producer predicate likewise retains its own
+LIMIT instead of treating it as the consuming scalar destination. Destination
+initialization, Once, scan position, first-result exit, sorter capacity and
+error cleanup remain owned by the same parent VDBE.
+
+The native capture now has 51 assertions across three encodings. Added controls
+include text LIMIT with OFFSET, zero LIMIT skipping invalid OFFSET, NULL LIMIT
+error, invalid OFFSET error, IN text LIMIT error, outer text LIMIT error and
+EXISTS text LIMIT. Full metadata, step/reset/finalize error phases and rows are
+compared through public Fetch. The formerly red exact text-LIMIT discriminator
+and all-encoding controls pass; earlier 9/10 evidence remains historical, not a
+current pass claim. No conformance accounting credit or public shape expansion.
+
+Repair verification: exact ORDER/LIMIT suite 10/10; relevant combined six-file
+regression 238/238 (includes compound, subquery foundation/routes/compositions
+and aggregate public execution); aggregate manifest 39 native / 34/34 admitted;
+subquery manifest 46 native, 19 allocated and 15/15 companions; pinned 51-case
+recapture, ORDER manifest 2/2, typecheck and diff check pass. This relevant combined
+run is not the historical broad 1543-test suite and does not supersede its red
+1539/1543 outcome. Peer dirty runtime/test/research files remain uncommitted.
