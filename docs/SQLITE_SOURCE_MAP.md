@@ -58,6 +58,12 @@ Ordered `whereLoopFindLesser/whereLoopInsert` (where.c2744–2939) and bounded
 `wherePathSolver` (5835ff) map to `whereLoopInsertCandidates/wherePathSolver`
 in `where-plan.ts`; `where-plan-ordered-red.test.mjs` discriminates replacement,
 drop/tail deletion, sort/prerequisite identity, setup/budget and vector ties.
+`indexMightHelpWithOrderBy` (where.c3664ff) → `btreeLoops` sort-identity
+production: reject unordered indexes, retain same-cursor rowid/IPK usefulness
+before key-column matching, separately from complete order proof.
+`in-range-stat-choice-red.test.mjs` covers competing unforced/forced persistent
+indexes before/after ANALYZE in all encodings; `where-plan-analysis.test.mjs`
+checks identity retention with unsatisfied physical ORDER.
 [Decisions and bounded evidence](research/card-s-d-a-ordered-where.md); indexed
 row-size metadata and OR-set/automatic-index/STAT4/star branches remain gaps.
 

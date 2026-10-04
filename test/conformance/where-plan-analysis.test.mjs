@@ -114,3 +114,14 @@ test('only direct ordinary operands bind; same-source RHS including every IN mem
   const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),term=analyzeWhere(r).clause.terms[0];assert.ok(term.left,predicate);assert.equal(term.prereqRight,0n);assert.equal(term.outerJoinSafe.mayDrive,true);
  }
 });
+
+test('rowid ORDER preserves persistent index identities before dominance, without claiming full order',()=>{
+ // where.c:indexMightHelpWithOrderBy: iColumn<0 returns true before
+ // nKeyCol matching. The covering blob candidate must not erase i_ab.
+ const s=schema(),r=resolve("SELECT id FROM t WHERE a>'x' AND blob>x'00' ORDER BY id",s),analysis=analyzeWhere(r);
+ const loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[{sourceOrdinal:0,column:s.id,descending:false,collation:'binary',nulls:null}],resolved:r});
+ const indexed=loops.filter(loop=>loop.kind==='index');
+ assert.deepEqual(indexed.map(loop=>loop.capability.index.name),['i_ab','i_blob']);
+ assert.deepEqual(indexed.map(loop=>loop.sortIdentity),[2,3]);
+ assert.ok(indexed.every(loop=>loop.capability.orderTermsSatisfied===0),'potential ORDER identity is not a complete order proof');
+});

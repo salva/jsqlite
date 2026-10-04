@@ -12,11 +12,14 @@ const bytes=fs.readFileSync(new URL(`../../${matrix.cases[0].fixture}`,import.me
 test('review-v6 original branch dispositions have executable source-mapped coverage',async()=>{
   assert.equal(matrix.sourceId,manifest.sqliteSourceId);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),matrix.fixtureSha256);
-  const doc=fs.readFileSync(new URL('../../docs/TRANSLATION.md',import.meta.url),'utf8');
-  const source=fs.readFileSync(new URL('../../docs/SQLITE_SOURCE_MAP.md',import.meta.url),'utf8');
+  // These are the original review-v6 dispositions, preserved verbatim by
+  // card-u consolidation. Current guide/map link that provenance rather than
+  // repeating historical marker inventories as normative requirements.
+  const doc=fs.readFileSync(new URL('../../docs/research/card-u-history/TRANSLATION.md',import.meta.url),'utf8');
+  const source=fs.readFileSync(new URL('../../docs/research/card-u-history/SQLITE_SOURCE_MAP.md',import.meta.url),'utf8');
   const baseline=fs.readFileSync(new URL('./in-range-selected-red.test.mjs',import.meta.url),'utf8');
   assert.match(baseline,/three-slot selected IN/);
-  for(const marker of ['fourth-IN-slot','subquery-IN-RHS','selected-versus-residual','multi-source-prerequisite','forced-index-traversal','prepare-unsupported'])assert.ok(doc.includes(marker)&&source.includes(marker),`${marker}: missing source-backed disposition in living guide/map`);
+  for(const marker of ['fourth-IN-slot','subquery-IN-RHS','selected-versus-residual','multi-source-prerequisite','forced-index-traversal','prepare-unsupported'])assert.ok(doc.includes(marker)&&source.includes(marker),`${marker}: missing source-backed original disposition in preserved guide/map`);
   assert.ok(matrix.cases.length>=6);
   const server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':bytes.length});r.end(bytes)});
   await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',resolve).once('error',reject));let db;

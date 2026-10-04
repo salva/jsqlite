@@ -156,6 +156,11 @@ LogEst estimates retain dependency and join-barrier ownership. The represented
 solver uses ordered candidate insertion and unsorted bounded slots with separate
 setup/run/output and total/unsorted costs (where.c2744–2939,5835ff), not generic
 Pareto pruning. Source/sort identities are separate; budget is builder-owned.
+Potential ORDER usefulness follows `indexMightHelpWithOrderBy` (where.c3664ff):
+a same-cursor rowid/IPK term preserves every ordered persistent index's identity
+before dominance, even when complete physical ORDER satisfaction is zero.
+The all-encoding before/after stat-choice and production analysis tests cover
+this distinction; an `unordered` statistic still prevents ORDER usefulness.
 Indexed row-size tie metadata, OR-set lowering, automatic-index execution, STAT4
 and star heuristics remain residuals; this is not full optimizer coverage.
 [Repair decisions/evidence](research/card-s-d-a-ordered-where.md). Alias/ordinal ORDER resolution occurs before immutable plan handoff.
