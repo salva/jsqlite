@@ -3463,7 +3463,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     :expanded.sources.map((_,ordinal)=>ordinal);
   const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
   for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=owner?owner.builder.cursor():rightMatchCursor+1+ordinal;indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
-  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>();
+  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>();
   for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){leftMatches[level]=allocate();ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!});}rewinds.push(ops.length);const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;if(rowEq){const tree=expressionFromReduction(rowEq.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
     const usable=indexCursor!==undefined&&capability&&(capability.equalityPrefix.length||capability.lower||capability.upper);
@@ -3491,6 +3491,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       }
       if(iterators.length)inRestarts.set(level,{iterators,advance:iterators.at(-1)!});
       const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(resolveTree(bound(admission.term)),ops,allocate,parameters,compileJoinSubquery));
+      // codeAllEqualityTerms: '=' NULL exits this level, not the next IN
+      // value. IS/IS NULL retain searchable NULL keys; IN skips NULL itself.
+      capability.equalityPrefix.forEach((admission,i)=>{if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
       // wherecode.c Case 4: nullable pRangeStart exits to addrNxt before
       // affinity or seek. This is the next IN value (or outer loop), not Halt.
       if(start){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
@@ -3597,7 +3600,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   halt=ops.length;builder.mark(destinationExit);builder.resolveLabel(destinationExit);
   if(!owner)ops.push({code:'Halt'});
-  for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!+(level===rightLevel?1:0)] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
+  for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[nextAt[level]!+(level===rightLevel?1:0)] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=rewindEmpty[guard.level]??(guard.level===0?normalScanEnd:nextAt[guard.level-1]!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
   // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn: ordinary continuation
   // targets must stay inside the interior or reach its Return. Producer
   // iBreak exits (including unresolved compound LIMIT) may terminate early.
@@ -3627,7 +3630,7 @@ function sqlName(text: string): string {
   return text;
 }
 
-interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[] }
+interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[] }
 /** Bounded first-plan translation seam for sqlite3WhereBegin/wherecode.c. */
 function sqlite3WhereBegin(ops: Op[], rootPage: number): FullScanPlan {
   ops.push({code:"OpenRead",p1:rootPage}); const rewindIndex=ops.length;
@@ -3649,6 +3652,7 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
   if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=scanExit;
   const exit=iterators.at(-1)??scanExit;
   (ops[plan.rewindIndex] as {p2:number}).p2=exit;
+  for(const at of plan.equalityNullGuards??[])(ops[at] as {p2:number}).p2=scanExit;
   for(const at of plan.startNullGuards??[])(ops[at] as {p2:number}).p2=exit;
   for(const op of ops)if((op.code==="RowidLowerBound"||op.code==="RowidUpperBound"||op.code==="IndexPrefixEnd"||op.code==="IndexRangeEnd")&&op.p2===0)(op as {p2:number}).p2=exit;
 }
@@ -5359,7 +5363,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // overrides the column's declared collation even though the projection can
   // still use the direct-column fast path.
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:resolvedResultKeyTerms(expanded)})});
-  let rewindIndex:number;const inIterators:number[]=[],startNullGuards:number[]=[];
+  let rewindIndex:number;const inIterators:number[]=[],startNullGuards:number[]=[],equalityNullGuards:number[]=[];
   const boundRhs=(term:WhereTerm):Expression=>{const expression=expressionFromReduction(term.expression.reduction!);if(expression.kind!=="binary")throw new JSQLiteError("internal","rowid bound lost binary expression");return term.originalIndexedOperand==="left"?expression.right:expression.left;};
   const inValues=(term:WhereTerm):Expression[]=>{const expression=expressionFromReduction(term.expression.reduction!);if(expression.kind!=="in-list"||expression.negated)throw new JSQLiteError("internal","IN constraint lost value list");return expression.values;};
   if(rowidEquality?.expression.reduction){
@@ -5391,6 +5395,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       }
       keys=admissions.map(admission=>targets.get(admission)??compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters));
     }else keys=admissions.map(admission=>compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters));
+    // wherecode.c:codeAllEqualityTerms (976–980): nullable equality RHS
+    // breaks the whole level before affinity/seek, unlike range addrNxt.
+    // Conservatively guard all eq RHS; nonnullable RHS makes this a no-op.
+    selectedEqualities.forEach((admission,i)=>{if(admission.operator==="eq"){equalityNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[i]!,p2:0});}});
     // wherecode.c Case 4 emits OP_IsNull on the nullable range start RHS
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.
@@ -5408,7 +5416,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // Pinned where.c whereLoopAddBtreeIndex marks a PRIMARY KEY loop WHERE_ONEROW
   // once nEq reaches nKeyCol. wherecode.c then omits the loop-step opcode. This
   // is safe for WITHOUT ROWID PKs because every key term is non-NULL and unique.
-  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
+  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(equalityNullGuards.length?{equalityNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
   if(selectedPhysical&&selectedEqualities.length){const seek=ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedEqualities.length),affinities:seek.affinities.slice(0,selectedEqualities.length),keyInfo:selectedPhysical.keyInfo,p2:0});}
   const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedEqualities.length]?.descending;
   const indexEnd=rangeBackwards?selectedIndexLower:selectedIndexUpper,indexStart=rangeBackwards?selectedIndexUpper:selectedIndexLower;

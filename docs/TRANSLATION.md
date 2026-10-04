@@ -344,3 +344,16 @@ two SorterOpen operations and coroutine controls. Reservation instrumentation
 observes one execution budget crossing 150 bytes while child/parent sorters are
 live; 300 succeeds, 150 fails on step, saved reset error and cleanup restore
 admission. These are implementation logical bytes, not native allocation parity.
+
+### Nullable selected equality RHS (bounded repair)
+Pinned `wherecode.c:codeAllEqualityTerms` (976–980) sends nullable `=` RHS
+straight to the level's `addrBrk`, before affinity/seek; `IS`/`IS NULL` keep
+NULL searchable and IN skips NULL in its own iterator. Both ordinary and joined
+selected-index lowering now distinguish equality-null exit from range-start
+`addrNxt`: equality bypasses all remaining IN probes, while joined LEFT still
+passes through its unmatched-row continuation. Conservatively emitting a guard
+for a statically nonnullable equality adds a no-op, not a comparison change.
+`candidate-lifecycle-public.test.mjs` uses frozen manifest-pinned native controls
+captured before consuming test edits: six encoding/stat snapshots, persistent
+alternatives, dependency/LEFT, typed values/metadata/reset/rebind/errors. Controls
+were captured after product implementation, not retroactive native-FIRST.

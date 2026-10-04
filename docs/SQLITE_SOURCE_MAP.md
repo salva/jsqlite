@@ -173,3 +173,11 @@ InitCoroutine/Yield/EndCoroutine and separate child/parent sorters. Tests:
 `subquery-view-foundation.test.mjs` retained hidden ORDER key / route cases.
 Original browser gap lane now executes both original probes successfully;
 no general retained expression ORDER or full FROM compatibility claim.
+
+Nullable selected equality keys: `wherecode.c:codeAllEqualityTerms`976–980 →
+ordinary/joined `vdbe.ts` equalityNullGuards, separate from range addrNxt guards.
+Equality NULL breaks the level (including all IN iterations); LEFT unmatched
+continuation is preserved; IS/ISNULL keys remain searchable. Frozen pinned
+controls: `candidate-lifecycle-public.test.mjs`, `cases/candidate-lifecycle-native.json`;
+development capture `capture-candidate-lifecycle.py` (post-implementation,
+pre-consuming-test). No public diagnostic API or runtime oracle dependency.
