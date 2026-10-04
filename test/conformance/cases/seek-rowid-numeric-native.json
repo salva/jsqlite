@@ -1,0 +1,533 @@
+[
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": 1.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7265616c"
+        },
+        {
+          "type": "real",
+          "ieee754be": "3ff0000000000000"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": 1.5,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": 9007199254740992.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": 9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": -9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "1",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "31"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "1.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "312e30"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "1.5",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "abc",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": null,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "9223372036854775808",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf8",
+    "fixture": "test/conformance/fixtures/row-width-utf8-before.db",
+    "value": "9007199254740993.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": 1.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7265616c"
+        },
+        {
+          "type": "real",
+          "ieee754be": "3ff0000000000000"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": 1.5,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": 9007199254740992.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": 9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": -9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "1",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "31"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "1.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "312e30"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "1.5",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "abc",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": null,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "9223372036854775808",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16le",
+    "fixture": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "value": "9007199254740993.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": 1.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "7265616c"
+        },
+        {
+          "type": "real",
+          "ieee754be": "3ff0000000000000"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": 1.5,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": 9007199254740992.0,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": 9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": -9.223372036854776e+18,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "1",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "31"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "1.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 16
+    },
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "74657874"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "312e30"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "1.5",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "abc",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": null,
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "9223372036854775808",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  },
+  {
+    "encoding": "utf16be",
+    "fixture": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "value": "9007199254740993.0",
+    "counters": {
+      "fullscanSteps": 0,
+      "sortOperations": 0,
+      "vmSteps": 8
+    },
+    "rows": []
+  }
+]

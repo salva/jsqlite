@@ -1229,10 +1229,9 @@ test('joined selected reverse range preserves public rows across encodings and r
  if(failures.length)throw new AggregateError(failures,`${failures.length} joined reverse-range failures`);
 });
 
-// wherePathSolver conservatively sets multi-source ORDER proof to zero. Even
-// with an indexed b range, the joined path must retain a sorter rather than
-// claiming global reverse order based on one loop's local index ordering.
-test('joined reverse b order retains sorter when global order is unproved',async()=>{
+// Pinned where.c5273 WHERE_ONEROW skips the exact-IPK outer loop.
+// The forced suffix supplies reverse b order; NOT INDEXED needs a sorter.
+test('joined reverse b order consumes selected ONEROW suffix proof',async()=>{
  const failures=[];
  for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
   for(const [id,hint] of [['forced','INDEXED BY m_abc'],['scan','NOT INDEXED']])try{
@@ -1242,8 +1241,9 @@ test('joined reverse b order retains sorter when global order is unproved',async
     if(id==='forced'){
      const accounting=privateAccounting(statement);
      assert.ok(accounting.indexSeeks>=1,`${variant.id}/${id}/run${run}: selected root seek`);
-     assert.ok(accounting.sorterRows>=3,`${variant.id}/${id}/run${run}: global order not proved; sorter retained`);
+     assert.equal(accounting.sorterRows,0,`${variant.id}/${id}/run${run}: pinned forced SORT0`);
     }
+    if(id==='scan')assert.equal(privateAccounting(statement).sorterRows,3,`${variant.id}/${run}: scan SORT1, three rows`);
     if(run===0)statement.reset();
    }}finally{statement.finalize()}
   }catch(error){failures.push(error)}

@@ -490,7 +490,9 @@ export class Mem {
     } else if ((this.#numeric?.kind === "real" || this.#numeric?.kind === "int-real") && affinity !== "flexnum") {
       const real = numericAsReal(this.#numeric);
       const candidate = realToI64(real);
-      if (realSameAsInt(real, candidate)) { this.#replaceWithNumeric({ kind: "integer", value: candidate }); }
+      // vdbemem.c:sqlite3VdbeIntegerAffinity differs from
+      // sqlite3RealSameAsInt (the latter is the text numericization rule).
+      if (real === Number(candidate) && candidate > INT64_MIN && candidate < INT64_MAX) { this.#replaceWithNumeric({ kind: "integer", value: candidate }); }
     }
   }
   /** vdbe.c:sqlite3_value_numeric_type/applyNumericAffinity(bTryForInt=0).
