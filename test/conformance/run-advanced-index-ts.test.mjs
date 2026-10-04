@@ -197,7 +197,7 @@ test('frozen partial/expression access survives reset after one public row',asyn
     }
     for(const [phase,events] of [['first',first],['empty',empty],['rebound',rebound]]){
      assert.deepEqual(events.opens,root?[root]:[],`${variant.id}/${spec.id}/${phase}: opened root`);
-     assert.deepEqual(events.seeks,root?[{root,bias:'ge',exact:phase!=='empty'}]:[],`${variant.id}/${spec.id}/${phase}: seek restarts with live bound prefix`);
+     assert.deepEqual(events.seeks,root&&phase!=='empty'?[{root,bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${phase}: seek restarts with live bound prefix`);
      assert.deepEqual(events.boundaries,[],`${variant.id}/${spec.id}/${phase}: no full-index boundary fallback during active-row reset`);
      assert.deepEqual(events.nexts,root&&phase==='rebound'?events.cursors:[],`${variant.id}/${spec.id}/${phase}: active reset has no stale index iteration`);
      assert.deepEqual(events.moves,root&&phase==='rebound'?['next']:[],`${variant.id}/${spec.id}/${phase}: only complete rebound advances physically`);
@@ -326,11 +326,11 @@ test('frozen unforced executions open the expected runtime index root only on se
     const root=expected?graph.indexes.get(expected).rootPage:null;
     assert.deepEqual(opens,expected?[root]:[],`${variant.id}/${spec.id}/${run}: exact runtime index opens`);
     assert.deepEqual(boundaries,[],`${variant.id}/${spec.id}/${run}: frozen equality seek/scan never silently starts a full-index boundary scan`);
-    assert.deepEqual(cursorSeeks,expected?[{bias:'ge',exact:run!==1}]:[],`${variant.id}/${spec.id}/${run}: selected cursor ge prefix seek returns exact only for non-NULL binding`);
-    assert.deepEqual(seeks.map(({root,bias})=>({root,bias})),expected?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: exact runtime index seeks`);
+    assert.deepEqual(cursorSeeks,expected&&run!==1?[{bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${run}: selected cursor ge prefix seek returns exact only for non-NULL binding`);
+    assert.deepEqual(seeks.map(({root,bias})=>({root,bias})),expected&&run!==1?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: exact runtime index seeks`);
     const selectedSeeks=seeks.filter(seek=>selectedRoots.includes(seek.root));
-    assert.deepEqual(selectedSeeks.map(({root,bias})=>({root,bias})),expected?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: actual runtime selected seek`);
-    if(expected){
+    assert.deepEqual(selectedSeeks.map(({root,bias})=>({root,bias})),expected&&run!==1?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: actual runtime selected seek`);
+    if(expected&&run!==1){
      assert.ok(selectedSeeks[0].comparisons>0,`${variant.id}/${spec.id}/${run}: selected KeyInfo comparator invoked`);
      assert.equal(selectedSeeks[0].keyChecks.length,selectedSeeks[0].comparisons,`${variant.id}/${spec.id}/${run}: each physical seek comparison is observed`);
      assert.ok(selectedSeeks[0].keyChecks.every(count=>count===1),`${variant.id}/${spec.id}/${run}: every physical comparison validates one live seek key with selected KeyInfo`);
@@ -358,15 +358,7 @@ test('frozen unforced executions open the expected runtime index root only on se
     assert.equal(observed.indexNextCalls,expected&&run!==1?1:0,`${variant.id}/${spec.id}/${run}: selected nonempty prefix advances, NULL/scan does not`);
     assert.deepEqual(observed.indexNextResults,expected&&run!==1?[true]:[],`${variant.id}/${spec.id}/${run}: selected cursor remains positioned after its one forward move`);
     assert.deepEqual(indexMoves.map(move=>move.direction),expected&&run!==1?['next']:[],`${variant.id}/${spec.id}/${run}: physical index traversal only advances once from nonempty selected seek`);
-    if(expected&&run===1){
-     const physical=graph.indexes.get(expected).physical;
-     const seekPosition=selectedSeeks[0].position;
-     assert.ok(seekPosition,`${variant.id}/${spec.id}/${run}: NULL-bound ge seek still has a physical successor`);
-     const fields=decodeRecord(btreeFromConnection(db).payload(seekPosition.entry),variant.id==='utf8'?'utf-8':variant.id==='utf16le'?'utf-16le':'utf-16be').values;
-     assert.equal(fields.length,physical.keyInfo.totalFieldCount,`${variant.id}/${spec.id}/${run}: NULL control lands on a complete selected physical key`);
-     const first=fields[0];
-     assert.notEqual(first.storageClass,'null',`${variant.id}/${spec.id}/${run}: NULL-bound seek lands on a non-NULL physical key without emitting it`);
-    }
+    if(expected&&run===1)assert.deepEqual(selectedSeeks,[],`${variant.id}/${spec.id}/${run}: codeAllEqualityTerms bypasses NULL seek`);
     if(expected&&run!==1){
      assert.equal(indexMoves[0].from,selectedSeeks[0].position,`${variant.id}/${spec.id}/${run}: physical next starts at the exact B-tree equality-seek position`);
      const physical=graph.indexes.get(expected).physical;
@@ -460,24 +452,17 @@ test('frozen selected partial and expression paths restart after NULL reset/rebi
     const selectedRoot=graph.indexes.get(chosen.get(spec.id)).rootPage;
     assert.deepEqual(indexOpens,[selectedRoot],`${variant.id}/${spec.id}/${run}: one selected cursor, no other index opened`);
     assert.deepEqual(boundaries,[],`${variant.id}/${spec.id}/${run}: equality prefix does not fall back to index boundary scan`);
-    assert.deepEqual(physicalSeeks.map(({root,bias,exact})=>({root,bias,exact})),[{root:selectedRoot,bias:'ge',exact:run==='first'||run==='rebound'}],`${variant.id}/${spec.id}/${run}: selected physical equality result`);
-    if(run==='second-null'){
-     // The second NULL still positions the two-field equality seek on the
-     // selected B-tree; it must not materialize an unrelated base row.
-     assert.ok(physicalSeeks[0].position,`${variant.id}/${spec.id}/${run}: selected seek has a physical successor`);
-     const fields=decodeRecord(btreeFromConnection(db).payload(physicalSeeks[0].position.entry),variant.id==='utf8'?'utf-8':variant.id==='utf16le'?'utf-16le':'utf-16be').values;
-     assert.equal(fields.length,graph.indexes.get('e_expr').physical.keyInfo.totalFieldCount,`${variant.id}/${run}: complete selected key`);
-     assert.notEqual(fields[1].storageClass,'null',`${variant.id}/${run}: NULL second operand cannot match successor`);
-    }
+    assert.deepEqual(physicalSeeks.map(({root,bias,exact})=>({root,bias,exact})),run==='first'||run==='rebound'?[{root:selectedRoot,bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${run}: selected physical equality result`);
+    // codeAllEqualityTerms exits before seeking on any NULL '=' operand.
     if(run==='null'||run==='second-null')assert.deepEqual(tableSeeks,[],`${variant.id}/${spec.id}/${run}: NULL equality prefix performs no deferred base lookup`);
-    assert.ok(seekKeys.length>0,`${variant.id}/${spec.id}/${run}: selected seek compared physical entries`);
+    assert.equal(seekKeys.length>0,run==='first'||run==='rebound',`${variant.id}/${spec.id}/${run}: only non-NULL equality seeks compare entries`);
     assert.ok(seekKeys.every(key=>key.keyInfo===graph.indexes.get(chosen.get(spec.id)).physical.keyInfo),`${variant.id}/${spec.id}/${run}: comparator uses loaded selected KeyInfo`);
     for(const key of seekKeys)assert.deepEqual(key.values,spec.id==='partial-implied'?[first]:[first,second],`${variant.id}/${spec.id}/${run}: comparator receives live bound equality operands`);
     if(run==='null'||run==='second-null')assert.deepEqual(physicalMoves,[],`${variant.id}/${spec.id}/${run}: NULL prefix cannot advance the selected B-tree`);
     assert.deepEqual(actual,run==='null'||run==='second-null'?[]:expectedRows(native.get(spec.id).rows),`${variant.id}/${spec.id}/${run}: rows`);
     const accounting=privateAccounting(statement);
     if(run==='first'||run==='rebound')assertAccounting(accounting,privateContracts.get(spec.id),`${variant.id}/${spec.id}/${run}: selected counters`);
-    else assert.equal(accounting.indexSeeks,privateContracts.get(spec.id).counters.indexSeeks.exact,`${variant.id}/${spec.id}/${run}: NULL selected seek`);
+    else assert.equal(accounting.indexSeeks,0,`${variant.id}/${spec.id}/${run}: NULL equality exits before selected seek`);
    }}finally{statement.finalize()}
   }
  });
