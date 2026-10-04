@@ -267,9 +267,17 @@ export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sou
    const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;
    let unsorted=loop.runCost+path.rows;if(loop.setupCost!==0n)unsorted=logEstAdd(loop.setupCost,unsorted);unsorted=logEstAdd(unsorted,path.unsortedCost);
    const ready=path.ready|bit,rows=path.rows+loop.outputRows;
-   // Existing bounded proof is complete only for single-source ORDER.
-   const ordered=path.orderTermsSatisfied===null?(sourceCount===1?(loop.capability?.orderTermsSatisfied??0):0):path.orderTermsSatisfied;
-   let cost=unsorted;if(ordered<orderTerms)cost=logEstAdd(unsorted,sortCost(sortRows??rows,resultColumns,orderTerms,ordered))+3n;else unsorted-=2n;
+   // where.c:wherePathSatisfiesOrderBy: an IPK equality is WHERE_ONEROW,
+   // so it cannot disrupt the ordering delivered by a later loop. Retain
+   // unknown ordering until that producer is visited; do not infer uniqueness
+   // from a statistical nOut of zero. Other joined proofs remain conservative.
+   const singleton=(item:WhereLoop)=>item.kind==="rowid"&&item.capability?.rowidEquality!==null&&item.capability?.rowidEquality!==undefined;
+   const ordered=path.orderTermsSatisfied===null
+    ? (path.loops.every(singleton)
+       ? (loop.capability?.orderTermsSatisfied??0)>0&&depth===sourceCount-1?(loop.capability?.orderTermsSatisfied??0):singleton(loop)&&depth<sourceCount-1?null:0
+       : 0)
+    : path.orderTermsSatisfied;
+   let cost=unsorted;if(ordered!==null&&ordered<orderTerms)cost=logEstAdd(unsorted,sortCost(sortRows??rows,resultColumns,orderTerms,ordered))+3n;else unsorted-=2n;
    const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(loop.capability?.reverse?bit:0n),rows,cost,unsortedCost:unsorted,orderTermsSatisfied:ordered});
    let slot=next.findIndex(old=>old.ready===ready&&((old.orderTermsSatisfied===null)===(proposal.orderTermsSatisfied===null)||depth===sourceCount-1));
    if(slot<0){
