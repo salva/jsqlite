@@ -202,8 +202,8 @@ collation/direction/NULL flags reach the consumer. Equal complete ORDER keys hav
 no public deterministic-order guarantee.
 
 LIMIT/OFFSET lowering uses VM registers, not host statement fields. A single
-SELECT coerces both before a zero-limit bypass; compounds coerce LIMIT first and
-zero bypasses OFFSET and producers. Negative LIMIT is unlimited and negative
+SELECT coerces LIMIT first; zero bypasses OFFSET evaluation/coercion and
+producers, as do compounds. Negative LIMIT is unlimited and negative
 OFFSET is zero. Ordered positive LIMIT bounds retention to LIMIT+OFFSET.
 
 Structured VALUES compiles each retained row, validates every arm width, and

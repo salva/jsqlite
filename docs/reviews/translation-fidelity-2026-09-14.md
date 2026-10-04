@@ -4585,3 +4585,44 @@ this caller repair is not new aggregate/window or excluded-family support.
 Original broad exit1 1539/1543 four reds are not universally dispositioned by
 this focused repair. C4 and direct REAL/expression-subquery regressions remain
 retained; no global cleanliness or universal acceptance claim.
+
+### LIMIT-zero OFFSET adjudication — [[card:card-j-b-b]] (2026-10-04)
+
+At input HEAD `54a2face7bf2bc90ea1c0e55fdd53257ba76cce1`, original broad
+1539/1543 is reported evidence, not a current broad green. Fresh exact public
+runner reproduced two failures (5/7): stale `SELECT 1 LIMIT 0 OFFSET 'x'`
+rejection expectation and separate scalar-subquery admission expectation.
+Pinned 3.53.4 sourceID was independently verified as
+`2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+Identical SQL prepares successfully and returns DONE, reset OK, re-step DONE,
+finalize OK in both native and public execution; OFFSET NULL likewise bypasses.
+NULL/noninteger LIMIT and invalid OFFSET with nonzero LIMIT return code20 at
+step, reset and finalize (public typed sqlite/datatype mismatch).
+
+`select.c:2517 computeLimitRegisters` emits integer-zero Goto or evaluated
+LIMIT MustBeInt/IfNot **before** OFFSET expression/MustBeInt; `vdbe.c:2105`
+coerces without loss or raises MISMATCH; `2747 IfNot` branches on zero. Current
+committed TS already has this correct ordering (introduced at `1010b15`), not
+an uncommitted runtime repair. Only the obsolete assertion and contradictory
+single-SELECT documentation are corrected. No source or dirty-runtime change.
+
+New shared 16-case matrix checks literals, bound parameters, scalar/derived
+children, compound and admitted window composition across UTF-8/UTF-16LE/BE:
+48 native preparations/96 executions with reset/finalize and exact expected
+rows/errors; three public tests check the same 48 preparations/96 executions.
+The initially chosen derived constant-parent projection was typed unsupported;
+we retain that gate and use admitted direct parent-column projection instead.
+An attempted sqlite_schema window source failed name resolution; use existing
+storage_values fixture, not a special-case bypass. Those exploratory failures
+remain evidence, not broad coverage claims.
+
+Commands: `PYTHONDONTWRITEBYTECODE=1 python3
+ test/conformance/limit-offset-adjudication-native.py "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"`;
+`node --experimental-strip-types --test --test-name-pattern='ORDER expressions|LIMIT zero short'
+ test/conformance/run-order-limit-contract-ts.mjs test/conformance/limit-offset-adjudication.test.mjs`.
+Both pass (`work:///cards/card-j-b-b/processes/proc-e1129aaba230/stdout.log`).
+Typecheck, focused rerun, preserved expression budget check pass
+(`proc-89d7c36172c8`). Full ORDER runner now 6/7 (`proc-b097cfecae97`): separate
+stale scalar-subquery unsupported expectation remains intentionally untouched.
+No broad-green/clean-workspace/extra upstream-credit claim. Prior `54a2face`
+22-reject/23-pass expectation-only work and `6a7c8d5` infix repair are preserved.

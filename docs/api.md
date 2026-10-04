@@ -302,8 +302,8 @@ compatibility credit.
   planner equivalence.
 - LIMIT/OFFSET accepts INTEGER, integral REAL and signed integral base-10 TEXT at
   first step, otherwise SQLite code 20. Negative LIMIT is unlimited; negative
-  OFFSET is zero. A single SELECT coerces both before LIMIT-zero bypass; compound
-  LIMIT-zero bypasses OFFSET coercion and producers. Positive ordered LIMIT
+  OFFSET is zero. SELECT coerces LIMIT first; LIMIT-zero bypasses OFFSET
+  evaluation/coercion and producers, including compounds. Positive ordered LIMIT
   bounds sorter retention by LIMIT+OFFSET.
 - Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented direct-table
   arms and selected aggregate/CTE compounds execute with compound-wide ORDER/

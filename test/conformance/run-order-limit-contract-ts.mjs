@@ -57,7 +57,7 @@ test('ORDER expressions, explicit collation/NULL placement, and LIMIT coercion f
   // pinned native case proves LIMIT 0 bypasses this observable overflow. Reset
   // must preserve that branch and finalize must remain clean.
   {const c=byId.get('limit-zero-skips-result-error');statement=db.prepare(c.sql).statement;assert.deepEqual(await rows(statement),expectedRows(c.id),c.id);statement.reset();assert.equal(await statement.step(),'done');statement.finalize();statement=undefined}
-  for(const [sql,label] of [["SELECT 1 LIMIT 0 OFFSET 'x'",'zero LIMIT still coerces invalid OFFSET'],['SELECT 1 LIMIT 0 OFFSET NULL','zero LIMIT still rejects NULL OFFSET']]){statement=db.prepare(sql).statement;await assert.rejects(()=>statement.step(),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.code===20,label);try{statement.finalize()}catch(error){assert.equal(error.code,20,label)}statement=undefined}
+  for(const sql of ["SELECT 1 LIMIT 0 OFFSET 'x'",'SELECT 1 LIMIT 0 OFFSET NULL']){statement=db.prepare(sql).statement;assert.equal(await statement.step(),'done',sql);statement.reset();assert.equal(await statement.step(),'done',sql);statement.finalize();statement=undefined}
   for(const id of ['limit-null-error','limit-fraction-error','limit-text-error','limit-overflow-error']){const c=byId.get(id);statement=db.prepare(c.sql).statement;await assert.rejects(()=>statement.step(),error=>error instanceof JSQLiteError&&error.kind==='sqlite'&&error.code===20,id);try{statement.finalize()}catch(error){assert.equal(error.code,20)}statement=undefined}
  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });

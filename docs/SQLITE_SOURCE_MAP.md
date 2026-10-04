@@ -535,3 +535,16 @@ The [living guide](TRANSLATION.md#expression-safety-budget-fixture-repair-2026-1
 records the inventory and independent pinned-native semantic/control comparison.
 No runtime change, native/TS unit equivalence, new product coverage or default
 budget increase is claimed.
+
+### LIMIT-zero OFFSET phase adjudication (2026-10-04)
+
+Pinned `select.c:2517 computeLimitRegisters` → LIMIT MustBeInt then zero branch,
+then OFFSET expression/MustBeInt; `vdbe.c:2105/2747` → current shared
+`computeLimitRegisters` in `vdbe.ts` (already correct at `1010b15`). Literal
+integer zero uses upstream Goto; evaluated/coerced zero uses IfNot. Both skip
+OFFSET at execution, not prepare-time name resolution. Native source-ID-checked
+`limit-offset-adjudication-native.py` and public
+`limit-offset-adjudication.test.mjs` consume identical 16 cases across three
+encodings (48 preparations/96 executions per lane including reset/finalize).
+The old ORDER runner zero-OFFSET error expectation was stale; no runtime edit.
+See mutable audit adjudication for errors, exploratory gates and remaining reds.
