@@ -34,3 +34,29 @@ Current actual path solver already implements pinned `where.c:5273 WHERE_ONEROW`
 - typecheck, package boundary, index planner manifest4/4, Mem manifest5/5, diff check pass.
 
 Logs are in card work child `seekrowid-isolation/`: preexisting.diff, vdbe-before.ts, mem-before.ts, advanced-before.mjs, native.json, regressions.log (initial ENOENT failure), regressions-fresh.log (1254 passes). Mixed dirty workspace is preserved, index initially empty. Isolated staging must contain only repair hunks and new evidence; no global clean claim. Parent aggregate and joined WR acceptance have NOT been rerun or declared green. Integration owner must independently verify remaining full acceptance/lifecycle coverage; selected/error/cancel/resource/storage suites are bounded evidence, not universal compatibility.
+
+## Review v9 revision — exact IntReal and enforced provenance
+
+Accepted immutable review `record:///review.md?card=card-s-b-a-a-b-a-a&v=9` correctly identified two bounded defects in this repair. Earlier wording that the combined REAL/IntReal branch fully expressed IntegerAffinity and that imported load enforced the source pin was too strong.
+
+R1 reproduced all three source counterexamples before edits: IntReal9007199254740993 became9007199254740992, and both signed64 endpoints remained REAL. Pinned vdbemem.c802 separates MEM_IntReal (exact integer-slot flag conversion) from MEM_Real (double roundtrip/endpoints). Mem now preserves that separate exact IntReal branch without Number conversion. Source-derived primitive tests check above2^53 and both endpoints across encodings, copy isolation, REAL fractional/endpoints and integral2^53. No production setIntReal caller or new public IntReal failure is claimed.
+
+R2 generator now requires explicit `--library`, compares version and sourceid to manifest BEFORE fixture open, and emits checked oracle identity in `seek-rowid-numeric/1`. Public consumer checks schema/version/sourceid before TS assertions. Regenerated36 queries using verified3.53.4 source bf7c7f…59bcc; exact second recapture matches. Negative system3.45.1 library attempt is rejected before fixtures/output. Prior unverified capture is superseded as provenance evidence, not retroactively credited.
+
+Commands:
+
+```sh
+python3 test/conformance/capture-seek-rowid-numeric.py --library .saivage/work/cards/card-c-b/oracle-build/build/libsqlite3-oracle.so
+python3 test/conformance/capture-seek-rowid-numeric.py --library .saivage/work/cards/card-c-b/oracle-build/build/libsqlite3-oracle.so --output "$SAIVAGE_CARD_WORK_ROOT/seekrowid-review-revision/recapture.json"
+cmp test/conformance/cases/seek-rowid-numeric-native.json "$SAIVAGE_CARD_WORK_ROOT/seekrowid-review-revision/recapture.json"
+node --experimental-strip-types --test test/conformance/seek-rowid-numeric.test.mjs test/conformance/row-width-isolated-joined.test.mjs test/value/mem-core.test.mjs test/value/comparison.test.mjs test/value/private-state.test.mjs test/conformance/selected-index-controls.test.mjs test/conformance/run-advanced-index-ts.test.mjs test/storage/btree-reader.test.mjs
+npm run typecheck
+npm run test:package-boundary
+python3 test/conformance/mem-manifest.test.py
+python3 test/conformance/index-planner-manifest.test.py
+git diff --check
+```
+
+Fresh regression **517/517**, no skips/cancels; manifests5/5+4/4, typecheck/package/diff pass. Initial new primitive test used nonexistent setReal and gave11/12, then corrected to established setDouble and reran12/12 before full517 lane. Separate pre-repair counterexamples failed3/3 as intended. Negative pin command intentionally exits nonzero; its supervising assertion verifies rejection/no output. Logs in purpose child `seekrowid-review-revision/`.
+
+Changes remain limited to shared exact branch, its tests, capture/consumer provenance and this nearby living rationale. Mixed width/peer dirty changes are preserved. ONEROW disposition is bounded and does not approve general multi-source ordering. No parent e aggregate rerun, joined-WR repair or broader failure waiver. Ready for independent re-review of R1/R2, not project acceptance.

@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
 import {openFixture,privateAccounting} from './public-api-adapter.mjs';
-const cases=JSON.parse(fs.readFileSync(new URL('./cases/seek-rowid-numeric-native.json',import.meta.url)));
+const capture=JSON.parse(fs.readFileSync(new URL('./cases/seek-rowid-numeric-native.json',import.meta.url)));
+const manifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
+assert.equal(capture.schema,'seek-rowid-numeric/1');
+assert.deepEqual(capture.oracle,{version:manifest.version,sqliteSourceId:manifest.sqliteSourceId});
+const cases=capture.cases;
+assert.equal(cases.length,36);
 const decode=c=>c.type==='null'?null:c.type==='integer'?BigInt(c.value):c.type==='real'?Buffer.from(c.ieee754be,'hex').readDoubleBE():Buffer.from(c.utf8Hex,'hex').toString();
 for(const encoding of ['utf8','utf16le','utf16be'])test(`SeekRowid NUMERIC copy ${encoding}`,async()=>{
  const inputs=cases.filter(c=>c.encoding===encoding),bytes=fs.readFileSync(inputs[0].fixture);

@@ -487,7 +487,10 @@ export class Mem {
       // vdbe.c:applyNumericAffinity deliberately invalidates MEM_Str because
       // source text is not guaranteed to be the canonical rendering.
       if (numeric?.kind === "integer" || numeric?.kind === "real") this.#replaceWithNumeric(numeric);
-    } else if ((this.#numeric?.kind === "real" || this.#numeric?.kind === "int-real") && affinity !== "flexnum") {
+    } else if (this.#numeric?.kind === "int-real" && affinity !== "flexnum") {
+      // vdbemem.c:sqlite3VdbeIntegerAffinity MEM_IntReal keeps the exact slot.
+      this.#replaceWithNumeric({ kind: "integer", value: this.#numeric.value });
+    } else if (this.#numeric?.kind === "real" && affinity !== "flexnum") {
       const real = numericAsReal(this.#numeric);
       const candidate = realToI64(real);
       // vdbemem.c:sqlite3VdbeIntegerAffinity differs from

@@ -122,3 +122,22 @@ test("UPSTREAM/raw and public adapters avoid duplicate models and public blobs c
   reason("invalid-text", () => memFromPublic("\ud800", "utf-8"));
   reason("limit", () => memFromPublic("😀", "utf-8", { maxLength: 3 }));
 });
+
+// UPSTREAM-DERIVED: vdbemem.c802 IntegerAffinity changes MEM_IntReal flags
+// without converting its exact i64 slot through double; endpoints are valid.
+test('IntegerAffinity preserves exact IntReal slots independently of REAL bounds', () => {
+  for (const encoding of ['utf-8','utf-16le','utf-16be']) {
+    for (const integer of [9007199254740993n,-9223372036854775808n,9223372036854775807n]) {
+      const original=new Mem();original.setIntReal(integer);
+      const copy=new Mem();copy.copyFrom(original);copy.applyAffinity('numeric',encoding);
+      assert.equal(copy.initialStorageClass,'integer');assert.equal(copy.integerValue(),integer);
+      assert.equal(original.initialStorageClass,'real');assert.equal(original.integerValue(),integer);
+    }
+    for (const real of [1.5,-9223372036854775808,9223372036854775808]) {
+      const value=new Mem();value.setDouble(real);value.applyAffinity('numeric',encoding);
+      assert.equal(value.initialStorageClass,'real');
+    }
+    const value=new Mem();value.setDouble(9007199254740992);value.applyAffinity('numeric',encoding);
+    assert.equal(value.integerValue(),9007199254740992n);assert.equal(value.initialStorageClass,'integer');
+  }
+});
