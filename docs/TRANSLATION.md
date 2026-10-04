@@ -156,6 +156,11 @@ LogEst estimates retain dependency and join-barrier ownership. The represented
 solver uses ordered candidate insertion and unsorted bounded slots with separate
 setup/run/output and total/unsorted costs (where.c2744–2939,5835ff), not generic
 Pareto pruning. Source/sort identities are separate; budget is builder-owned.
+Candidate exploration is suspended at each immutable proposal and inserted
+immediately, rather than building an eager capability list. Exhaustion closes
+recursive/index/rowid exploration; `planWhere` retains the per-source increment
+and later-source continuation (where.c3284,3580ff,4966,5025ff). Private small-budget
+production checks observe both leaf construction and later-index access stopping.
 Potential ORDER usefulness follows `indexMightHelpWithOrderBy` (where.c3664ff):
 a same-cursor rowid/IPK term preserves every ordered persistent index's identity
 before dominance, even when complete physical ORDER satisfaction is zero.

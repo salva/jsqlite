@@ -125,3 +125,50 @@ test('rowid ORDER preserves persistent index identities before dominance, withou
  assert.deepEqual(indexed.map(loop=>loop.sortIdentity),[2,3]);
  assert.ok(indexed.every(loop=>loop.capability.orderTermsSatisfied===0),'potential ORDER identity is not a complete order proof');
 });
+
+// R1: whereLoopAddBtreeIndex's rc==SQLITE_OK exploration guard and
+// whereLoopAddAll's SQLITE_DONE continuation. Observe producer access itself,
+// not just the length of the post-built admissions. No public instrumentation.
+test('production budget stops branching exploration before later index and permits next source increment',()=>{
+ const s=schema();
+ const resolved=resolve("SELECT id FROM t WHERE a='x' AND a='y' AND b=1 AND b=2",s);
+ const analysis=analyzeWhere(resolved), original=s.iblob.physical;
+ let laterIndexReads=0;
+ Object.defineProperty(s.iblob,'physical',{configurable:true,get(){laterIndexReads++;return original;}});
+ const budget={remaining:1};
+ const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[],resolved,planBudget:budget});
+ assert.equal(budget.remaining,0);
+ assert.equal(candidates.length,1);
+ assert.equal(laterIndexReads,0,'SQLITE_DONE must stop index exploration, not truncate an eagerly constructed list');
+ // whereLoopAddAll adds its per-source increment after an abbreviated search.
+ budget.remaining+=1000;
+ const next=schema(), nextResolved=resolve('SELECT id FROM t WHERE id=7',next);
+ const continued=btreeLoops(nextResolved.sources[0],1,analyzeWhere(nextResolved).clause,{forcedIndex:null,neededColumns:new Set([next.id]),orderBy:[],planBudget:budget});
+ assert.ok(continued.length>0);
+ assert.ok(budget.remaining<1000);
+});
+
+test('forced composite producer suspends recursion at budget boundary without constructing siblings',()=>{
+ const s=schema(),resolved=resolve("SELECT id FROM t INDEXED BY i_ab WHERE a='x' AND a='y' AND b=1 AND b=2",s),analysis=analyzeWhere(resolved);
+ let constructed=0;
+ const needed={*[Symbol.iterator](){constructed++;yield s.id;}};
+ const budget={remaining:1};
+ const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:s.i,neededColumns:needed,orderBy:[],resolved,planBudget:budget});
+ assert.equal(constructed,1,'covering calculation observes only the first constructed leaf');
+ assert.equal(budget.remaining,0);
+ assert.equal(candidates.length,1);
+ assert.equal(candidates[0].capability.equalityPrefix.length,2);
+ assert.ok(Object.isFrozen(candidates[0].capability.equalityPrefix));
+});
+
+test('production duplicate drop consumes budget and preserves first admission before later source restart',()=>{
+ const s=schema(),resolved=resolve('SELECT id FROM t WHERE id=7 AND id=8 AND id=9',s),analysis=analyzeWhere(resolved);
+ const budget={remaining:3};
+ const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[],planBudget:budget});
+ assert.equal(budget.remaining,0); // scan, replacement, duplicate drop
+ assert.equal(candidates.length,1);
+ assert.equal(candidates[0].capability.rowidEquality.term,analysis.clause.terms[0]);
+ assert.equal(btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[],planBudget:budget}).length,0);
+ budget.remaining+=1000;
+ assert.equal(btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[],planBudget:budget}).length,1);
+});

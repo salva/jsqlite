@@ -54,6 +54,12 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+`whereLoopAddBtreeIndex` exploration (where.c3284,3580ff) maps to suspended
+`capabilities` proposals and immediate `whereLoopInsert` in `btreeLoops`;
+exhaustion closes exploration, not just admissions. `whereLoopAddAll`4966/5025ff
+maps to `planWhere` shared budget/per-source continuation. Private production
+budget tests observe stopped composite leaf construction and later-index access.
+
 Ordered `whereLoopFindLesser/whereLoopInsert` (where.c2744–2939) and bounded
 `wherePathSolver` (5835ff) map to `whereLoopInsertCandidates/wherePathSolver`
 in `where-plan.ts`; `where-plan-ordered-red.test.mjs` discriminates replacement,
