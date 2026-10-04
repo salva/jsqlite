@@ -1,0 +1,447 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "ddl": "CREATE TABLE q(c0 \"CHAR(0x0)\",c1 \"CHAR(0x7fffffff)\",c2 \"CHAR(0x80000000)\",c3 \"CHAR(0xffffffff)\",c4 \"CHAR(0x100000000)\",c5 \"CHAR(0x00000000000000010)\",c6 \"CHAR(0x)\",c7 \"CHAR(0xg)\",c8 \"CHAR(-16)\",c9 \"CHAR(+16)\",c10 \"CHAR(2147483647)\",c11 \"CHAR(2147483648)\",c12 \"CHAR(0000000000000000000000000000016)\",c13 \"BLOB (0x100)\",c14 \"BLOB(0x100)\",c15 \"CHARINT(0x100)\",c16 \"REALBLOB(0x20)\",c17 \"TEXTCHAR(0x20)\",c18 \"CHAR(0x12g)\",c19 \"CHAR(0x0000000080000000)\"); INSERT INTO q VALUES('\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9','\u00e9'); CREATE INDEX qi ON q(c0,c14);",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-declared-controls-utf-8.db",
+      "sha256": "4319674a1372efd9f5136ee737aa75273e11c2618520ed8d1c0b5f009462015f",
+      "metadata": [
+        {
+          "name": "c0",
+          "declaredType": "CHAR(0x0)",
+          "database": "main",
+          "table": "q",
+          "origin": "c0"
+        },
+        {
+          "name": "c1",
+          "declaredType": "CHAR(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c1"
+        },
+        {
+          "name": "c2",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c2"
+        },
+        {
+          "name": "c3",
+          "declaredType": "CHAR(0xffffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c3"
+        },
+        {
+          "name": "c4",
+          "declaredType": "CHAR(0x100000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c4"
+        },
+        {
+          "name": "c5",
+          "declaredType": "CHAR(0x00000000000000010)",
+          "database": "main",
+          "table": "q",
+          "origin": "c5"
+        },
+        {
+          "name": "c6",
+          "declaredType": "CHAR(0x)",
+          "database": "main",
+          "table": "q",
+          "origin": "c6"
+        },
+        {
+          "name": "c7",
+          "declaredType": "CHAR(0xg)",
+          "database": "main",
+          "table": "q",
+          "origin": "c7"
+        },
+        {
+          "name": "c8",
+          "declaredType": "CHAR(-16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c8"
+        },
+        {
+          "name": "c9",
+          "declaredType": "CHAR(+16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c9"
+        },
+        {
+          "name": "c10",
+          "declaredType": "CHAR(2147483647)",
+          "database": "main",
+          "table": "q",
+          "origin": "c10"
+        },
+        {
+          "name": "c11",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "c11"
+        },
+        {
+          "name": "c12",
+          "declaredType": "CHAR(0000000000000000000000000000016)",
+          "database": "main",
+          "table": "q",
+          "origin": "c12"
+        },
+        {
+          "name": "c13",
+          "declaredType": "BLOB (0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c13"
+        },
+        {
+          "name": "c14",
+          "declaredType": "BLOB(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c14"
+        },
+        {
+          "name": "c15",
+          "declaredType": "CHARINT(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c15"
+        },
+        {
+          "name": "c16",
+          "declaredType": "REALBLOB(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c16"
+        },
+        {
+          "name": "c17",
+          "declaredType": "TEXTCHAR(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c17"
+        },
+        {
+          "name": "c18",
+          "declaredType": "CHAR(0x12g)",
+          "database": "main",
+          "table": "q",
+          "origin": "c18"
+        },
+        {
+          "name": "c19",
+          "declaredType": "CHAR(0x0000000080000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c19"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-declared-controls-utf-16le.db",
+      "sha256": "1ce96dbb89472d7b5ef8f0ae2cade488400d740dc7e6a8b948cfba23c6c13677",
+      "metadata": [
+        {
+          "name": "c0",
+          "declaredType": "CHAR(0x0)",
+          "database": "main",
+          "table": "q",
+          "origin": "c0"
+        },
+        {
+          "name": "c1",
+          "declaredType": "CHAR(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c1"
+        },
+        {
+          "name": "c2",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c2"
+        },
+        {
+          "name": "c3",
+          "declaredType": "CHAR(0xffffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c3"
+        },
+        {
+          "name": "c4",
+          "declaredType": "CHAR(0x100000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c4"
+        },
+        {
+          "name": "c5",
+          "declaredType": "CHAR(0x00000000000000010)",
+          "database": "main",
+          "table": "q",
+          "origin": "c5"
+        },
+        {
+          "name": "c6",
+          "declaredType": "CHAR(0x)",
+          "database": "main",
+          "table": "q",
+          "origin": "c6"
+        },
+        {
+          "name": "c7",
+          "declaredType": "CHAR(0xg)",
+          "database": "main",
+          "table": "q",
+          "origin": "c7"
+        },
+        {
+          "name": "c8",
+          "declaredType": "CHAR(-16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c8"
+        },
+        {
+          "name": "c9",
+          "declaredType": "CHAR(+16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c9"
+        },
+        {
+          "name": "c10",
+          "declaredType": "CHAR(2147483647)",
+          "database": "main",
+          "table": "q",
+          "origin": "c10"
+        },
+        {
+          "name": "c11",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "c11"
+        },
+        {
+          "name": "c12",
+          "declaredType": "CHAR(0000000000000000000000000000016)",
+          "database": "main",
+          "table": "q",
+          "origin": "c12"
+        },
+        {
+          "name": "c13",
+          "declaredType": "BLOB (0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c13"
+        },
+        {
+          "name": "c14",
+          "declaredType": "BLOB(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c14"
+        },
+        {
+          "name": "c15",
+          "declaredType": "CHARINT(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c15"
+        },
+        {
+          "name": "c16",
+          "declaredType": "REALBLOB(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c16"
+        },
+        {
+          "name": "c17",
+          "declaredType": "TEXTCHAR(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c17"
+        },
+        {
+          "name": "c18",
+          "declaredType": "CHAR(0x12g)",
+          "database": "main",
+          "table": "q",
+          "origin": "c18"
+        },
+        {
+          "name": "c19",
+          "declaredType": "CHAR(0x0000000080000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c19"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-declared-controls-utf-16be.db",
+      "sha256": "2b6d485f6e399600ae06ca7c05059457563349fda7cd84462091c17a2c5f5858",
+      "metadata": [
+        {
+          "name": "c0",
+          "declaredType": "CHAR(0x0)",
+          "database": "main",
+          "table": "q",
+          "origin": "c0"
+        },
+        {
+          "name": "c1",
+          "declaredType": "CHAR(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c1"
+        },
+        {
+          "name": "c2",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c2"
+        },
+        {
+          "name": "c3",
+          "declaredType": "CHAR(0xffffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "c3"
+        },
+        {
+          "name": "c4",
+          "declaredType": "CHAR(0x100000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c4"
+        },
+        {
+          "name": "c5",
+          "declaredType": "CHAR(0x00000000000000010)",
+          "database": "main",
+          "table": "q",
+          "origin": "c5"
+        },
+        {
+          "name": "c6",
+          "declaredType": "CHAR(0x)",
+          "database": "main",
+          "table": "q",
+          "origin": "c6"
+        },
+        {
+          "name": "c7",
+          "declaredType": "CHAR(0xg)",
+          "database": "main",
+          "table": "q",
+          "origin": "c7"
+        },
+        {
+          "name": "c8",
+          "declaredType": "CHAR(-16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c8"
+        },
+        {
+          "name": "c9",
+          "declaredType": "CHAR(+16)",
+          "database": "main",
+          "table": "q",
+          "origin": "c9"
+        },
+        {
+          "name": "c10",
+          "declaredType": "CHAR(2147483647)",
+          "database": "main",
+          "table": "q",
+          "origin": "c10"
+        },
+        {
+          "name": "c11",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "c11"
+        },
+        {
+          "name": "c12",
+          "declaredType": "CHAR(0000000000000000000000000000016)",
+          "database": "main",
+          "table": "q",
+          "origin": "c12"
+        },
+        {
+          "name": "c13",
+          "declaredType": "BLOB (0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c13"
+        },
+        {
+          "name": "c14",
+          "declaredType": "BLOB(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c14"
+        },
+        {
+          "name": "c15",
+          "declaredType": "CHARINT(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "c15"
+        },
+        {
+          "name": "c16",
+          "declaredType": "REALBLOB(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c16"
+        },
+        {
+          "name": "c17",
+          "declaredType": "TEXTCHAR(0x20)",
+          "database": "main",
+          "table": "q",
+          "origin": "c17"
+        },
+        {
+          "name": "c18",
+          "declaredType": "CHAR(0x12g)",
+          "database": "main",
+          "table": "q",
+          "origin": "c18"
+        },
+        {
+          "name": "c19",
+          "declaredType": "CHAR(0x0000000080000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c19"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-ipk-utf-8.db",
+      "sha256": "9527a47d94186f0f17bca9a1e7421b3dfa82b167f939973c18de0d0650bc5f4a",
+      "stat": [
+        [
+          "t",
+          null,
+          "1"
+        ],
+        [
+          "d",
+          "sqlite_autoindex_d_1",
+          "1 1"
+        ]
+      ],
+      "expected": {
+        "d": [
+          [
+            "1",
+            "7",
+            "D"
+          ]
+        ],
+        "t": [
+          [
+            "7",
+            "7",
+            "T"
+          ]
+        ]
+      }
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-ipk-utf-16le.db",
+      "sha256": "85d8ae0ecb9698e68dcb2aad884abd7b50e07b120cd649b308efce38d4ea459f",
+      "stat": [
+        [
+          "t",
+          null,
+          "1"
+        ],
+        [
+          "d",
+          "sqlite_autoindex_d_1",
+          "1 1"
+        ]
+      ],
+      "expected": {
+        "d": [
+          [
+            "1",
+            "7",
+            "D"
+          ]
+        ],
+        "t": [
+          [
+            "7",
+            "7",
+            "T"
+          ]
+        ]
+      }
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-ipk-utf-16be.db",
+      "sha256": "125b770306a08b19fb9d594632334351dd3c7111bee11c20c09d1fa91d5bf731",
+      "stat": [
+        [
+          "t",
+          null,
+          "1"
+        ],
+        [
+          "d",
+          "sqlite_autoindex_d_1",
+          "1 1"
+        ]
+      ],
+      "expected": {
+        "d": [
+          [
+            "1",
+            "7",
+            "D"
+          ]
+        ],
+        "t": [
+          [
+            "7",
+            "7",
+            "T"
+          ]
+        ]
+      }
+    }
+  ]
+}

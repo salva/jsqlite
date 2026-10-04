@@ -1,0 +1,203 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "label": "inline-desc",
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-8.db",
+      "sha256": "5b4f328cfd17179768b4668bd3de00dfe5832980ba310edefc4b796632dca64c",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "inline-desc",
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-16le.db",
+      "sha256": "d2227dfe994d4bdfbe6558a0302f8d9020ae8806a0e583828ee485ae81b87c3c",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "inline-desc",
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-16be.db",
+      "sha256": "d74dfa112380c5907a434dc00ebba29904598f9f26e2ab8d084ecdcf83d97a25",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "table-desc",
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-8.db",
+      "sha256": "c4b375bab73f353078f7052a071eb957b787fe16f566b53cee36bd6867f97f2c",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "table-desc",
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-16le.db",
+      "sha256": "3d1c3edc018cd992bf78a711be1888771a8cbe4914fefd05861f13b43b1b7b6f",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "table-desc",
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-16be.db",
+      "sha256": "d50c01c102963e268093120d2224e5b3b67ff738d44285ae71abc1089db898c2",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "merge",
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-8.db",
+      "sha256": "823767e266859c32c6667d3e064914312f527f4bebdd576b12195f5c90c75c10",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "merge",
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-16le.db",
+      "sha256": "a5bbbd44b1399c17df52c067323e983ad260ab6797e84e00fc0662590ca90f8c",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "label": "merge",
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-16be.db",
+      "sha256": "5cea8859cb21c1ed37f2279b403cd6168eb989abf58dd1f53ef0a590482b622a",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    }
+  ]
+}

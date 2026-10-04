@@ -1,0 +1,42 @@
+[
+  {
+    "path": "affected.log",
+    "bytes": 6543,
+    "sha256": "05726971a0e02d1bedc38dd3760544a5dae62bb20aad137430a9714aef45bba9"
+  },
+  {
+    "path": "lifecycle.log",
+    "bytes": 1114,
+    "sha256": "bef9caa7c533d2acc36d10631d67ebe61adfcd44607ca83d3890b7cc2d811435"
+  },
+  {
+    "path": "native.log",
+    "bytes": 43,
+    "sha256": "2dd1fee1dbf54daff6917783c987e566e9a422bc9f047cab19750f1f3c60df12"
+  },
+  {
+    "path": "original.log",
+    "bytes": 15214,
+    "sha256": "292f03f017568069066085ff1298929f732c62c6f19f8cdee1134f7dfd67d95e"
+  },
+  {
+    "path": "typecheck.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "width.log",
+    "bytes": 127517,
+    "sha256": "8078f490bb477919b25d366ca20229ebed086401f170c8d9c1b516da61ccc0b7"
+  },
+  {
+    "path": "verify-downstream.log",
+    "bytes": 8961,
+    "sha256": "ad9830617bd589509658bab9c4eb204c250dcc2cb1d54d312b9748c263246dcd"
+  },
+  {
+    "path": "verify-stability.log",
+    "bytes": 2894,
+    "sha256": "d2c884ba47b009afca4421813f42de83d6d5aaee2855ff292f79b9270ac25b47"
+  }
+]

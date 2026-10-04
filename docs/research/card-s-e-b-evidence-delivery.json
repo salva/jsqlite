@@ -1,0 +1,154 @@
+{
+  "sourceHead": "644cbcd827a2fbdf3a14407210941e38ac945a01",
+  "corpusFiles": 297,
+  "corpusBytes": 25163060,
+  "retainedDependencies": [
+    {
+      "path": "reference/sqlite/manifest.json",
+      "bytes": 1049,
+      "sha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/capture-index-planner.py",
+      "bytes": 8240,
+      "sha256": "ed2ee5ae2fb5ede739a998afa1726c5b041b522d0272cd6904b90d0c9f3a6ab8",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/in-range-stat-native.json",
+      "bytes": 475675,
+      "sha256": "0ccb6f9b538671f5582bb6a236b6bfffc8c7e1c8bb1f4a1ed6181ddb36178209",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/stage3-advanced-index.json",
+      "bytes": 139570,
+      "sha256": "ccf11c421331ef8e8f04fb0196204749bbe0abb75f53a71931e716494b714480",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/stat-record-corruption.json",
+      "bytes": 9987,
+      "sha256": "e8f0fff39c7729652461317d22b5246e8edc494beff3756b4db53cfec7fa10a7",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "bytes": 15872,
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "bytes": 15872,
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf8.db",
+      "bytes": 12288,
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16be-after.db",
+      "bytes": 32768,
+      "sha256": "327543625d02e582e789c84459bd06a97971d097b94ecd53a00cc1d85616e5be",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16be-before.db",
+      "bytes": 28672,
+      "sha256": "b9e295e7a39460e5b5845a3db1fe08c91f97bb27401f119830763bea63fd643b",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16le-after.db",
+      "bytes": 32768,
+      "sha256": "5fcec1884fd28577b37fd759d2c1ec7090e93f74e19f69b1bc69889e5e47524f",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16le-before.db",
+      "bytes": 28672,
+      "sha256": "ae63261852958c19a4a3c44d319fba89cbc0a18f32c919fa44ab4d0df8c7f6f4",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf8-after.db",
+      "bytes": 32768,
+      "sha256": "90c8fe0b89c5e2727f34d1b4bfb0b2fe2b3a8f2af60e2796b8e070d9f511b134",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf8-before.db",
+      "bytes": 28672,
+      "sha256": "1c1066785369ba0911efde96159757743de3a0753b5da248ba16551df327b2b2",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/public-api-adapter.mjs",
+      "bytes": 549,
+      "sha256": "8acc9c0c68df0963fc116d79b09128a1a13aa5734fa51afdce5678e392784890",
+      "tracked": true
+    }
+  ],
+  "provenancePaths": [
+    "docs/research/card-s-e-row-width.md",
+    "docs/research/card-s-e-row-width-inventory.txt",
+    "docs/research/card-s-e-estimate-census.md",
+    "docs/research/card-s-e-implementation-review.md",
+    "docs/research/card-s-e-parent-review-request.md",
+    "docs/research/card-s-e-c-integration-diagnosis.md",
+    "docs/research/card-s-e-c-reopened-command-hashes.json",
+    "docs/research/card-s-e-c-reopened-evidence-inventory.json",
+    "docs/research/card-s-e-c-reopened-integration.md",
+    "docs/research/card-s-e-c-committed-command-hashes.json",
+    "docs/research/card-s-e-c-committed-integration.md",
+    "docs/research/card-s-e-c-committed-width-inventory.json",
+    "docs/research/card-s-e-d-committed-evidence-closure.json",
+    "docs/research/card-s-e-d-runtime-review.md"
+  ],
+  "commands": [
+    {
+      "command": "node --experimental-strip-types --test test/conformance/row-width-preimplementation.test.mjs",
+      "result": "240/240 exit0"
+    },
+    {
+      "command": "capture-row-width.py --library manifest-pinned development library (no --regenerate)",
+      "result": "120 exact snapshots 8785920 bytes exit0"
+    },
+    {
+      "command": "tsc -p export/tsconfig.json",
+      "result": "exit0"
+    },
+    {
+      "command": "node --experimental-strip-types --test row-width*.test.mjs without-rowid-joined stat-record-corruption stat-format-boundary value/private-state acquisition/open-http storage/btree-reader",
+      "result": "2034/2034 exit0 no skips/cancels"
+    }
+  ],
+  "logs": [
+    {
+      "path": "original.log",
+      "bytes": 15224,
+      "sha256": "9df3da81cc56dc09601a89c78751187360de4f6b0ac1f2b4f079cadef4121eea"
+    },
+    {
+      "path": "native.log",
+      "bytes": 43,
+      "sha256": "2dd1fee1dbf54daff6917783c987e566e9a422bc9f047cab19750f1f3c60df12"
+    },
+    {
+      "path": "typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "closure.log",
+      "bytes": 133599,
+      "sha256": "8e10426ef893cbb420b9321d8d158c4f82ec31b806f47778902172476f4ffb6e"
+    }
+  ],
+  "reuse": "c/d exact-source Chinook B4 1984/reset/admission,stability37/downstream93 with R2 63,source review and pinned development build reused unchanged;all8 c logs independently hash verified. B4 sole cause not proved. No aggregate source change."
+}

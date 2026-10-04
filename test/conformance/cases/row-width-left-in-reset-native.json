@@ -1,0 +1,636 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": "SELECT x.id,y.id FROM t x LEFT JOIN t y INDEXED BY t_ab ON y.a IN (?1,x.a,NULL) AND y.b IN (?2,NULL) AND y.id=x.id WHERE x.id IN (12,13,14,214) ORDER BY x.id,y.id",
+  "variants": [
+    {
+      "encoding": "utf8",
+      "state": "before",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf8-before.db",
+      "fixtureBytes": 28672,
+      "fixtureSha256": "1c1066785369ba0911efde96159757743de3a0753b5da248ba16551df327b2b2",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "state": "after",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf8-after.db",
+      "fixtureBytes": 32768,
+      "fixtureSha256": "90c8fe0b89c5e2727f34d1b4bfb0b2fe2b3a8f2af60e2796b8e070d9f511b134",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "state": "before",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf16le-before.db",
+      "fixtureBytes": 28672,
+      "fixtureSha256": "ae63261852958c19a4a3c44d319fba89cbc0a18f32c919fa44ab4d0df8c7f6f4",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "state": "after",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf16le-after.db",
+      "fixtureBytes": 32768,
+      "fixtureSha256": "5fcec1884fd28577b37fd759d2c1ec7090e93f74e19f69b1bc69889e5e47524f",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "state": "before",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf16be-before.db",
+      "fixtureBytes": 28672,
+      "fixtureSha256": "b9e295e7a39460e5b5845a3db1fe08c91f97bb27401f119830763bea63fd643b",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "state": "after",
+      "fixture": "test/conformance/fixtures/in-range-stat-utf16be-after.db",
+      "fixtureBytes": 32768,
+      "fixtureSha256": "327543625d02e582e789c84459bd06a97971d097b94ecd53a00cc1d85616e5be",
+      "runs": [
+        {
+          "bindings": [
+            null,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            1,
+            13
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              "13"
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            null,
+            14
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              "14"
+            ],
+            [
+              "214",
+              "214"
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            2,
+            null
+          ],
+          "rows": [
+            [
+              "12",
+              null
+            ],
+            [
+              "13",
+              null
+            ],
+            [
+              "14",
+              null
+            ],
+            [
+              "214",
+              null
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

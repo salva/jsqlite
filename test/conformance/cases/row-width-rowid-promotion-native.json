@@ -1,0 +1,65 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-rowid-promotion-utf-8.db",
+      "sha256": "b929517101880c5b7ded817595fc66b383cfd35e38821d29633678e34547e06f",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-rowid-promotion-utf-16le.db",
+      "sha256": "f138fe5b067f0f51465edb8904335b1a1e4f8830f27134cc934ece6b69267595",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-rowid-promotion-utf-16be.db",
+      "sha256": "2f47fe5373ea050b36fd444500f3041c29f9806e98c6288689fa4d2afc22fc47",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0
+      ]
+    }
+  ]
+}

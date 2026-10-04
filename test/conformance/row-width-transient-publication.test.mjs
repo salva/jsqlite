@@ -1,0 +1,14 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import http from 'node:http';import {openFixture} from './public-api-adapter.mjs';import {loadSchemaGraph} from '../../src/internal/schema.ts';
+const cap=JSON.parse(fs.readFileSync(new URL('./cases/row-width-native.json',import.meta.url)));
+for(const v of cap.variants.filter(v=>v.state==='before'))test(`transient estimates published once ${v.encoding}`,async()=>{const bytes=fs.readFileSync(new URL(`../../${v.fixture}`,import.meta.url)),server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':bytes.length});r.end(bytes)});await new Promise(r=>server.listen(0,'127.0.0.1',r));let db;try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/`));const schema=loadSchemaGraph(db),table={...schema.tables.get('t'),rootPage:0,integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,columns:schema.tables.get('t').columns.map(c=>({...c,szEst:0,checks:[]})),indexes:[],primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[]};// Rejection must precede freezing any caller-owned metadata or graph publication.
+for(const invalid of [{...table,rootPage:2},{...table,indexes:[schema.tables.get('t').indexes[0]]}]){
+ assert.throws(()=>schema.withTransientTable(invalid),e=>e.name==='SchemaUnsupportedError'&&/nonphysical/.test(e.message));
+ for(const value of [invalid,invalid.columns,invalid.columns[0],invalid.columns[0].checks,invalid.indexes])assert.equal(Object.isFrozen(value),false);
+ assert.equal(loadSchemaGraph(db),schema);
+}
+const transient=schema.withTransientTable(table);
+const repeated=transient.withTransientTable(table);
+assert.equal(repeated.tables.get(table.name.toLowerCase()),table);
+assert.equal(transient.tables.get(table.name.toLowerCase()),table);
+assert.notEqual(repeated,schema);
+assert.equal(transient.tables.get(table.name.toLowerCase()),table);assert.equal(table.rootPage,0);assert.equal(table.szTabRow,1);assert.equal(table.nRowLogEst,200);assert.equal(table.hasStat1,false);assert.equal(table.columns[0].szEst,0);for(const value of [table,table.columns,table.columns[0],table.columns[0].checks,table.indexes,table.primaryKey,table.storageKey])assert.ok(Object.isFrozen(value));assert.throws(()=>{table.szTabRow=99},TypeError);assert.throws(()=>table.indexes.push({}),TypeError);assert.equal(loadSchemaGraph(db),schema);const st=db.prepare('SELECT a FROM (SELECT a FROM t UNION ALL SELECT a FROM t)').statement;try{const read=async()=>{const out=[];while(await st.step()==='row')out.push(st.column(0));return out};const first=await read();assert.ok(first.length>0);st.reset();assert.deepEqual(await read(),first)}finally{st.finalize()}}finally{try{db?.closeDeferred()}finally{await new Promise(r=>server.close(r))}}});

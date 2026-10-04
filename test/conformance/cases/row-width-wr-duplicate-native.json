@@ -1,0 +1,56 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-duplicate-utf-8.db",
+      "sha256": "f88d71df8279a0dc11c7a80118a25b5d5e6ac706af18a7662c0cbc224ead1cfc",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-duplicate-utf-16le.db",
+      "sha256": "f9777847ed6aab8841a053e8c98bcf6d458a62e13c08e510763ee2f47aba2349",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-duplicate-utf-16be.db",
+      "sha256": "a3fa06805405effe2b4bebf4a763e00ce73b5c71fdcdcaec40625508ad5188f9",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1"
+        ]
+      ]
+    }
+  ]
+}

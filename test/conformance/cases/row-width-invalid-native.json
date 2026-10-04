@@ -1,0 +1,68 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-invalid-utf-8.db",
+      "sha256": "5fbfc83690ad49da9079663024c5a32de7725e9024ae1f3fec41791bf63c31fb",
+      "sql": "SELECT k,v FROM \u00e9 WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH \u00e9 USING INDEX sqlite_autoindex_\u00e9_1 (k=?)"
+      ],
+      "callbackHex": [
+        [
+          "c3a9",
+          "c3a9",
+          "31303030203220c08020737a3d3820756e6f726465726564"
+        ],
+        [
+          "e083a9",
+          null,
+          "3320737a3d313238"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-invalid-utf-16le.db",
+      "sha256": "a280d8c75a3209a1a928c2240e88161fce70a7b43623f26813a57eef4899ec18",
+      "sql": "SELECT k,v FROM \u00e9 WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH \u00e9 USING INDEX sqlite_autoindex_\u00e9_1 (k=?)"
+      ],
+      "callbackHex": [
+        [
+          "c3a9",
+          "c3a9",
+          "31303030203220696e76616c696420737a3d3820756e6f726465726564"
+        ],
+        [
+          "756e6b6e6f776e",
+          null,
+          "3320737a3d313238"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-invalid-utf-16be.db",
+      "sha256": "80d72ac6b0ded91625e8e9824459f9b86b78d36a298fbd34ea81cbc1c119f29a",
+      "sql": "SELECT k,v FROM \u00e9 WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH \u00e9 USING INDEX sqlite_autoindex_\u00e9_1 (k=?)"
+      ],
+      "callbackHex": [
+        [
+          "c3a9",
+          "c3a9",
+          "31303030203220696e76616c696420737a3d3820756e6f726465726564"
+        ],
+        [
+          "756e6b6e6f776e",
+          null,
+          "3320737a3d313238"
+        ]
+      ]
+    }
+  ]
+}

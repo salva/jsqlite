@@ -389,3 +389,7 @@ but cannot provide executable access. Forced use reports SQLite `no query
 solution` (code 1); an unavailable WITHOUT ROWID primary storage collation reports
 SQLite `no such collation sequence` (code 1), not an untranslated-feature
 classification. This does not add host-registered collation support.
+
+The bounded immutable schema-estimate/WHERE evidence closure is documented in
+[width evidence delivery](research/card-s-e-b-evidence-delivery.md). This does not
+expand optimizer, STAT4, skipscan or specialized SELECT guarantees.

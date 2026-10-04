@@ -1,0 +1,20 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-unsupported-collation-utf8.db",
+      "bytes": 12288
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-unsupported-collation-utf16le.db",
+      "bytes": 12288
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-unsupported-collation-utf16be.db",
+      "bytes": 12288
+    }
+  ]
+}

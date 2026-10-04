@@ -1,0 +1,102 @@
+[
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/acquired-public.log",
+    "bytes": 1509,
+    "sha256": "b3647c29bdaecefdd5604f607b06fb07863a7e04fd89c67b1142247ebd73a428"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/affected.log",
+    "bytes": 15059,
+    "sha256": "07e6613209d44ec9ddff9bbfc0631409f5a8166e9c1d4fb8f2569b315ab67090"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/chinook-native.json",
+    "bytes": 239,
+    "sha256": "6725cc328ab71203e8d28cd16b03d26cb5206da697ff40cb7da5d1832bf8714c"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/evidence-inventory.json",
+    "bytes": 63696,
+    "sha256": "839b28e0bf4b7e3a5c2321ad487804b4eca8ac73137b112fe2367fb170a7b133"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/final.diff",
+    "bytes": 218206,
+    "sha256": "f3fd9ea941db9210577cd3585b88cbb146cdc91bcccb2ce4292012d70f4cb6d9"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/index.diff",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/inventory.txt",
+    "bytes": 20204,
+    "sha256": "2ffc861328843318d409f7f2ed3dce87d76d60978a1b3b571e293a1557dcbe90"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/original.log",
+    "bytes": 7992,
+    "sha256": "a0d067af0180fddfd5acfcf4a2b408d46093e6a257761eeff84d0697101f0e71"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/private-all.log",
+    "bytes": 8072,
+    "sha256": "b32f3bf4c04d7aa0009aed8345cb97a4061e3d4317428726d53568d904596ffb"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/private.log",
+    "bytes": 915,
+    "sha256": "6e63e66ee350e1cdc790a524dc390832bbce8c8ee6ed32f81993528b95ede20b"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/private120.log",
+    "bytes": 1446,
+    "sha256": "9485bdd935a3542723692b3876d111f51a00757889d694d34176a7dfe976516b"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/r2-capture.log",
+    "bytes": 58,
+    "sha256": "c0e28838419630c6974d66db42ee943cdefb38dec486a1bc54495863caecca1a"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/recapture.log",
+    "bytes": 43,
+    "sha256": "2dd1fee1dbf54daff6917783c987e566e9a422bc9f047cab19750f1f3c60df12"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/tracked.diff",
+    "bytes": 218206,
+    "sha256": "f3fd9ea941db9210577cd3585b88cbb146cdc91bcccb2ce4292012d70f4cb6d9"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/typecheck.log",
+    "bytes": 69,
+    "sha256": "a5f713a9451427c94bafb807a648b42343d7fafc0f0d2136ed0e53dd7f9dafae"
+  },
+  {
+    "artifact": "/work/jsqlite2/.saivage/work/cards/card-s-e-c/width-reopen/width.log",
+    "bytes": 127414,
+    "sha256": "f124fee0664263b82da6cd61db6f6f42987ce8d75dc7d522d1e5724f159ad6b3"
+  },
+  {
+    "artifact": "test/conformance/row-width-preimplementation.test.mjs",
+    "bytes": 15072,
+    "sha256": "e40c293aad26781d8482b4781749b80477ee2e117e07048267ec93a3c6e0e5a3"
+  },
+  {
+    "artifact": "test/conformance/capture-row-width.py",
+    "bytes": 8785,
+    "sha256": "afd8092323a0b2cb7cc981635faddbf03c6b11c83507205302dc2780f58e5ce2"
+  },
+  {
+    "artifact": "test/conformance/cases/row-width-native.json",
+    "bytes": 14737868,
+    "sha256": "4ad0e43f934f8fa4c2e3a2f56d443e0cd8a88a890adbb3e737794d2a6777a115"
+  },
+  {
+    "artifact": "docs/research/joined-wr-delivery/width-ack-width-joined-union.patch",
+    "bytes": 205823,
+    "sha256": "965b9dc7c502fd1293dbbc9009c03dd916f78f39c7659e166979acfeaa97e32e"
+  }
+]

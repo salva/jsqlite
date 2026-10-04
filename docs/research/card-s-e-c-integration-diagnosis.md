@@ -1,0 +1,70 @@
+# Independent row-width integration diagnosis
+
+Executor [[card:card-s-e-c]], 2026-10-04. **Failing tests; not parent acceptance.** No runtime/test/fixture edits, no staging. This is independent execution and bounded source assessment, not the required component/system approval of [[card:card-s-e-b]]. Parent [[card:card-s-e]] must route semantic repairs and review scheduling.
+
+## Inputs and diff isolation
+
+Read parent status v2, implementation status v183 latest handoff/refactor sections, current implementation handoff and estimate census, current row-width proposal (post-runtime correction), guide/audit revision 2026-10-04d, SPEC/PLAN/manifest, and architecture system review `record:///review.md?card=card-s-e-a&v=18`. Initial attempt to retrieve *card version*18 failed (not an authored record version); correct review record was then read. Review v18 approves architecture correction only, explicitly not runtime.
+
+HEAD `6ba3b52c2a3d4740164656882618aa37e5f64280`; index empty. Initial/final inventories identical before this new report. Tracked diff snapshot SHA256 `b2ed99271b77cecb85410c80406fb54de8b4da233f9eae233c95419fb607ed02`, empty index diff `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`. Complete inventory/tool output: work:///cards/card-s-e-c/processes/proc-8af18104e2d3/stdout.log. Snapshots and full logs: `.saivage/work/cards/card-s-e-c/width-diagnose/` (inventory.txt, final-inventory.txt, tracked.diff, owners.diff, numstat.txt, index.diff).
+
+Reviewable responsibility inventory, not blanket ownership of dirty workspace:
+
+* Width producers/callers: schema.ts, where-plan.ts, parse.ts, resolve.ts, callback mem.ts/utf.ts and schema-error boundary index.ts. Compare actual diff rather than stage entire workspace.
+* vdbe.ts mixed: schema import/IPK predicate, recursive/derived transient constructors, LEFT null-pass continuation, ordinary WR projection/residual physical mapping belong to delivered width integration. `bitwiseBinary` import and arithmetic executor changes are peer work and must remain separate. Existing SeekRowid rejection is unchanged from HEAD, not an owned hunk.
+* Guide/map/audit contain mixed cumulative peer history; api/stat boundary tests and ordered mock are delivered integration evidence. Advanced-index test is peer-owned. Row-width captures/cases/tests/fixtures are currently untracked author evidence; many other untracked research files belong to peers. No staging or source cleanup by this card.
+
+## Bounded source assessment
+
+Read pinned build.c estimateTableWidth/estimateIndexWidth, sqlite3AffinityType/AddPrimaryKey, util.c sqlite3GetInt32, analyze.c decodeIntArray/analysisLoader/post-load defaults, where.c full scan 4239–4278, candidate dominance2744, width tie5800–5821, path recurrence5935–5998, and vdbe.c5495 SeekRowid. Compared current schema production and where-plan execution, not just names:
+
+* Column dimensions/type span feed table width (implicit rowid only without IPK) and actual index layout fields. Default index row estimates precede callback; callback count belongs to named table even when index globally resolves elsewhere. Partial index does not overwrite table count. NULL/unknown index uses fake-index-equivalent table width/count. Decoder performs uint64 wrap, one-space advance, resets flags per row while preserving untouched vector slots/width. Post-load missing defaults precede vector/index/table freeze and graph-cache publication. Failure before publication cannot cache partial estimates. Strict record corruption policy and nonempty STAT4 rejection remain explicit adaptations/residuals, not native permissive-corruption equivalence.
+* Structural layout is distinct from executable built-in KeyInfo; widths do not depend on callback availability or fabricated width1. Published executable field/PK arrays share structural ownership. Persistent publication and four transient constructor locations are enumerated in existing census; this diagnosis does not certify arbitrary nested expression/error/cancel paths.
+* Costs use immutable widths, explicit BigInt truncating ratio15*index/table, separate seek and noncover lookup, range clamp and covered-term prefix stopping. Physical cost precedes residual output adjustment. Width comparison remains only at equal surviving path cost/output/unsorted; admission dominance is width-free. Joined no-sort recurrence consumes prior biased unsorted, not prior total. Ordinary/real joined compiled roots are tested; failed public execution is not excused by private vectors.
+* Corrected tie test forces ta/tb via actual SQL and first asserts setup/run/output equality. ORDER requirement is real resolved column plus lowercase binary, not fabricated candidates. No-ORDER tb is native supported; ORDER small-a ta/small-b and equal tb is supported. Current correction is post-runtime evidence, not retroactive native-first credit. A fuller independent component review of all constructors/cleanup and current mixed hunks remains required; no new width-owner repair established by this diagnosis.
+
+## Fresh acceptance matrix
+
+All Node commands use `node --experimental-strip-types --test`. No skips/cancels.
+
+|Target|Actual result|Meaning|
+|---|---|---|
+|`npm run typecheck`|exit0|Current checkout typechecks|
+|`test/conformance/row-width*.test.mjs`|exit1;1962 total/1490 pass/472 fail|Confirms corrected live aggregate, not acceptance|
+|Original acceptance subset within aggregate|private120 pass/public120 fail|Public stops at joined typed rows; subsequent lifecycle assertions not credited|
+|Other mandatory residuals|isolated349 + joined WR3 fail|Together with public120 =472; overlapping semantic behaviors, not independent feature count|
+|Other width nodes|270 pass|Bounded owning partition; no universal optimizer or metadata credit|
+|Affected ten-suite command|exit1;157/156 pass/1 fail|REAL five-field metadata/exact cost/reset-clear-rebind, callback, failed publication, transient publication, corruption/stat boundary, private-state, HTTP, Btree and advanced selected paths; sole red peer sorter expectation|
+|`tools/oracle/build.sh`|exit0|Independent manifest-pinned build/self-check SQLite3.53.4/source bf7c7f…59bcc|
+|`python3 test/conformance/capture-row-width.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"`|exit0|Read-only recapture exact JSON equality,120 exports/8,785,920 bytes; no fixture regeneration|
+|Independent reverse-order capture|exit0|All3 encodings forced SORT0, scan SORT1; artifact saved only to work root|
+|`git diff --check`|exit0|No whitespace failure; no staging|
+
+Affected exact paths: row-width-real-metadata, row-width-callback, row-width-failed-publication, row-width-transient-publication, stat-record-corruption, stat-format-boundary under test/conformance; test/value/private-state.test.mjs; test/acquisition/open-http.test.mjs; test/storage/btree-reader.test.mjs; test/conformance/run-advanced-index-ts.test.mjs.
+
+Processes: aggregate/typecheck proc-6fcae9566544; affected proc-d68fdd21a45e; build proc-77a1ef80227f; recapture proc-26c38f154a5e; reverse capture/hash/inventory proc-40783d3da60f. Logs SHA256: width `40137449a0b7e443257bb610579167b90cbc7d3ba32c4b1e864558edb33f5476`; affected `ec08c0dd1e8d139fba813712173934500255424fbcbe7778e2bc431667caa6fd`; native-build `773f8248dfd5cd38cf874d0a25cb92dbfaf79703e72a68ae5e290eaf92796301`; recapture `2dd1fee1dbf54daff6917783c987e566e9a422bc9f047cab19750f1f3c60df12`. Current generator/native JSON/acceptance hashes respectively `afd8092323a0b2cb7cc981635faddbf03c6b11c83507205302dc2780f58e5ce2`, `4ad0e43f934f8fa4c2e3a2f56d443e0cd8a88a890adbb3e737794d2a6777a115`, `e40c293aad26781d8482b4781749b80477ee2e117e07048267ec93a3c6e0e5a3`. Historical b hashes/count475 are superseded only by approved a correction, not semantic repair.
+
+## Repair-node disposition — 2026-10-04
+
+**Failed bounded repair, not unavailable input and not global impossibility.** The explicit brief forbids src repairs, unrelated SELECT fixes, weakening acceptance and editing/staging mixed peer changes. No authorized faulty owned fixture was found. Therefore this node cannot turn the mandatory public acceptance green within its accepted constraints; the concrete next work belongs to parent-assigned semantic/test owners, not another local repair attempt.
+
+Fresh inventory confirms unchanged HEAD and tracked diff SHA `b2ed99271b77cecb85410c80406fb54de8b4da233f9eae233c95419fb607ed02`, empty index SHA `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`. Snapshots/logs: `.saivage/work/cards/card-s-e-c/width-repair/`. Only this report and card status changed in this node; no source/tests/fixtures/staging.
+
+Distinct hypotheses evaluated:
+
+* **Stale delivered width/fixture evidence:** tracked runtime/test inputs remain identical; independent prior pinned native recapture still applies. Fresh `node --experimental-strip-types --test test/conformance/row-width*.test.mjs` (proc-aa7d794ab0d0) exits1:1962 total/1490 pass/472 fail/0 skipped/cancelled. This refutes an already-repaired checkout or stale reported aggregate, not every possible width defect.
+* **Publication or REAL-metadata lifecycle explains mandatory failures:** fresh four-suite command (row-width-real-metadata, row-width-callback, row-width-failed-publication, row-width-transient-publication; proc-4b6ca38ad8eb) exits0:15/15,0 skips/cancels. Bounded publication/lifecycle evidence is green; early-failing original public120 still receives no downstream lifecycle credit.
+* **Reverse-sorter red indicates new width regression:** fresh name-filtered advanced command (proc-8a0745370eb4) exits1:1/1 fails. Unchanged typed-row assertions pass before peer sorter assertion. Reread pinned vdbe.c5495–5546 and where.c5265–5295: NUMERIC copy conversion and ONEROW ordering branches retain the concrete existing diagnoses. Prior independent native forced SORT0/control SORT1 remains applicable to unchanged SQL/fixtures. Editing this peer expectation without disposition is outside this brief, not an excuse to fabricate sorting.
+
+`git diff --check` exits0. Fresh focused/sorter/width log SHA256 respectively `9729ba2a8e3cd27a9ec3dec47e77183289e8323e51414c3b58797426c8ba1952`, `8881955b917e7575fd483dc0858ca7a75663f7007c3d4cfc96811af3c1c5672f`, `a3c63b9e0b914f8eb876e2b6251aece168521f54aac5b5bb8d757cee131c31dd`. Source read and sorter process output: work:///cards/card-s-e-c/processes/proc-8a0745370eb4/stdout.log (partial inline; complete source/test details also retained in work artifacts).
+
+Parent [[card:card-s-e]]: route SeekRowid copy-affinity and joined/WR lowering to existing semantic owners; obtain peer disposition of sorter expectation; obtain independent component/system reviews of [[card:card-s-e-b]], then rerun public120/aggregate and retained lifecycle assertions. SeekRowid is a prerequisite, not established sole join cause. No new owning width defect established here; reopen b only upon concrete width-owner evidence. No test repair delivered, no complete acceptance, no waiver, no change to STAT4/noSkipScan, advanced24/30 or analyzeC0/24. Remaining uncertainty and exact SQL/source/acquisition gaps are preserved below.
+
+## Residual routing to parent (unwaived)
+
+1. **SeekRowid NUMERIC copy affinity:** `SELECT a FROM t WHERE id=?1 LIMIT 4`; isolated109/120 fail using required JS-number (REAL) bindings. Pinned vdbe.c5495 copies operand, NUMERIC-coerces losslessly before cursor access; TS SeekRowid rejects noninteger immediately. Existing HEAD branch has same rejection. No BigInt-bind workaround accepted. Existing semantic owner via parent/root, not reopen width for this unchanged executor gap.
+2. **Joined/root lowering/execution:** `SELECT x.id,y.c FROM t AS x CROSS JOIN t AS y WHERE x.id=?1 AND y.a=x.a ORDER BY y.id LIMIT 4` and `SELECT x.id,y.a FROM t x CROSS JOIN t y INDEXED BY ta WHERE x.id=?1 AND y.a=x.a LIMIT 4`. Each isolated120 fails; original public120 encounters same empty-versus-native-nonempty first. SeekRowid/control flow is an identified prerequisite, not proof it is the sole join defect. Existing b HEAD comparison0/360 versus current11/360 is reused historical evidence, not a fresh independent baseline run. Need semantic owner repair and fresh public retained lifecycle run; no SQL-specific patch here.
+3. **Joined WR storage admission:** `SELECT x.a,y.b,hex(y.c) FROM w x CROSS JOIN w y NOT INDEXED WHERE y.a=x.a ORDER BY x.a,y.b`. Native nonempty `[A,2,00],[é,1,FF]`; three current unsupported compileInnerTableSelect storage fences. HEAD fence comparison reused from b; current failure independently confirmed. select.c/expr.c joined column/storage lowering owner must review; ordinary WR green does not cover this.
+4. **Peer assertion/source-order conflict:** `SELECT y.b FROM m x JOIN m y INDEXED BY m_abc ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC` (NOT INDEXED control). Current typed3,2,1 passes before sorter>=3 assertion fails. Independent native forced0/scan1 confirms contradiction. where.c5273 ONEROW ordering/source proof belongs to current ordering owner; parent route peer test disposition, do not invent sorter or weaken public results. This extra affected failure is not part of472.
+
+No currently failing node in the commands above is ENOENT. R2 and Chinook were reacquired by b, but are not automatically available in this card's work root: routes remain `capture-where-order-consumption.py --library ... --output-dir "$SAIVAGE_CARD_WORK_ROOT/r2-native"` and hash-validated URL in test/fixtures/public/chinook.json → `$SAIVAGE_CARD_WORK_ROOT/chinook-fixture/Chinook_Sqlite.sqlite` (1,007,616 bytes/SHA7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15). Those suites were not run here; absence is not a product failure or waiver. Broader cancellation/deadline/offpath/resource census and independent component/system reviews remain gaps. STAT4/noSkipScan/optimizer residuals, advanced24/30 and analyzeC0/24 exact-port credit remain unchanged. No parent-complete acceptance claim.

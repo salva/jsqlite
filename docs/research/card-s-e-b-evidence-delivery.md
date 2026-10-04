@@ -1,0 +1,15 @@
+# Original width evidence delivery — [[card:card-s-e-b]]
+
+2026-10-04. Coherent scoped evidence promotion on committed integrated source644cbcd/tree7669377, ancestrybc601/468506/c494. Runtime belongs that corrected source; historical ACK union remains historical. No source rewrite or joined reimplementation. Independent c18/d31 support original bounded width/tested lifecycle, not parent/product approval.
+
+## Exact ownership/closure
+
+`card-s-e-c-committed-width-inventory.json` enumerates297 paths,25,163,060 bytes:39 tests/32 generators/33 case JSON/193 fixture DBs;5 already tracked,292 remaining. All297 byte/hash entries verified before delivery. `card-s-e-d-committed-evidence-closure.json` names15 committed dependencies, independently verified unchanged. Literal imports/case fixture linkage plus runnable exact export establish this corpus; arbitrary future dynamic generator replay is not certified. Manifest-pinned native library is a development input, never product runtime. Generators, JSON and fixture bytes are promoted together, not cherry-picked expectations; original native rows/metadata remain unchanged. Historical a proposal/source pin/b implementation/c integration/d review provenance is retained by14 individually named research records in `card-s-e-b-evidence-delivery.json`, not a314 research sweep.
+
+Fresh export uses git archive of exact source HEAD plus only297 inventory paths. Typecheck0; original240/240; all row-width suites plus joined/storage/stat corruption/private state/HTTP closure2034/2034,zero skips/cancels. Counts overlap; not additive. Read-only `capture-row-width.py --library <unchanged manifest-pinned library>` without regeneration verifies120 snapshots/8,785,920 bytes exactly. Fresh commands/log hashes in delivery JSON. Reused independent c/d unchanged-source affected76 including Chinook B4 INTEGER1984/reset/admission,stability37/downstream93/R2 public63;all8 c command logs independently hash verified. No new B4 run or native build claim; sole B4 causation unproved, historical cancelled/zero baselines retain no causal credit.
+
+Guide/map/audit append current revision superseding ambiguous mixed/payloadIndex prose while preserving chronology. API evidence pointer only; public scope unchanged. Corrected joined storage field is physicalColumnIndex; aggregate payloadIndex/iAgg retains semantic ownership. Native-FIRST deviation remains truthful and technically disposed by joined parent, not relabeled. Advanced24/30,analyzeC0/24,STAT4 unsupported,noSkipScan unconsumed,OR/skipscan/fences and broader metadata/arbitrary encoding/resource limitations remain.
+
+## Integration discipline
+
+Candidate/export contains explicit297 corpus,14 named provenance records,delivery report/JSON and four narrowly appended documentation closures. No current dirty source/peer tests/cache/bitwise files staged. Existing index was empty. Export/commit identity is recorded in current card status and handoff; inventory remains independently reviewable against source parent. c/d may verify the resulting evidence tree. Promotion is evidence delivery, not universal optimizer or parent acceptance.

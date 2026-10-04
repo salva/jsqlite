@@ -1,0 +1,347 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "cases": [
+        {
+          "sql": "PRAGMA index_xinfo(sqlite_autoindex_q_1)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "1"
+            ],
+            [
+              "2",
+              "2",
+              "c",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(same)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(different)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "binary",
+              "1"
+            ],
+            [
+              "1",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "0"
+            ],
+            [
+              "2",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "SELECT a,b,c FROM q",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no such collation sequence: custom"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY same",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY different",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "cases": [
+        {
+          "sql": "PRAGMA index_xinfo(sqlite_autoindex_q_1)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "1"
+            ],
+            [
+              "2",
+              "2",
+              "c",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(same)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(different)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "binary",
+              "1"
+            ],
+            [
+              "1",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "0"
+            ],
+            [
+              "2",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "SELECT a,b,c FROM q",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no such collation sequence: custom"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY same",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY different",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "cases": [
+        {
+          "sql": "PRAGMA index_xinfo(sqlite_autoindex_q_1)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "1"
+            ],
+            [
+              "2",
+              "2",
+              "c",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(same)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "custom",
+              "1"
+            ],
+            [
+              "1",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "PRAGMA index_xinfo(different)",
+          "prepare": 0,
+          "step": 101,
+          "rows": [
+            [
+              "0",
+              "0",
+              "a",
+              "0",
+              "binary",
+              "1"
+            ],
+            [
+              "1",
+              "0",
+              "a",
+              "1",
+              "custom",
+              "0"
+            ],
+            [
+              "2",
+              "1",
+              "b",
+              "0",
+              "BINARY",
+              "0"
+            ]
+          ],
+          "message": "no more rows available"
+        },
+        {
+          "sql": "SELECT a,b,c FROM q",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no such collation sequence: custom"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY same",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        },
+        {
+          "sql": "SELECT a FROM q INDEXED BY different",
+          "prepare": 1,
+          "step": null,
+          "rows": [],
+          "message": "no query solution"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-collation-utf-8.db",
+      "sha256": "40230ba6a8e15779ceef563f3ffe3e2176b2f008b80a76a86ccc76240ebf6c50",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1 1"
+        ]
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "1",
+          "payload"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-collation-utf-16le.db",
+      "sha256": "52b029a3a5b7d1fba5641d988568bace7be28dc2d1450390f7a515714bfb70ba",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1 1"
+        ]
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "1",
+          "payload"
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-collation-utf-16be.db",
+      "sha256": "d85e73f7e5120fac30222f663a327434b8c0b39ca77b6e3cd5608582fd8d3f75",
+      "stat": [
+        [
+          "w",
+          "wc",
+          "2 1 1"
+        ],
+        [
+          "w",
+          "w",
+          "2 1 1 1"
+        ]
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "1",
+          "payload"
+        ]
+      ]
+    }
+  ]
+}

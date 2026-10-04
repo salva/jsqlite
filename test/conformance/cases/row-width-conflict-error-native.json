@@ -1,0 +1,26 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-conflict-error-utf-8.db",
+      "sha256": "e4c803e544044560403d9fd926d211904f6562711541cd29bbebbc4e97ce9251",
+      "code": 11,
+      "message": "malformed database schema (p) - conflicting ON CONFLICT clauses specified"
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-conflict-error-utf-16le.db",
+      "sha256": "a0a63b40d0a4b86a538375ea3c337d5cb581629f1c09bc759bf0d15b27482210",
+      "code": 11,
+      "message": "malformed database schema (p) - conflicting ON CONFLICT clauses specified"
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-conflict-error-utf-16be.db",
+      "sha256": "540f1ab8768a845cf70d4d50e30aa967501193395424ae8fe5275ee0345ac3ca",
+      "code": 11,
+      "message": "malformed database schema (p) - conflicting ON CONFLICT clauses specified"
+    }
+  ]
+}

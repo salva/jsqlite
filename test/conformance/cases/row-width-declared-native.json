@@ -1,0 +1,216 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "ddl": "CREATE TABLE q(id INTEGER PRIMARY KEY, a \"CHAR(0x100)\", b 'BLOB(0x7fffffff)', c [CHAR(0x80000000)], d `CHAR(0x00010)`, e \"CHAR(0x1\"\"f)\", f BLOB(1000), g BLOB (1000), h CHAR(2147483648)); INSERT INTO q VALUES(1,'\u00e9',x'ff00','A','B','C',x'00',x'01','D'); CREATE INDEX qi ON q(a);",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-declared-utf-8.db",
+      "sha256": "447a5d1873050ba96c60ebcdd9cfac361045c1a7db10083bd6812b893efdfa72",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "q",
+          "origin": "id"
+        },
+        {
+          "name": "a",
+          "declaredType": "CHAR(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "a"
+        },
+        {
+          "name": "b",
+          "declaredType": "BLOB(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "b"
+        },
+        {
+          "name": "c",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "CHAR(0x00010)",
+          "database": "main",
+          "table": "q",
+          "origin": "d"
+        },
+        {
+          "name": "e",
+          "declaredType": "CHAR(0x1\"f)",
+          "database": "main",
+          "table": "q",
+          "origin": "e"
+        },
+        {
+          "name": "f",
+          "declaredType": "BLOB(1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "f"
+        },
+        {
+          "name": "g",
+          "declaredType": "BLOB (1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "g"
+        },
+        {
+          "name": "h",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "h"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-declared-utf-16le.db",
+      "sha256": "9fce79da51eb5c6a510cf2bdde62ab5756e17514882c7685f97dd0bd384ee12f",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "q",
+          "origin": "id"
+        },
+        {
+          "name": "a",
+          "declaredType": "CHAR(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "a"
+        },
+        {
+          "name": "b",
+          "declaredType": "BLOB(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "b"
+        },
+        {
+          "name": "c",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "CHAR(0x00010)",
+          "database": "main",
+          "table": "q",
+          "origin": "d"
+        },
+        {
+          "name": "e",
+          "declaredType": "CHAR(0x1\"f)",
+          "database": "main",
+          "table": "q",
+          "origin": "e"
+        },
+        {
+          "name": "f",
+          "declaredType": "BLOB(1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "f"
+        },
+        {
+          "name": "g",
+          "declaredType": "BLOB (1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "g"
+        },
+        {
+          "name": "h",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "h"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-declared-utf-16be.db",
+      "sha256": "585eee0f6915c0287f53322cb0e4e1061682aabc8a1e103a974717569b7463b6",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "q",
+          "origin": "id"
+        },
+        {
+          "name": "a",
+          "declaredType": "CHAR(0x100)",
+          "database": "main",
+          "table": "q",
+          "origin": "a"
+        },
+        {
+          "name": "b",
+          "declaredType": "BLOB(0x7fffffff)",
+          "database": "main",
+          "table": "q",
+          "origin": "b"
+        },
+        {
+          "name": "c",
+          "declaredType": "CHAR(0x80000000)",
+          "database": "main",
+          "table": "q",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "CHAR(0x00010)",
+          "database": "main",
+          "table": "q",
+          "origin": "d"
+        },
+        {
+          "name": "e",
+          "declaredType": "CHAR(0x1\"f)",
+          "database": "main",
+          "table": "q",
+          "origin": "e"
+        },
+        {
+          "name": "f",
+          "declaredType": "BLOB(1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "f"
+        },
+        {
+          "name": "g",
+          "declaredType": "BLOB (1000)",
+          "database": "main",
+          "table": "q",
+          "origin": "g"
+        },
+        {
+          "name": "h",
+          "declaredType": "CHAR(2147483648)",
+          "database": "main",
+          "table": "q",
+          "origin": "h"
+        }
+      ]
+    }
+  ]
+}

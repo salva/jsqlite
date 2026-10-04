@@ -1,0 +1,83 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "id": "utf8",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "hint": "INDEXED BY m_abc",
+      "sql": "SELECT y.b FROM m x JOIN m y INDEXED BY m_abc ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 0,
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b"
+    },
+    {
+      "id": "utf8",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "hint": "NOT INDEXED",
+      "sql": "SELECT y.b FROM m x JOIN m y NOT INDEXED ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 1,
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b"
+    },
+    {
+      "id": "utf16le",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "hint": "INDEXED BY m_abc",
+      "sql": "SELECT y.b FROM m x JOIN m y INDEXED BY m_abc ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 0,
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c"
+    },
+    {
+      "id": "utf16le",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "hint": "NOT INDEXED",
+      "sql": "SELECT y.b FROM m x JOIN m y NOT INDEXED ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 1,
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c"
+    },
+    {
+      "id": "utf16be",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "hint": "INDEXED BY m_abc",
+      "sql": "SELECT y.b FROM m x JOIN m y INDEXED BY m_abc ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 0,
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf"
+    },
+    {
+      "id": "utf16be",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "hint": "NOT INDEXED",
+      "sql": "SELECT y.b FROM m x JOIN m y NOT INDEXED ON y.a=x.a WHERE x.id=2 AND y.b>=1 AND y.b<=3 ORDER BY y.b DESC",
+      "rows": [
+        "3",
+        "2",
+        "1"
+      ],
+      "sort": 1,
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf"
+    }
+  ]
+}

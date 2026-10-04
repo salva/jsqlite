@@ -1,0 +1,1886 @@
+[
+  {
+    "path": "docs/research/card-s-e-c-integration-diagnosis.md",
+    "bytes": 14049,
+    "sha256": "689c6fe51bdeb38c25aa78518f39c3b6a3400d9698db9be2d94d85b797dc21ce",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-d-runtime-review.md",
+    "bytes": 19394,
+    "sha256": "6e0568a6aa5f12f9206e429121b2c3e9a2bd325ac32407c0f59045c825d098fd",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-estimate-census.md",
+    "bytes": 12793,
+    "sha256": "76e738dda236ee3a35e288ea78d1c94d9c422e65c578e9dc15a0f32e3f4cdf2d",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-implementation-review.md",
+    "bytes": 9891,
+    "sha256": "3e4f8ece179f5ef94f92914f7519675897b71c41ff1024ca17887108d3c73dde",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-parent-review-request.md",
+    "bytes": 4267,
+    "sha256": "66111fea9f48915f6260ee10db688b1ee70394b6c8eb71825b6597807d2b759c",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-row-width-inventory.txt",
+    "bytes": 43510,
+    "sha256": "c40ace70b579ac22363a33925f2824e6ba84f9a8d23044e6406f4ed43e1523f7",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/card-s-e-row-width.md",
+    "bytes": 30433,
+    "sha256": "98eb9ffa903a82f755fb52569b8f9f70b05bf915184562058b6e2fa581f3f5f6",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/README.md",
+    "bytes": 5451,
+    "sha256": "8d157ef15e4eada63f221fa1c47bb0e5ec70403bb7c57413ee8ca9c0beb93c45",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/owner-relative.patch",
+    "bytes": 187007,
+    "sha256": "7b48807aa9706c22345f9bbe05d440f495c67e7fcd164a2c0981d60416c89504",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/source-inventory.json",
+    "bytes": 1962,
+    "sha256": "3e3e5eb112f1a0e6880e3d974670be3b2d102576a90b9c07f7b21fa55d274840",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/width-ack-excluded-peer.diff",
+    "bytes": 5108,
+    "sha256": "a8de71033a981b82495e19ed46202394861be4ac165f0a50b3f00288d2b9d59f",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/width-ack-inventory.json",
+    "bytes": 3036,
+    "sha256": "c3c927ab5c7518153c4a77d4e0fd3ea030c33a3719ebb462ddca1f2d7d68f562",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/width-ack-width-joined-union.patch",
+    "bytes": 205823,
+    "sha256": "965b9dc7c502fd1293dbbc9009c03dd916f78f39c7659e166979acfeaa97e32e",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/width-ack-width-prerequisites.patch",
+    "bytes": 173256,
+    "sha256": "de2e76a5b171a1c3e1ea0d73beb3f1a9a558f4e70834d02ca3747be98c681255",
+    "tracked": false
+  },
+  {
+    "path": "docs/research/joined-wr-delivery/width-owner-ack.md",
+    "bytes": 5548,
+    "sha256": "f9f813019e46a0b89f7da87cbbb28ff638e3b35c547cc6b1229ad8a69426e97a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-autoindex.py",
+    "bytes": 2234,
+    "sha256": "154f15f83e7da2c4a3952f4718d73a5ec1c432d466fe5ca8cf592cebaa4143ce",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-callback.py",
+    "bytes": 2395,
+    "sha256": "d82ea31de3b7558a73ef3c35a10a507daac2a75d601051623b0752516665d369",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-conflict-error.py",
+    "bytes": 2042,
+    "sha256": "962a2c679bcba182ffcafa460b561cce1827205165b0ed3cf0a6d4ac7cdab975",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-conflict-promotion.py",
+    "bytes": 2500,
+    "sha256": "a8f97a75bcccc81c17d409e0ebeeb61aeca8c892f5035ccc607824c005ee9559",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-conflict-wr-explicit.py",
+    "bytes": 2543,
+    "sha256": "1f0ca1b858a1bed9aba249e51e6c530bfd0419a4a08deacf0b30885f11c60c45",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-conflict.py",
+    "bytes": 2451,
+    "sha256": "696ba5265fbe4174281f062669fa6c054f64b249dc763f416968274bf480bd76",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-cost-branches.py",
+    "bytes": 2066,
+    "sha256": "78980da83e018fc14508b3e76327cc97abac2bb9528497faa620de6177aea450",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-declared-bytes.py",
+    "bytes": 2068,
+    "sha256": "ac1066bf23b2b8e6123de2cc323cc6f8c84c8439269943cb3b9283a64bdc805b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-declared-controls.py",
+    "bytes": 2547,
+    "sha256": "0f54c413ccf09e8b27dd8ba111074a8516cdcbdc2e060ffd5e30f80f157ec825",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-declared-utf16.py",
+    "bytes": 2561,
+    "sha256": "d189480cdbec433322359aee9c1a72ee2ad4a01a1af6ec200567d9223f40c388",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-declared.py",
+    "bytes": 2277,
+    "sha256": "5ec1d0bf411af0d8a893112f9f56311b3f7e2a75e55403c7eb6e74c1a28512d5",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-insertion-tie.py",
+    "bytes": 1927,
+    "sha256": "8113206025d8e58ab653ab5d5a5036984fe9baeb5bbbcdb043cbdcafef9a3305",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-invalid-utf16.py",
+    "bytes": 3029,
+    "sha256": "061b22dc38819dee15f4268804523ecb04ede4099e7b6c8afe6142c4874d0e6b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-invalid.py",
+    "bytes": 3063,
+    "sha256": "35ee71656f6762531782718a8531e2412c43adaa512c6cdff9e09b31d08bfef5",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-ipk.py",
+    "bytes": 2051,
+    "sha256": "e85e5fcd63baaf15e26daa898a69d29128c32b1dd118a8dd3b4187f0698a480d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-left-in-reset.py",
+    "bytes": 2110,
+    "sha256": "6120ea9489ce9f3917fd853616aba433c7ce110cd4ea9fa4137426be6f29e3e3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-left-in-transitions.py",
+    "bytes": 2155,
+    "sha256": "19cae8d84ad34c54c4a56c59034d8c764cc469f7c77b3dadaa04d99890cebf3f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-merged-pk.py",
+    "bytes": 2487,
+    "sha256": "a25a2927a828b6dae3ff7cf1c7f50848e9e66388e1aace210936fe31af33fd7d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-real-metadata.py",
+    "bytes": 2873,
+    "sha256": "8bc2f2491ac35cf8844872800b3a8332defa0e99f22383d756bc5983da3c3ba1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-reverse-order.py",
+    "bytes": 1772,
+    "sha256": "b919af9179e7772a71fe4d800733f6281f45c21fb11bb2d450e52fea027c71e1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-rowid-promotion.py",
+    "bytes": 2485,
+    "sha256": "eda5f322a490abcde9a63077cf0a3ccc4ea34960746f2f8343d33b22392b4f06",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-singleton-order.py",
+    "bytes": 1820,
+    "sha256": "b0cff8ad7716fe3ff5042792eb4a689716a24305da4a898d10d0b446ea5a6ed6",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-unsupported-collation.py",
+    "bytes": 1097,
+    "sha256": "a3ea5c698a3056c554d13c05f43215d346e36659f190bf2ecff96255e8e3277f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-utf16.py",
+    "bytes": 1773,
+    "sha256": "3946b45de9114d95f22a518f42d6aee55633dcea6e1a4914af6d2cb811914187",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-autoindex.py",
+    "bytes": 2254,
+    "sha256": "f9336d23c275621f5130db224df37150c434877397c17e760f2d0dfd7aa5b5d8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-collation.py",
+    "bytes": 2124,
+    "sha256": "13ee5dd8496c98ec756d98f6eb746aaebd8c686c1f20a448f8227e7d9271f9cc",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-duplicate.py",
+    "bytes": 1996,
+    "sha256": "85f5c077ee902d268e5f54d391ed821d4c41e3543dd37a6d66b33a71013a16d2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-ipk-controls.py",
+    "bytes": 2710,
+    "sha256": "97cbc707737b81b83233e3b0a8e466af3b5027e35f6cc3264af7f089c370f28a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-ipk.py",
+    "bytes": 2427,
+    "sha256": "77464dfdddd00e55b007dd9dda8b1e551bcbd47dba2dd8d044c2dbeaf7165f99",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-joined.py",
+    "bytes": 1575,
+    "sha256": "595145c4690dad613774d71c4a957df379fb8b0b710fcb58a1be96f783a096b8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width-wr-unknown-collation.py",
+    "bytes": 1119,
+    "sha256": "c0aec179274a79e027aad0d35210673c978ce42908654f05b057f1f56980f795",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/capture-row-width.py",
+    "bytes": 8785,
+    "sha256": "afd8092323a0b2cb7cc981635faddbf03c6b11c83507205302dc2780f58e5ce2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-autoindex-native.json",
+    "bytes": 1547,
+    "sha256": "ef4f846c80a0494e520261a788ad55f4823791807be3f933a8dd05d446822037",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-callback-native.json",
+    "bytes": 1127,
+    "sha256": "41eb3be6bbeda8cf019f5f503b5fbcbb81087917de1fc286a97dae5fbd43cc8e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-conflict-error-native.json",
+    "bytes": 1082,
+    "sha256": "ad663dffd8b24a9cc50b72205c293228f3f55b382804375344dd7557c10c18fd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-conflict-native.json",
+    "bytes": 1922,
+    "sha256": "59e23d95d241fe2c960b23263d2dc9a51d4962eb5f2009444038338d8cdb1601",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-conflict-promotion-native.json",
+    "bytes": 1856,
+    "sha256": "6afa1be9b91f07a653f8d55777f66c62647929a8c081c15c00fba7d327f19d20",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-conflict-wr-explicit-native.json",
+    "bytes": 1859,
+    "sha256": "06233d2da7a4a0850ac1e6969636e6a5962b6d92864f47dc058f77deba306c94",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-cost-branches.json",
+    "bytes": 33053,
+    "sha256": "3343a4da6577976bbfbdc51713fa5bd23abe1b4510479b1c6daf11a43308b8c4",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-declared-bytes-native.json",
+    "bytes": 917,
+    "sha256": "dcc3661060399a66e536b0d495977f0bc259792a1d833b023d1d7cad49243029",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-declared-controls-native.json",
+    "bytes": 11783,
+    "sha256": "bfd34405ddde03c65c398dabae0d2dc697d20ca7b87794ac3c4ce7a7fb6ecbb8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-declared-native.json",
+    "bytes": 5558,
+    "sha256": "05d7c751ffa579808ad0daa56c9caaf369723a93833d5624b2f61a79f8a3c554",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-declared-utf16-native.json",
+    "bytes": 1128,
+    "sha256": "0dddbbbee1e263c5277d51c1f04667db98a1a8666a2dc375f7ce927c9ee15292",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-insertion-tie-native.json",
+    "bytes": 6622,
+    "sha256": "d638aecfce87d10b7231b5933d664e220a864c2ac5a072dc2dfe5d72b4ff2936",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-invalid-native.json",
+    "bytes": 1910,
+    "sha256": "171b04ffc88958bd07d44be66ca4de91930a6506b588f5a16cb9897ff93b7c1f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-invalid-utf16-native.json",
+    "bytes": 1311,
+    "sha256": "471be9e6ad5bbbbb1a000cec52eab6db4677a65768c26de4f1cc6e700c61086d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-ipk-native.json",
+    "bytes": 1925,
+    "sha256": "5afbee830bfd77ecfccef84f08f807e5c4c8f47986dd1f7a93eab9e5108ad2bd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-left-in-reset-native.json",
+    "bytes": 11484,
+    "sha256": "cf1f7e7233b62d7ffd40aa97e38b98f1dfd4f5e30acab53eca326bc65803adf3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-left-in-transitions-native.json",
+    "bytes": 20933,
+    "sha256": "bdb545baac636e60874ce28939c2471a15f57828b2f8d0c178799f2020fabcc3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-merged-pk-native.json",
+    "bytes": 1691,
+    "sha256": "4a3ad7b0dfff6b749f94c71a0f393de0ab0a6b6c6198298d3ae109df240dfc6b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-native.json",
+    "bytes": 14737868,
+    "sha256": "4ad0e43f934f8fa4c2e3a2f56d443e0cd8a88a890adbb3e737794d2a6777a115",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-real-metadata-native.json",
+    "bytes": 4037,
+    "sha256": "30695096cd27170e0bead123bbbe0fd4a04b3576b8689aba24a625039be12a98",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-reverse-order-native.json",
+    "bytes": 2669,
+    "sha256": "e8e813d55f58864381b0184310ab8ff223ebab782781ad9353ee971db230af31",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-rowid-promotion-native.json",
+    "bytes": 1721,
+    "sha256": "d32aa5789304fc2d690c48134e8e2ad49eebd282cbcec58faa639aba03dba44a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-singleton-order.json",
+    "bytes": 3572,
+    "sha256": "030617f42c0813c421ddf228c6ff993cf1503144b2aeb18840a49460553d65e8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-unsupported-collation.json",
+    "bytes": 578,
+    "sha256": "4cbf05b54e7fa5f7a0b2cbdfed1fe2d4a55c50cd5823807d82da5f5c8e0e160f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-utf16-native.json",
+    "bytes": 1246,
+    "sha256": "2b0f1d3511999a4567c7c131a92356832899dcc1aeb0f892c4a9fc04bd39b780",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-autoindex-native.json",
+    "bytes": 1556,
+    "sha256": "9614f4cae03a5b71b6608ee692112aa80da5208faa7ded757c87cfa3acb2a621",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-collation-native.json",
+    "bytes": 1547,
+    "sha256": "36ba07e5b2f1bfea27fb782491d33558600c06cf78b8ee9c3fd23531a1a3ba93",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-duplicate-native.json",
+    "bytes": 1223,
+    "sha256": "e692fc34f25a616d187df35eac3de6b884112593a74a7d663ff8fc64bef4677f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-ipk-controls-native.json",
+    "bytes": 5693,
+    "sha256": "ab106c34439b17b67a0c2f88704cfee2744f52063a988997056f8634cac67c5f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-ipk-native.json",
+    "bytes": 1856,
+    "sha256": "db92f030d09fbbe451e011928aaec96e16fa5b4b535c23baa8d1dcf580d390c5",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-joined-native.json",
+    "bytes": 1809,
+    "sha256": "b4b9f989586f2bd2ccdcf9653f15f85bd9e054403ccc3b86e050e14d2532e62c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-unknown-collation.json",
+    "bytes": 797,
+    "sha256": "0fcb4d4b9138e29f721dd961f30bf657aa0d415562f6950ceb4f1bf5b6935aba",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/cases/row-width-wr-unknown-native.json",
+    "bytes": 7319,
+    "sha256": "3e338299d34d5b6b67eb19bfe6914d856ba3c88a70f9bab5fcbd55aacc63a08f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/check-row-width-unsupported-collation-native.py",
+    "bytes": 903,
+    "sha256": "a807d0927fc0c944a175b754a10715064e6a434a95b42d9a7b5e30841daa0f11",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/check-row-width-wr-unknown-native.py",
+    "bytes": 1472,
+    "sha256": "f1deacc79978485df0381aa925b2e4ea1f4cc6f96e6f2af584518018d5695317",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-autoindex-utf-16be.db",
+    "bytes": 24576,
+    "sha256": "704e8dc585943583bc47fae524fabae6aa7305f83f0c786aa1cbb98ba75c0608",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-autoindex-utf-16le.db",
+    "bytes": 24576,
+    "sha256": "3b90919a45ab7dadd23ca154ad624fb95cc722ad048ac4c9ca298549927a1542",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-autoindex-utf-8.db",
+    "bytes": 24576,
+    "sha256": "d46ebad34b158ac66376a39c7c17fb324e4fc890b3901e7ab3b990549b18ac1b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-callback-utf-16be.db",
+    "bytes": 24576,
+    "sha256": "442809b458a204e6fded719cf8cee0b128d1c63b523a6104b196bda32120bea4",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-callback-utf-16le.db",
+    "bytes": 24576,
+    "sha256": "56d359729dd1db817d76592ee7bdc2d3d3dafb3eb3bf47d03b3ea52ff19349bd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-callback-utf-8.db",
+    "bytes": 24576,
+    "sha256": "7fe249db07de7639ff5482853fc222a4488d628e1f95fc1ee139535da4c3ec97",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-error-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "540f1ab8768a845cf70d4d50e30aa967501193395424ae8fe5275ee0345ac3ca",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-error-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "a0a63b40d0a4b86a538375ea3c337d5cb581629f1c09bc759bf0d15b27482210",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-error-utf-8.db",
+    "bytes": 12288,
+    "sha256": "e4c803e544044560403d9fd926d211904f6562711541cd29bbebbc4e97ce9251",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-promotion-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "4332820fbd43c630ce5d75aadc4e9863912504881457b0265ffa51738b172fbe",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-promotion-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "f5cb3c3e700daed2a15045940396184076fde3756ac537143563a9836fbdd3d2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-promotion-utf-8.db",
+    "bytes": 20480,
+    "sha256": "838033ab83f624558315b21b12c64c7d41424733c15aeb4c96143d8596d36244",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-utf-16be.db",
+    "bytes": 24576,
+    "sha256": "95dfdca689040cb12295962c82a7bcca457cc30277cba33afbc9b07d1d401e7a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-utf-16le.db",
+    "bytes": 24576,
+    "sha256": "137d4d48607d1e8557fa3ec2efb0bfc94125e78c77291715300401571f836b72",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-utf-8.db",
+    "bytes": 24576,
+    "sha256": "af2c0442fd3353408dfd7b0b218f0deaf7a398848027feeac13b22d9fc6c7b97",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-wr-explicit-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "3fe4a49d2c6a9519e7b872637c8020ce5225abb57f25df73bdfabd127646d681",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-wr-explicit-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "b5c883e9e60399ab3ed49e0ebd5e90e1e00283aaf3d51c8fc57fbd89d10318e6",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-conflict-wr-explicit-utf-8.db",
+    "bytes": 20480,
+    "sha256": "687353e83641c275c22acce4ed5cd98f9a51ca4354144bdf5ef3fad82150ba96",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-bytes-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "ce6e0f0bafbba60f36136fe2c52f845fb9d1cf2c2a53848cc00fbac563039d67",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-bytes-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "b0ab2b63fc73ee3dbdfd588a83558dd0e59d7fc497ba29bfed57e03f345b816d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-bytes-utf-8.db",
+    "bytes": 12288,
+    "sha256": "032ee3407419aff0da2c2bf0d1c3375a1cc7c692addfeee46dfb3d17ce10f9a1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-controls-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "2b6d485f6e399600ae06ca7c05059457563349fda7cd84462091c17a2c5f5858",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-controls-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "1ce96dbb89472d7b5ef8f0ae2cade488400d740dc7e6a8b948cfba23c6c13677",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-controls-utf-8.db",
+    "bytes": 12288,
+    "sha256": "4319674a1372efd9f5136ee737aa75273e11c2618520ed8d1c0b5f009462015f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "585eee0f6915c0287f53322cb0e4e1061682aabc8a1e103a974717569b7463b6",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "9fce79da51eb5c6a510cf2bdde62ab5756e17514882c7685f97dd0bd384ee12f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-utf-8.db",
+    "bytes": 12288,
+    "sha256": "447a5d1873050ba96c60ebcdd9cfac361045c1a7db10083bd6812b893efdfa72",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-utf16-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "7d0ce76ba5d3c63d02547cd879577caba0d5173f9d5ee77913596ac01f51ee00",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-declared-utf16-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "e6af964823984ba44e158846522d57fa1ff813ef0d62dc5a87586d5a4eb76094",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-invalid-utf-16be.db",
+    "bytes": 24576,
+    "sha256": "80d72ac6b0ded91625e8e9824459f9b86b78d36a298fbd34ea81cbc1c119f29a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-invalid-utf-16le.db",
+    "bytes": 24576,
+    "sha256": "a280d8c75a3209a1a928c2240e88161fce70a7b43623f26813a57eef4899ec18",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-invalid-utf-8.db",
+    "bytes": 24576,
+    "sha256": "5fbfc83690ad49da9079663024c5a32de7725e9024ae1f3fec41791bf63c31fb",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-invalid-utf16-utf-16be.db",
+    "bytes": 24576,
+    "sha256": "d51e79fdb00dd4141627d0505cd22f14893e10036d2189c56aeddc28d4268159",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-invalid-utf16-utf-16le.db",
+    "bytes": 24576,
+    "sha256": "5fce59871a8295b31e51ad7070a0a340fc8a1da1827dc1d87478c986edd0ba53",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-ipk-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "125b770306a08b19fb9d594632334351dd3c7111bee11c20c09d1fa91d5bf731",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-ipk-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "85d8ae0ecb9698e68dcb2aad884abd7b50e07b120cd649b308efce38d4ea459f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-ipk-utf-8.db",
+    "bytes": 20480,
+    "sha256": "9527a47d94186f0f17bca9a1e7421b3dfa82b167f939973c18de0d0650bc5f4a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-merged-pk-utf-16be.db",
+    "bytes": 12288,
+    "sha256": "8358ac6dfec4d6dda5e44235d936c23e244b96717777a55c98b6de1e71a0d149",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-merged-pk-utf-16le.db",
+    "bytes": 12288,
+    "sha256": "e59c5576a482a1b0fb25706b67c2ac816d6f63992ec64b0bbd2146c4033ba63a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-merged-pk-utf-8.db",
+    "bytes": 12288,
+    "sha256": "95d30cd74b20351f52a9ba526c2cecd70482884c4239358840f2406000df9569",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-real-metadata-utf-16be.db",
+    "bytes": 16384,
+    "sha256": "d783953600c6771509070092fc0292cbeac4adfe98be2324625149eae97846f1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-real-metadata-utf-16le.db",
+    "bytes": 16384,
+    "sha256": "8fafe2fd228ee0b7f40aa84167a53be59c9b1fb6a2d00fc81a50717c5e078c0c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-real-metadata-utf-8.db",
+    "bytes": 16384,
+    "sha256": "076068883948a20f1dc2489c46d89ce77e6de2afb3049b325f2980070e3975cd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-rowid-promotion-utf-16be.db",
+    "bytes": 16384,
+    "sha256": "2f47fe5373ea050b36fd444500f3041c29f9806e98c6288689fa4d2afc22fc47",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-rowid-promotion-utf-16le.db",
+    "bytes": 16384,
+    "sha256": "f138fe5b067f0f51465edb8904335b1a1e4f8830f27134cc934ece6b69267595",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-rowid-promotion-utf-8.db",
+    "bytes": 16384,
+    "sha256": "b929517101880c5b7ded817595fc66b383cfd35e38821d29633678e34547e06f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-unsupported-collation-utf16be.db",
+    "bytes": 12288,
+    "sha256": "01a9c7cc7d3e77f8740d1a94e76a503ba250562417bf54ad064fb2b7d493bc22",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-unsupported-collation-utf16le.db",
+    "bytes": 12288,
+    "sha256": "61c40c8db059c8e50f3dd5692bc98c7885784c308fb8b91aeb2b78f8aa253a4d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-unsupported-collation-utf8.db",
+    "bytes": 12288,
+    "sha256": "ef4ece71e6a16d8365bb44d6d1e744f8b0f1158fad2cf3128c4d949a872d450b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-after.db",
+    "bytes": 77824,
+    "sha256": "3cc413dae55cdcb0d260a34682fd0d1d047af18a8feddcf41cc2c15dbeed9309",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-before.db",
+    "bytes": 73728,
+    "sha256": "3da8bd14b3f33ce71057cdb34d40c8adbfec0e9f4ac9fd8613bfd81ad9fc960e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-blob-names.db",
+    "bytes": 77824,
+    "sha256": "9004f07d4175f71f5d7851e1be659cf8e98fd63b91951f4fdf7740f01c1f161b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-blob-stat.db",
+    "bytes": 77824,
+    "sha256": "a7dd4d370b9f656f4920d27ce12eb9a5947a79d14489ce82bfd78dd0ebfc3e92",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-clamp.db",
+    "bytes": 77824,
+    "sha256": "95794c66f1ac65345d5004d14d995d4d6765543513225356b5f36e983a14822a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-cross-partial.db",
+    "bytes": 81920,
+    "sha256": "87b6bbbdff57b647b00c7ee088e78598dcdb63f5fbade4ab8bb3668565157036",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-cross.db",
+    "bytes": 77824,
+    "sha256": "57e377596bf906b4b63c832c6759a75af6d8fbda3ba8661fdd950c39be4d0455",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-duplicate-reversed.db",
+    "bytes": 77824,
+    "sha256": "e083e38960b642a2e61ad488d23919dfd615eba6270ed4df86c74f4030b65554",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-duplicate.db",
+    "bytes": 77824,
+    "sha256": "3207af8fe02a328b8042cfb5c00387dc6e132e2d172d5e20aecf664824311070",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-long.db",
+    "bytes": 77824,
+    "sha256": "0463ec2c8a36e6925123b3066122da0fc449e796489052f9e5bd86257854c66a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-max.db",
+    "bytes": 77824,
+    "sha256": "bc2854c77a80772e90f43955923a8566be040babf6673664c2b664555cd4d66d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-negative.db",
+    "bytes": 77824,
+    "sha256": "acd0339bc89bd91e2ca3e10b8a7ea1bb216d9e83cf09152aa8c7c72b709f125f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-overflow.db",
+    "bytes": 77824,
+    "sha256": "9ff9f5b8c616d714eb48b4a11c4902461d8d2b4a8ebc783aaa14840c6a793223",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-signed.db",
+    "bytes": 77824,
+    "sha256": "baafad72692e3fbaa11eee5e2ad9779d498ef690bcc6b4e4b7943f25c4e21c9b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-upper.db",
+    "bytes": 77824,
+    "sha256": "aaaf3f378a11c73549e12c6c8bbd0df64bf6130b2c4017d1b56435fd3610dfa3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex-zero.db",
+    "bytes": 77824,
+    "sha256": "6218e879c7ecbef39b597573596dcc01174ea2de5d05a5c0ef65116a6f87265f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-hex.db",
+    "bytes": 77824,
+    "sha256": "d372908498e22e20706b3e349feac861ff77b5b34de050558b1ba2b62396238b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-integer-stat.db",
+    "bytes": 77824,
+    "sha256": "9da7683bb67ea7463cb01db7afc2a537d971c836f5955b3023ba5f55d3c832d3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-max-int.db",
+    "bytes": 77824,
+    "sha256": "dd8b60c2646a9607c75d340acfd35f2eeac517b52eead50b5c17a2032d92c715",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-negative.db",
+    "bytes": 77824,
+    "sha256": "f791b581397a6d42594d474c7dd60af37e166fca5819e90c1567ab57f9f88bf2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-null-stat.db",
+    "bytes": 77824,
+    "sha256": "f3de33f934d46a5d01a247f444533032c53b4fa2821828a9c4a4230bcea445e9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-null-table.db",
+    "bytes": 77824,
+    "sha256": "e670d43fcc475cc3076f3cea204a12e04d01a819ccf2c4949f86df933ec57e4c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-overflow.db",
+    "bytes": 77824,
+    "sha256": "fd9103efcfb87e85a84761c2abf22db9712d6b77469a118eb988677310e49ead",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-real-stat.db",
+    "bytes": 77824,
+    "sha256": "5ba9c1e6f3571e1a085ef58764d6d0a4390a65497ded1bfa8a2cd81bb3306813",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-scan-equal.db",
+    "bytes": 73728,
+    "sha256": "0e3235b0ad25796a809e913d96030a64d4bb6bc4c9809f816d5ba85d1ffe9d69",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-scan-larger.db",
+    "bytes": 73728,
+    "sha256": "989bcabdcf940cad4739ebf5eaf9cf13af943c3aff0337ac1dce9534e891cb61",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-small-a.db",
+    "bytes": 77824,
+    "sha256": "0951e9b7b5a947a3c97425539ff060449accd4be4019fd211c9c54ec8c3cd820",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-small-b.db",
+    "bytes": 77824,
+    "sha256": "266519f0a1d60debefb8284333a5fda00a9a94ab960622f6d34d4be7c5a46f71",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-spaces.db",
+    "bytes": 77824,
+    "sha256": "7bb0438363d59526f67ea44d76371b2ce7da46c042fc4429a36c6a1a2cc2d3e2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-tab.db",
+    "bytes": 77824,
+    "sha256": "c4cbd04eec8a4028360975b44ee8582eafea6011611d24dba4da17ee9f3e4a68",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-table-only-high.db",
+    "bytes": 77824,
+    "sha256": "f2bba815c9ce97b43ea7ecf5c615e82492fa7a8ffd44353b698de1b485e907be",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-table-only-low.db",
+    "bytes": 77824,
+    "sha256": "0d64603e3b9f92a99c3d6ed2cd3fc2ab8c0f8feadfed7180479504d5ad74cf58",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-tie-equal.db",
+    "bytes": 73728,
+    "sha256": "25bee9a4f3732d9f5325eaf86e09be005ab2c6d4fd20b70cbd9cf90059dd54e0",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-tie-small-a.db",
+    "bytes": 73728,
+    "sha256": "f9d1bf4f90fd486994c0c3715edd66fb921ce3a8a2135af8c1e910db03bccc39",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-tie-small-b.db",
+    "bytes": 73728,
+    "sha256": "5af4291340f892b9490230759ca12a32846c048e6f69eeb224a5483b54edf248",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-uint64-overflow.db",
+    "bytes": 77824,
+    "sha256": "8643b5ce9cfa5e37f6a9775ad9fd730610a273eb1ad95a320d37922d01475b1e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-unknown-index.db",
+    "bytes": 77824,
+    "sha256": "c444ec9c233c8e6a98b7e939b3720e9c60e865f7efe21952fc7047a9043b26de",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-unknown-table.db",
+    "bytes": 77824,
+    "sha256": "4a14629d932d46ed130b8e050f8e6866305df14b0903a207264c5da36767c5f2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-unknown-token.db",
+    "bytes": 77824,
+    "sha256": "6935a8fdd05e45ca37f87e46b451e896a4b19594a96f08e41a04df760e7e1f84",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16be-wr-table-name.db",
+    "bytes": 77824,
+    "sha256": "1627e740e054035a1a9050e70cb0a4c11aa4fa92ae99b91ba06189f967b2c586",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-after.db",
+    "bytes": 77824,
+    "sha256": "acae4f9d33ff62c6fea25e177c616703a12224235485a3d26b68a5f59a378665",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-before.db",
+    "bytes": 73728,
+    "sha256": "a66c3438831867633b85ed8d49011e473f914d571abd72c22ad8faa28a052216",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-blob-names.db",
+    "bytes": 77824,
+    "sha256": "b8c731806649aa233b7240c314ba122a6ba6f787169008fddfa18f24f9fdaf8d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-blob-stat.db",
+    "bytes": 77824,
+    "sha256": "7d7a954141d966eee0fcd221cc34fe6cb551108d5227ca93450dc788db21ead1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-clamp.db",
+    "bytes": 77824,
+    "sha256": "f7ec111d69b75117c9b7fe5286d7eb3d2d02db915672be7de6306e9f341c612b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-cross-partial.db",
+    "bytes": 81920,
+    "sha256": "1b8e63136f39b639a99455ca57a22787673ac29e8b02472007e4a41fd270d6bb",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-cross.db",
+    "bytes": 77824,
+    "sha256": "7ac1703af2baec4e8a69798dfddca431e403ae5b1767013860fe18ec2140b04d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-duplicate-reversed.db",
+    "bytes": 77824,
+    "sha256": "c0769e5d488eca990eef03c1fa14f94bb5827a548105e90480d263e35bcf4389",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-duplicate.db",
+    "bytes": 77824,
+    "sha256": "29070bb4b97131b52907380468cd3e7e0af55d05432df8ce34e4b63371fe9a1c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-long.db",
+    "bytes": 77824,
+    "sha256": "d082ca300609f2e99f51bfced6c4a22d2d8561efe97e0b9761655eba323940d9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-max.db",
+    "bytes": 77824,
+    "sha256": "13ee5451f9093c14ffda41b70372b937f0d17dbbfa820851420f2401ddffa192",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-negative.db",
+    "bytes": 77824,
+    "sha256": "ef4da6c97c936c196980e7b77d4752d1c0e97d79c0087a8c57fb298ad0c5129e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-overflow.db",
+    "bytes": 77824,
+    "sha256": "31f564d2b1d6433a3c85f18bd7e0a68465a9a99af70e3a3382469d1d89f3c9c8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-signed.db",
+    "bytes": 77824,
+    "sha256": "c8ece168bfebd86e33c89f6ab94da7cb2eb4370ac0bb83250ab7d251f7399bf7",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-upper.db",
+    "bytes": 77824,
+    "sha256": "1516450b733d5a9e4a5136af2f836a4b2b9bd12da4ba920d9908c37bc100c70d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex-zero.db",
+    "bytes": 77824,
+    "sha256": "e8bf77c89b55582a310d0895d36fa95f6d6f7c5d296fdf4d9b884d48ea527d38",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-hex.db",
+    "bytes": 77824,
+    "sha256": "50b7dfc9033bf813bd4a0b30a4b61571a7638e4401c5ad4860e63cef0808d782",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-integer-stat.db",
+    "bytes": 77824,
+    "sha256": "e324230ed492e01530529409eb88b1709bfd392eb14efd3ee54bee5c41c2a9cf",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-max-int.db",
+    "bytes": 77824,
+    "sha256": "32e394df7a0b49b61f60e52721dd2223d0a675358a8f00abbdfde2b263b1a865",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-negative.db",
+    "bytes": 77824,
+    "sha256": "58931bf833fe80a5591457ff8eb5a149a09d40ca3c7a56df062f412421cf5856",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-null-stat.db",
+    "bytes": 77824,
+    "sha256": "223e180e020ddfd95cb2433a848c2b3c7945810bc40723bd0d469dfe563171a8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-null-table.db",
+    "bytes": 77824,
+    "sha256": "6e561c5a8c4c6dc82e73e7cc683ce3b209778a03cd686b238d8f83f7229a0e72",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-overflow.db",
+    "bytes": 77824,
+    "sha256": "06e7a03ed8a07360d82e08a1aa667ce7b7e7f9b4871809fd15be1226b0d5e727",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-real-stat.db",
+    "bytes": 77824,
+    "sha256": "2ff67acaad337b02f20bff509f85d5aaddea92317fd678c5f0ee2bfdc3408545",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-scan-equal.db",
+    "bytes": 73728,
+    "sha256": "d329ede659d680cde51a919ca91afc48579954da52151c06be1eeeb06b65334e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-scan-larger.db",
+    "bytes": 73728,
+    "sha256": "9a8fdbb98c14f9b68c8625cad8cfa33ea8cecc7612c48cd57ddbbb36b1f6a72e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-small-a.db",
+    "bytes": 77824,
+    "sha256": "fcc89b39350fd92c1bcde4add2bf91d46f4749f6c40d9ee7e9454c782f802473",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-small-b.db",
+    "bytes": 77824,
+    "sha256": "6f05766e5a62a96d464bb0101158742b1e5fa3d9c4a62649a8ebcf54775e2ae8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-spaces.db",
+    "bytes": 77824,
+    "sha256": "c52399c44a2f603d4ad6fe5a5c352df1f9d2bfad8f2ef650c57baa0bda979b79",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-tab.db",
+    "bytes": 77824,
+    "sha256": "045c8a1568182ce003fd995ac5cd7706ccc03c7edc7c84f7a6ca00628b61961d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-table-only-high.db",
+    "bytes": 77824,
+    "sha256": "81346c67210b53ae04686bbc42385a5be3913332ea863ef49f347683b7eff2b3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-table-only-low.db",
+    "bytes": 77824,
+    "sha256": "4c5e144842fcddb54e0d510a7031b0de70e41996f8e26fd99e4caab8a8d1abbe",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-tie-equal.db",
+    "bytes": 73728,
+    "sha256": "008d22d996b5f83bb8dd5027cc18864e70b211f8c92cc3bc1e26b4b5b419a191",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-tie-small-a.db",
+    "bytes": 73728,
+    "sha256": "4fd8db0ba77ca4e5b20308e64624e18fa3f38ffa48aadc783d3ca8e325a5d12f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-tie-small-b.db",
+    "bytes": 73728,
+    "sha256": "1d3d8df0656c03f662ad6ab9cbf354d258429edc626f7f67a0802f8dc804eaff",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-uint64-overflow.db",
+    "bytes": 77824,
+    "sha256": "afc0a8071ea0f126dc52b1dea387cc983bb2c3fd6f1f9d6234cb7719b41b014c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-unknown-index.db",
+    "bytes": 77824,
+    "sha256": "a23bb54af67c92985d68c8db3d8235b6e254acab8ede4e40f8d999abe57c1f7c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-unknown-table.db",
+    "bytes": 77824,
+    "sha256": "5ed603ff79b40b700a0933314aa5b4a1dbba6759a712a5a89ec9ee643107de56",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-unknown-token.db",
+    "bytes": 77824,
+    "sha256": "6c90898ef42af53ccf1cd7b9c988ee43d422a3505fce0eded437d0835f4ef7ed",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf16le-wr-table-name.db",
+    "bytes": 77824,
+    "sha256": "f1a8cc594f75534fd0a0b8592f05621ee9d74d0b4cc674f60244c399ecba0b6d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-after.db",
+    "bytes": 65536,
+    "sha256": "d685f1680c0843cbede703867596cefd1a26dd5946527d4695d615a4a69e5048",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-before.db",
+    "bytes": 61440,
+    "sha256": "54c11f47a87efd9ee9d72451b3e8fdd5e37e3b6bbe123c01760092d44ba7fbfb",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-blob-names.db",
+    "bytes": 65536,
+    "sha256": "7de30ab6d5cbbef56391ff9815428079d556e5d59f51ad6b9a6e6e02bf70aad0",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-blob-stat.db",
+    "bytes": 65536,
+    "sha256": "81216b82ed0a7103a221210425ef94cb6de0d2e4f58d096aa49f1ad14fcffee7",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-clamp.db",
+    "bytes": 65536,
+    "sha256": "820758a84c125e530e31637b74b22fc87e4a6485eea713c64587e3015d4861ce",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-cross-partial.db",
+    "bytes": 69632,
+    "sha256": "3e637a808405bccd68ed3d5346d4177bc4f620912ccc51291c3735bf5104fa4e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-cross.db",
+    "bytes": 65536,
+    "sha256": "6e5e780a6220abc06e291fa96ab9d4f55d7107fc1707790f0210f696ce4c2b16",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-duplicate-reversed.db",
+    "bytes": 65536,
+    "sha256": "e1d13169c1b4e4e9812c697a9ed26671e8ffd3fb7fed4b4cc9feb63fb1d8da0e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-duplicate.db",
+    "bytes": 65536,
+    "sha256": "b22203899489d28ec00d24f088b7a8128711e0738dac6ed5ecd57d2ff205af4d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-long.db",
+    "bytes": 65536,
+    "sha256": "82cc294fc698bccd5a69016cbc98c8f52e5c5f1c9bf637d8b200260827fb9f70",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-max.db",
+    "bytes": 65536,
+    "sha256": "03badb4079ef37e318d7dfda90795723010089cd4ced7d7633abb085e7db3f5c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-negative.db",
+    "bytes": 65536,
+    "sha256": "d08b51af6a7fdd09535f1f0c37ad07de99217b181511e1289a832deab917fb39",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-overflow.db",
+    "bytes": 65536,
+    "sha256": "821bb7e139bbf183ac57b2064df73226270199d512aaf2776fa01a41eceef256",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-signed.db",
+    "bytes": 65536,
+    "sha256": "e2b5e532e7ecc40278950cc58684e5e12dce0cb0b65b9995b8c02153aab37617",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-upper.db",
+    "bytes": 65536,
+    "sha256": "9f33ad7eb318529f9ccc85fc5162982318d1cd737199a092ca6405307c904a7d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex-zero.db",
+    "bytes": 65536,
+    "sha256": "ec19402bb4777dbcb83dd96c25c169156c0a1415a3ad97bdf4d8324f39252ae2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-hex.db",
+    "bytes": 65536,
+    "sha256": "450c0e3fbbcec571103865bf1b33bf3abf38f0ea59e845e718f06c65ad8b4f60",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-integer-stat.db",
+    "bytes": 65536,
+    "sha256": "5076db8025fad7f9d70b7bfc3e50b4e959f4e7ac2d8964a5c4723df9288292d4",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-max-int.db",
+    "bytes": 65536,
+    "sha256": "e55c800db66070d0fffe19c5a4903c3a0b44b65c85ce471f4cc1514edcbf7efe",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-negative.db",
+    "bytes": 65536,
+    "sha256": "7c370f0ae34bab46e5844217a1915d2756adf624a1720a8524d2d71894811d85",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-null-stat.db",
+    "bytes": 65536,
+    "sha256": "971c29c7dac49c4f6d09395b3c84bdc98927567afde32bbcb4723ff80041902a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-null-table.db",
+    "bytes": 65536,
+    "sha256": "68ce6e51fc8941de29ba85dabb311d1b63a305f2872ef9f9f4a1db7155d90cdd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-overflow.db",
+    "bytes": 65536,
+    "sha256": "a164ae02c39a62d42b9914ce4d921345d48fc40389cf9f378341bcee8f59da68",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-real-stat.db",
+    "bytes": 65536,
+    "sha256": "e08644ea808ea41e384769340b4f5d6687c760eb0816fc8d15a3b76f8c173a7b",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-scan-equal.db",
+    "bytes": 61440,
+    "sha256": "3d5df95bdea80728dde87cbb209fb068f5a7e1abf062b16722a7f6e59ae6a378",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-scan-larger.db",
+    "bytes": 61440,
+    "sha256": "4f976f65533a5e8a70f64ab0dd526844c13292e784614dcbecae031c2f59597d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-small-a.db",
+    "bytes": 65536,
+    "sha256": "4f4b19f2c0378ab0ff990994a55df06f97a3185ab1f06d6f0e1b64c56710ea76",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-small-b.db",
+    "bytes": 65536,
+    "sha256": "28b24000c478716711acdb78d56aba669775a16ede9fc46c557aa6bb0b632812",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-spaces.db",
+    "bytes": 65536,
+    "sha256": "d0b08c5e071e787869dd0bb85af02f11ba193bda211b59031afd2751d1a67255",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-tab.db",
+    "bytes": 65536,
+    "sha256": "aceef029c21df879e2ceac8665e2f1a2946bbaa01335c71ecba4654db0e12cca",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-table-only-high.db",
+    "bytes": 65536,
+    "sha256": "bcc7b2d142613bdc0c355352376afd60bdd7ee5afc508b3048994b6047ee76d1",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-table-only-low.db",
+    "bytes": 65536,
+    "sha256": "66f9f6060d4365b8eca3c0cbde5cec8f974b80fdc8d685f1efef67d6ebbd617e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-tie-equal.db",
+    "bytes": 61440,
+    "sha256": "5729165ac6d0dfc19b6edafea52cc2926329abf79363447faead9371aa51f770",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-tie-small-a.db",
+    "bytes": 61440,
+    "sha256": "d1fc140ad8ca99d78322d78a2929da81c16f5424a826cbb9d9cfd7e6ff05bc65",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-tie-small-b.db",
+    "bytes": 61440,
+    "sha256": "415f8eee28519bf63335bc34341ff1e3b70fe46ef9b0a46076e4c0cb9004efd8",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-uint64-overflow.db",
+    "bytes": 65536,
+    "sha256": "94ab3be6254acd22f7347e5ea5911df2f6061213566fcd0d79234d271b3a4375",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-unknown-index.db",
+    "bytes": 65536,
+    "sha256": "58cdb35ec37d87974983bb9d5c08e902b2895f90a37a4397710a055561211d34",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-unknown-table.db",
+    "bytes": 65536,
+    "sha256": "0b9df0f68f20d967b6e7e6ed4b0fb18d542bdcfc0b3d2808824c911f7129a961",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-unknown-token.db",
+    "bytes": 65536,
+    "sha256": "2c7e9aa0ae8bc783363dffeb63c2f920bdc7695a1d3868ce9425574b0d0282bf",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-utf8-wr-table-name.db",
+    "bytes": 65536,
+    "sha256": "e580a5db22f3a25e693522ee12d34db31c065df75feaf7860f3e9238ba2bb609",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-autoindex-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "f32827ac5e22a2a9e84016df556f25a8d258ab8adc4dcd4fe056a5defdb6db66",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-autoindex-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "c705be6739cdd0dd1987fe8a3cf936f9fa45e4df311723c981ec29efb9a4f51a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-autoindex-utf-8.db",
+    "bytes": 20480,
+    "sha256": "5d11a5d12a9adccd48626035b28a74061f02c1c6a1ab2752978f945c586bd5ae",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-collation-utf-16be.db",
+    "bytes": 16384,
+    "sha256": "d85e73f7e5120fac30222f663a327434b8c0b39ca77b6e3cd5608582fd8d3f75",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-collation-utf-16le.db",
+    "bytes": 16384,
+    "sha256": "52b029a3a5b7d1fba5641d988568bace7be28dc2d1450390f7a515714bfb70ba",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-collation-utf-8.db",
+    "bytes": 16384,
+    "sha256": "40230ba6a8e15779ceef563f3ffe3e2176b2f008b80a76a86ccc76240ebf6c50",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-duplicate-utf-16be.db",
+    "bytes": 16384,
+    "sha256": "a3fa06805405effe2b4bebf4a763e00ce73b5c71fdcdcaec40625508ad5188f9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-duplicate-utf-16le.db",
+    "bytes": 16384,
+    "sha256": "f9777847ed6aab8841a053e8c98bcf6d458a62e13c08e510763ee2f47aba2349",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-duplicate-utf-8.db",
+    "bytes": 16384,
+    "sha256": "f88d71df8279a0dc11c7a80118a25b5d5e6ac706af18a7662c0cbc224ead1cfc",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "d74dfa112380c5907a434dc00ebba29904598f9f26e2ab8d084ecdcf83d97a25",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "d2227dfe994d4bdfbe6558a0302f8d9020ae8806a0e583828ee485ae81b87c3c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-inline-desc-utf-8.db",
+    "bytes": 20480,
+    "sha256": "5b4f328cfd17179768b4668bd3de00dfe5832980ba310edefc4b796632dca64c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "5cea8859cb21c1ed37f2279b403cd6168eb989abf58dd1f53ef0a590482b622a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "a5bbbd44b1399c17df52c067323e983ad260ab6797e84e00fc0662590ca90f8c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-merge-utf-8.db",
+    "bytes": 20480,
+    "sha256": "823767e266859c32c6667d3e064914312f527f4bebdd576b12195f5c90c75c10",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "d50c01c102963e268093120d2224e5b3b67ff738d44285ae71abc1089db898c2",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "3d1c3edc018cd992bf78a711be1888771a8cbe4914fefd05861f13b43b1b7b6f",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-controls-table-desc-utf-8.db",
+    "bytes": 20480,
+    "sha256": "c4b375bab73f353078f7052a071eb957b787fe16f566b53cee36bd6867f97f2c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-utf-16be.db",
+    "bytes": 20480,
+    "sha256": "a4f37038e9ded1448ae83e3c091aa3e8233e97af00806e2bbf331ebe6f0de41c",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-utf-16le.db",
+    "bytes": 20480,
+    "sha256": "10f77804c878fc4bfd39568f91fd35b1206d5434445cc3438cccacc66bb95723",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-ipk-utf-8.db",
+    "bytes": 20480,
+    "sha256": "b25a52dc3341c6f71bb5850651490b58d42ee5644580a5571007a36a9bccb111",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-unknown-utf16be.db",
+    "bytes": 16384,
+    "sha256": "895144547eef1a8e4d1f9e1d600107ef28f4f6b3108372cf61d64dad58c42c24",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-unknown-utf16le.db",
+    "bytes": 16384,
+    "sha256": "b80599e5afd8e21ef286d434d416cc7838495b4a49733e475c9d0e003daeeab5",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/fixtures/row-width-wr-unknown-utf8.db",
+    "bytes": 16384,
+    "sha256": "94f016521c27c7bf1fd683b4dfe2558fb29eeb567d276c1566fec1d947042178",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-autoindex.test.mjs",
+    "bytes": 1880,
+    "sha256": "fe37a4c4fe1a087e9b56fb595608e9bd7458558930b70c381536a1efcbf26272",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-callback.test.mjs",
+    "bytes": 2079,
+    "sha256": "19af0f2bd7578ae231f12aa63166d37dd6cc0c65f56ec849341642a33ec003f4",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-conflict-error.test.mjs",
+    "bytes": 1242,
+    "sha256": "a9b503892d71760e4905bea3777d0db81b4ac7de919ab8947e334bb98e9f9dc9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-conflict-promotion.test.mjs",
+    "bytes": 1703,
+    "sha256": "8ecdb6b27cd30132de2d35d2a7bdc983c33050610b7e98eb02d5ac03e44817fd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-conflict-wr-explicit.test.mjs",
+    "bytes": 1725,
+    "sha256": "d8d54041d11033e852b6d2e3908c9d949a450ac2ee8ff43f6f2a4a8f7fe2b75a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-conflict.test.mjs",
+    "bytes": 2122,
+    "sha256": "e13473568d410b147e49b271b74331bfd3c8253af4691376c51f84be0aea3e7e",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-cost-branches.test.mjs",
+    "bytes": 3680,
+    "sha256": "9f5886c576a86e7f37cbe53b3d007a0ce5cdb7aed176b6f89e5d6c44e6b10ccb",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-declared-bytes.test.mjs",
+    "bytes": 1165,
+    "sha256": "8a661585f0125e61e1a88c26c51fa766e7aa3ebdb20f745be0afa4762f5121d7",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-declared-controls.test.mjs",
+    "bytes": 2090,
+    "sha256": "9bfb70f16e74110a2fb4c0fa232b4ea20fe69029a4662395541cb8fc8980ad79",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-declared-utf16.test.mjs",
+    "bytes": 1410,
+    "sha256": "d6f0b856298a0c33b295ad26e87df7b7b94a4315ffc3738690f55ff8469d03dd",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-declared.test.mjs",
+    "bytes": 2127,
+    "sha256": "82856b0d931f5f3adc920199003ea3478fd0a6f5ab0627ee4ce7cd5e64745671",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-failed-publication.test.mjs",
+    "bytes": 1278,
+    "sha256": "52444577449fff3fc169f53e4bc7a06dfb74995d0a5884cd07d9cbf7b6031abe",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-insertion-tie.test.mjs",
+    "bytes": 2411,
+    "sha256": "eba0742ec6a6f883be384f3c85f3fefb09a1a8a82d4920b21d033b34477d679d",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-invalid-utf16.test.mjs",
+    "bytes": 1812,
+    "sha256": "4802b03455f8f3d92b544039654e268b21a4c51c04cfcba8875762fc889b2a83",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-invalid.test.mjs",
+    "bytes": 1775,
+    "sha256": "79727b763190087babab08b4e3bc1f924e172c256176aa6f845ed3b1d5590ff0",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-ipk.test.mjs",
+    "bytes": 1801,
+    "sha256": "4875eea9faf296d60b308ecc3859a2fa3a91d99490413fc7b706240f004d8a10",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-isolated-joined.test.mjs",
+    "bytes": 2992,
+    "sha256": "24f6a17f4497d8d2f697dabd5e452dbc35ed0f5999bf87c1db2b502fcc4ba7f9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-isolated-public.test.mjs",
+    "bytes": 4552,
+    "sha256": "95602a39a3ccf4fbcac8829670ef545a357430750b3296b4b952c59835a89ba9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-left-in-reset.test.mjs",
+    "bytes": 1275,
+    "sha256": "5ac24a6ef654e6f336c3982162071b3fc146be3d37edb789584f08617c055410",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-left-in-transitions.test.mjs",
+    "bytes": 1292,
+    "sha256": "3d32824f914425ac809bd6e9908723846f9888f5ad9deb05263f33ab58710136",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-merged-pk.test.mjs",
+    "bytes": 1790,
+    "sha256": "2b21cba2333c5fd0272dd1d3a87ae084c98071a914eb3ed725c227fe87bfd775",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-output-adjust.test.mjs",
+    "bytes": 2751,
+    "sha256": "e34e839186c7fbebda742d1747f26d9ee680530c504d08904aa4d5594e0cc181",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-preimplementation.test.mjs",
+    "bytes": 15072,
+    "sha256": "e40c293aad26781d8482b4781749b80477ee2e117e07048267ec93a3c6e0e5a3",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-publication.test.mjs",
+    "bytes": 1967,
+    "sha256": "815b06b7dfe12c4a8c918a0fd38884380f12948c3f3d29803f72bfabf4bf97c6",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-real-metadata.test.mjs",
+    "bytes": 3894,
+    "sha256": "100f0647e8a139b701d9fd476d7f3948a8d3331ec0a36c865b2bec471c66f9bb",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-reverse-order.test.mjs",
+    "bytes": 1113,
+    "sha256": "aee9c371f97481b83c3cc316d61e50a2438716f8f5a187bb2d93c8bfef496412",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-rowid-promotion.test.mjs",
+    "bytes": 1847,
+    "sha256": "581b30054c0b5ebeb91ef1922fe91266c831755caba100a453d247555884ce50",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-singleton-order.test.mjs",
+    "bytes": 2486,
+    "sha256": "5d09f09a1cc77c41be680084171b947758d7bdbdfb65549c31a0714dcbeec011",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-transient-publication.test.mjs",
+    "bytes": 2810,
+    "sha256": "aecccb273eef8227d0905046e354819c99ee18b6889ed25c513d2df81902c9a4",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-transient.test.mjs",
+    "bytes": 1373,
+    "sha256": "1f91ab1fe46941339e463a1704495e751a06f083123ecc5c1a29d7749c9c34c9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-unsupported-collation.test.mjs",
+    "bytes": 1717,
+    "sha256": "a80b6dc42fb0b5aeb13b0ec5d5ac085ceb5fe9c04b798bb14d8ba021f95af4ff",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-utf16.test.mjs",
+    "bytes": 684,
+    "sha256": "ebf993c116f7c72760a3dabe872fbf2c364f11dc4996dc38a4563d8c7ffab9d0",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-autoindex.test.mjs",
+    "bytes": 2001,
+    "sha256": "686c4043e054885df62ca5d7da14a589d34241670fa5d67476711d2b6b805396",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-collation.test.mjs",
+    "bytes": 2298,
+    "sha256": "df26fadec10bfe75e1cde19385912df58dbbd14f265220cd7358807b9de15283",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-duplicate.test.mjs",
+    "bytes": 2106,
+    "sha256": "09f2a4385e3101e322da4e7419318286e320c98ebaf6f806127ba24116986500",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-ipk-controls.test.mjs",
+    "bytes": 1763,
+    "sha256": "a310a2fbc8793cc0609748b9be9b008fb73e8d8fe89be7035ff90ea8400fa42a",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-ipk.test.mjs",
+    "bytes": 1693,
+    "sha256": "1e7400ac1accc4b246a56941d493c7bc214a98783918708c7603275270c44f30",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-joined.test.mjs",
+    "bytes": 1049,
+    "sha256": "3c43fde5eb76a75e2e5db48ac87934ecb4f3a60e635cb941236050d89bf9c2a9",
+    "tracked": false
+  },
+  {
+    "path": "test/conformance/row-width-wr-unknown-collation.test.mjs",
+    "bytes": 2696,
+    "sha256": "e7ad984be860950ef795c5803a2d0bcd47c6e1a3d69f41d191a7d768dd72007c",
+    "tracked": false
+  }
+]

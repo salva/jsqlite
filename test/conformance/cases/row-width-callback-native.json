@@ -1,0 +1,32 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-callback-utf-8.db",
+      "sha256": "7fe249db07de7639ff5482853fc222a4488d628e1f95fc1ee139535da4c3ec97",
+      "sql": "SELECT k,v FROM p WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (k=?)"
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-callback-utf-16le.db",
+      "sha256": "56d359729dd1db817d76592ee7bdc2d3d3dafb3eb3bf47d03b3ea52ff19349bd",
+      "sql": "SELECT k,v FROM p WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (k=?)"
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-callback-utf-16be.db",
+      "sha256": "442809b458a204e6fded719cf8cee0b128d1c63b523a6104b196bda32120bea4",
+      "sql": "SELECT k,v FROM p WHERE k='\u00e9'",
+      "eqp": [
+        "SEARCH p USING INDEX sqlite_autoindex_p_1 (k=?)"
+      ]
+    }
+  ]
+}

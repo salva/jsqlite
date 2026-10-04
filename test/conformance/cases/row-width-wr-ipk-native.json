@@ -1,0 +1,68 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-utf-8.db",
+      "sha256": "b25a52dc3341c6f71bb5850651490b58d42ee5644580a5571007a36a9bccb111",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-utf-16le.db",
+      "sha256": "10f77804c878fc4bfd39568f91fd35b1206d5434445cc3438cccacc66bb95723",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-ipk-utf-16be.db",
+      "sha256": "a4f37038e9ded1448ae83e3c091aa3e8233e97af00806e2bbf331ebe6f0de41c",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a=1",
+      "eqp": [
+        "SCAN p USING INDEX sqlite_autoindex_p_1"
+      ],
+      "expected": [
+        [
+          "1",
+          "FF",
+          "payload"
+        ]
+      ],
+      "indexOrder": [
+        "sqlite_autoindex_p_3",
+        "sqlite_autoindex_p_2",
+        "sqlite_autoindex_p_1"
+      ]
+    }
+  ]
+}

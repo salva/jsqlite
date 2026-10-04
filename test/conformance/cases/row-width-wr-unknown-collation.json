@@ -1,0 +1,23 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-wr-unknown-utf8.db",
+      "bytes": 16384,
+      "sha256": "94f016521c27c7bf1fd683b4dfe2558fb29eeb567d276c1566fec1d947042178"
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-wr-unknown-utf16le.db",
+      "bytes": 16384,
+      "sha256": "b80599e5afd8e21ef286d434d416cc7838495b4a49733e475c9d0e003daeeab5"
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-wr-unknown-utf16be.db",
+      "bytes": 16384,
+      "sha256": "895144547eef1a8e4d1f9e1d600107ef28f4f6b3108372cf61d64dad58c42c24"
+    }
+  ]
+}

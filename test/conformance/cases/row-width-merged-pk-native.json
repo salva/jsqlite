@@ -1,0 +1,68 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/row-width-merged-pk-utf-8.db",
+      "sha256": "95d30cd74b20351f52a9ba526c2cecd70482884c4239358840f2406000df9569",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/row-width-merged-pk-utf-16le.db",
+      "sha256": "e59c5576a482a1b0fb25706b67c2ac816d6f63992ec64b0bbd2146c4033ba63a",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/row-width-merged-pk-utf-16be.db",
+      "sha256": "8358ac6dfec4d6dda5e44235d936c23e244b96717777a55c98b6de1e71a0d149",
+      "sql": "SELECT a,b,c FROM p INDEXED BY sqlite_autoindex_p_1 WHERE a='\u00e9'",
+      "eqp": [
+        "SEARCH p USING PRIMARY KEY (a=?)"
+      ],
+      "expected": [
+        [
+          "\u00e9",
+          "FF",
+          "payload"
+        ]
+      ],
+      "directions": [
+        1,
+        0,
+        0
+      ]
+    }
+  ]
+}

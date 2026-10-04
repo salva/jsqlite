@@ -480,3 +480,22 @@ This repairs the source-only45/68 cross-layer regression without reverting real
 WR collation-aware mapping. Exact corrected candidate tests: discriminator68/68,
 broad910/910,joined/shared184/184. Historical24/30 credit, wider fences and
 post-runtime/native-FIRST shortfall remain unchanged; no B4-cause claim.
+
+### Current bounded width evidence closure — 2026-10-04
+
+Actual integrated source is `644cbcd827a2fbdf3a14407210941e38ac945a01`
+(tree `7669377f99ead8c9bed67c52695cfa549863fa2d`), not the historical
+mixed ACK candidate. Joined owner correction uses dedicated `physicalColumnIndex`
+for storage; `payloadIndex`/iAgg remains logical aggregate state. Old checkpoints
+and their failures remain chronological evidence, not current acceptance claims.
+Independent [[card:card-s-e-c]] / [[card:card-s-e-d]] support bounded original
+width and tested lifecycle on exact source plus inventoried297 evidence paths.
+The coherent generator→case JSON→fixture/test corpus is promoted by
+[[card:card-s-e-b]]; scope, hashes, fresh export checks and reuse are in
+[width evidence delivery](research/card-s-e-b-evidence-delivery.md). Fresh exact
+export original240/240, closure2034/2034 and read-only pinned120 snapshot equality
+are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
+reset/admission on reviewed source; sole causation is not proved and cancelled
+baselines supply no causal credit. Native-FIRST chronology is unchanged.
+STAT4 unsupported, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
+OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.

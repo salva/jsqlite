@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {Mem} from '../../src/internal/mem.ts';
+const cap=JSON.parse(fs.readFileSync(new URL('./cases/row-width-utf16-native.json',import.meta.url)));assert.equal(cap.sourceId,JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url))).sqliteSourceId);
+for(const c of cap.cases)test(`callback Mem UTF16 conversion ${c.encoding} ${c.input}`,()=>{const mem=new Mem();try{mem.setText(Uint8Array.from(Buffer.from(c.input,'hex')),c.encoding);mem.cast('text','utf-8');assert.equal(Buffer.from(mem.textBytes()).toString('hex'),c.output);}finally{mem.release();}});

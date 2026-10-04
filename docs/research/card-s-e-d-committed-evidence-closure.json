@@ -1,0 +1,108 @@
+{
+  "head": "644cbcd827a2fbdf3a14407210941e38ac945a01",
+  "tree": "7669377f99ead8c9bed67c52695cfa549863fa2d",
+  "widthInventory": "docs/research/card-s-e-c-committed-width-inventory.json",
+  "widthInventorySha256": "6dfbcd7d6051a10a6a3ec9ce5c8a0b11ae45358d3d3f98e7e61ae9aae1a24753",
+  "widthCounts": {
+    "total": 297,
+    "test": 39,
+    "capture": 32,
+    "case": 33,
+    "fixture": 193,
+    "alreadyTracked": 5,
+    "untrackedToPromote": 292
+  },
+  "retainedCommittedDependencies": [
+    {
+      "path": "reference/sqlite/manifest.json",
+      "bytes": 1049,
+      "sha256": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/capture-index-planner.py",
+      "bytes": 8240,
+      "sha256": "ed2ee5ae2fb5ede739a998afa1726c5b041b522d0272cd6904b90d0c9f3a6ab8",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/in-range-stat-native.json",
+      "bytes": 475675,
+      "sha256": "0ccb6f9b538671f5582bb6a236b6bfffc8c7e1c8bb1f4a1ed6181ddb36178209",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/stage3-advanced-index.json",
+      "bytes": 139570,
+      "sha256": "ccf11c421331ef8e8f04fb0196204749bbe0abb75f53a71931e716494b714480",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/cases/stat-record-corruption.json",
+      "bytes": 9987,
+      "sha256": "e8f0fff39c7729652461317d22b5246e8edc494beff3756b4db53cfec7fa10a7",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "bytes": 15872,
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "bytes": 15872,
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf8.db",
+      "bytes": 12288,
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16be-after.db",
+      "bytes": 32768,
+      "sha256": "327543625d02e582e789c84459bd06a97971d097b94ecd53a00cc1d85616e5be",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16be-before.db",
+      "bytes": 28672,
+      "sha256": "b9e295e7a39460e5b5845a3db1fe08c91f97bb27401f119830763bea63fd643b",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16le-after.db",
+      "bytes": 32768,
+      "sha256": "5fcec1884fd28577b37fd759d2c1ec7090e93f74e19f69b1bc69889e5e47524f",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf16le-before.db",
+      "bytes": 28672,
+      "sha256": "ae63261852958c19a4a3c44d319fba89cbc0a18f32c919fa44ab4d0df8c7f6f4",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf8-after.db",
+      "bytes": 32768,
+      "sha256": "90c8fe0b89c5e2727f34d1b4bfb0b2fe2b3a8f2af60e2796b8e070d9f511b134",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/fixtures/in-range-stat-utf8-before.db",
+      "bytes": 28672,
+      "sha256": "1c1066785369ba0911efde96159757743de3a0753b5da248ba16551df327b2b2",
+      "tracked": true
+    },
+    {
+      "path": "test/conformance/public-api-adapter.mjs",
+      "bytes": 549,
+      "sha256": "8acc9c0c68df0963fc116d79b09128a1a13aa5734fa51afdce5678e392784890",
+      "tracked": true
+    }
+  ],
+  "method": "Existing literal imports and case JSON fixture paths. Not proof of arbitrary dynamic Python execution closure; native library and acquisition are external development inputs. Runtime sources, config and pinned source identity retained from exact HEAD."
+}

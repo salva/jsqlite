@@ -1,0 +1,65 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "encoding": "utf-16le",
+      "input": "00d8",
+      "output": "eda080"
+    },
+    {
+      "encoding": "utf-16le",
+      "input": "00dc",
+      "output": "edb080"
+    },
+    {
+      "encoding": "utf-16le",
+      "input": "00d84100",
+      "output": "f0908181"
+    },
+    {
+      "encoding": "utf-16le",
+      "input": "00dc4100",
+      "output": "f0908181"
+    },
+    {
+      "encoding": "utf-16le",
+      "input": "4100ff",
+      "output": "41"
+    },
+    {
+      "encoding": "utf-16le",
+      "input": "00d800dc",
+      "output": "f0908080"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "d800",
+      "output": "eda080"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "dc00",
+      "output": "edb080"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "d8000041",
+      "output": "f0908181"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "dc000041",
+      "output": "f0908181"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "0041ff",
+      "output": "41"
+    },
+    {
+      "encoding": "utf-16be",
+      "input": "d800dc00",
+      "output": "f0908080"
+    }
+  ]
+}
