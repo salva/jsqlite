@@ -53,3 +53,56 @@ for(let vi=0;vi<original.variants.length;vi++){
 for(const variant of native.variants)test(`joined WR required-primary movement ${variant.encoding}`,async()=>withBytes(fs.readFileSync(variant.lookupFixture),async db=>{
  for(const c of variant.lookup){const st=db.prepare(c.sql).statement;try{for(let i=0;i<c.runs.length;i++){if(i)st.reset();st.bind(1,c.runs[i].bindings[0]);assert.deepEqual(await rows(st),c.runs[i].rows);if(c.runs[i].rows.length)assert.ok(privateAccounting(st).indexSeeks>0)}}finally{st.finalize()}}
 }));
+
+// Source discriminators: vdbe.c check_for_interrupt/abort_due_to_interrupt,
+// vdbeapi.c sqlite3_reset -> VdbeReset/Rewind, and transient sorter ownership.
+// These are TS public budget/checkpoint policies, not native timers, quotas,
+// or retroactive native-FIRST evidence. Keep postRuntimeNativeControls labeled.
+for(const fixture of original.variants){
+ test(`joined WR live cancellation/deadline reset and reuse ${fixture.encoding}`,async()=>withBytes(fs.readFileSync(fixture.fixture),async db=>{
+  const sql=`SELECT x.a,y.b,hex('${'z'.repeat(256*1024)}') FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=?1 AND y.a=x.a`;
+  const bind=st=>st.bind(1,Uint8Array.of(255));
+  const cancelled=db.prepare(sql).statement;bind(cancelled);
+  const controller=new AbortController(),reason=new Error('joined WR live abort');
+  const timer=setTimeout(()=>controller.abort(reason),0);let error;
+  try{await assert.rejects(cancelled.step({signal:controller.signal}),e=>{error=e;return e.kind==='cancelled'&&e.cause===reason});}
+  finally{clearTimeout(timer)}
+  assert.ok(privateAccounting(cancelled).indexSeeks>0,'live abort follows selected joined work');
+  await assert.rejects(cancelled.step(),e=>e===error);
+  assert.throws(()=>cancelled.reset(),e=>e===error);
+  // Reset restored binding/state despite reporting the old error; explicit
+  // rebind verifies that a subsequent execution has no stale physical row.
+  cancelled.bind(1,Uint8Array.of(0));assert.equal(await cancelled.step(),'row');cancelled.finalize();
+  const timed=db.prepare(sql).statement;bind(timed);
+  const now=Date.now;Date.now=()=>privateAccounting(timed).indexSeeks>0?1002:1000;
+  let timeout;try{await assert.rejects(timed.step({timeoutMs:2}),e=>{timeout=e;return e.kind==='timeout'&&e.message==='statement execution timed out'});}finally{Date.now=now}
+  assert.ok(privateAccounting(timed).indexSeeks>0,'deadline expires after selected joined work');
+  await assert.rejects(timed.step(),e=>e===timeout);assert.throws(()=>timed.finalize(),e=>e===timeout);
+  const fresh=db.prepare(native.variants.find(v=>v.encoding===fixture.encoding).cases[1].sql).statement;
+  fresh.bind(1,Uint8Array.of(255));assert.deepEqual(await rows(fresh),native.variants.find(v=>v.encoding===fixture.encoding).cases[1].runs[0].rows);fresh.finalize();
+ }));
+ test(`joined WR private-byte admission error before publication and cleanup ${fixture.encoding}`,async()=>withBytes(fs.readFileSync(fixture.fixture),async db=>{
+  const st=db.prepare("SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a").statement;
+  let error;await assert.rejects(st.step(),e=>{error=e;return e.kind==='limit'&&/byte limit/.test(e.message)});
+  assert.ok(privateAccounting(st).indexSeeks>0,'sorter admission follows selected joined access');
+  await assert.rejects(st.step(),e=>e===error);assert.throws(()=>st.reset(),e=>e===error);
+  let repeated;await assert.rejects(st.step(),e=>{repeated=e;return e.kind==='limit'});assert.throws(()=>st.finalize(),e=>e===repeated);
+  const fresh=db.prepare('SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a').statement;
+  assert.equal((await rows(fresh)).length,2);assert.ok(privateAccounting(fresh).indexNext>0);fresh.finalize();
+ },{limits:{maxPrivateBytes:0}}));
+}
+
+// Operation work ceilings tighten (do not mutate) the prepared connection
+// ceiling. Reset reports the saved error after restoring retained bindings.
+for(const variant of native.variants)test(`joined WR operation work ceiling reset retains typed bindings ${variant.encoding}`,async()=>withBytes(fs.readFileSync(original.variants.find(v=>v.encoding===variant.encoding).fixture),async db=>{
+ const c=variant.cases[1],st=db.prepare(c.sql).statement;
+ st.bind(1,Uint8Array.of(255));let error;
+ await assert.rejects(st.step({maxWorkUnits:1}),e=>{error=e;return e.kind==='limit'&&e.message==='statement exceeds maxWorkUnits'});
+ await assert.rejects(st.step(),e=>e===error);
+ assert.throws(()=>st.reset(),e=>e===error);
+ // No rebind: the BLOB is retained, while the operation ceiling is not sticky.
+ assert.deepEqual(await rows(st),c.runs[0].rows);
+ assert.ok(privateAccounting(st).indexSeeks>0);st.finalize();
+ const fresh=db.prepare(c.sql).statement;fresh.bind(1,Uint8Array.of(0));
+ assert.deepEqual(await rows(fresh),c.runs[1].rows);fresh.finalize();
+}));
