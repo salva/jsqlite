@@ -153,8 +153,12 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
 LogEst estimates retain dependency and join-barrier ownership. The represented
-solver uses the upstream bounded path-choice shape; it is not full optimizer
-coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
+solver uses ordered candidate insertion and unsorted bounded slots with separate
+setup/run/output and total/unsorted costs (where.c2744–2939,5835ff), not generic
+Pareto pruning. Source/sort identities are separate; budget is builder-owned.
+Indexed row-size tie metadata, OR-set lowering, automatic-index execution, STAT4
+and star heuristics remain residuals; this is not full optimizer coverage.
+[Repair decisions/evidence](research/card-s-d-a-ordered-where.md). Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
 Ordinary comma/CROSS/INNER/LEFT routes and one RIGHT/FULL barrier are admitted at
 the documented gates. ON belongs to match testing; LEFT null extension precedes

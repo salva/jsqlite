@@ -22,13 +22,14 @@ export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:Col
 export interface IndexConstraintAdmission {readonly term:WhereTerm;readonly physicalIndex:PhysicalIndex;readonly fieldOrdinal:number;readonly field:PhysicalIndexField;readonly keyInfoTerm:Readonly<KeyTerm>;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly comparison:SeekComparisonMode;readonly bound:"equality"|"lower-inclusive"|"lower-exclusive"|"upper-inclusive"|"upper-exclusive"}
 export interface RowidConstraint {readonly term:WhereTerm;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly bound:IndexConstraintAdmission["bound"]}
 export interface BtreeCapability {readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly equalityPrefix:readonly IndexConstraintAdmission[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
-export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index";readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
+export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index";readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
-export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect}
+export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
+export interface WherePlanBudget {remaining:number}
 const freeze=<T>(value:T):Readonly<T>=>Object.freeze(value);
 export function sourceBit(ordinal:number):SourceMask {if(!Number.isSafeInteger(ordinal)||ordinal<0)throw new RangeError("invalid source ordinal");return 1n<<BigInt(ordinal)}
 export function whereClause(terms:readonly WhereTerm[],outer:WhereClause|null=null):WhereClause{return freeze({split:"and",terms:Object.freeze([...terms]),outer})}
@@ -160,7 +161,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  if(!options.forcedIndex&&(rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):void=>{const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});loops.push(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",setupCost:0n,runCost:rowEq?20n:40n,outputRows:rowEq?0n:40n,terms:Object.freeze(owned)}));};if(rowEquals.length)rowEquals.forEach(term=>propose(term,null,null));else for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null])propose(null,lower,upper);}
  for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&!physicalPrimary&&cap.constrainedFields===0&&cap.orderTermsSatisfied===0&&(!cap.covering||options.orderBy.length>0))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap);loops.push(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}));}}
- if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(adjustIndexSubsets(loops));
+ if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(whereLoopInsertCandidates(loops.map(loop=>freeze({...loop,sortIdentity:options.orderBy.some(order=>order.sourceOrdinal===sourceOrdinal&&(loop.capability?.physicalIndex?loop.capability.physicalIndex.fields.some(field=>field.role!=="rowid-tail"&&fieldMatchesColumn(loop.capability!.physicalIndex!,field,order.column)):isIntegerPrimaryKeyAlias(source.table,order.column)))?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0})),options.planBudget));
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */
@@ -208,29 +209,64 @@ function properSubset(weak:WhereLoop,strong:WhereLoop):boolean {
  if(left.length>=right.length || (a.covering&&!b.covering))return false;
  return left.every(term=>right.includes(term));
 }
-function adjustIndexSubsets(loops:WhereLoop[]):WhereLoop[]{
+export function whereLoopInsertCandidates(loops:readonly WhereLoop[],budget:WherePlanBudget={remaining:21000}):WhereLoop[]{
  const inserted:WhereLoop[]=[];
- for(const candidate of loops){let template=candidate;
+ for(const candidate of loops){if(budget.remaining===0)break;budget.remaining--;let template=candidate;
   if(candidate.kind==="index")for(const previous of inserted){
    if(previous.sourceOrdinal!==template.sourceOrdinal||previous.kind!=="index")continue;
    if(properSubset(previous,template))template=freeze({...template,runCost:template.runCost<previous.runCost?template.runCost:previous.runCost,outputRows:template.outputRows<previous.outputRows-1n?template.outputRows:previous.outputRows-1n});
    else if(properSubset(template,previous))template=freeze({...template,runCost:template.runCost>previous.runCost?template.runCost:previous.runCost,outputRows:template.outputRows>previous.outputRows+1n?template.outputRows:previous.outputRows+1n});
   }
-  inserted.push(template);
+  // whereLoopFindLesser: null means discard; list end means append.
+  const lesser=(start:number):number|null=>{
+   for(let i=start;i<inserted.length;i++){
+    const old=inserted[i]!;
+    if(old.sourceOrdinal!==template.sourceOrdinal||(old.sortIdentity??0)!==(template.sortIdentity??0))continue;
+    if((old.setupCost!==0n&&template.setupCost!==0n&&old.setupCost!==template.setupCost)||old.setupCost<template.setupCost)throw new Error("WHERE setup invariant");
+    if((old.prereq&template.prereq)===old.prereq&&old.setupCost<=template.setupCost&&old.runCost<=template.runCost&&old.outputRows<=template.outputRows)return null;
+    if((old.prereq&template.prereq)===template.prereq&&old.runCost>=template.runCost&&old.outputRows>=template.outputRows)return i;
+   }
+   return inserted.length;
+  };
+  const at=lesser(0);if(at===null)continue;
+  if(at<inserted.length){let tail=at+1;while(tail<inserted.length){const remove=lesser(tail);if(remove===null||remove===inserted.length)break;inserted.splice(remove,1);tail=remove;}inserted[at]=template;}
+  else inserted.push(template);
  }
  return inserted;
 }
-function loopOrder(a:WhereLoop,b:WhereLoop):number {return a.runCost<b.runCost?-1:a.runCost>b.runCost?1:a.kind.localeCompare(b.kind)||a.sourceOrdinal-b.sourceOrdinal}
 /** Exact port of util.c:sqlite3LogEstAdd for bigint LogEst units. */
 export function logEstAdd(a:LogicalEstimate,b:LogicalEstimate):LogicalEstimate {const x=[10n,10n,9n,9n,8n,8n,7n,7n,7n,6n,6n,6n,5n,5n,5n,4n,4n,4n,4n,3n,3n,3n,3n,3n,3n,2n,2n,2n,2n,2n,2n,2n];if(a<b)return logEstAdd(b,a);const d=a-b;if(d>49n)return a;if(d>31n)return a+1n;return a+x[Number(d)]!;}
-function pathKey(path:WherePath):string{return path.loops.map(x=>`${x.sourceOrdinal}:${x.kind}:${x.capability?.index?.name??""}`).join("|")}
-/** Admitted wherePathSolver translation: retain up to mxChoice N-best paths at
- * every depth, applying ready-mask/cost/row/order dominance before truncation. */
+/** where.c:computeMxChoice default, without the unrepresented star heuristic. */
 export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCount<=1?1:sourceCount===2?5:12;}
+/** where.c:5835ff. Ordered traversal, unsorted accumulators and bounded slots. */
 export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null):WherePath {
- let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:0})];
- for(let depth=0;depth<sourceCount;depth++){const next:WherePath[]=[];for(const path of paths)for(const group of candidates)for(const loop of [...group].sort(loopOrder)){const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;const cap=loop.capability,run=logEstAdd(loop.setupCost,loop.runCost+path.rows),cost=logEstAdd(path.cost,run),ready=path.ready|bit,ordered=sourceCount===1?(cap?.orderTermsSatisfied??0):0,scored=sourceCount===1&&orderTerms>0&&ordered<orderTerms?logEstAdd(cost,sortCost(sortRows??path.rows+loop.outputRows,resultColumns,orderTerms,ordered))+3n:cost;const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(cap?.reverse?bit:0n),rows:path.rows+loop.outputRows,cost:scored,unsortedCost:cost,orderTermsSatisfied:ordered});const dominated=next.some(old=>old.ready===ready&&old.cost<=scored&&old.rows<=proposal.rows&&(old.orderTermsSatisfied??0)>=ordered);if(dominated)continue;for(let i=next.length-1;i>=0;i--){const old=next[i]!;if(old.ready===ready&&scored<=old.cost&&proposal.rows<=old.rows&&ordered>=(old.orderTermsSatisfied??0))next.splice(i,1);}next.push(proposal);}paths=next.sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b))).slice(0,maxChoices);}
- const full=(1n<<BigInt(sourceCount))-1n,best=paths.filter(path=>path.ready===full).sort((a,b)=>a.cost<b.cost?-1:a.cost>b.cost?1:pathKey(a).localeCompare(pathKey(b)))[0];if(!best)throw new WherePlanningUnsupportedError("no usable WHERE path");return best;
+ if(!Number.isSafeInteger(maxChoices)||maxChoices<1)throw new RangeError("invalid WHERE choice width");
+ let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:orderTerms&&sourceCount?null:0})];
+ const noBetter=(candidate:WhereLoop,baseline:WhereLoop):boolean=>candidate.kind!=="index"||baseline.kind!=="index"||candidate.indexRowSize===undefined||baseline.indexRowSize===undefined||candidate.indexRowSize>=baseline.indexRowSize;
+ for(let depth=0;depth<sourceCount;depth++){
+  const next:WherePath[]=[];let worst=0,mxCost=0n,mxUnsort=0n;
+  for(const path of paths)for(const group of candidates)for(const loop of group){
+   const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;
+   let unsorted=loop.runCost+path.rows;if(loop.setupCost!==0n)unsorted=logEstAdd(loop.setupCost,unsorted);unsorted=logEstAdd(unsorted,path.unsortedCost);
+   const ready=path.ready|bit,rows=path.rows+loop.outputRows;
+   // Existing bounded proof is complete only for single-source ORDER.
+   const ordered=path.orderTermsSatisfied===null?(sourceCount===1?(loop.capability?.orderTermsSatisfied??0):0):path.orderTermsSatisfied;
+   let cost=unsorted;if(ordered<orderTerms)cost=logEstAdd(unsorted,sortCost(sortRows??rows,resultColumns,orderTerms,ordered))+3n;else unsorted-=2n;
+   const proposal:WherePath=freeze({loops:Object.freeze([...path.loops,loop]),ready,reverse:path.reverse|(loop.capability?.reverse?bit:0n),rows,cost,unsortedCost:unsorted,orderTermsSatisfied:ordered});
+   let slot=next.findIndex(old=>old.ready===ready&&((old.orderTermsSatisfied===null)===(proposal.orderTermsSatisfied===null)||depth===sourceCount-1));
+   if(slot<0){
+    if(next.length>=maxChoices&&(cost>mxCost||(cost===mxCost&&unsorted>=mxUnsort)))continue;
+    slot=next.length<maxChoices?next.length:worst;
+   }else{
+    const old=next[slot]!;
+    if(old.cost<cost||(old.cost===cost&&old.rows<rows)||(old.cost===cost&&old.rows===rows&&old.unsortedCost<unsorted)||(old.cost===cost&&old.rows===rows&&old.unsortedCost===unsorted&&noBetter(loop,old.loops[depth]!)))continue;
+   }
+   next[slot]=proposal;
+   if(next.length>=maxChoices){worst=0;mxCost=next[0]!.cost;mxUnsort=next[0]!.rows;for(let i=1;i<next.length;i++){const old=next[i]!;if(old.cost>mxCost||(old.cost===mxCost&&old.unsortedCost>mxUnsort)){worst=i;mxCost=old.cost;mxUnsort=old.unsortedCost;}}}
+  }
+  paths=next;
+ }
+ if(paths.length!==1)throw new WherePlanningUnsupportedError("no usable WHERE path");return paths[0]!;
 }
 
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:"reduction"};
@@ -299,7 +335,8 @@ export function planWhere(resolved:ResolvedSelect,request:WherePlanRequest):Wher
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.
  const analysis=analyzeWhere(resolved);
- let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved});});
+ const planBudget:WherePlanBudget={remaining:20000};
+ let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget});});
  const unsorted=wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length));
  const path=request.orderBy.length?wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length),request.orderBy.length,resolved.result.length,unsorted.rows+1n):unsorted;return freeze({analysis,path,plannerCandidates:groups.reduce((sum,group)=>sum+group.length,0),plannerPaths:path.loops.length});
 }

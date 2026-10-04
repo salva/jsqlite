@@ -54,6 +54,13 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+Ordered `whereLoopFindLesser/whereLoopInsert` (where.c2744–2939) and bounded
+`wherePathSolver` (5835ff) map to `whereLoopInsertCandidates/wherePathSolver`
+in `where-plan.ts`; `where-plan-ordered-red.test.mjs` discriminates replacement,
+drop/tail deletion, sort/prerequisite identity, setup/budget and vector ties.
+[Decisions and bounded evidence](research/card-s-d-a-ordered-where.md); indexed
+row-size metadata and OR-set/automatic-index/STAT4/star branches remain gaps.
+
 `whereexpr.c:sqlite3WhereExprAnalyze` → [where-plan.ts](../src/internal/where-plan.ts)
 terms/dependencies. `where.c:whereLoopAddBtree`, `wherePathSolver`,
 `sqlite3WhereBegin`, `sqlite3WhereEnd` → candidate/path/level state and SELECT
