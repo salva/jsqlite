@@ -137,12 +137,21 @@ export class PriorityQueueCursor {
  * equality; NULLs compare equal for DISTINCT. */
 export class EphemeralIndexCursor {
   readonly kind="ephemeral-index" as const;readonly keyInfo:KeyInfo;readonly limits:PrivateStateLimits;readonly insertionOrder:boolean;
-  #shared:{entries:Entry[];references:number}={entries:[],references:1};#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
+  #shared:{entries:Entry[];references:number;sorted:boolean}={entries:[],references:1,sorted:true};#closed=false;#at=-1;readonly #budget:PrivateStateByteBudget;
   constructor(keyInfo:KeyInfo,limits:PrivateStateLimits,budget=new PrivateStateByteBudget(limits.maxBytes),insertionOrder=false){this.keyInfo=keyInfo;this.limits=limits;this.#budget=budget;this.insertionOrder=insertionOrder}
   get size():number{this.#live();return this.#shared.entries.length}
   /** sqlite3ExprCodeIN distinguishes empty RHS from RHS NULL on the Mem-owned index. */
   hasNullKey():boolean{this.#live();return this.#shared.entries.some(entry=>entry.key[0]?.initialStorageClass==="null")}
-  async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{this.#live();for(const entry of this.#shared.entries)if(await compareEntry(entry,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0)return true;return false}
+  async found(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{
+   this.#live();await control.checkpoint(0);
+   const probe:Entry={key:key as Mem[],payload:[],sequence:0,bytes:0};
+   // vdbe.c Found -> btree.c IndexMoveto: compare ordered keys, then narrow
+   // the interval. Unsorted insertion-order/window cursors retain linear lookup.
+   if(this.#shared.sorted){let lo=0,hi=this.#shared.entries.length-1;
+    while(lo<=hi){const mid=lo+Math.floor((hi-lo)/2),c=await compareEntry(this.#shared.entries[mid]!,probe,this.keyInfo,control);this.#live();if(c===0){await control.checkpoint(0);return true;}if(c<0)lo=mid+1;else hi=mid-1;}
+   }else for(const entry of this.#shared.entries)if(await compareEntry(entry,probe,this.keyInfo,control)===0){await control.checkpoint(0);return true;}
+   await control.checkpoint(0);return false;
+  }
   async remove(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
    this.#live();for(let i=0;i<this.#shared.entries.length;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){await control.checkpoint(1);const [entry]=this.#shared.entries.splice(i,1);this.#budget.release(entry!.bytes);releaseEntry(entry!);if(this.#at>=i)this.#at--;return}
   }
@@ -154,28 +163,37 @@ export class EphemeralIndexCursor {
    this.#live();for(let i=0;i<this.#shared.entries.length;){const entry=this.#shared.entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#shared.entries.splice(i,1);this.#budget.release(entry.bytes);releaseEntry(entry);if(this.#at>=i)this.#at--}
   }
   clear():void{this.#live();this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[];this.#at=-1}
-  async insert(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();const owned=copyCells(key),bytes=logicalBytes(owned);
+  /** btree.c IndexMoveto-shaped lower bound for ordinary ordered key cursors.
+   * Insertion-order/window cursors deliberately keep their existing sequence. */
+  async #keyPosition(key:readonly Mem[],control:PrivateStateControl):Promise<number>{
+   let lo=0,hi=this.#shared.entries.length;
+   const probe:Entry={key:key as Mem[],payload:[],sequence:0,bytes:0};
+   while(lo<hi){const mid=lo+Math.floor((hi-lo)/2);if(await compareEntry(this.#shared.entries[mid]!,probe,this.keyInfo,control)<0)lo=mid+1;else hi=mid;}
+   return lo;
+  }
+  async insert(key:readonly Mem[],control:PrivateStateControl,ordered=false):Promise<void>{
+   this.#live();const at=ordered?await this.#keyPosition(key,control):this.#shared.entries.length;
+   const owned=copyCells(key),bytes=logicalBytes(owned);
    if(bytes>this.limits.maxKeyBytes){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral key exceeds byte limit")}
    if(this.#shared.entries.length>=this.limits.maxEntries){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral index exceeds entry limit")}
    try{this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit")}catch(error){owned.forEach(value=>value.release());throw error}
    try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){owned.forEach(value=>value.release());this.#budget.release(bytes);throw error}
    const entry:Entry={key:owned,payload:[],sequence:this.#shared.entries.length,bytes};
-   this.#shared.entries.push(entry);
+   this.#shared.entries.splice(at,0,entry);const wasSorted=this.#shared.sorted;this.#shared.sorted=ordered;
    try { await control.checkpoint(0); }
-   catch(error){this.#shared.entries.pop();releaseEntry(entry);this.#budget.release(bytes);throw error}
+   catch(error){this.#shared.entries.splice(at,1);this.#shared.sorted=wasSorted;releaseEntry(entry);this.#budget.release(bytes);throw error}
   }
   /** Replace an equal complete record, preserving SQLite UNION's right-side representative. */
   async replace(key:readonly Mem[],control:PrivateStateControl):Promise<void>{
-   this.#live();for(let i=0;i<this.#shared.entries.length;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){
+   this.#live();if(!this.insertionOrder&&!this.#shared.sorted)await this.sort(control);const start=this.insertionOrder?0:await this.#keyPosition(key,control),end=this.insertionOrder?this.#shared.entries.length:Math.min(start+1,this.#shared.entries.length);for(let i=start;i<end;i++)if(await compareEntry(this.#shared.entries[i]!,{key:key as Mem[],payload:[],sequence:0,bytes:0},this.keyInfo,control)===0){
     const bytes=logicalBytes(key),old=this.#shared.entries[i]!;if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral index exceeds byte limit");
     this.#budget.replace(old.bytes,bytes,"ephemeral index exceeds byte limit");try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){this.#budget.replace(bytes,old.bytes);throw error}
     let replacement:Entry;try{replacement={key:copyCells(key),payload:[],sequence:old.sequence,bytes}}catch(error){this.#budget.replace(bytes,old.bytes);throw error}this.#shared.entries[i]=replacement;
     try{await control.checkpoint(0)}catch(error){this.#shared.entries[i]=old;releaseEntry(replacement);this.#budget.replace(bytes,old.bytes);throw error}releaseEntry(old);return;
-   }return this.insert(key,control);
+   }return this.insert(key,control,!this.insertionOrder);
   }
   async sort(control:PrivateStateControl):Promise<void>{
-   this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#at=-1;
+   this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#shared.sorted=true;this.#at=-1;
   }
   first():boolean{this.#live();this.#at=0;return this.#shared.entries.length>0}
   /** window.c1948ff / vdbe.c OP_SeekRowid: publish positioning only after

@@ -4656,3 +4656,50 @@ including NULL/zero/OFFSET errors and IN/outer LIMIT counterexamples. The origin
 9/10 failure is retained as historical evidence; neither derived admission nor
 conformance credit expands. Combined historical 1539/1543 remains nonpass unless
 and until an actual combined command produces a new denominator/outcome.
+
+### Revision 2026-10-05 — root-w compound watchdog residual ([[card:card-j-d-b-a-c]])
+
+Baseline `d9d6759c44aa5366ea5f32d0b64f4d13badb11a5` full-w manifest
+(289315 bytes, SHA256 `b3bb63aa2ad5bee2e16c437b89673e9e45c42049f9d817e010de177978b8ffbf`)
+is 222 completed / 1 fail / 2 timeout, not green. The unchanged 8s public
+`table INTERSECT preserves` pattern interrupted both current and exact committed
+source. That alone did not prove a loop. A snapshot progress probe reached the
+first prepared statement, not its first row or teardown; the mixed UNION ALL
+statement in the same test was not proven reached. A 10000-work diagnostic failed
+within ~147ms in IdxInsert/replace comparison, distinguishing accounted
+set-population work from teardown. Native-first pinned 3.53.4 reports INTEGER
+0,1 for `SELECT i AS v FROM storage_values INTERSECT SELECT r FROM storage_values ORDER BY v`;
+the actual second statement appends `UNION ALL SELECT i FROM storage_values ORDER BY v LIMIT 6`
+and returns INTEGER -9223372036854775808,0,0,1,1,2.
+
+Owning comparison: `select.c:multiSelect`/`selectInnerLoop` set destinations feed
+`vdbe.c:OP_IdxInsert` and `btree.c:sqlite3BtreeIndexMoveto`/`sqlite3BtreeInsert`.
+Pinned index search narrows ordered keys; TS replacement formerly scanned every
+retained record, and repeated unsorted membership compounded that cost. The
+repair maintains ordered keys specifically for set replacement/insertion and
+uses a typed lower-bound search; membership retains the peer's controlled binary
+probe. Ordinary insertion-order/window cache insertion is unchanged. Array
+splicing remains a browser representation adaptation (not a claim to SQLite page
+balancing), while key comparison, representatives, duplicate identity, work
+checkpoints, failed-publication rollback and shared-byte ownership stay at their
+existing owners. INTERSECT retains left cells; UNION replacement retains right
+cells. No SQL parsing, destination bypass or watchdog change is involved.
+
+An initial overly general sorted insertion broke window-cache sequence semantics;
+it was narrowed to set replacement and the window suite then passed. A private
+insertion helper also bypassed the existing injected-error/deadline hook; it was
+removed so replacement still calls the owning public primitive. These failed
+attempts are not acceptance evidence. New focused tests cover logarithmic key
+comparison during population and cancellation rollback. Current bounded pattern
+passes both SQL statements in ~2.7s, public compound 22/22 credited and broad
+subquery/view 192/192 pass. Exact base-plus-repair snapshot passes the unchanged
+8s pattern and 120 window/C2/lifecycle/private checks. Logs:
+`work:///cards/card-j-d-b-a-c/processes/proc-7d9dd0323685/stdout.log` (native/RED),
+`work:///cards/card-j-d-b-a-c/processes/proc-293c0d586212/stdout.log` (budget),
+`work:///cards/card-j-d-b-a-c/processes/proc-696596e45270/stdout.log` (current),
+`work:///cards/card-j-d-b-a-c/processes/proc-4972303fdea6/stdout.log` (base-plus-repair).
+
+Concurrent where-plan/vdbe, owner/peer tests, root-w closeTestServer and other
+workspace changes are preserved, not credited by this scoped repair. Acceptance
+enables a root full-w rerun; it does not supersede the historical failed full225
+or claim broad green, general merge-coroutine compatibility, or new SQL breadth.
