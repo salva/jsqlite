@@ -27,10 +27,15 @@ runtime `2f1545c`: core238/additional352 and installed alpha.3 browser/package
 checks pass. Later finite adversarial/reuse, indexed throughput, real credential/
 CORS and 8.5MB overflow coverage pass without runtime changes. Original blockers
 are discharged for this identity; old failures retain their source provenance.
-[Final package reconciliation](research/card-v-a-final-alpha.md) owns release
-source/artifact identity, changed packed-input recapture and remaining independent
-installed-demo/review handoff. This is private-local bounded delivery, not global
-compatibility, arbitrary compositions, performance or other-browser certification.
+[Independent alpha.4 acceptance](research/card-v-alpha-four-acceptance.md) now
+binds installed private-local delivery to release source `1984a9a`, runtime
+`2f1545c`, and tarball `d5949e25…`: package13, Chromium current38 and separate
+historical-gap2, installed demo, credentials/CORS and affected42 pass. The earlier
+core238/additional352 evidence is reused only for byte-identical runtime inputs.
+This is finite private-local readiness, not publication, global compatibility,
+arbitrary compositions, performance or other-browser certification. Residual
+read-only breadth remains product backlog under unchanged SPEC; the subsequent
+independent postcandidate review does not impose a circular wait here.
 
 Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
 LOCAL versioned alpha** under goal v before returning to residual SQL breadth.

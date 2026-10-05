@@ -8,9 +8,15 @@ public repository or external distribution; no operator configuration changes.
 The independently tested runtime source is `2f1545c`, with fresh core238 and
 additional352 passing. Later committed test-only coverage establishes malicious
 input/reuse, realistic indexed throughput, real Chromium credential/CORS and
-8.5MB overflow delivery; see [final package reconciliation](card-v-a-final-alpha.md)
-for release source/artifact provenance and reuse boundaries. No dirty/staged peer
-repairs are included. Settled JSON r v24/f1eb053 remains retained; optional JSON
+8.5MB overflow delivery. [Independent alpha.4 acceptance](card-v-alpha-four-acceptance.md)
+now establishes finite private-local readiness for release source `1984a9a`,
+runtime `2f1545c` and tarball SHA256 `d5949e25ab96c6ea73caaad210f02ecf9bd29d345e90880ddc4f3eb78359cb0e`.
+Package13, installed Chromium current38/separate historical-gap2, demo and affected42
+pass; native and core238/additional352 reuse is bound to unchanged runtime and
+fixture inputs. [Final package reconciliation](card-v-a-final-alpha.md) retains
+owner provenance. This is neither public release nor numerical/full compatibility.
+These later evidence-document edits are not a new tested artifact source.
+No dirty/staged peer repairs are included. Settled JSON r v24/f1eb053 remains retained; optional JSON
 breadth is not a prerequisite. Historical failed candidates stay historical.
 
 Advertised core consists of the existing public open/prepare/step/reset/
