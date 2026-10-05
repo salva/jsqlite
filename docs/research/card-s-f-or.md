@@ -1,5 +1,77 @@
 # Selected rowid multi-index OR: preconsumer handoff
 
+## Final bounded report
+
+**Conclusion: supported as a preconsumer decision/evidence delivery only.** Accepted
+exploration (status v4) and assessment (status v7) for [[card:card-s-f-a]] support
+handing this proposal to the Planner/Reviewer of [[card:card-s-f]]. They do not
+approve its technical decisions or establish selected TS runtime fidelity, parent
+acceptance, or compatibility credit. Evidence artifacts are in commit `7e38a7e`;
+this final report incorporates the accepted assessment without rerunning tests or
+starting implementation.
+
+### Evidence
+
+The assessment checked capture source identity against the pinned manifest,
+fixture sizes/SHA-256 values in all three encodings, case counts, and native
+MULTI-INDEX OR/RowSetTest presence for every selected binding run. The inventory
+contains 66 case/encoding records: 0 exact, 21 adapted, 45 supplemental. Each
+encoding includes 24 successful binding executions plus one expected prepare
+error; case counts and execution counts are distinct. Retained revision-bound
+results are native capture exit 0, active TS suite exit 1 (24 pass/45 fail),
+existing focused WHERE tests 33/33, and typecheck exit 0. The original 21-pass/
+48-fail run remains retained, including the declaration-metadata discrepancy.
+Source comparison confirms exact ordered cost-slot behavior, including the pinned
+full-slot smallest-rRun branch and minimum-nOut retention.
+
+### Inference
+
+The tested TS revision lacks selected OR production: three handoff assertions
+observe table-scan rather than multi-or; 42 selected public tests reach missing
+physical branch work after first-run rows/types/metadata compare successfully.
+The clause-owned analysis, shared-budget cost collector, shared-builder Case5
+continuation and translated RowSet proposal is therefore an actionable bounded
+implementation handoff, not proof that deeper execution assertions already hold.
+Native selected paths provide an independent target, not a substitute runtime.
+
+### Limitations and uncertainty
+
+- Deeper root/batch/dedup/sorter assertions and later selected rebind/clear runs
+  short-circuit on missing selection. Their presence in test code is not coverage.
+- Native Python binds `2.0` as REAL, whereas JSON numeric bindings erase that
+  distinction and the TS test converts integral numbers to BigInt. That later
+  rebind run is not a same-storage-class oracle comparison. Native typed result
+  cells and observed first-run missing-selection failures remain valid.
+- The root trace assertion deduplicates with Set: it proves unique roots and
+  first-occurrence order, not the full repeated-arm branch-open sequence.
+- Uppercase INT fixture adaptation avoids the recorded lowercase declaration
+  metadata mismatch; it neither repairs nor disproves the underlying discrepancy.
+- Internal native RowSet harness, exact cost/budget unit branches, middle batches,
+  `IS ?`, lifecycle/limits/cancel/deadline/yield/error cleanup, selected/offpath
+  corruption, cross-page movement, rowid affinity and borrowed-value liveness
+  remain outstanding. Join/WR public controls do not prove every provenance-based
+  selection refusal. Historical cost-only seam reconciliation remains unresolved.
+- Private representation/counter names, P4 shape, bounded recursion and selection-
+  only deferrals are proposals. No exceptional substitution is justified or sought.
+
+### Recommendations and delegated obligations
+
+Planner/Reviewer should decide the tagged clause/union continuation and RowSet
+ownership before consumers, and allocate the implementation/acceptance matrix
+below. Preserve previously admitted scan semantics for deferred WR and unsafe
+nullable-join selection, RIGHT/FULL fallback, distinct OR-IN ownership, and the
+shared construction budget. Before claiming parameter equivalence, tag native/TS
+binding storage classes and add a storage-class-sensitive REAL-integral versus
+INTEGER discriminator. Before claiming branch-sequence fidelity, retain the full
+executed root sequence and assert repeated-arm order/counts. Review private field
+names together with the chosen handoff rather than exposing public diagnostics.
+
+All exhaustive safety/physical/control obligations listed below remain delegated
+implementation-stage work, not waived gates or claimed executed coverage. No
+runtime implementation or evidence promotion occurs in this report; approval and
+parent/project acceptance remain with their respective owners. Detailed source,
+case, command, hash and log inventories are linked below rather than duplicated.
+
 Decision proposal for [[card:card-s-f]], authored by [[card:card-s-f-a]]. This is
 **preimplementation evidence**, not repair of accepted ordinary WHERE/index
 [[card:card-s-b]] or ordered insertion [[card:card-s-d]], and not goal acceptance.
