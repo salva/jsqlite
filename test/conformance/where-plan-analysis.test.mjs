@@ -239,3 +239,12 @@ test('production OR cost publishes immutable parent union, no branch physical ca
  assert.equal(loop.terms.length,1);assert.equal(loop.terms[0],loop.orInfo.parentTerm);
  assert.equal(loop.sortIdentity,0);assert.equal(loop.setupCost,0n);assert.ok(Object.isFrozen(loop));
 });
+test('cost-only Btree producer bypasses ordinary list and shares construction budget',()=>{
+ const r=expandAndResolveSelect(parseSql('SELECT id FROM t WHERE id>?').statement,schema()),clause=analyzeWhere(r).clause;
+ const costs={a:[]},budget={remaining:20};
+ const loops=btreeLoops(r.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:costs});
+ assert.deepEqual(loops,[]);assert.ok(costs.a.length>0);assert.ok(budget.remaining<20);
+ const empty={a:[]},tiny={remaining:1};
+ btreeLoops(r.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:tiny,orSet:empty});
+ assert.equal(tiny.remaining,0);assert.deepEqual(empty.a,[],'unconstrained scan consumes budget but never contributes OR cost');
+});

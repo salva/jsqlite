@@ -2,6 +2,7 @@
 // Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
 // whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
+import {whereOrCollect,type WhereOrSet} from "./where-or-cost.ts";
 import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
 import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
@@ -28,7 +29,7 @@ export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:S
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
-export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget}
+export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
 export interface WherePlanBudget {remaining:number}
 const freeze=<T>(value:T):Readonly<T>=>Object.freeze(value);
@@ -221,7 +222,11 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
- const insert=(loop:WhereLoop):boolean=>whereLoopInsert(loops,freeze({...loop,outputRows:outputAdjust(loop,clause),sortIdentity:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0}),budget);
+ const insert=(loop:WhereLoop):boolean=>{
+  const candidate=freeze({...loop,outputRows:outputAdjust(loop,clause),sortIdentity:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
+  if(options.orSet){const cap=loop.capability,nLTerm=cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:candidate.prereq,rRun:candidate.runCost,nOut:candidate.outputRows});}
+  return whereLoopInsert(loops,candidate,budget);
+ };
  if(!options.forcedIndex&&!source.table.withoutRowid)insert(scan);
  if(budget.remaining===0)return Object.freeze(loops);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
@@ -230,7 +235,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(budget.remaining===0)return Object.freeze(loops);
  indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))||budget.remaining===0)break indexes;}}
 
- if(options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
+ if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */
