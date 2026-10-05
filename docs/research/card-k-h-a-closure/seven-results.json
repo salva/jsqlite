@@ -1,0 +1,135 @@
+[
+  {
+    "suite": "outer-constraints",
+    "exit": 0,
+    "seconds": 1.059,
+    "tail": [
+      "\u2714 R6 owning positioning utf16be/ltorj (9.927051ms)",
+      "\u2714 R6 actual work cleanup utf8 (6.430459ms)",
+      "\u2714 R6 actual work cleanup utf16le (7.581098ms)",
+      "\u2714 R6 actual work cleanup utf16be (5.766473ms)",
+      "\u2139 tests 48",
+      "\u2139 suites 0",
+      "\u2139 pass 48",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 1016.384309"
+    ]
+  },
+  {
+    "suite": "repeated-right-full",
+    "exit": 0,
+    "seconds": 3.139,
+    "tail": [
+      "\u2714 repeated continuation utf16be/exists-stop (22.806155ms)",
+      "\u2714 repeated continuation utf16be/compound-limit (10.818426ms)",
+      "\u2714 repeated continuation utf16be/downstream-in (24.377402ms)",
+      "\u2714 repeated continuation utf16be/rhs-index-drain (14.641176ms)",
+      "\u2139 tests 132",
+      "\u2139 suites 0",
+      "\u2139 pass 132",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 3084.081571"
+    ]
+  },
+  {
+    "suite": "repeated-upstream-utf16be",
+    "exit": 0,
+    "seconds": 18.971,
+    "tail": [
+      "  \u2714 upstream adapted assertion utf16be/join8-3020 (18541.402745ms)",
+      "  \u2714 upstream adapted assertion utf16be/join8-3030 (18524.27308ms)",
+      "  \u2714 upstream adapted assertion utf16be/join8-3040 (18285.575795ms)",
+      "\u2714 upstream adapted assertions utf16be (18544.390846ms)",
+      "\u2139 tests 5",
+      "\u2139 suites 0",
+      "\u2139 pass 5",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 18925.882529"
+    ]
+  },
+  {
+    "suite": "repeated-upstream-utf16le",
+    "exit": 0,
+    "seconds": 18.277,
+    "tail": [
+      "  \u2714 upstream adapted assertion utf16le/join8-3020 (17840.451914ms)",
+      "  \u2714 upstream adapted assertion utf16le/join8-3030 (17823.010274ms)",
+      "  \u2714 upstream adapted assertion utf16le/join8-3040 (17601.166311ms)",
+      "\u2714 upstream adapted assertions utf16le (17843.274367ms)",
+      "\u2139 tests 5",
+      "\u2139 suites 0",
+      "\u2139 pass 5",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 18227.817098"
+    ]
+  },
+  {
+    "suite": "repeated-upstream-utf8",
+    "exit": 0,
+    "seconds": 18.4,
+    "tail": [
+      "  \u2714 upstream adapted assertion utf8/join8-3020 (17926.425162ms)",
+      "  \u2714 upstream adapted assertion utf8/join8-3030 (17907.906702ms)",
+      "  \u2714 upstream adapted assertion utf8/join8-3040 (17706.286445ms)",
+      "\u2714 upstream adapted assertions utf8 (17929.243353ms)",
+      "\u2139 tests 5",
+      "\u2139 suites 0",
+      "\u2139 pass 5",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 18352.69231"
+    ]
+  },
+  {
+    "suite": "right-nested",
+    "exit": 0,
+    "seconds": 0.821,
+    "tail": [
+      "\u2714 R5 early drain positioning utf16be (9.752696ms)",
+      "\u2714 R5 selected drain first error cleanup utf8 (10.622374ms)",
+      "\u2714 R5 selected drain first error cleanup utf16le (10.114118ms)",
+      "\u2714 R5 selected drain first error cleanup utf16be (9.303152ms)",
+      "\u2139 tests 30",
+      "\u2139 suites 0",
+      "\u2139 pass 30",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 778.079044"
+    ]
+  },
+  {
+    "suite": "right-residual",
+    "exit": 0,
+    "seconds": 0.931,
+    "tail": [
+      "\u2714 R4 early drain positioning utf16be (11.31193ms)",
+      "\u2714 R4 selected drain first error cleanup utf8 (11.520914ms)",
+      "\u2714 R4 selected drain first error cleanup utf16le (10.304777ms)",
+      "\u2714 R4 selected drain first error cleanup utf16be (10.559454ms)",
+      "\u2139 tests 36",
+      "\u2139 suites 0",
+      "\u2139 pass 36",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 888.893857"
+    ]
+  }
+]

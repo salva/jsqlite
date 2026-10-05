@@ -14,5 +14,5 @@
   "test/conformance/fixtures/repeated-upstream-join8.db": "9d8261f75e5891c88b3e6caa4b05619c338de6879627f85f6a8e06782be43bae",
   "test/conformance/fixtures/repeated-upstream-join8-utf16le.db": "2992205f9b84707955ce4fdfd5fb8e4338be75c6dac8b8d5d51e19be64f0d784",
   "test/conformance/fixtures/repeated-upstream-join8-utf16be.db": "f4cf13ad7d4b5feb2c6d7618f2765e7ead0c2f9c0de3fd15f58ad9eeda43f9a1",
-  "docs/research/card-k-h-a-closure/README.md": "aec0c72a01fd1c8e9e8811f8fce4f19a6c6c67b8d6064b6ef09761e104b4953c"
+  "docs/research/card-k-h-a-closure/README.md": "72b4cc346b9faae75688712b1400994591f5120563b7669d29c5ddb2f9da433d"
 }

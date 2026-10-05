@@ -41,7 +41,8 @@ git archive <closure-commit> | tar -x -C "$SAIVAGE_CARD_WORK_ROOT/repeated-clean
 ln -s "$PWD/reference/sqlite/sqlite-src-3530400.zip" "$SAIVAGE_CARD_WORK_ROOT/repeated-clean-export/reference/sqlite/"
 ln -s "$PWD/reference/sqlite/sqlite-src-3530400" "$SAIVAGE_CARD_WORK_ROOT/repeated-clean-export/reference/sqlite/"
 cd "$SAIVAGE_CARD_WORK_ROOT/repeated-clean-export"
-sh tools/oracle/build.sh
+mkdir -p "$SAIVAGE_CARD_WORK_ROOT/repeated-compiler-temp"
+TMPDIR="$SAIVAGE_CARD_WORK_ROOT/repeated-compiler-temp" sh tools/oracle/build.sh
 PYTHONDONTWRITEBYTECODE=1 python3 test/conformance/prepare-repeated-corpus.py --library "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"
 ```
 
@@ -57,3 +58,26 @@ repeated-upstream-utf16be.test.mjs, repeated-upstream-utf16le.test.mjs,
 repeated-upstream-utf8.test.mjs, right-nested.test.mjs, right-residual.test.mjs.
 Results, exact commit/tree/file hashes and commands are in the card status and
 closure evidence; no whole-alpha claim.
+
+## Fresh closure result
+
+Executable closure commit `cb82e85f1cc721303342b9bddfef24e440530a21`,
+tree `8d33a561cbf1cd4975fd52dd6745d39a361a87cf`:1279 tracked export blobs
+independently byte-compared with Git, zero drift. Clean export native build and
+regeneration exit0:63 supplemental captures,12 adapted upstream instances,
+READONLY12/12 replay, all nine regenerated files byte-identical. Unchanged seven
+suites serial30s each exit0:48+132+5+5+5+30+36=261 Node tests (three upstream
+parent tests included, not261 upstream assertions), zero skipped/cancelled.
+Per-file observed times1.059,3.139,18.971,18.277,18.400,0.821,0.931s.
+Exact logs and hashes: `seven-results.json`, `regeneration.log`, `evidence.json`,
+`paths.json` and `dependency-hashes.json` in this directory.
+
+Earlier clean80d32ea export0/7 ENOENT and reported cc21352 failed238 remain
+historical failures, not erased by focused closure. Existing502 dirty/untracked
+hash inventory and all original index entries reconciled unchanged except own
+reviewed producer edits. No peer staging/overwrites, quotas, watchdogs, consumer
+expectations or engine edits. Initial build succeeded but GCC temporary files
+used ambient /tmp; corrected documented reproduction explicitly sets scoped
+TMPDIR. This does not change the resulting tested native identity or capture
+bytes. Independent consuming owner should use this committed closure and the
+scoped command above; no whole-alpha or general termination claim.

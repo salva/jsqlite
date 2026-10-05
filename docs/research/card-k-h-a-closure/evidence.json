@@ -1,0 +1,19 @@
+{
+  "commit": "cb82e85f1cc721303342b9bddfef24e440530a21",
+  "tree": "8d33a561cbf1cd4975fd52dd6745d39a361a87cf",
+  "exportBlobs": 1279,
+  "drift": [],
+  "nativeLibrarySha256": "a1e0e915a94b14cd6759897b420ff39ec1cc071b4c46f4df36cb2b35f57b0834",
+  "results": {
+    "seven-results.json": "3d4c34b989d836da7faaf590bb6c6ce37c90e52f947c64b9b419600eba3915fa",
+    "regeneration.log": "28f78cecc7dfd12b0ce8bcfd4a89176a644ec6dabb138273f34ed320b0de471b",
+    "outer-constraints.log": "cad72c422da374469f855e91164ab0abea047c7bd9b0924866669d97da2c6bf1",
+    "repeated-right-full.log": "a0e7c62f522be872567f890d9d8b7b3d1d89f04223b267893347ad4e5ee20db9",
+    "repeated-upstream-utf16be.log": "f4a32a341fe973172541fd00a8416374b270cce999c1662cc2d4e0bb50eaf9f3",
+    "repeated-upstream-utf16le.log": "8ddd71af20264be0a8736ee8f64cfa111dab24fa02c4cc2448dce492840e53c7",
+    "repeated-upstream-utf8.log": "936b1cb231e43141c27ac812b8b8e1c0ac28cb0d602acd3f7cbcefa984f15809",
+    "right-nested.log": "ddc02bdc4900c7acc697b847f465eef79e4537ab50fd2094042305476a664d98",
+    "right-residual.log": "0f334066d816ab568acfbaa83f4723b71a3c6a985c29cee0aa5e6ffa29091516"
+  },
+  "initialInventorySha256": "a09195d4ec17911067c207738417ca4755f21d189eb16747f31f2fa142999c08"
+}
