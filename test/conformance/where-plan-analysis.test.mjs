@@ -213,3 +213,21 @@ test('SELECT usage retains enclosing identity through nested and compound owners
  const alias=resolve('SELECT (SELECT z.id) AS v FROM t x RIGHT JOIN t y ON x.id=-1 LEFT JOIN t z ON z.id=y.id WHERE v=3',s);
  assert.equal(analyzeWhere(alias,true).clause.terms[0].prereqAll,4n);
 });
+test('OR semantic graph owns stable parents, AND clauses, masks and original residual',()=>{
+ const resolved=expandAndResolveSelect(parseSql('SELECT id FROM t WHERE a=? OR (b>? AND id<?)').statement,schema());
+ const clause=analyzeWhere(resolved).clause,parent=clause.terms[0];
+ assert.equal(parent.info?.kind,'or');assert.equal(parent.info.parentTerm,parent);
+ assert.equal(parent.operator,null,'single-index admission operator is unchanged');
+ assert.equal(parent.info.indexable,1n);assert.equal(parent.info.clause.split,'or');
+ const and=parent.info.clause.terms[1];assert.equal(and.info.kind,'and');
+ assert.equal(and.info.clause.outer,clause);
+ assert.deepEqual(and.info.clause.terms.map(t=>t.operator),['gt','lt']);
+ assert.equal(clause.terms[0].expression,parent.expression,'full OR remains residual');
+ assert.ok(Object.isFrozen(parent.info));assert.ok(Object.isFrozen(parent.info.clause));
+});
+test('unindexable OR still owns analysis; nested OR under AND retains masks',()=>{
+ for(const [sql,mask] of [['SELECT id FROM t WHERE a=? OR 1',0n],['SELECT id FROM t WHERE a=? OR (id>? AND (b>? OR id<?))',1n]]){
+  const resolved=expandAndResolveSelect(parseSql(sql).statement,schema()),p=analyzeWhere(resolved).clause.terms[0];
+  assert.equal(p.info?.kind,'or');assert.equal(p.info.indexable,mask);
+ }
+});
