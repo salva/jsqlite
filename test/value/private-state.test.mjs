@@ -46,7 +46,10 @@ test('private work accounting charges records, bytes, compared terms, and merge 
  const ephemeral=new EphemeralIndexCursor(info,{maxEntries:2,maxKeyBytes:32,maxBytes:32});
  const charges=[],control={async checkpoint(units=0){charges.push(units)}};
  await ephemeral.insert([m(1),m(2)],control);assert.deepEqual(charges,[17,0,0]);charges.length=0;
- assert.equal(await ephemeral.found([m(1),m(3)],control),false);assert.deepEqual(charges,[1,1]);ephemeral.close();
+ assert.equal(await ephemeral.found([m(1),m(3)],control),false);
+ // Zero-unit checkpoints are cancellation boundaries, not comparison work.
+ // Keep the exact trace as well as the summed two-KeyInfo-term work assertion.
+ assert.deepEqual(charges,[0,1,1,0]);assert.equal(charges.reduce((n,units)=>n+units,0),2);ephemeral.close();
 });
 
 test('private insertion checkpoints bracket growth and roll it back on cancellation',async()=>{
