@@ -94,7 +94,10 @@ Evidence: [[card:card-k]], [[card:card-s]],
 [card-s status](record:///status.md?card=card-s), prior map advanced-index/selected
 WHERE sections, [mutable audit tail](reviews/translation-fidelity-2026-09-14.md).
 
-Current boundaries: one RIGHT/FULL barrier; selected expression/partial/covering/
+Current boundaries: represented repeated RIGHT/FULL execution (single-barrier
+milestone superseded; independent goal acceptance pending), with temporary
+WITHOUT ROWID RIGHT/FULL composite keys and ordered physical-derived boundaries;
+selected expression/partial/covering/
 WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit

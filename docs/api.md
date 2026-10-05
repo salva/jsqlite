@@ -405,3 +405,13 @@ names for unaliased direct columns before flattening; explicit AS takes priority
 An ordered physical-derived filter outside the represented producer route still
 fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
 This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).
+
+### Reopened R1/R2/R3 delivery correction
+Singleton RIGHT/FULL admission is a historical milestone, not the current gate.
+Represented repeated execution is implemented pending independent acceptance;
+WITHOUT ROWID composite match keys, ordered physical-derived compositions and
+currently declined aggregate/correlation neighbors remain typed temporary
+unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
+using the native-FIRST aggregate case in all encodings; not native allocation
+parity. Exact-export evidence and inherited prerequisite attribution are in
+`docs/research/card-k-h-b-runtime/closure.json`.

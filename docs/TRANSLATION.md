@@ -174,11 +174,16 @@ native-first acceptance are in [card-s-e-row-width](research/card-s-e-row-width.
 Runtime acceptance remains red; proposal approval is not compatibility credit.
 [Repair decisions/evidence](research/card-s-d-a-ordered-where.md). Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
-Ordinary comma/CROSS/INNER/LEFT routes and one RIGHT/FULL barrier are admitted at
-the documented gates. ON belongs to match testing; LEFT null extension precedes
-WHERE. RIGHT/FULL has separate unmatched-row tracking/drain. More than one such
-barrier remains temporary unsupported. USING/NATURAL projection and metadata must
-retain the semantic source selected by the resolver.
+Ordinary comma/CROSS/INNER/LEFT routes and represented repeated RIGHT/FULL
+barriers execute at the documented gates. The single-barrier milestone is
+historical; repeated execution in [[card:card-k-h-b]] awaits independent goal
+acceptance, not a multiple-barrier prepare gate. ON belongs to match testing
+before downstream/WHERE; normal loops close in reverse and unmatched drains run
+forward with independent per-level exact match/return ownership. WITHOUT ROWID
+RIGHT/FULL composite keys and the ordered physical-derived composition remain
+atomic temporary unsupported; declined aggregate/correlation neighbors are not
+universally admitted. USING/NATURAL projection and metadata retain resolver
+semantic ownership. See the API and current h-b checkpoints for bounded evidence.
 
 Selected index routes include represented rowid/ordinary, covering, expression,
 partial and WITHOUT ROWID access. Eligibility/proof precedes consumption: collation,

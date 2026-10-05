@@ -330,6 +330,19 @@ eager Cartesian row array. LEFT/RIGHT/FULL remain atomic prepare gates pending
 the unmatched-row protocol specified above. The native artifact remains 47/47
 captured; admitted public evidence is 8/8 pinned and 27/27 focused runtime cases.
 
-## Current implementation correction (2026-09-17)
+## Historical singleton implementation correction (2026-09-17)
 
-The prior statement that LEFT/RIGHT/FULL all remain gated is historical and superseded. LEFT and a single RIGHT/FULL barrier are implemented, including a downstream continuation. Repeated RIGHT/FULL barriers require one `WhereRightJoin`-like state owner per barrier; until that architecture lands they are atomically rejected at prepare. See immutable review `record:///review.md?card=card-k&v=3`.
+At this milestone LEFT and a single RIGHT/FULL barrier were implemented, including downstream continuation; repeated barriers were rejected pending per-level ownership. See immutable review `record:///review.md?card=card-k&v=3`.
+
+## Current repeated implementation (card-k-h-b; independent acceptance pending)
+
+Repeated represented rowid RIGHT/FULL barriers now use independent match cursor,
+key/return registers and body bounds. ON success records exact membership before
+downstream/WHERE; reverse normal closure precedes forward unmatched drains.
+Earlier drains can record later matches; selected index/table NullRow ownership
+precedes continuation. Original window input consumes the shared resolved WHERE
+producer, retaining rewrite payload/framing. This supersedes singleton admission,
+not all neighboring producer restrictions: WR composite keys, ordered physical-
+derived and declined aggregate/correlation routes remain typed temporary
+unsupported. API/guide/map define current bounded admission. Independent full
+caller/control review remains pending; internal checks are not goal acceptance.

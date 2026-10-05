@@ -81,6 +81,49 @@ for(const enc of Object.keys(corpus.fixtures))test(`atomic WITHOUT ROWID barrier
  }
 }
 
+// R2: bounded observation of existing stores, no allocator/runtime changes.
+for(const enc of Object.keys(corpus.fixtures))test(`distinct simultaneous match owners and aggregate budget ${enc}`,async()=>{
+ const {PrivateStateByteBudget,EphemeralIndexCursor,SorterCursor}=await import('../../src/internal/private-state.ts');
+ const reserve=PrivateStateByteBudget.prototype.reserve,insert=EphemeralIndexCursor.prototype.insert,sort=SorterCursor.prototype.insert,close=EphemeralIndexCursor.prototype.close;
+ EphemeralIndexCursor.prototype.close=function(){try{return close.call(this)}finally{const state=owners.get(this);if(state)state.bytes=0}};
+ let active;const owners=new Map(),budgets=new Set(),overlaps=[];let peak=0;
+ EphemeralIndexCursor.prototype.insert=async function(key,control,ordered){
+  const state=owners.get(this)??{keys:new Set(),bytes:0,budget:null};owners.set(this,state);
+  active={owner:this,state,key:key.map(v=>String(v.integerValue())).join(',')};
+  try{return await insert.call(this,key,control,ordered)}finally{active=undefined}
+ };
+ SorterCursor.prototype.insert=async function(...args){active={sorter:this};try{return await sort.apply(this,args)}finally{active=undefined}};
+ PrivateStateByteBudget.prototype.reserve=function(bytes,message){
+  reserve.call(this,bytes,message);budgets.add(this);peak=Math.max(peak,this.usedBytes);
+  if(active?.state){active.state.budget=this;active.state.bytes+=bytes;active.state.keys.add(active.key)}
+  if(active?.sorter){const live=[...owners.entries()].filter(([,s])=>s.budget===this&&s.bytes>0);
+   if(live.length>=2)overlaps.push({sorter:active.sorter,budget:this,live:live.map(([owner,s])=>[owner,{...s,keys:new Set(s.keys)}]),used:this.usedBytes,bytes});}
+ };
+ const c=corpus.cases.find(c=>c.encoding===enc&&c.id==='aggregate');
+ try{
+  await withDb(enc,async db=>{const s=db.prepare(c.sql).statement;try{
+   assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);
+   assert.ok(overlaps.length,'two distinct match stores must coexist with sorter');
+   const o=overlaps.find(o=>JSON.stringify([...o.live[0][1].keys])!==JSON.stringify([...o.live[1][1].keys]));assert.ok(o,'distinct nonempty populations at a sorter reservation');assert.notEqual(o.live[0][0],o.live[1][0]);
+   assert.notDeepEqual([...o.live[0][1].keys],[...o.live[1][1].keys]);
+   assert.ok(o.live.every(([,x])=>x.budget===o.budget));assert.ok(o.used>=o.bytes+o.live.reduce((n,[,x])=>n+x.bytes,0));
+   assert.ok([...budgets].every(b=>b.usedBytes===0),'success cleanup');
+   owners.clear();overlaps.length=0;s.reset();assert.deepEqual(await rows(s),c.native.first.rows);
+   assert.ok(overlaps.length);assert.ok([...budgets].every(b=>b.usedBytes===0),'reset cleanup');
+  }finally{s.finalize()}});
+  assert.ok(peak>0);
+  console.log(JSON.stringify({encoding:enc,peak,owners:overlaps.at(-1)?.live.map(([,s],i)=>({store:i,keys:[...s.keys],bytes:s.bytes})),commonBudget:true}));
+  for(const cap of [peak-1,peak])await withDb(enc,async db=>{
+   const s=db.prepare(c.sql).statement;try{
+    if(cap===peak)assert.deepEqual(await rows(s),c.native.first.rows);
+    else{let first;await assert.rejects(async()=>rows(s),e=>{first=e;return e.kind==='limit'});await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.finalize(),e=>e===first)}
+   }finally{if(cap===peak)s.finalize()}
+   assert.ok([...budgets].every(b=>b.usedBytes===0),'boundary/error cleanup');
+   const clean=db.prepare('SELECT 1').statement;try{assert.equal(await clean.step(),'row')}finally{clean.finalize()}
+  },{limits:{maxPrivateBytes:cap}});
+ }finally{PrivateStateByteBudget.prototype.reserve=reserve;EphemeralIndexCursor.prototype.insert=insert;SorterCursor.prototype.insert=sort;EphemeralIndexCursor.prototype.close=close}
+});
+
 // Authored shared-budget contract, not a native page/allocation counter.
 // Instrument the existing owning budget only; public execution/rows stay intact.
 for(const enc of Object.keys(corpus.fixtures))test(`multi-barrier nonzero simultaneous aggregate/match byte boundary ${enc}`,async()=>{

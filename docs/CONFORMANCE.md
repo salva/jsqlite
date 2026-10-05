@@ -817,3 +817,13 @@ applicable: runtime/test inputs have not changed since those checks. No universa
 aggregate/correlation/derived ORDER or WR composite-key admission is claimed.
 Source/control review and exact hashes/commands are in the focused research.
 Internal execution evidence is not parent independent fidelity acceptance.
+
+### Reopened R1/R2/R3 delivery correction
+Singleton RIGHT/FULL admission is a historical milestone, not the current gate.
+Represented repeated execution is implemented pending independent acceptance;
+WITHOUT ROWID composite match keys, ordered physical-derived compositions and
+currently declined aggregate/correlation neighbors remain typed temporary
+unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
+using the native-FIRST aggregate case in all encodings; not native allocation
+parity. Exact-export evidence and inherited prerequisite attribution are in
+`docs/research/card-k-h-b-runtime/closure.json`.
