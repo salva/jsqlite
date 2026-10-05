@@ -4,6 +4,12 @@ const capture=JSON.parse(fs.readFileSync(new URL('./cases/stage3-index-planner.j
 async function rows(s){const r=[];while(await s.step()==='row')r.push(Array.from({length:s.columnCount},(_,i)=>s.column(i)));return r}
 const decode=c=>c.type==='null'?null:c.type==='integer'?BigInt(c.value):c.type==='real'?Buffer.from(c.ieee754be,'hex').readDoubleBE():c.type==='text'?Buffer.from(c.utf8Hex,'hex').toString():Uint8Array.from(Buffer.from(c.hex,'hex'));
 const value=v=>v&&v.type==='blob'?Uint8Array.from(Buffer.from(v.hex,'hex')):typeof v==='number'&&Number.isInteger(v)?BigInt(v):v;
+// LEFT where-safety charges ON once, then two base WHERE terms on the
+// matched body and two after the next outer row's failed seek/NullRow re-entry.
+// The hit recorded before WHERE prevents null-extension of the rejected match.
+// Owners: wherecode.c:code_outer_join_constraints; where.c:sqlite3WhereEnd.
+// Exact five is TS residual accounting, not native VM_STEP parity. Independent
+// committed-runtime trace/native evidence: card-s-b-a-a-b-a-a-a status.md v135.
 // All 69 public encoding/case attempts must match rows and the exact/min/max
 // production-private accounting contract on every binding execution.
 test('all encoding index-planner assertions receive row and private-counter credit',async()=>{

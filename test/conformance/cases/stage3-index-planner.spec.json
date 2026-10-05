@@ -539,8 +539,7 @@
           "max": 2
         },
         "residualTests": {
-          "min": 2,
-          "max": 4
+          "exact": 5
         },
         "sorterRows": {
           "exact": 0
