@@ -1,0 +1,4 @@
+
+> jsqlite2@0.0.0-alpha.1 build
+> node tools/package/build.mjs
+

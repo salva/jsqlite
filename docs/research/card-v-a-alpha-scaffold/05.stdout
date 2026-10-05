@@ -1,0 +1,336 @@
+[
+  {
+    "id": "jsqlite2@0.0.0-alpha.1",
+    "name": "jsqlite2",
+    "version": "0.0.0-alpha.1",
+    "size": 373077,
+    "unpackedSize": 1899845,
+    "shasum": "e2a8a4c9e726918667a3072f0891687916ea191f",
+    "integrity": "sha512-JYVrE8g3Jc2Eb1QLqNUVP8yDs3Vqs8CKSyytngYNuemJPFT2hg3bMknvob+/XNGEiwYIvM8oAObGyOxWI1Fliw==",
+    "filename": "jsqlite2-0.0.0-alpha.1.tgz",
+    "files": [
+      {
+        "path": "README.md",
+        "size": 4564,
+        "mode": 420
+      },
+      {
+        "path": "dist/generated/keyword-table.d.ts",
+        "size": 4530,
+        "mode": 420
+      },
+      {
+        "path": "dist/generated/keyword-table.js",
+        "size": 3738,
+        "mode": 420
+      },
+      {
+        "path": "dist/generated/parser-tables.d.ts",
+        "size": 78690,
+        "mode": 420
+      },
+      {
+        "path": "dist/generated/parser-tables.js",
+        "size": 67340,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 3246,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 14644,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/admission.d.ts",
+        "size": 697,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/admission.js",
+        "size": 3676,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/btree.d.ts",
+        "size": 5190,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/btree.js",
+        "size": 25914,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/comparison.d.ts",
+        "size": 3611,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/comparison.js",
+        "size": 15499,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/cte.d.ts",
+        "size": 1399,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/cte.js",
+        "size": 9307,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/date-time.d.ts",
+        "size": 992,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/date-time.js",
+        "size": 24914,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/functions.d.ts",
+        "size": 864,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/functions.js",
+        "size": 6702,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/json.d.ts",
+        "size": 4451,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/json.js",
+        "size": 49281,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/lemon-runtime.d.ts",
+        "size": 1288,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/lemon-runtime.js",
+        "size": 4873,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/math.d.ts",
+        "size": 263,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/math.js",
+        "size": 3900,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/mem.d.ts",
+        "size": 5512,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/mem.js",
+        "size": 40178,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/ordinary-scalars.d.ts",
+        "size": 932,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/ordinary-scalars.js",
+        "size": 5153,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/parse.d.ts",
+        "size": 7710,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/parse.js",
+        "size": 54951,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/pattern.d.ts",
+        "size": 646,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/pattern.js",
+        "size": 3807,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/printf.d.ts",
+        "size": 359,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/printf.js",
+        "size": 16098,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/private-state.d.ts",
+        "size": 4902,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/private-state.js",
+        "size": 24687,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/record.d.ts",
+        "size": 2447,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/record.js",
+        "size": 5719,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/resolve.d.ts",
+        "size": 8510,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/resolve.js",
+        "size": 110273,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/schema.d.ts",
+        "size": 9035,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/schema.js",
+        "size": 41429,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/select-compiler.d.ts",
+        "size": 1193,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/select-compiler.js",
+        "size": 13375,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/select-program.d.ts",
+        "size": 2054,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/select-program.js",
+        "size": 5888,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/sqlite-case.d.ts",
+        "size": 341,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/sqlite-case.js",
+        "size": 453,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/storage.d.ts",
+        "size": 1044,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/storage.js",
+        "size": 4229,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/tokenize.d.ts",
+        "size": 432,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/tokenize.js",
+        "size": 7225,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/utf.d.ts",
+        "size": 685,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/utf.js",
+        "size": 3299,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/vdbe-primitives.d.ts",
+        "size": 1276,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/vdbe-primitives.js",
+        "size": 5501,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/vdbe.d.ts",
+        "size": 26588,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/vdbe.js",
+        "size": 1043612,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/where-plan.d.ts",
+        "size": 8669,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/where-plan.js",
+        "size": 62006,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/window-rewrite.d.ts",
+        "size": 4118,
+        "mode": 420
+      },
+      {
+        "path": "dist/internal/window-rewrite.js",
+        "size": 17453,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 8483,
+        "mode": 420
+      }
+    ],
+    "entryCount": 64,
+    "bundled": []
+  }
+]
