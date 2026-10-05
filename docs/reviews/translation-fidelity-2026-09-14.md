@@ -4788,3 +4788,16 @@ Parent reviewv9 source/caller omission confirmed: depth0-only prerequisites miss
 
 ### Revision 2026-10-05 — h-b R6 inline outer constraints
 Parent reviewv14 source omission is repaired at joined lowering: invocation-local uncoded ready nonvirtual WHERE base terms run after hit/match/BeginSubrtn, before interior positioning, with LTORJ and owning continuation. LEFT synthetic-null and unmatched Gosub enter the same constraint body; remaining terms alone reach final row. Existing shared prerequisite and drain owners retained. Native-FIRST/control/errors and changed-runtime closure are in `research/card-k-h-b-runtime/r6.md`; author evidence pending independent goal/k-f review, not old247/216/232/browser40 acceptance.
+
+## Public immutable catalog consumer — 2026-10-05, [[card:card-e-m]]
+
+The reproduced missing-table public SELECT gap is repaired independently of
+accepted internal schema initialization. Synthetic root-1 Table metadata and
+shared preferred/legacy lookup now feed actual physical storage via the ordinary
+resolver/compiler/VM. Persisted graph object order is unchanged; no fabricated
+catalog rows. Source comparison also exposed the distinct canonical qualified-star
+branch, preserved rather than extending column-qualifier equivalence to `*`.
+[Revision-bound evidence](../research/card-e-m-public-catalog.md) records typed
+pinned/public comparisons, failures during repair, regressions and remaining
+consumers. Existing flattened derived outer ORDER remains temporary unsupported;
+this is not universal catalog/PRAGMA/optimizer coverage.

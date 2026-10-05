@@ -93,6 +93,20 @@ otherwise the first observed condition wins. Timeout does not abort the caller's
 controller. Open failure owns and releases partial buffers and exposes no
 connection.
 
+## Immutable catalog SELECT
+
+Public `SELECT` from `main.sqlite_schema` or `sqlite_master` reads the physical
+root-page1 catalog through ordinary SELECT execution. The columns are `type TEXT`,
+`name TEXT`, `tbl_name TEXT`, `rootpage INT`, `sql TEXT`, in that order; physical
+rowid and NULL SQL (including implicit indexes) are preserved. Origin metadata
+uses canonical `sqlite_master`. Preferred/legacy column qualifiers are equivalent
+unless an explicit alias hides them. Qualified `*` follows canonical Table/alias
+matching, so `sqlite_schema.*` is not an alias for `sqlite_master.*`.
+Represented filters, aggregates, joins and compounds retain their usual admission
+boundaries. The existing flattened derived outer-ORDER boundary remains temporary
+unsupported. This adds no host metadata/registration API or writes/PRAGMA mutation.
+[Evidence and remaining consumers](research/card-e-m-public-catalog.md).
+
 ## Connection and preparation
 
 A connection owns its statements. Operations on one connection are serialized:

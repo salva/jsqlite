@@ -392,6 +392,12 @@ export function physicalRowidIndex(index:IndexNode,encoding:DatabaseEncoding):Ph
   return index.table.withoutRowid?null:physicalIndex(index,encoding);
 }
 
+/** build.c:sqlite3FindTable; usable by linked transient resolution schemas. */
+export function findSchemaTable(schema: {readonly tables: ReadonlyMap<string, TableNode>}, name: string): TableNode | undefined {
+  const folded = sqliteAsciiFold(name);
+  return schema.tables.get(folded) ?? (folded === "sqlite_schema" ? schema.tables.get("sqlite_master") : undefined);
+}
+
 export class SchemaGraph {
   readonly encoding: DatabaseEncoding;
   readonly objects: readonly SchemaObject[];
@@ -403,6 +409,10 @@ export class SchemaGraph {
     this.#owner = owner; this.encoding = encoding; this.objects = Object.freeze(objects);
     this.tables = readonlyMap(tables); this.indexes = readonlyMap(indexes); this.views = readonlyMap(views);
     Object.freeze(this);
+  }
+  /** build.c:sqlite3FindTable — aliases share a single synthetic Table. */
+  findTable(name: string): TableNode | undefined {
+    return findSchemaTable(this, name);
   }
   assertOpen(): void {
     try { this.#owner[storageOwner].assertOpen(); }
@@ -460,7 +470,12 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
   const indexes = new Map<string, IndexNode>();
   const views = new Map<string, ViewNode>();
   const names = new Set<string>();
-  for (const item of rows) {
+  // prepare.c:sqlite3InitOne/build.c:sqlite3StartTable synthesize a Table at
+  // root 1 before parsing persisted declarations. It is not a catalog row.
+  // The substituted legacy name is the same identity used by sqlite3FindTable.
+  const schemaTable: SchemaRow = { type: "table", name: "sqlite_master", tableName: "sqlite_master", rootPage: 1,
+    sql: "CREATE TABLE sqlite_master(type text,name text,tbl_name text,rootpage int,sql text)" };
+  for (const item of [schemaTable, ...rows]) {
     const folded = sqliteAsciiFold(item.name);
     if (names.has(folded)) malformed(`duplicate object name ${item.name}`);
     names.add(folded);
@@ -471,7 +486,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
       let defaultIndex = 0;
       const declaredPrimary = ddl.primaryKey.length ? ddl.primaryKey : ddl.columns.filter(column => column.primaryKey).map(column => column.name);
-      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: column.declaredType, ...columnTypeEstimate(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
+      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: item===schemaTable ? column.declaredType?.toUpperCase()??null : column.declaredType, ...columnTypeEstimate(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
       const declaredPrimaryKey= Object.freeze(declaredPrimary.map(name => { const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name, name));if(!column)malformed(`primary key refers to unknown column ${name}`);return column; }));
       const declaredPrimaryKeyTerms=Object.freeze(declaredPrimaryKey.map((column,index)=>{const declared=ddl.primaryKeyTerms[index];return Object.freeze({column,expression:null,expressionSql:null,descending:declared?.descending??ddl.columns.find(candidate=>sqliteIdentifierEqual(candidate.name,column.name))?.primaryKeyDescending??false,collation:declared?.collation??column.collation,nulls:declared?.nulls??null}) as IndexTerm;}));
       // build.c equivalent UNIQUE/PK constraints retain the first index's

@@ -117,8 +117,16 @@ Schema loading reads immutable `sqlite_schema` internally and parses definitions
 into table/column/index/view descriptors. Declared affinity, collation, INTEGER
 PRIMARY KEY identity, ordinary index fields, expression/partial predicates and
 WITHOUT ROWID primary layout are distinct facts. A generic PRIMARY KEY is not a
-rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Internal schema discovery
-is not a public schema-introspection API or write-time constraint enforcement.
+rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Public immutable `main.sqlite_schema`/`sqlite_master` SELECT uses the same
+root-page1 storage and ordinary resolver/compiler/VM route. A synthetic legacy
+schema Table supplies five declared columns, not fabricated catalog rows; physical
+rowids, implicit indexes and NULL SQL remain visible. Preferred/legacy names share
+Table identity for column lookup; explicit aliases hide both. Qualified `*` uses
+canonical Table/alias names (unlike column-name equivalence), as upstream does.
+Internal graph objects remain persisted declarations only. This is not a
+registration API, write-time constraint enforcement or PRAGMA mutation support.
+Existing unsupported compositions remain temporary; evidence and boundaries are
+in [public catalog evidence](research/card-e-m-public-catalog.md).
 
 ## Parsing, resolution and SELECT construction
 

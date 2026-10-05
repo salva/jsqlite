@@ -38,6 +38,16 @@ Immutable whole-file residency and browser async Fetch replace pager write/locki
 machinery, not record/page semantics. UTF-8/UTF-16le/UTF-16be and overflow/bounds
 remain required. WITHOUT ROWID primary layouts are not ordinary rowid roots.
 
+Public catalog consumer: `prepare.c:sqlite3InitOne` synthetic schema Table,
+`build.c:sqlite3StartTable/sqlite3EndTable/sqlite3FindTable`,
+`resolve.c:isValidSchemaTableName` and `select.c:selectExpander` →
+`schema.ts:loadSchemaGraph/findSchemaTable/SchemaGraph.findTable`,
+`resolve.ts:sourceNameMatches` (columns) and canonical star matching,
+ordinary `vdbe.ts` physical/aggregate/compound lookup callers. Root 1 feeds existing
+OpenRead/Column/Rowid operations; no metadata row producer or parallel evaluator.
+Tests: `test/schema/public-catalog{,-lifecycle}.test.mjs`; pinned typed captures,
+source comparisons and remaining consumers: [card-e-m evidence](research/card-e-m-public-catalog.md).
+
 ## SELECT resolution and construction
 
 | Pinned owners | Current TS path | Tests/evidence |
