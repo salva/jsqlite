@@ -259,3 +259,16 @@ test('all encodings expose the same prelowering OR owner; recursive AND and zero
   assert.equal(btreeLoops(r.sources[0],0,a.clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r}).some(l=>l.kind==='multi-or'),false,'unindexed arm must abandon');
  }
 });
+test('pinned AND indexable mask excludes OR-info (not an allowedOp) even if recursively costable',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? OR ((b=? OR id=?) AND 1)',schema());
+ assert.equal(analyzeWhere(r).clause.terms[0].info.indexable,0n);
+});
+test('recursive production consumes the shared budget and never publishes partial union costs',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (b>? OR id<?))',schema()),a=analyzeWhere(r);
+ for(const remaining of [0,1,2,3,4,5,6,7,8,9,10]){
+  const budget={remaining},costs={a:[]};
+  assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:costs}),[]);
+  assert.ok(budget.remaining>=0&&budget.remaining<=remaining);
+  if(budget.remaining===0)assert.deepEqual(costs.a,[],'DONE clears parent collector');
+ }
+});

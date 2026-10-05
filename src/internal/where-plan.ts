@@ -504,8 +504,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
     let mask=0n;
     for(const alt of alternatives){
-     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.info?.kind==="or")mask|=sub.info.indexable;else if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
-     else if(alt.info?.kind==="or")mask|=alt.info.indexable;else if(alt.operator&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
+     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
+     else if(alt.operator&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
     }
     indexable&=mask;
    }
