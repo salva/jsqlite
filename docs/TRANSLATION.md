@@ -125,7 +125,10 @@ Table identity for column lookup; explicit aliases hide both. Qualified `*` uses
 canonical Table/alias names (unlike column-name equivalence), as upstream does.
 Internal graph objects remain persisted declarations only. This is not a
 registration API, write-time constraint enforcement or PRAGMA mutation support.
-Existing unsupported compositions remain temporary; evidence and boundaries are
+Aggregate IN/scalar consumers share this lookup too. Aggregate arguments invoke
+the linked subquery producer; bare IN operands retain accumulator output rather
+than rereading an exhausted cursor. Nested SELECT aggregates resolve in their own
+NameContext. Existing unsupported compositions remain temporary; evidence and boundaries are
 in [public catalog evidence](research/card-e-m-public-catalog.md).
 
 ## Parsing, resolution and SELECT construction

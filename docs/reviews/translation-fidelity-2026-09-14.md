@@ -4800,4 +4800,8 @@ branch, preserved rather than extending column-qualifier equivalence to `*`.
 [Revision-bound evidence](../research/card-e-m-public-catalog.md) records typed
 pinned/public comparisons, failures during repair, regressions and remaining
 consumers. Existing flattened derived outer ORDER remains temporary unsupported;
-this is not universal catalog/PRAGMA/optimizer coverage.
+this is not universal catalog/PRAGMA/optimizer coverage. R1 follow-up found two
+aggregate subquery lookup bypasses, now migrated to shared lookup. Native-FIRST
+pairs also exposed missing argument callbacks, uncached bare IN operands and
+cross-SELECT aggregate misuse checks; repaired at their owning compiler/resolver
+paths. See the same evidence link for failed runs and current bounded results.

@@ -540,6 +540,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -1082,6 +1402,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -1623,6 +2263,326 @@
           "error": {
             "code": 1,
             "message": "no such table: other.sqlite_schema"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
           }
         }
       ]
@@ -2173,6 +3133,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -2722,6 +4002,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -3270,6 +4870,326 @@
           "error": {
             "code": 1,
             "message": "no such table: other.sqlite_schema"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
           }
         }
       ]
@@ -5920,6 +7840,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "46"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "529"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              },
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "23"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "46"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "529"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -6678,6 +8918,326 @@
           "error": {
             "code": 1,
             "message": "no such table: other.sqlite_schema"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
           }
         }
       ]
@@ -7438,6 +9998,326 @@
             "code": 1,
             "message": "no such table: other.sqlite_schema"
           }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
         }
       ]
     },
@@ -8196,6 +11076,326 @@
           "error": {
             "code": 1,
             "message": "no such table: other.sqlite_schema"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_schema LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_schema LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_schema) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_schema)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_schema LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_schema)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_schema))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_schema LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
+          }
+        },
+        {
+          "sql": "SELECT count(*),rootpage IN (SELECT rootpage FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "rootpage IN (SELECT rootpage FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT rootpage FROM sqlite_master LIMIT 1) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT rootpage FROM sqlite_master LIMIT 1)",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "rootpage"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT count(*),(SELECT count(*) FROM sqlite_master) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "(SELECT count(*) FROM sqlite_master)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(rootpage IN (SELECT rootpage FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum(rootpage IN (SELECT rootpage FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT rootpage FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT rootpage FROM sqlite_master LIMIT 1))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT count(*) FROM sqlite_master)) FROM sqlite_master",
+          "columns": [
+            {
+              "name": "sum((SELECT count(*) FROM sqlite_master))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "16"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum((SELECT missing FROM sqlite_master LIMIT 1)) FROM sqlite_master",
+          "error": {
+            "code": 1,
+            "message": "no such column: missing"
           }
         }
       ]

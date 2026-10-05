@@ -43,7 +43,11 @@ Public catalog consumer: `prepare.c:sqlite3InitOne` synthetic schema Table,
 `resolve.c:isValidSchemaTableName` and `select.c:selectExpander` →
 `schema.ts:loadSchemaGraph/findSchemaTable/SchemaGraph.findTable`,
 `resolve.ts:sourceNameMatches` (columns) and canonical star matching,
-ordinary `vdbe.ts` physical/aggregate/compound lookup callers. Root 1 feeds existing
+ordinary `vdbe.ts` physical/aggregate/compound lookup callers, including
+`compileAggregateSubquery` IN/scalar. `expr.c:sqlite3CodeSubselect`/TK_AGG_COLUMN
+and `resolve.c:resolveExprStep/resolveSelectStep` map to aggregate argument
+subquery callbacks, cached bare IN operands and SELECT-local aggregate checks.
+Root 1 feeds existing
 OpenRead/Column/Rowid operations; no metadata row producer or parallel evaluator.
 Tests: `test/schema/public-catalog{,-lifecycle}.test.mjs`; pinned typed captures,
 source comparisons and remaining consumers: [card-e-m evidence](research/card-e-m-public-catalog.md).

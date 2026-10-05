@@ -40,6 +40,17 @@ queries=[
  'SELECT missing FROM main.sqlite_schema',
  'SELECT * FROM other.sqlite_schema',
 ]
+# R1 aggregate consumers: native paired spellings before caller repair.
+for catalog in ['sqlite_schema', 'sqlite_master']:
+ queries.extend([
+  f'SELECT count(*),rootpage IN (SELECT rootpage FROM {catalog}) FROM sqlite_master',
+  f'SELECT count(*),(SELECT rootpage FROM {catalog} LIMIT 1) FROM sqlite_master',
+  f'SELECT count(*),(SELECT count(*) FROM {catalog}) FROM sqlite_master',
+  f'SELECT sum(rootpage IN (SELECT rootpage FROM {catalog})) FROM sqlite_master',
+  f'SELECT sum((SELECT rootpage FROM {catalog} LIMIT 1)) FROM sqlite_master',
+  f'SELECT sum((SELECT count(*) FROM {catalog})) FROM sqlite_master',
+  f'SELECT sum((SELECT missing FROM {catalog} LIMIT 1)) FROM sqlite_master',
+ ])
 current=json.loads((root/'test/fixtures/CURRENT.json').read_text())
 prefix='test/fixtures/generations/'+current['generationId']+'/generated/'
 files=[prefix+n for n in ['storage-p4096.db','storage-p4096-utf16le.db','storage-p4096-utf16be.db','encoding-utf8.db','encoding-utf16le.db','encoding-utf16be.db']]+['examples/browser/chinook.sqlite']+extra

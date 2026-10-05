@@ -152,6 +152,9 @@ function firstAggregateName(expression:ExprNode):string|null{
  const aggregates=new Set(['avg','count','group_concat','max','min','sum','total','string_agg','json_group_array','jsonb_group_array','json_group_object','jsonb_group_object','median','percentile','percentile_cont','percentile_disc']);
  const visit=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):string|null=>{
   if(node.kind!=='reduction')return null;
+  // resolve.c: aggregate argument checks belong to this NameContext; a SELECT
+  // establishes its own aggregate ownership and resolves independently.
+  if(node.signature.startsWith('select ::='))return null;
   if(node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')){const token=node.children.find(child=>child.kind==='terminal')?.value;if(token&&aggregates.has(sqliteAsciiFold(identifier(token.text))))return identifier(token.text);}
   for(const child of node.children){const found=visit(child);if(found)return found;}return null;
  };

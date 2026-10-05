@@ -102,6 +102,8 @@ rowid and NULL SQL (including implicit indexes) are preserved. Origin metadata
 uses canonical `sqlite_master`. Preferred/legacy column qualifiers are equivalent
 unless an explicit alias hides them. Qualified `*` follows canonical Table/alias
 matching, so `sqlite_schema.*` is not an alias for `sqlite_master.*`.
+Aggregate IN and scalar subqueries use the same catalog identity, including
+represented aggregate arguments and scalar count(*) consumers.
 Represented filters, aggregates, joins and compounds retain their usual admission
 boundaries. The existing flattened derived outer-ORDER boundary remains temporary
 unsupported. This adds no host metadata/registration API or writes/PRAGMA mutation.
