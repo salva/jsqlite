@@ -6,9 +6,9 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 const { chromium } = await import(pathToFileURL(process.env.JSQLITE_PLAYWRIGHT ?? '/opt/saivage-jsqlite2/node_modules/playwright/index.mjs').href);
-const root = process.cwd();
-const expected = JSON.parse(fs.readFileSync('examples/browser/expected.json'));
-assert.equal(crypto.createHash('sha256').update(fs.readFileSync('examples/browser/chinook.sqlite')).digest('hex'), expected.fixture.sha256);
+const root = path.resolve(process.env.JSQLITE_DEMO_ROOT ?? process.cwd());
+const expected = JSON.parse(fs.readFileSync(path.join(root, 'examples/browser/expected.json')));
+assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'examples/browser/chinook.sqlite'))).digest('hex'), expected.fixture.sha256);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
 const server = http.createServer((req, res) => {
   const file = path.resolve(root, '.' + new URL(req.url, 'http://local').pathname);

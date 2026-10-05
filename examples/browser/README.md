@@ -1,5 +1,17 @@
 # Static browser demo
 
+## Private installed-alpha verification
+
+For alpha scaffold/candidate verification use the independently installed local
+versioned tarball path, **not** the worktree commands below. See
+[installed-demo harness and release-note scaffold](../../docs/research/card-v-c-installed-alpha-demo.md)
+for explicit-commit packaging, actual offline installation, hashes/input identities
+and browser rerun. Final stabilized reviewed candidate verification is pending;
+the scaffold is not alpha acceptance. The same page/query consumer is reused,
+with only its copied engine import pointing to installed package ESM.
+
+## Worktree development preview (not alpha certification)
+
 From repository root (Node 24, Python 3 for static HTTP only):
 
 ```sh

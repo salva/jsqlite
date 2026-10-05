@@ -28,7 +28,34 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
-## Static browser demo quickstart
+## PRIVATE LOCAL versioned-alpha installed demo scaffold
+
+Alpha verification must use an independently installed **actual versioned local
+tarball**, not worktree `dist/`. No alpha is certified yet: core stabilization,
+including the routed STAT4 admission gate, and a fresh reviewed candidate rerun
+remain pending. No public repository, registry or external distribution.
+
+```sh
+# Full explicit committed source; never HEAD or staged/dirty source.
+python3 tools/package/local-alpha.py \
+  --commit <40-hex-source-commit> --version 0.0.0-alpha.1 --name alpha-candidate
+python3 tools/package/installed-demo.py \
+  --package-manifest "$SAIVAGE_CARD_WORK_ROOT/alpha-candidate/local-alpha-manifest.json" \
+  --name alpha-installed-demo
+python3 -m http.server 8000 --bind 127.0.0.1 \
+  --directory "$SAIVAGE_CARD_WORK_ROOT/alpha-installed-demo"
+```
+
+Open <http://127.0.0.1:8000/examples/browser/index.html>. The installed-demo step
+requires development Playwright/Chromium as described in
+[installed-demo instructions and release-note scaffold](docs/research/card-v-c-installed-alpha-demo.md).
+It verifies tarball/installed closure and exact-source demo inputs, changes only
+the copied demo import to installed `node_modules/jsqlite2/dist/index.js`, and
+runs the real-browser rows/error/cleanup checks. Version numbers identify local
+artifacts, not acceptance. Current admission and temporary gaps come from
+[API](docs/api.md)/[guide](docs/TRANSLATION.md), not an old fixed test denominator.
+
+## Static browser demo quickstart (worktree development only)
 
 From the repository root, build the same local ESM artifact described below and
 serve only static files (Python 3 is development serving tooling):
