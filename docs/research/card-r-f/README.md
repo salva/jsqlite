@@ -69,7 +69,8 @@ json-scalar-paths, json-scalar-full, json-blob-document, json-foundation,
 json-aggregate-paths, json-table-functions, json-pretty `.test.mjs`: 32/32 pass.
 Full log: work:///cards/card-r-f/processes/proc-e9f1e6088aed/stdout.log.
 `npm run typecheck`: exit 0. Native 14 companions: exit 0.
-Conformance obligations still not discharged: full upstream pretty corpus,
+Pre-correction obligations at the original pretty delivery (superseded for the
+scoped R1/R2 controls below): full upstream pretty corpus,
 malformed JSONB permissiveness, private-budget enforcement, mid-scalar abort,
 depth-edge error-order/native limits, all JSON5 escape/number edge cases, larger
 cross-feature composition. Passing companions does not close these widths.
@@ -113,3 +114,38 @@ JSONB foundation bytes; corrected TEXT versus TEXTJ producer classification.
 Generator migration initially missed three no-charge path/error callers (typecheck
 failed); corrected shared driver callbacks. These failures are evidence, not erased
 by final tests. Detailed current command results are in the card status.
+
+
+## Review v21 R2a — escaped scanner checkpoint correction
+
+Review accepted R1 for the assigned branches but identified a remaining R2
+alignment bypass. [Red status v23](record:///status.md?card=card-r-f&v=23)
+retains the two failing public Fetch classification probes: repeated six-width
+u0041 and two-width backslash escapes yielded zero control observations during
+strict reclassification. Input preflight and later append checkpoints did not
+interrupt that scanner.
+
+`Parser.str` now charges consumed-position threshold crossings instead of exact
+index alignment, for both initial decoding and `stringEncoding`'s strict scan.
+The neighboring TEXT5 translator and whitespace/comment generator use the same
+threshold rule where cursor jumps can skip an alignment. Numeric token and quote
+loops advance one position at a time and retain their periodic checkpoints.
+Comparison against pinned `jsonTranslateTextToBlob` parse_string and
+`jsonTranslateBlobToText` TEXT5 confirms that escape/continuation branches consume
+variable widths; this repair changes cooperative scheduling, not their encoded
+classification or output semantics. Native C does not define our work-unit counts.
+
+The preserved two classification probes and eight scalar/label/TEXT/JSONB tests
+exercise nonzero work limits and mid-classification cancel/deadline, requiring
+failure before the second decoded publication, then saved-error identity,
+reset/rebind/reuse/finalize. Instrumented Array.join and Date.now hooks are restored
+in finally; these are public control evidence, not new native parity credit.
+Focused escape-dense run: 10/10 pass, exit 0 (proc-71e40c769304).
+Final verification and commit are recorded in the current card status. Original
+14 and correction 72 source-ID-pinned native companions remain applicable to
+unchanged SQL values; no new native capture was run for scheduling-only changes.
+
+Current remaining widths: full upstream pretty corpus, permissive malformed JSONB,
+depth/error-order/native-limit edges, exhaustive JSON5 numbers/invalid encodings,
+and broader composition. The admission/path census above remains follow-up work;
+no universal JSON compatibility, heap-size or native work-count equivalence claim.

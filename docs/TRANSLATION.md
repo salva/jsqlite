@@ -339,7 +339,9 @@ row extraction preserves INTEGER/REAL and storage classes through grouping.
 subtype-0 TEXT. Its ordered shared document representation retains scalar/label
 TEXT/TEXTJ/TEXT5 scalar and label spelling through JSONB composition. Shared
 parser/string-render generators let pretty suspend at character/node checkpoints;
-chunked append checks output bytes before encoding and yields through Function
+variable-width escape/comment scans charge consumed-position thresholds rather
+than index alignment, including strict string reclassification. Chunked append
+checks output bytes before encoding and yields through Function
 execution. A statement-owned conservative logical arena reserves parse/lexical,
 indent and output retention before growth and releases it in finally on every
 completion. This is a logical private-byte bound, not native/JS heap measurement;

@@ -378,7 +378,8 @@ and member order are preserved; indentation is not required to be whitespace.
 Pretty temporary parse/lexical/indent/output state shares the statement private-byte
 budget (conservative logical reservations, not exact JavaScript heap bytes). Parser,
 string and output checkpoints charge work and allow cooperative cancellation and
-deadlines; byte bounds are checked before output encoding. Reservations release
+deadlines, including escape-dense strings and labels during decoding and strict
+classification; byte bounds are checked before output encoding. Reservations release
 on success or failure, before reset/finalize.
 See [bounded evidence and limitations](research/card-r-f/README.md).
 

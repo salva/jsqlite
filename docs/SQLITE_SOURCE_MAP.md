@@ -189,7 +189,10 @@ Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
 encoded lexical metadata; `vdbe.ts` async FunctionContext and statement byte budget.
 [Correction regressions](../test/conformance/json-pretty-corrections.test.mjs) map
 scalar/label/JSONB TEXT5, strict admission, three encodings, retained-state limits,
-append work/yield/cancel/deadline and cleanup. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
+append work/yield/cancel/deadline and cleanup. `jsonTranslateTextToBlob`
+parse_string and TEXT5 cursor advances map to consumed-position checkpoints in
+`Parser.str`/`stringEncoding` and `translateStringSteps`; escape-dense scalar/label
+TEXT/JSONB probes cover classification interruption and saved-error/reset reuse. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
 and [source-pinned typed companions](research/card-r-f/README.md) cover both
 arities; subtype-0 output does not inherit canonical JSON subtype.
 Built-in JSON is not a blanket gap.

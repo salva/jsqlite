@@ -85,3 +85,56 @@ test('pretty scanner/render generators yield within bound scalar after input pre
  const first=await s.step({signal:abort.signal}).then(()=>null,e=>e);assert.equal(ran,true);assert.equal(first?.kind,'cancelled');
  assert.throws(()=>s.reset(),e=>e===first);s.bind(1,'{}');assert.equal(await s.step(),'row');s.finalize();
 }));
+
+// R2a: observe decoded-string publication, not just preflight or later append.
+// Each scanner joins its decoded character array before returning. The strict
+// classifier scans the same encoded spelling again. Public controls must run
+// between these two publications even when every index advances by 2 or 6.
+for(const [label,escape] of [['six-width-u',String.raw`\u0041`],['two-width-backslash',String.raw`\\`]])
+ test(`escape-dense ${label} classification crosses checkpoints before publication`,()=>withDb({},async db=>{
+  const document='"'+escape.repeat(3000)+'"';
+  const s=db.prepare('SELECT json_pretty(?1)').statement;s.bind(1,document);
+  const originalJoin=Array.prototype.join,originalNow=Date.now;let ticks=0;const publications=[];
+  Date.now=()=>{ticks++;return 1000};
+  Array.prototype.join=function(separator){if(this.length===3000&&this.every(c=>c===(escape.length===6?'A':'\\')))publications.push(ticks);return originalJoin.call(this,separator)};
+  try{assert.equal(await s.step({timeoutMs:100000}),'row')}finally{Array.prototype.join=originalJoin;Date.now=originalNow;s.finalize()}
+  assert.ok(publications.length>=2,'decoded scan and strict classification observed');
+  assert.ok(publications[1]-publications[0]>=Math.floor(document.length/256),`classification checkpoints: delta ${publications[1]-publications[0]}, input ${document.length}`);
+ }));
+
+function escapedDocument(escape,count,shape){
+ const raw=escape.repeat(count),text='"'+raw+'"';
+ if(shape==='scalar')return text;
+ if(shape==='label')return '{'+text+':null}';
+ const payload=new TextEncoder().encode(raw);
+ const string=new Uint8Array(payload.length+3);string.set([0xd8,payload.length>>8,payload.length&255]);string.set(payload,3);
+ if(shape==='jsonb-scalar')return string;
+ const object=new Uint8Array(string.length+4);const size=string.length+1;
+ object.set([0xdc,size>>8,size&255]);object.set(string,3);return object;
+}
+for(const [name,escape,count,decoded] of [['u0041',String.raw`\u0041`,3000,'A'],['backslash',String.raw`\\`,9000,'\\']])
+ for(const shape of ['scalar','label','jsonb-scalar','jsonb-label'])
+  test(`escape-dense ${name} ${shape} controls interrupt classification, save error and reuse`,()=>withDb({},async db=>{
+   for(const mode of ['work','cancel','deadline']){
+    const s=db.prepare('SELECT json_pretty(?1)').statement;s.bind(1,escapedDocument(escape,count,shape));
+    const join=Array.prototype.join,now=Date.now;let publications=0,expired=false,timerRan=false;
+    const abort=new AbortController();
+    Array.prototype.join=function(separator){
+     if(this.length===count&&this.every(c=>c===decoded)){
+      publications++;
+      if(publications===1){if(mode==='deadline')expired=true;if(mode==='cancel')setTimeout(()=>{timerRan=true;abort.abort('during strict classification')},0)}
+     }
+     return join.call(this,separator);
+    };
+    if(mode==='deadline')Date.now=()=>expired?1002:1000;
+    let first;try{
+     first=await s.step(mode==='work'?{maxWorkUnits:230}:mode==='cancel'?{signal:abort.signal}:{timeoutMs:2}).then(()=>null,e=>e);
+    }finally{Array.prototype.join=join;Date.now=now}
+    assert.equal(first?.kind,mode==='work'?'limit':mode==='cancel'?'cancelled':'timeout',`${name}/${shape}/${mode}`);
+    assert.equal(publications,1,'failure within scanner/classifier, before second decoded publication');
+    if(mode==='cancel')assert.equal(timerRan,true,'cooperative suspension inside classification');
+    await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.reset(),e=>e===first);
+    s.bind(1,'{}');assert.equal(await s.step(),'row');assert.equal(s.column(0),'{}');s.finalize();
+    const reuse=db.prepare("SELECT json_pretty('{}')").statement;assert.equal(await reuse.step(),'row');reuse.finalize();
+   }
+  }));

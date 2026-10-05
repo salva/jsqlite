@@ -939,8 +939,10 @@ owner. [Current pretty evidence](../research/card-r-f/README.md) supersedes the
 temporary-unsupported assertion. R1/R2 corrections now retain encoded TEXT5
 scalar/label semantics (including strict apostrophe classification) and statement
 logical reservations with generator/chunk checkpoints and asynchronous Function
-publication. These replace the prior unaccounted pretty tree/output and scalar
-scanner gaps; source-bound correction corpus and controls are linked from the
+publication. R2a corrects the subsequently reproduced escaped-scanner alignment
+bypass with consumed-position checkpoints, including strict reclassification,
+and public scalar/label/TEXT/JSONB interruption and reuse probes. These replace
+the prior unaccounted pretty tree/output and scoped scanner gaps; source-bound correction corpus and controls are linked from the
 same evidence. No full scalar/path fidelity signoff. Focused public
 coverage now discriminates non-leading positions, duplicate/root/sequential edit,
 array insertion, and JSONB BLOB result branches; exhaustive corpus parity remains
