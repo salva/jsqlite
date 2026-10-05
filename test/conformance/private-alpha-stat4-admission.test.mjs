@@ -10,9 +10,8 @@ import {closeTestServer} from './close-test-server.mjs';
 // Pinned analyze.c sqlite3AnalysisLoad ignores sqlite_stat4 in a non-STAT4
 // build; optional optimizer machinery must not make ordinary SELECT unusable.
 // The independent STAT4-enabled native capture owns typed ordered rows. Keep
-// stat4-enabled-boundary.test.mjs as historical rejection coverage until its
-// semantic owner repairs admission; do not change either test's expectations
-// to turn this candidate gate green without the owning implementation repair.
+// stat4-enabled-boundary.test.mjs as complementary schema/stat1 coverage.
+// Success expectations here remain unchanged by the admission repair.
 const capture=JSON.parse(fs.readFileSync(new URL('./cases/stat4-enabled-boundary.json',import.meta.url)));
 const pin=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(capture.sourceId,pin.sqliteSourceId);
@@ -31,7 +30,7 @@ for(const variant of capture.variants){
       for(const [id,sql] of Object.entries(capture.sql)){
         statement=db.prepare(sql).statement;
         assert.equal(statement.columnCount,1);
-        assert.equal(statement.columnName(0),'id');
+        assert.equal(statement.columnMetadata(0).name,'id');
         const drain=async()=>{
           const rows=[];
           while(await statement.step()==='row'){

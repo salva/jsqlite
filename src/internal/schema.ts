@@ -605,13 +605,12 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
   // analyze.c:sqlite3AnalysisLoad/analysisLoader. sqlite_stat1 is an ordinary
   // rowid b-tree, not a schema declaration. Decode using the database encoding;
   // never expose unsupported stat tokens as plausible planner estimates.
-  // STAT4 samples change equality/range selectivity in where.c. Until that
-  // sample path exists, do not publish a plan based on stat1 alone.
+  // Match sqlite3AnalysisLoad without SQLITE_ENABLE_STAT4: retain sqlite_stat4
+  // as ordinary schema, but do not read optional optimizer samples. stat1 and
+  // default estimates remain usable; this does not claim STAT4 estimate parity.
   const callbackKey=(name:string):string=>{let key="";for(const byte of new TextEncoder().encode(name))key+=String.fromCharCode(byte);return sqliteAsciiFold(key);};
   const callbackTables=new Map([...tables.values()].map(table=>[callbackKey(table.name),table]));
   const callbackIndexes=new Map([...indexes.values()].map(index=>[callbackKey(index.name),index]));
-  const stat4=tables.get("sqlite_stat4");
-  if(stat4){const samples=database.tableCursor(stat4.rootPage);if(samples.first())throw new SchemaUnsupportedError("sqlite_stat4 samples are not represented");}
   const statTable=tables.get("sqlite_stat1");
   if(statTable){
     const cursor=database.tableCursor(statTable.rootPage);

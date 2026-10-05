@@ -6,8 +6,8 @@ import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
 
 // analyze.c:analysisLoader accepts a NULL idx as a table row estimate, and
-// decodeIntArray tolerates invalid digits. STAT4 needs its sample path in
-// where.c:whereRangeScanEst before a stat1-only plan is safe.
+// decodeIntArray tolerates invalid digits. Like a non-STAT4 native build,
+// optional sample rows do not prevent ordinary stat1 loading or queries.
 const capture=JSON.parse(fs.readFileSync(new URL('./cases/stat-record-boundary.json',import.meta.url)));
 const manifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(capture.sourceId,manifest.sqliteSourceId);
@@ -35,14 +35,8 @@ for(const variant of capture.variants){
   try{
    db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
    for(const sql of Object.values(capture.sql)){
-    if(variant.kind!=='stat4-sample'){
-     const expected=variant.cases[sql===capture.sql.forced?'forced':'unforced'].rows.map(row=>BigInt(row[0].value));
-     assert.deepEqual(await run(db,sql),expected);
-    }else{
-     // Nonempty STAT4 remains unsupported independently of stat1 admission.
-     const pattern=variant.kind==='stat4-sample'?/sqlite_stat4/:/sqlite_stat1/;
-     for(let attempt=0;attempt<2;attempt++)assert.throws(()=>db.prepare(sql),e=>e.name==='SchemaUnsupportedError'&&e.classification==='temporary'&&pattern.test(String(e)));
-    }
+    const expected=variant.cases[sql===capture.sql.forced?'forced':'unforced'].rows.map(row=>BigInt(row[0].value));
+    assert.deepEqual(await run(db,sql),expected);
    }
   }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
  });

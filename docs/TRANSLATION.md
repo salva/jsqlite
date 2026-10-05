@@ -593,7 +593,7 @@ Ordinary lowering now maps table cursor columns through the physical primary
 index while covering columns remain mapped through chosen secondary; includes
 residual expressions and direct projection. Joined lowering remains uncertified.
 Unknown stat1 tails are ignored, noskipscan
-retained without skip-scan credit; nonempty STAT4 is still rejected. WHERE uses
+retained without skip-scan credit; optional STAT4 samples are not consumed. WHERE uses
 explicit BigInt conversions and consumes immutable width/cost capabilities;
 synthetic IPK width3 is not a persistent index. DDL type token spans preserve
 immediate BLOB dimensions rather than inserting spaces. Fourth checkpoint
@@ -631,7 +631,7 @@ INTEGER leaves qualify (not runtime hex64/folding). Source19/19. Fresh
 width1951:1476/475 and affected/resources178:177/1,zero skips/cancels.
 
 Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
-where.c3519/7086 second-pass; nonempty STAT4 rejects before publication.
+where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.
 Fresh selected55/55,WR/residual complement43/43,stat/STAT4 boundary36/36;
@@ -805,7 +805,7 @@ export original240/240, closure2034/2034 and read-only pinned120 snapshot equali
 are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
 reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
-STAT4 unsupported, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
+STAT4 sample estimates unimplemented, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
 OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
 
 
@@ -1138,3 +1138,21 @@ The shared WHERE prerequisite owner now follows only SELECT-bearing expression i
 
 ### Outer-join WHERE continuation ownership
 `wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending. The index-planner LEFT WHERE safety fixture counts ON once and two base terms on each matched/synthetic-null body entry (five residual checks); these private counts are not native allocator or VM-step parity. Fixture/source-assertion repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
+
+## Optional STAT4 file admission
+
+`analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
+independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
+owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
+load supported stat1, and do not read optional sample payloads for estimates.
+Presence of samples alone is not an unsupported-file error. Ordinary schema,
+record and type validation remains in force on consumed paths. This provides
+file/query admission, not native STAT4 selectivity or cost/plan parity; sample
+optimization remains progressive work, not a permanent exclusion.
+
+Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
+`test/conformance/private-alpha-stat4-admission.test.mjs`,
+`stat4-enabled-boundary.test.mjs`, and `stat-record-boundary.test.mjs`.
+Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
+Revision-bound repair evidence: [[card:card-e-h]] status and
+[admission evidence](research/card-e-h-stat4-admission.md).

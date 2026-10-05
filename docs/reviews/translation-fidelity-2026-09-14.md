@@ -4278,7 +4278,7 @@ repairs IS NULL/range/clamp and full-scan covered-prefix costs; fresh affected
 169/170 still fails preserved reverse sorter expectation. Independent native
 sort0 (NOT INDEXED control1) contradicts that assertion; parent disposition is
 still required before revision. Supplemental cost/order6/6 and resource50/50
-pass; no complete resource or optimizer claim. STAT4 unsupported; truthProb,
+pass; no complete resource or optimizer claim. STAT4 sample estimates unimplemented; truthProb,
 invalid bytes, wider metadata and WR/transient census remain gaps. Fourth
 checkpoint native-first quoted declared-type hex/overflow/doubled-quote fixtures
 exposed missing build.c1584 Dequote in the type producer; parse now translates
@@ -4419,7 +4419,7 @@ not runtime INTEGER;source19/19,fresh width1951:1476/475 and resource/affected
 178:177/1,zero skips/cancels. Full truthProb/HIGHTRUTH/LIKE/self-cull gap persists.
 
 Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
-where.c3519/7086 second-pass; nonempty STAT4 rejects before publication.
+where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.
 Fresh selected55/55,WR/residual complement43/43,stat/STAT4 boundary36/36;
@@ -4568,7 +4568,7 @@ export original240/240, closure2034/2034 and read-only pinned120 snapshot equali
 are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
 reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
-STAT4 unsupported, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
+STAT4 sample estimates unimplemented, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
 OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
 
 
@@ -4814,3 +4814,21 @@ aggregate subquery lookup bypasses, now migrated to shared lookup. Native-FIRST
 pairs also exposed missing argument callbacks, uncached bare IN operands and
 cross-SELECT aggregate misuse checks; repaired at their owning compiler/resolver
 paths. See the same evidence link for failed runs and current bounded results.
+
+## Optional STAT4 file admission
+
+`analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
+independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
+owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
+load supported stat1, and do not read optional sample payloads for estimates.
+Presence of samples alone is not an unsupported-file error. Ordinary schema,
+record and type validation remains in force on consumed paths. This provides
+file/query admission, not native STAT4 selectivity or cost/plan parity; sample
+optimization remains progressive work, not a permanent exclusion.
+
+Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
+`test/conformance/private-alpha-stat4-admission.test.mjs`,
+`stat4-enabled-boundary.test.mjs`, and `stat-record-boundary.test.mjs`.
+Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
+Revision-bound repair evidence: [[card:card-e-h]] status and
+[admission evidence](../research/card-e-h-stat4-admission.md).
