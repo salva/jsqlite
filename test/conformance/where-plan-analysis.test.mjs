@@ -231,3 +231,11 @@ test('unindexable OR still owns analysis; nested OR under AND retains masks',()=
   assert.equal(p.info?.kind,'or');assert.equal(p.info.indexable,mask);
  }
 });
+test('production OR cost publishes immutable parent union, no branch physical candidates',()=>{
+ const r=expandAndResolveSelect(parseSql('SELECT id FROM t WHERE a=? OR id>?').statement,schema());
+ const plan=planWhere(r,{neededColumns:[new Set([ROWID_NEEDED])],orderBy:[]}),loop=plan.path.loops[0];
+ assert.equal(loop.kind,'multi-or');assert.equal(loop.capability,null);
+ assert.equal(loop.orInfo.parentTerm,plan.analysis.clause.terms[0]);
+ assert.equal(loop.terms.length,1);assert.equal(loop.terms[0],loop.orInfo.parentTerm);
+ assert.equal(loop.sortIdentity,0);assert.equal(loop.setupCost,0n);assert.ok(Object.isFrozen(loop));
+});
