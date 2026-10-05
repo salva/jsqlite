@@ -22,7 +22,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
-import { planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
+import { rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
@@ -1634,7 +1634,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
       if(value.kind==='call'||value.kind==='aggregate'&&binding?.policy!=='derived-predicate'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,args:value.args.map((arg,index)=>bindResolvedExpression(arg,child(infixFunctionChild(carrier.reduction.signature,index)),cursorFor,preserveScalarLeaves,binding))};
       if(preserveScalarLeaves){
         const bindChild=(expression:Expression,index:number)=>bindResolvedExpression(expression,child(index),cursorFor,true,binding);
-        if(value.kind==='in-list'&&(binding?.policy==='window-filter'||binding?.policy==='window-source'||binding?.policy==='ordinary-aggregate'))return {...value,left:bindChild(value.left,0),values:value.values.map((term,index)=>bindChild(term,index+1))};
+        if(value.kind==='in-list'&&(binding?.policy==='scalar'||binding?.policy==='window-filter'||binding?.policy==='window-source'||binding?.policy==='ordinary-aggregate'))return {...value,left:bindChild(value.left,0),values:value.values.map((term,index)=>bindChild(term,index+1))};
         if(value.kind==='between'&&binding?.policy!=='aggregate-source')return {...value,value:bindChild(value.value,0),lower:bindChild(value.lower,1),upper:bindChild(value.upper,2)};
         if(value.kind==='in-subquery'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,left:bindChild(value.left,0)};
         if(value.kind==='case'&&binding?.policy!=='window-source'){
@@ -3395,7 +3395,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   let multiWhere:ReturnType<typeof planWhere>,whereAccounting:Readonly<{plannerCandidates:number;plannerPaths:number}>;
   const builder=owner?.builder??new SelectProgramBuilder<Op>();
   const ops:Op[]=owner?.ops??builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
-  const resultStart=owner?owner.builder.range(expanded.result.length):1;
+  const resultStart=owner?owner.builder.range(Math.max(1,expanded.result.length)):1;
   let registers=owner?.builder.registers??expanded.result.length;
   builder.registers=Math.max(builder.registers,registers);
   const allocate=()=>{const register=builder.register();registers=builder.registers;return register;};
@@ -3635,13 +3635,32 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // cursor still attached to the same table cursor from the matched pass.
     const rightIndex=indexCursors.get(loopOrdinals[rightLevel]!);
     if(rightIndex!==undefined)ops.push({code:'NullRow',p1:rightIndex});
-    const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(expanded.sources[rightLevel]!),p2:0});
-    const start=ops.length;ops.push({code:'Rowid',p1:cursorFor(expanded.sources[rightLevel]!),p2:right.key});
-    const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0});
-    // Invoke the one interior body; its RIGHT continue label returns here.
-    ops.push({code:'Gosub',p1:right.returnRegister,p2:right.body.entry});
-    const unmatchedNext=ops.length;ops.push({code:'Next',p1:cursorFor(expanded.sources[rightLevel]!),p2:start});
-    const done=ops.length;(ops[rewind] as {p2:number}).p2=done;(ops[found] as {jump:number}).jump=unmatchedNext;
+    // wherecode.c:sqlite3WhereRightJoinLoop copies the RHS with jointype=0
+    // and re-enters the existing WHERE owner. Null preceding sources remain
+    // resolved outer references; no spelling/token reconstruction is involved.
+    const original=expanded.sources[loopOrdinals[rightLevel]!]!;
+    const source:ResolvedSource={...original,on:null,using:null,leftOfRightJoin:false,
+      joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}};
+    const residual=rightJoinResidual(expanded,loopOrdinals[rightLevel]!).reduce<SelectNode['where']>((where,term)=>andViewPredicates(where,term.expression),null);
+    const input:SelectNode={...select,result:[],where:residual,groupBy:[],having:null,
+      orderBy:[],limit:null,offset:null,hasDistinct:false,hasGroupBy:false,
+      hasHaving:false,hasOrderBy:false,hasLimit:false,hasCompound:false,hasValues:false,arms:[],
+      from:Object.assign([],{items:[source],tokens:[]}) as unknown as SelectNode['from']};
+    const mapRef=<T extends {readonly source:ResolvedSource}>(ref:T):T=>ref.source===original?{...ref,source}:ref;
+    const sub:typeof expanded={...expanded,source:input,sources:[source],result:[],
+      columnUses:expanded.columnUses.map(use=>({...mapRef(use),selectDepth:use.source===original?0:1,
+        ...(use.mergedSources?{mergedSources:use.mergedSources.map(mapRef)}:{})}))};
+    const binding:ResolvedExpressionBinding={policy:'scalar',location:(ref,depth)=>
+      ref.source===source?{kind:'cursor',cursor:cursorFor(original)}:nestedBinding.location(ref,depth)};
+    compileInnerTableSelect(input,sub,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
+      builder,ops,parameters,destination:{kind:'output'},expressionBinding:binding,
+      cursorFor:ref=>ref===source?cursorFor(original):cursorFor(ref),consumeRow:()=>{
+        ops.push({code:'Rowid',p1:cursorFor(original),p2:right.key});
+        const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0});
+        ops.push({code:'Gosub',p1:right.returnRegister,p2:right.body.entry});
+        (ops[found] as {jump:number}).jump=ops.length;
+      }});
+    registers=builder.registers;
 
   }
   const scanEnd=ops.length;

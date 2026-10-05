@@ -416,8 +416,8 @@ function effectiveCollation(left:ExprReduction,right:ExprReduction,leftBinding:C
 export interface WhereAnalysis {readonly clause:WhereClause;readonly plannerEligible:boolean;readonly fallback:"right-full"|null}
 /** whereexpr.c sqlite3WhereSplit/exprAnalyze subset. It consumes resolved
  * expression identity and is the only production constructor for WhereTerm. */
-export function analyzeWhere(resolved:ResolvedSelect):WhereAnalysis {
- if(resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
+export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false):WhereAnalysis {
+ if(!includeRightTerms&&resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
  const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
  resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
  type Draft={node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
@@ -431,8 +431,29 @@ export function analyzeWhere(resolved:ResolvedSelect):WhereAnalysis {
   // but owns independent left binding and RHS prerequisites.
   if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:false}});}
  }
- const terms:WhereTerm[]=drafts.map((draft,id)=>freeze({id,expression:asExpr(draft.node),origin:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId,childIds:Object.freeze([...draft.childIds]),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ // whereexpr.c splits all base terms before exprAnalyze appends virtual
+ // children. Preserve that boundary (RightJoinLoop stops there), remapping
+ // parent/child IDs rather than exposing interleaved construction order.
+ const ordered=[...drafts.filter(draft=>!draft.virtual),...drafts.filter(draft=>draft.virtual)];
+ const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>freeze({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  return freeze({clause:whereClause(terms),plannerEligible:true,fallback:null});
+}
+
+/** wherecode.c:sqlite3WhereRightJoinLoop pSubWhere. Our analyzer represents
+ * virtual commutations but no TERM_SLICE/WO_ROWVAL terms (row values are not
+ * admitted). Stop at the first virtual term, not merely skip it. ON/USING
+ * ownership never becomes an unmatched residual. */
+export function rightJoinResidual(resolved:ResolvedSelect,ordinal:number):readonly WhereTerm[] {
+ if(resolved.sources[ordinal]!.leftOfRightJoin)return Object.freeze([]);
+ const ready=(1n<<BigInt(ordinal+1))-1n,out:WhereTerm[]=[];
+ for(const term of analyzeWhere(resolved,true).clause.terms){
+  if(term.virtual)break;
+  if((term.prereqAll&~ready)!==0n)continue;
+  if(term.origin.kind!=="where")continue;
+  out.push(term);
+ }
+ return Object.freeze(out);
 }
 
 export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>}

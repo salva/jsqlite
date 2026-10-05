@@ -415,3 +415,5 @@ unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
 using the native-FIRST aggregate case in all encodings; not native allocation
 parity. Exact-export evidence and inherited prerequisite attribution are in
 `docs/research/card-k-h-b-runtime/closure.json`.
+
+RIGHT/FULL unmatched scans apply ready, non-ON residual predicates before downstream positioning, using the shared selected WHERE scan. Predicates requiring later sources retain final-row evaluation; a RHS left of a later RIGHT barrier retains upstream residual-extraction suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.

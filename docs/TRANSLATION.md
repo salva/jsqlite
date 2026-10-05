@@ -1106,3 +1106,6 @@ Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typech
 pass. Complete delivery review/explicit own-hunk commits remain pending; internal
 checks are not independent parent acceptance. Exact evidence is in
 `docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
+
+### card-k-h-b R4 unmatched residual scan (2026-10-05)
+The forward drain now translates wherecode.c2842–end: prior table/index NULL state, prior+RHS readiness, LTORJ suppression, base-term boundary and ON exclusion, followed by the same resolved one-source WHERE producer with cleared join flags. Selected scan positioning precedes exact Found/Gosub; deepest WHERE remains the final row filter, not the unmatched scan owner. whereexpr.c1885 preserves all base terms before appended virtual children (IDs remapped). Scalar IN binding recursively consumes resolved operands rather than leaving the RHS column unbound. Represented row values have no TERM_SLICE/WO_ROWVAL path; this is not generalized vector admission. Bloom omission remains optional-negative acceleration only. See [R4 evidence](research/card-k-h-b-runtime/r4.md).

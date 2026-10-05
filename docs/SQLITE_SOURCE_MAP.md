@@ -729,3 +729,6 @@ Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typech
 pass. Complete delivery review/explicit own-hunk commits remain pending; internal
 checks are not independent parent acceptance. Exact evidence is in
 `docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
+
+### card-k-h-b R4 residual owner
+`wherecode.c:sqlite3WhereRightJoinLoop`2842–end → `rightJoinResidual` in where-plan.ts and forward drains in vdbe.ts: readiness/origin/LTORJ extraction, null previous/index state, copied jointype0 source, shared one-source SELECT/WHERE scan, exact membership and owning subroutine. `whereexpr.c:sqlite3WhereExprAnalyze`1885 → base-before-virtual publication with parent/child IDs remapped. `expr.c:sqlite3ExprCodeIN` / TK_IN5505 → scalar resolved IN operands consume column cursor identity before compilation. Public right-residual tests cover native30 across encodings, early downstream positioning/reset and sticky first-error/reuse; they do not claim full WHERE/vector optimization or native work counts.

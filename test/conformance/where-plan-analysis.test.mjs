@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
-import {analyzeWhere,btreeLoops,sourceBit,wherePathSolver,wherePathChoiceWidth,logEstAdd,planWhere,ROWID_NEEDED,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
+import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wherePathChoiceWidth,logEstAdd,planWhere,ROWID_NEEDED,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
 const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:type==='TEXT'?'text':type==='REAL'?'real':type==='BLOB'?'blob':'integer',szEst:columnTypeEstimate(type).szEst,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:[],...extra});
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
@@ -190,4 +190,14 @@ test('resolved result aliases contribute substituted WHERE dependencies and bind
  assert.equal(terms[1].left.sourceOrdinal,0,'direct alias retains its resolved column owner');
  const precedence=resolve('SELECT id AS a FROM t WHERE a=id',s);
  assert.equal(precedence.aliasUses.size,0,'source columns win over result aliases');
+});
+test('RightJoinLoop residual base boundary, readiness, origins and LTORJ',()=>{
+ const s=schema();
+ const r=resolve('SELECT x.id FROM t x RIGHT JOIN t y ON x.id=y.id JOIN t z ON z.id=y.id WHERE x.id=y.id AND y.id=3 AND z.id=4',s);
+ const a=analyzeWhere(r,true).clause.terms;
+ const virtual=a.findIndex(t=>t.virtual);assert.ok(virtual>=3);assert.ok(a.slice(virtual).every(t=>t.virtual));
+ for(const t of a.filter(t=>t.virtual)){assert.ok(a[t.parentId].childIds.includes(t.id));assert.equal(t.origin.parentTerm,t.parentId)}
+ const residual=rightJoinResidual(r,1);assert.equal(residual.length,2);assert.ok(residual.every(t=>t.origin.kind==='where'&&(t.prereqAll&~3n)===0n));
+ const later=resolve('SELECT x.id FROM t x FULL JOIN t y ON x.id=y.id RIGHT JOIN t z ON z.id=y.id WHERE y.id=3',s);
+ assert.equal(later.sources[1].leftOfRightJoin,true);assert.deepEqual(rightJoinResidual(later,1),[]);assert.equal(rightJoinResidual(later,2).length,1);
 });

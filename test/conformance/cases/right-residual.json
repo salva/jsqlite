@@ -1,0 +1,1574 @@
+{
+  "source": {
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "version": "3.53.4"
+  },
+  "cases": [
+    {
+      "encoding": "utf8",
+      "id": "early-control",
+      "sql": "SELECT b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "rhs-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "prior-null-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE a.k IS NULL AND b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "rhs-rowid",
+      "sql": "SELECT a.k,b.k FROM a RIGHT JOIN b ON a.k=b.k WHERE b.rowid IN(2,3) ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "rhs-index-in",
+      "sql": "SELECT a.k,c.k FROM a RIGHT JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k IN(3,4) ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "rhs-index-range",
+      "sql": "SELECT a.k,c.k FROM a FULL JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k>=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k WHERE b.k=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "rhs-scalar",
+      "sql": "SELECT a.k,b.k,(SELECT count(*) FROM c WHERE c.k=b.k) FROM a FULL JOIN b ON a.k=b.k WHERE b.k=3 ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "(SELECT count(*) FROM c WHERE c.k=b.k)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "not-ready",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE z.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "outer-on",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k AND b.k=1 LEFT JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "early-control",
+      "sql": "SELECT b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "rhs-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "prior-null-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE a.k IS NULL AND b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "rhs-rowid",
+      "sql": "SELECT a.k,b.k FROM a RIGHT JOIN b ON a.k=b.k WHERE b.rowid IN(2,3) ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "rhs-index-in",
+      "sql": "SELECT a.k,c.k FROM a RIGHT JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k IN(3,4) ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "rhs-index-range",
+      "sql": "SELECT a.k,c.k FROM a FULL JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k>=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k WHERE b.k=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "rhs-scalar",
+      "sql": "SELECT a.k,b.k,(SELECT count(*) FROM c WHERE c.k=b.k) FROM a FULL JOIN b ON a.k=b.k WHERE b.k=3 ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "(SELECT count(*) FROM c WHERE c.k=b.k)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "not-ready",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE z.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "outer-on",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k AND b.k=1 LEFT JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "early-control",
+      "sql": "SELECT b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "rhs-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "prior-null-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE a.k IS NULL AND b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "rhs-rowid",
+      "sql": "SELECT a.k,b.k FROM a RIGHT JOIN b ON a.k=b.k WHERE b.rowid IN(2,3) ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "rhs-index-in",
+      "sql": "SELECT a.k,c.k FROM a RIGHT JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k IN(3,4) ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "rhs-index-range",
+      "sql": "SELECT a.k,c.k FROM a FULL JOIN c INDEXED BY c_k ON a.k=c.k WHERE c.k>=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,c.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k WHERE b.k=3 ORDER BY c.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "rhs-scalar",
+      "sql": "SELECT a.k,b.k,(SELECT count(*) FROM c WHERE c.k=b.k) FROM a FULL JOIN b ON a.k=b.k WHERE b.k=3 ORDER BY b.rowid",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "(SELECT count(*) FROM c WHERE c.k=b.k)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "not-ready",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE z.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "outer-on",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k AND b.k=1 LEFT JOIN c z ON z.k=b.k WHERE b.k=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

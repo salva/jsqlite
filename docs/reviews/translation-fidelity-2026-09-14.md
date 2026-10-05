@@ -4779,3 +4779,6 @@ Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typech
 pass. Complete delivery review/explicit own-hunk commits remain pending; internal
 checks are not independent parent acceptance. Exact evidence is in
 `docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
+
+### Revision 2026-10-05 — h-b R4 unmatched residual control
+The inspected unconditional RHS Rewind/Next drain is superseded by resolved ready-term extraction and shared one-source WHERE scan. Prior/RHS index NullRow, LTORJ, ON origins, base-before-virtual order, selected index/IN movement and Found/Gosub are retained. Scalar IN cursor binding corrected after six public reds across encodings; unchanged expected native rows. Native FIRST30 and focused control/error observations are recorded in `research/card-k-h-b-runtime/r4.md`. This is author repair evidence pending independent review, not whole-goal acceptance. Frozen pre-R4 closure and historical232/browser40 are not current-runtime verification.

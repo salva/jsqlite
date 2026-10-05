@@ -827,3 +827,5 @@ unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
 using the native-FIRST aggregate case in all encodings; not native allocation
 parity. Exact-export evidence and inherited prerequisite attribution are in
 `docs/research/card-k-h-b-runtime/closure.json`.
+
+R4 right-residual corpus: independently captured pinned native FIRST30 (10 IDs ×3 encodings), ordered typed rows and five metadata fields, repeated reset comparison. Additional3 early-positioning and3 injected first-error/reset/reuse contracts observe TS control, not native work/error injection parity. See focused h-b R4 research; prior integration counts remain historical until rerun.
