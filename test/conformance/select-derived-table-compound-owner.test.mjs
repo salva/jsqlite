@@ -259,7 +259,8 @@ test('ordered physical DISTINCT arms compose shared merge and retain arm DISTINC
 test('general transient table uses columnType producer and shared affinity normalization',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('function transientSourceTable('),branch=source.slice(start,source.indexOf('function resolveTransientArm(',start));
- assert.match(branch,/transientDeclaredType\(resolvedExpressionDeclaredType/);
+ assert.match(branch,/transientDeclaredType\(\(affinityPlans\[0\]![\s\S]*?expression\.reduction\?resolvedExpressionDeclaredType/);
+ assert.match(branch,/resolvedResultColumn\(affinityPlans\[0\]![\s\S]*?\?\.declaredType/);
  assert.doesNotMatch(branch,/declaredType:column.declaredType/);
 });
 test('retained derived metadata consumes resolver producer relationship, no independent recursion',()=>{

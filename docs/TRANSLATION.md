@@ -921,3 +921,183 @@ public reset/admission tests pass. See
 [repair evidence](research/card-t-d-routed-alias-b4-repair.md) for exact commands,
 hashes, failed expanded checks and remaining integration gaps. Historical B4
 width credit is input-specific, not current universal completion certification.
+
+### In-progress repeated barrier lowering — [[card:card-k-h-b]]
+
+Working-tree implementation replaces SELECT-global matcher state with independent
+WhereLevel membership cursor/key/return/body bounds (whereInt.h45–110,
+wherecode.c2740ff). Reverse normal closures precede forward drains; earlier drains
+execute later match recording. Exact Found/IdxInsert uses existing shared private
+storage; optional Bloom is omitted, not substituted membership. LEFT continuation
+flags must be initialized before any callable interior even if an empty outer
+scan skips that level. Original window input now calls the same resolved WHERE
+producer and yields with positioned cursors; lifted bindings/framing stay intact.
+USING production in RIGHT chains coalesces prior members (select.c583ff), and FULL
+name resolution accumulates merged provenance (resolve.c402ff).
+
+This is **not accepted admission expansion**: focused full-full/window tests pass
+6/6. The subsequent grouped aggregate input now uses the shared WHERE producer;
+its local rewind patching must not run when that producer owns loops. Parser
+SrcList-only flattening is restricted to identity projections regardless of inner
+source count: expression projections retain their EList for select.c:substExpr
+(3797–3898). join8-3030 previously lost coalesce(h,0) before outer WHERE; retaining
+that semantic owner repairs the UTF8 assertion. FULL merged names also cannot
+be indexed as their first column: resolve.c775 produces TK_FUNCTION and
+whereexpr.c1085 admits TK_COLUMN; prerequisite masks include every merged member.
+All-encoding upstream verification is in progress. Existing one-barrier API boundary remains the last
+accepted contract pending coherent completion, budget measurements, source review
+and documentation synchronization. Do not treat removal of the working-tree gate
+or selected passing tests as whole-tranche compatibility credit.
+
+Latest all-encoding implementation run: 87/90 pass, not acceptance. All 60 native
+supplemental admission assertions and 18 controls pass; adapted join8-3010/3020/
+3030 pass in all three encodings. join8-3040 now rejects at retained derived
+composition: identity-only parser retention exposed the ordinary nonaggregate
+SELECT producer's narrower flattening contract (one inner source, unlike the
+aggregate-parent path). This is a regression from the earlier eager-splice route,
+not missing native evidence; do not relax the source-based assertion. Next repair
+must expand the transient EList/star through resolved producer substitution before
+ordinary joined WHERE lowering, preserving metadata and nested lexical ownership.
+Nonzero simultaneous budget measurement and full nested-return review remain open.
+
+Follow-up working-tree evidence: ordinary derived flattening now substitutes a
+multi-source explicit EList and expands outer `*`/qualified `*` from that EList
+before SrcList splice (select.c selectExpander then flattenSubquery/substExpr).
+Producer stars remain retained, rather than guessed from base tables. Adapted
+join8-3040 passes all encodings; the complete selected matrix now passes90/90.
+Separate authored nonzero shared-budget test measures aggregate/match logical
+byte high-water225 UTF8 and224 UTF16LE/BE: one-byte-below fails sticky, exact
+boundary succeeds twice after reset, and connection reuse succeeds. Instrumented
+owning budget observes index reservations before the first sorter reservation
+with nonzero live bytes; no native page allocation equivalence is claimed.
+These are internal checks, not final tranche acceptance. Nested resolved-target
+review, remaining admission tests/contracts, full regression and explicit-path
+commits remain outstanding.
+
+Resolved-target follow-up (working, not accepted): SelectProgramBuilder now runs
+registered verification after all enclosing pending labels resolve at finish.
+RIGHT interior checks reject normalScanEnd escapes and accept owning Return
+chains; explicit producer stop opcode identities distinguish scalar/LIMIT breaks
+from arbitrary Goto-to-halt. NoJumpsOutsideSubrtn remains debug verification, not
+jump rewriting. Selected native/control81/81 and adjacent14/14 pass. Repeated
+contracts now execute unconditionally (96/96 before stop-identity tightening);
+WITHOUT ROWID composite boundary stays atomic. Actual task-yield control probes
+pass3/3 after replacing an unreliable 1ms pre-yield deadline with a deliberately
+150ms-delayed real scheduler yield and100ms deadline. Broad integration229 files
+has220 completed successes and9 failures, not green. Follow-up aggregate flatten
+classification now excludes aggregate producers (select.c sqlite3Select only
+flattens nonaggregate producers); a transient-window metadata collation guard
+removed one crash but affinity still dereferences a generated star's absent
+reduction. Correct source-column metadata ownership remains required. Existing
+structural admission assertions and30s repeated-suite watchdog also need coherent
+updates. No final API/admission claim follows these intermediate checks.
+
+
+### card-k-h-b follow-up: metadata owner repair (working tree, not final acceptance)
+Expanded-star transient results have resolved source-column identity but may lack
+a parser Expr reduction. Metadata now takes affinity/datatype masks from that
+identity, retaining the Expr path and compound conflict/CAST branches. CTE star
+names use expanded result metadata; CTE and ordinary derived descriptors retain
+the resolved producer for declared-type provenance. This follows pinned
+select.c:2340–2416 sqlite3SubqueryColumnTypes, not a token reconstruction.
+The prior collation-only hypothesis was insufficient: affinity still crashed,
+then CTE naming crashed, then declared type INT differed from native INTEGER.
+Those observed failures motivated fixing the owning descriptor and its callers.
+
+Fresh unconditional repeated-right-full is 99/99 (190978ms), including native
+ordered typed rows/all five metadata fields across three encodings, adapted
+upstream assertions and shared live-budget/yield controls. The inherited native
+corpus was reused, not newly captured. The earlier integration result220/229
+and its30s repeated-suite watchdog remain failures, not waived by this separate
+run. Adjacent combined run122/123: sole obsolete aggregate scan structural
+assertion; corrected to test actual RIGHT exclusion, then owner suite21/21.
+Endpoint compile fixture now supplies table nRowLogEst required by the shared
+WHERE planner; it is not a substitute runtime database. Source predicate
+assertion tests shared resolved input producer, not the superseded raw walker.
+Final source schedule audit, full regression/browser snapshot, public admission
+synchronization and reviewed explicit-path commits remain outstanding.
+
+
+### card-k-h-b scheduling and mixed merged-name follow-up (not final acceptance)
+Test teardown now uses existing closeTestServer after connection cleanup. This
+alone was insufficient: twelve adapted256-row upstream queries still take
+approximately150s sequentially. Parallel twelve-query group passed100/100 but
+took35s (above unchanged30s watchdog). Split by encoding into three discoverable
+test files, four concurrent independent connections each; shared prototype and
+timer probes stay sequential in repeated-right-full. No SQL/expected rows removed.
+Focused integration four components completed within watchdog; combined102/102
+then111/111 with nine new native-FIRST mixed USING cases.
+
+Pinned resolve.c449–464 resets pFJMatch on a RIGHT USING successor. TS retained
+the earlier FULL coalesce graph, causing FULL-RIGHT metadata mismatch in all
+three encodings (six of nine new cases passed). Clear mergedSources on that
+RIGHT branch; nine of nine now pass ordered typed rows and all metadata fields.
+New frozen corpus repeated-merged-using.json SHA256
+3eff93ea3700f866dfd319ffc4148de5e227a06a88ea435cb3513b642ee0c89b;
+captured independently with pinned shared library before new TS assertions.
+RIGHT-FULL and FULL-LEFT retain their appropriate graph.
+Fresh built browser current38/38 and gap2/2 pass before this last resolver change;
+therefore they are intermediate snapshot evidence, not final latest-tree credit.
+Full integration reruns and final source review/contract/commit work remain open.
+
+### card-k-h-b current runtime evidence (review/delivery pending)
+Repeated ordinary-rowid barriers and original-window joined input now execute
+through shared per-level WHERE ownership. API admission text follows actual
+runtime; this is not final independent fidelity acceptance. Fresh integration
+232/232 components with input_drift=[] and original six public reproducers6/6;
+mixed USING native/public9/9. Existing source/fixture hashes, unsuccessful
+scheduling hypotheses, controls and residual source-review obligations are in
+[focused runtime progress](research/card-k-h-b-runtime/progress.md). Three
+encoding-split upstream wrappers preserve all12 adapted assertions within the
+unchanged30s watchdog; zero exact unadapted upstream ports remains disclosed.
+WITHOUT ROWID RIGHT/FULL keys and declined compositions retain typed boundaries.
+Final owning Return/stop/NullRow/caller review and explicit-path commits pending.
+
+
+### card-k-h-b continuation checkpoint (working tree, review pending)
+Native-FIRST continuation corpus adds21 discriminators (seven x three encodings):
+LIMIT0, unmatched-drain OFFSET, scalar/EXISTS stops, compound LIMIT, downstream
+LEFT selected-index IN, and RHS selected-index unmatched drain. Public consumers
+compare ordered typed duplicate rows and all five metadata fields, repeat after
+reset/clearBindings, and reuse the connection. Independent pinned recapture
+compares byte-identically; no expected values were revised to fit TypeScript.
+
+The settled-target verifier now shares `reachesOwningReturn`: consecutive Return
+opcodes must reach the owning register, with invalid/unsettled targets rejected.
+Pinned vdbeaux.c995–1068 is debug verification, not runtime jump rewriting; TS
+has no Noop/Explain opcodes. Producer-stop identities and coroutine/Gosub
+boundaries remain distinct. Source reread confirms wherecode.c2740–end records
+ON matches before interior/downstream WHERE, where.c WhereEnd closes reverse
+and drains forward, and selected RHS indexes must be invalidated before drain.
+Original window input uses physical cursor bindings across Yield; retained
+register producers are not claimed covered by this input-edge change.
+
+Fresh helper-tree evidence: focused122/122 plus typecheck; original gap6/6;
+integration232/232 components, all three prerequisites exit0, input_drift=[];
+build and Chromium current38+gap2=40/40. Exact commands/artifacts/hashes are in
+`docs/research/card-k-h-b-runtime/{progress.md,hashes.json}`. These are internal
+checks, not parent independent acceptance or complete owning-path fidelity
+approval. Explicit-path/hunk commit review remains pending; inherited bitwise
+changes in vdbe.ts/run-advanced-index must not be staged as this card's work.
+
+
+### card-k-h-b continuation caller checkpoint — 2026-10-05 (post-v24)
+Bounded caller review found an admitted ordinary-derived projection metadata
+error: native-FIRST `derived-filter-admitted` returned column names k/v while
+TS returned qualified j.k/j.v in all three encodings (0/3 public contracts).
+`flattenOrdinaryDerived` now preserves the resolved transient column name before
+producer substitution, as select.c sqlite3GenerateColumnNames/substExpr do;
+explicit AS names remain authoritative. Aggregate lowerResult now distinguishes
+only the generated FULL USING coalesce column leaf from parsed function calls,
+instead of skipping recursion for arbitrary calls with carrier children.
+
+Continuation corpus now has 33 native captures (11 x3), independently recaptured
+byte-identically. Public checks are 30 admitted typed-row/all-five-metadata/reset
+contracts plus three honest temporary-unsupported checks: ordered physical-derived
+filter remains an existing declined route, not native-success TS credit. The
+new un-ordered filter is admitted and passes. Do not infer universal derived ORDER
+or aggregate/correlation admission. This extends, not replaces, the 21-case history.
+Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typecheck
+pass. Complete delivery review/explicit own-hunk commits remain pending; internal
+checks are not independent parent acceptance. Exact evidence is in
+`docs/research/card-k-h-b-runtime/progress.md` and hashes.json.

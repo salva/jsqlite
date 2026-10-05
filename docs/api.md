@@ -289,9 +289,14 @@ compatibility credit.
 
 - No-FROM expressions, structured VALUES, ordinary rowid-table projections,
   filters and selected index/WITHOUT ROWID access execute. Multi-source comma,
-  CROSS, INNER and LEFT joins are present. One RIGHT/FULL barrier, including
-  downstream ordinary joins and USING/NATURAL metadata, is admitted; repeated
-  RIGHT/FULL barriers remain temporary unsupported. Joined WITHOUT ROWID
+  CROSS, INNER and LEFT joins are present. Ordinary rowid RIGHT/FULL barriers,
+  including repeated/mixed barriers, downstream ordinary joins and represented
+  USING/NATURAL metadata, execute through per-level match/continuation owners.
+  Original window input on the represented joined route consumes that same
+  SELECT/WHERE producer rather than a separate raw scan. This is bounded
+  progressive admission, not arbitrary aggregate/window/correlation composition
+  support; declined compositions retain typed temporary unsupported failures.
+  Joined WITHOUT ROWID
   comma/CROSS/INNER/LEFT sources use primary-index storage and represented
   secondary access; WITHOUT ROWID RIGHT/FULL match tracking remains temporary
   unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
@@ -393,3 +398,10 @@ classification. This does not add host-registered collation support.
 The bounded immutable schema-estimate/WHERE evidence closure is documented in
 [width evidence delivery](research/card-s-e-b-evidence-delivery.md). This does not
 expand optimizer, STAT4, skipscan or specialized SELECT guarantees.
+
+
+The represented ordinary-derived projection route preserves transient column
+names for unaliased direct columns before flattening; explicit AS takes priority.
+An ordered physical-derived filter outside the represented producer route still
+fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
+This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).

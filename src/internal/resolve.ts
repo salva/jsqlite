@@ -207,7 +207,7 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
  // lookupName/tableAndColumnIndex: an unqualified USING name denotes one
  // merged column. RIGHT selects the RHS; INNER/LEFT retain the left-most.
  let mergedSources:readonly ResolvedColumnRef[]|null=null;
- if(qualifier===null)for(let i=1;i<sources.length;i++){const rhs=sources[i]!;if(!rhs.using?.some(x=>sqliteIdentifierEqual(x,name)))continue;const members=found.filter(x=>sources.indexOf(x.source)<=i);if(members.length>1){if(rhs.joinFromLeft.left&&rhs.joinFromLeft.right){mergedSources=Object.freeze(members);found=[members[0]!,...found.filter(x=>sources.indexOf(x.source)>i)];}else found=[...(rhs.joinFromLeft.right?[members.at(-1)!]:[members[0]!]),...found.filter(x=>sources.indexOf(x.source)>i)];}}
+ if(qualifier===null)for(let i=1;i<sources.length;i++){const rhs=sources[i]!;if(!rhs.using?.some(x=>sqliteIdentifierEqual(x,name)))continue;const members=found.filter(x=>sources.indexOf(x.source)<=i);if(members.length>1){if(rhs.joinFromLeft.left&&rhs.joinFromLeft.right){mergedSources=Object.freeze([...(mergedSources??members.slice(0,-1)),members.at(-1)!]);found=[members[0]!,...found.filter(x=>sources.indexOf(x.source)>i)];}else {if(rhs.joinFromLeft.right)mergedSources=null;found=[...(rhs.joinFromLeft.right?[members.at(-1)!]:[members[0]!]),...found.filter(x=>sources.indexOf(x.source)>i)];}}}
  const display=database?`${database}.${qualifier}.${name}`:qualifier===null?name:`${qualifier}.${name}`;if(found.length>1)throw new NameResolutionError(`ambiguous column name: ${display}`);if(!found.length){if(qualifier===null&&expressionTokens.length===1&&['current_date','current_time','current_timestamp'].includes(sqliteAsciiFold(expressionTokens[0]!.text)))return null;if(qualifier===null&&expressionTokens.length===1&&(expressionTokens[0]!.text.startsWith('"')&&expressionTokens[0]!.text.endsWith('"')||['true','false'].includes(sqliteAsciiFold(expressionTokens[0]!.text))))return null;throw new NameResolutionError(`no such column: ${display}`);}return {resolved:found[0]!,mergedSources};
 }
 /** resolve.c:lookupName: ambiguity at an inner level is final; only a true
@@ -645,26 +645,41 @@ export function resolvedExpressionDataType(expression:LemonValue<SqlToken>,plan:
  }
 }
 
+// selectExpander turns star entries into TK_COLUMN before type propagation.
+// Our expanded ResolvedResult retains its column owner without a Lemon Expr.
+export function resolvedResultColumn(result:ResolvedResult):ColumnNode|undefined {
+ const ref=result.mergedSources?.[0];
+ const source=ref?.source??result.source,index=ref?.columnIndex??result.columnIndex;
+ return source&&index!==null&&index!==undefined&&index>=0?source.table.columns[index]:undefined;
+}
+function resultAffinity(result:ResolvedResult,plan:ResolvedSelect):ColumnNode['affinity']|undefined {
+ if(result.expression.reduction)return resolvedExpressionAffinity(result.expression.reduction,plan);
+ return result.columnIndex===-1?'integer':resolvedResultColumn(result)?.affinity;
+}
+function resultDataType(result:ResolvedResult,plan:ResolvedSelect):number {
+ if(result.expression.reduction)return resolvedExpressionDataType(result.expression.reduction,plan);
+ const aff=resultAffinity(result,plan);return aff==='text'?6:aff&&aff!=='blob'?5:7;
+}
 // select.c sqlite3SubqueryColumnTypes: earlier NONE arms and later arms both
 // contribute datatype conflicts. BLOB is a real affinity, not NONE.
 export function resolvedCompoundAffinity(plans:readonly ResolvedSelect[],index:number):ColumnNode['affinity']{
  let arm=0,mask=0;
  const expr=(at:number)=>plans[at]!.result[index]!.expression.reduction!;
- let affinity=resolvedExpressionAffinity(expr(arm),plans[arm]!);
- while(!affinity&&arm+1<plans.length){mask|=resolvedExpressionDataType(expr(arm),plans[arm]!);affinity=resolvedExpressionAffinity(expr(++arm),plans[arm]!);}
+ let affinity=resultAffinity(plans[arm]!.result[index]!,plans[arm]!);
+ while(!affinity&&arm+1<plans.length){mask|=resultDataType(plans[arm]!.result[index]!,plans[arm]!);affinity=resultAffinity(plans[++arm]!.result[index]!,plans[arm]!);}
  affinity??='blob';
  if(affinity!=='blob'&&plans.length>1){
-  for(let tail=arm+1;tail<plans.length;tail++)mask|=resolvedExpressionDataType(expr(tail),plans[tail]!);
+  for(let tail=arm+1;tail<plans.length;tail++)mask|=resultDataType(plans[tail]!.result[index]!,plans[tail]!);
   if(affinity==='text'&&(mask&1)||affinity!=='text'&&(mask&2))return 'blob';
   // select.c: numeric leftmost CAST preserves real/integer with FLEXNUM.
   let first=expr(0);
   // parse.y parentheses return the same Expr pointer; only TS retains a
   // Lemon wrapper. COLLATE is a real C Expr and must not be stripped here.
-  while(first.kind==='reduction'&&first.signature==='expr ::= LP expr RP'){
+  while(first?.kind==='reduction'&&first.signature==='expr ::= LP expr RP'){
    const child=first.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
    if(!child)break;first=child;
   }
-  if(affinity!=='text'&&first.kind==='reduction'&&first.signature.startsWith('expr ::= CAST'))return 'flexnum';
+  if(affinity!=='text'&&first?.kind==='reduction'&&first.signature.startsWith('expr ::= CAST'))return 'flexnum';
  }
  return affinity;
 }

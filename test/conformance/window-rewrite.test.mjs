@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
 import * as vdbe from '../../src/internal/vdbe.ts';
+// Compile-only tests need WHERE planning descriptors, not a runtime database.
+const compileWindow=(resolved,encoding)=>vdbe.compileWindowSelectLowering(resolved,encoding,{encoding});
 import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {startFixtureServer} from './fixture-server.mjs';
@@ -21,6 +23,7 @@ const table = Object.freeze({
   name: 't1',
   tableName: 't1',
   rootPage: 2,
+  nRowLogEst: 200,
   sql: '',
   columns: Object.freeze([column('a'), column('b')]),
   indexes: Object.freeze([]),
@@ -92,7 +95,7 @@ test('incompatible rewrites form recursive producer ownership and compile inside
     'SELECT sum(a) OVER (PARTITION BY b), row_number() OVER (ORDER BY a), ' +
     'avg(b) OVER (ORDER BY b) FROM t1 WHERE a > 0 GROUP BY a HAVING b > 0',
   );
-  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
+  const compilation = compileWindow(resolved, 'utf-8');
   const {rewrite} = compilation;
 
   const walked = [];
@@ -190,9 +193,9 @@ test('rewrite repairs only aggregate depth that crosses the inserted producer la
 
 
 test('compiler evaluates and checks ROWS and RANGE offsets before producer loops', () => {
-  const rows = vdbe.compileWindowSelectLowering(
+  const rows = compileWindow(
     resolve('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING) FROM t1'), 'utf-8');
-  const range = vdbe.compileWindowSelectLowering(
+  const range = compileWindow(
     resolve('SELECT sum(a) OVER (ORDER BY a RANGE 1.5 PRECEDING) FROM t1'), 'utf-8');
   const checks = (program) => program.ops
     .map((op, index) => ({op, index}))
@@ -212,7 +215,7 @@ test('window offset checks preserve SQLite numeric-affinity acceptance', async (
     'SELECT sum(a) OVER (ORDER BY a ROWS 2.0 PRECEDING) FROM t1',
     "SELECT sum(a) OVER (ORDER BY a RANGE '1.5' PRECEDING) FROM t1",
   ]) {
-    const compiled = vdbe.compileWindowSelectLowering(resolve(sql), 'utf-8').program;
+    const compiled = compileWindow(resolve(sql), 'utf-8').program;
     const check = compiled.ops.findIndex((op) => op.code === 'WindowCheck');
     assert.notEqual(check, -1);
     const program = {...compiled, ops: Object.freeze([
@@ -232,7 +235,7 @@ test('parameterized window offsets re-evaluate after reset and rebind', async ()
     ['SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN CURRENT ROW AND ?1 FOLLOWING) FROM t1', '1.5', 'x',
       'frame ending offset must be a non-negative number'],
   ]) {
-    const compiled = vdbe.compileWindowSelectLowering(resolve(sql), 'utf-8').program;
+    const compiled = compileWindow(resolve(sql), 'utf-8').program;
     const check = compiled.ops.findIndex((op) => op.code === 'WindowCheck');
     assert.notEqual(check, -1);
     const program = {...compiled, ops: Object.freeze([
@@ -264,7 +267,7 @@ test('window offset diagnostics use SQLite boundary-specific messages', async ()
     ["SELECT sum(a) OVER (ORDER BY a RANGE 'x' PRECEDING) FROM t1",
       'frame starting offset must be a non-negative number'],
   ]) {
-    const program = vdbe.compileWindowSelectLowering(resolve(sql), 'utf-8').program;
+    const program = compileWindow(resolve(sql), 'utf-8').program;
     const statement = new vdbe.VdbeStatement(program, () => {}, () => () => {}, () => {});
     let caught;
     try {
@@ -280,7 +283,7 @@ test('window offset diagnostics use SQLite boundary-specific messages', async ()
 
 
 test('window producer materializes direct partition and order keys before sorter insert', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) OVER (PARTITION BY b ORDER BY a) FROM t1'), 'utf-8');
   const insertAt = compilation.program.ops.findIndex(op => op.code === 'SorterInsert');
   const insert = compilation.program.ops[insertAt];
@@ -356,7 +359,7 @@ test('window cache MakeRecord/NewRowid/Insert execute through budgeted ephemeral
 
 
 test('bounded streaming ROWS unbounded-current schedules compatible aggregates after cache insertion', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) FILTER (WHERE b) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW), ' +
     'count(a) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1',
   ), 'utf-8');
@@ -376,7 +379,7 @@ test('bounded streaming ROWS unbounded-current schedules compatible aggregates a
 
 
 test('window producer opens its sorter once before the child coroutine loop', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) OVER (ROWS UNBOUNDED PRECEDING) FROM t1'), 'utf-8');
   const binding = compilation.loopBindings[0], ops = compilation.program.ops;
   const open = ops.findIndex(op => op.code === 'SorterOpen' && op.p1 === binding.sorterCursor);
@@ -391,7 +394,7 @@ test('window producer opens its sorter once before the child coroutine loop', ()
 
 
 test('internal streaming lowering executes aggregate result rows without replay', async () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1',
   ), 'utf-8');
   const program = compilation.program;
@@ -402,7 +405,7 @@ test('internal streaming lowering executes aggregate result rows without replay'
 
 
 test('streaming branch detects partition changes and resets shared accumulators once', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) OVER (PARTITION BY b ROWS UNBOUNDED PRECEDING), ' +
     'count(a) OVER (PARTITION BY b ROWS UNBOUNDED PRECEDING) FROM t1',
   ), 'utf-8');
@@ -421,7 +424,7 @@ test('streaming branch detects partition changes and resets shared accumulators 
 
 
 test('window setup allocates source-shaped input/record/rowid and peer register topology', () => {
-  const range = vdbe.compileWindowSelectLowering(resolve(
+  const range = compileWindow(resolve(
     'SELECT sum(a) OVER (PARTITION BY b ORDER BY a, b RANGE CURRENT ROW) FROM t1'), 'utf-8').setup[0];
   assert.equal(range.inputRegisters[0], range.regNew);
   assert.ok(range.inputRegisters.length > 0);
@@ -435,7 +438,7 @@ test('window setup allocates source-shaped input/record/rowid and peer register 
     ...range.startPeerRegisters, ...range.currentPeerRegisters, ...range.endPeerRegisters];
   assert.equal(new Set(all).size, all.length, 'window register owners must not alias');
 
-  const rows = vdbe.compileWindowSelectLowering(resolve(
+  const rows = compileWindow(resolve(
     'SELECT sum(a) OVER (ORDER BY a ROWS CURRENT ROW) FROM t1'), 'utf-8').setup[0];
   assert.equal(rows.regPeer, null);
   assert.deepEqual(rows.startPeerRegisters, []);
@@ -445,7 +448,7 @@ test('window setup allocates source-shaped input/record/rowid and peer register 
 
 
 test('window setup builds SQLite KeyInfo for partition and peer comparisons', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve(
+  const compilation = compileWindow(resolve(
     'SELECT sum(a) OVER (PARTITION BY b COLLATE nocase ORDER BY a COLLATE rtrim DESC NULLS FIRST RANGE CURRENT ROW) FROM t1'), 'utf-16be');
   const range = compilation.setup[0];
   assert.deepEqual(range.partitionKeyInfo.terms, [{collation: 'nocase'}],
@@ -458,11 +461,11 @@ test('window setup builds SQLite KeyInfo for partition and peer comparisons', ()
     {collation: 'nocase', desc: false, nullsLarge: false},
     {collation: 'rtrim', desc: true, nullsLarge: true},
   ], 'window producer sorter must preserve partition/order collations and ORDER flags');
-  const rows = vdbe.compileWindowSelectLowering(resolve(
+  const rows = compileWindow(resolve(
     'SELECT sum(a) OVER (PARTITION BY b ORDER BY a ROWS CURRENT ROW) FROM t1'), 'utf-8').setup[0];
   assert.ok(rows.partitionKeyInfo);
   assert.equal(rows.peerKeyInfo, null, 'ROWS does not allocate peer comparison registers/KeyInfo');
-  const noKeys = vdbe.compileWindowSelectLowering(resolve(
+  const noKeys = compileWindow(resolve(
     'SELECT sum(a) OVER (ROWS CURRENT ROW) FROM t1'), 'utf-8').setup[0];
   assert.equal(noKeys.partitionKeyInfo, null);
   assert.equal(noKeys.peerKeyInfo, null);
@@ -470,7 +473,7 @@ test('window setup builds SQLite KeyInfo for partition and peer comparisons', ()
 
 
 test('window step selects SQLite source deletion modes conservatively', () => {
-  const mode = (frame) => vdbe.compileWindowSelectLowering(
+  const mode = (frame) => compileWindow(
     resolve(`SELECT sum(a) OVER (ORDER BY a ${frame}) FROM t1`), 'utf-8').setup[0].deleteMode;
   assert.equal(mode('ROWS 2 FOLLOWING'), 'return-row');
   assert.equal(mode('ROWS ?1 FOLLOWING'), 'retain', 'unknown offsets cannot take windowExprGtZero early deletion');
@@ -488,7 +491,7 @@ test('compiler emits EXCLUDE full-scan application state without cursor aliasing
   const resolved = resolve(
     'SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING EXCLUDE NO OTHERS) FROM t1',
   );
-  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
+  const compilation = compileWindow(resolved, 'utf-8');
   const layer = compilation.rewrite.layers[0];
   const setup = compilation.setup[0];
   const binding = compilation.loopBindings[0];
@@ -503,7 +506,7 @@ test('compiler emits EXCLUDE full-scan application state without cursor aliasing
 });
 
 test('implicit/no-EXCLUDE windows do not allocate full-scan application state', () => {
-  const compilation = vdbe.compileWindowSelectLowering(resolve('SELECT sum(a) OVER () FROM t1'), 'utf-8');
+  const compilation = compileWindow(resolve('SELECT sum(a) OVER () FROM t1'), 'utf-8');
   assert.deepEqual(
     compilation.setup.map(({regStartRowid, regEndRowid, applicationCursor}) =>
       ({regStartRowid, regEndRowid, applicationCursor})),
@@ -576,7 +579,7 @@ test('compiler emits window init cursors, result registers, and select-loop hand
     'SELECT sum(a) OVER w, avg(a) OVER w, row_number() OVER (ORDER BY a) ' +
     'FROM t1 WINDOW w AS (PARTITION BY b ORDER BY a)',
   );
-  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
+  const compilation = compileWindow(resolved, 'utf-8');
   assert.equal(compilation.rewrite.layers.length, 2);
   const ops = compilation.program.ops;
   assert.equal(ops.filter((op) => op.code === 'OpenEphemeral').length, 2);
@@ -651,7 +654,7 @@ test('window lowering uses nested SELECT loops for multiple original sources', (
     'SELECT sum(left_t.a) OVER (PARTITION BY left_t.b), ' +
     'row_number() OVER (ORDER BY right_t.a) FROM t1 AS left_t, t1 AS right_t',
   );
-  const compilation = vdbe.compileWindowSelectLowering(resolved, 'utf-8');
+  const compilation = compileWindow(resolved, 'utf-8');
   const ops = compilation.program.ops;
   assert.equal(ops.filter((op) => op.code === 'OpenRead').length, 2);
   const rewinds = ops.map((op, index) => op.code === 'Rewind' ? index : -1).filter((index) => index >= 0);

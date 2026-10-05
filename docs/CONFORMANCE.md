@@ -762,3 +762,58 @@ full `whereLoopInsert` or STAT4 fidelity.
 `expr.c:exprImpliesNotNull` (6698–6768) distinguishes true-only from non-NULL proof and has no TK_AND/TK_OR cases. `where.c:whereUsablePartialIndex` (3700–3735) consumes that proof before choosing a partial index. The former TS unconditional AND recursion under NOT was unsound: NULL AND false is false, so NOT can be true while the partial predicate column is NULL. Nested AND now yields no proof; top-level conjunct splitting remains in `analyzeWhere`. Query-side OR is **not a direct translation of this switch**: the bounded true-only extension requires both arms independently prove the target and is disabled in every seenNot/non-NULL context. This compensates for absent upstream OR-derived analysis terms in the represented scalar path, rather than installing general OR optimization. If OR is true at least one arm is true; requiring both true-only proofs is sufficient. It cannot establish non-NULL OR operands (NULL OR true is true). Pinned public capture confirms `a=1 AND (c>0 OR c<0)` still admits forced p_live; removing this positive branch would reject a represented valid proof. Index-predicate-side OR remains a separate pinned `sqlite3ExprImpliesExpr` branch.
 
 Verified pinned 3.53.4 native read-only fixture behavior in UTF-8/UTF-16LE/UTF-16BE: `a=1 AND NOT(c>0 AND a=2)` and reversed arms reject forced p_live at prepare and return INTEGER ids 1,2 unforced/NOT INDEXED. Parameter neighbors `[1,1]` and `[NULL,2]` return empty controls. The public regression checks both orders, reset/rebind, NULL, forced preparation rejection, zero unsafe index seeks, damaged partial-root off-path isolation, and a valid c>0 selected neighbor. No output filtering is used to compensate for an incomplete index. Frozen 24/30 selected-access accounting is unchanged; no general optimizer or complete implication claim follows.
+
+## card-k-h-b working-tree checkpoint (independent acceptance pending)
+Current integration232/232 components, input_drift=[],30s watchdog; manifest
+SHA256 dff51b4a05945ab6e73d74563ff7a22cfbaa015d15155447b5791351498a4615.
+Original FULL/FULL and window public native reproducers6/6 across encodings;
+new mixed USING public/native9/9, five metadata fields and ordered typed rows.
+Existing63 supplemental captures and12 adapted join8 captures are not new
+native runs or exact upstream ports. Encoding-split wrappers preserve assertions,
+not expand case credit. Commands/hashes, controls, earlier failures and incomplete
+source review are in [focused progress](research/card-k-h-b-runtime/progress.md).
+No global compatibility or final acceptance inferred from these component counts.
+
+
+### card-k-h-b continuation checkpoint (working tree, review pending)
+Native-FIRST continuation corpus adds21 discriminators (seven x three encodings):
+LIMIT0, unmatched-drain OFFSET, scalar/EXISTS stops, compound LIMIT, downstream
+LEFT selected-index IN, and RHS selected-index unmatched drain. Public consumers
+compare ordered typed duplicate rows and all five metadata fields, repeat after
+reset/clearBindings, and reuse the connection. Independent pinned recapture
+compares byte-identically; no expected values were revised to fit TypeScript.
+
+The settled-target verifier now shares `reachesOwningReturn`: consecutive Return
+opcodes must reach the owning register, with invalid/unsettled targets rejected.
+Pinned vdbeaux.c995–1068 is debug verification, not runtime jump rewriting; TS
+has no Noop/Explain opcodes. Producer-stop identities and coroutine/Gosub
+boundaries remain distinct. Source reread confirms wherecode.c2740–end records
+ON matches before interior/downstream WHERE, where.c WhereEnd closes reverse
+and drains forward, and selected RHS indexes must be invalidated before drain.
+Original window input uses physical cursor bindings across Yield; retained
+register producers are not claimed covered by this input-edge change.
+
+Fresh helper-tree evidence: focused122/122 plus typecheck; original gap6/6;
+integration232/232 components, all three prerequisites exit0, input_drift=[];
+build and Chromium current38+gap2=40/40. Exact commands/artifacts/hashes are in
+`docs/research/card-k-h-b-runtime/{progress.md,hashes.json}`. These are internal
+checks, not parent independent acceptance or complete owning-path fidelity
+approval. Explicit-path/hunk commit review remains pending; inherited bitwise
+changes in vdbe.ts/run-advanced-index must not be staged as this card's work.
+
+
+### card-k-h-b settled delivery checkpoint — 2026-10-05
+Post-v27 rerun deliberately froze project inputs throughout integration:
+`python3 tools/test/integration.py --jobs 2` proc-f63b10d733c3 exit0,
+232/232 components, three prerequisites exit0, input_drift=[], unchanged30s
+watchdog. Manifest work:///cards/card-k-h-b/integration-run/manifest.json,
+SHA256668a4d4bd49c4290619ff4de73bcdb06253cdf522917d34a6d879f21e171e67e.
+Previous drift run remains exit1; this new run resolves that verification question.
+Continuation corpus33 native captures (11 x3), public30 admitted success contracts
+plus3 declined ordered-physical-derived checks. Those3 are not native-success TS
+credit. Direct transient names survive substitution; explicit AS takes priority.
+Original repeated FULL/FULL/window6/6, focused165/165 and browser40 passes remain
+applicable: runtime/test inputs have not changed since those checks. No universal
+aggregate/correlation/derived ORDER or WR composite-key admission is claimed.
+Source/control review and exact hashes/commands are in the focused research.
+Internal execution evidence is not parent independent fidelity acceptance.

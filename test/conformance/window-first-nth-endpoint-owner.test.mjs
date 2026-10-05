@@ -4,9 +4,9 @@ import {parseSql} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {compileWindowSelectLowering} from '../../src/internal/vdbe.ts';
 const column=Object.freeze({name:'a',declaredType:'INTEGER',affinity:'integer',collation:null});
-const table=Object.freeze({kind:'table',name:'t1',tableName:'t1',rootPage:2,sql:'',columns:Object.freeze([column]),indexes:Object.freeze([]),withoutRowid:false,primaryKey:[],storageKey:[]});
+const table=Object.freeze({kind:'table',name:'t1',tableName:'t1',rootPage:2,sql:'',columns:Object.freeze([column]),indexes:Object.freeze([]),withoutRowid:false,primaryKey:[],storageKey:[],nRowLogEst:200});
 const schema={tables:new Map([['t1',table]])};
-function compile(expression){return compileWindowSelectLowering(expandAndResolveSelect(parseSql(`SELECT a,${expression} FROM t1 ORDER BY a`).statement,schema),'utf-8').program;}
+function compile(expression){return compileWindowSelectLowering(expandAndResolveSelect(parseSql(`SELECT a,${expression} FROM t1 ORDER BY a`).statement,schema),'utf-8',{encoding:'utf-8'}).program;}
 // window.c1452–1460 /1718–1724 /1930–1955: non-EXCLUDE first/nth
 // owns regApp endpoints and csrApp seek, not callback inverse or frame rescans.
 for(const expression of [

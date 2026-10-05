@@ -379,7 +379,9 @@ function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(nod
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
 function reductionContains(root:ExprReduction,needle:ExprReduction):boolean {return root===needle||root.children.some(x=>x.kind==="reduction"&&reductionContains(x,needle));}
 function columnUse(resolved:ResolvedSelect,node:ExprReduction){let plain=unwrap(node);while(resolved.aliasUses?.has(plain))plain=unwrap(resolved.aliasUses.get(plain)!);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
-function binding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {const use=columnUse(resolved,node);if(!use)return null;const column=use.columnIndex<0?null:use.source.table.columns[use.columnIndex]??null;return freeze({source:use.source,sourceOrdinal:resolved.sources.indexOf(use.source),column,columnIndex:use.columnIndex,rowid:use.columnIndex<0});}
+// resolve.c lookupName replaces FULL merged names with TK_FUNCTION coalesce.
+// whereexpr.c:exprMightBeIndexed accepts TK_COLUMN, not its first constituent.
+function binding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {const use=columnUse(resolved,node);if(!use||use.mergedSources)return null;const column=use.columnIndex<0?null:use.source.table.columns[use.columnIndex]??null;return freeze({source:use.source,sourceOrdinal:resolved.sources.indexOf(use.source),column,columnIndex:use.columnIndex,rowid:use.columnIndex<0});}
 /** whereexpr.c:exprMightBeIndexed: recursive uses are dependencies, not
  * ordinary bindings. A non-column operand may bind only an actual expression
  * field on the exact source whose uses it contains. -2 is XN_EXPR, not rowid. */
@@ -403,7 +405,7 @@ function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"
 function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
  // resolve.c resolveAlias substitutes before whereexpr.c ExprUsage walks the
  // tree. Alias reductions live outside the predicate's syntactic subtree.
- let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){const at=resolved.sources.indexOf(use.source);if(at>=0)mask|=sourceBit(at);}
+ let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){for(const ref of use.mergedSources??[use]){const at=resolved.sources.indexOf(ref.source);if(at>=0)mask|=sourceBit(at);}}
  for(const [alias,value] of resolved.aliasUses??[])if(reductionContains(node,alias))mask|=prereq(resolved,value);
  return mask;
 }

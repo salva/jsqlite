@@ -39,12 +39,5 @@ test('RIGHT/FULL preserve encoding, diagnostics, and cancellation after match tr
 });
 
 
-test('repeated RIGHT/FULL barriers are atomic until per-WhereLevel ownership lands',async()=>withDb('right-chain',async db=>{
- const sqls=[
-  'SELECT * FROM a RIGHT JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k',
-  'SELECT * FROM a FULL JOIN b ON a.k=b.k FULL JOIN c ON b.k=c.k',
-  'SELECT * FROM a RIGHT JOIN b ON a.k=b.k FULL JOIN c ON b.k=c.k JOIN d ON c.k=d.k',
-  'SELECT * FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c ON b.k=c.k WHERE a.k IS NULL',
- ];
- for(const sql of sqls)assert.throws(()=>db.prepare(sql),error=>error.kind==='unsupported'&&error.unsupportedClassification==='temporary'&&error.message==='multiple RIGHT/FULL JOIN barriers are not implemented',sql);
-}));
+// Superseded repeated-barrier rejection contract is replaced by unconditional
+// pinned-native ordered typed/metadata assertions in repeated-right-full.test.mjs.

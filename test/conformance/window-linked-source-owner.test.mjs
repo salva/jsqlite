@@ -30,8 +30,8 @@ for(const {sql,names,rows} of cases)test(`derived compound destination: ${sql}`,
 
 test('window source predicates consume rewrite-owned carrier',async()=>{
  const {readFileSync}=await import('node:fs');const source=readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- assert.match(source,/sourcePredicates=original.sourcePredicates/);
- assert.match(source,/predicate.reduction\),predicate/);
+ assert.match(source,/const inputSelect:SelectNode=Object\.freeze\(\{[\s\S]*?resolved\.source/);
+ assert.match(source,/compileInnerTableSelect\(inputSelect,[\s\S]*?consumeRow:/);
  assert.doesNotMatch(source,/const bindSourceExpression=\(reduction:Reduction\)/,'live window source walker duplicates linked resolution');
 });
 

@@ -116,8 +116,10 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
   // projection over one or more ordinary FROM terms.  Do not require a single
   // inner term: that incorrectly rejects the pinned aggregate-over-derived-join
   // route even though flattening only splices the inner SrcList into the parent.
-  // A single-source renamed projection is not an identity SrcList splice,
-  // even without an outer alias. Retain its EList for lowering substitution.
+  // An expression or renamed projection is not an identity SrcList splice,
+  // even without an outer alias or with several inner sources. Retain its
+  // EList for select.c:substExpr lowering; otherwise outer WHERE reads the
+  // underlying columns instead of the projected expression (join8-3030).
   const directProjection=!!select&&select.result.every(expr=>expr.tokens.length===1&&["id","keyword"].includes(expr.tokens[0]!.kind)&&(!expr.alias||expr.alias===sqlIdentifier(expr.tokens[0]!)));
   // select.c:flattenSubquery restriction (25): window SELECTs retain their
   // generated Select owner and are consumed through a subquery destination.
@@ -126,7 +128,7 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
   // before flattenSubquery can splice its SrcList. This parser otherwise
   // flattens eagerly, so retain WITH owners until lowerOrdinaryCtes() performs
   // the equivalent innermost-first searchWith resolution.
-  const safe=!!select&&!select.with&&!hasWindow&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&(select.from.items.length!==1||directProjection)&&(!aliases.length||select.from.items.length===1&&directProjection);
+  const safe=!!select&&!select.with&&!hasWindow&&aliases.length<=1&&select.arms.length===1&&select.from.items.length>0&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!select.hasOrderBy&&!select.hasLimit&&!select.hasCompound&&!select.hasValues&&!select.hasSubquery&&projected?.every((name):name is string=>name!==null)&&directProjection&&(!aliases.length||select.from.items.length===1&&directProjection);
   if(!safe){
    // parse.y's SrcItem owns the generated Select when flattenSubquery is
    // ineligible. Preserve it for sqlite3Select's materialization destination.

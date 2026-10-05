@@ -138,7 +138,7 @@ test('ordinary derived flatten production is shared by descriptor and compound a
 
 test('parser never erases single-source renamed projection solely for absent alias',()=>{
  const parse=fs.readFileSync(new URL('../../src/internal/parse.ts',import.meta.url),'utf8');
- assert.match(parse,/\(select\.from\.items\.length!==1\|\|directProjection\)/);
+ assert.match(parse,/projected\?\.every[\s\S]*?&&directProjection/);
 });
 
 test('retained derived compound arms call existing shared destination before schema resolution',()=>{
@@ -194,7 +194,7 @@ test('recursive aggregate and zero-source count consume source destinations befo
  assert.match(recursive,/parameters:Object\.freeze\(parameters\.names/);
  const grouped=source.slice(source.indexOf(' if(select.hasGroupBy){',source.indexOf('export function compileAggregateSelect(')),source.indexOf(' // select.c:resetAccumulator precedes WHERE positioning'));
  assert.match(grouped,/if\(!parent\?\.input&&groupedStream\)/);
- assert.match(grouped,/else if\(!parent\?\.input\)\{[\s\S]*OpenRead/);
+ assert.match(grouped,/else if\(!parent\?\.input&&!aggregatePlan\.sources\.some\(source=>source\.joinFromLeft\.right\)\)\{[\s\S]*OpenRead/);
  assert.match(grouped,/parent\.input\.emit\(insertGroupedRow\)/);
  assert.match(grouped,/inputReject[\s\S]*SorterInsert[\s\S]*inputReject/);
  assert.match(grouped,/streamScan===undefined&&!parent\?\.input/);

@@ -136,6 +136,9 @@ test('outer join aggregate input uses shared matched/unmatched continuation',asy
     }
    }finally{s.finalize();}
   }
-  assert.throws(()=>db.prepare('SELECT r.a,count(l.a) FROM t1 l RIGHT JOIN t1 r ON l.a=r.a AND l.a<5 GROUP BY r.a ORDER BY r.a'),e=>e.kind==='unsupported');
+  // Grouped RIGHT input is now shared; the frozen acceptance aggregate
+  // corpus supplies ordered typed rows. Verify this former boundary resets.
+  const grouped=db.prepare('SELECT r.a,count(l.a) FROM t1 l RIGHT JOIN t1 r ON l.a=r.a AND l.a<5 GROUP BY r.a ORDER BY r.a').statement;
+  try{const read=async()=>{const rows=[];while(await grouped.step()==='row')rows.push([grouped.column(0),grouped.column(1)]);return rows};const first=await read();grouped.reset();assert.deepEqual(await read(),first);}finally{grouped.finalize();}
  }finally{db.close();}
 });

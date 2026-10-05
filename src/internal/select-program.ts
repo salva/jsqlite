@@ -3,6 +3,18 @@ import type { BuiltinCollation } from "./comparison.ts";
 // SRT_Exists. Program construction keeps addresses and register ranges within
 // one prepare; a destination is consumed while emitting, not after publication.
 export type SelectDest = Readonly<{kind:"coroutine";register:number;first:number}>|Readonly<{kind:"ephemeral";cursor:number}>|Readonly<{kind:"output"}>|Readonly<{kind:"sorter";cursor:number; keyCount?:number}>|Readonly<{kind:"mem"|"exists"; register:number; found?:number}>|Readonly<{kind:"set"; cursor:number}>|Readonly<{kind:"aggregate-expression"; register:number; name:"count"|"sum"|"avg"|"total"|"min"|"max"|"group_concat"|"string_agg"; collation:BuiltinCollation; emitArgument?:(first:number,count:number)=>readonly number[]; emitWhere?:(first:number,count:number)=>number; emitFilter?:(first:number,count:number)=>number; distinctCursor?:number; order?:Readonly<{cursor:number; emitKeys:(first:number,count:number)=>readonly number[]; keyStart:number; payload:number}>}>;
+// vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn permits an escaped target
+// only when its consecutive Return chain reaches the owning return register.
+// TS has no Noop/Explain opcodes. This is verification, not target rewriting.
+export function reachesOwningReturn(ops:readonly {readonly code:string;readonly p1?:unknown}[],target:number,returnRegister:number):boolean {
+  if(!Number.isSafeInteger(target)||target<0)return false;
+  for(let at=target;at<ops.length;at++){
+    const op=ops[at]!;
+    if(op.code!=="Return")return false;
+    if(op.p1===returnRegister)return true;
+  }
+  return false;
+}
 export class SelectProgramBuilder<Op extends {readonly code:string}> {
   readonly ops:Op[]=[];
   registers=0;
@@ -10,6 +22,9 @@ export class SelectProgramBuilder<Op extends {readonly code:string}> {
   private labels=new Map<number,number>();
   private pending:{at:number;label:number;resolve:(op:Op,pc:number)=>Op}[]=[];
   private nextLabel=0;
+  private validations:((ops:readonly Op[])=>void)[]=[];
+  // Validate only settled addresses, including late enclosing-owner labels.
+  validateResolved(validate:(ops:readonly Op[])=>void):void {this.validations.push(validate);}
   register():number{return ++this.registers;}
   range(count:number):number {if(!Number.isSafeInteger(count)||count<1)throw new RangeError("invalid register range");const first=this.registers+1;this.registers+=count;return first;}
   cursor():number{return this.cursors++;}
@@ -25,7 +40,7 @@ export class SelectProgramBuilder<Op extends {readonly code:string}> {
     const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");
     this.pending=this.pending.filter(entry=>{if(entry.label!==label)return true;this.ops[entry.at]=entry.resolve(this.ops[entry.at]!,pc);return false;});
   }
-  finish():readonly Op[]{for(const {at,label,resolve} of this.pending){const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");this.ops[at]=resolve(this.ops[at]!,pc);}return Object.freeze(this.ops);}
+  finish():readonly Op[]{for(const {at,label,resolve} of this.pending){const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");this.ops[at]=resolve(this.ops[at]!,pc);}for(const validate of this.validations)validate(this.ops);return Object.freeze(this.ops);}
 }
 export function emitSelectDestination<Op extends {readonly code:string}>(ops:Op[],dest:SelectDest,first:number,count:number):void {
   if(count<1)throw new RangeError("empty SELECT destination");

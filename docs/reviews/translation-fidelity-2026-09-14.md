@@ -4718,3 +4718,64 @@ Concurrent where-plan/vdbe, owner/peer tests, root-w closeTestServer and other
 workspace changes are preserved, not credited by this scoped repair. Acceptance
 enables a root full-w rerun; it does not supersede the historical failed full225
 or claim broad green, general merge-coroutine compatibility, or new SQL breadth.
+
+### Revision: card-k-h-b current runtime checkpoint — review/delivery pending
+Historical singleton/repeated rejection and original-window raw-scan findings
+are now contradicted by current implementation and fresh public6/6 reproducer.
+Per-level exact match/return/body owners, reverse closures/forward drains and
+shared original-window input producer replace those paths. Mixed RIGHT USING
+merged provenance now follows resolve.c449–464 (native/public9/9). Fresh232/232
+integration has no input drift; this is bounded regression evidence, not complete
+C fidelity acceptance. Owning Return/stop/NullRow/caller review and reviewed
+explicit-path commits remain open. WR composite keys remain unsupported.
+Details, exact hashes, unsuccessful hypotheses and residual obligations:
+[focused card-k-h-b progress](../research/card-k-h-b-runtime/progress.md).
+
+
+### card-k-h-b continuation checkpoint (working tree, review pending)
+Native-FIRST continuation corpus adds21 discriminators (seven x three encodings):
+LIMIT0, unmatched-drain OFFSET, scalar/EXISTS stops, compound LIMIT, downstream
+LEFT selected-index IN, and RHS selected-index unmatched drain. Public consumers
+compare ordered typed duplicate rows and all five metadata fields, repeat after
+reset/clearBindings, and reuse the connection. Independent pinned recapture
+compares byte-identically; no expected values were revised to fit TypeScript.
+
+The settled-target verifier now shares `reachesOwningReturn`: consecutive Return
+opcodes must reach the owning register, with invalid/unsettled targets rejected.
+Pinned vdbeaux.c995–1068 is debug verification, not runtime jump rewriting; TS
+has no Noop/Explain opcodes. Producer-stop identities and coroutine/Gosub
+boundaries remain distinct. Source reread confirms wherecode.c2740–end records
+ON matches before interior/downstream WHERE, where.c WhereEnd closes reverse
+and drains forward, and selected RHS indexes must be invalidated before drain.
+Original window input uses physical cursor bindings across Yield; retained
+register producers are not claimed covered by this input-edge change.
+
+Fresh helper-tree evidence: focused122/122 plus typecheck; original gap6/6;
+integration232/232 components, all three prerequisites exit0, input_drift=[];
+build and Chromium current38+gap2=40/40. Exact commands/artifacts/hashes are in
+`docs/research/card-k-h-b-runtime/{progress.md,hashes.json}`. These are internal
+checks, not parent independent acceptance or complete owning-path fidelity
+approval. Explicit-path/hunk commit review remains pending; inherited bitwise
+changes in vdbe.ts/run-advanced-index must not be staged as this card's work.
+
+
+### card-k-h-b continuation caller checkpoint — 2026-10-05 (post-v24)
+Bounded caller review found an admitted ordinary-derived projection metadata
+error: native-FIRST `derived-filter-admitted` returned column names k/v while
+TS returned qualified j.k/j.v in all three encodings (0/3 public contracts).
+`flattenOrdinaryDerived` now preserves the resolved transient column name before
+producer substitution, as select.c sqlite3GenerateColumnNames/substExpr do;
+explicit AS names remain authoritative. Aggregate lowerResult now distinguishes
+only the generated FULL USING coalesce column leaf from parsed function calls,
+instead of skipping recursion for arbitrary calls with carrier children.
+
+Continuation corpus now has 33 native captures (11 x3), independently recaptured
+byte-identically. Public checks are 30 admitted typed-row/all-five-metadata/reset
+contracts plus three honest temporary-unsupported checks: ordered physical-derived
+filter remains an existing declined route, not native-success TS credit. The
+new un-ordered filter is admitted and passes. Do not infer universal derived ORDER
+or aggregate/correlation admission. This extends, not replaces, the 21-case history.
+Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typecheck
+pass. Complete delivery review/explicit own-hunk commits remain pending; internal
+checks are not independent parent acceptance. Exact evidence is in
+`docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
