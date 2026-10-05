@@ -22,6 +22,13 @@ inventory.
 
 ## Current sequence: private local versioned alpha, then residual breadth
 
+Independent [resumed candidate evidence](research/card-v-alpha-resumed-diagnosis.md)
+binds `2f1545c`: fresh core238/238 and additional352 pass, versioned alpha.3
+installed package/demo and Chromium38+2 recaptured. Historical failed238 remains
+failed for its old source. This discharges original core blockers, not final
+alpha certification: explicit adversarial/reuse and realistic performance matrix
+and final candidate-facing package/demo contract reconciliation remain required.
+
 Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
 LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
 SPEC is unchanged. This is not a registry/public repository release, external

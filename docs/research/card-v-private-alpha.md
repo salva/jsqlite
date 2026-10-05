@@ -5,9 +5,12 @@
 SPEC remains the broad read-only product scope. A private alpha describes current
 implemented admission and temporary debt, not a smaller product. No registry,
 public repository or external distribution; no operator configuration changes.
-Candidate source baseline selected for fresh testing: committed `f1eb053`
-(full identity to be retained in the exact-source manifest). Dirty/staged peer
-repairs are not implicitly included. JSON r approved v24/f1eb053 focused53/53 is
+Candidate independently tested: committed `2f1545c` (full identity in the
+[resumed diagnosis](card-v-alpha-resumed-diagnosis.md)). Fresh core238 and
+additional352 pass; private alpha.3 installed package/demo and Chromium38+2
+recaptured. Safety/performance breadth and final advertised matrix remain
+uncertified. Earlier `f1eb053`/`cc21352` evidence remains historical, not current
+candidate certification. Dirty/staged peer repairs are not implicitly included. JSON r approved v24/f1eb053 focused53/53 is
 settled; additional optional JSON breadth is not a release prerequisite.
 
 Proposed advertised core consists of the existing public open/prepare/step/reset/
