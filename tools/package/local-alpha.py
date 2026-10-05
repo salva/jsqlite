@@ -92,9 +92,10 @@ def main():
     package.write_text(json.dumps(pkg, indent=2)+'\n'); lock.write_text(json.dumps(locks, indent=2)+'\n')
     report['controlledOverlay'] = {p: digest(source/p) for p in ('package.json', 'package-lock.json')}
     report['overlayDescription'] = 'Only package and lock root version set to explicit alpha version; no engine/source overlay'
-    env = dict(os.environ, npm_config_cache=str(work/'npm-cache'), npm_config_update_notifier='false')
-    # Optional shared cache is explicit and scoped under the supplied work root.
-    env['npm_config_cache'] = str(pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'alpha-npm-cache')
+    # Shared dependency cache stays scoped under the supplied work root.
+    env = dict(os.environ,
+               npm_config_cache=str(pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'alpha-npm-cache'),
+               npm_config_update_notifier='false')
     run(['npm', 'ci', '--ignore-scripts', '--no-audit', '--no-fund'] + (['--offline'] if args.offline else []), source, env)
     run(['npm', 'run', 'build'], source, env)
     packed = json.loads(run(['npm', 'pack', '--json', '--pack-destination', str(work)], source, env))[0]

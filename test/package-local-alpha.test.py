@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Focused scaffold guards; real exact-source pack verification is explicit."""
-import os, pathlib, subprocess, unittest
+import pathlib, subprocess, unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
