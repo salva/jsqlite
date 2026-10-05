@@ -2,7 +2,7 @@
 // Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
 // whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
-import {whereOrCollect,whereOrAccumulate,type WhereOrSet} from "./where-or-cost.ts";
+import {whereOrCollect,whereOrInsert,whereOrAccumulate,type WhereOrSet} from "./where-or-cost.ts";
 import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
 import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
@@ -29,7 +29,7 @@ export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:S
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
-export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet}
+export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet;readonly ordinaryLoops?:readonly WhereLoop[]}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
 export interface WherePlanBudget {remaining:number}
 const freeze=<T>(value:T):Readonly<T>=>Object.freeze(value);
@@ -224,7 +224,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
  const insert=(loop:WhereLoop):boolean=>{
   const candidate=freeze({...loop,outputRows:loop.kind==="multi-or"?loop.outputRows:outputAdjust(loop,clause),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
-  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:candidate.prereq,rRun:candidate.runCost,nOut:candidate.outputRows});}
+  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0)return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops??loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
   return whereLoopInsert(loops,candidate,budget);
  };
  if(!options.forcedIndex&&!source.table.withoutRowid)insert(scan);
@@ -246,7 +246,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
     if(arm.virtual)continue;
     const armClause=arm.info?.kind==="and"?arm.info.clause:whereClause([arm,...info.clause.terms.filter(t=>t.parentId===arm.id)],clause);
     const current:WhereOrSet={a:[]};
-    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current});
+    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops??loops});
     if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
     first=false;
     if(budget.remaining===0){sum.a.length=0;break;}
@@ -328,14 +328,21 @@ export function whereLoopInsertCandidates(loops:readonly WhereLoop[],budget:Wher
  for(const candidate of loops)if(!whereLoopInsert(inserted,candidate,budget))break;
  return inserted;
 }
-/** false is SQLITE_DONE; dropped and replaced templates still return OK. */
-function whereLoopInsert(inserted:WhereLoop[],candidate:WhereLoop,budget:WherePlanBudget):boolean {
- if(budget.remaining===0)return false;budget.remaining--;let template=candidate;
+/** whereLoopAdjustCost reads the enclosing ordinary pLoops, including in
+ * cost-only copied builders. It never inserts a branch physical choice. */
+function whereLoopAdjustCost(inserted:readonly WhereLoop[],candidate:WhereLoop):WhereLoop {
+ let template=candidate;
   if(candidate.kind==="index")for(const previous of inserted){
    if(previous.sourceOrdinal!==template.sourceOrdinal||previous.kind!=="index")continue;
    if(properSubset(previous,template))template=freeze({...template,runCost:template.runCost<previous.runCost?template.runCost:previous.runCost,outputRows:template.outputRows<previous.outputRows-1n?template.outputRows:previous.outputRows-1n});
    else if(properSubset(template,previous))template=freeze({...template,runCost:template.runCost>previous.runCost?template.runCost:previous.runCost,outputRows:template.outputRows>previous.outputRows+1n?template.outputRows:previous.outputRows+1n});
   }
+ return template;
+}
+/** false is SQLITE_DONE; dropped and replaced templates still return OK. */
+function whereLoopInsert(inserted:WhereLoop[],candidate:WhereLoop,budget:WherePlanBudget):boolean {
+ if(budget.remaining===0)return false;budget.remaining--;let template=candidate;
+ template=whereLoopAdjustCost(inserted,template);
   // whereLoopFindLesser: null means discard; list end means append.
   const lesser=(start:number):number|null=>{
    for(let i=start;i<inserted.length;i++){

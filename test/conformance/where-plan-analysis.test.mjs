@@ -277,3 +277,13 @@ test('OR clause has no outer link; AND arm outer links to enclosing main clause 
  assert.equal(info.clause.outer,null,'exprAnalyzeOrTerm never installs OR pOuter');
  assert.equal(info.clause.terms[1].info.clause.outer,main,'pAndWC->pOuter = pWC');
 });
+test('cost-only insertion adjusts against shared enclosing ordinary loops before collecting',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=?',schema()),clause=analyzeWhere(r).clause,options={forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r};
+ const constrained=btreeLoops(r.sources[0],0,clause,options).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
+ assert.ok(constrained);
+ const previous=Object.freeze({...constrained,runCost:0n,outputRows:10n,capability:Object.freeze({...constrained.capability,equalityPrefix:[],lower:null,upper:null,constrainedFields:0})});
+ const ordinary=[previous],costs={a:[]};
+ btreeLoops(r.sources[0],0,clause,{...options,orSet:costs,ordinaryLoops:ordinary});
+ assert.equal(costs.a.length,1);assert.equal(costs.a[0].rRun,0n);assert.equal(costs.a[0].nOut,9n);
+ assert.deepEqual(ordinary,[previous],'cost-only builders never insert into shared ordinary list');
+});
