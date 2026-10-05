@@ -1,0 +1,41 @@
+✔ whereLoopInsert keeps the cheaper represented IN/range proposal (27.473261ms)
+✔ production split/analyze commutes operands and derives rowid/range masks (4.434539ms)
+✔ gates NOT INDEXED, forced full index and pointless index; RIGHT/FULL fallback unchanged (3.175193ms)
+✔ all encodings flow analysis through admission, candidate and selected identity (14.492656ms)
+✔ LEFT provenance prerequisites and N-best LogEst path selection (1.126089ms)
+✔ LEFT barriers constrain every production candidate for ON and WHERE orientations (2.998321ms)
+✔ pinned choice widths, dominance and prerequisite-delayed alternatives are deterministic (0.738934ms)
+✔ composite order skips equality-fixed prefix and rowid tail covers explicit need (0.8907ms)
+✔ ordinal index exclusion preserves resolved owners and unrelated forced index candidates (5.0798ms)
+✔ singleton IPK prefix preserves later local reverse order across source permutations (9.41122ms)
+✔ WITHOUT ROWID secondary layout appends immutable primary-key suffix and plans represented covering access (1.715426ms)
+✔ LEFT outer-ON extraRight keeps preserved-side equality/range residual (4.840126ms)
+✔ both-column analysis publishes exact virtual commuted children and orientation-stable RHS admission (2.063378ms)
+✔ three-source LEFT then INNER/CROSS barriers retain nullable side before later source (1.718398ms)
+✔ compare affinity follows expression affinity, not literal storage class, in every encoding (18.910468ms)
+✔ loop alternatives preserve exact admissions and are text-order invariant (4.93411ms)
+✔ multi-source path order is conservatively zero despite local index order facts (1.517343ms)
+✔ covering analysis retains non-index residual reads instead of projection-only narrowing (1.646363ms)
+✔ only direct ordinary operands bind; same-source RHS including every IN member stays residual (5.13151ms)
+✔ rowid ORDER preserves persistent index identities before dominance, without claiming full order (0.872838ms)
+✔ production budget stops branching exploration before later index and permits next source increment (1.03773ms)
+✔ forced composite producer suspends recursion at budget boundary without constructing siblings (1.057085ms)
+✔ production duplicate drop consumes budget and preserves first admission before later source restart (0.603152ms)
+✔ resolved result aliases contribute substituted WHERE dependencies and bindings (1.577364ms)
+✔ RightJoinLoop residual base boundary, readiness, origins and LTORJ (2.724583ms)
+✔ SELECT usage retains enclosing identity through nested and compound owners (16.299343ms)
+✔ ordered insertion replaces dominated scan and drops duplicate IPK equality candidate (2.1673ms)
+✔ no-sort solver saves biased unsorted accumulator separately from total cost (0.42797ms)
+✔ equal cost vector non-indexed paths retain insertion order, not kind sorting (0.279459ms)
+✔ insertion isolates sort owners and incomparable prerequisites; replaces and deletes tails in place (1.162467ms)
+✔ setup invariant checked before dominance; budget consumed even by dropped templates (0.559627ms)
+✔ solver cost vector prefers smaller rows before unsorted cost; indexed size breaks exact ties (0.339196ms)
+✔ bounded slots keep prerequisite-delayed feasible winner at widths 1 and 5 (0.229468ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 332.755205

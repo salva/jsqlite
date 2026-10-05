@@ -1,0 +1,892 @@
+✖ utf8: production multi-or handoff and shared-builder opcodes (red before implementation) (69.35949ms)
+✖ utf8/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (38.797962ms)
+✔ utf8/where7-1.3: typed public rows, metadata, reset/rebind/clear (15.280456ms)
+✖ utf8/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.662335ms)
+✖ utf8/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.15223ms)
+✖ utf8/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.65653ms)
+✖ utf8/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (21.400141ms)
+✖ utf8/select1-8.1: typed public rows, metadata, reset/rebind/clear (10.481772ms)
+✖ utf8/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.995055ms)
+✖ utf8/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.549949ms)
+✖ utf8/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.702683ms)
+✖ utf8/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.611456ms)
+✖ utf8/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.617774ms)
+✖ utf8/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.645907ms)
+✖ utf8/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.305636ms)
+✔ utf8/or-in-control: typed public rows, metadata, reset/rebind/clear (10.743616ms)
+✖ utf8/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.344261ms)
+✔ utf8/wr-control: typed public rows, metadata, reset/rebind/clear (9.795641ms)
+✔ utf8/left-on: typed public rows, metadata, reset/rebind/clear (19.210422ms)
+✔ utf8/right-on: typed public rows, metadata, reset/rebind/clear (12.892696ms)
+✔ utf8/full-on: typed public rows, metadata, reset/rebind/clear (13.984854ms)
+✔ utf8/error: typed public rows, metadata, reset/rebind/clear (10.30796ms)
+✖ utf8/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.050649ms)
+✖ utf16le: production multi-or handoff and shared-builder opcodes (red before implementation) (9.721913ms)
+✖ utf16le/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.279614ms)
+✔ utf16le/where7-1.3: typed public rows, metadata, reset/rebind/clear (9.797303ms)
+✖ utf16le/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.83546ms)
+✖ utf16le/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.816053ms)
+✖ utf16le/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.133652ms)
+✖ utf16le/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (17.833821ms)
+✖ utf16le/select1-8.1: typed public rows, metadata, reset/rebind/clear (9.054818ms)
+✖ utf16le/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.7196ms)
+✖ utf16le/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.75204ms)
+✖ utf16le/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.37164ms)
+✖ utf16le/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.13228ms)
+✖ utf16le/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (10.718355ms)
+✖ utf16le/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.916948ms)
+✖ utf16le/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.940492ms)
+✔ utf16le/or-in-control: typed public rows, metadata, reset/rebind/clear (9.804776ms)
+✖ utf16le/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.87244ms)
+✔ utf16le/wr-control: typed public rows, metadata, reset/rebind/clear (7.615103ms)
+✔ utf16le/left-on: typed public rows, metadata, reset/rebind/clear (12.631701ms)
+✔ utf16le/right-on: typed public rows, metadata, reset/rebind/clear (12.501232ms)
+✔ utf16le/full-on: typed public rows, metadata, reset/rebind/clear (11.951866ms)
+✔ utf16le/error: typed public rows, metadata, reset/rebind/clear (7.23199ms)
+✖ utf16le/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.580639ms)
+✖ utf16be: production multi-or handoff and shared-builder opcodes (red before implementation) (8.222448ms)
+✖ utf16be/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.709472ms)
+✔ utf16be/where7-1.3: typed public rows, metadata, reset/rebind/clear (7.713231ms)
+✖ utf16be/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.63208ms)
+✖ utf16be/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.338349ms)
+✖ utf16be/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.449145ms)
+✖ utf16be/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.490217ms)
+✖ utf16be/select1-8.1: typed public rows, metadata, reset/rebind/clear (7.36218ms)
+✖ utf16be/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.132703ms)
+✖ utf16be/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.37196ms)
+✖ utf16be/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.660384ms)
+✖ utf16be/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.795144ms)
+✖ utf16be/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.266641ms)
+✖ utf16be/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.835526ms)
+✖ utf16be/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.549144ms)
+✔ utf16be/or-in-control: typed public rows, metadata, reset/rebind/clear (7.228902ms)
+✖ utf16be/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.753586ms)
+✔ utf16be/wr-control: typed public rows, metadata, reset/rebind/clear (8.955357ms)
+✔ utf16be/left-on: typed public rows, metadata, reset/rebind/clear (11.098432ms)
+✔ utf16be/right-on: typed public rows, metadata, reset/rebind/clear (9.51391ms)
+✔ utf16be/full-on: typed public rows, metadata, reset/rebind/clear (10.814471ms)
+✔ utf16be/error: typed public rows, metadata, reset/rebind/clear (7.499605ms)
+✖ utf16be/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.243112ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 21
+ℹ fail 48
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1141.813373
+
+✖ failing tests:
+
+test at test/conformance/or-rowid-red.test.mjs:24:2
+✖ utf8: production multi-or handoff and shared-builder opcodes (red before implementation) (69.35949ms)
+  AssertionError [ERR_ASSERTION]: selected production must not be an ordinary full scan
+  + actual - expected
+  
+  + 'table-scan'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:29:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'table-scan',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (38.797962ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.662335ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.15223ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.65653ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (21.400141ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/select1-8.1: typed public rows, metadata, reset/rebind/clear (10.481772ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      database: 'main',
+  +   declaredType: 'int',
+  -   declaredType: 'INT',
+      name: 'f1',
+      origin: 'f1',
+      table: 'test1'
+    }
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:44:48
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { name: 'f1', declaredType: 'int', database: 'main', table: 'test1', origin: 'f1' },
+    expected: { name: 'f1', declaredType: 'INT', database: 'main', table: 'test1', origin: 'f1' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.995055ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.549949ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.702683ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.611456ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.617774ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.645907ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.305636ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.344261ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf8/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.050649ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:24:2
+✖ utf16le: production multi-or handoff and shared-builder opcodes (red before implementation) (9.721913ms)
+  AssertionError [ERR_ASSERTION]: selected production must not be an ordinary full scan
+  + actual - expected
+  
+  + 'table-scan'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:29:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'table-scan',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.279614ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.83546ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.816053ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.133652ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (17.833821ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/select1-8.1: typed public rows, metadata, reset/rebind/clear (9.054818ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      database: 'main',
+  +   declaredType: 'int',
+  -   declaredType: 'INT',
+      name: 'f1',
+      origin: 'f1',
+      table: 'test1'
+    }
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:44:48
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { name: 'f1', declaredType: 'int', database: 'main', table: 'test1', origin: 'f1' },
+    expected: { name: 'f1', declaredType: 'INT', database: 'main', table: 'test1', origin: 'f1' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.7196ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.75204ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.37164ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.13228ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (10.718355ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.916948ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.940492ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.87244ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16le/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.580639ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:24:2
+✖ utf16be: production multi-or handoff and shared-builder opcodes (red before implementation) (8.222448ms)
+  AssertionError [ERR_ASSERTION]: selected production must not be an ordinary full scan
+  + actual - expected
+  
+  + 'table-scan'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:29:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'table-scan',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.709472ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.63208ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.338349ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.449145ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.490217ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/select1-8.1: typed public rows, metadata, reset/rebind/clear (7.36218ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      database: 'main',
+  +   declaredType: 'int',
+  -   declaredType: 'INT',
+      name: 'f1',
+      origin: 'f1',
+      table: 'test1'
+    }
+  
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:44:48
+      at withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { name: 'f1', declaredType: 'int', database: 'main', table: 'test1', origin: 'f1' },
+    expected: { name: 'f1', declaredType: 'INT', database: 'main', table: 'test1', origin: 'f1' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.132703ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (9.37196ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.660384ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.795144ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.266641ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.835526ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.549144ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (7.753586ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-rowid-red.test.mjs:40:3
+✖ utf16be/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.243112ms)
+  AssertionError [ERR_ASSERTION]: distinct OR branches must seek persistent indexes
+      at file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:53:14
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async withDb (file:///work/jsqlite2/test/conformance/or-rowid-red.test.mjs:19:88)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
