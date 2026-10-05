@@ -39,3 +39,19 @@ export function whereOrCollect(set:WhereOrSet,budget:OrConstructionBudget,nLTerm
  if(nLTerm>0)whereOrInsert(set,cost.prereq,cost.rRun,cost.nOut);
  return true;
 }
+
+/** whereLoopAddOr: reset sCur per arm in caller, abandon on zero costs;
+ * first processed arm moves, subsequent arms multiply stored slots in i/j order.
+ * The caller supplies sqlite3LogEstAdd and inserts published parent loops with
+ * rRun+1, setup0 and sort0 only after every actual arm succeeds.
+ */
+export function whereOrAccumulate(sum:WhereOrSet,current:WhereOrSet,first:boolean,add:(a:bigint,b:bigint)=>bigint):boolean {
+ if(current.a.length===0){sum.a.length=0;return false;}
+ if(first){whereOrMove(sum,current);return true;}
+ const previous:WhereOrSet={a:[]};
+ whereOrMove(previous,sum);sum.a.length=0;
+ for(const left of previous.a)for(const right of current.a){
+  whereOrInsert(sum,left.prereq|right.prereq,add(left.rRun,right.rRun),add(left.nOut,right.nOut));
+ }
+ return true;
+}

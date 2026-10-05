@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {whereOrInsert,whereOrMove,whereOrCollect} from '../../src/internal/where-or-cost.ts';
+import {whereOrInsert,whereOrMove,whereOrCollect,whereOrAccumulate} from '../../src/internal/where-or-cost.ts';
+import {logEstAdd} from '../../src/internal/where-plan.ts';
 const cost=(prereq,rRun,nOut)=>({prereq:BigInt(prereq),rRun:BigInt(rRun),nOut:BigInt(nOut)});
 const set=(...entries)=>({a:entries});
 test('pinned whereOrInsert append, replacement, tie, discard and minimum nOut',()=>{
@@ -47,4 +48,18 @@ test('pOrSet collector consumes shared budget before nLTerm guard and clears on 
  assert.equal(whereOrCollect(s,budget,0,c),true);assert.equal(budget.remaining,1);assert.deepEqual(s.a,[]);
  assert.equal(whereOrCollect(s,budget,1,c),true);assert.equal(budget.remaining,0);assert.deepEqual(s.a,[c]);
  assert.equal(whereOrCollect(s,budget,1,c),false);assert.deepEqual(s.a,[]);
+});
+test('recursive arm accumulation moves first arm then ordered products with prereq union and LogEstAdd',()=>{
+ const sum=set(),first=set(cost(1,20,4),cost(2,30,6));
+ assert.equal(whereOrAccumulate(sum,first,true,logEstAdd),true);
+ assert.deepEqual(sum.a,first.a);first.a[0].rRun=999n;
+ const next=set(cost(4,10,2));
+ assert.equal(whereOrAccumulate(sum,next,false,logEstAdd),true);
+ assert.deepEqual(sum.a,[{prereq:5n,rRun:logEstAdd(20n,10n),nOut:logEstAdd(4n,2n)},{prereq:6n,rRun:logEstAdd(30n,10n),nOut:logEstAdd(6n,2n)}]);
+});
+test('zero alternative arm clears previous sum, including first arm, not a table-scan substitute',()=>{
+ const sum=set(cost(1,20,4));
+ assert.equal(whereOrAccumulate(sum,set(),false,logEstAdd),false);assert.deepEqual(sum.a,[]);
+ sum.a.push(cost(2,30,5));
+ assert.equal(whereOrAccumulate(sum,set(),true,logEstAdd),false);assert.deepEqual(sum.a,[]);
 });
