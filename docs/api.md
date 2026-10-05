@@ -375,6 +375,11 @@ one or two arguments and returns ordinary TEXT (subtype 0), or NULL for a NULL
 document. Omitted/NULL indentation defaults to four spaces; other indentation
 values use SQLite text conversion, truncated at the first NUL. Duplicate keys
 and member order are preserved; indentation is not required to be whitespace.
+Pretty temporary parse/lexical/indent/output state shares the statement private-byte
+budget (conservative logical reservations, not exact JavaScript heap bytes). Parser,
+string and output checkpoints charge work and allow cooperative cancellation and
+deadlines; byte bounds are checked before output encoding. Reservations release
+on success or failure, before reset/finalize.
 See [bounded evidence and limitations](research/card-r-f/README.md).
 
 json_group_array/object and jsonb_group_array/object are aggregate/window callbacks.

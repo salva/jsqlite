@@ -561,9 +561,9 @@ The immutable native denominator remains 47/47 captured.
 
 The prior 7/13 execution label is superseded. Current public tests promote all 13 successful RIGHT/FULL-bearing stage-3 cases and both adjacent pinned resolution-error cases (15/15 bounded denominator). The implementation now includes non-terminal shared continuation and RIGHT USING/NATURAL merged ownership. Evidence remains scoped: it does not close unrelated aggregate/subquery or storage-shape findings.
 
-## Current revision 2026-09-17 — repeated RIGHT/FULL barrier correction
+## Historical revision 2026-09-17 — repeated RIGHT/FULL barrier gate (superseded)
 
-The prior 15/15 label is retained only as the single-barrier manifest denominator and is superseded as a claim about arbitrary chains. Immutable project review `record:///review.md?card=card-k&v=3` found that one matcher silently admitted later barriers. Production now atomically rejects >1 RIGHT/FULL barrier at prepare. Fidelity gap remains explicit: upstream owns per-`WhereLevel` `WhereRightJoin`; implementing that cardinality is the next tranche.
+The prior 15/15 label is retained only as the single-barrier manifest denominator and is superseded as a claim about arbitrary chains. Immutable project review `record:///review.md?card=card-k&v=3` found that one matcher silently admitted later barriers. Production at this checkpoint atomically rejected >1 RIGHT/FULL barrier at prepare. Upstream owns per-`WhereLevel` `WhereRightJoin`; the represented per-barrier implementation supersedes this gate (see current guide and R6 below), with independent parent acceptance still pending.
 
 ### Revision 2026-09-18: ordinary WITH claim
 
@@ -936,7 +936,12 @@ Finding 1's placeholder error position and finding 4's missing JSONB/edit
 registrations are corrected by [[card:card-r-b]]. Production `json_pretty` is
 now executed at both pinned arities by [[card:card-r-f]] via the shared JSON
 owner. [Current pretty evidence](../research/card-r-f/README.md) supersedes the
-temporary-unsupported assertion only; no full scalar/path fidelity signoff. Focused public
+temporary-unsupported assertion. R1/R2 corrections now retain encoded TEXT5
+scalar/label semantics (including strict apostrophe classification) and statement
+logical reservations with generator/chunk checkpoints and asynchronous Function
+publication. These replace the prior unaccounted pretty tree/output and scalar
+scanner gaps; source-bound correction corpus and controls are linked from the
+same evidence. No full scalar/path fidelity signoff. Focused public
 coverage now discriminates non-leading positions, duplicate/root/sequential edit,
 array insertion, and JSONB BLOB result branches; exhaustive corpus parity remains
 a test-evidence limitation rather than an implementation claim.

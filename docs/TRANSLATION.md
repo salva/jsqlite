@@ -337,8 +337,13 @@ metadata; aliases override, computed names retain exact expression spans. JSON
 row extraction preserves INTEGER/REAL and storage classes through grouping.
 `json_pretty` executes at arities 1/2 with default/custom indentation and ordinary
 subtype-0 TEXT. Its ordered shared document representation retains scalar/label
-lexical spelling for the pretty renderer; append checkpoints enforce work and
-output limits. Strict shared JSONB validation is retained (malformed JSONB can
+TEXT/TEXTJ/TEXT5 scalar and label spelling through JSONB composition. Shared
+parser/string-render generators let pretty suspend at character/node checkpoints;
+chunked append checks output bytes before encoding and yields through Function
+execution. A statement-owned conservative logical arena reserves parse/lexical,
+indent and output retention before growth and releases it in finally on every
+completion. This is a logical private-byte bound, not native/JS heap measurement;
+large source conversion is preflight-charged before browser Mem decoding. Strict shared JSONB validation is retained (malformed JSONB can
 be rejected more eagerly than upstream's permissive renderer). Evidence and
 remaining admission/path census: [pretty slice](research/card-r-f/README.md). Host extensions and
 external virtual-table modules remain SPEC exclusions, not an excuse to exclude
@@ -1130,4 +1135,4 @@ The forward drain now translates wherecode.c2842–end: prior table/index NULL s
 The shared WHERE prerequisite owner now follows only SELECT-bearing expression identities into the resolved graph (whereexpr.c:exprSelectUsage997–1023, ExprUsageFull1827–1863). Result/GROUP/ORDER/WHERE/HAVING/ON and compound/intermediate owners contribute enclosing-source bits; child-local and unrelated nested owners do not. Alias and merged-source carriers retain identity. This corrects all existing prerequisite consumers, including unmatched residual readiness, without optimizer expansion. Synthesized scalar LIMIT1 guards now close at their owning producer end as explicit LIMIT guards already do. Native-FIRST/public/control evidence is in research/card-k-h-b-runtime/r5.md; joined IN SELECT remains atomic temporary unsupported. Independent goal acceptance pending.
 
 ### Outer-join WHERE continuation ownership
-`wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending.
+`wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending. The index-planner LEFT WHERE safety fixture counts ON once and two base terms on each matched/synthetic-null body entry (five residual checks); these private counts are not native allocator or VM-step parity. Fixture/source-assertion repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).

@@ -5,16 +5,17 @@ Source: manifest-pinned SQLite 3.53.4, json.c registration block, jsonPrettyFunc
 JsonPretty/jsonPrettyIndent/jsonTranslateBlobToPrettyText and scalar renderer.
 
 Representation decision: retain existing ordered JsonNode document/JSONB parser,
-adding private lexical metadata for strict JSON string/label spellings. This is
+adding private encoded TEXT/TEXTJ/TEXT5 metadata for strings/labels. This is
 an ordinary representation adaptation: container traversal mirrors upstream
 open/nonempty/newline/increment/depth/child/comma/close ordering, labels/scalars
 use shared translated quoting/numeric primitives. No host JSON parser/formatter.
 No subtype on pretty output; NULL document short-circuits before indent cast.
 Shared Mem text cast owns numeric/BLOB indent conversion and NUL truncation.
 Output append charges work/checks cancellation/deadline and byte limits before
-publication. Parsed node/part allocation is not currently private-budget-accounted;
-large single scalar conversion lacks incremental character checkpoints. These
-are remaining resource-fidelity widths, not claims of native OOM equivalence.
+publication. Statement-owned logical reservations now cover source/parsed/lexical/indent/output
+retention, releasing in finally; parser/decoder/quoting generators permit pretty
+suspension and scalar character charging. Chunked UTF8 output is size-checked before
+allocation. See correction evidence below; this does not claim native OOM equivalence.
 The shared strict JSONB decoder rejects malformed trees earlier than upstream's
 explicitly permissive pretty renderer; valid nonminimal headers are supported.
 This is inherited bounded behavior, not a platform necessity or new exception.
@@ -72,3 +73,43 @@ Conformance obligations still not discharged: full upstream pretty corpus,
 malformed JSONB permissiveness, private-budget enforcement, mid-scalar abort,
 depth-edge error-order/native limits, all JSON5 escape/number edge cases, larger
 cross-feature composition. Passing companions does not close these widths.
+
+
+## Review v18 R1/R2 correction evidence
+
+Review requirements are scoped owning corrections, not approved exceptions. Preserve
+[red status v14](record:///status.md?card=card-r-f&v=14) and prior repair evidence.
+TEXT5 rendering follows jsonTranslateBlobToText: x→u00, v→u000b, 0→u0000,
+escaped apostrophe unescaped, strict escapes retained, continuation removed; unknown
+escapes and decimal neighbors after 0 reject at the shared scanner. Parser-produced
+encoded metadata survives JSONB consumption/composition; strict strings remain
+TEXT/TEXTJ, not a JSON.parse/stringify reformatter.
+
+`capture-corrections.py` independently checks the manifest source ID and 72 native
+scalar/label, single/double, TEXT/JSONB cases against `correction-cases.json`;
+`correction-native.jsonl` retains typed successful values and native malformed errors.
+Public Fetch tests compare exact expression names, TEXT values/type, subtype 0,
+errors and all three database encodings. Original four red checks are preserved.
+Cancellation test uses 8KiB indent (32 preflight units) expanded over three elements,
+so the 256-unit suspension occurs within pretty, not just input preflight. Nonzero
+private/output/work limits, injected Date.now deadline, saved-error identity,
+reset/reuse/finalize cover cleanup. No upstream test assertion or universal JSON credit.
+
+Logical budget model: reserve 128×source bytes + 256 before parse (conservative tree,
+decoded/encoded strings, entries, Mem conversion and bookkeeping); 8×indent bytes
++128 before indent conversion; UTF8 chunk bytes +64 per append; joined result plus owned Mem copy bytes
+before publication. These overestimate small trees and may reject earlier than an
+actual-heap limit; they are deterministic logical bounds, not native allocations or
+exact JS heap/work equivalence. Shared synchronous consumers drive the same generators;
+pretty drives them asynchronously, yielding every 256 accumulated statement units.
+Browser string/UTF8 decode and number conversion are indivisible runtime primitives,
+preflight bounded/charged before invoking them. No platform necessity is claimed for
+this conservative accounting. Strict malformed JSONB behavior remains inherited.
+
+Observed repair hypotheses/failures: first four-case correction passed; expanded
+native matrix exposed unknown JSON5 escape admission (q), corrected at scanner.
+Label encoding initially forced TEXTJ even without backslashes, failing exact existing
+JSONB foundation bytes; corrected TEXT versus TEXTJ producer classification.
+Generator migration initially missed three no-charge path/error callers (typecheck
+failed); corrected shared driver callbacks. These failures are evidence, not erased
+by final tests. Detailed current command results are in the card status.

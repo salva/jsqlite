@@ -1,0 +1,74 @@
+{"sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"}
+{"column": "json_pretty('''\\x41''')", "sql": "SELECT json_pretty('''\\x41''')", "type": "text", "value": "\"\\u0041\""}
+{"column": "json_pretty(jsonb('''\\x41'''))", "sql": "SELECT json_pretty(jsonb('''\\x41'''))", "type": "text", "value": "\"\\u0041\""}
+{"column": "json_pretty('{''\\x41'':''\\x41''}')", "sql": "SELECT json_pretty('{''\\x41'':''\\x41''}')", "type": "text", "value": "{\n    \"\\u0041\": \"\\u0041\"\n}"}
+{"column": "json_pretty(jsonb('{''\\x41'':''\\x41''}'))", "sql": "SELECT json_pretty(jsonb('{''\\x41'':''\\x41''}'))", "type": "text", "value": "{\n    \"\\u0041\": \"\\u0041\"\n}"}
+{"column": "json_pretty('''\\v''')", "sql": "SELECT json_pretty('''\\v''')", "type": "text", "value": "\"\\u000b\""}
+{"column": "json_pretty(jsonb('''\\v'''))", "sql": "SELECT json_pretty(jsonb('''\\v'''))", "type": "text", "value": "\"\\u000b\""}
+{"column": "json_pretty('{''\\v'':''\\v''}')", "sql": "SELECT json_pretty('{''\\v'':''\\v''}')", "type": "text", "value": "{\n    \"\\u000b\": \"\\u000b\"\n}"}
+{"column": "json_pretty(jsonb('{''\\v'':''\\v''}'))", "sql": "SELECT json_pretty(jsonb('{''\\v'':''\\v''}'))", "type": "text", "value": "{\n    \"\\u000b\": \"\\u000b\"\n}"}
+{"column": "json_pretty('''\\0''')", "sql": "SELECT json_pretty('''\\0''')", "type": "text", "value": "\"\\u0000\""}
+{"column": "json_pretty(jsonb('''\\0'''))", "sql": "SELECT json_pretty(jsonb('''\\0'''))", "type": "text", "value": "\"\\u0000\""}
+{"column": "json_pretty('{''\\0'':''\\0''}')", "sql": "SELECT json_pretty('{''\\0'':''\\0''}')", "type": "text", "value": "{\n    \"\\u0000\": \"\\u0000\"\n}"}
+{"column": "json_pretty(jsonb('{''\\0'':''\\0''}'))", "sql": "SELECT json_pretty(jsonb('{''\\0'':''\\0''}'))", "type": "text", "value": "{\n    \"\\u0000\": \"\\u0000\"\n}"}
+{"column": "json_pretty('''a\\''b''')", "sql": "SELECT json_pretty('''a\\''b''')", "type": "text", "value": "\"a'b\""}
+{"column": "json_pretty(jsonb('''a\\''b'''))", "sql": "SELECT json_pretty(jsonb('''a\\''b'''))", "type": "text", "value": "\"a'b\""}
+{"column": "json_pretty('{''a\\''b'':''a\\''b''}')", "sql": "SELECT json_pretty('{''a\\''b'':''a\\''b''}')", "type": "text", "value": "{\n    \"a'b\": \"a'b\"\n}"}
+{"column": "json_pretty(jsonb('{''a\\''b'':''a\\''b''}'))", "sql": "SELECT json_pretty(jsonb('{''a\\''b'':''a\\''b''}'))", "type": "text", "value": "{\n    \"a'b\": \"a'b\"\n}"}
+{"column": "json_pretty('''\\u0041\\/\\n''')", "sql": "SELECT json_pretty('''\\u0041\\/\\n''')", "type": "text", "value": "\"\\u0041\\/\\n\""}
+{"column": "json_pretty(jsonb('''\\u0041\\/\\n'''))", "sql": "SELECT json_pretty(jsonb('''\\u0041\\/\\n'''))", "type": "text", "value": "\"\\u0041\\/\\n\""}
+{"column": "json_pretty('{''\\u0041\\/\\n'':''\\u0041\\/\\n''}')", "sql": "SELECT json_pretty('{''\\u0041\\/\\n'':''\\u0041\\/\\n''}')", "type": "text", "value": "{\n    \"\\u0041\\/\\n\": \"\\u0041\\/\\n\"\n}"}
+{"column": "json_pretty(jsonb('{''\\u0041\\/\\n'':''\\u0041\\/\\n''}'))", "sql": "SELECT json_pretty(jsonb('{''\\u0041\\/\\n'':''\\u0041\\/\\n''}'))", "type": "text", "value": "{\n    \"\\u0041\\/\\n\": \"\\u0041\\/\\n\"\n}"}
+{"column": "json_pretty('''a\\\nb''')", "sql": "SELECT json_pretty('''a\\\nb''')", "type": "text", "value": "\"ab\""}
+{"column": "json_pretty(jsonb('''a\\\nb'''))", "sql": "SELECT json_pretty(jsonb('''a\\\nb'''))", "type": "text", "value": "\"ab\""}
+{"column": "json_pretty('{''a\\\nb'':''a\\\nb''}')", "sql": "SELECT json_pretty('{''a\\\nb'':''a\\\nb''}')", "type": "text", "value": "{\n    \"ab\": \"ab\"\n}"}
+{"column": "json_pretty(jsonb('{''a\\\nb'':''a\\\nb''}'))", "sql": "SELECT json_pretty(jsonb('{''a\\\nb'':''a\\\nb''}'))", "type": "text", "value": "{\n    \"ab\": \"ab\"\n}"}
+{"column": "json_pretty('''\\q''')", "sql": "SELECT json_pretty('''\\q''')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('''\\q'''))", "sql": "SELECT json_pretty(jsonb('''\\q'''))", "error": "malformed JSON"}
+{"column": "json_pretty('{''\\q'':''\\q''}')", "sql": "SELECT json_pretty('{''\\q'':''\\q''}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{''\\q'':''\\q''}'))", "sql": "SELECT json_pretty(jsonb('{''\\q'':''\\q''}'))", "error": "malformed JSON"}
+{"column": "json_pretty('''\\xG1''')", "sql": "SELECT json_pretty('''\\xG1''')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('''\\xG1'''))", "sql": "SELECT json_pretty(jsonb('''\\xG1'''))", "error": "malformed JSON"}
+{"column": "json_pretty('{''\\xG1'':''\\xG1''}')", "sql": "SELECT json_pretty('{''\\xG1'':''\\xG1''}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{''\\xG1'':''\\xG1''}'))", "sql": "SELECT json_pretty(jsonb('{''\\xG1'':''\\xG1''}'))", "error": "malformed JSON"}
+{"column": "json_pretty('''\\01''')", "sql": "SELECT json_pretty('''\\01''')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('''\\01'''))", "sql": "SELECT json_pretty(jsonb('''\\01'''))", "error": "malformed JSON"}
+{"column": "json_pretty('{''\\01'':''\\01''}')", "sql": "SELECT json_pretty('{''\\01'':''\\01''}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{''\\01'':''\\01''}'))", "sql": "SELECT json_pretty(jsonb('{''\\01'':''\\01''}'))", "error": "malformed JSON"}
+{"column": "json_pretty('\"\\x41\"')", "sql": "SELECT json_pretty('\"\\x41\"')", "type": "text", "value": "\"\\u0041\""}
+{"column": "json_pretty(jsonb('\"\\x41\"'))", "sql": "SELECT json_pretty(jsonb('\"\\x41\"'))", "type": "text", "value": "\"\\u0041\""}
+{"column": "json_pretty('{\"\\x41\":\"\\x41\"}')", "sql": "SELECT json_pretty('{\"\\x41\":\"\\x41\"}')", "type": "text", "value": "{\n    \"\\u0041\": \"\\u0041\"\n}"}
+{"column": "json_pretty(jsonb('{\"\\x41\":\"\\x41\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\x41\":\"\\x41\"}'))", "type": "text", "value": "{\n    \"\\u0041\": \"\\u0041\"\n}"}
+{"column": "json_pretty('\"\\v\"')", "sql": "SELECT json_pretty('\"\\v\"')", "type": "text", "value": "\"\\u000b\""}
+{"column": "json_pretty(jsonb('\"\\v\"'))", "sql": "SELECT json_pretty(jsonb('\"\\v\"'))", "type": "text", "value": "\"\\u000b\""}
+{"column": "json_pretty('{\"\\v\":\"\\v\"}')", "sql": "SELECT json_pretty('{\"\\v\":\"\\v\"}')", "type": "text", "value": "{\n    \"\\u000b\": \"\\u000b\"\n}"}
+{"column": "json_pretty(jsonb('{\"\\v\":\"\\v\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\v\":\"\\v\"}'))", "type": "text", "value": "{\n    \"\\u000b\": \"\\u000b\"\n}"}
+{"column": "json_pretty('\"\\0\"')", "sql": "SELECT json_pretty('\"\\0\"')", "type": "text", "value": "\"\\u0000\""}
+{"column": "json_pretty(jsonb('\"\\0\"'))", "sql": "SELECT json_pretty(jsonb('\"\\0\"'))", "type": "text", "value": "\"\\u0000\""}
+{"column": "json_pretty('{\"\\0\":\"\\0\"}')", "sql": "SELECT json_pretty('{\"\\0\":\"\\0\"}')", "type": "text", "value": "{\n    \"\\u0000\": \"\\u0000\"\n}"}
+{"column": "json_pretty(jsonb('{\"\\0\":\"\\0\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\0\":\"\\0\"}'))", "type": "text", "value": "{\n    \"\\u0000\": \"\\u0000\"\n}"}
+{"column": "json_pretty('\"a\\''b\"')", "sql": "SELECT json_pretty('\"a\\''b\"')", "type": "text", "value": "\"a'b\""}
+{"column": "json_pretty(jsonb('\"a\\''b\"'))", "sql": "SELECT json_pretty(jsonb('\"a\\''b\"'))", "type": "text", "value": "\"a'b\""}
+{"column": "json_pretty('{\"a\\''b\":\"a\\''b\"}')", "sql": "SELECT json_pretty('{\"a\\''b\":\"a\\''b\"}')", "type": "text", "value": "{\n    \"a'b\": \"a'b\"\n}"}
+{"column": "json_pretty(jsonb('{\"a\\''b\":\"a\\''b\"}'))", "sql": "SELECT json_pretty(jsonb('{\"a\\''b\":\"a\\''b\"}'))", "type": "text", "value": "{\n    \"a'b\": \"a'b\"\n}"}
+{"column": "json_pretty('\"\\u0041\\/\\n\"')", "sql": "SELECT json_pretty('\"\\u0041\\/\\n\"')", "type": "text", "value": "\"\\u0041\\/\\n\""}
+{"column": "json_pretty(jsonb('\"\\u0041\\/\\n\"'))", "sql": "SELECT json_pretty(jsonb('\"\\u0041\\/\\n\"'))", "type": "text", "value": "\"\\u0041\\/\\n\""}
+{"column": "json_pretty('{\"\\u0041\\/\\n\":\"\\u0041\\/\\n\"}')", "sql": "SELECT json_pretty('{\"\\u0041\\/\\n\":\"\\u0041\\/\\n\"}')", "type": "text", "value": "{\n    \"\\u0041\\/\\n\": \"\\u0041\\/\\n\"\n}"}
+{"column": "json_pretty(jsonb('{\"\\u0041\\/\\n\":\"\\u0041\\/\\n\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\u0041\\/\\n\":\"\\u0041\\/\\n\"}'))", "type": "text", "value": "{\n    \"\\u0041\\/\\n\": \"\\u0041\\/\\n\"\n}"}
+{"column": "json_pretty('\"a\\\nb\"')", "sql": "SELECT json_pretty('\"a\\\nb\"')", "type": "text", "value": "\"ab\""}
+{"column": "json_pretty(jsonb('\"a\\\nb\"'))", "sql": "SELECT json_pretty(jsonb('\"a\\\nb\"'))", "type": "text", "value": "\"ab\""}
+{"column": "json_pretty('{\"a\\\nb\":\"a\\\nb\"}')", "sql": "SELECT json_pretty('{\"a\\\nb\":\"a\\\nb\"}')", "type": "text", "value": "{\n    \"ab\": \"ab\"\n}"}
+{"column": "json_pretty(jsonb('{\"a\\\nb\":\"a\\\nb\"}'))", "sql": "SELECT json_pretty(jsonb('{\"a\\\nb\":\"a\\\nb\"}'))", "type": "text", "value": "{\n    \"ab\": \"ab\"\n}"}
+{"column": "json_pretty('\"\\q\"')", "sql": "SELECT json_pretty('\"\\q\"')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('\"\\q\"'))", "sql": "SELECT json_pretty(jsonb('\"\\q\"'))", "error": "malformed JSON"}
+{"column": "json_pretty('{\"\\q\":\"\\q\"}')", "sql": "SELECT json_pretty('{\"\\q\":\"\\q\"}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{\"\\q\":\"\\q\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\q\":\"\\q\"}'))", "error": "malformed JSON"}
+{"column": "json_pretty('\"\\xG1\"')", "sql": "SELECT json_pretty('\"\\xG1\"')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('\"\\xG1\"'))", "sql": "SELECT json_pretty(jsonb('\"\\xG1\"'))", "error": "malformed JSON"}
+{"column": "json_pretty('{\"\\xG1\":\"\\xG1\"}')", "sql": "SELECT json_pretty('{\"\\xG1\":\"\\xG1\"}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{\"\\xG1\":\"\\xG1\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\xG1\":\"\\xG1\"}'))", "error": "malformed JSON"}
+{"column": "json_pretty('\"\\01\"')", "sql": "SELECT json_pretty('\"\\01\"')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('\"\\01\"'))", "sql": "SELECT json_pretty(jsonb('\"\\01\"'))", "error": "malformed JSON"}
+{"column": "json_pretty('{\"\\01\":\"\\01\"}')", "sql": "SELECT json_pretty('{\"\\01\":\"\\01\"}')", "error": "malformed JSON"}
+{"column": "json_pretty(jsonb('{\"\\01\":\"\\01\"}'))", "sql": "SELECT json_pretty(jsonb('{\"\\01\":\"\\01\"}'))", "error": "malformed JSON"}
+captured 72

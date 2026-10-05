@@ -184,8 +184,12 @@ internals, not host JSON.parse semantics. Tests
 Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
 [card-r metadata status](record:///status.md?card=card-r).
 `json.c:jsonPrettyFunc`, `JsonPretty`, `jsonPrettyIndent`,
-`jsonTranslateBlobToPrettyText` → `json.ts:jsonPretty`, shared parse/lexical
-metadata, `vdbe.ts` Function dispatch. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
+`jsonTranslateBlobToPrettyText` and `jsonTranslateBlobToText` TEXT/TEXTJ/TEXT5 →
+`json.ts:jsonPretty`, `translateStringSteps`, shared Parser/decode generators and
+encoded lexical metadata; `vdbe.ts` async FunctionContext and statement byte budget.
+[Correction regressions](../test/conformance/json-pretty-corrections.test.mjs) map
+scalar/label/JSONB TEXT5, strict admission, three encodings, retained-state limits,
+append work/yield/cancel/deadline and cleanup. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
 and [source-pinned typed companions](research/card-r-f/README.md) cover both
 arities; subtype-0 output does not inherit canonical JSON subtype.
 Built-in JSON is not a blanket gap.
@@ -756,4 +760,4 @@ checks are not independent parent acceptance. Exact evidence is in
 whereexpr.c997–1023 /1827–1863 -> where-plan.ts prereq: relevant resolved SELECT graph, owning clauses and compound arms, same enclosing source identity mask, alias/merged substitution. wherecode.c rightJoinLoop readiness caller unchanged. expr.c sqlite3CodeSubselect scalar LIMIT1 -> vdbe.ts resolvedScalarSubqueryEmitter closes synthesized as well as explicit ifZero; settled RIGHT verifier remains verification, not rewriting. Tests right-nested/where-plan-analysis: native24, public21 success+3 typed IN boundary, downstream3 starts per execution, saved-error/reset/reuse across encodings. Transitive no-FROM scalar admitted; no global correlation admission. See research/card-k-h-b-runtime/r5.md.
 
 ### Outer-constraint owner
-`wherecode.c`2740–2833 match/hit/BeginSubrtn/code_outer_join_constraints and `where.c:sqlite3WhereEnd`7525–7712 → `compileInnerTableSelect` invocation-local WHERE coded state, ready/LTORJ checks, post-hit shared body and owning continuation. Immutable `analyzeWhere(...,true)` publishes base identities; ON/virtual terms are excluded. LEFT NullRow re-enters constraint body; unmatched Gosub shares it, while drain extraction remains independently owned. `outer-constraints.test.mjs` native FIRST24 typed/all5/reset plus physical-position/error/work contracts; [R6 evidence](research/card-k-h-b-runtime/r6.md). No general optimizer or native work parity claim.
+`wherecode.c`2740–2833 match/hit/BeginSubrtn/code_outer_join_constraints and `where.c:sqlite3WhereEnd`7525–7712 → `compileInnerTableSelect` invocation-local WHERE coded state, ready/LTORJ checks, post-hit shared body and owning continuation. Immutable `analyzeWhere(...,true)` publishes base identities; ON/virtual terms are excluded. LEFT NullRow re-enters constraint body; unmatched Gosub shares it, while drain extraction remains independently owned. `outer-constraints.test.mjs` native FIRST24 typed/all5/reset plus physical-position/error/work contracts; [R6 evidence](research/card-k-h-b-runtime/r6.md). No general optimizer or native work parity claim. `run-index-planner-ts.mjs` checks the LEFT matched/NullRow term count (five: one ON plus two WHERE checks per body entry); `select-scalar-child.test.mjs` retains enclosing-builder ownership with the zero-width range guard. Repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).

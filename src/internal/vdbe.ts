@@ -1569,6 +1569,11 @@ function runFunctionContext(evaluate: () => Mem): Mem {
   try { context.setResult(evaluate()); } catch (error) { context.setError(error); }
   return context.takeResult();
 }
+async function runAsyncFunctionContext(evaluate:()=>Promise<Mem>):Promise<Mem>{
+ const context=new FunctionContext();
+ try{context.setResult(await evaluate())}catch(error){context.setError(error)}
+ return context.takeResult();
+}
 function aggregateDefinition(name:string):AggregateDefinition<any>|undefined{return aggregateDefinitions[name]}
 function resolveBuiltinFunction(name:string,argc:number):NonNullable<ReturnType<typeof builtinFunction>>{
  const definition=builtinFunction(name);
@@ -6689,7 +6694,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  if(["json_array","json_object","jsonb_array","jsonb_object"].includes(name)){const result=jsonConstruct(name.endsWith("array")?"array":"object",a,name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
  if(/jsonb?_(?:insert|replace|set|remove|array_insert)$/.test(name)){const mode=name.endsWith("array_insert")?"array_insert":name.slice(name.indexOf("_")+1) as "insert"|"replace"|"set"|"remove";const result=jsonEdit(a[0]!,a.slice(1),mode,units=>{charge(units);control?.check()},name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
  if(name==="json_patch"||name==="jsonb_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()},name==="jsonb_patch");checkSize(valueBytes(result));return result}
- if(name==="json_pretty")return jsonPretty(a[0]!,a[1],units=>{charge(units);control?.check()},checkSize);
+ if(name==="json_pretty")throw new JSQLiteError("internal","pretty requires asynchronous Function execution");
  if(name==="json_valid"){
   if(a[0]!.initialStorageClass==="null")return out;
   let flags=1;
@@ -7142,7 +7147,10 @@ export class VdbeStatement implements Statement {
           case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes);break;}
           case "AggFinal": this.#registers[op.p1]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true));break;
           case "AggValue": this.#registers[op.p2]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false));break;
-          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
+          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
+ const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:(units:number)=>this.#privateControl(options,limit,started).checkpoint(units),charge:control.charge,check:control.check,checkSize:control.checkSize};
+ this.#registers[op.p2]!.moveFrom(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)));
+ }else this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
           case "NotNull": if(this.#registers[op.p1]!.initialStorageClass!=="null"){this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!);this.#pc=op.jump}break;
