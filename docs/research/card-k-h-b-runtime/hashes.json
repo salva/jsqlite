@@ -1,6 +1,4 @@
 {
-  "head": "70d5d81aabe9248be1921c6afb3adae1283146dd",
-  "tree": "69a1f7846e787d5d81928cf4891cd95d1718c3a8",
   "workspace": {
     "src/internal/vdbe.ts": "e1afe24db9b0b23ea44abcbf31884e6ffb78fa7f83eb0e0905bcb7263410b371",
     "src/internal/resolve.ts": "09ce4a3a39ee51513210c611642a10d9145cd42f51d593e7f3ba8f2bb676a793",
@@ -43,5 +41,10 @@
   },
   "integrationManifestSha256": "668a4d4bd49c4290619ff4de73bcdb06253cdf522917d34a6d879f21e171e67e",
   "browserReportSha256": "fc61cfce3508467df649d6105759b5c932b5a5d1371bad0431d7d17f40fdce42",
-  "integrationSnapshot": "post-v27 settled inputs:232/232 components, three prerequisites exit0, input_drift=[], overall exit0"
+  "integrationSnapshot": "post-v27 settled inputs:232/232 components, three prerequisites exit0, input_drift=[], overall exit0",
+  "historicalBaselineHead": "70d5d81aabe9248be1921c6afb3adae1283146dd",
+  "historicalBaselineTree": "69a1f7846e787d5d81928cf4891cd95d1718c3a8",
+  "deliveryCommit": "68768c1435d09da4e9b6447edb79206205e961d4",
+  "deliveryTree": "79fc0d6c5f95a0708595e13ea41fb8e7ea48fa21",
+  "closure": "closure.json (git archive deliveryCommit plus each explicitly hashed production/conformance dependency overlay)"
 }

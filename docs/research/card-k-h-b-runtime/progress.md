@@ -222,3 +222,57 @@ applicable: runtime/test inputs have not changed since those checks. No universa
 aggregate/correlation/derived ORDER or WR composite-key admission is claimed.
 Source/control review and exact hashes/commands are in the focused research.
 Internal execution evidence is not parent independent fidelity acceptance.
+
+
+## Reopened review R1/R2/R3 correction (2026-10-05)
+Immutable parent review v3 read completely. No SQL runtime defect or allocator
+change introduced. Commit68768c1435d09da4e9b6447edb79206205e961d4/tree
+79fc0d6c5f95a0708595e13ea41fb8e7ea48fa21 owns8 explicit paths only.
+R3 core guide/map/architecture now distinguishes singleton history from repeated
+execution pending independent acceptance; API/conformance retain actual typed
+WR/ordered-derived/declined-neighbor boundaries.
+
+R2 reuses independently native-FIRST aggregate discriminator (no new SQL):
+verify-repeated-budget-native.py --library pinned oracle independently recaptured
+3/3 typed rows/all5 metadata, proc-6345f00821ca. Existing continuation recapture
+33/33 cmp identical proc-4cfe96c3b66f. Native verifier initial extra rebind=[]
+introduced a mismatched capture envelope; removing that extra option produced
+exact equality, not revised oracle expectations. Test instrumentation initially
+used wrong metadata nesting (two0/3 runs), then observed mutable snapshot bytes
+(0/3), then first overlap had equal single keys (0/3). Snapshotting reservations
+and selecting the actual later distinct-population overlap repaired observation,
+not runtime/limits. All failures retained in process outputs.
+
+Bounded prototype hooks identify two distinct EphemeralIndexCursor instances and
+SorterCursor, associate successful reserve with exact common execution budget,
+and snapshot nonempty distinct keys/byte contributions. No concurrent statements
+under hooks; finally restores all prototypes. Existing Found/IdxInsert path's
+one-key int64 stores identify barrier b/c match owners (no DISTINCT/IN in query).
+Observed later overlap: first match keys[1],8 bytes; second[1,2],16 bytes,
+combined24 plus sorter reservation on same budget. Peak225 UTF8/224 UTF16LE/BE;
+peak-1 yields sticky error, exact peak succeeds. Success/reset/error budget
+usedBytes0, connection SELECT1 reuse, public typed duplicate rows/all5 metadata.
+Logical byte ownership, not native allocator/page parity. Hooks also zero store
+live observation on close; snapshots retain historical evidence.
+
+R1 closure.json binds delivery commit/tree,829 exact production/conformance/
+corpus/fixture inputs, node executable/version and TypeScript package hashes,
+manifest native identity. Inherited overlay explicitly attributed without peer
+staging or authorship transfer. reproducible git archive + overlay artifact
+work:///cards/card-k-h-b/reopened-dependency-overlay.tar SHA256
+037315deb574a689d256118b42fc856d3ebb977ec871fe746a2ffdf383f23c41.
+Exporter tools/test/card-k-h-b-export.py constructs equivalent workspace closure;
+node_modules symlink supplies declared hashed TypeScript prerequisite only.
+Exact-export public six-file run proc-b92396267d58 passed152/152,17696ms,
+then npm run typecheck exit0. proc-a5f183b84fb5 verified all829 tested export hashes.
+Earlier two precommit export runs also152/152; only latest settled export credit.
+Original493 dirty inventory/current hashes and exact original-tree/current index
+entries in preservation.json:490 unchanged, three intentional files, cached
+binary delta original/current both empty SHA256e3b0c442...b855. Own commits change
+index vs original tree; no peer staged hunks. Legacy hashes head/tree relabeled
+historical, new delivery identity explicit. Peer dirty bitwise/index/research intact.
+
+Old integration232/232 and browser40 remain unchanged-production evidence, not
+new reopened runs; new assertion/doc/export-tool inputs mean no whole-export
+broad acceptance claim. Native libraries/build tools are development prerequisites,
+not public runtime. Independent full caller/control review remains pending.
