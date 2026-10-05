@@ -287,3 +287,11 @@ test('cost-only insertion adjusts against shared enclosing ordinary loops before
  assert.equal(costs.a.length,1);assert.equal(costs.a[0].rRun,0n);assert.equal(costs.a[0].nOut,9n);
  assert.deepEqual(ordinary,[previous],'cost-only builders never insert into shared ordinary list');
 });
+test('ordinary builder and copied OR builders read same pre-existing loop adjustment state',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=?',schema()),clause=analyzeWhere(r).clause,opts={forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r};
+ const strong=btreeLoops(r.sources[0],0,clause,opts).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
+ const weak=Object.freeze({...strong,runCost:0n,outputRows:10n,capability:Object.freeze({...strong.capability,equalityPrefix:[],lower:null,upper:null,constrainedFields:0})});
+ const ordinary=[weak];
+ const adjusted=btreeLoops(r.sources[0],0,clause,{...opts,ordinaryLoops:ordinary}).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
+ assert.equal(adjusted.runCost,0n);assert.equal(adjusted.outputRows,9n);assert.deepEqual(ordinary,[weak]);
+});

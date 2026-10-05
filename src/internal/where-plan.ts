@@ -224,8 +224,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
  const insert=(loop:WhereLoop):boolean=>{
   const candidate=freeze({...loop,outputRows:loop.kind==="multi-or"?loop.outputRows:outputAdjust(loop,clause),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
-  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0)return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops??loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
-  return whereLoopInsert(loops,candidate,budget);
+  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0)return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
+  return whereLoopInsert(loops,candidate,budget,options.ordinaryLoops);
  };
  if(!options.forcedIndex&&!source.table.withoutRowid)insert(scan);
  if(budget.remaining===0)return Object.freeze(loops);
@@ -246,7 +246,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
     if(arm.virtual)continue;
     const armClause=arm.info?.kind==="and"?arm.info.clause:whereClause([arm,...info.clause.terms.filter(t=>t.parentId===arm.id)],clause);
     const current:WhereOrSet={a:[]};
-    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops??loops});
+    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
     if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
     first=false;
     if(budget.remaining===0){sum.a.length=0;break;}
@@ -340,9 +340,9 @@ function whereLoopAdjustCost(inserted:readonly WhereLoop[],candidate:WhereLoop):
  return template;
 }
 /** false is SQLITE_DONE; dropped and replaced templates still return OK. */
-function whereLoopInsert(inserted:WhereLoop[],candidate:WhereLoop,budget:WherePlanBudget):boolean {
+function whereLoopInsert(inserted:WhereLoop[],candidate:WhereLoop,budget:WherePlanBudget,ordinaryLoops:readonly WhereLoop[]=[]):boolean {
  if(budget.remaining===0)return false;budget.remaining--;let template=candidate;
- template=whereLoopAdjustCost(inserted,template);
+ template=whereLoopAdjustCost([...ordinaryLoops,...inserted],template);
   // whereLoopFindLesser: null means discard; list end means append.
   const lesser=(start:number):number|null=>{
    for(let i=start;i<inserted.length;i++){
@@ -554,7 +554,8 @@ export function planWhere(resolved:ResolvedSelect,request:WherePlanRequest):Wher
  // primary-index owner and physical secondary descriptors.
  const analysis=analyzeWhere(resolved);
  const planBudget:WherePlanBudget={remaining:20000};
- let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);return btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget});});
+ const ordinaryLoops:WhereLoop[]=[];
+ let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);const added=btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget,ordinaryLoops});ordinaryLoops.push(...added);return added;});
  const unsorted=wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length));
  const path=request.orderBy.length?wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length),request.orderBy.length,resolved.result.length,unsorted.rows+1n):unsorted;return freeze({analysis,path,plannerCandidates:groups.reduce((sum,group)=>sum+group.length,0),plannerPaths:path.loops.length});
 }
