@@ -3,6 +3,7 @@ import test from 'node:test';
 import path from 'node:path';
 import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
+import {closeTestServer} from './close-test-server.mjs';
 
 // select.c sqlite3Select() tag-select-0482/0484 materializes derived arms in
 // the enclosing Parse/Vdbe; multiSelect and selectInnerLoop share destinations.
@@ -62,7 +63,7 @@ for(const {sql,names,rows} of cases)test(`derived compound destination: ${sql}`,
      if(iteration===0)statement.reset();
     }
    }finally{statement.finalize()}
- }finally{db?.closeDeferred();await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+ }finally{db?.closeDeferred();await closeTestServer(bridge.server)}
 });
 
 test('ordinary aggregate WHERE consumes linked source carrier',async()=>{
@@ -74,7 +75,7 @@ for(const expression of ['missing','sum(sum(t.a))'])test(`ordinary first error $
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-utf8`));
  assert.throws(()=>db.prepare(`SELECT sum(${expression}) FROM t1 t LIMIT 0`),error=>error.kind==='sqlite'&&error.code===1&&error.message.includes(expression==='missing'?'no such column: missing':'misuse of aggregate function sum()'));
- }finally{db?.closeDeferred();await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+ }finally{db?.closeDeferred();await closeTestServer(bridge.server)}
 });
 
 test('aggregate ON source-row consumer is linked to lexical owner',async()=>{
@@ -93,5 +94,5 @@ test('grouped compound stream retains parent metadata and shared private rejecti
   await assert.rejects(s.step(),e=>e.kind==='limit');
   try{s.finalize()}catch{}
   const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
- }finally{db?.closeDeferred();await new Promise(r=>bridge.server.close(r))}
+ }finally{db?.closeDeferred();await closeTestServer(bridge.server)}
 });
