@@ -471,7 +471,9 @@ test('nonaggregate joined child consumes enclosing builder at scan and sorter dr
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const producer=text.slice(text.indexOf('function compileInnerTableSelect(',text.indexOf('function compileInnerTableSelect(')+1),text.indexOf('function sqlName(',text.indexOf('function compileInnerTableSelect(')+1));
  const caller=text.slice(text.indexOf('export function compileScalarSelect('),text.indexOf('function compileInnerTableSelect('));
- assert.match(producer,/owner\?owner\.builder\.range\(expanded\.result\.length\)/);
+ // Joined producers reserve at least one register even for a zero-width carrier;
+ // ownership stays with the enclosing builder, not a relocated child program.
+ assert.match(producer,/owner\?owner\.builder\.range\(Math\.max\(1,expanded\.result\.length\)\)/);
  assert.match(producer,/emitSelectDestination\(ops,owner\.destination,resultStart,expanded\.result\.length\)/);
  assert.match(caller,/compileInnerTableSelect\(nested,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder:selectProgramBuilder/);
 });
@@ -612,4 +614,32 @@ test('compound-derived aggregate destination respects outer LIMIT and OFFSET',as
    }finally{stmt.finalize()}
   }
  }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});
+
+test('joined scalar allocation uses the live enclosing positive-range builder',async()=>{
+ const {SelectProgramBuilder}=await import('../../src/internal/select-program.ts');
+ const original=SelectProgramBuilder.prototype.range,events=[];
+ SelectProgramBuilder.prototype.range=function(count){
+  const before=this.registers,first=original.call(this,count);
+  events.push({builder:this,count,before,first,after:this.registers,joined:new Error().stack.includes('compileInnerTableSelect')});
+  return first;
+ };
+ const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db,stmt;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const order of ['', ' ORDER BY t1.b DESC']){
+   events.length=0;
+   stmt=db.prepare(`SELECT (SELECT t1.b FROM t1 JOIN t2 ON t1.a=t2.x WHERE t1.a=3${order} LIMIT 1) AS value, EXISTS(SELECT t2.x FROM t1 JOIN t2 ON t1.a=t2.x WHERE t1.a=7) AS absent, 3 IN (SELECT t2.x FROM t1 JOIN t2 ON t1.a=t2.x WHERE t1.a=3) AS member`).statement;
+   const joined=events.filter(event=>event.joined);
+   assert.ok(joined.length>=3,'scalar/EXISTS/IN all reach the real joined producer');
+   assert.equal(new Set(events.map(event=>event.builder)).size,1,'no independently allocated child builder');
+   for(const event of events){assert.ok(event.count>=1);assert.equal(event.first,event.before+1);assert.equal(event.after,event.before+event.count);}
+   for(let iteration=0;iteration<2;iteration++){
+    assert.equal(await stmt.step(),'row');assert.deepEqual([0,1,2].map(i=>[stmt.columnType(i),stmt.column(i)]),[['integer',4n],['integer',0n],['integer',1n]]);
+    assert.equal(await stmt.step(),'done');stmt.reset();
+   }
+   stmt.finalize();stmt=undefined;
+  }
+ }finally{SelectProgramBuilder.prototype.range=original;try{stmt?.finalize()}finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()))}}
 });
