@@ -470,7 +470,7 @@ export interface WhereAnalysis {readonly clause:WhereClause;readonly plannerElig
 /** whereexpr.c sqlite3WhereSplit/exprAnalyze subset. It consumes resolved
  * expression identity and is the only production constructor for WhereTerm. */
 export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false):WhereAnalysis {return analyzeClause(resolved,includeRightTerms);}
-function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and"):WhereAnalysis {
+function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and",orOwner:WhereClause|null=null):WhereAnalysis {
  if(!includeRightTerms&&resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
  const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
  resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
@@ -498,7 +498,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   if(node.signature==="expr ::= expr OR expr"){
    const parts:ExprReduction[]=[];
    const collect=(n:ExprReduction):void=>{const u=unwrap(n);if(u.signature==="expr ::= expr OR expr")for(const child of exprChildren(u))collect(child);else parts.push(u);};collect(node);
-   const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),clause,"or").clause;
+   const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),null,"or",clause).clause;
    let indexable=(1n<<BigInt(resolved.sources.length))-1n;
    for(const arm of child.terms.filter(t=>!t.virtual)){
     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
@@ -512,7 +512,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
    Object.assign(term,{info:freeze({kind:"or" as const,parentTerm:term,clause:child,indexable})});
   }else if(split==="or"&&!term.operator){
    const parts:ExprReduction[]=[];splitAnd(node,parts);
-   const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),outer).clause;
+   const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),orOwner).clause;
    Object.assign(term,{info:freeze({kind:"and" as const,clause:child})});
   }
   freeze(term);

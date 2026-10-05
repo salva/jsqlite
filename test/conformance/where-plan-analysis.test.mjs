@@ -272,3 +272,8 @@ test('recursive production consumes the shared budget and never publishes partia
   if(budget.remaining===0)assert.deepEqual(costs.a,[],'DONE clears parent collector');
  }
 });
+test('OR clause has no outer link; AND arm outer links to enclosing main clause not OR sibling scope',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND b>?)',schema()),main=analyzeWhere(r).clause,info=main.terms[0].info;
+ assert.equal(info.clause.outer,null,'exprAnalyzeOrTerm never installs OR pOuter');
+ assert.equal(info.clause.terms[1].info.clause.outer,main,'pAndWC->pOuter = pWC');
+});
