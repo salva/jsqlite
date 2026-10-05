@@ -1,0 +1,18 @@
+{
+  "test/conformance/capture-repeated-right-full.py": "f310358091861b8d0c24191ba34e5bbe71e6757490f806005d7996f08817ea07",
+  "test/conformance/capture-repeated-upstream.py": "3cfae1509da3ced062ca7a2a8f802644d99973cfbb850b900df7493400913903",
+  "test/conformance/capture-repeated-upstream-utf16.py": "cf288ed87b4c05e2da1c1629049329d9254577abc367f71d8831a8b98ad7f632",
+  "test/conformance/repeated-capture-inputs.py": "aabee4f77111da7b308b89535b81a420e1f90bc685ac3de401705e13a97c7cce",
+  "test/conformance/prepare-repeated-corpus.py": "99dc599519261f1660be9b2c5558ccb835f34f321b6239a7adf625b624be6705",
+  "test/conformance/verify-repeated-upstream.py": "5af3b44256be4b67a8221032e831f9e083a2d23ab754f9f42b92656986e28192",
+  "test/conformance/cases/repeated-right-full.json": "7b623423a64364b9487c2a3e3b3cf4d61b2a16ddf0a50f61f2c2b0411c9466db",
+  "test/conformance/cases/repeated-upstream-join8.json": "62c28f7250cdf54668a9bd19e7ade40035d5bdddabf773dd24dc047b7c1b816b",
+  "test/conformance/cases/repeated-upstream-join8-utf16.json": "56966ffeadbacc974f1b8b9df89dd8f639cdeed68df448bfc7dad148598c4e9e",
+  "test/conformance/fixtures/repeated-right-full-utf8.db": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d",
+  "test/conformance/fixtures/repeated-right-full-utf16le.db": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93",
+  "test/conformance/fixtures/repeated-right-full-utf16be.db": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2",
+  "test/conformance/fixtures/repeated-upstream-join8.db": "9d8261f75e5891c88b3e6caa4b05619c338de6879627f85f6a8e06782be43bae",
+  "test/conformance/fixtures/repeated-upstream-join8-utf16le.db": "2992205f9b84707955ce4fdfd5fb8e4338be75c6dac8b8d5d51e19be64f0d784",
+  "test/conformance/fixtures/repeated-upstream-join8-utf16be.db": "f4cf13ad7d4b5feb2c6d7618f2765e7ead0c2f9c0de3fd15f58ad9eeda43f9a1",
+  "docs/research/card-k-h-a-closure/README.md": "aec0c72a01fd1c8e9e8811f8fce4f19a6c6c67b8d6064b6ef09761e104b4953c"
+}

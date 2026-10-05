@@ -1,0 +1,367 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "upstreamHash": "8e662f0ad075b5b6d1c71b71c915461d35858fef6144761c50d763e81c9d0f21",
+  "adaptations": [
+    "generate_series(1,256) bit filters -> identical literal rows",
+    "CREATE TABLE t9 AS -> derived read-only SELECT",
+    "3030 UPDATE null columns to0 -> coalesce projection;3040 consumes same normalized relation"
+  ],
+  "fixtures": {
+    "utf16le": {
+      "path": "repeated-upstream-join8-utf16le.db",
+      "sha256": "2992205f9b84707955ce4fdfd5fb8e4338be75c6dac8b8d5d51e19be64f0d784"
+    },
+    "utf16be": {
+      "path": "repeated-upstream-join8-utf16be.db",
+      "sha256": "f4cf13ad7d4b5feb2c6d7618f2765e7ead0c2f9c0de3fd15f58ad9eeda43f9a1"
+    }
+  },
+  "cases": [
+    {
+      "encoding": "utf16le",
+      "id": "join8-3010",
+      "sql": "SELECT count(*) FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "255"
+              }
+            ]
+          ]
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16le",
+      "id": "join8-3020",
+      "sql": "SELECT id,count(*) FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8) GROUP BY id HAVING count(*)!=1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16le",
+      "id": "join8-3030",
+      "sql": "SELECT count(*) FROM (SELECT id,coalesce(h,0) AS h,coalesce(g,0) AS g,coalesce(f,0) AS f,coalesce(e,0) AS e,coalesce(d,0) AS d,coalesce(c,0) AS c,coalesce(b,0) AS b,coalesce(a,0) AS a FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)) WHERE id=128*h+64*g+32*f+16*e+8*d+4*c+2*b+a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "255"
+              }
+            ]
+          ]
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16le",
+      "id": "join8-3040",
+      "sql": "SELECT * FROM (SELECT id,coalesce(h,0) AS h,coalesce(g,0) AS g,coalesce(f,0) AS f,coalesce(e,0) AS e,coalesce(d,0) AS d,coalesce(c,0) AS c,coalesce(b,0) AS b,coalesce(a,0) AS a FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)) WHERE id<>128*h+64*g+32*f+16*e+8*d+4*c+2*b+a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "h",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "g",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "f",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "e",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "d",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "c",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "b",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16be",
+      "id": "join8-3010",
+      "sql": "SELECT count(*) FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "255"
+              }
+            ]
+          ]
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16be",
+      "id": "join8-3020",
+      "sql": "SELECT id,count(*) FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8) GROUP BY id HAVING count(*)!=1",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16be",
+      "id": "join8-3030",
+      "sql": "SELECT count(*) FROM (SELECT id,coalesce(h,0) AS h,coalesce(g,0) AS g,coalesce(f,0) AS f,coalesce(e,0) AS e,coalesce(d,0) AS d,coalesce(c,0) AS c,coalesce(b,0) AS b,coalesce(a,0) AS a FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)) WHERE id=128*h+64*g+32*f+16*e+8*d+4*c+2*b+a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "count(*)",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "255"
+              }
+            ]
+          ]
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    },
+    {
+      "encoding": "utf16be",
+      "id": "join8-3040",
+      "sql": "SELECT * FROM (SELECT id,coalesce(h,0) AS h,coalesce(g,0) AS g,coalesce(f,0) AS f,coalesce(e,0) AS e,coalesce(d,0) AS d,coalesce(c,0) AS c,coalesce(b,0) AS b,coalesce(a,0) AS a FROM (SELECT id,h,g,f,e,d,c,b,a FROM t1 NATURAL FULL JOIN t2 NATURAL FULL JOIN t3 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t7 NATURAL FULL JOIN t8)) WHERE id<>128*h+64*g+32*f+16*e+8*d+4*c+2*b+a",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "id",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "h",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "g",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "f",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "e",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "d",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "c",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "b",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "a",
+            "declType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": []
+        }
+      },
+      "classification": "upstream assertion port with disclosed setup/query adaptations"
+    }
+  ]
+}
