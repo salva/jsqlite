@@ -1,0 +1,74 @@
+# Deferred pretty slice — [[card:card-r-f]]
+
+Revision evidence at 5e2658c plus scoped repair; not universal JSON compatibility.
+Source: manifest-pinned SQLite 3.53.4, json.c registration block, jsonPrettyFunc,
+JsonPretty/jsonPrettyIndent/jsonTranslateBlobToPrettyText and scalar renderer.
+
+Representation decision: retain existing ordered JsonNode document/JSONB parser,
+adding private lexical metadata for strict JSON string/label spellings. This is
+an ordinary representation adaptation: container traversal mirrors upstream
+open/nonempty/newline/increment/depth/child/comma/close ordering, labels/scalars
+use shared translated quoting/numeric primitives. No host JSON parser/formatter.
+No subtype on pretty output; NULL document short-circuits before indent cast.
+Shared Mem text cast owns numeric/BLOB indent conversion and NUL truncation.
+Output append charges work/checks cancellation/deadline and byte limits before
+publication. Parsed node/part allocation is not currently private-budget-accounted;
+large single scalar conversion lacks incremental character checkpoints. These
+are remaining resource-fidelity widths, not claims of native OOM equivalence.
+The shared strict JSONB decoder rejects malformed trees earlier than upstream's
+explicitly permissive pretty renderer; valid nonminimal headers are supported.
+This is inherited bounded behavior, not a platform necessity or new exception.
+
+## Registration/admission census
+
+All ordinary json.c scalar names are registered: json/jsonb(1), array/object and
+JSONB variants (variadic), array_insert and JSONB (-1), array_length(1/2),
+error_position(1), extract/JSONB(-1), insert/replace/set/remove and JSONB(-1),
+patch/JSONB(2), pretty(1/2), quote(1), type(1/2), valid(1/2). Operators ->/->>
+map to json_arrow/json_arrow_sql(2). Four group callbacks are aggregate/window
+rows at 1 (array) / 2 (object). Table module rows remain each/tree/JSONB each/tree.
+Pretty was the only explicit temporary scalar execution throw in this inventory;
+now removed. json_parse is SQLITE_DEBUG-only upstream: resolver recognizes it,
+but ordinary registry lacks it; ordinary-build admission should reject honestly.
+
+Exact remaining admission differences: source extract argc<2 returns NULL while
+registry requires >=2; edits source variadic callback admission differs from
+registry minimum 3, remove minimum 1. Registry represents output subtype flags
+but does not separately model input-subtype, cache, JSON_BLOB, JSON_AINS,
+JSON_ISSET, JSON_JSON/JSON_SQL flags (callbacks encode behavior). Do not infer
+full parity from row presence. jsonArrow abbreviated-path normalization currently
+only recognizes unsigned digit strings; pinned JSON_ABPATH branch includes
+negative integer and quoted-label handling. Proposed next sequence: ordinary
+variadic arity/callback guard and debug-only admission, then operator Mem text
+conversion/JSON_ABPATH normalization with native typed companions, then shared
+numeric/JSON5 lexical corner fidelity. None implemented opportunistically here.
+
+## Verification and credit
+
+`json-pretty-cases.mjs` contains 14 no-credit native companions. `cases.json`,
+`capture.py` and `native.jsonl` preserve source-ID-checked native typed values and
+exact expression column names. Reproduce: build `sh tools/oracle/build.sh`, then
+`python3 docs/research/card-r-f/capture.py`; exit 0. Public Fetch runs each case
+in UTF8/UTF16LE/UTF16BE, metadata/type/value, done/reset/reexecute/finalize.
+Cases distinguish empty/nested/duplicate/custom/default/NULL/NUL/numeric indent,
+JSON5, BLOB text document, JSONB/nonminimal header, escaped lexical spelling,
+subtype-0 and constructor composition. Malformed and depth/control cases check
+saved first error, reset/reuse/finalize and result/work/timeout/pre-abort limits.
+No additional upstream assertion credit or internal-only compatibility credit.
+
+Tests-first run failed on temporary unsupported after fixing mistaken test API
+columnName→columnMetadata.name. Initial repair then failed numeric indent Mem
+textValue; corrected owning cast. Companion full scalar run exposed accidental
+broad textual replacement in mergePatch; restored its original result owner.
+A recursive lexical validation attempt was replaced with direct string scanner
+validation (not recursive parse). All final reruns below use corrected inputs.
+
+Final focused command: `node --experimental-strip-types --test` with
+json-scalar-paths, json-scalar-full, json-blob-document, json-foundation,
+json-aggregate-paths, json-table-functions, json-pretty `.test.mjs`: 32/32 pass.
+Full log: work:///cards/card-r-f/processes/proc-e9f1e6088aed/stdout.log.
+`npm run typecheck`: exit 0. Native 14 companions: exit 0.
+Conformance obligations still not discharged: full upstream pretty corpus,
+malformed JSONB permissiveness, private-budget enforcement, mid-scalar abort,
+depth-edge error-order/native limits, all JSON5 escape/number edge cases, larger
+cross-feature composition. Passing companions does not close these widths.

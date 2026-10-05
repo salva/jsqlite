@@ -370,8 +370,12 @@ JSON scalar inspection, constructors, mutation/merge patch, json/jsonb,
 json_valid, json_extract and ->/->> execute through ordinary Statement values.
 Canonical JSON is TEXT with private subtype 74; SQLite JSONB is a subtype-0 BLOB
 (`Uint8Array`), not PostgreSQL JSONB. Malformed JSON raises a SQLite error; work,
-result-byte, cancellation and deadline limits still apply. `json_pretty` is
-recognized at arities 1 and 2 but raises temporary unsupported, not an approximation.
+result-byte, cancellation and deadline limits still apply. `json_pretty` accepts
+one or two arguments and returns ordinary TEXT (subtype 0), or NULL for a NULL
+document. Omitted/NULL indentation defaults to four spaces; other indentation
+values use SQLite text conversion, truncated at the first NUL. Duplicate keys
+and member order are preserved; indentation is not required to be whitespace.
+See [bounded evidence and limitations](research/card-r-f/README.md).
 
 json_group_array/object and jsonb_group_array/object are aggregate/window callbacks.
 Empty input returns the appropriate empty container, subtype-producing values

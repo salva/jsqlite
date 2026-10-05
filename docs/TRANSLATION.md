@@ -335,7 +335,12 @@ JSON sources expose eight visible fields; hidden json/root are explicit-only and
 retain empty declared types. Resolved direct columns publish virtual-column
 metadata; aliases override, computed names retain exact expression spans. JSON
 row extraction preserves INTEGER/REAL and storage classes through grouping.
-`json_pretty` remains recognized but temporary unsupported. Host extensions and
+`json_pretty` executes at arities 1/2 with default/custom indentation and ordinary
+subtype-0 TEXT. Its ordered shared document representation retains scalar/label
+lexical spelling for the pretty renderer; append checkpoints enforce work and
+output limits. Strict shared JSONB validation is retained (malformed JSONB can
+be rejected more eagerly than upstream's permissive renderer). Evidence and
+remaining admission/path census: [pretty slice](research/card-r-f/README.md). Host extensions and
 external virtual-table modules remain SPEC exclusions, not an excuse to exclude
 built-in JSON.
 

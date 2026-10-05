@@ -10,6 +10,8 @@ export type JsonNode =
   | { readonly kind:"array"; readonly values:readonly JsonNode[] }
   | { readonly kind:"object"; readonly entries:readonly (readonly [string,JsonNode])[] };
 
+const jsonStringSpelling=new WeakMap<object,string>();
+const jsonObjectLabelSpelling=new WeakMap<object,readonly string[]>();
 const jsonbBounds=new WeakMap<object,{start:number;end:number}>();
 const jsonbLabels=new WeakMap<object,readonly number[]>();
 type JsonbLabelEncoding={readonly type:7|8|9|10;readonly payload:Uint8Array};
@@ -25,16 +27,50 @@ class Parser {
   fail(at=this.#i):never{throw new JsonPositionError(at)}
   parse():JsonNode{this.ws();const n=this.value();this.ws();if(this.#i!==this.s.length)this.fail();return n}
   ws():void{for(;;){while(/[\t\n\r ]/.test(this.s[this.#i]??""))this.#i++;if(!this.json5||this.s[this.#i]!=="/")return;if(this.s[this.#i+1]==="/"){this.#i+=2;while(this.#i<this.s.length&&!/[\r\n]/.test(this.s[this.#i]!))this.#i++;continue}if(this.s[this.#i+1]==="*"){const e=this.s.indexOf("*/",this.#i+2);if(e<0)this.fail();this.#i=e+2;continue}return}}
-  value():JsonNode{this.charge(1);if(++this.#depth>1000)this.fail();this.ws();const c=this.s[this.#i];let n:JsonNode;if(c==='"'||(this.json5&&c==="'"))n={kind:"string",value:this.str()};else if(c==="[")n=this.array();else if(c==="{")n=this.object();else {const start=this.#i;while(this.#i<this.s.length&&!/[\s,\]}]/.test(this.s[this.#i]!))this.#i++;const raw=this.s.slice(start,this.#i);if(raw==="null"||raw==="true"||raw==="false")n={kind:raw};else if(this.number(raw))n={kind:"number",raw,json5:!this.strictNumber(raw)};else this.fail()}this.#depth--;return n}
+  value():JsonNode{this.charge(1);if(++this.#depth>1000)this.fail();this.ws();const c=this.s[this.#i];let n:JsonNode;if(c==='"'||(this.json5&&c==="'")){const start=this.#i;n={kind:"string",value:this.str()};if(c==='"'){const spelling=this.s.slice(start,this.#i);try{new Parser(spelling,false,()=>{}).str();jsonStringSpelling.set(n,spelling)}catch{}}}else if(c==="[")n=this.array();else if(c==="{")n=this.object();else {const start=this.#i;while(this.#i<this.s.length&&!/[\s,\]}]/.test(this.s[this.#i]!))this.#i++;const raw=this.s.slice(start,this.#i);if(raw==="null"||raw==="true"||raw==="false")n={kind:raw};else if(this.number(raw))n={kind:"number",raw,json5:!this.strictNumber(raw)};else this.fail()}this.#depth--;return n}
   strictNumber(x:string):boolean{return /^(?:-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)$/.test(x)}
   number(x:string):boolean{return this.strictNumber(x)||(this.json5&&/^[+-]?(?:Infinity|NaN|0[xX][0-9a-fA-F]+|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)$/.test(x))}
   str():string{const q=this.s[this.#i++]!,out:string[]=[];while(this.#i<this.s.length){const c=this.s[this.#i++]!;if(c===q)return out.join("");if(c==='\n'||c==='\r'||c.charCodeAt(0)<0x20)this.fail();if(c!=="\\"){out.push(c);continue}if(this.#i>=this.s.length)this.fail();const e=this.s[this.#i++]!;const simple:{[k:string]:string}={"\"":"\"","'":"'","\\":"\\","/":"/",b:"\b",f:"\f",n:"\n",r:"\r",t:"\t"};if(e in simple){out.push(simple[e]!);continue}if(e==="u"){const h=this.s.slice(this.#i,this.#i+4);if(!/^[0-9a-fA-F]{4}$/.test(h))this.fail(this.#i-1);this.#i+=4;out.push(String.fromCharCode(parseInt(h,16)));continue}if(this.json5&&e==="x"){const h=this.s.slice(this.#i,this.#i+2);if(!/^[0-9a-fA-F]{2}$/.test(h))this.fail();this.#i+=2;out.push(String.fromCharCode(parseInt(h,16)));continue}if(this.json5&&(e==='\n'||e==='\r')){if(e==='\r'&&this.s[this.#i]==='\n')this.#i++;continue}if(this.json5){out.push(e);continue}this.fail()}this.fail()}
   array():JsonNode{this.#i++;const values:JsonNode[]=[];this.ws();if(this.s[this.#i]==="]"){this.#i++;return{kind:"array",values}}for(;;){values.push(this.value());this.ws();if(this.s[this.#i]==="]"){this.#i++;return{kind:"array",values}}if(this.s[this.#i++]!==",")this.fail();this.ws();if(this.s[this.#i]==="]"){if(!this.json5)this.fail();this.#i++;return{kind:"array",values}}}}
-  object():JsonNode{this.#i++;const entries:(readonly[string,JsonNode])[]=[];this.ws();if(this.s[this.#i]==="}"){this.#i++;return{kind:"object",entries}}for(;;){this.ws();let key:string;const c=this.s[this.#i];if(c==='"'||(this.json5&&c==="'"))key=this.str();else if(this.json5){const m=/^[A-Za-z_$][A-Za-z0-9_$]*/.exec(this.s.slice(this.#i));if(!m)this.fail();key=m[0];this.#i+=key.length}else this.fail();this.ws();if(this.s[this.#i++]!==":")this.fail();entries.push([key,this.value()]);this.ws();if(this.s[this.#i]==="}"){this.#i++;return{kind:"object",entries}}if(this.s[this.#i++]!==",")this.fail();this.ws();if(this.s[this.#i]==="}"){if(!this.json5)this.fail();this.#i++;return{kind:"object",entries}}}}
+  objectResult(entries:readonly (readonly [string,JsonNode])[],spellings:readonly string[]):JsonNode{const n:JsonNode={kind:"object",entries};jsonObjectLabelSpelling.set(n,spellings);return n}
+  object():JsonNode{this.#i++;const entries:(readonly[string,JsonNode])[]=[],spellings:string[]=[];this.ws();if(this.s[this.#i]==="}"){this.#i++;return this.objectResult(entries,spellings)}for(;;){this.ws();let key:string;const labelStart=this.#i,c=this.s[this.#i];if(c==='"'||(this.json5&&c==="'"))key=this.str();else if(this.json5){const m=/^[A-Za-z_$][A-Za-z0-9_$]*/.exec(this.s.slice(this.#i));if(!m)this.fail();key=m[0];this.#i+=key.length}else this.fail();let label=quote(key);if(c==='"'){try{const raw=this.s.slice(labelStart,this.#i);new Parser(raw,false,()=>{}).str();label=raw}catch{}}spellings.push(label);this.ws();if(this.s[this.#i++]!==":")this.fail();entries.push([key,this.value()]);this.ws();if(this.s[this.#i]==="}"){this.#i++;return this.objectResult(entries,spellings)}if(this.s[this.#i++]!==",")this.fail();this.ws();if(this.s[this.#i]==="}"){if(!this.json5)this.fail();this.#i++;return this.objectResult(entries,spellings)}}}
 }
 function canonicalNumber(raw:string):string{if(/NaN/.test(raw))return"null";if(/Infinity/.test(raw))return raw[0]==="-"?"-9e999":"9e999";if(/^[+-]?0[xX]/.test(raw)){const negative=raw[0]==="-",body=raw.replace(/^[+-]?0[xX]/,"");const n=BigInt(`0x${body}`);return `${negative?"-":""}${n}`}return raw[0]==="+"?raw.slice(1):raw.startsWith(".")?`0${raw}`:raw.startsWith("-.")?`-0${raw.slice(1)}`:raw.endsWith(".")?`${raw}0`:raw}
 function quote(s:string):string{let out='"';for(const c of s){const n=c.charCodeAt(0);out+=c==='"'?'\\"':c==='\\'?'\\\\':c==='\b'?'\\b':c==='\f'?'\\f':c==='\n'?'\\n':c==='\r'?'\\r':c==='\t'?'\\t':n<0x20?`\\u${n.toString(16).padStart(4,"0")}`:c}return out+'"'}
 export function renderJson(n:JsonNode):string{switch(n.kind){case"null":case"true":case"false":return n.kind;case"number":return canonicalNumber(n.raw);case"string":return quote(n.value);case"array":return`[${n.values.map(renderJson).join(",")}]`;case"object":return`{${n.entries.map(([k,v])=>`${quote(k)}:${renderJson(v)}`).join(",")}}`}}
+/** json.c:jsonPrettyFunc/jsonTranslateBlobToPrettyText. Ordered parsed nodes
+ * replace JSONB pointer offsets; scalar lexical spelling is retained separately.
+ * Output append owns incremental byte limits/work before publishing subtype-0 TEXT. */
+export function jsonPretty(value:Mem,indent:Mem|undefined,charge:(n:number)=>void=()=>{},checkSize:(n:number)=>void=()=>{}):Mem{
+ const out=new Mem();if(value.initialStorageClass==="null")return out;
+ const node=parseJsonMem(value,true,charge);
+ const indentCopy=new Mem();if(indent!==undefined)indentCopy.copyFrom(indent);
+ if(indent!==undefined&&indent.initialStorageClass!=="null")indentCopy.cast("text","utf-8");
+ const text=indent===undefined||indent.initialStorageClass==="null"?"    ":indentCopy.textValue();
+ const zIndent=text.split("\0",1)[0]!;
+ const parts:string[]=[];let bytes=0;
+ const append=(s:string)=>{charge(1);bytes+=te.encode(s).length;checkSize(bytes);parts.push(s)};
+ const indentation=(depth:number)=>{for(let i=0;i<depth;i++)append(zIndent)};
+ const visit=(n:JsonNode,depth:number):void=>{
+  charge(1);
+  if(n.kind!=="array"&&n.kind!=="object"){append(n.kind==="string"?(jsonStringSpelling.get(n)??renderJson(n)):renderJson(n));return}
+  const object=n.kind==="object",length=object?n.entries.length:n.values.length;
+  append(object?"{":"[");
+  if(length){
+   if(depth+1>=1000)throw new JSQLiteError("sqlite","JSON nested too deep",{code:1});
+   append("\n");
+   for(let i=0;i<length;i++){
+    indentation(depth+1);
+    if(n.kind==="object"){append(jsonObjectLabelSpelling.get(n)?.[i]??quote(n.entries[i]![0]));append(": ");visit(n.entries[i]![1],depth+1)}
+    else visit(n.values[i]!,depth+1);
+    if(i+1<length)append(",\n");
+   }
+   append("\n");indentation(depth);
+  }
+  append(object?"}":"]");
+ };
+ visit(node,0);out.setText(te.encode(parts.join("")),"utf-8");return out;
+}
 function header(type:number,size:number):Uint8Array{if(size<=11)return Uint8Array.of((size<<4)|type);if(size<=255)return Uint8Array.of(0xc0|type,size);if(size<=65535)return Uint8Array.of(0xd0|type,size>>>8,size&255);return Uint8Array.of(0xe0|type,(size/0x1000000)>>>0,(size>>>16)&255,(size>>>8)&255,size&255)}
 function join(parts:readonly Uint8Array[]):Uint8Array{const n=parts.reduce((x,p)=>x+p.length,0),out=new Uint8Array(n);let i=0;for(const p of parts){out.set(p,i);i+=p.length}return out}
 function element(type:number,payload:Uint8Array<ArrayBufferLike>=new Uint8Array()):Uint8Array{return join([header(type,payload.length),payload])}
@@ -45,8 +81,8 @@ function decodeJsonbAt(b:Uint8Array,at:number,depth:number,charge:(n:number)=>vo
  charge(1);if(depth>1000)throw malformed();const h=jsonbSize(b,at);if(!h||h.type>12||at+h.header+h.size>b.length)throw malformed();const start=at+h.header,end=start+h.size,raw=h.type<=10?decodePayload(b,start,end):"";
  if(h.type<=2){if(h.size)throw malformed();const node:JsonNode={kind:h.type===0?"null":h.type===1?"true":"false"};jsonbBounds.set(node,{start:at,end});return{node,end}}
  if(h.type>=3&&h.type<=6){const json5=h.type===4||h.type===6,node=new Parser(raw,json5,charge).parse();if(node.kind!=="number")throw malformed();jsonbBounds.set(node,{start:at,end});return{node,end}}
- if(h.type>=7&&h.type<=10){let value:string;if(h.type===7||h.type===10)value=raw;else{const node=new Parser(`"${raw}"`,h.type===9,charge).parse();if(node.kind!=="string")throw malformed();value=node.value}const node:JsonNode={kind:"string",value};jsonbBounds.set(node,{start:at,end});return{node,end}}
- const values:JsonNode[]=[],entries:(readonly[string,JsonNode])[]=[],labels:number[]=[],labelEncodings:JsonbLabelEncoding[]=[];let p=start,index=0;while(p<end){const childStart=p,child=decodeJsonbAt(b,p,depth+1,charge);p=child.end;if(h.type===11)values.push(child.node);else if((index++&1)===0){if(child.node.kind!=="string")throw malformed();const lh=jsonbSize(b,childStart)!;labels.push(jsonbBounds.get(child.node)!.start);labelEncodings.push({type:lh.type as 7|8|9|10,payload:b.slice(childStart+lh.header,child.end)});entries.push([child.node.value,{kind:"null"}])}else entries[entries.length-1]=[entries.at(-1)![0],child.node]}if(p!==end||(h.type===12&&index%2))throw malformed();const node:JsonNode=h.type===11?{kind:"array",values}:{kind:"object",entries};jsonbBounds.set(node,{start:at,end});if(h.type===12){jsonbLabels.set(node,labels);jsonbLabelEncodings.set(node,labelEncodings)}return{node,end}
+ if(h.type>=7&&h.type<=10){let value:string;if(h.type===7||h.type===10)value=raw;else{const node=new Parser(`"${raw}"`,h.type===9,charge).parse();if(node.kind!=="string")throw malformed();value=node.value}const node:JsonNode={kind:"string",value};if(h.type===8)jsonStringSpelling.set(node,`"${raw}"`);jsonbBounds.set(node,{start:at,end});return{node,end}}
+ const values:JsonNode[]=[],entries:(readonly[string,JsonNode])[]=[],labels:number[]=[],labelEncodings:JsonbLabelEncoding[]=[];let p=start,index=0;while(p<end){const childStart=p,child=decodeJsonbAt(b,p,depth+1,charge);p=child.end;if(h.type===11)values.push(child.node);else if((index++&1)===0){if(child.node.kind!=="string")throw malformed();const lh=jsonbSize(b,childStart)!;labels.push(jsonbBounds.get(child.node)!.start);labelEncodings.push({type:lh.type as 7|8|9|10,payload:b.slice(childStart+lh.header,child.end)});entries.push([child.node.value,{kind:"null"}])}else entries[entries.length-1]=[entries.at(-1)![0],child.node]}if(p!==end||(h.type===12&&index%2))throw malformed();const node:JsonNode=h.type===11?{kind:"array",values}:{kind:"object",entries};jsonbBounds.set(node,{start:at,end});if(h.type===12){jsonbLabels.set(node,labels);jsonbLabelEncodings.set(node,labelEncodings);jsonObjectLabelSpelling.set(node,labelEncodings.map((label,i)=>label.type===8?`"${td.decode(label.payload)}"`:quote(entries[i]![0])))}return{node,end}
 }
 function validJsonb(b:Uint8Array,deep:boolean,at=0,depth=0):number{const h=jsonbSize(b,at);if(!h||h.type>12||at+h.header+h.size>b.length||depth>1000)return-1;const end=at+h.header+h.size;if(!deep)return end;try{return decodeJsonbAt(b,at,depth,()=>{}).end}catch{return-1}}
 /** src/json.c:jsonArgIsJsonb, including tag-20240123-a. Small BLOBs whose
@@ -54,7 +90,7 @@ function validJsonb(b:Uint8Array,deep:boolean,at=0,depth=0):number{const h=jsonb
  * are classified as JSONB; otherwise document arguments fall through to text. */
 function jsonArgIsJsonb(b:Uint8Array):boolean{if(b.length===0)return false;const h=jsonbSize(b,0);if(!h||h.type>12||h.header+h.size!==b.length||(h.type<=2&&h.size!==0))return false;const c=b[0]!,ambiguous=c===0x7b||c===0x5b||(c>=0x30&&c<=0x39);return h.size>7||!ambiguous||validJsonb(b,true)===b.length}
 function blobText(b:Uint8Array):string{try{return td.decode(b)}catch{throw malformed()}}
-export function parseJsonMem(value:Mem,json5=true,charge:(n:number)=>void=()=>{}):JsonNode{try{if(value.initialStorageClass==="null")throw malformed();if(value.initialStorageClass==="blob"){const b=value.blobValue();if(jsonArgIsJsonb(b)){const decoded=decodeJsonbAt(b,0,0,charge);if(decoded.end!==b.length)throw malformed();return decoded.node}return new Parser(blobText(b),json5,charge).parse()}return new Parser(value.textValue(),json5,charge).parse()}catch(error){if(error instanceof JsonPositionError)throw malformed();throw error}}
+export function parseJsonMem(value:Mem,json5=true,charge:(n:number)=>void=()=>{}):JsonNode{try{if(value.initialStorageClass==="null")throw malformed();if(value.initialStorageClass==="blob"){const b=value.blobValue();if(jsonArgIsJsonb(b)){const decoded=decodeJsonbAt(b,0,0,charge);if(decoded.end!==b.length)throw malformed();return decoded.node}return new Parser(blobText(b),json5,charge).parse()}const text=new Mem();text.copyFrom(value);text.cast("text","utf-8");return new Parser(text.textValue(),json5,charge).parse()}catch(error){if(error instanceof JsonPositionError)throw malformed();throw error}}
 export function jsonValid(value:Mem,flags:number,charge:(n:number)=>void=()=>{}):boolean{if(flags<1||flags>15)throw new JSQLiteError("sqlite","FLAGS parameter to json_valid() must be between 1 and 15",{code:1});try{if(value.initialStorageClass==="blob"){const b=value.blobValue();if(jsonArgIsJsonb(b))return ((flags&4)!==0&&validJsonb(b,false)===b.length)||((flags&8)!==0&&validJsonb(b,true)===b.length);if((flags&3)===0)return false;new Parser(blobText(b),(flags&2)!==0,charge).parse();return true}if((flags&3)===0)return false;new Parser(value.textValue(),(flags&2)!==0,charge).parse();return true}catch{return false}}
 export function jsonTextResult(node:JsonNode):Mem{const out=new Mem();out.setText(te.encode(renderJson(node)),"utf-8");out.setSubtype(74);return out}
 /** JSONB is identified by its validated binary representation, not by the

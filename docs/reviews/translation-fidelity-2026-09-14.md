@@ -934,7 +934,9 @@ surface or expose module registration.
 
 Finding 1's placeholder error position and finding 4's missing JSONB/edit
 registrations are corrected by [[card:card-r-b]]. Production `json_pretty` is
-explicitly registered temporary unsupported at both pinned arities. Focused public
+now executed at both pinned arities by [[card:card-r-f]] via the shared JSON
+owner. [Current pretty evidence](../research/card-r-f/README.md) supersedes the
+temporary-unsupported assertion only; no full scalar/path fidelity signoff. Focused public
 coverage now discriminates non-leading positions, duplicate/root/sequential edit,
 array insertion, and JSONB BLOB result branches; exhaustive corpus parity remains
 a test-evidence limitation rather than an implementation claim.

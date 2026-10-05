@@ -37,6 +37,5 @@ test('JSON scalar constructors, inspection, mutation and patch use public VDBE p
  // these distinguish JSONB output from a merely typed or text-round-tripped result.
  assert.deepEqual(blobs.map(([,v])=>Buffer.from(v).toString('hex')),['7b13314c17781332','4c17611331','8c176113311a621332','8c1761133117621332','6b133013311332','8c176113311a621332','bc1761133149625c5c6e1332']);
  const pretty=db.prepare(`SELECT json_pretty('{}')`).statement;
- await assert.rejects(pretty.step(),error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary'&&error?.message==='json_pretty() is temporarily unsupported');
- assert.throws(()=>pretty.finalize(),error=>error?.kind==='unsupported'&&error?.unsupportedClassification==='temporary');
+ assert.equal(await pretty.step(),'row');assert.equal(pretty.column(0),'{}');pretty.finalize();
 }finally{db?.closeDeferred();await close(bridge.server)}});

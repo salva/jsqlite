@@ -183,7 +183,12 @@ internals, not host JSON.parse semantics. Tests
 [pattern/window](../test/conformance/ordinary-scalars-pattern-window.test.mjs).
 Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
 [card-r metadata status](record:///status.md?card=card-r).
-`json_pretty` remains temporary unsupported; built-in JSON is not a blanket gap.
+`json.c:jsonPrettyFunc`, `JsonPretty`, `jsonPrettyIndent`,
+`jsonTranslateBlobToPrettyText` → `json.ts:jsonPretty`, shared parse/lexical
+metadata, `vdbe.ts` Function dispatch. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
+and [source-pinned typed companions](research/card-r-f/README.md) cover both
+arities; subtype-0 output does not inherit canonical JSON subtype.
+Built-in JSON is not a blanket gap.
 Exact function tranche runs/IDs remain in existing oracle/conformance research,
 not duplicated here.
 

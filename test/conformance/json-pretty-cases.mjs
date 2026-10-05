@@ -1,0 +1,16 @@
+export const prettyCases=[
+   [`SELECT json_pretty('{}')`, '{}'],
+   [`SELECT json_pretty('{"a":[1,2]}','--')`, '{\n--"a": [\n----1,\n----2\n--]\n}'],
+   [`SELECT json_pretty(NULL,NULL)`,null],
+   [`SELECT json_pretty('[1]',NULL)`, '[\n    1\n]'],
+   [`SELECT json_pretty('[1]',123)`, '[\n1231\n]'],
+   [`SELECT json_pretty('[1]',char(9,0,120))`, '[\n\t1\n]'],
+   [`SELECT json_pretty('{"a":1,"a":2}', '')`, '{\n"a": 1,\n"a": 2\n}'],
+   [`SELECT json_pretty(jsonb('[[],{}]'))`, '[\n    [],\n    {}\n]'],
+   [`SELECT json_pretty(x'5B315D')`, '[\n    1\n]'],
+   [`SELECT json_pretty(x'CB021331')`, '[\n    1\n]'],
+   [`SELECT json_pretty('{a:+1,b:0x10,c:Infinity}')`, '{\n    "a": 1,\n    "b": 16,\n    "c": 9e999\n}'],
+   [String.raw`SELECT json_pretty('{"\u0061":"\u0062\/"}')`, '{\n    "\\u0061": "\\u0062\\/"\n}'],
+   [`SELECT subtype(json_pretty('{}'))`,0n],
+   [`SELECT json_array(json_pretty('{}'))`, '["{}"]'],
+  ];

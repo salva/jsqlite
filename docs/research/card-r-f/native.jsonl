@@ -1,0 +1,15 @@
+{"sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"}
+{"sql": "SELECT json_pretty('{}')", "column": "json_pretty('{}')", "type": "text", "value": "{}"}
+{"sql": "SELECT json_pretty('{\"a\":[1,2]}','--')", "column": "json_pretty('{\"a\":[1,2]}','--')", "type": "text", "value": "{\n--\"a\": [\n----1,\n----2\n--]\n}"}
+{"sql": "SELECT json_pretty(NULL,NULL)", "column": "json_pretty(NULL,NULL)", "type": "null", "value": null}
+{"sql": "SELECT json_pretty('[1]',NULL)", "column": "json_pretty('[1]',NULL)", "type": "text", "value": "[\n    1\n]"}
+{"sql": "SELECT json_pretty('[1]',123)", "column": "json_pretty('[1]',123)", "type": "text", "value": "[\n1231\n]"}
+{"sql": "SELECT json_pretty('[1]',char(9,0,120))", "column": "json_pretty('[1]',char(9,0,120))", "type": "text", "value": "[\n\t1\n]"}
+{"sql": "SELECT json_pretty('{\"a\":1,\"a\":2}', '')", "column": "json_pretty('{\"a\":1,\"a\":2}', '')", "type": "text", "value": "{\n\"a\": 1,\n\"a\": 2\n}"}
+{"sql": "SELECT json_pretty(jsonb('[[],{}]'))", "column": "json_pretty(jsonb('[[],{}]'))", "type": "text", "value": "[\n    [],\n    {}\n]"}
+{"sql": "SELECT json_pretty(x'5B315D')", "column": "json_pretty(x'5B315D')", "type": "text", "value": "[\n    1\n]"}
+{"sql": "SELECT json_pretty(x'CB021331')", "column": "json_pretty(x'CB021331')", "type": "text", "value": "[\n    1\n]"}
+{"sql": "SELECT json_pretty('{a:+1,b:0x10,c:Infinity}')", "column": "json_pretty('{a:+1,b:0x10,c:Infinity}')", "type": "text", "value": "{\n    \"a\": 1,\n    \"b\": 16,\n    \"c\": 9e999\n}"}
+{"sql": "SELECT json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')", "column": "json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')", "type": "text", "value": "{\n    \"\\u0061\": \"\\u0062\\/\"\n}"}
+{"sql": "SELECT subtype(json_pretty('{}'))", "column": "subtype(json_pretty('{}'))", "type": "integer", "value": "0"}
+{"sql": "SELECT json_array(json_pretty('{}'))", "column": "json_array(json_pretty('{}'))", "type": "text", "value": "[\"{}\"]"}
