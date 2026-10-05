@@ -45,7 +45,13 @@ remains temporary even if it is not proposed advertising for this alpha.
 
 Additional current blockers: candidate core intersection/native differential
 matrix not yet executed; actual versioned source/package/demo manifest not yet
-produced. Any fresh timeout, wrong row/type/metadata/error or leaked state is a
+produced. The executable candidate gate
+`test/conformance/private-alpha-stat4-admission.test.mjs` checks the existing
+independent pinned typed rows for forced/unforced queries, column name/type and
+reset on digest-bound STAT4 fixtures in all three encodings. It currently fails
+at prepare in exact f1eb053 source; the old rejection-boundary test is not a
+substitute for this admission requirement. See card status for run evidence.
+Any fresh timeout, wrong row/type/metadata/error or leaked state is a
 blocker requiring attribution. No skips, expected-value weakening or watchdog
 inflation. Material guarantee tradeoffs escalate to owner.
 
