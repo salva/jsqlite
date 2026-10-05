@@ -532,7 +532,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
      if(ac.length!==2||bc.length!==2)continue;
      const same=(x:ExprReduction,y:ExprReduction)=>{
       const xb=binding(resolved,x),yb=binding(resolved,y);
-      if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
+      if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex&&expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
       // Anonymous variables at different token positions own distinct slots.
       const xt=asExpr(x).tokens,yt=asExpr(y).tokens;
       if(xt.some(t=>t.text==="?")||yt.some(t=>t.text==="?"))return x===y;
