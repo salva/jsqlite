@@ -1,0 +1,2417 @@
+{
+  "source": {
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "version": "3.53.4"
+  },
+  "cases": [
+    {
+      "encoding": "utf8",
+      "id": "right-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "full-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "full-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "retention",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE a.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c z ON b.k=z.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "scalar",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE (SELECT z.k)=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "exists",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE EXISTS(SELECT 1 WHERE z.k=3) ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf8",
+      "id": "left-null",
+      "sql": "SELECT a.k,b.k,z.k FROM a LEFT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "right-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "full-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "full-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "retention",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE a.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c z ON b.k=z.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "scalar",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE (SELECT z.k)=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "exists",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE EXISTS(SELECT 1 WHERE z.k=3) ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16le",
+      "id": "left-null",
+      "sql": "SELECT a.k,b.k,z.k FROM a LEFT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "right-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "full-inner",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "full-left",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "retention",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k JOIN c z ON 1 WHERE a.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "ltorj",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k RIGHT JOIN c z ON b.k=z.k WHERE b.rowid=2 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "scalar",
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE (SELECT z.k)=3 ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "exists",
+      "sql": "SELECT a.k,b.k,z.k FROM a FULL JOIN b ON a.k=b.k LEFT JOIN c z ON z.k=b.k WHERE EXISTS(SELECT 1 WHERE z.k=3) ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "encoding": "utf16be",
+      "id": "left-null",
+      "sql": "SELECT a.k,b.k,z.k FROM a LEFT JOIN b ON a.k=-1 JOIN c z ON 1 WHERE b.k IS NULL ORDER BY 1,2,3",
+      "native": {
+        "prepare": {
+          "kind": "ok"
+        },
+        "columns": [
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "a",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "b",
+            "origin": "k"
+          },
+          {
+            "name": "k",
+            "declType": "INTEGER",
+            "database": "main",
+            "table": "c",
+            "origin": "k"
+          }
+        ],
+        "first": {
+          "kind": "done",
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}
