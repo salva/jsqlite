@@ -248,3 +248,14 @@ test('cost-only Btree producer bypasses ordinary list and shares construction bu
  btreeLoops(r.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:tiny,orSet:empty});
  assert.equal(tiny.remaining,0);assert.deepEqual(empty.a,[],'unconstrained scan consumes budget but never contributes OR cost');
 });
+test('all encodings expose the same prelowering OR owner; recursive AND and zero-arm boundaries',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  for(const sql of ['SELECT id FROM t WHERE a=? OR id>?','SELECT id FROM t WHERE a=? OR (id>? AND (b>? OR id<?))']){
+   const r=expandAndResolveSelect(parseSql(sql).statement,schema(encoding)),a=analyzeWhere(r),loops=btreeLoops(r.sources[0],0,a.clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r});
+   const union=loops.find(l=>l.kind==='multi-or');assert.ok(union,encoding+sql);
+   assert.equal(union.orInfo,a.clause.terms[0].info);assert.equal(union.capability,null);assert.equal(union.sortIdentity,0);assert.equal(union.setupCost,0n);
+  }
+  const r=expandAndResolveSelect(parseSql('SELECT id FROM t WHERE id=? OR b=?').statement,schema(encoding)),a=analyzeWhere(r);
+  assert.equal(btreeLoops(r.sources[0],0,a.clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r}).some(l=>l.kind==='multi-or'),false,'unindexed arm must abandon');
+ }
+});
