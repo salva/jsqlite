@@ -1,0 +1,18 @@
+native source-ID checked; frozen 63 cases; 3 encodings
+native join8-3010/3020/3030/3040 adapted assertions:4/4
+source-ID/version checked adapted upstream UTF16 captures:8/8
+frozen read-only join8 validation:12/12; metadata + typed rows twice across reset; fixture hashes unchanged
+{
+  "frozenOutputs": {
+    "cases/repeated-right-full.json": "7b623423a64364b9487c2a3e3b3cf4d61b2a16ddf0a50f61f2c2b0411c9466db",
+    "cases/repeated-upstream-join8.json": "62c28f7250cdf54668a9bd19e7ade40035d5bdddabf773dd24dc047b7c1b816b",
+    "cases/repeated-upstream-join8-utf16.json": "56966ffeadbacc974f1b8b9df89dd8f639cdeed68df448bfc7dad148598c4e9e",
+    "fixtures/repeated-right-full-utf8.db": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d",
+    "fixtures/repeated-right-full-utf16le.db": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93",
+    "fixtures/repeated-right-full-utf16be.db": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2",
+    "fixtures/repeated-upstream-join8.db": "9d8261f75e5891c88b3e6caa4b05619c338de6879627f85f6a8e06782be43bae",
+    "fixtures/repeated-upstream-join8-utf16le.db": "2992205f9b84707955ce4fdfd5fb8e4338be75c6dac8b8d5d51e19be64f0d784",
+    "fixtures/repeated-upstream-join8-utf16be.db": "f4cf13ad7d4b5feb2c6d7618f2765e7ead0c2f9c0de3fd15f58ad9eeda43f9a1"
+  },
+  "result": "9/9 byte-identical regenerated outputs"
+}

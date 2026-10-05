@@ -1,0 +1,14 @@
+▶ upstream adapted assertions utf16be
+  ✔ upstream adapted assertion utf16be/join8-3010 (18036.574877ms)
+  ✔ upstream adapted assertion utf16be/join8-3020 (18541.402745ms)
+  ✔ upstream adapted assertion utf16be/join8-3030 (18524.27308ms)
+  ✔ upstream adapted assertion utf16be/join8-3040 (18285.575795ms)
+✔ upstream adapted assertions utf16be (18544.390846ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18925.882529

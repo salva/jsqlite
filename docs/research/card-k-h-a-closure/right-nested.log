@@ -1,0 +1,38 @@
+✔ R5 residual utf8/scalar-left (88.447082ms)
+✔ R5 residual utf8/scalar-inner (21.507609ms)
+✔ R5 residual utf8/exists-left (17.9893ms)
+✔ R5 residual utf8/in-left (14.013075ms)
+✔ R5 residual utf8/rhs-ready (13.715219ms)
+✔ R5 residual utf8/prior-ready (13.701789ms)
+✔ R5 residual utf8/transitive (14.870298ms)
+✔ R5 residual utf8/local (14.576564ms)
+✔ R5 residual utf16le/scalar-left (12.515038ms)
+✔ R5 residual utf16le/scalar-inner (12.272217ms)
+✔ R5 residual utf16le/exists-left (12.030779ms)
+✔ R5 residual utf16le/in-left (6.449016ms)
+✔ R5 residual utf16le/rhs-ready (11.514981ms)
+✔ R5 residual utf16le/prior-ready (11.222439ms)
+✔ R5 residual utf16le/transitive (11.577913ms)
+✔ R5 residual utf16le/local (11.976335ms)
+✔ R5 residual utf16be/scalar-left (9.912518ms)
+✔ R5 residual utf16be/scalar-inner (11.108663ms)
+✔ R5 residual utf16be/exists-left (11.067772ms)
+✔ R5 residual utf16be/in-left (6.484461ms)
+✔ R5 residual utf16be/rhs-ready (10.124247ms)
+✔ R5 residual utf16be/prior-ready (10.126527ms)
+✔ R5 residual utf16be/transitive (11.103137ms)
+✔ R5 residual utf16be/local (11.371039ms)
+✔ R5 early drain positioning utf8 (9.753431ms)
+✔ R5 early drain positioning utf16le (10.593148ms)
+✔ R5 early drain positioning utf16be (9.752696ms)
+✔ R5 selected drain first error cleanup utf8 (10.622374ms)
+✔ R5 selected drain first error cleanup utf16le (10.114118ms)
+✔ R5 selected drain first error cleanup utf16be (9.303152ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 778.079044

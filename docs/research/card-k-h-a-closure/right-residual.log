@@ -1,0 +1,44 @@
+✔ R4 residual utf8/early-control (90.067354ms)
+✔ R4 residual utf8/rhs-inner (24.237219ms)
+✔ R4 residual utf8/prior-null-left (19.994314ms)
+✔ R4 residual utf8/rhs-rowid (18.189537ms)
+✔ R4 residual utf8/rhs-index-in (16.615052ms)
+✔ R4 residual utf8/rhs-index-range (15.292619ms)
+✔ R4 residual utf8/ltorj (13.248369ms)
+✔ R4 residual utf8/rhs-scalar (18.335072ms)
+✔ R4 residual utf8/not-ready (15.601599ms)
+✔ R4 residual utf8/outer-on (12.436108ms)
+✔ R4 residual utf16le/early-control (13.765785ms)
+✔ R4 residual utf16le/rhs-inner (10.004669ms)
+✔ R4 residual utf16le/prior-null-left (10.971754ms)
+✔ R4 residual utf16le/rhs-rowid (9.683888ms)
+✔ R4 residual utf16le/rhs-index-in (7.927109ms)
+✔ R4 residual utf16le/rhs-index-range (10.069335ms)
+✔ R4 residual utf16le/ltorj (10.705064ms)
+✔ R4 residual utf16le/rhs-scalar (11.60627ms)
+✔ R4 residual utf16le/not-ready (12.927218ms)
+✔ R4 residual utf16le/outer-on (10.579158ms)
+✔ R4 residual utf16be/early-control (11.348181ms)
+✔ R4 residual utf16be/rhs-inner (10.066315ms)
+✔ R4 residual utf16be/prior-null-left (10.339791ms)
+✔ R4 residual utf16be/rhs-rowid (10.405782ms)
+✔ R4 residual utf16be/rhs-index-in (7.492941ms)
+✔ R4 residual utf16be/rhs-index-range (10.802571ms)
+✔ R4 residual utf16be/ltorj (10.234856ms)
+✔ R4 residual utf16be/rhs-scalar (9.437036ms)
+✔ R4 residual utf16be/not-ready (12.555888ms)
+✔ R4 residual utf16be/outer-on (9.782061ms)
+✔ R4 early drain positioning utf8 (13.935039ms)
+✔ R4 early drain positioning utf16le (10.915495ms)
+✔ R4 early drain positioning utf16be (11.31193ms)
+✔ R4 selected drain first error cleanup utf8 (11.520914ms)
+✔ R4 selected drain first error cleanup utf16le (10.304777ms)
+✔ R4 selected drain first error cleanup utf16be (10.559454ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 888.893857
