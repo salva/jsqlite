@@ -1,0 +1,4686 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtureSha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15",
+  "sql": "SELECT t.TrackId,t.Name,a.Title,t.Milliseconds,t.UnitPrice FROM Track t INDEXED BY IFK_TrackAlbumId JOIN Album a ON a.AlbumId=t.AlbumId WHERE t.AlbumId>=100 AND t.AlbumId<120 ORDER BY t.AlbumId,t.TrackId",
+  "metadata": [
+    {
+      "name": "TrackId",
+      "declaredType": "INTEGER",
+      "database": "main",
+      "table": "Track",
+      "origin": "TrackId"
+    },
+    {
+      "name": "Name",
+      "declaredType": "NVARCHAR(200)",
+      "database": "main",
+      "table": "Track",
+      "origin": "Name"
+    },
+    {
+      "name": "Title",
+      "declaredType": "NVARCHAR(160)",
+      "database": "main",
+      "table": "Album",
+      "origin": "Title"
+    },
+    {
+      "name": "Milliseconds",
+      "declaredType": "INTEGER",
+      "database": "main",
+      "table": "Track",
+      "origin": "Milliseconds"
+    },
+    {
+      "name": "UnitPrice",
+      "declaredType": "NUMERIC(10,2)",
+      "database": "main",
+      "table": "Track",
+      "origin": "UnitPrice"
+    }
+  ],
+  "rows": [
+    [
+      {
+        "type": "integer",
+        "value": "1268"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3031202d2050726f776c6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "236173"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1269"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3032202d2053616e637475617279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "196284"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1270"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3033202d2052656d656d62657220546f6d6f72726f77"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "328620"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1271"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3034202d2052756e6e696e672046726565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "197276"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1272"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3035202d205068616e746f6d206f6620746865204f70657261"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "428016"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3036202d205472616e73796c76616e6961"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "259343"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1274"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3037202d20537472616e676520576f726c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "332460"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1275"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3038202d20436861726c6f74746520746865204861726c6f74"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "252708"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1276"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3039202d2049726f6e204d616964656e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "integer",
+        "value": "216058"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1277"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652049646573204f66204d61726368"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "105926"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1278"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57726174686368696c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "174471"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d75726465727320496e2054686520527565204d6f72677565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "258377"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1280"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "416e6f74686572204c696665"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "203049"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1281"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47656e67686973204b68616e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "187141"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1282"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "496e6e6f63656e74204578696c65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "232515"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1283"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "300956"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1284"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "50726f646967616c20536f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "372349"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1285"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5075726761746f7279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "200150"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1286"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "44726966746572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696c6c657273"
+      },
+      {
+        "type": "integer",
+        "value": "288757"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1287"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "496e74726f2d20436875726368696c6c205320537065656368"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "48013"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1288"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "416365732048696768"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "276375"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1289"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "32204d696e7574657320546f204d69646e69676874"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "366550"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1290"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652054726f6f706572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "268878"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1291"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526576656c6174696f6e73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "371826"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1292"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "466c69676874204f6620496361727573"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "229982"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1293"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52696d65204f662054686520416e6369656e74204d6172696e6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "789472"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1294"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "454974"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1295"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572204f6620546865204265617374"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "275121"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1296"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48616c6c6f77656420426520546879204e616d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "451422"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1297"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "261955"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1298"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e20546f205468652048696c6c73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "231627"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1299"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e6e696e672046726565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "204617"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1300"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57726174686368696c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "183666"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1301"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "416361636961204176656e7565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "379872"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1302"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4368696c6472656e204f66205468652044616d6e6564"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "278177"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1303"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "446965205769746820596f757220426f6f7473204f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "314174"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1304"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5068616e746f6d204f6620546865204f70657261"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c697665204166746572204465617468"
+      },
+      {
+        "type": "integer",
+        "value": "441155"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1305"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "426520517569636b204f722042652044656164"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "233142"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1306"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572204f6620546865204265617374"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "294008"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1307"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57726174686368696c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "174106"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1308"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "46726f6d204865726520546f20457465726e697479"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "284447"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1309"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "43616e204920506c61792057697468204d61646e657373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "213106"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1310"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57617374696e67204c6f7665"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "336953"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1311"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5461696c67756e6e6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "247640"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1312"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204576696c2054686174204d656e20446f"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "478145"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1313"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "41667261696420546f2053686f6f7420537472616e67657273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "412525"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1314"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "46656172204f6620546865204461726b"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203129"
+      },
+      {
+        "type": "integer",
+        "value": "431542"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1315"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4272696e6720596f75722044617567687465722e2e2e20546f2054686520536c617567687465722e2e2e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "376711"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1316"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520436c616972766f79616e74"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "262426"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1317"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48656176656e2043616e2057616974"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "440555"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1318"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e20546f205468652048696c6c73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "235859"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1319"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "32204d696e7574657320546f204d69646e69676874"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "338233"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1320"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "494602"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1321"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48616c6c6f77656420426520546879204e616d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "447791"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1322"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652054726f6f706572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "232672"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1323"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53616e637475617279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "318511"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1324"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e6e696e672046726565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69766520417420446f6e696e67746f6e2031393932202844697363203229"
+      },
+      {
+        "type": "integer",
+        "value": "474017"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1325"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5461696c67756e6e6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "255582"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1326"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "486f6c7920536d6f6b65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "229459"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1327"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "263941"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1328"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5075626c696320456e656d61204e756d626572204f6e65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "254197"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1329"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4661746573205761726e696e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "250853"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1330"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520417373617373696e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "258768"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1331"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e2053696c656e742052756e2044656570"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "275408"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1332"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "486f6f6b7320496e20596f75"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "247510"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1333"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4272696e6720596f75722044617567687465722e2e2e202e2e2e546f2054686520536c61756768746572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "284238"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1334"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d6f7468657220527573736961"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6f2050726179657220466f7220546865204479696e67"
+      },
+      {
+        "type": "integer",
+        "value": "332617"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1335"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5768657265204561676c65732044617265"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "369554"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1336"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526576656c6174696f6e73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "408607"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1337"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "466c69676874204f662054686520496361727573"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "230269"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1338"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "446965205769746820596f757220426f6f7473204f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "325694"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1339"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652054726f6f706572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "251454"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1340"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5374696c6c204c696665"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "294347"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1341"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "517565737420466f722046697265"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "221309"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1342"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53756e20416e6420537465656c"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "206367"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1343"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546f2054616d652041204c616e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5069656365204f66204d696e64"
+      },
+      {
+        "type": "integer",
+        "value": "445283"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1344"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "416365732048696768"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "269531"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1345"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "32204d696e7574657320546f204d69646e69676874"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "359810"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1346"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c6f7366657220576f726473"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "252891"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1347"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "466c617368206f662054686520426c616465"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "242729"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1348"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4475656c69737473"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "366471"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1349"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4261636b20696e207468652056696c6c616765"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "320548"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1350"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "407823"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1351"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52696d65206f662074686520416e6369656e74204d6172696e6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506f776572736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "816509"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1352"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "496e74726f"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "115931"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1353"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205769636b6572204d616e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "281782"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1354"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47686f7374204f6620546865204e6176696761746f72"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "408607"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1355"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4272617665204e657720576f726c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "366785"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1356"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57726174686368696c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "185808"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1357"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "32204d696e7574657320546f204d69646e69676874"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "386821"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1358"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "426c6f6f642042726f7468657273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "435513"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1359"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5369676e204f66205468652043726f7373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "649116"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1360"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204d657263656e617279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "282697"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1361"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652054726f6f706572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344315d"
+      },
+      {
+        "type": "integer",
+        "value": "273528"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1362"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "447265616d204f66204d6972726f7273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "578324"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1363"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520436c616e736d616e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "559203"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1364"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204576696c2054686174204d656e20446f"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "280737"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1365"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "46656172204f6620546865204461726b"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "460695"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1366"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49726f6e204d616964656e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "351869"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1367"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572204f6620546865204265617374"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "300434"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1368"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48616c6c6f77656420426520546879204e616d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "443977"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1369"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53616e637475617279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "317335"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1370"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e20546f205468652048696c6c73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f636b20496e2052696f205b4344325d"
+      },
+      {
+        "type": "integer",
+        "value": "292179"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1371"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d6f6f6e6368696c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "340767"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1372"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "496e66696e69746520447265616d73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "369005"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "43616e204920506c61792057697468204d61646e657373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "211043"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1374"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204576696c2054686174204d656e20446f"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "273998"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1375"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "593580"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1376"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652050726f7068656379"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "305475"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1377"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520436c616972766f79616e74"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "267023"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1378"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4f6e6c792074686520476f6f642044696520596f756e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536576656e746820536f6e206f66206120536576656e746820536f6e"
+      },
+      {
+        "type": "integer",
+        "value": "280894"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1379"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "43617567687420536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "445779"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1380"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "576173746564205965617273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "307565"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1381"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536561206f66204d61646e657373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "341995"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1382"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48656176656e2043616e2057616974"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "441417"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1383"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "537472616e67657220696e206120537472616e6765204c616e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "344502"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1384"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "416c6578616e64657220746865204772656174"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "515631"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1385"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4465204a61205675"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "296176"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1386"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204c6f6e656c696e657373206f6620746865204c6f6e6720446973"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f6d65776865726520696e2054696d65"
+      },
+      {
+        "type": "integer",
+        "value": "391314"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1387"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "323220416361636961204176656e7565"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "395572"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1388"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4368696c6472656e206f66207468652044616d6e6564"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "274364"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1389"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47616e676c616e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "228440"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1390"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48616c6c6f77656420426520546879204e616d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "428669"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1391"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "496e766164657273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "203180"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1392"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "52756e20746f207468652048696c6c73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "228884"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1393"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572204f6620546865204265617374"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "293407"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1394"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520507269736f6e6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204e756d626572206f6620546865204265617374"
+      },
+      {
+        "type": "integer",
+        "value": "361299"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1395"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5369676e204f66205468652043726f7373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "678008"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1396"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c6f7264204f662054686520466c696573"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "303699"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1397"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d616e204f6e205468652045646765"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "253413"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1398"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "466f7274756e6573204f6620576172"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "443977"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1399"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c6f6f6b20466f7220546865205472757468"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "310230"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1400"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652041667465726d617468"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "380786"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1401"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4a756467656d656e74204f662048656176656e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "312476"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1402"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "426c6f6f64204f6e2054686520576f726c6427732048616e6473"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "357799"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1403"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652045646765204f66204461726b6e657373"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "399333"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1404"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "3220412e4d2e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "337658"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1405"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520556e62656c6965766572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865205820466163746f72"
+      },
+      {
+        "type": "integer",
+        "value": "490422"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1406"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "467574757265616c"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "175777"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1407"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520416e67656c20416e64205468652047616d626c6572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "592744"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1408"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c696768746e696e6720537472696b6573205477696365"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "290377"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1409"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520436c616e736d616e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "539689"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1410"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5768656e2054776f20576f726c647320436f6c6c696465"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "377312"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1411"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54686520456475636174656420466f6f6c"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "404767"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1412"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "446f6e2774204c6f6f6b20546f205468652045796573204f66204120537472616e676572"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "483657"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1413"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "436f6d6f2045737461697320416d69676f73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5669727475616c205849"
+      },
+      {
+        "type": "integer",
+        "value": "330292"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1414"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506c6561736520506c6561736520506c65617365"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "165067"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1415"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468696e6b"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "166739"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1416"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4e6967687420547261696e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "212401"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1417"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4f7574204f66205369676874"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "143725"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1418"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "50617061277320476f742041204272616e64204e6577204261672050742e31"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "127399"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1419"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4920476f7420596f75202849204665656c20476f6f6429"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "167392"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1420"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "497427732041204d616e2773204d616e2773204d616e277320576f726c64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "168228"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1421"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "436f6c64205377656174"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "172408"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1422"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536179204974204c6f75642c2049276d20426c61636b20416e642049276d2050726f75642050742e31"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "167392"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1423"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "476574205570202849204665656c204c696b65204265696e6720412920536578204d616368696e65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "316551"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1424"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48657920416d6572696361"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "218226"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1425"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d616b652049742046756e6b792050742e31"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "196231"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1426"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49276d204120477265656479204d616e2050742e31"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "217730"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1427"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "476574204f6e2054686520476f6f6420466f6f74"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "215902"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1428"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "476574205570204f6666612054686174205468696e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "250723"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1429"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4974277320546f6f2046756e6b7920496e2048657265"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "239072"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1430"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c6976696e6720496e20416d6572696361"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "282880"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1431"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49276d205265616c"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "334236"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1432"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "486f742050616e74732050742e31"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "188212"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1433"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f756c20506f77657220284c69766529"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536578204d616368696e65"
+      },
+      {
+        "type": "integer",
+        "value": "260728"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1434"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5768656e20596f7520476f6e6e61204c6561726e2028446967657269646f6f29"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "230635"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1435"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546f6f20596f756e6720546f20446965"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "365818"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1436"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "486f6f6b6564205570"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "275879"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1437"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "49662049204c696b652049742c204920446f204974"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "293093"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1438"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d75736963204f66205468652057696e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "383033"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1439"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "245263"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1440"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "57686174657665722049742049732c2049204a7573742043616e27742053746f70"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "247222"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1441"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "426c6f7720596f7572204d696e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "512339"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1442"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5265766f6c7574696f6e2031393933"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "616829"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1443"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "44696467696e27204f7574"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "456d657267656e6379204f6e20506c616e6574204561727468"
+      },
+      {
+        "type": "integer",
+        "value": "157100"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1444"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "43616e6e65642048656174"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "331964"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1445"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "506c616e657420486f6d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "284447"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1446"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "426c61636b204361707269636f726e20446179"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "341629"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1447"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "536f756c20456475636174696f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "255477"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1448"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4661696c6c696e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "225227"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1449"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "44657374697475746520496c6c7573696f6e73"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "340218"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1450"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5375706572736f6e6963"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "315872"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1451"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "427574746572666c79"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "268852"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1452"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5765726520446f20576520476f2046726f6d2048657265"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "313626"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1453"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4b696e6720466f72204120446179"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "221544"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1454"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "44656570657220556e64657267726f756e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "53796e6b726f6e697a6564"
+      },
+      {
+        "type": "integer",
+        "value": "281808"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1455"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4a75737420416e6f746865722053746f7279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "529684"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1456"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5374696c6c6e65737320496e2054696d65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "257097"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1457"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "48616c6620546865204d616e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "289854"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1458"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c69676874205965617273"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "354560"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1459"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d616e69666573742044657374696e79"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "382197"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1460"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "546865204b696473"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "309995"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1461"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d722e204d6f6f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "329534"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1462"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5363616d"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "422321"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1463"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4a6f75726e657920546f2041726e68656d6c616e64"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "322455"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1464"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d6f726e696e6720476c6f7279"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "384130"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1465"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "537061636520436f77626f79"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "5468652052657475726e204f662054686520537061636520436f77626f79"
+      },
+      {
+        "type": "integer",
+        "value": "385697"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1466"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c617374204368616e6365"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "112352"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1467"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "41726520596f7520476f6e6e61204265204d79204769726c"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "213890"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1468"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526f6c6c6f76657220442e4a2e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "196702"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1469"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c6f6f6b205768617420596f7527766520446f6e65"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "230974"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1470"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "476574205768617420596f75204e656564"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "247719"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1471"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4d6f7665204f6e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "260623"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1472"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "526164696f20536f6e67"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "272117"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1473"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "476574204d65204f757474612048657265"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "176274"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1474"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "436f6c642048617264204269746368"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "243278"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1475"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "436f6d652041726f756e6420416761696e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "270497"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1476"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54616b65204974204f72204c65617665204974"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "142889"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1477"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "4c617a792047756e"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "282174"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1478"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "54696d6f746879"
+      },
+      {
+        "type": "text",
+        "utf8Hex": "47657420426f726e"
+      },
+      {
+        "type": "integer",
+        "value": "270341"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      }
+    ]
+  ]
+}
