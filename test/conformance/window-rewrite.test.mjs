@@ -1,3 +1,4 @@
+import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -1025,7 +1026,7 @@ test('GROUPS no ORDER treats the partition as one peer group and shares callback
     const statement=db.prepare('SELECT sum(a) OVER (GROUPS BETWEEN CURRENT ROW AND CURRENT ROW), count(a) OVER (GROUPS BETWEEN CURRENT ROW AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1)]);
     assert.deepEqual(rows,[[16n,4n],[16n,4n],[16n,4n],[16n,4n]]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS CURRENT peer loop shares compatible callbacks', async () => {
@@ -1033,7 +1034,7 @@ test('ordered GROUPS CURRENT peer loop shares compatible callbacks', async () =>
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN CURRENT ROW AND CURRENT ROW), count(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN CURRENT ROW AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1)]);
     assert.deepEqual(rows,[[5n,1n],[4n,2n],[4n,2n],[7n,1n]]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS offset frame advances by peer groups', async () => {
@@ -1041,7 +1042,7 @@ test('ordered GROUPS offset frame advances by peer groups', async () => {
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[9n,16n,16n,11n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('partitioned ordered GROUPS offset frame flushes before partition transition', async () => {
@@ -1049,7 +1050,7 @@ test('partitioned ordered GROUPS offset frame flushes before partition transitio
     const statement=db.prepare('SELECT sum(a) OVER (PARTITION BY c COLLATE nocase ORDER BY a GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,4n,4n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS runtime offsets advance complete peer groups', async () => {
@@ -1061,7 +1062,7 @@ test('ordered GROUPS runtime offsets advance complete peer groups', async () => 
     statement.reset(); statement.clearBindings(); statement.bind(1,0n); statement.bind(2,2n);
     const rebound=[];while(await statement.step()==='row')rebound.push(statement.column(0));
     assert.deepEqual(rebound,[16n,11n,11n,7n]); statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS unbounded preceding through current accumulates complete peer groups', async () => {
@@ -1069,7 +1070,7 @@ test('ordered GROUPS unbounded preceding through current accumulates complete pe
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,9n,9n,16n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('partitioned ordered GROUPS cumulative frame drains before transition', async () => {
@@ -1077,7 +1078,7 @@ test('partitioned ordered GROUPS cumulative frame drains before transition', asy
     const statement=db.prepare('SELECT sum(a) OVER (PARTITION BY c COLLATE nocase ORDER BY a GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,4n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS current through unbounded following retires complete peers', async () => {
@@ -1085,7 +1086,7 @@ test('ordered GROUPS current through unbounded following retires complete peers'
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[16n,11n,11n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('partitioned ordered GROUPS suffix frame drains before transition', async () => {
@@ -1093,7 +1094,7 @@ test('partitioned ordered GROUPS suffix frame drains before transition', async (
     const statement=db.prepare('SELECT sum(a) OVER (PARTITION BY c COLLATE nocase ORDER BY a GROUPS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,4n,3n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered GROUPS preceding through current advances complete peers', async () => {
@@ -1101,7 +1102,7 @@ test('ordered GROUPS preceding through current advances complete peers', async (
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,9n,9n,11n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE numeric preceding through current uses order-key distance', async () => {
@@ -1109,7 +1110,7 @@ test('ordered RANGE numeric preceding through current uses order-key distance', 
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[1n,4n,8n,12n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE DESC reverses numeric preceding distance', async () => {
@@ -1117,7 +1118,7 @@ test('ordered RANGE DESC reverses numeric preceding distance', async () => {
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a DESC RANGE BETWEEN 2 PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[7n,12n,8n,4n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('partitioned ordered RANGE numeric frame drains before transition', async () => {
@@ -1125,7 +1126,7 @@ test('partitioned ordered RANGE numeric frame drains before transition', async (
     const statement=db.prepare('SELECT sum(a) OVER (PARTITION BY c COLLATE nocase ORDER BY a RANGE BETWEEN 2 PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,4n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE bounded preceding and following uses key distances', async () => {
@@ -1133,7 +1134,7 @@ test('ordered RANGE bounded preceding and following uses key distances', async (
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 PRECEDING AND 2 FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[4n,9n,15n,12n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE current through following uses key distances', async () => {
@@ -1141,7 +1142,7 @@ test('ordered RANGE current through following uses key distances', async () => {
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN CURRENT ROW AND 2 FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[4n,8n,12n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE following through unbounded uses key distances', async () => {
@@ -1149,7 +1150,7 @@ test('ordered RANGE following through unbounded uses key distances', async () =>
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 FOLLOWING AND UNBOUNDED FOLLOWING) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[15n,12n,7n,null]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('ordered RANGE unbounded through current includes complete peers', async () => {
@@ -1157,7 +1158,7 @@ test('ordered RANGE unbounded through current includes complete peers', async ()
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,9n,9n,16n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window EXCLUDE CURRENT ROW removes only current row', async () => {
@@ -1165,7 +1166,7 @@ test('aggregate window EXCLUDE CURRENT ROW removes only current row', async () =
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,1n,4n,9n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window EXCLUDE GROUP removes current peers from ROWS frame', async () => {
@@ -1173,7 +1174,7 @@ test('aggregate window EXCLUDE GROUP removes current peers from ROWS frame', asy
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE GROUP) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,5n,5n,9n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window EXCLUDE TIES retains current and removes other peers', async () => {
@@ -1181,7 +1182,7 @@ test('aggregate window EXCLUDE TIES retains current and removes other peers', as
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,6n,8n,16n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window bounded ROWS EXCLUDE CURRENT ROW scans ordinary frame', async () => {
@@ -1189,7 +1190,7 @@ test('aggregate window bounded ROWS EXCLUDE CURRENT ROW scans ordinary frame', a
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,1n,3n,5n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window bounded ROWS EXCLUDE GROUP scans peers inside ordinary frame', async () => {
@@ -1197,7 +1198,7 @@ test('aggregate window bounded ROWS EXCLUDE GROUP scans peers inside ordinary fr
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE GROUP) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,5n,null,3n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window bounded ROWS EXCLUDE TIES keeps current peer identity', async () => {
@@ -1205,7 +1206,7 @@ test('aggregate window bounded ROWS EXCLUDE TIES keeps current peer identity', a
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,6n,3n,10n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window bounded ROWS EXCLUDE NO OTHERS uses application scan', async () => {
@@ -1213,7 +1214,7 @@ test('aggregate window bounded ROWS EXCLUDE NO OTHERS uses application scan', as
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,6n,4n,10n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE CURRENT ROW exclusion scans peer endpoints', async () => {
@@ -1221,7 +1222,7 @@ test('aggregate window RANGE CURRENT ROW exclusion scans peer endpoints', async 
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase RANGE BETWEEN CURRENT ROW AND CURRENT ROW EXCLUDE TIES) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,3n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window GROUPS CURRENT ROW exclusion scans peer endpoints', async () => {
@@ -1229,7 +1230,7 @@ test('aggregate window GROUPS CURRENT ROW exclusion scans peer endpoints', async
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN CURRENT ROW AND CURRENT ROW EXCLUDE TIES) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,3n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE offset exclusion scans bounded endpoints', async () => {
@@ -1237,7 +1238,7 @@ test('aggregate window RANGE offset exclusion scans bounded endpoints', async ()
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,1n,3n,5n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window GROUPS offset EXCLUDE GROUP scans group endpoints', async () => {
@@ -1245,7 +1246,7 @@ test('aggregate window GROUPS offset EXCLUDE GROUP scans group endpoints', async
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE GROUP) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,5n,5n,4n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window GROUPS runtime multi-group EXCLUDE GROUP retains boundary queue', async () => {
@@ -1253,7 +1254,7 @@ test('aggregate window GROUPS runtime multi-group EXCLUDE GROUP retains boundary
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase GROUPS BETWEEN ?1 PRECEDING AND CURRENT ROW EXCLUDE GROUP) FROM t1').statement;
     statement.bind(1,2n);const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,5n,5n,9n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE offset EXCLUDE TIES keeps current among peers', async () => {
@@ -1261,7 +1262,7 @@ test('aggregate window RANGE offset EXCLUDE TIES keeps current among peers', asy
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase RANGE BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,3n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE offset EXCLUDE GROUP removes current peer group', async () => {
@@ -1269,7 +1270,7 @@ test('aggregate window RANGE offset EXCLUDE GROUP removes current peer group', a
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY c COLLATE nocase RANGE BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE GROUP) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[null,null,null,null]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE offset EXCLUDE NO OTHERS retains complete frame', async () => {
@@ -1277,7 +1278,7 @@ test('aggregate window RANGE offset EXCLUDE NO OTHERS retains complete frame', a
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[1n,4n,8n,12n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window partitioned RANGE offset exclusion resets typed application scan', async () => {
@@ -1285,7 +1286,7 @@ test('aggregate window partitioned RANGE offset exclusion resets typed applicati
     const statement=db.prepare('SELECT sum(a) OVER (PARTITION BY c COLLATE nocase ORDER BY a RANGE BETWEEN 2 PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[5n,1n,4n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE following endpoint exclusion uses typed bounds', async () => {
@@ -1293,7 +1294,7 @@ test('aggregate window RANGE following endpoint exclusion uses typed bounds', as
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 PRECEDING AND 2 FOLLOWING EXCLUDE CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[3n,6n,10n,5n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE CURRENT to FOLLOWING exclusion uses typed start', async () => {
@@ -1301,7 +1302,7 @@ test('aggregate window RANGE CURRENT to FOLLOWING exclusion uses typed start', a
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN CURRENT ROW AND 2 FOLLOWING EXCLUDE NO OTHERS) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[4n,8n,12n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE FOLLOWING start and end exclusion uses typed bounds', async () => {
@@ -1309,7 +1310,7 @@ test('aggregate window RANGE FOLLOWING start and end exclusion uses typed bounds
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 4 FOLLOWING EXCLUDE NO OTHERS) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[8n,12n,7n,null]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window RANGE unbounded endpoints exclusion scans whole partition', async () => {
@@ -1317,7 +1318,7 @@ test('aggregate window RANGE unbounded endpoints exclusion scans whole partition
     const statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE CURRENT ROW) FROM t1').statement;
     const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
     assert.deepEqual(rows,[15n,13n,11n,9n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window cache enforces private entries and preserves first error through finalize', async () => {
@@ -1328,7 +1329,7 @@ test('aggregate window cache enforces private entries and preserves first error 
     assert.equal(first?.kind,'limit');assert.match(first.message,/entry limit/);
     assert.throws(()=>statement.finalize(),error=>error===first);statement=undefined;
     const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');assert.equal(admitted.column(0),1n);admitted.finalize();
-  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });
 
 test('aggregate window cache enforces private key and total byte limits and releases admission', async () => {
@@ -1344,7 +1345,7 @@ test('aggregate window cache enforces private key and total byte limits and rele
         statement.finalize();statement=undefined;
       }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}}
     }
-  }finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window whole-partition execution enforces row and work ceilings with first error', async () => {
@@ -1352,7 +1353,7 @@ test('aggregate window whole-partition execution enforces row and work ceilings 
     for(const [limits,options,match] of [[{maxRows:0},{},/maxRows/],[{maxRows:100},{maxWorkUnits:0},/maxWorkUnits/]]){
       let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`),{limits:{maxResultBytes:10000,...limits}});statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t1').statement;let first;try{await statement.step(options)}catch(error){first=error}assert.equal(first?.kind,'limit');assert.match(first.message,match);assert.throws(()=>statement.finalize(),error=>error===first);statement=undefined}finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}}
     }
-  }finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate RANGE cache reset and rebind rebuilds partition state without replay', async () => {
@@ -1362,25 +1363,25 @@ test('aggregate RANGE cache reset and rebind rebuilds partition state without re
     statement.reset();statement.clearBindings();statement.bind(1,0n);const second=[];while(await statement.step()==='row')second.push(statement.column(0));assert.deepEqual(second,[5n,1n,3n,7n]);
     statement.reset();statement.clearBindings();statement.bind(1,2n);assert.equal(await statement.step(),'row');assert.equal(statement.column(0),5n);statement.reset();
     const replay=[];while(await statement.step()==='row')replay.push(statement.column(0));assert.deepEqual(replay,[5n,1n,4n,7n]);statement.finalize();
-  }finally{try{db.closeDeferred()}catch{}}}finally{await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{db.closeDeferred()}catch{}}}finally{await closeTestServer(backend.server)}
 });
 
 test('aggregate window cache suspension cancellation preserves PC and closes exactly once', async () => {
   const {EphemeralIndexCursor}=await import('../../src/internal/private-state.ts');const insert=EphemeralIndexCursor.prototype.insert,close=EphemeralIndexCursor.prototype.close,timer=globalThis.setTimeout;let release,reached,closes=0,inject=true;const suspended=new Promise(resolve=>reached=resolve);
   EphemeralIndexCursor.prototype.insert=async function(...args){if(inject)for(let i=0;i<300;i++)await args.at(-1).checkpoint(1);return insert.apply(this,args)};EphemeralIndexCursor.prototype.close=function(){closes++;return close.call(this)};globalThis.setTimeout=(callback,ms,...args)=>{if(ms===0&&!release){release=()=>timer(callback,0,...args);reached();return 0}return timer(callback,ms,...args)};
   const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t1').statement;const controller=new AbortController(),pending=statement.step({signal:controller.signal});await suspended;controller.abort('window-stop');release();let first;try{await pending}catch(error){first=error}assert.equal(first?.kind,'cancelled');assert.equal(first?.cause,'window-stop');assert.throws(()=>statement.reset(),error=>error===first);assert.equal(closes,4);inject=false;const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));assert.deepEqual(rows,[16n,16n,16n,16n]);statement.finalize();statement=undefined;assert.equal(closes,8);
-  }finally{globalThis.setTimeout=timer;EphemeralIndexCursor.prototype.insert=insert;EphemeralIndexCursor.prototype.close=close;try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{globalThis.setTimeout=timer;EphemeralIndexCursor.prototype.insert=insert;EphemeralIndexCursor.prototype.close=close;try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });
 
 test('aggregate window suspended cache deadline preserves first error and restarts without replay', async () => {
   const {EphemeralIndexCursor}=await import('../../src/internal/private-state.ts');const insert=EphemeralIndexCursor.prototype.insert,now=Date.now;let active=false;
   EphemeralIndexCursor.prototype.insert=async function(...args){active=true;for(let i=0;i<300;i++)await args.at(-1).checkpoint(1);return insert.apply(this,args)};Date.now=()=>active?100:0;
   const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t1').statement;let first;try{await statement.step({timeoutMs:2})}catch(error){first=error}assert.equal(first?.kind,'timeout');assert.throws(()=>statement.reset(),error=>error===first);EphemeralIndexCursor.prototype.insert=insert;Date.now=now;active=false;const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));assert.deepEqual(rows,[16n,16n,16n,16n]);statement.finalize();statement=undefined;
-  }finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });
 
 test('window AggValue is non-destructive and reset/finalize tear aggregate contexts down exactly once', async () => {
   const {Mem}=await import('../../src/internal/mem.ts');const setNull=Mem.prototype.setNull;let aggregateReleases=0;Mem.prototype.setNull=function(...args){if(this.aggregateState())aggregateReleases++;return setNull.apply(this,args)};
   const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), count(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t1').statement;assert.equal(await statement.step(),'row');assert.deepEqual([statement.column(0),statement.column(1)],[1n,1n]);assert.equal(aggregateReleases,0,'AggValue must not destroy contexts at row yield');statement.reset();assert.equal(aggregateReleases,2);while(await statement.step()==='row'){}assert.equal(aggregateReleases,2,'partition output uses non-destructive AggValue');statement.finalize();statement=undefined;assert.equal(aggregateReleases,4,'finalize releases each rebuilt context once');
-  }finally{Mem.prototype.setNull=setNull;try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>backend.server.close(error=>error?reject(error):resolve()))}
+  }finally{Mem.prototype.setNull=setNull;try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });

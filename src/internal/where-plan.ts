@@ -378,7 +378,7 @@ function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signatur
 function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?sqliteAsciiFold(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
 function reductionContains(root:ExprReduction,needle:ExprReduction):boolean {return root===needle||root.children.some(x=>x.kind==="reduction"&&reductionContains(x,needle));}
-function columnUse(resolved:ResolvedSelect,node:ExprReduction){const plain=unwrap(node);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
+function columnUse(resolved:ResolvedSelect,node:ExprReduction){let plain=unwrap(node);while(resolved.aliasUses?.has(plain))plain=unwrap(resolved.aliasUses.get(plain)!);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
 function binding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {const use=columnUse(resolved,node);if(!use)return null;const column=use.columnIndex<0?null:use.source.table.columns[use.columnIndex]??null;return freeze({source:use.source,sourceOrdinal:resolved.sources.indexOf(use.source),column,columnIndex:use.columnIndex,rowid:use.columnIndex<0});}
 /** whereexpr.c:exprMightBeIndexed: recursive uses are dependencies, not
  * ordinary bindings. A non-column operand may bind only an actual expression
@@ -400,7 +400,13 @@ function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"
  // except the LHS so a dependency in any list member cannot disappear.
  const lhs=children[0];let mask=0n;for(const child of node.children)if(child.kind==="reduction"&&child!==lhs)mask|=prereq(resolved,child);return mask;
 }
-function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){const at=resolved.sources.indexOf(use.source);if(at>=0)mask|=sourceBit(at);}return mask;}
+function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
+ // resolve.c resolveAlias substitutes before whereexpr.c ExprUsage walks the
+ // tree. Alias reductions live outside the predicate's syntactic subtree.
+ let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){const at=resolved.sources.indexOf(use.source);if(at>=0)mask|=sourceBit(at);}
+ for(const [alias,value] of resolved.aliasUses??[])if(reductionContains(node,alias))mask|=prereq(resolved,value);
+ return mask;
+}
 function splitAnd(node:ExprReduction,out:ExprReduction[]):void {if(node.signature==="expr ::= expr AND expr"){for(const child of exprChildren(node))splitAnd(child,out);}else out.push(node);}
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
 function reverseOperator(op:WhereOperator):WhereOperator{return op==="lt"?"gt":op==="le"?"ge":op==="gt"?"lt":op==="ge"?"le":op;}

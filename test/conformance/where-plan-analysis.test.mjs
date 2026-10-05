@@ -179,3 +179,15 @@ test('production duplicate drop consumes budget and preserves first admission be
  budget.remaining+=1000;
  assert.equal(btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[],planBudget:budget}).length,1);
 });
+
+test('resolved result aliases contribute substituted WHERE dependencies and bindings',()=>{
+ const s=schema();
+ const r=resolve('SELECT l.a AS direct,l.id+1 AS computed FROM t l JOIN t r ON computed=r.id AND direct=r.a',s);
+ const terms=analyzeWhere(r).clause.terms.filter(term=>!term.virtual);
+ assert.equal(terms.length,2);
+ for(const term of terms)assert.equal(term.prereqAll,sourceBit(0)|sourceBit(1));
+ assert.equal(terms[0].prereqRight,sourceBit(0));
+ assert.equal(terms[1].left.sourceOrdinal,0,'direct alias retains its resolved column owner');
+ const precedence=resolve('SELECT id AS a FROM t WHERE a=id',s);
+ assert.equal(precedence.aliasUses.size,0,'source columns win over result aliases');
+});

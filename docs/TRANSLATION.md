@@ -886,3 +886,38 @@ subquery manifest 46 native, 19 allocated and 15/15 companions; pinned 51-case
 recapture, ORDER manifest 2/2, typecheck and diff check pass. This relevant combined
 run is not the historical broad 1543-test suite and does not supersede its red
 1539/1543 outcome. Peer dirty runtime/test/research files remain uncommitted.
+
+### Routed alias readiness and joined EXISTS membership (card-t-d, 2026-10-05)
+
+Pinned `resolve.c:642–702 resolveAlias` substitutes an already-resolved result
+expression after source lookup fails. `whereexpr.c:1827–1863 ExprUsage` then walks
+that substituted tree. TS retains alias identity in `ResolvedSelect.aliasUses`:
+`where-plan.ts columnUse` now follows that identity for direct-column admission,
+and `prereq` includes the substituted expression's sources. Previously syntax-only
+containment omitted those sources and allowed an ON predicate to read an unopened
+join input. Joined lowering/binding were already substituting the expression;
+this repairs their readiness contract, not SQL spelling or VM Column behavior.
+Root-owned WHERE algorithms otherwise remain intact.
+
+The independent Chinook B4 gap was measured progressing through linear typed
+membership (over 700k comparison units inside the unchanged 8s watchdog), not
+proven deadlock. Retained aggregate equality-EXISTS lowering materializes typed
+join/correlation key sets once. It now emits `EphemeralSort` before their probes;
+`EphemeralIndexCursor.found` narrows sorted intervals with KeyInfo comparisons,
+matching `vdbe.c:5368–5438 Found` → `btree.c:sqlite3BtreeIndexMoveto`'s ordered
+search. Shared sorted-state is invalidated on append; duplicates share this fact,
+not positions. Unsorted/window insertion-order membership remains linear. Sort
+publishes only after success; membership changes no scan position. VM continues
+to own PC, budgets, real host yields, cancellation, cleanup and reset.
+
+Browser adaptation remains sorted flat arrays/merge sort rather than native
+paged ephemeral Btree; this avoids a second mutable page allocator while retaining
+KeyInfo/NULL/INTEGER/REAL equality and ordered interval search. No native page,
+work-count, or error-timing equality is claimed. Existing specialized semijoin is
+retained, not a new general correlated-SELECT evaluator. Primitive regression
+covers descending/NULL keys, logarithmic comparisons, OpenDup shared invalidation,
+and checkpoint failure; public pinned-native-before alias/B4 captures and original
+public reset/admission tests pass. See
+[repair evidence](research/card-t-d-routed-alias-b4-repair.md) for exact commands,
+hashes, failed expanded checks and remaining integration gaps. Historical B4
+width credit is input-specific, not current universal completion certification.

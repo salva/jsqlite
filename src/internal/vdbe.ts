@@ -6222,6 +6222,7 @@ const outputStart=selectProgramBuilder.range(select.result.length);
       const rightLoop=ops.length,rightKey=compileExpressionTree(rightJoin,ops,allocate,parameters,compileAggregateSubquery);
       ops.push({code:'IdxInsert',p1:joinSet,keyStart:rightKey,keyCount:1},{code:'Next',p1:sources[1]!.cursor,p2:rightLoop});
       (ops[rightRewind] as {p2:number}).p2=ops.length;
+      ops.push({code:'EphemeralSort',p1:joinSet});
       ops.push({code:'OpenRead',p1:sources[0]!.table.rootPage,p2:sources[0]!.cursor});
       const leftRewind=ops.length;ops.push({code:'Rewind',p1:sources[0]!.cursor,p2:0});
       const leftLoop=ops.length,leftKey=compileExpressionTree(leftJoin,ops,allocate,parameters,compileAggregateSubquery);
@@ -6239,6 +6240,7 @@ const outputStart=selectProgramBuilder.range(select.result.length);
       const nextAt:number[]=[];for(let level=sources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:'Next',p1:sources[level]!.cursor,p2:bodies[level]!});}
       const end=ops.length;for(let level=0;level<sources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?end:nextAt[level-1]!;for(const reject of rejects)(ops[reject.at] as {p2:number}).p2=nextAt[reject.level]!;
     }
+    ops.push({code:'EphemeralSort',p1:set});
     const end=ops.length;(ops[onceAt] as {p2:number}).p2=end;
     const probe=compileExpressionTree(outer,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:probe,output:result,affinity:expressionAffinity(local)??'numeric',negated:false});return result;
    }

@@ -1,3 +1,4 @@
+import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';import path from 'node:path';import test from 'node:test';import {startFixtureServer} from './fixture-server.mjs';import {openFixture} from './public-api-adapter.mjs';
 import {open,JSQLiteError} from '../../src/index.ts';
 import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
@@ -8,7 +9,7 @@ import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
 import {btreeFromStorage} from '../../src/internal/btree.ts';
 import {loadSchemaGraph} from '../../src/internal/schema.ts';
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
-async function withDb(fn,limits){const b=await startFixtureServer(root);let db;try{const request=new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`);db=limits?await open(request,{limits}):await openFixture(request);await fn(db)}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>b.server.close(e=>e?j(e):r()))}}
+async function withDb(fn,limits){const b=await startFixtureServer(root);let db;try{const request=new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/empty`);db=limits?await open(request,{limits}):await openFixture(request);await fn(db)}finally{try{db?.closeDeferred()}catch{}await closeTestServer(b.server)}}
 test('unordered scalar UNION ALL preserves arm order/multiplicity and leftmost name',()=>withDb(async db=>{const s=db.prepare('SELECT 2 AS v UNION ALL SELECT 1 UNION ALL SELECT 2').statement;try{assert.equal(s.columnMetadata(0).name,'v');const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[2n,1n,2n])}finally{s.finalize()}}));
 test('compound LIMIT/OFFSET is global and coerced at first step',()=>withDb(async db=>{let s=db.prepare('SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 1').statement;try{assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);assert.equal(await s.step(),'done')}finally{s.finalize()}s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 'x'").statement;await assert.rejects(()=>s.step(),e=>e?.kind==='sqlite'&&e?.code===20);assert.throws(()=>s.finalize(),e=>e?.code===20)}));
 test('width mismatch rejects before any arm can execute',()=>withDb(async db=>{assert.throws(()=>db.prepare('SELECT 1 UNION ALL SELECT 2,3'),e=>e?.kind==='sqlite'&&e?.code===1)}));
@@ -19,8 +20,8 @@ test('single-column set ORDER resolves aliases, ordinals, and generated structur
 test('ordered UNION ALL uses stable typed sorter and compound-wide LIMIT',()=>withDb(async db=>{for(const [sql,expected] of [['SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 ORDER BY v',[1n,2n,3n]],['SELECT 2+1 AS v UNION ALL SELECT 1+1 ORDER BY 2+1',[2n,3n]],['SELECT 3 AS v UNION ALL SELECT 1 UNION ALL SELECT 2 ORDER BY v LIMIT 1 OFFSET 1',[2n]]]){const s=db.prepare(sql).statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected)}finally{s.finalize()}}}));
 test('ordered UNION ALL compares every ORDER term across multi-column arms',()=>withDb(async db=>{const s=db.prepare('SELECT 1 AS a,2 AS b UNION ALL SELECT 1,1 UNION ALL SELECT 0,9 ORDER BY a,b').statement;try{assert.equal(s.columnMetadata(0).name,'a');assert.equal(s.columnMetadata(1).name,'b');const rows=[];while(await s.step()==='row')rows.push([s.column(0),s.column(1)]);assert.deepEqual(rows,[[0n,9n],[1n,1n],[1n,2n]])}finally{s.finalize()}}));
 test('ordered compound reset after a yielded row restarts all producers',()=>withDb(async db=>{const sql='SELECT 1 AS a,2 AS b UNION ALL SELECT 1,1 UNION ALL SELECT 0,9 UNION ALL SELECT 2,0 ORDER BY a,b LIMIT 2 OFFSET 1';const s=db.prepare(sql).statement;try{assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1)],[1n,1n]);s.reset();const rows=[];while(await s.step()==='row')rows.push([s.column(0),s.column(1)]);assert.deepEqual(rows,[[1n,1n],[1n,2n]],'reset rebuilds the ordered compound from its first producer rather than resuming after the yield')}finally{s.finalize()}const admitted=db.prepare('SELECT 99').statement;try{assert.equal(await admitted.step(),'row');assert.equal(admitted.column(0),99n)}finally{admitted.finalize()}}));
-test('table compound set-to-UNION-ALL handoff preserves the collapsed prefix then suffix multiplicity',async()=>{const bridge=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));const s=db.prepare('SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta').statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8',7n]);assert.equal(s.columnMetadata(0).name,'v')}finally{s.finalize()}}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}});
-test('table compound ORDER ownership is generated structure, not token text',async()=>{const bridge=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));const s=db.prepare('SELECT a FROM left_meta UNION ALL SELECT b FROM right_meta ORDER BY ((left_meta."a")) COLLATE BINARY').statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8']);assert.throws(()=>db.prepare('SELECT a FROM left_meta UNION ALL SELECT b FROM right_meta ORDER BY right_meta.a'),e=>e?.kind==='sqlite'&&e?.code===1)}finally{s.finalize()}}finally{try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}});
+test('table compound set-to-UNION-ALL handoff preserves the collapsed prefix then suffix multiplicity',async()=>{const bridge=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));const s=db.prepare('SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta').statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8',7n]);assert.equal(s.columnMetadata(0).name,'v')}finally{s.finalize()}}finally{try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}});
+test('table compound ORDER ownership is generated structure, not token text',async()=>{const bridge=await startFixtureServer(root);let db;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));const s=db.prepare('SELECT a FROM left_meta UNION ALL SELECT b FROM right_meta ORDER BY ((left_meta."a")) COLLATE BINARY').statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8']);assert.throws(()=>db.prepare('SELECT a FROM left_meta UNION ALL SELECT b FROM right_meta ORDER BY right_meta.a'),e=>e?.kind==='sqlite'&&e?.code===1)}finally{s.finalize()}}finally{try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}});
 test('structured VALUES arms participate without fabricated UNION parsing',()=>withDb(async db=>{for(const [sql,expected] of [["VALUES(2),(1) UNION ALL SELECT 3",[2n,1n,3n]],["VALUES(2),(1),(1) UNION SELECT 2",[1n,2n]],["VALUES(1),(2) INTERSECT VALUES(2),(3)",[2n]]]){const s=db.prepare(sql).statement;try{const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected)}finally{s.finalize()}}}));
 
 test('compound private state enforces row and byte bounds and restores admission',async()=>{
@@ -31,28 +32,28 @@ test('compound private state enforces row and byte bounds and restores admission
    db=await open(url.clone(),{limits});s=db.prepare(sql).statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit'&&e.message===message);assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;db.closeDeferred();db=undefined;
   }
   db=await open(url.clone(),{limits:{maxRows:8,maxResultBytes:64}});s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8',7n]);s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('compound active suspension preserves PC, exclusive admission, cancellation, cleanup, reset and finalize',async()=>{
  const timer=globalThis.setTimeout;let release,reached;const suspended=new Promise(r=>{reached=r});globalThis.setTimeout=(cb,ms,...args)=>{if(ms===0&&!release){release=()=>timer(cb,0,...args);reached();return 0}return timer(cb,ms,...args)};
  const bridge=await startFixtureServer(root);let db,s;
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));const sql=Array.from({length:10},()=> 'SELECT x FROM t1').join(' UNION ALL ');s=db.prepare(sql).statement;const abort=new AbortController(),pending=(async()=>{while(await s.step({signal:abort.signal})==='row'){} })();await suspended;assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse');await assert.rejects(s.step(),e=>e.kind==='misuse');abort.abort('compound-stop');release();await assert.rejects(pending,e=>e.kind==='cancelled'&&e.cause==='compound-stop');assert.throws(()=>s.reset(),e=>e.kind==='cancelled');globalThis.setTimeout=timer;let count=0;while(await s.step()==='row')count++;assert.equal(count,320,'reset executes each arm once without restart or duplicates');s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
- finally{globalThis.setTimeout=timer;try{release?.()}catch{}try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ finally{globalThis.setTimeout=timer;try{release?.()}catch{}try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('compound deadline and exact work bound keep first error and cleanup',async()=>{
  const insert=EphemeralIndexCursor.prototype.insert,now=Date.now;let active=false;EphemeralIndexCursor.prototype.insert=async function(key,control){active=true;await control.checkpoint(1);return insert.call(this,key,control)};Date.now=()=>active?100:0;
  const bridge=await startFixtureServer(root);let db,s;
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step({timeoutMs:2}),e=>e.kind==='timeout');assert.throws(()=>s.finalize(),e=>e.kind==='timeout');s=undefined;Date.now=now;const limited=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(limited.step({maxWorkUnits:0}),e=>e.kind==='limit');assert.throws(()=>limited.finalize(),e=>e.kind==='limit');const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
- finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('ordered mixed table compound uses one typed global merge with LIMIT',async()=>{
  const bridge=await startFixtureServer(root);let db,s;try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
  for(const [sql,expected] of [['SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY v DESC',["8",7n,7n]],['SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY 1 DESC LIMIT 2 OFFSET 1',[7n,7n]]]){s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected);assert.equal(s.columnMetadata(0).name,'v');s.finalize();s=undefined}
  assert.throws(()=>db.prepare('SELECT a AS v FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta ORDER BY missing'),e=>e.kind==='sqlite'&&e.code===1);
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('table INTERSECT preserves the left representative across INTEGER/REAL equality',async()=>{
@@ -62,7 +63,7 @@ test('table INTERSECT preserves the left representative across INTEGER/REAL equa
   ['SELECT i AS v FROM storage_values INTERSECT SELECT r FROM storage_values UNION ALL SELECT i FROM storage_values ORDER BY v LIMIT 6',[-9223372036854775808n,0n,0n,1n,1n,2n]],
  ];
  for(const [sql,expected] of cases){s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,expected);s.finalize();s=undefined}
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('public output limits are independent from finite private compound limits',async()=>{
@@ -72,7 +73,7 @@ test('public output limits are independent from finite private compound limits',
   db=await open(request(),{limits:{maxRows:1,maxPrivateEntries:100,maxPrivateKeyBytes:1024,maxPrivateBytes:4096}});s=db.prepare('SELECT a FROM left_meta UNION ALL SELECT a FROM left_meta ORDER BY 1 LIMIT 1').statement;assert.equal(await s.step(),'row');assert.equal(await s.step(),'done');s.finalize();s=undefined;db.close();
   for(const [limits,message] of [[{maxPrivateEntries:0},'entry limit'],[{maxPrivateKeyBytes:0},'key exceeds byte limit'],[{maxPrivateBytes:0},'total byte limit']]){db=await open(request(),{limits:{maxRows:100,maxResultBytes:1000,...limits}});s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message.includes(message));assert.throws(()=>s.finalize(),e=>e.kind==='limit');s=undefined;db.close()}
   db=await open(request(),{limits:{maxRows:0,maxPrivateEntries:100}});s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message.includes('maxRows'));assert.throws(()=>s.finalize(),e=>e.kind==='limit');s=undefined;db.close();
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('public result bytes do not cap private compound sorter staging',async()=>{
@@ -81,7 +82,7 @@ test('public result bytes do not cap private compound sorter staging',async()=>{
   const limits={maxRows:1,maxResultBytes:128,maxPrivateEntries:10_000,maxPrivateKeyBytes:1_000_000,maxPrivateBytes:10_000_000};
   db=await open(request(),{limits});s=db.prepare('SELECT t AS v FROM storage_values UNION ALL SELECT t FROM storage_values ORDER BY v LIMIT 1').statement;assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'');assert.equal(await s.step(),'done');s.finalize();s=undefined;
   s=db.prepare('SELECT t FROM storage_values WHERE i=0').statement;await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message==='string or blob too big');assert.throws(()=>s.finalize(),e=>e.kind==='limit'&&e.message==='string or blob too big');s=undefined;
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('Program owns immutable finite private-state defaults',()=>{
@@ -103,7 +104,7 @@ test('compound zero LIMIT bypasses OFFSET coercion and producers',async()=>{
   db=await open(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
   for(const sql of ["SELECT 1 UNION ALL SELECT 2 LIMIT 0 OFFSET 'bad'","SELECT 1 UNION ALL SELECT 2 LIMIT ? OFFSET ?"]){s=db.prepare(sql).statement;if(sql.includes('?')){s.bind(1,0n);s.bind(2,'bad')}assert.equal(await s.step(),'done');s.reset();assert.equal(await s.step(),'done');s.finalize();s=undefined}
   s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.reset(),e=>e.message==='datatype mismatch');s.finalize();s=undefined;s=db.prepare("SELECT 1 UNION ALL SELECT 2 LIMIT 1 OFFSET 'bad'").statement;await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='datatype mismatch');assert.throws(()=>s.finalize(),e=>e.message==='datatype mismatch');s=undefined;
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((r,j)=>bridge.server.close(e=>e?j(e):r()))}
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('maxPrivateBytes is aggregate across simultaneous compound cursors and releases on reset',()=>withDb(async db=>{

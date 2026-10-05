@@ -5,6 +5,7 @@ import {btreeLoops, sourceBit, whereClause, wherePathSolver} from '../../src/int
 // SQLite 3.53.4 where.c:2744-2939, 5940-6000, 6060-6075.
 // Private owning-path discriminators; no new public planner diagnostics.
 const table = Object.freeze({kind:'table', name:'t', tableName:'t', rootPage:2,
+  szTabRow:16, nRowLogEst:200, hasStat1:false,
   columns:Object.freeze([]), indexes:Object.freeze([]), withoutRowid:false,
   primaryKey:Object.freeze([]), primaryKeyTerms:Object.freeze([])});
 const source = Object.freeze({table, cursorId:0});

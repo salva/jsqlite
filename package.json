@@ -5,6 +5,8 @@
   "type": "module",
   "description": "Experimental browser-safe read-only SQLite translation with bounded progressive SQL admission; not full SQLite compatibility.",
   "scripts": {
+    "test:integration": "python3 tools/test/integration.py",
+    "test:integration:harness": "python3 test/integration-runner.test.py",
     "typecheck": "tsc -p tsconfig.json",
     "generate:parser": "node tools/parser/generate.mjs",
     "check:parser": "node --test test/parser/generator.test.mjs",

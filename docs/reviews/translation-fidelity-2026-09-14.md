@@ -4657,6 +4657,21 @@ including NULL/zero/OFFSET errors and IN/outer LIMIT counterexamples. The origin
 conformance credit expands. Combined historical 1539/1543 remains nonpass unless
 and until an actual combined command produces a new denominator/outcome.
 
+### Routed alias / B4 current repair (2026-10-05, card-t-d)
+
+Current d9d6759 inputs contradicted reuse of historical B4 completion credit:
+original alias wrong rows and B4 8s completion watchdog reproduced independently.
+Alias source readiness omitted result-expression identity; WHERE column admission
+and prerequisites now consume alias substitution. B4 instrumentation showed
+progressing linear membership, not deadlock; once-built key sets now sort and
+probe ordered intervals through existing KeyInfo/private control. Original alias
+8/8 and B4 unchanged watchdog pass; combined C1–C6/Chinook/lifecycle/primitive
+79/79 and separate WHERE/collation17/17. Expanded compound-union-all watchdog
+remains unresolved (separately routed compound work); first expanded run also
+lacked generated WHERE captures, resolved by fresh pinned captures before17/17.
+No blanket acceptance, full-suite or native resource parity claim. Exact scope,
+hashes and evidence in docs/research/card-t-d-routed-alias-b4-repair.md.
+
 ### Revision 2026-10-05 — root-w compound watchdog residual ([[card:card-j-d-b-a-c]])
 
 Baseline `d9d6759c44aa5366ea5f32d0b64f4d13badb11a5` full-w manifest

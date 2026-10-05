@@ -1,3 +1,4 @@
+import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -7,7 +8,7 @@ import {startFixtureServer} from './fixture-server.mjs';
 const fixtureRoot=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 
 async function closeServer(server){
-  await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(server);
 }
 
 const metadata=statement=>Array.from({length:statement.columnCount},(_,index)=>statement.columnMetadata(index));

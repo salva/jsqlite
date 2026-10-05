@@ -1,3 +1,4 @@
+import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -38,7 +39,7 @@ test('public two- and three-source INNER loops preserve source scan order and pr
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -66,7 +67,7 @@ test('public multi-row INNER loop resets partial execution and rebinds without s
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -96,7 +97,7 @@ test('public multi-row INNER loop releases execution ownership after cancel, dea
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -118,7 +119,7 @@ test('public INNER sorter releases private state after budget failure',async()=>
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -140,7 +141,7 @@ test('public multi-row USING and NATURAL joins merge star columns and filter at 
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -171,7 +172,7 @@ test('public INNER execution preserves direct metadata and storage classes in ev
    }
   }
  }finally{
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -195,7 +196,7 @@ test('public compound SELECT executes join-bearing arms in either arm position',
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -219,7 +220,7 @@ test('public INNER predicates preserve NULL and storage-class comparison distinc
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -240,7 +241,7 @@ test('public INNER ON comparison inherits BINARY, NOCASE, and RTRIM column colla
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -264,7 +265,7 @@ test('public INNER ON honors explicit COLLATE and left-operand declared-collatio
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -283,7 +284,7 @@ test('public three-source USING chains distinguish merged star from qualified st
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -302,7 +303,7 @@ test('public three-source NATURAL chains derive every common-column boundary and
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -322,7 +323,7 @@ test('public INNER loop enforces row budget after partial progress and releases 
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -342,7 +343,7 @@ test('public INNER loop cancellation after an emitted row releases execution sta
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -361,7 +362,7 @@ test('public INNER loop deadline after an emitted row releases execution state',
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -390,7 +391,7 @@ test('public INNER sorter releases private state after key and aggregate-byte bu
    }
   }
  }finally{
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -415,7 +416,7 @@ test('public INNER DISTINCT releases ephemeral state after every private budget 
     assert.deepEqual(await rows(s),[[11n,11n],[11n,33n],[33n,11n],[33n,33n]]);
    }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}
   }
- }finally{await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));}
+ }finally{await closeTestServer(bridge.server);}
 });
 
 test('public INNER computed projection enforces result-size limit and resets cleanly',async()=>{
@@ -432,7 +433,7 @@ test('public INNER computed projection enforces result-size limit and resets cle
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -455,7 +456,7 @@ test('public heterogeneous three-source INNER chain preserves source metadata an
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -478,7 +479,7 @@ test('public INNER computed projection observes cancellation inside one long ste
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -499,7 +500,7 @@ test('public INNER computed projection observes deadline inside one long step an
   Date.now=realNow;
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -518,7 +519,7 @@ test('public INNER sorter observes cancellation while scanning and filling priva
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -537,7 +538,7 @@ test('public INNER sorter observes deadline while scanning and filling private s
   Date.now=realNow;
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -553,7 +554,7 @@ test('public unordered INNER product streams with zero private-state budgets',as
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -569,7 +570,7 @@ test('public unordered INNER LIMIT stops before the remaining Cartesian product'
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -590,7 +591,7 @@ test('public heterogeneous USING and NATURAL use left collation and suppress the
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });
 
@@ -609,6 +610,6 @@ test('public three-source heterogeneous USING and NATURAL retain the first merge
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
-  await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
+  await closeTestServer(bridge.server);
  }
 });

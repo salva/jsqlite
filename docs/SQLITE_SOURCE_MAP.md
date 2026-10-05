@@ -560,3 +560,17 @@ See mutable audit adjudication for errors, exploratory gates and remaining reds.
   captures; `run-order-limit-contract-ts.mjs` compares full metadata and
   all-encoding rows/errors/reset/finalize, including text/NULL/zero/OFFSET and
   IN/outer-limit distinction. Bare derived outer ORDER admission is unchanged.
+
+### Routed alias / membership ownership (2026-10-05, card-t-d)
+
+- `resolve.c:642–702 resolveAlias` → `resolve.ts aliasUses/carrier` →
+  `whereexpr.c:1827–1863 ExprUsage` → `where-plan.ts columnUse/prereq`:
+  substituted identity owns direct-column admission and all-source readiness;
+  joined `vdbe.ts resolveTree/compilePredicate` consumes masks before execution.
+- `vdbe.c:5368–5438 Found` → `btree.c IndexMoveto` interval comparisons →
+  `private-state.ts EphemeralIndexCursor.found` for sorted keys. Aggregate
+  equality-EXISTS compiler emits `EphemeralSort` after once-only join/correlation
+  key construction; VM executes sorting/probing through existing private control.
+  Shared append invalidation/OpenDup, independent positions, KeyInfo/Mem and
+  unsorted linear branch retained. Flat-array/merge-sort adaptation and exact
+  regression/gaps: [report](research/card-t-d-routed-alias-b4-repair.md).

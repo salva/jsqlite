@@ -1,3 +1,4 @@
+import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -16,7 +17,7 @@ async function rows(sql){
     while(await statement.step()==='row')reset.push(Array.from({length:statement.columnCount},(_,i)=>statement.column(i)));
     assert.deepEqual(reset,result,'reset preserves compound rows and storage classes');
     statement.finalize();statement=undefined;return result;
-  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+  }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 }
 
 // Pinned 3.53.4 oracle capture: work product collation-oracle/native.json.
