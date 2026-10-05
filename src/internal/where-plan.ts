@@ -2,7 +2,7 @@
 // Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
 // whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
-import {whereOrCollect,type WhereOrSet} from "./where-or-cost.ts";
+import {whereOrCollect,whereOrAccumulate,type WhereOrSet} from "./where-or-cost.ts";
 import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
 import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
@@ -24,7 +24,7 @@ export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:Col
 export interface IndexConstraintAdmission {readonly term:WhereTerm;readonly physicalIndex:PhysicalIndex;readonly fieldOrdinal:number;readonly field:PhysicalIndexField;readonly keyInfoTerm:Readonly<KeyTerm>;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly comparison:SeekComparisonMode;readonly bound:"equality"|"lower-inclusive"|"lower-exclusive"|"upper-inclusive"|"upper-exclusive"}
 export interface RowidConstraint {readonly term:WhereTerm;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly bound:IndexConstraintAdmission["bound"]}
 export interface BtreeCapability {readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly equalityPrefix:readonly IndexConstraintAdmission[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
-export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index";readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
+export interface WhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or";readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
@@ -223,8 +223,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
  const insert=(loop:WhereLoop):boolean=>{
-  const candidate=freeze({...loop,outputRows:outputAdjust(loop,clause),sortIdentity:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
-  if(options.orSet){const cap=loop.capability,nLTerm=cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:candidate.prereq,rRun:candidate.runCost,nOut:candidate.outputRows});}
+  const candidate=freeze({...loop,outputRows:loop.kind==="multi-or"?loop.outputRows:outputAdjust(loop,clause),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
+  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:candidate.prereq,rRun:candidate.runCost,nOut:candidate.outputRows});}
   return whereLoopInsert(loops,candidate,budget);
  };
  if(!options.forcedIndex&&!source.table.withoutRowid)insert(scan);
@@ -235,6 +235,26 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(budget.remaining===0)return Object.freeze(loops);
  indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))||budget.remaining===0)break indexes;}}
 
+ // whereLoopAddOr. Copied cost builders share the construction budget;
+ // physical branch choice is deliberately absent from the published union.
+ if(!source.table.withoutRowid&&!options.forcedIndex&&!options.notIndexed&&!source.joinFromLeft?.left&&!source.joinFromLeft?.right&&!source.joinFromLeft?.outer&&!source.leftOfRightJoin){
+  for(const parent of clause.terms){
+   const info=parent.info;
+   if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n||parent.origin.kind==="join-on"&&parent.origin.join==="left")continue;
+   const sum:WhereOrSet={a:[]};let first=true;
+   for(const arm of info.clause.terms){
+    if(arm.virtual)continue;
+    const armClause=arm.info?.kind==="and"?arm.info.clause:whereClause([arm,...info.clause.terms.filter(t=>t.parentId===arm.id)],clause);
+    const current:WhereOrSet={a:[]};
+    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current});
+    if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
+    first=false;
+    if(budget.remaining===0){sum.a.length=0;break;}
+   }
+   for(const cost of sum.a){if(!insert(freeze({source,sourceOrdinal,kind:"multi-or",orInfo:info,capability:null,sortIdentity:0,prereq:cost.prereq,setupCost:0n,runCost:cost.rRun+1n,outputRows:cost.nOut,terms:Object.freeze([parent])})))break;}
+   if(budget.remaining===0)break;
+  }
+ }
  if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
@@ -484,8 +504,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
     let mask=0n;
     for(const alt of alternatives){
-     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
-     else if(alt.operator&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
+     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.info?.kind==="or")mask|=sub.info.indexable;else if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
+     else if(alt.info?.kind==="or")mask|=alt.info.indexable;else if(alt.operator&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
     }
     indexable&=mask;
    }
