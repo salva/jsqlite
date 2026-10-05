@@ -295,3 +295,13 @@ test('ordinary builder and copied OR builders read same pre-existing loop adjust
  const adjusted=btreeLoops(r.sources[0],0,clause,{...opts,ordinaryLoops:ordinary}).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
  assert.equal(adjusted.runCost,0n);assert.equal(adjusted.outputRows,9n);assert.deepEqual(ordinary,[weak]);
 });
+test('two-way OR emits necessary virtual bound while retaining original truth residual',()=>{
+ for(const [sql,operator] of [['a=? OR a<?','le'],['a>? OR a=?','ge'],['a<? OR a<?','lt']]){
+  const r=resolve(`SELECT id FROM t WHERE ${sql}`,schema()),c=analyzeWhere(r).clause;
+  // Separate anonymous parameters are not identical expressions in C.
+  if(sql.includes('?'))assert.equal(c.terms.filter(t=>t.virtual).length,0);
+ }
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=5 OR (a<5 AND b>2)',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'&&t.left.column.name==='a'));
+ assert.equal(c.terms[0].operator,null);assert.equal(c.terms[0].virtual,false);
+});

@@ -499,7 +499,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const ordered=[...drafts.filter(draft=>!draft.virtual),...drafts.filter(draft=>draft.virtual)];
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
  const terms:WhereTerm[]=ordered.map((draft,id)=>({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
- const clause:WhereClause={split,terms:Object.freeze(terms),outer};
+ const clause:WhereClause={split,terms,outer};
+ const combined:WhereTerm[]=[];
  for(const term of terms){
   const node=unwrap(ordered[term.id]!.node),origin=ordered[term.id]!.origin;
   if(node.signature==="expr ::= expr OR expr"){
@@ -517,6 +518,35 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     indexable&=mask;
    }
    Object.assign(term,{info:freeze({kind:"or" as const,parentTerm:term,clause:child,indexable})});
+   // whereNthSubterm / whereCombineDisjuncts: two original arms only.
+   const arms=child.terms.filter(t=>!t.virtual);
+   if(arms.length===2){
+    const subterms=(arm:WhereTerm)=>arm.info?.kind==="and"?arm.info.clause.terms:[arm];
+    const allowed=new Set<WhereOperator>(["eq","lt","le","gt","ge"]);
+    for(const one of subterms(arms[0]!))for(const two of subterms(arms[1]!)){
+     if(!one.operator||!two.operator||!allowed.has(one.operator)||!allowed.has(two.operator))continue;
+     const ops=[one.operator,two.operator];
+     if(!ops.every(op=>["eq","lt","le"].includes(op))&&!ops.every(op=>["eq","gt","ge"].includes(op)))continue;
+     if(one.originalIndexedOperand!==two.originalIndexedOperand)continue;
+     const a=one.expression.reduction as ExprReduction,b=two.expression.reduction as ExprReduction,ac=exprChildren(a),bc=exprChildren(b);
+     if(ac.length!==2||bc.length!==2)continue;
+     const same=(x:ExprReduction,y:ExprReduction)=>{
+      const xb=binding(resolved,x),yb=binding(resolved,y);
+      if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
+      // Anonymous variables at different token positions own distinct slots.
+      const xt=asExpr(x).tokens,yt=asExpr(y).tokens;
+      if(xt.some(t=>t.text==="?")||yt.some(t=>t.text==="?"))return x===y;
+      return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
+     };
+     if(!same(ac[0]!,bc[0]!)||!same(ac[1]!,bc[1]!))continue;
+     const op=(one.operator===two.operator?one.operator:ops.some(op=>op==="lt"||op==="le")?"le":"ge") as "eq"|"lt"|"le"|"gt"|"ge",text={eq:"=",lt:"<",le:"<=",gt:">",ge:">="}[op];
+     const node:ExprReduction={...a,signature:op==="eq"?"expr ::= expr EQ|NE expr":"expr ::= expr LT|GT|GE|LE expr",children:a.children.map(x=>x.kind==="terminal"?{...x,value:{...x.value,text}}:x)};
+     const analyzed=analyzeClause(resolved,includeRightTerms,[{node,origin}]).clause;
+     const base=terms.length+combined.length;
+     for(const derived of analyzed.terms)combined.push(freeze({...derived,id:base+derived.id,virtual:true,parentId:derived.parentId===null?null:base+derived.parentId,childIds:Object.freeze(derived.childIds.map(id=>base+id))}));
+    }
+   }
+
   }else if(split==="or"&&!term.operator){
    const parts:ExprReduction[]=[];splitAnd(node,parts);
    const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),orOwner).clause;
@@ -524,6 +554,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   }
   freeze(term);
  }
+ terms.push(...combined);Object.freeze(terms);
  return freeze({clause:freeze(clause),plannerEligible:true,fallback:null});
 }
 
