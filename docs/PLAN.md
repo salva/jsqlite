@@ -20,6 +20,40 @@ handoff is not an architecture reopening or whole-project completion gate.
 The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 
+## Current sequence: private local versioned alpha, then residual breadth
+
+Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
+LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
+SPEC is unchanged. This is not a registry/public repository release, external
+distribution, full SQLite compatibility certificate, or numerical coverage claim.
+Integration ownership [[card:card-v-d]] reuses the retained [[card:card-w]]
+runner/reproduction tooling; w's immutable dependency on v is not a reason to
+wait for w, activate it, or clone its work.
+
+1. Publish a finite proposed advertised-core/temporary-gap/permanent-exclusion
+   contract derived from current semantic owners, API, source map and mutable
+   audit. [Private alpha stabilization](research/card-v-private-alpha.md) owns
+   the candidate/evidence matrix and current blockers. Historical browser38/gap2
+   and integration225 results are provenance, not candidate certification.
+2. Stabilize a fresh exact committed-source checkout against pinned SQLite3.53.4
+   with reference/fixture identity, typed rows/metadata/errors and lifecycle;
+   realistic joins/aggregates/subqueries/CTEs/windows/common functions, indexes,
+   overflow, all encodings and schema admission including common STAT4 files;
+   malicious inputs, cleanup/reuse, execution/acquisition/prepare controls and
+   realistic bounded termination/performance. No skips, weakened expectations or
+   inflated watchdogs. Semantic defects go through Planner to original owners,
+   not an integration evaluator refactor. Settled JSON r v24/f1eb053 focused53/53
+   is retained; no optional JSON breadth is a prerequisite.
+3. Once blockers are resolved in exact committed source, coordinate the candidate
+   source/evidence manifest with original package [[card:card-v-a]] and demo
+   [[card:card-v-c]] owners. They produce a private local versioned artifact and
+   coherent examples. Reverify the actual artifact against that source; a source
+   pass does not certify an as-yet unbuilt versioned package.
+4. Return to progressive residual breadth under unchanged SPEC after bounded
+   private-alpha acceptance. Material observable-guarantee tradeoffs require
+   owner escalation; ordinary technical choices remain project-owned. Preserve
+   unrelated dirty/staged work and operator-owned configuration.
+
 ## Stage 0: Pin And Orient
 
 Use the verified latest-stable SQLite 3.53.4 full source/test archive selected by
