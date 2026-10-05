@@ -2,7 +2,7 @@
 // Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
 // whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
-import {SqlParseError,type ExprNode} from "./parse.ts";
+import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
 import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {SqlToken} from "./tokenize.ts";
@@ -403,11 +403,38 @@ function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"
  const lhs=children[0];let mask=0n;for(const child of node.children)if(child.kind==="reduction"&&child!==lhs)mask|=prereq(resolved,child);return mask;
 }
 function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
- // resolve.c resolveAlias substitutes before whereexpr.c ExprUsage walks the
- // tree. Alias reductions live outside the predicate's syntactic subtree.
- let mask=0n;for(const use of resolved.columnUses)if(use.selectDepth===0&&reductionContains(node,use.expression)){for(const ref of use.mergedSources??[use]){const at=resolved.sources.indexOf(ref.source);if(at>=0)mask|=sourceBit(at);}}
- for(const [alias,value] of resolved.aliasUses??[])if(reductionContains(node,alias))mask|=prereq(resolved,value);
- return mask;
+ // whereexpr.c:ExprUsageFull/exprSelectUsage uses the enclosing MaskSet:
+ // child-local cursor identities have no bit there. Correlated carriers live
+ // on the child NameContext, not in the parent's depth-zero columnUses.
+ const bitFor=(source:ResolvedSource):SourceMask=>{const at=resolved.sources.indexOf(source);return at<0?0n:sourceBit(at);};
+ const plans=new Map<SelectNode,ResolvedSelect>();
+ const remember=(plan:ResolvedSelect):void=>{plans.set(plan.source,plan);for(const child of plan.nested)remember(child);for(const arm of plan.compoundArms??[])remember(arm);};
+ remember(resolved);
+ const selectUsage=(plan:ResolvedSelect):SourceMask=>{
+   let mask=0n;
+   // Match exprSelectUsage's owning clauses, not LIMIT/OFFSET or every
+   // unrelated resolved child. Nested SELECTs are reached from these roots.
+   const expressions=[...plan.source.result,...plan.source.groupBy,
+     ...plan.source.orderBy.map(term=>term.expr),plan.source.where,
+     plan.source.having,...plan.sources.map(source=>source.on)];
+   for(const expression of expressions)if(expression?.reduction?.kind==='reduction')mask|=usage(plan,expression.reduction as ExprReduction);
+   const derived=plan.source.from.derived;
+   if(derived){const child=plans.get(derived.select);if(child)mask|=selectUsage(child);}
+   for(const arm of plan.compoundArms??[])mask|=selectUsage(arm);
+   return mask;
+ };
+ const usage=(owner:ResolvedSelect,root:ExprReduction):SourceMask=>{
+   let mask=0n;
+   for(const use of owner.columnUses)if(reductionContains(root,use.expression))for(const ref of use.mergedSources??[use])mask|=bitFor(ref.source);
+   for(const [alias,value] of owner.aliasUses??[])if(reductionContains(root,alias))mask|=usage(owner,value);
+   const walk=(tree:ExprReduction):void=>{
+     const child=plans.get(tree.semantic as SelectNode);
+     if(child){mask|=selectUsage(child);return;}
+     for(const value of tree.children)if(value.kind==='reduction')walk(value);
+   };
+   walk(root);return mask;
+ };
+ return usage(resolved,node);
 }
 function splitAnd(node:ExprReduction,out:ExprReduction[]):void {if(node.signature==="expr ::= expr AND expr"){for(const child of exprChildren(node))splitAnd(child,out);}else out.push(node);}
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}

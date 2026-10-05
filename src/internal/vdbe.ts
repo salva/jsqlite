@@ -3351,7 +3351,7 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
           const value=compileExpressionTree(bind(plan.source.result[0]!.reduction! as Reduction),ops,allocate,parameters,child);emitSelectDestination(ops,destination,value,1);builder.mark(end);builder.resolveLabel(end);
         }
       },{plans,limit:preparedLimit});
-      if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
+      (ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
     }
     if(tree.kind!=='aggregate'&&!expression.select.hasGroupBy&&!expression.select.hasHaving){
       // expr.c supplies the initialized Mem destination and normalized scalar
@@ -3368,13 +3368,15 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
         emitSelectDestination(ops,expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},value,1);
         builder.mark(end);builder.resolveLabel(end);
       }else       compileInnerTableSelect(expression.select,entry.plan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination:expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},scalarPrepared:true,sharedLimit:preparedLimit,...(binding?{expressionBinding:binding}:{}),cursorFor});
-      if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;
+      // Patch both explicit LIMIT and the synthesized scalar LIMIT 1 guard.
+      // Leaving the latter at pc0 escapes enclosing RIGHT continuations.
+      (ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;
       if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
       return result;
     }
     // select.c owns analysis, accumulator reset/finalization and Mem production.
     compileAggregateSelect(expression.select,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination:{kind:'mem',register:result},linkedPlan:entry.plan,scalarPrepared:true,sharedLimit:preparedLimit,cursorFor,...(binding?{expressionBinding:binding}:{})});
-    if(limit)(ops[limit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
+    (ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
   };
   return compileJoinSubquery;
 }

@@ -201,3 +201,15 @@ test('RightJoinLoop residual base boundary, readiness, origins and LTORJ',()=>{
  const later=resolve('SELECT x.id FROM t x FULL JOIN t y ON x.id=y.id RIGHT JOIN t z ON z.id=y.id WHERE y.id=3',s);
  assert.equal(later.sources[1].leftOfRightJoin,true);assert.deepEqual(rightJoinResidual(later,1),[]);assert.equal(rightJoinResidual(later,2).length,1);
 });
+test('SELECT usage retains enclosing identity through nested and compound owners',()=>{
+ const s=schema();
+ const cases=[['(SELECT z.id)=3',4n],['EXISTS(SELECT 1 WHERE z.id=3)',4n],['3 IN(SELECT z.id)',4n],['(SELECT (SELECT z.id))=3',4n],['(SELECT y.id)=3',2n],['(SELECT x.id) IS NULL',1n],['EXISTS(SELECT 1 FROM t z WHERE z.id=3)',0n],['(SELECT 1 UNION ALL SELECT z.id)=3',4n]];
+ for(const [predicate,mask] of cases){
+  const r=resolve(`SELECT (SELECT x.id) FROM t x RIGHT JOIN t y ON x.id=-1 LEFT JOIN t z ON z.id=y.id WHERE ${predicate}`,s);
+  const term=analyzeWhere(r,true).clause.terms.find(t=>t.origin.kind==='where');
+  assert.equal(term.prereqAll,mask,predicate);
+  assert.equal(rightJoinResidual(r,1).length,mask===4n?0:1,predicate);
+ }
+ const alias=resolve('SELECT (SELECT z.id) AS v FROM t x RIGHT JOIN t y ON x.id=-1 LEFT JOIN t z ON z.id=y.id WHERE v=3',s);
+ assert.equal(analyzeWhere(alias,true).clause.terms[0].prereqAll,4n);
+});

@@ -417,3 +417,5 @@ parity. Exact-export evidence and inherited prerequisite attribution are in
 `docs/research/card-k-h-b-runtime/closure.json`.
 
 RIGHT/FULL unmatched scans apply ready, non-ON residual predicates before downstream positioning, using the shared selected WHERE scan. Predicates requiring later sources retain final-row evaluation; a RHS left of a later RIGHT barrier retains upstream residual-extraction suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.
+
+Nested SELECT dependencies in represented WHERE scalar/EXISTS expressions retain enclosing-source readiness, including transitive nesting and resolved aliases. They must wait for later-source positioning just as direct column predicates do. Joined IN SELECT in this route remains temporary unsupported before execution; no result parity is claimed for its native captures.
