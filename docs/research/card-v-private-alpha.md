@@ -1,19 +1,19 @@
 # Private local alpha stabilization — [[card:card-v-d]]
 
-## Proposed finite advertised contract (not yet certified)
+## Finite private-local alpha contract (bounded review, not global certification)
 
 SPEC remains the broad read-only product scope. A private alpha describes current
 implemented admission and temporary debt, not a smaller product. No registry,
 public repository or external distribution; no operator configuration changes.
-Candidate independently tested: committed `2f1545c` (full identity in the
-[resumed diagnosis](card-v-alpha-resumed-diagnosis.md)). Fresh core238 and
-additional352 pass; private alpha.3 installed package/demo and Chromium38+2
-recaptured. Safety/performance breadth and final advertised matrix remain
-uncertified. Earlier `f1eb053`/`cc21352` evidence remains historical, not current
-candidate certification. Dirty/staged peer repairs are not implicitly included. JSON r approved v24/f1eb053 focused53/53 is
-settled; additional optional JSON breadth is not a release prerequisite.
+The independently tested runtime source is `2f1545c`, with fresh core238 and
+additional352 passing. Later committed test-only coverage establishes malicious
+input/reuse, realistic indexed throughput, real Chromium credential/CORS and
+8.5MB overflow delivery; see [final package reconciliation](card-v-a-final-alpha.md)
+for release source/artifact provenance and reuse boundaries. No dirty/staged peer
+repairs are included. Settled JSON r v24/f1eb053 remains retained; optional JSON
+breadth is not a prerequisite. Historical failed candidates stay historical.
 
-Proposed advertised core consists of the existing public open/prepare/step/reset/
+Advertised core consists of the existing public open/prepare/step/reset/
 finalize/bind/clear/column/close contract in [api](../api.md), for semantic graphs
 actually admitted by committed producers and consumers:
 
@@ -32,31 +32,26 @@ in-scope constructs must be identified honestly as temporary, not silently
 approximated or reclassified. A semantic acceptance predicate must be supplied
 by code/owner evidence, not a SQL-text allowlist invented by integration.
 
-## Temporary gaps and blockers
+## Supported evidence and temporary gaps
 
-Current working guide contains revision-specific claims that must not be merged
-into one compatibility claim. In particular it still records nonempty STAT4
-rejection, planner omissions and bounded cross-feature/declaration metadata
-limitations. **Common STAT4 DB admission is a candidate blocker until freshly
-verified or repaired**: omission of STAT4 optimizer selection is not a reason to
-reject opening/querying an otherwise usable DB. Inspect committed schema/load
-owners and pinned analyze.c/prepare.c before routing repair to Planner/originals.
-The prior two derived-composition browser probes are historical; current guide
-also describes later passing repairs. Fresh exact-source results decide their
-current status, not the old38/gap2 denominator. Other residual in-scope breadth
-remains temporary even if it is not proposed advertising for this alpha.
+| Supported finite intersection | Evidence and remaining boundary |
+|---|---|
+| Schema/storage/encodings | Common STAT4 admission, forced/unforced typed queries and reset now pass in all three encodings; native capture closure delivered. Optional STAT4 samples are not used for plan/cost estimation, not a database rejection. No native planner/cost parity claim. |
+| SELECT/function core | Native-bound 238-file engine suite, additional352 control tests and installed Chromium38 plus separately retained historical gap2 pass. Joins/aggregates/subqueries/CTEs/windows/functions apply only to producer/consumer graphs actually admitted; no arbitrary-composition guarantee or SQL-text allowlist. |
+| Values/lifecycle | INTEGER BigInt vs REAL, NULL/TEXT/BLOB, positional metadata, ownership, reset/saved errors/cleanup are covered by native expectations and public control tests. This is not all tests in every browser. |
+| Safety/acquisition | Actual HTTP limits/options/cancel/error/reuse; three-encoding malicious preparation/corruption campaign; actual Chromium same-site cross-origin default omission, opt-in/preflight/CORS denial/reuse. Not universal adversarial fuzzing, cross-site cookie policy or other-browser certification. |
+| Practical completion | Native exact211-row indexed Chinook range join repeated three times and 256-row 8.5MB indexed overflow TEXT/BLOB delivery repeated three times under unchanged watchdogs. Observed times are not latency, heap or arbitrary-query termination guarantees. |
+| Delivery | Private deterministic ESM/declaration closure, independent installed types/imports and local publish dry-run only; artifact-specific browser/demo and review identities in final evidence. No public distribution. |
 
-Additional current blockers: candidate core intersection/native differential
-matrix not yet executed; actual versioned source/package/demo manifest not yet
-produced. The executable candidate gate
-`test/conformance/private-alpha-stat4-admission.test.mjs` checks the existing
-independent pinned typed rows for forced/unforced queries, column name/type and
-reset on digest-bound STAT4 fixtures in all three encodings. It currently fails
-at prepare in exact f1eb053 source; the old rejection-boundary test is not a
-substitute for this admission requirement. See card status for run evidence.
-Any fresh timeout, wrong row/type/metadata/error or leaked state is a
-blocker requiring attribution. No skips, expected-value weakening or watchdog
-inflation. Material guarantee tradeoffs escalate to owner.
+Other untranslated read-only graphs, joined WITHOUT ROWID RIGHT/FULL tracking,
+joined IN SELECT routes and remaining optimizer breadth remain temporary in-scope
+gaps, per API/guide semantic owners. This does not retract accepted bounded routes
+or claim exhaustive compatibility. Old f1eb053 STAT4 prepare failure is provenance,
+not the repaired runtime's current admission. Original schema and repeated capture
+closures through2f1545c discharge that blocker; see resumed diagnosis for exact IDs.
+No known wrong advertised rows are accepted. Any new wrong row/type/metadata/error,
+state leak or timeout requires attribution; no skips, weakened expectations or
+watchdog inflation. Material guarantee changes require owner authorization.
 
 ## Permanent exclusions
 
@@ -82,5 +77,5 @@ Original package [[card:card-v-a]] and demo [[card:card-v-c]] owners receive the
 exact candidate commit/tree plus fixture/oracle/evidence identities after source
 stabilization. Artifact manifest must additionally name version, tarball digest,
 packed closure and demo inputs. Reverification after actual versioned artifact
-may require integration corrections. This document is a proposed contract and
-first sequencing delivery, **not alpha certification or global completion**.
+may require integration corrections. This document describes bounded private-local admission and its evidence boundary;
+final artifact review is recorded separately, never global completion.

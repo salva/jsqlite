@@ -28,32 +28,48 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
-## PRIVATE LOCAL versioned-alpha installed demo scaffold
+## PRIVATE LOCAL alpha
 
-Alpha verification must use an independently installed **actual versioned local
-tarball**, not worktree `dist/`. No alpha is certified yet: core stabilization,
-including the routed STAT4 admission gate, and a fresh reviewed candidate rerun
-remain pending. No public repository, registry or external distribution.
+The local alpha packages the implemented, bounded read-only core; it is not full
+SQLite compatibility, arbitrary SQL-composition support or a public release.
+[Finite supported/gap/exclusion matrix](docs/research/card-v-private-alpha.md)
+and [release evidence/identity](docs/research/card-v-a-final-alpha.md) identify the
+exact source, artifact and independent test boundaries. SPEC breadth is unchanged;
+unimplemented in-scope constructs remain temporary gaps, not new exclusions.
+Core stabilization and targeted adversarial/reuse, credential/CORS and realistic
+indexed/overflow scenarios pass on the identified runtime. Performance observations
+are finite tests, not workload-wide latency/heap guarantees or other-browser proof.
+Only private local consumption is authorized: no registry, public repository or
+external distribution. Final installed-artifact demo/review is tied to its digest.
 
 ```sh
-# Full explicit committed source; never HEAD or staged/dirty source.
+# Use the full source identity in the release evidence, not HEAD or dirty source.
 python3 tools/package/local-alpha.py \
-  --commit <40-hex-source-commit> --version 0.0.0-alpha.1 --name alpha-candidate
-python3 tools/package/installed-demo.py \
-  --package-manifest "$SAIVAGE_CARD_WORK_ROOT/alpha-candidate/local-alpha-manifest.json" \
-  --name alpha-installed-demo
-python3 -m http.server 8000 --bind 127.0.0.1 \
-  --directory "$SAIVAGE_CARD_WORK_ROOT/alpha-installed-demo"
+  --commit <40-hex-release-source-commit> --version 0.0.0-alpha.4 --name alpha-local
+npm install --ignore-scripts --no-audit --no-fund \
+  "$SAIVAGE_CARD_WORK_ROOT/alpha-local/jsqlite2-0.0.0-alpha.4.tgz"
 ```
 
-Open <http://127.0.0.1:8000/examples/browser/index.html>. The installed-demo step
-requires development Playwright/Chromium as described in
-[installed-demo instructions and release-note scaffold](docs/research/card-v-c-installed-alpha-demo.md).
-It verifies tarball/installed closure and exact-source demo inputs, changes only
-the copied demo import to installed `node_modules/jsqlite2/dist/index.js`, and
-runs the real-browser rows/error/cleanup checks. Version numbers identify local
-artifacts, not acceptance. Current admission and temporary gaps come from
-[API](docs/api.md)/[guide](docs/TRANSLATION.md), not an old fixed test denominator.
+```ts
+import { open } from 'jsqlite2';
+const db = await open('https://your-local-origin/database.sqlite');
+try {
+  const { statement } = db.prepare('SELECT 1');
+  if (!statement) throw new Error('no statement');
+  try {
+    while (await statement.step() === 'row') console.log(statement.column(0)); // 1n
+  } finally { statement.finalize(); }
+} finally { db.close(); }
+```
+
+Serve the complete installed `dist/` tree for unbundled browsers and import from
+its `index.js` URL, not the bare package name without a bundler/import map. Fetch
+uses default credentials omit; explicit Request/options retain their contract.
+Serve static demo inputs with the installed artifact using
+[installed-demo instructions](docs/research/card-v-c-installed-alpha-demo.md).
+`installed-demo.py --package-manifest <manifest> --name <new-child>` installs the
+actual tarball and runs the real-browser demo; this requires development-only
+Playwright/Chromium. No query backend or native runtime is used.
 
 ## Static browser demo quickstart (worktree development only)
 
@@ -98,9 +114,10 @@ Requires ES2022 (including BigInt), Fetch/Streams, AbortController, text codecs,
 and Web Crypto for SQL randomness. No runtime dependencies, Node APIs, native
 SQLite, WASM, dynamic code generation or telemetry are shipped.
 
-The package remains **private**, versioned `0.0.0-local-translated`: locally
-consumable experimental output, not registry release approval or a claim of full
-SQLite compatibility. SQL admission remains bounded as described above.
+The development package remains **private**, versioned `0.0.0-local-translated`;
+the explicit-source local alpha command applies a recorded `0.0.0-alpha.N`
+metadata overlay in its isolated export. Neither is registry release approval
+or a claim of full SQLite compatibility. SQL admission remains bounded above.
 Packaging explicitly includes only emitted JS/declarations, plus npm's mandatory
 package metadata and this README; reference sources, fixtures, tools and research
 are development-only. `npm pack` rebuilds before packing.

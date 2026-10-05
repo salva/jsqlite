@@ -22,12 +22,15 @@ inventory.
 
 ## Current sequence: private local versioned alpha, then residual breadth
 
-Independent [resumed candidate evidence](research/card-v-alpha-resumed-diagnosis.md)
-binds `2f1545c`: fresh core238/238 and additional352 pass, versioned alpha.3
-installed package/demo and Chromium38+2 recaptured. Historical failed238 remains
-failed for its old source. This discharges original core blockers, not final
-alpha certification: explicit adversarial/reuse and realistic performance matrix
-and final candidate-facing package/demo contract reconciliation remain required.
+Independent [resumed evidence](research/card-v-alpha-resumed-diagnosis.md) binds
+runtime `2f1545c`: core238/additional352 and installed alpha.3 browser/package
+checks pass. Later finite adversarial/reuse, indexed throughput, real credential/
+CORS and 8.5MB overflow coverage pass without runtime changes. Original blockers
+are discharged for this identity; old failures retain their source provenance.
+[Final package reconciliation](research/card-v-a-final-alpha.md) owns release
+source/artifact identity, changed packed-input recapture and remaining independent
+installed-demo/review handoff. This is private-local bounded delivery, not global
+compatibility, arbitrary compositions, performance or other-browser certification.
 
 Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
 LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
