@@ -429,3 +429,15 @@ test('actual recursive cost production stops capability traversal on exhaustion 
  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:1000},orSet:{a:[]}}),e=>e===sentinel);
  assert.equal(entries,1,'error prevents later capability/source exploration');
 });
+test('suspended capability enumeration does not resume after last permitted insertion',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? AND a=? AND a=?',schema()),a=analyzeWhere(r);
+ let visits=0,closed=0;
+ const needed={*[Symbol.iterator](){visits++;try{yield ROWID_NEEDED;}finally{closed++;}}};
+ const budget={remaining:2};
+ const loops=btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget});
+ assert.equal(budget.remaining,0);assert.equal(visits,1,'only first equality capability is constructed');assert.equal(closed,1);
+ assert.ok(loops.some(l=>l.kind==='index'));
+ const later=resolve('SELECT id FROM t WHERE id=?',schema());budget.remaining+=1000;
+ const laterLoops=btreeLoops(later.sources[0],0,analyzeWhere(later).clause,{neededColumns:needed,orderBy:[],resolved:later,planBudget:budget});
+ assert.ok(laterLoops.some(l=>l.kind==='rowid'),'replenished construction budget admits later source proposals');
+});
