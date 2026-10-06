@@ -392,3 +392,9 @@ test('necessary integer proof uses GetInt32 hex prefix and sign-bit branches',()
   assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${rhs1}/${rhs2}`);
  }
 });
+test('necessary combine compares dequoted COLLATE names without quote delimiters',()=>{
+ for(const rhs of ['"NOCASE"','[NOCASE]','`NOCASE`']){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a COLLATE NOCASE=5 OR a COLLATE ${rhs}<5`,schema())).clause;
+  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});

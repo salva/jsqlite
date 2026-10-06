@@ -408,7 +408,12 @@ type ExprReduction=LemonValue<SqlToken>&{readonly kind:"reduction"};
 function exprChildren(node:ExprReduction):ExprReduction[]{return node.children.filter((x):x is ExprReduction=>x.kind==="reduction"&&x.signature.startsWith("expr ::="));}
 function asExpr(node:ExprReduction):ExprNode {const tokens:SqlToken[]=[];const collect=(x:LemonValue<SqlToken>):void=>{if(x.kind==="terminal"){if(x.value)tokens.push(x.value);}else x.children.forEach(collect)};collect(node);return Object.freeze({kind:"tokens",tokens:Object.freeze(tokens),reduction:node});}
 function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signature==="expr ::= LP expr RP"||at.signature.startsWith("expr ::= expr COLLATE")){const child=exprChildren(at)[0];if(!child)break;at=child;}return at;}
-function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?sqliteAsciiFold(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
+function collationName(text:string):string {
+ const quote=text[0],end=quote==="["?"]":quote;
+ if(quote==='"'||quote==="'"||quote==="`"||quote==="[")text=text.slice(1,-1).split(end!+end!).join(end!);
+ return sqliteAsciiFold(text);
+}
+function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?collationName(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
 function reductionContains(root:ExprReduction,needle:ExprReduction):boolean {return root===needle||root.children.some(x=>x.kind==="reduction"&&reductionContains(x,needle));}
 function columnUse(resolved:ResolvedSelect,node:ExprReduction){let plain=unwrap(node);while(resolved.aliasUses?.has(plain))plain=unwrap(resolved.aliasUses.get(plain)!);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
@@ -549,6 +554,10 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       if(containsSelect(x)||containsSelect(y))return false;
       if(x.signature.startsWith("expr ::= expr COLLATE")||y.signature.startsWith("expr ::= expr COLLATE")){
        if(x.signature!==y.signature)return false;
+       const name=(n:ExprReduction)=>{const t=n.children[n.children.length-1];return t?.kind==="terminal"?collationName(t.value.text):null;};
+       if(name(x)!==name(y))return false;
+       const xchild=exprChildren(x)[0],ychild=exprChildren(y)[0];
+       return !!xchild&&!!ychild&&same(xchild,ychild);
       }else{
        const xb=binding(resolved,x),yb=binding(resolved,y);
        if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
