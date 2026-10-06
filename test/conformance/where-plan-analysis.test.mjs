@@ -1129,3 +1129,11 @@ test('actual pOrSet cost construction consumes transitive column scanner without
  assert.ok(ordinary.filter(l=>l.capability?.equalityPrefix.length).every(l=>l.prereq!==0n),'ordinary lowering remains unchanged until caller handoff');
  }
 });
+test('pOrSet exhausted budget closes suspended field scanner before later term RHS',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND a=?',s),c=analyzeWhere(r).clause;
+ const sentinel=new Error('late scanner RHS must remain suspended');
+ const late={...c.terms[1]};Object.defineProperty(late,'expression',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.equal(budget.remaining,0);
+});

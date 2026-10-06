@@ -82,8 +82,8 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   if(field>=physical!.declaredFieldCount){yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);return;}
   const scanField=physical!.fields[field]!;
   const target=costScan&&scanField.column?freeze({source:costScan.source,sourceOrdinal:ordinal,column:scanField.column,columnIndex:costScan.source.table.columns.indexOf(scanField.column),rowid:false}):null;
-  const matches=target&&costScan?[...scanWhereTerms(costScan.clause,target,costScan.resolved,term=>term.operator!==null&&(term.prereqRight&sourceBit(ordinal))===0n)]:terms;
-  const admissions=matches.map(term=>{
+  const matches=target&&costScan?scanWhereTerms(costScan.clause,target,costScan.resolved,term=>term.operator!==null&&(term.prereqRight&sourceBit(ordinal))===0n):terms;
+  const admit=(term:WhereTerm):IndexConstraintAdmission|null=>{
    if(!target||term.left?.source===target.source&&term.left.columnIndex===target.columnIndex)return admitIndexConstraint(term,physical!,field);
    // Cost-only whereScanNext admission. Keep original term/RHS provenance;
    // physical target is the index field, not a fabricated term.left.
@@ -91,8 +91,25 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    if(term.operator!=="is-null"&&term.effectiveCollation!==scanField.collation)return null;
    const affinity=comparisonAffinity(scanField.column!,term.rightAffinity);
    if(!affinityOk(scanField.column!,affinity))return null;
-   return freeze({term,physicalIndex:physical!,fieldOrdinal:field,field:scanField,keyInfoTerm:physical!.keyInfo.terms[field]!,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison:term.operator==="is-null"?freeze({kind:"is-null" as const}):freeze({kind:"comparison" as const,affinity,collation:term.effectiveCollation}),bound:bound(term.operator)});
-  }).filter((item):item is IndexConstraintAdmission=>item!==null).sort(admissionOrder);
+   return freeze({term,physicalIndex:physical!,fieldOrdinal:field,field:scanField,keyInfoTerm:physical!.keyInfo.terms[field]!,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison:term.operator==="is-null"?freeze({kind:"is-null" as const}):freeze({kind:"comparison" as const,affinity,collation:scanField.collation}),bound:bound(term.operator)});
+  };
+  if(target&&costScan){
+   // whereLoopAddBtreeIndex resumes whereScanNext only after the current
+   // term recursion returns SQLITE_OK. Do not inventory later RHS terms.
+   const lowers:IndexConstraintAdmission[]=[],uppers:IndexConstraintAdmission[]=[];
+   let constrained=false;
+   for(const term of matches){
+    const admission=admit(term);if(!admission)continue;
+    constrained=true;
+    if(admission.bound==="equality")yield* visit(field+1,[...equality,admission]);
+    else if(admission.bound.startsWith("lower"))lowers.push(admission);
+    else uppers.push(admission);
+   }
+   for(const lower of lowers.length?lowers:[null])for(const upper of uppers.length?uppers:[null])if(lower||upper)yield makeCapability(index,physical!,equality,lower,upper,ordinal,needed,order);
+   if(!constrained)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);
+   return;
+  }
+  const admissions=[...matches].map(admit).filter((item):item is IndexConstraintAdmission=>item!==null).sort(admissionOrder);
   for(const equal of admissions.filter(item=>item.bound==="equality"))yield* visit(field+1,[...equality,equal]);
   const lowers=admissions.filter(item=>item.bound.startsWith("lower")),uppers=admissions.filter(item=>item.bound.startsWith("upper"));
   if(!lowers.length&&!uppers.length){yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);return;}
