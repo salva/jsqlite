@@ -529,7 +529,7 @@ test('actual capabilities generators close through IteratorClose at budget bound
   closes=0;
   const costs={a:[]};
   btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2},orSet:costs});
-  assert.ok(closes>=2,'cost-only builder closes actual suspended generators too');
+  assert.equal(closes,1,'own DONE closes suspended constraint scan while capability frames finish naturally');
   assert.equal(costs.a.length,0,'next attempted insertion clears pOrSet on DONE');
 
   closes=0;
@@ -563,7 +563,7 @@ test('nested OR copied builders close suspended arm inventory on mid-arm exhaust
   btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
   assert.equal(budget.remaining,0);
   assert.ok(visits>1,'recursive arms reached after enclosing inventory');
-  assert.ok(closes>=2,'suspended arm capabilities and visit closed');
+  assert.equal(closes,0,'arm cost frames complete naturally on own DONE');
   assert.deepEqual(costs.a,[],'incomplete arm cannot publish an OR cost');
  }finally{proto.return=original;}
 });
@@ -1972,5 +1972,8 @@ test('ignored recursive BtreeIndex DONE resumes enclosing equality scanner',()=>
  // b recursion attempts DONE; caller ignores its rc and resumes a scan.
  assert.throws(()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
  assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ budget.remaining=0;
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.equal(set.a.length,0);
  }
 });

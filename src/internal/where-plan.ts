@@ -79,10 +79,10 @@ function makeCapability(index:IndexNode,physical:PhysicalIndex,equality:readonly
 function leftTargetCompatible(term:WhereTerm,source:ResolvedSource,ordinal:number):boolean {
  return !source.joinFromLeft.left||(term.outerOn===true&&term.joinOwner===ordinal);
 }
-function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,needed:ReadonlySet<NeededColumn>,order:readonly OrderRequirement[],targetSource:ResolvedSource,costScan?:{clause:WhereClause;resolved:ResolvedSelect;source:ResolvedSource}):Generator<BtreeCapability> {
+function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,needed:ReadonlySet<NeededColumn>,order:readonly OrderRequirement[],targetSource:ResolvedSource,costScan?:{clause:WhereClause;resolved:ResolvedSelect;source:ResolvedSource;result:{ok:boolean}}):Generator<BtreeCapability> {
  const physical=index.physical;if(!physical)return;
- // A suspended generator is the represented recursive rc==SQLITE_OK seam:
- // the builder resumes exploration only after insertion permits continuation.
+ // Cost proposals suspend at insertion. Feedback is captured per frame;
+ // ordinary proposals retain the existing generator/IteratorClose contract.
  function* visit(field:number,equality:readonly IndexConstraintAdmission[]):Generator<BtreeCapability>{
   if(field>=physical!.declaredFieldCount){yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);return;}
   const scanField=physical!.fields[field]!;
@@ -117,8 +117,8 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   if(target&&costScan){
    // where.c:3284,3580–3613: the enclosing insertion rc owns the next
    // scan transition; decrement-to-zero is still SQLITE_OK. Recursive
-   // return is ignored by C. Explore lazily until insertion returns DONE,
-   // rather than predicting DONE from the remaining counter.
+   // return is ignored by C. Resume frames lazily using their own insertion
+   // rc, not a global DONE inferred from the counter or a child return.
    let constrained=false;
    for(const term of matches){
     const admission=admit(term);if(!admission)continue;
@@ -126,16 +126,22 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
     if(admission.bound==="equality"){
      const prefix=[...equality,admission];
      yield makeCapability(index,physical!,prefix,null,null,ordinal,needed,order);
+     const rc=costScan.result.ok;
      if(field+1<physical!.declaredFieldCount)yield* visit(field+1,prefix);
+     costScan.result.ok=rc; // C deliberately ignores the recursive return.
+     if(!rc)return;
     }
     else if(admission.bound.startsWith("lower")){
      yield makeCapability(index,physical!,equality,admission,null,ordinal,needed,order);
+     const rc=costScan.result.ok;
      // WHERE_BTM_LIMIT recursion permits upper bounds only, restarting
      // the field scan after the lower-only proposal is inserted.
      for(const upperTerm of scanWhereTerms(costScan.clause,target,costScan.resolved,t=>(t.operator==="lt"||t.operator==="le")&&(t.prereqRight&sourceBit(ordinal))===0n)){
-      const upper=admit(upperTerm);if(upper)yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);
+      const upper=admit(upperTerm);if(upper){yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);if(!costScan.result.ok)break;}
      }
-    }else yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);
+     costScan.result.ok=rc;
+     if(!rc)return;
+    }else {yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);if(!costScan.result.ok)return;}
    }
    if(!constrained&&equality.length===0)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);
    return;
@@ -333,7 +339,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  }else if(rowEquals.length){for(const term of rowEquals){if(!propose(term,null,null)||budget.remaining===0)break;}}else {rowRanges:for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null]){if(!propose(null,lower,upper)||budget.remaining===0)break rowRanges;}}}
  // AddBtree continues from successful sPk into real indexes even at zero.
  if(!options.orSet&&budget.remaining===0)return Object.freeze(loops);
- indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source}:undefined)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)})))return Object.freeze(loops);if(!options.orSet&&budget.remaining===0)break indexes;}}
+ const indexResult={ok:true};
+ indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source,result:indexResult}:undefined)){indexResult.ok=true;if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))){if(options.orSet)indexResult.ok=false;else return Object.freeze(loops);}if(!options.orSet&&budget.remaining===0)break indexes;}if(options.orSet&&!indexResult.ok)return Object.freeze(loops);}
 
  // whereLoopAddOr. Copied cost builders share the construction budget;
  // physical branch choice is deliberately absent from the published union.
