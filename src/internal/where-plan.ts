@@ -573,6 +573,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // parse.y empty IN replaces a function-free lhs with lower-case
       // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
       // claim that replacement for function, PTR-function or SELECT carriers.
+      const producedFalse=new WeakSet<ExprReduction>();
       const emptyIn=(n:ExprReduction):ExprReduction=>{
        if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
        const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -584,11 +585,24 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
        const seed=asExpr(n).tokens[0]!,negative=op.signature.includes("NOT");
        const value:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:negative?"true":"false"}}]};
-       if(!hasFunc(lhs))return value;
+       if(!hasFunc(lhs)){if(!negative)producedFalse.add(value);return value;}
        const operator=negative?"OR":"AND";
        return {kind:"reduction",rule:0,signature:`expr ::= expr ${operator} expr`,children:[value,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:operator}},lhs]};
       };
-      x=emptyIn(x);y=emptyIn(y);
+      const producedAnd=(n:ExprReduction):ExprReduction=>{
+       n=emptyIn(parens(n));
+       if(n.signature!=="expr ::= expr AND expr")return n;
+       const es=exprChildren(n).map(producedAnd);
+       // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
+       // EP_HasFunc prevents deleting either child. SELECT flags unproved.
+       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(unsafe));
+       if(es.some(e=>producedFalse.has(e))&&!es.some(unsafe)){
+        const seed=asExpr(n).tokens[0]!;
+        return {kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"integer",text:"0"}}]}]};
+       }
+       let i=0;return {...n,children:n.children.map(c=>c.kind==="reduction"&&c.signature.startsWith("expr ::=")?es[i++]!:c)};
+      };
+      x=producedAnd(x);y=producedAnd(y);
       // parse.y singleton IN with a constant RHS and scalar LHS produces
       // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
       // constants here; function/compound constant admission needs its walker.
@@ -608,7 +622,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const constant=(v:ExprReduction):boolean=>{
         // Constant walking observes parser-produced empty-IN replacement,
         // not the discarded raw lhs. Reuse that semantic producer.
-        v=emptyIn(isAlias(parens(v)));
+        v=producedAnd(isAlias(parens(v)));
         const ts=asExpr(v).tokens;
         // TK_ID converts to TK_TRUEFALSE before name resolution in this
         // parser-time mode1 walk; EP_Quoted must prevent that conversion.
