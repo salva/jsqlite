@@ -1962,3 +1962,15 @@ test('AddOr terminal last arm at zero attempts publication DONE instead of dropp
  }
  }
 });
+test('ignored recursive BtreeIndex DONE resumes enclosing equality scanner',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2 AND a=?3',s),c=analyzeWhere(r).clause;
+ const sentinel=new Error('enclosing scan after ignored recursive DONE'),late={...c.terms[2]};
+ Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([c.terms[0],c.terms[1],late]),set={a:[]},budget={remaining:1};
+ // Forced index isolates AddBtreeIndex: first a prefix returns OK at zero;
+ // b recursion attempts DONE; caller ignores its rc and resumes a scan.
+ assert.throws(()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
+ assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ }
+});
