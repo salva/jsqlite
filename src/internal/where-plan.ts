@@ -608,6 +608,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const constant=(v:ExprReduction):boolean=>{
         v=parens(v);
         const ts=asExpr(v).tokens;
+        // TK_ID converts to TK_TRUEFALSE before name resolution in this
+        // parser-time mode1 walk; EP_Quoted must prevent that conversion.
+        if(v.signature==="expr ::= ID|INDEXED|JOIN_KW"&&ts.length===1&&/^(true|false)$/i.test(ts[0]!.text))return true;
         if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
         const es=exprChildren(v);
         const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);

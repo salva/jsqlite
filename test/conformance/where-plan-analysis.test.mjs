@@ -671,3 +671,15 @@ test('singleton IN CAST walk retains type token, child and nonconstant exclusion
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
  }
 });
+test('singleton IN constant walker prunes produced unquoted boolean IDs',()=>{
+ for(const rhs of ['true','FALSE']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton boolean IN proof retains case token and quoted ID exclusion',()=>{
+ for(const [rhs,other] of [['true','TRUE'],['true','false'],['"true"','"true"']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
+ }
+});
