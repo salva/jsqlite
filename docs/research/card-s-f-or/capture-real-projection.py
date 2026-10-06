@@ -35,4 +35,13 @@ for enc in ['utf-8','utf-16le','utf-16be']:
   assert d.sqlite3_finalize(st)==0
   eqp=n.explain(d,db,'EXPLAIN QUERY PLAN ',sql,[1]);ops=n.explain(d,db,'EXPLAIN ',sql,[1]);v['cases'].append({'id':id,'sql':sql,'metadata':meta,'eqp':eqp,'ops':ops,'runs':runs})
  assert d.sqlite3_close(db)==0;out['variants'].append(v)
+out['legacyControls']=[]
+advanced=json.loads((root/'test/conformance/cases/stage3-advanced-index.json').read_text())
+controls=[('left', 'test/conformance/fixtures/multisource-inner-oracle.db','SELECT * FROM l AS left_side LEFT JOIN r AS right_side USING(k) ORDER BY left_side.id',[])]
+for v in advanced['variants']:
+ for label,sql in [('forward','SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id'),('reversed','SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id'),('left','SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id')]:
+  controls.append((v['id']+'/'+label,v['fixture']['path'],sql,[1]))
+for id,path,sql,bindings in controls:
+ db=P();assert d.sqlite3_open_v2(str(root/path).encode(),C.byref(db),1,None)==0
+ rows,_=n.query(d,db,sql,bindings);out['legacyControls'].append({'id':id,'fixture':path,'sql':sql,'rows':rows});assert d.sqlite3_close(db)==0
 pathlib.Path(a.output).write_text(json.dumps(out,indent=2)+'\n');print('native',len(out['variants'])*len(cases)*4,'steps')

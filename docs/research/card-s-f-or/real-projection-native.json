@@ -3377,5 +3377,359 @@
         }
       ]
     }
+  ],
+  "legacyControls": [
+    {
+      "id": "left",
+      "fixture": "test/conformance/fixtures/multisource-inner-oracle.db",
+      "sql": "SELECT * FROM l AS left_side LEFT JOIN r AS right_side USING(k) ORDER BY left_side.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "61"
+          },
+          {
+            "type": "blob",
+            "hex": ""
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff8000000000000"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7261"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42"
+          },
+          {
+            "type": "blob",
+            "hex": "00ff"
+          },
+          {
+            "type": "real",
+            "ieee754be": "0000000000000000"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7262"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "9223372036854775807"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "736f6c6f"
+          },
+          {
+            "type": "blob",
+            "hex": "31"
+          },
+          {
+            "type": "real",
+            "ieee754be": "4000000000000000"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    }
   ]
 }

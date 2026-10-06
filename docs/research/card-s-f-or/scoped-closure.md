@@ -105,3 +105,27 @@ added existing single-table covering control rather than changing admission.
 proc-1485e739d650 native60 and public15/15. Native supplemental inventory stays
 separate from earlier102 and movement3. No preimplementation pass claimed for
 these expanded controls. Independent review remains after delivery ref.
+
+### Committed candidate gates and native correction of stale expectations
+
+First scoped commit0c5d290 (tree52f6bd5) kept all product changes isolated.
+Fresh exact225 proc-f35c8b3dc48a completed with two failures: LEFT wildcard
+expected INTEGER2n for declared REAL n; advanced-index nullable joined control
+expected INTEGER1n for REAL p.c. Pinned independent read-only native sourceId
+and existing fixtures confirm REAL2/REAL1 (all three encodings and forward/
+reversed/LEFT controls). Capture now retains these ten legacy controls alongside
+60 expanded binding runs. Only those two stale manual INTEGER expectations
+changed, with unchanged rowid/NULL/partial-index expectations; proc-3131d3f21871
+99/99. Original failures retained, not erased by later success. Inputs changed
+during first gate so its drift is not a committed-green claim; fresh final
+exact225 required. No raw-affinity rollback to make stale tests pass.
+
+proc-157532980191 focused426/426/type0/diff0 before legacy expectation fixes.
+proc-e89f1f44db42 build/package passed33 runtime modules/68 files, tarball
+SHA2562c1ea2f0e8fb6e58c464e47e90a0fb435f94bfe5a6f1329438e419f4ed93b1d7.
+Actual browser initially proc-b127fb7dff26 failed missing Playwright tooling;
+proc-54e410b8e4e3 installed development-only tooling in card work child and
+passed40/40 Chromium148.0.7778.96/Playwright1.60.0. This run omitted optional
+Chinook (not41 claim). proc-9ca4f3c41bfa fresh-built pinned library recaptures
+REAL60/nested3 byte-identical, package boundary0; later legacy capture rerun
+must be compared again at final inputs.

@@ -846,7 +846,7 @@ test('joined same-name operand cannot prove partial predicate across sources',as
      if(run){scan.reset();automatic.reset();scan.clearBindings();automatic.clearBindings()}
      scan.bind(1,1n);automatic.bind(1,1n);
      const control=await rows(scan);
-     assert.deepEqual(control,[[1n,1n],[2n,null]],`${variant.id}/${label}/${run}: nullable control`);
+     assert.deepEqual(control,[[1n,1],[2n,null]],`${variant.id}/${label}/${run}: nullable control`);
      assert.deepEqual(await rows(automatic),control,`${variant.id}/${label}/${run}: unforced`);
      assert.equal(privateAccounting(automatic).indexSeeks,0,`${variant.id}/${label}/${run}: no partial index seek`);
     }

@@ -31,7 +31,7 @@ test('LEFT emits duplicate matches and one unmatched row for false/NULL ON, whil
 
 test('LEFT USING/NATURAL keep left merged owner, qualified columns, wildcard order, aliases, and types',async()=>withDb('utf8',async db=>{
  let s=db.prepare('SELECT * FROM l AS left_side LEFT JOIN r AS right_side USING(k) ORDER BY left_side.id').statement;
- try{assert.deepEqual(metadata(s).map(x=>[x.name,x.table,x.origin]),[['id','l','id'],['k','l','k'],['v','l','v'],['n','l','n'],['id','r','id'],['w','r','w'],['z','r','z']]);const out=await rows(s);assert.deepEqual(out.at(-1),[9223372036854775807n,'solo',new Uint8Array([49]),2n,null,null,null]);assert.equal(out[2][1],null);assert.equal(out[2][4],null)}finally{s.finalize()}
+ try{assert.deepEqual(metadata(s).map(x=>[x.name,x.table,x.origin]),[['id','l','id'],['k','l','k'],['v','l','v'],['n','l','n'],['id','r','id'],['w','r','w'],['z','r','z']]);const out=await rows(s);assert.deepEqual(out.at(-1),[9223372036854775807n,'solo',new Uint8Array([49]),2,null,null,null]);assert.equal(out[2][1],null);assert.equal(out[2][4],null)}finally{s.finalize()}
  s=db.prepare('SELECT left_side.*,right_side.* FROM l AS left_side NATURAL LEFT JOIN r AS right_side ORDER BY left_side.id').statement;
  try{assert.deepEqual(metadata(s).map(x=>x.name),['id','k','v','n','id','k','w','z']);assert.equal((await rows(s)).length,4)}finally{s.finalize()}
 }));
