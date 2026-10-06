@@ -558,7 +558,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        // parse.y INTEGER / sqlite3ExprInt32 uses sqlite3GetInt32, not int64
        // runtime numeric conversion. Decimal parsing retains its prefix rule.
        const intValue=(text:string):bigint|null=>{
-        const hex=/^0[xX][0-9a-fA-F]+$/.test(text),digits=hex?text:/^[0-9]+/.exec(text)?.[0];
+        // GetInt32 stops at the first non-digit in both bases (including
+        // underscores), unlike runtime sqlite3DecOrHexToI64 conversion.
+        const hex=/^0[xX][0-9a-fA-F]+/.exec(text),digits=hex?hex[0]:/^[0-9]+/.exec(text)?.[0];
         if(!digits)return null;
         const value=BigInt(digits);return value<=2147483647n?value:null;
        };
