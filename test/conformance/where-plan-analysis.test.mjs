@@ -1089,3 +1089,15 @@ test('exprAnalyze produces equivalence ownership only after source affinity coll
  const c=analyzeWhere(resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a',schema())).clause;
  assert.ok(c.terms.filter(t=>t.left).every(t=>t.equivalence===false),'EP_OuterON excludes transitive producer');
 });
+test('fixed-slot equivalence scan resets outer position and excludes reverse equality cycles',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=?',s),c=analyzeWhere(r).clause;
+ assert.equal(typeof wherePlanning.scanWhereTerms,'function');
+ const lhs=c.terms[0].left;
+ const terms=[...wherePlanning.scanWhereTerms(c,lhs,r,t=>t.operator==='eq')];
+ assert.equal(terms.length,2);
+ assert.equal(terms[0],c.terms[0]);assert.equal(terms[1],c.terms[1]);
+ const temp=wherePlanning.whereClause([c.terms[0]],c);
+ assert.deepEqual([...wherePlanning.scanWhereTerms(temp,lhs,r,t=>t.operator==='eq')],[c.terms[0],c.terms[0],c.terms[1]],'stored scopes scanned rather than identity deduped');
+ const left=analyzeWhere(resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a WHERE u.a=?',s)).clause;
+ assert.equal([...wherePlanning.scanWhereTerms(left,left.terms.find(t=>t.left?.sourceOrdinal===0).left,resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a WHERE u.a=?',s),()=>true)].length,1);
+});

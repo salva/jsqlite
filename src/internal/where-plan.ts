@@ -514,6 +514,34 @@ function termEquivalence(resolved:ResolvedSelect,draft:{node:ExprReduction;origi
  if(a!==b&&(!numericAffinity(a)||!numericAffinity(b)))return false;
  return sqliteAsciiFold(l.column?.collation??"binary")===sqliteAsciiFold(r.column?.collation??"binary");
 }
+/** where.c:whereScanNext column equivalence visitation. Acceptance callback
+ * owns opMask/index affinity/collation admission; yielded terms retain their
+ * original RHS and binding provenance. Not a rewritten index constraint. */
+export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved:ResolvedSelect,accept:(term:WhereTerm)=>boolean):Generator<WhereTerm> {
+ const slots:ColumnBinding[]=[target];
+ const same=(a:ColumnBinding,b:ColumnBinding):boolean=>a.sourceOrdinal===b.sourceOrdinal&&a.columnIndex===b.columnIndex;
+ const rhs=(term:WhereTerm):ColumnBinding|null=>{
+  const root=term.expression.reduction;
+  if(!root||root.kind!=="reduction")return null;
+  const children=exprChildren(root),node=children[term.originalIndexedOperand==="right"?0:1];
+  return node?binding(resolved,node):null;
+ };
+ for(let i=0;i<slots.length;i++){
+  for(let wc:WhereClause|null=clause;wc;wc=wc.outer){
+   for(const term of wc.terms){
+    if(!term.left||!same(term.left,slots[i]!))continue;
+    // Expression-index fields require ExprCompareSkip, not sentinel equality.
+    if(target.columnIndex===-2)continue;
+    if(i>0&&term.origin.kind==="join-on"&&term.origin.join==="left")continue;
+    const right=rhs(term);
+    if(term.equivalence&&right&&slots.length<11&&!slots.some(slot=>same(slot,right)))slots.push(right);
+    if(!accept(term))continue;
+    if((term.operator==="eq"||term.operator==="is")&&right&&same(right,target))continue;
+    yield term;
+   }
+  }
+ }
+}
 function singleIndexMask(term:WhereTerm):SourceMask {
  return term.operator&&term.left&&(term.prereqRight&sourceBit(term.left.sourceOrdinal))===0n?sourceBit(term.left.sourceOrdinal):0n;
 }
