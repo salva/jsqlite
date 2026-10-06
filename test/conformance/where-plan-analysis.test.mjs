@@ -1402,3 +1402,9 @@ test('comparison collation production sees explicit COLLATE in resolved alias co
  }
  }
 });
+test('comparison implicit collation follows deferred operands before right column fallback',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [lhs,rhs,expected] of [['likely(a)','b','nocase'],['CAST(a AS TEXT)','b','nocase'],['+a','b','nocase'],['abs(a)','b','binary'],['?','likely(a)','nocase']]){
+ const r=resolve(`SELECT id FROM t WHERE ${lhs}=${rhs}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].effectiveCollation,expected,`${lhs}=${rhs}`);
+ }
+});
