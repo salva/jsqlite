@@ -1610,3 +1610,19 @@ test('shared AND production preserves raw zero and HasFunc and propagates produc
  assert.ok(func.terms.some(t=>t.operator==='eq'));
  }
 });
+test('singleton IN consumes produced literal null-test RHS before constant proof',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['b IN (1 ISNULL)','b IN ((1 ISNULL) AND b=?)']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.operator,'eq',predicate);
+ }
+});
+test('singleton EQ retains produced zero RHS and HasFunc prevents deletion',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b IN ((1 ISNULL) AND b=?)',schema(encoding))).clause.terms[0];
+ const es=t.expression.reduction.children.filter(c=>c.kind==='reduction'&&c.signature.startsWith('expr ::='));
+ const child=es[1].children.find(c=>c.kind==='reduction');
+ assert.equal(child.signature,'expr ::= term');
+ const blocked=analyzeWhere(resolve('SELECT id FROM t WHERE b IN ((1 ISNULL) AND abs(b)=?)',schema(encoding))).clause.terms[0];
+ assert.equal(blocked.operator,'in');
+ }
+});

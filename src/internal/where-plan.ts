@@ -767,7 +767,7 @@ function distinctFromProduction(n:ExprReduction):ExprReduction {
        const is=tokens[0]!;if(is.kind!=="terminal")return n;
        return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
 }
-function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=emptyInProduction):ExprReduction {
+function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=andProduction):ExprReduction {
  const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
        if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
        const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -775,7 +775,7 @@ function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprRe
        if(list?.kind!=="reduction"||op?.kind!=="reduction")return n;
        const values=directExprReductions(list),lhs=exprChildren(n)[0];
        if(values.length!==1||!lhs)return n;
-       const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
+       const rhs=produce(values[0]!),leaf=parens(rhs),tokens=asExpr(leaf).tokens;
        // exprNodeIsConstant(mode=1) continues through ordinary operators
        // and walks their children; it does not evaluate arithmetic. Keep
        // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
