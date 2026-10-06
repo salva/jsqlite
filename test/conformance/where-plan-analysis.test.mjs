@@ -410,3 +410,7 @@ test('function proof retains different names and DISTINCT after dequoting',()=>{
   assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('function ALL and omitted distinct produce the same Expr flags for combine',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=abs(u.b) OR t.a<abs(ALL u.b)',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});

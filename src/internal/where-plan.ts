@@ -597,6 +597,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
          if(a.kind==="terminal"&&b.kind==="terminal")return a.value.kind===b.value.kind&&(a.value.kind==="id"||a.value.kind==="keyword"?sqliteAsciiFold(a.value.text)===sqliteAsciiFold(b.value.text):a.value.text===b.value.text);
          if(a.kind!=="reduction"||b.kind!=="reduction")return false;
          if(a.signature.startsWith("expr ::=")&&b.signature.startsWith("expr ::="))return same(a,b);
+         // parse.y distinct semantic value only sets EP_Distinct for
+         // DISTINCT; ALL and the empty production leave identical flags.
+         if(a.signature.startsWith("distinct ::=")&&b.signature.startsWith("distinct ::="))return a.signature.includes("DISTINCT")===b.signature.includes("DISTINCT");
          if(a.signature!==b.signature||a.children.length!==b.children.length)return false;
          return a.children.every((c,i)=>carrier(c,b.children[i]!));
         };
