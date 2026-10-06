@@ -909,3 +909,13 @@ test('infix function operand retains NOT, escape argument and stored reversal',(
  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,x);
  }
 });
+test('infix HasFunc retains lhs in empty IN production',()=>{
+ for(const [x,y] of [["(u.b LIKE 'x') IN ()","false AND (u.b LIKE 'x')"],["(u.b GLOB 'x') NOT IN ()","true OR (u.b GLOB 'x')"]]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),x);
+ }
+});
+test('infix HasFunc prevents false child AND deletion',()=>{
+ const c=analyzeWhere(resolve("SELECT t.id FROM t JOIN t AS u WHERE t.a=((1 IN ()) AND (u.b LIKE 'x')) OR t.a<0",schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});

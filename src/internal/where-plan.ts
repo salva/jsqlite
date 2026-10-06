@@ -583,6 +583,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
       // claim that replacement for function, PTR-function or SELECT carriers.
       const producedFalse=new WeakSet<ExprReduction>();
+      // ExprFunction sets EP_HasFunc; ExprSetHeightAndFlags propagates it.
+      const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= expr likeop expr")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
       const emptyIn=(n:ExprReduction):ExprReduction=>{
        if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
        const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -591,7 +593,6 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return n;
        const hasSelect=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.children.some(hasSelect));
        if(hasSelect(lhs))return n; // SELECT-carried flags not yet proved.
-       const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
        const seed=asExpr(n).tokens[0]!,negative=op.signature.includes("NOT");
        const value:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:negative?"true":"false"}}]};
        if(!hasFunc(lhs)){if(!negative)producedFalse.add(value);return value;}
@@ -622,7 +623,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const es=exprChildren(n).map(producedAnd);
        // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
        // EP_HasFunc prevents deleting either child. SELECT flags unproved.
-       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(unsafe));
+       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||hasFunc(v)||v.children.some(unsafe));
        if(es.some(e=>producedFalse.has(e))&&!es.some(unsafe)){
         const seed=asExpr(n).tokens[0]!;
         const zero:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"integer",text:"0"}}]}]};
