@@ -1686,3 +1686,34 @@ test('recursive comparison production preserves HasFunc and raw-zero arithmetic'
  assert.equal(visit(t.expression.reduction),true);
  }
 });
+test('singleton IN does not scalarize parenthesized vector lhs',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE ((a,b)) IN (1)',schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= expr in_op LP exprlist RP');
+ }
+});
+test('discarded comparison descendant removes other cursor prerequisites',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT t.id FROM t CROSS JOIN t AS u WHERE t.b = (((1 ISNULL) AND u.a=?) + 2)',schema(encoding))).clause.terms[0];
+ assert.equal(t.prereqRight,0n);assert.equal(t.prereqAll,1n);
+ }
+});
+test('nested singleton RHS production emits inner EQ rather than retained IN',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b IN (1 IN (2))',schema(encoding))).clause.terms[0];
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr in_op LP exprlist RP'||v.children.some(visit));
+ assert.equal(visit(t.expression.reduction),false);
+ }
+});
+test('AND parse-time HasFunc follows COLLATE node flags not raw descendants',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (1 ISNULL) AND (abs(a) COLLATE BINARY)',schema(encoding))).clause;
+ assert.equal(c.terms.length,1);assert.equal(c.terms[0].expression.tokens[0].text,'0');
+ }
+});
+test('COLLATE HasFunc barrier is retained through unary/arithmetic flags',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['-(abs(a) COLLATE BINARY)','(abs(a) COLLATE BINARY)+1']){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE (1 ISNULL) AND (${rhs})`,schema(encoding))).clause;
+ assert.equal(c.terms.length,1);
+ }
+});

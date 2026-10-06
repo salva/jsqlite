@@ -702,11 +702,19 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
  if(inspected.signature==="expr ::= expr AND expr"){for(const child of exprChildren(inspected))splitAnd(child,out,resolved);}else out.push(at);
 }
 /** parse.y PExprIsNull inspects the already-produced child opcode after signs. */
+/** AddCollateToken attaches pLeft directly, without EP_Propagate. */
+function parseHasFunc(v:LemonValue<SqlToken>):boolean {
+ if(v.kind!=="reduction"||v.signature==="expr ::= expr COLLATE ID|STRING")return false;
+ return v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= expr likeop expr")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(parseHasFunc);
+}
+function carriesSelect(v:LemonValue<SqlToken>):boolean {
+ return v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.children.some(carriesSelect));
+}
 function andProduction(node:ExprReduction):ExprReduction {
  const parens=(v:ExprReduction):ExprReduction=>v.signature==="expr ::= LP expr RP"?parens(exprChildren(v)[0]!):v;
       const producedFalse=new WeakSet<ExprReduction>();
       // ExprFunction sets EP_HasFunc; ExprSetHeightAndFlags propagates it.
-      const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= expr likeop expr")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
+      const hasFunc=parseHasFunc;
       const emptyIn=(n:ExprReduction):ExprReduction=>{
        if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
        const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -726,7 +734,7 @@ function andProduction(node:ExprReduction):ExprReduction {
        const es=exprChildren(n).map(producedAnd);
        // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
        // EP_HasFunc prevents deleting either child. SELECT flags unproved.
-       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||hasFunc(v)||v.children.some(unsafe));
+       const unsafe=(v:LemonValue<SqlToken>):boolean=>hasFunc(v)||carriesSelect(v);
        if(es.some(e=>producedFalse.has(e))&&!es.some(unsafe)){
         const seed=asExpr(n).tokens[0]!;
         const zero:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"integer",text:"0"}}]}]};
@@ -850,7 +858,7 @@ function producesEmptyInTruth(node:ExprReduction):boolean {
  const list=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
  const lhs=exprChildren(node)[0];
  if(!lhs||list?.kind!=="reduction"||directExprReductions(list).length!==0)return false;
- const unsafe=(part:LemonValue<SqlToken>):boolean=>part.kind==="reduction"&&(part.signature.startsWith("select ::=")||part.signature.includes(" PTR ")||part.signature.startsWith("expr ::= expr likeop expr")||part.signature.startsWith("expr ::= ID")&&part.signature.includes(" LP ")||part.children.some(unsafe));
+ const unsafe=(v:LemonValue<SqlToken>):boolean=>parseHasFunc(v)||carriesSelect(v);
  return !unsafe(lhs);
 }
 function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
