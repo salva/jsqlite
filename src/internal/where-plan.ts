@@ -602,11 +602,13 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
        // exprNodeIsConstant(mode=1) continues through ordinary operators
        // and walks their children; it does not evaluate arithmetic. Keep
-       // unresolved ID/column/function/SELECT admission unproved here.
+       // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
+       // token and assigned-slot identity is checked later by same().
+       // Keep ID/column/function/SELECT admission unproved here.
        const constant=(v:ExprReduction):boolean=>{
         v=parens(v);
         const ts=asExpr(v).tokens;
-        if(ts.length===1)return ["integer","float","string","blob"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
+        if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
         const es=exprChildren(v);
         const ordinary=v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
         return ordinary&&es.length>0&&es.every(constant);

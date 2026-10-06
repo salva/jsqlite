@@ -648,3 +648,15 @@ test('singleton arithmetic IN proof does not evaluate or admit column/function c
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
  }
 });
+test('singleton IN mode-one constant walk admits retained named and numbered variables',()=>{
+ for(const rhs of [':bound','?1',':bound+1']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton variable IN proof keeps token-before-slot and distinct bind positions',()=>{
+ for(const [x,y] of [[':bound',':other'],[':bound',':BOUND'],['?01','?1'],['?1','?2'],['?','?'],['?+1','?+1']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${x})) OR t.a<(u.b=+(${y}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
