@@ -1591,3 +1591,22 @@ test('nested null production retains nonliteral child opcodes without evaluation
  assert.equal(t.expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL',predicate);
  }
 });
+test('parser produced false AND prevents discarded column arm ownership',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (1 ISNULL) AND b=?',schema(encoding))).clause;
+ assert.equal(c.terms.length,1);assert.equal(c.terms[0].operator,null);
+ assert.equal(c.terms[0].expression.tokens[0].text,'0');
+ }
+});
+test('shared AND production preserves raw zero and HasFunc and propagates produced false',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const predicate of ['(b IN ()) AND b=?','((1 ISNULL) AND b=?) AND a=?']){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause;
+ assert.equal(c.terms.length,1,predicate);assert.equal(c.terms[0].expression.tokens[0].text,'0');
+ }
+ const raw=analyzeWhere(resolve('SELECT id FROM t WHERE 0 AND b=?',schema(encoding))).clause;
+ assert.ok(raw.terms.some(t=>t.operator==='eq'));
+ const func=analyzeWhere(resolve('SELECT id FROM t WHERE (1 ISNULL) AND abs(b)=?',schema(encoding))).clause;
+ assert.ok(func.terms.some(t=>t.operator==='eq'));
+ }
+});

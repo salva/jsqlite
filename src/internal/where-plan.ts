@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return singletonInProduction(emptyInProduction(literalNullProduction(at)));
+ return singletonInProduction(andProduction(at));
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -702,6 +702,40 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
  if(inspected.signature==="expr ::= expr AND expr"){for(const child of exprChildren(inspected))splitAnd(child,out,resolved);}else out.push(at);
 }
 /** parse.y PExprIsNull inspects the already-produced child opcode after signs. */
+function andProduction(node:ExprReduction):ExprReduction {
+ const parens=(v:ExprReduction):ExprReduction=>v.signature==="expr ::= LP expr RP"?parens(exprChildren(v)[0]!):v;
+      const producedFalse=new WeakSet<ExprReduction>();
+      // ExprFunction sets EP_HasFunc; ExprSetHeightAndFlags propagates it.
+      const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= expr likeop expr")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
+      const emptyIn=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
+       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+       const lhs=exprChildren(n)[0];
+       if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return n;
+       const hasSelect=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.children.some(hasSelect));
+       if(hasSelect(lhs))return n; // SELECT-carried flags not yet proved.
+       const value=emptyInProduction(n);
+       if(producesEmptyInTruth(n)&&!op.signature.includes("NOT"))producedFalse.add(value);
+       return value;
+      };
+      const foldNullLiteral=(n:ExprReduction):ExprReduction=>literalNullProduction(n,producedAnd,v=>producedFalse.add(v));
+      const producedAnd=(n:ExprReduction):ExprReduction=>{
+       n=foldNullLiteral(emptyIn(distinctFromProduction(parens(n))));
+       if(n.signature!=="expr ::= expr AND expr")return n;
+       const es=exprChildren(n).map(producedAnd);
+       // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
+       // EP_HasFunc prevents deleting either child. SELECT flags unproved.
+       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||hasFunc(v)||v.children.some(unsafe));
+       if(es.some(e=>producedFalse.has(e))&&!es.some(unsafe)){
+        const seed=asExpr(n).tokens[0]!;
+        const zero:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"integer",text:"0"}}]}]};
+        producedFalse.add(zero);return zero;
+       }
+       let i=0;return {...n,children:n.children.map(c=>c.kind==="reduction"&&c.signature.startsWith("expr ::=")?es[i++]!:c)};
+      };
+ return producedAnd(node);
+}
 function literalNullProduction(node:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=v=>literalNullProduction(v),onFalse?:(v:ExprReduction)=>void):ExprReduction {
  node=nullIsProduction(node);
  if(node.signature!=="expr ::= expr ISNULL|NOTNULL"&&node.signature!=="expr ::= expr NOT NULL")return node;
@@ -895,42 +929,13 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // parse.y empty IN replaces a function-free lhs with lower-case
       // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
       // claim that replacement for function, PTR-function or SELECT carriers.
-      const producedFalse=new WeakSet<ExprReduction>();
-      // ExprFunction sets EP_HasFunc; ExprSetHeightAndFlags propagates it.
-      const hasFunc=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= expr likeop expr")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(hasFunc));
-      const emptyIn=(n:ExprReduction):ExprReduction=>{
-       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
-       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
-       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
-       const lhs=exprChildren(n)[0];
-       if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return n;
-       const hasSelect=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.children.some(hasSelect));
-       if(hasSelect(lhs))return n; // SELECT-carried flags not yet proved.
-       const value=emptyInProduction(n);
-       if(producesEmptyInTruth(n)&&!op.signature.includes("NOT"))producedFalse.add(value);
-       return value;
-      };
       const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
        n=nullIsProduction(n);
        const es=exprChildren(n);
        if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
        return null;
       };
-      const foldNullLiteral=(n:ExprReduction):ExprReduction=>literalNullProduction(n,producedAnd,v=>producedFalse.add(v));
-      const producedAnd=(n:ExprReduction):ExprReduction=>{
-       n=foldNullLiteral(emptyIn(distinctFromProduction(parens(n))));
-       if(n.signature!=="expr ::= expr AND expr")return n;
-       const es=exprChildren(n).map(producedAnd);
-       // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
-       // EP_HasFunc prevents deleting either child. SELECT flags unproved.
-       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||hasFunc(v)||v.children.some(unsafe));
-       if(es.some(e=>producedFalse.has(e))&&!es.some(unsafe)){
-        const seed=asExpr(n).tokens[0]!;
-        const zero:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"integer",text:"0"}}]}]};
-        producedFalse.add(zero);return zero;
-       }
-       let i=0;return {...n,children:n.children.map(c=>c.kind==="reduction"&&c.signature.startsWith("expr ::=")?es[i++]!:c)};
-      };
+      const producedAnd=andProduction;
       x=producedAnd(x);y=producedAnd(y);
       // parse.y singleton IN with a constant RHS and scalar LHS produces
       // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
@@ -966,7 +971,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
 
       // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
       // Compare the produced unary opcode and its child, not grammar aliases.
-      x=foldNullLiteral(x);y=foldNullLiteral(y);
+      x=andProduction(x);y=andProduction(y);
       const xn=nullTest(x),yn=nullTest(y);
       if(xn||yn)return !!xn&&!!yn&&xn.op===yn.op&&same(xn.child,yn.child);
 
