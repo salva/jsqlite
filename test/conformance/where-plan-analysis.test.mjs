@@ -1199,3 +1199,20 @@ test('transitive pOrSet retains semantic producer mayDrive rejection',()=>{
  assert.ok(set.a.every(v=>v.prereq!==0n),'transitive cost must not bypass producer safety contract');
  }
 });
+test('LEFT target index costs accept only terms owned by its ON cursor',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT t.id FROM t LEFT JOIN t AS u ON u.b=t.b WHERE u.a=?',s),c=analyzeWhere(r).clause,set={a:[]};
+ btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ assert.ok(set.a.every(v=>v.prereq!==1n),'WHERE equality cannot drive LEFT nullable target');
+ const ordinary=btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],forcedIndex:s.i});
+ assert.ok(ordinary.every(l=>l.capability.equalityPrefix.every(a=>a.term.origin.kind!=='where')));
+ const on=resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a',s),onClause=analyzeWhere(on).clause;
+ const copied=onClause.terms.find(t=>t.virtual&&t.left?.sourceOrdinal===1);assert.ok(copied);assert.equal(copied.joinOwner,1);
+ for(const owner of [1,2]){
+ const borrowed=wherePlanning.whereClause([Object.freeze({...copied,joinOwner:owner})]),cost={a:[]};
+ btreeLoops(on.sources[1],1,borrowed,{resolved:on,neededColumns:new Set([s.id]),orderBy:[],orSet:cost,planBudget:{remaining:200}});
+ assert.equal(cost.a.length>0,owner===1,'borrowed copied ON retains owning cursor');
+ }
+
+ }
+});
