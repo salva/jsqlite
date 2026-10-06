@@ -1296,3 +1296,11 @@ test('whereScanNext masked non-equivalence term does not inspect RHS expression'
  assert.deepEqual(terms,[upper]);assert.equal(reads,0);
  }
 });
+test('pOrSet scan exhaustion precedes outer clause lookup inventory',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?',s),c=analyzeWhere(r).clause;let reads=0;
+ const outer={outer:null,get terms(){reads++;throw new Error('outer lookup before scan exhaustion');}},clause=wherePlanning.whereClause(c.terms,outer),set={a:[]},budget={remaining:1};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ }
+});
