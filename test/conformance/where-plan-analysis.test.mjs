@@ -539,3 +539,30 @@ test('actual capabilities generators close through IteratorClose at budget bound
   assert.equal(closes,0,'internal generation error propagates without resuming suspended proposals');
  }finally{proto.return=original;}
 });
+test('production AddAll replenishes shared budget after exhausted source and continues later source',()=>{
+ const predicates=[...Array.from({length:150},()=> 't.a=?'),...Array.from({length:150},()=> 't.b=?'),'u.a=?'];
+ const r=resolve(`SELECT t.id,u.id FROM t JOIN t AS u WHERE ${predicates.join(' AND ')}`,schema());
+ let first=0,later=0,closed=0;
+ const needed0={*[Symbol.iterator](){first++;try{yield ROWID_NEEDED;}finally{closed++;}}};
+ const needed1={*[Symbol.iterator](){later++;yield ROWID_NEEDED;}};
+ const selected=planWhere(r,{neededColumns:[needed0,needed1],orderBy:[]});
+ assert.equal(first,20999,'21000 initial source budget includes scan before equality products');
+ assert.equal(closed,first);
+ assert.ok(later>0,'second source resumes capability production after +1000 budget');
+ assert.ok(selected.path.loops.some(l=>l.sourceOrdinal===1&&l.kind==='index'));
+});
+test('nested OR copied builders close suspended arm inventory on mid-arm exhaustion',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? OR (a=? AND (a=? OR a=?))',schema()),a=analyzeWhere(r);
+ const proto=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})()));
+ const original=proto.return;let closes=0,visits=0;
+ proto.return=function(value){closes++;return original.call(this,value);};
+ try{
+  const needed={*[Symbol.iterator](){visits++;yield ROWID_NEEDED;}};
+  const budget={remaining:5},costs={a:[]};
+  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
+  assert.equal(budget.remaining,0);
+  assert.ok(visits>1,'recursive arms reached after enclosing inventory');
+  assert.ok(closes>=2,'suspended arm capabilities and visit closed');
+  assert.deepEqual(costs.a,[],'incomplete arm cannot publish an OR cost');
+ }finally{proto.return=original;}
+});
