@@ -217,7 +217,9 @@ Single-table Case5 retains a common physical index only when every selected
 leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
 covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
 reads and existing deferred table positioning intact. Arm truth is tested at its ready frontier; fully tested selected parents omit
-repeated common-body truth, while untested parents remain downstream residuals. Index Rowid
+repeated common-body truth, while untested parents remain downstream residuals. Both outer constraints and the
+ordinary final joined consumer use the invocation-owned coded-term predicate
+([source-owner repair evidence](research/card-s-f-or/tested-parent-owner.md)). Index Rowid
 uses the integer tail cached during physical positioning; no separate index
 movement is introduced. Represented-inner levels likewise share an owned arm index
 cursor and publish common physical identity for level-bounded Column/Rowid rewrite;

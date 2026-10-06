@@ -41,8 +41,9 @@ and retains untested parent residual; fully tested parents are omitted after
 arm truth/dedup. Represented terms have no general coded/slice state.
 Single-table and represented-inner common-index Column/Rowid rewrite now consume
 retained physical arm identity. Joined arm residuals now skip notReady terms and
-retain full downstream parent truth; TERM_CODED/untested parent omission remains
-unimplemented, not early-read equivalence. Broader
+retain complete downstream parent truth only when untested terms remain. The
+ordinary final joined consumer now shares invocation-owned tested identities
+with outer constraints; fully tested parents omit repeated truth. Broader
 join/factoring fidelity remains incomplete. Planning/arm replanning now share the enclosing
 construction frontier; bounded public reproducer passes, not full runtime
 acceptance. Internal primitive evidence is in that card's status, not public

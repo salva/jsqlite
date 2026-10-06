@@ -845,7 +845,8 @@ and `or-correlated-in-lifecycle-review`; [evidence and boundaries](research/card
 
 `wherecode.c` Case5 factored-scope construction and `untestedTerms`/`disableTerm`
 → `where-plan.ts:orRuntimeArmClause` and `vdbe.ts:emitJoinedOr`, single-table
-OR arm truth, `codedOrIdentities`/`codedWhere` common-body residual routing.
+OR arm truth, `codedOrIdentities`/`codedWhere` via shared `termIsCoded` for outer constraints
+and ordinary final joined common-body residual routing.
 Eligible original indexable conjuncts exclude virtual, nullable-ON and subquery
 terms; represented row-value slices are not admitted. Fully tested parents omit
 repeated truth; unready arm predicates keep the complete original parent until
@@ -854,3 +855,7 @@ residual ownership. Covering cursor rewrites do not determine truth ownership.
 Tests: `or-unready-arm-frontier-review`, `or-nested-rowset-lifecycle-review`,
 `or-correlated-in-lifecycle-review`, `or-rowid-red`. [Authentication, source
 comparison and bounds](research/card-s-f-or/residual-frontier-closure.md).
+
+Ordinary tested-parent regression: `or-tested-parent-owner.test.mjs` compares
+pinned volatile/error function arm sites and typed public reset/rebind/error
+runs. [Native-first source-owner evidence](research/card-s-f-or/tested-parent-owner.md).
