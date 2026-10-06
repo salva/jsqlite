@@ -318,15 +318,15 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // upper-only scan, then resume stored term order. No Cartesian inventory.
  rowCost:for(const term of rowCostTerms()){
   if(term.operator==="eq"||term.operator==="is"){
-   if(!propose(term,null,null)||budget.remaining===0)break;
+   if(!propose(term,null,null))return Object.freeze(loops);
   }else if(term.operator==="gt"||term.operator==="ge"){
-   if(!propose(null,term,null)||budget.remaining===0)break;
+   if(!propose(null,term,null))return Object.freeze(loops);
    for(const upper of rowCostTerms(true)){
     if(upper.operator!=="lt"&&upper.operator!=="le")continue;
-    if(!propose(null,term,upper)||budget.remaining===0)break rowCost;
+    if(!propose(null,term,upper))return Object.freeze(loops);
    }
   }else if(term.operator==="lt"||term.operator==="le"){
-   if(!propose(null,null,term)||budget.remaining===0)break;
+   if(!propose(null,null,term))return Object.freeze(loops);
   }
  }
  }else if(rowEquals.length){for(const term of rowEquals){if(!propose(term,null,null)||budget.remaining===0)break;}}else {rowRanges:for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null]){if(!propose(null,lower,upper)||budget.remaining===0)break rowRanges;}}}

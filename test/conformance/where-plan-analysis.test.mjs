@@ -1229,11 +1229,10 @@ test('pOrSet rowid lower prefix inserts before upper recursion at budget boundar
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining:2};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget});
- assert.equal(budget.remaining,0);assert.equal(set.a.length,1);
- assert.equal(set.a[0].nOut,179n,'scan then lower-only construction, not lower+upper');
+ assert.equal(budget.remaining,0);assert.equal(set.a.length,0,'next pair insertion returns DONE');
  const mixed=resolve('SELECT id FROM t WHERE id>? AND id=?',s),mixCost={a:[]},mixBudget={remaining:2};
  btreeLoops(mixed.sources[0],0,analyzeWhere(mixed).clause,{resolved:mixed,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mixCost,planBudget:mixBudget});
- assert.equal(mixCost.a[0].nOut,179n,'later equality cannot suppress stored first range construction');
+ assert.equal(mixCost.a.length,0,'later equality reaches insertion DONE after stored first range');
  const full={a:[]},fullBudget={remaining:5};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:full,planBudget:fullBudget});
  assert.equal(fullBudget.remaining,1,'scan, lower, lower+upper, upper-only constructions');
@@ -1246,8 +1245,8 @@ test('rowid cost budget suspends lookup before later outer safety annotation',()
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>?',s),local=analyzeWhere(r).clause,base=local.terms[0];
  let reads=0;const late=Object.freeze({...base,id:99,get outerJoinSafe(){reads++;throw new Error('late rowid admission');}});
  const clause=wherePlanning.whereClause(local.terms,wherePlanning.whereClause([late])),set={a:[]},budget={remaining:2};
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,0);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0);
+ assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,1);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0);
  }
 });
 test('rowid upper restart filters opMask before semantic safety reads',()=>{
@@ -1255,8 +1254,8 @@ test('rowid upper restart filters opMask before semantic safety reads',()=>{
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,[lower,upper]=c.terms;
  let reads=0;const skipped=Object.freeze({...lower,id:99,get outerJoinSafe(){reads++;throw new Error('masked lower safety');}});
  const clause=wherePlanning.whereClause([lower,skipped,upper]),set={a:[]},budget={remaining:3};
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a[0].nOut,139n);
+ assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,1,'upper restart skips lower, then enclosing scan resumes it after OK');assert.equal(budget.remaining,0);assert.equal(set.a[0].nOut,139n);
  }
 });
 test('rowid cost rejects source-self prerequisites before safety admission',()=>{
@@ -1917,5 +1916,14 @@ test('terminal exact-budget cost is distinct from a pending range continuation',
  const costs={a:[]},budget={remaining:2};
  btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
  assert.equal(budget.remaining,0);assert.equal(costs.a[0].nOut,23n,'terminal upper proposal has no next constrained insertion');
+ }
+});
+test('sPk cost DONE clears pending range while terminal equality retains exact budget',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const [predicate,remaining,empty] of [['id>?1 AND id<?2',2,true],['id>?1 AND id<?2',3,true],['id=?1',2,false]]){
+ const s=schema(encoding),r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
+ assert.equal(budget.remaining,0);assert.equal(set.a.length,empty?0:1,predicate+remaining);
+ }
  }
 });
