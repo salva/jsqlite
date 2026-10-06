@@ -1869,3 +1869,34 @@ test('small-table pOrSet range clamps retain saved-output minus bound count belo
  assert.equal(two.costs.a[0].nOut,expectedTwo);
  }
 });
+test('ISNULL prefix cost retains ten LogEst across deeper equality and range',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),collect=predicate=>{
+ const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,costs={a:[]};
+ btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:{remaining:100}});return costs.a[0];
+ };
+ assert.equal(collect('a IS NULL AND b=?1').nOut,42n);
+ assert.equal(collect('a IS NULL AND b>?1').nOut,23n);
+ assert.equal(collect('a IS NULL AND b>?1 AND b<?2').nOut,10n);
+ }
+});
+test('admitted parenthesized IN retains immediate list cardinality',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),cost=predicate=>{
+ const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause;
+ return btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[]})[0];
+ };
+ const plain=cost('a IN (?1,?2)'),wrapped=cost('((a IN (coalesce(?1,?3),?2)))');
+ assert.equal(wrapped.runCost,plain.runCost);assert.equal(wrapped.outputRows,plain.outputRows);
+ }
+});
+test('ISNULL arm output reaches parent OR; NOT NULL arm cannot masquerade as a scan',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const notNull of [false,true]){
+ const s=schema(encoding,false,notNull),r=resolve('SELECT id FROM t WHERE (a IS NULL AND b>?1) OR blob=?2',s),c=analyzeWhere(r).clause;
+ const parent=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[]}).find(l=>l.kind==='multi-or');
+ if(notNull)assert.equal(parent,undefined);
+ else {assert.ok(parent);assert.equal(parent.outputRows,logEstAdd(23n,33n));assert.equal(parent.capability,null);}
+ }
+ }
+});
