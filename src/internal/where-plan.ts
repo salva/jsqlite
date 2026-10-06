@@ -538,22 +538,6 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     indexable&=mask;
    }
    Object.assign(term,{info:freeze({kind:"or" as const,parentTerm:term,clause:child,indexable})});
-   // whereNthSubterm / whereCombineDisjuncts: two original arms only.
-   const arms=child.terms.filter(t=>!t.virtual);
-   if(indexable!==0n&&child.terms.length===2){
-    const subterms=(arm:WhereTerm)=>arm.info?.kind==="and"?arm.info.clause.terms:[arm];
-    const allowed=new Set<WhereOperator>(["eq","lt","le","gt","ge"]);
-    for(const one of subterms(arms[0]!))for(const two of subterms(arms[1]!)){
-     // whereCombineDisjuncts tests eOperator WO_EQ/LT/LE/GT/GE, not
-     // the retained SQL operator. AND allowedOp cursor masks may include
-     // overlapping terms whose analyzed eOperator is only WO_EQUIV/zero.
-     if(singleIndexMask(one)===0n||singleIndexMask(two)===0n)continue;
-     if(!one.operator||!two.operator||!allowed.has(one.operator)||!allowed.has(two.operator))continue;
-     const ops=[one.operator,two.operator];
-     if(!ops.every(op=>["eq","lt","le"].includes(op))&&!ops.every(op=>["eq","gt","ge"].includes(op)))continue;
-     if(one.originalIndexedOperand!==two.originalIndexedOperand)continue;
-     const a=one.expression.reduction as ExprReduction,b=two.expression.reduction as ExprReduction,ac=exprChildren(a),bc=exprChildren(b);
-     if(ac.length!==2||bc.length!==2)continue;
      const same=(x:ExprReduction,y:ExprReduction):boolean=>{
       // exprCompare compares resolved TK_COLUMN iTable/iColumn, not the
       // original qualifier spelling. COLLATE remains a distinct node.
@@ -836,6 +820,22 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       if(xt.some(t=>t.text==="?")||yt.some(t=>t.text==="?"))return x===y;
       return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
      };
+   // whereNthSubterm / whereCombineDisjuncts: two original arms only.
+   const arms=child.terms.filter(t=>!t.virtual);
+   if(indexable!==0n&&child.terms.length===2){
+    const subterms=(arm:WhereTerm)=>arm.info?.kind==="and"?arm.info.clause.terms:[arm];
+    const allowed=new Set<WhereOperator>(["eq","lt","le","gt","ge"]);
+    for(const one of subterms(arms[0]!))for(const two of subterms(arms[1]!)){
+     // whereCombineDisjuncts tests eOperator WO_EQ/LT/LE/GT/GE, not
+     // the retained SQL operator. AND allowedOp cursor masks may include
+     // overlapping terms whose analyzed eOperator is only WO_EQUIV/zero.
+     if(singleIndexMask(one)===0n||singleIndexMask(two)===0n)continue;
+     if(!one.operator||!two.operator||!allowed.has(one.operator)||!allowed.has(two.operator))continue;
+     const ops=[one.operator,two.operator];
+     if(!ops.every(op=>["eq","lt","le"].includes(op))&&!ops.every(op=>["eq","gt","ge"].includes(op)))continue;
+     if(one.originalIndexedOperand!==two.originalIndexedOperand)continue;
+     const a=one.expression.reduction as ExprReduction,b=two.expression.reduction as ExprReduction,ac=exprChildren(a),bc=exprChildren(b);
+     if(ac.length!==2||bc.length!==2)continue;
      if(!same(ac[0]!,bc[0]!)||!same(ac[1]!,bc[1]!))continue;
      const normalized=(one.operator===two.operator?one.operator:ops.some(op=>op==="lt"||op==="le")?"le":"ge") as "eq"|"lt"|"le"|"gt"|"ge";
      // Our retained expression keeps the original operands even when analysis
@@ -864,8 +864,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const candidate=child.terms.find(t=>t.operator==="eq"&&t.left&&t.left.sourceOrdinal!==previousCursor&&(chngToIN&sourceBit(t.left.sourceOrdinal))!==0n);
     if(!candidate?.left)break;
     previousCursor=candidate.left.sourceOrdinal;
-    // Expression-index identity is deliberately unproved at this producer seam.
-    if(candidate.left.columnIndex===-2)continue;
+    const candidateExprs=exprChildren(candidate.expression.reduction as ExprReduction);
+    const candidateLhs=candidateExprs[candidate.originalIndexedOperand==="right"?1:0]!;
     const selected:WhereTerm[]=[];let ok=true;
     // The pinned TERM_OK pass visits every stored entry, including copied
     // originals and virtual commutations. Other cursors clear their mark;
@@ -875,6 +875,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
      if(oriented.left.columnIndex!==candidate.left.columnIndex){ok=false;continue;}
      const es=exprChildren(oriented.expression.reduction as ExprReduction);
      const lhs=es[oriented.originalIndexedOperand==="right"?1:0]!,rhs=es[oriented.originalIndexedOperand==="right"?0:1]!;
+     // XN_EXPR is shared by every expression field, not a column identity.
+     // exprAnalyzeOrTerm requires sqlite3ExprCompare(...,-1)==0 here.
+     if(candidate.left.columnIndex===-2&&!same(lhs,candidateLhs)){ok=false;continue;}
      const rightAffinity=resolvedExpressionAffinity(rhs,resolved),leftAffinity=resolvedExpressionAffinity(lhs,resolved);
      if(rightAffinity!==undefined&&rightAffinity!==leftAffinity){ok=false;continue;}
      selected.push(oriented);

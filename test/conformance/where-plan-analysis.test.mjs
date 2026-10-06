@@ -980,3 +980,24 @@ test('OR-IN retry chooses second cursor and publishes marked RHS in clause order
  assert.equal(child.prereqRight,sourceBit(0));
  assert.equal(child.expression.tokens.map(t=>t.text).join(' '),'u . a IN ( t . a , t . b )');
 });
+function expressionIndexSchema(){
+ const s=schema(),expression=resolve('SELECT b+1 FROM t',s).result[0].expression;
+ const index={...s.i,name:'i_expr',terms:Object.freeze([{column:null,expression,expressionSql:'b+1',descending:false,collation:null,nulls:null}]),physical:null};
+ index.physical=physicalIndex(index,'utf-8');s.t.indexes=Object.freeze([...s.t.indexes,index]);return s;
+}
+test('OR-IN expression-index producer compares XN_EXPR operands rather than rejecting sentinel',()=>{
+ const s=expressionIndexSchema();
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE b+1=2 OR b+1=3',s)).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='in'&&t.left.columnIndex===-2));
+});
+test('OR-IN XN_EXPR equality proof rejects different fields and collation nodes',()=>{
+ const s=expressionIndexSchema(),expression=resolve('SELECT b+2 FROM t',s).result[0].expression;
+ const index={...s.i,name:'i_expr2',terms:Object.freeze([{column:null,expression,expressionSql:'b+2',descending:false,collation:null,nulls:null}]),physical:null};
+ index.physical=physicalIndex(index,'utf-8');s.t.indexes=Object.freeze([...s.t.indexes,index]);
+ for(const predicate of ['b+1=2 OR b+2=3','(b+1) COLLATE BINARY=2 OR (b+1) COLLATE NOCASE=3']){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,s)).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='in'),predicate);
+ }
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (b+1)=2 OR b+1=3',s)).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='in'));
+});
