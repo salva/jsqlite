@@ -1481,3 +1481,22 @@ test('TRUE result alias resolves before builtin truth fallback for OR admission'
  assert.equal(analyzeWhere(column).clause.terms[0].operator,'is');
  }
 });
+test('necessary null opcode proof does not collapse descendant NULL carriers',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['CAST(NULL AS TEXT)','coalesce(NULL,u.b)','NULL+u.b']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IS ${rhs}) OR t.a<(u.b ISNULL)`,schema(encoding))).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('IS empty IN produced TRUEFALSE is truth not equality admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['1 IN ()','1 NOT IN ()','b IN ()']){
+ const r=resolve(`SELECT id FROM t WHERE b IS (${rhs})`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,null,rhs);
+ }
+});
+
+test('IS empty IN function flag prevents TRUEFALSE replacement',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['abs(b) IN ()','abs(b) NOT IN ()','likely(b) IN ()']){
+ const r=resolve(`SELECT id FROM t WHERE b IS (${rhs})`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,'is',rhs);
+ }
+});

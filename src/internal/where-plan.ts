@@ -701,10 +701,20 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
  const inspected=skipCollateAndLikely(at,resolved);
  if(inspected.signature==="expr ::= expr AND expr"){for(const child of exprChildren(inspected))splitAnd(child,out,resolved);}else out.push(at);
 }
+/** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
+ * SELECT-carried flags remain unproved and must not certify that replacement. */
+function producesEmptyInTruth(node:ExprReduction):boolean {
+ if(node.signature!=="expr ::= expr in_op LP exprlist RP")return false;
+ const list=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+ const lhs=exprChildren(node)[0];
+ if(!lhs||list?.kind!=="reduction"||directExprReductions(list).length!==0)return false;
+ const unsafe=(part:LemonValue<SqlToken>):boolean=>part.kind==="reduction"&&(part.signature.startsWith("select ::=")||part.signature.includes(" PTR ")||part.signature.startsWith("expr ::= expr likeop expr")||part.signature.startsWith("expr ::= ID")&&part.signature.includes(" LP ")||part.children.some(unsafe));
+ return !unsafe(lhs);
+}
 function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
  // resolve.c TK_IS resolves a skipped ID/TRUEFALSE RHS to TK_TRUTH.
  if(rhs){const truth=skipCollateAndLikely(rhs,resolved),tokens=asExpr(truth).tokens;
-  if(truth.signature==="expr ::= ID|INDEXED|JOIN_KW"&&tokens.length===1&&/^(true|false)$/i.test(tokens[0]!.text)&&!binding(resolved,truth))return null;
+  if(producesEmptyInTruth(truth)||truth.signature==="expr ::= ID|INDEXED|JOIN_KW"&&tokens.length===1&&/^(true|false)$/i.test(tokens[0]!.text)&&!binding(resolved,truth))return null;
  }
  let raw=rhs;while(raw?.signature==="expr ::= LP expr RP")raw=exprChildren(raw)[0];if(raw&&isNullLiteral(asExpr(raw)))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
 function reverseOperator(op:WhereOperator):WhereOperator{return op==="lt"?"gt":op==="le"?"ge":op==="gt"?"lt":op==="ge"?"le":op;}
@@ -808,7 +818,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(hasSelect(lhs))return n; // SELECT-carried flags not yet proved.
        const seed=asExpr(n).tokens[0]!,negative=op.signature.includes("NOT");
        const value:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:negative?"true":"false"}}]};
-       if(!hasFunc(lhs)){if(!negative)producedFalse.add(value);return value;}
+       if(producesEmptyInTruth(n)){if(!negative)producedFalse.add(value);return value;}
        const operator=negative?"OR":"AND";
        return {kind:"reduction",rule:0,signature:`expr ::= expr ${operator} expr`,children:[value,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:operator}},lhs]};
       };
