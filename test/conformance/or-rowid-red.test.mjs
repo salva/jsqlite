@@ -565,3 +565,24 @@ for(const v of capture.variants){
   }
  }));
 }
+
+// Native Case3 addrBrk must exit only this join level, including an outer OR body.
+for(const v of capture.variants)test(`${v.id}: joined rowid end owns level continuation 0`,async()=>withDb(v,async db=>{
+ const st=db.prepare("SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id").statement;const rows=[];
+ try{while(await st.step()==='row'){assert.equal(st.columnType(0),'integer');assert.equal(st.columnType(1),'integer');rows.push([st.column(0),st.column(1)])}assert.deepEqual(rows,[[1n,1n],[1n,2n],[2n,1n],[2n,2n]])}finally{st.finalize()}
+}));
+for(const v of capture.variants)test(`${v.id}: joined rowid end owns level continuation 1`,async()=>withDb(v,async db=>{
+ const st=db.prepare("SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id").statement;const rows=[];
+ try{while(await st.step()==='row'){assert.equal(st.columnType(0),'integer');assert.equal(st.columnType(1),'integer');rows.push([st.column(0),st.column(1)])}assert.deepEqual(rows,[[1n,1n],[1n,2n],[2n,1n],[2n,2n]])}finally{st.finalize()}
+}));
+for(const v of capture.variants)test(`${v.id}: joined rowid end owns level continuation 2`,async()=>withDb(v,async db=>{
+ const st=db.prepare("SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND (y.a=1 OR y.b='beta') AND y.rowid<=2 ORDER BY x.id,y.id").statement;const rows=[];
+ try{while(await st.step()==='row'){assert.equal(st.columnType(0),'integer');assert.equal(st.columnType(1),'integer');rows.push([st.column(0),st.column(1)])}assert.deepEqual(rows,[[1n,1n],[1n,2n],[2n,1n],[2n,2n]])}finally{st.finalize()}
+}));
+
+const joinEndNative=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-f-or/join-end-native.json',import.meta.url)));
+for(const native of joinEndNative.variants)for(const c of native.cases)test(`${native.id}: joined end native ${c.id}`,async()=>withDb(capture.variants.find(v=>v.id===native.id),async db=>{
+ const st=db.prepare(c.sql).statement,rows=[];
+ try{while(await st.step()==='row'){rows.push(Array.from({length:st.columnCount},(_,i)=>({type:st.columnType(i),value:st.column(i)})))}
+ assert.deepEqual(rows,c.rows.map(row=>row.map(cell=>({type:cell.type,value:cell.type==='null'?null:BigInt(cell.value)}))));}finally{st.finalize()}
+}));

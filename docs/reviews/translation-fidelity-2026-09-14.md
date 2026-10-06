@@ -1,3 +1,11 @@
+## Independent joined-end counterexample repair
+
+Independent d72 exposed a material joined Case3 end-to-global-exit divergence
+in8ee7dda despite487green. Scoped repair routes rowid exhaustion through owning
+loopEnds with IN/null/Return/outer continuation, retaining native expectations.
+This corrects admitted row loss, not a planner cost or scope change.
+[Source/red/native evidence](../research/card-s-f-or/scoped-closure.md#joined-rowid-end-ownership-repair-after-independent-d72-red).
+
 ## Scoped selected OR caller revision
 
 The scoped dedicated-lineage candidate now includes bound rowid start/end,

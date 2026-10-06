@@ -3584,7 +3584,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     :expanded.sources.map((_,ordinal)=>ordinal);
   const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
 
-  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],indexEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>(),nullPasses=new Map<number,number>(),nullContinues=new Map<number,number>();
+  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],loopEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>(),nullPasses=new Map<number,number>(),nullContinues=new Map<number,number>();
   // A forward RIGHT drain can enter a deeper body even when an empty outer
   // scan never initialized that level. Its LEFT continuation flags must be
   // valid integers before any body is callable (where.c/wherecode.c reset).
@@ -3746,7 +3746,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   if(indexCursor!==undefined){
     const capability=selected!.capability!,seek=ops[rewinds[level]!];
     if(seek?.code==='IndexSeekPrefix'){
-      if(capability.equalityPrefix.length){ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:seek.keys.slice(0,capability.equalityPrefix.length),affinities:seek.affinities.slice(0,capability.equalityPrefix.length),keyInfo:capability.physicalIndex!.keyInfo,p2:0});indexEnds.push({at:ops.length-1,level});}
+      if(capability.equalityPrefix.length){ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:seek.keys.slice(0,capability.equalityPrefix.length),affinities:seek.affinities.slice(0,capability.equalityPrefix.length),keyInfo:capability.physicalIndex!.keyInfo,p2:0});loopEnds.push({at:ops.length-1,level});}
       const rangeReverse=capability.reverse!==!!capability.physicalIndex?.fields[capability.equalityPrefix.length]?.descending;
       const end=rangeReverse?capability.lower:capability.upper;
       // wherecode.c Case 4 keeps pRangeStart and pRangeEnd separate. A
@@ -3754,7 +3754,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // check (if any) bounds this scan and the original predicate filters
       // rows until strict range positioning is available here.
       const rangeEnd=end;
-      if(rangeEnd&&rangeEnd.operator!=='in'&&(rangeEnd.term.prereqRight&~readyMask)===0n){const expression=expressionFromReduction(rangeEnd.term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined range bound lost binary expression');const bound=rangeEnd.term.originalIndexedOperand==='left'?expression.right:expression.left;const key=compileExpressionTree(resolveTree(bound),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'IndexRangeEnd',p1:indexCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.affinity:'blob',collation:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.collation:'binary',operator:rangeEnd.operator as 'lt'|'le'|'gt'|'ge',p2:0});indexEnds.push({at:ops.length-1,level});}
+      if(rangeEnd&&rangeEnd.operator!=='in'&&(rangeEnd.term.prereqRight&~readyMask)===0n){const expression=expressionFromReduction(rangeEnd.term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined range bound lost binary expression');const bound=rangeEnd.term.originalIndexedOperand==='left'?expression.right:expression.left;const key=compileExpressionTree(resolveTree(bound),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'IndexRangeEnd',p1:indexCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.affinity:'blob',collation:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.collation:'binary',operator:rangeEnd.operator as 'lt'|'le'|'gt'|'ge',p2:0});loopEnds.push({at:ops.length-1,level});}
     }
     // wherecode.c Case 4: only a WITHOUT ROWID primary index is the
     // table itself. A rowid table's declared PRIMARY KEY remains a secondary
@@ -3776,7 +3776,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid end bound lost binary expression');
     const key=compileExpressionTree(rowEnd.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery),at=ops.length;
     ops.push({code:selected?.capability?.reverse?'RowidLowerBound':'RowidUpperBound',p1:cursorFor(source),key,inclusive:rowEnd.bound==='upper-inclusive'||rowEnd.bound==='lower-inclusive',p2:0});
-    jumps.push({at,level:-1});
+    // Case3 addrBrk exhausts this level; WhereEnd finishes IN/null/outer owners.
+    loopEnds.push({at,level});
   }
   const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0},{code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;if(isLeft||right)codeOuterConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
   const joinedBodyStart=ops.length;
@@ -3881,7 +3882,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   const scanEnd=ops.length;
   if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=nextAt.at(-1)!;for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
-  for(const {at,level} of indexEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
+  for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
   for(const [level,restart] of inRestarts){
     const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
     (ops[restart.iterators[0]!] as {p2:number}).p2=exit;

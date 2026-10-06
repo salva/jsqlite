@@ -318,7 +318,9 @@ WHERE evidence, without general optimizer or plan-identity credit.
 Caller descriptors resolve scalar output provenance before destination lowering,
 including derived/view transient metadata. Aggregate-result WHERE retains
 NC_AllowAgg; missing AggInfo errors remain codegen-owned. Rowid arm operands
-retain bound identity and reverse traversal swaps start/end bounds. See
+retain bound identity and reverse traversal swaps start/end bounds. Joined end comparisons
+exhaust the owning level (IN restart, synthetic-null/RIGHT return, then outer
+continuation); they never bypass outer OR Gosub bodies through a SELECT-wide exit. See
 [scoped caller and native transition evidence](research/card-s-f-or/scoped-closure.md).
 
 ## ORDER, DISTINCT, compounds and VALUES

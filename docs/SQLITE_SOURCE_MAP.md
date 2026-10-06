@@ -814,7 +814,7 @@ Revision-bound repair evidence: [[card:card-e-h]] status and
 | --- | --- |
 | `select.c:columnTypeImpl`, `sqlite3ExpandSubquery` | `compileScalarSelect`, `resolve.ts` transient derived/view descriptors; scalar/derived metadata tests |
 | `resolve.c:resolveSelectStep`, `expr.c:TK_AGG_FUNCTION` | aggregate WHERE admission followed by missing-context codegen error; resolver and public preparation tests |
-| `wherecode.c` rowid Case3 start/end and Case5 branch positioning | bound rowid operands, reverse end check, secondary PK `DeferredSeek`; correlated native/public and OR traces |
+| `wherecode.c` rowid Case3 start/end and Case5 branch positioning | bound rowid operands, reverse end check, joined `loopEnds`/WhereEnd IN/null/Return ownership, secondary PK `DeferredSeek`; correlated native/public and OR traces |
 | `rowset.c:sqlite3RowSetClear`, `sqlite3RowSetTest` | chunk/list/forest batch state; native clear/forest/label regressions |
 | `vdbemem.c`, `vdbeapi.c` cleanup ownership | detach-before-callback `Mem`, primary-error reset/finalize adaptation; synthetic cleanup controls |
 
