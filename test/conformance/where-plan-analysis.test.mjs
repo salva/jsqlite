@@ -1907,7 +1907,7 @@ test('ISNULL proposal budgets stop at prefix lower pair upper without eager late
  const costs={a:[]},budget={remaining:n};
  const loops=btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
  assert.deepEqual(loops,[]);assert.equal(budget.remaining,Math.max(0,n-4));
- if(n===0)assert.deepEqual(costs.a,[]);else assert.equal(costs.a[0].nOut,[0n,41n,22n,10n,10n,10n][n]);
+ if(n<4)assert.deepEqual(costs.a,[],'next attempted insertion at zero returns DONE and clears costs');else assert.equal(costs.a[0].nOut,10n);
  }
  }
 });
