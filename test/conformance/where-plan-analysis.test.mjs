@@ -444,3 +444,13 @@ test('suspended capability enumeration does not resume after last permitted inse
  const laterLoops=btreeLoops(later.sources[0],0,analyzeWhere(later).clause,{neededColumns:needed,orderBy:[],resolved:later,planBudget:budget});
  assert.ok(laterLoops.some(l=>l.kind==='rowid'),'replenished construction budget admits later source proposals');
 });
+test('necessary bounds compare semantic NE and EQ opcodes rather than token aliases',()=>{
+ for(const [x,y] of [['u.b!=1','u.b<>1'],['u.b=1','u.b==1'],['abs(u.b!=1)','abs(u.b<>1)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('necessary comparison opcode proof does not merge different operators',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b!=1) OR t.a<(u.b=1)',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});

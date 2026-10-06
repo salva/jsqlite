@@ -605,7 +605,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         };
         return x.children.length===y.children.length&&x.children.every((c,i)=>carrier(c,y.children[i]!));
        }
-       const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?sqliteAsciiFold(c.value.text):"").join("|");
+       // tokenize.c maps !=/<> to TK_NE and =/== to TK_EQ;
+       // parse.y stores that opcode, not the operator's source spelling.
+       const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?(c.value.text==="!="||c.value.text==="<>"?"TK_NE":c.value.text==="="||c.value.text==="=="?"TK_EQ":sqliteAsciiFold(c.value.text)):"").join("|");
        if(terminals(x)!==terminals(y))return false;
        return xc.every((n,i)=>same(n,yc[i]!));
       }
