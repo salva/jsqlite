@@ -160,8 +160,14 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
 ## WHERE, joins and physical indexes
 
-Selected rowid multi-index OR is a **partial prelowering implementation**, not
-runtime compatibility credit. `where-plan.ts` owns tagged immutable clause-owned
+Selected rowid multi-index OR has bounded delivered runtime execution in
+ordinary single-table and represented inner-join callers: selected arms replan
+into shared-builder RowSetTest/Gosub/Return continuations, with full residual
+truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
+or C-cost parity; WR union, unsafe nullable outer-join selection, and broader
+cleanup/liveness proofs remain outside the demonstrated boundary. See
+[delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
+`where-plan.ts` owns tagged immutable clause-owned
 OR/AND info, original residual terms, stable term references and indexable masks.
 OR clauses have no outer; AND clauses refer to the enclosing clause. Constraint
 lookup walks local then outer clauses, while residuals/OR discovery stay local.

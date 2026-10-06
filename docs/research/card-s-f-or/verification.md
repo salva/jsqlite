@@ -498,12 +498,24 @@ filter; the previous 37-case lane is not movement credit. Trace/page-local
 assertions remain Node-only. Detailed identities, commands, failures and output
 references are retained in [[card:card-s-f-c]] status (v153 and subsequent).
 
-Delivery uses alternate indexes to exclude staged JSON/bitwise/peer guide hunks,
-with root index equality checks. The isolated runtime object is
-`56220bcb86085580978bf951543b5e305a2d6729`; the executed acceptance tree is
-`01f607d567dff8b9eb4bc73d9a0ec9dd51678993`. Its archived six suites passed
-511/511, typecheck/build passed, and its movement browser lane passed 3/3.
+Current runtime/test delivery attribution is commit
+`53d47fcce1165b44cac7be76f5d257ad118aa467`, tree
+`3b3f288076f5154ae32c221a58bdc242deac4dac`, on the separate
+`card-s-f-c-delivery` branch; final export inventory, commands, hashes and failed
+setup provenance are retained in [[card:card-s-f-c]] status v159 (and v153–156
+for earlier assembly). Alternate indexes excluded staged JSON/bitwise/peer guide
+hunks; shared root HEAD and dirty peer index were not integrated or rewritten.
+Earlier runtime object56220bcb and acceptance tree01f607 are historical assembly
+inputs, not the current delivery identity.
+
+Executor final archived six suites passed 511/511 and typecheck; unchanged
+production/test inputs also passed build/package, expanded affected core858 and
+unfiltered browser40 (including movement3). Independent [[card:card-s-f-d]]
+review reports 511/915/browser40, native102 (0 exact/21 adapted/81 supplemental),
+separate movement3 and fixture verification; source audit continues. These are
+finite executed inventories, not all-optimizer compatibility or C-cost parity.
 Pinned `rowset.c` is an explicit additional native test dependency (not runtime).
-First archive attempts missing that dependency and the earlier attributed
-export's omitted evidence overlay failed; successful reruns do not erase them.
-No independent reviewed delivery or all-optimizer compatibility is inferred.
+First archives missing that dependency and the attributed export's omitted
+evidence overlay failed; successful reruns do not erase those revision-bound
+findings. This doc-only correction changes no runtime/test inputs; independent
+goal acceptance and shared-root integration remain separate steps.
