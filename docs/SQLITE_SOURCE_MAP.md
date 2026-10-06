@@ -86,9 +86,13 @@ remain fallback. [Native proposal](research/card-s-f-or.md),
 [[card:card-s-f-b]] status retain commands/failures/provenance. This map grants no
 runtime OR selection or exhaustive compatibility credit.
 
+`whereLoopAddBtreeIndex` list-IN nIn (where.c3361–3363) maps to
+`indexLoopEstimate` immediate exprlist cardinality; all-encoding nested-function
+list-cost controls in `where-plan-analysis.test.mjs` (evidence [[card:card-s-f-b]],
+status attempt130). SELECT-IN multiplicity remains outside this proof.
 `whereLoopAddBtreeIndex` exploration (where.c3284,3580ff) maps to suspended
 `capabilities` proposals and immediate `whereLoopInsert` in `btreeLoops`;
-exhaustion closes exploration, not just admissions. `whereLoopAddAll`4966/5025ff
+early stops close suspended exploration, not just admissions. `whereLoopAddAll`4966/5025ff
 maps to `planWhere` shared budget/per-source continuation. Private production
 budget tests observe stopped composite leaf construction and later-index access.
 
