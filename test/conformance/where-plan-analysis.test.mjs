@@ -312,3 +312,10 @@ test('pinned combine admission uses indexable and total OR nTerm, not original-a
  assert.ok(copied.terms[0].info.clause.terms.length>2);
  assert.equal(copied.terms.filter(t=>t.virtual).length,0,'commuted children make nTerm exceed2');
 });
+test('combine families retain exact strict/equality ties and reject opposing direction or operand proofs',()=>{
+ for(const [predicate,expected] of [['a=5 OR a<5','le'],['a>5 OR a=5','ge'],['a<5 OR a<=5','le'],['a>5 OR a>=5','ge'],['a<5 OR a<5','lt'],['a>=5 OR a>=5','ge'],['a=5 OR a=5','eq'],['a<5 OR a>5',null],['a<5 OR a<6',null],['a=5 OR b<5',null],['a IS 5 OR a<5',null],['5=a OR a<5',null],['a COLLATE BINARY=5 OR a COLLATE NOCASE<5',null]]){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause;
+  assert.deepEqual(c.terms.filter(t=>t.virtual).map(t=>t.operator),expected?[expected]:[],predicate);
+  assert.ok(Object.isFrozen(c.terms));assert.equal(c.terms[0].virtual,false);
+ }
+});
