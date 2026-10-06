@@ -1977,3 +1977,20 @@ test('ignored recursive BtreeIndex DONE resumes enclosing equality scanner',()=>
  assert.equal(set.a.length,0);
  }
 });
+test('range child DONE restores lower rc; own lower DONE still runs upper recursion',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a>?1 AND a<?2 AND a>?3',s),c=analyzeWhere(r).clause;
+ const sentinel=new Error('late enclosing lower admission'),late={...c.terms[2]};
+ Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([c.terms[0],late,c.terms[1]]);
+ for(const remaining of [0,1]){
+ const set={a:[]},budget={remaining},run=()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
+ if(remaining)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
+ assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ }
+ const upperSentinel=new Error('upper recursion even after own lower DONE'),upper={...c.terms[1]};
+ Object.defineProperty(upper,'outerJoinSafe',{get(){throw upperSentinel;}});
+ const pair=wherePlanning.whereClause([c.terms[0],upper]);
+ assert.throws(()=>btreeLoops(r.sources[0],0,pair,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:0}}),e=>e===upperSentinel);
+ }
+});
