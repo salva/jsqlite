@@ -1779,3 +1779,24 @@ test('scanner rejected acceptance expands equivalences across outer and closes o
  assert.deepEqual([...wherePlanning.scanWhereTerms(local,original[0].left,r,t=>!t.equivalence)],accepted);
  }
 });
+test('nested pOrSet closes needed-column iterators and abandons exhausted accumulation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (a>? OR id<?))',schema(encoding)),c=analyzeWhere(r).clause;
+ for(const limit of [2,5,10,20,100]){
+ let entries=0,closed=0;
+ const needed={*[Symbol.iterator](){entries++;try{yield ROWID_NEEDED;}finally{closed++;}}};
+ const costs={a:[]},budget={remaining:limit};
+ const loops=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:needed,orderBy:[],orSet:costs,planBudget:budget});
+ assert.equal(entries,closed);assert.deepEqual(loops,[]);
+ if(budget.remaining===0)assert.deepEqual(costs.a,[]);
+ }
+ // Throw after outer ordinary proposals so error is encountered in copied builders.
+ for(const failAt of [3,4,5]){
+ let entries=0,closed=0,depth=0;const sentinel=new Error(`nested-needed-${failAt}`);
+ const needed={*[Symbol.iterator](){entries++;try{if(entries===failAt){depth=(new Error().stack.match(/at btreeLoops/g)||[]).length;throw sentinel;}yield ROWID_NEEDED;}finally{closed++;}}};
+ const costs={a:[]},budget={remaining:1000};
+ assert.throws(()=>btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:needed,orderBy:[],orSet:costs,planBudget:budget}),e=>e===sentinel);
+ assert.equal(entries,failAt);assert.equal(closed,entries);assert.ok(budget.remaining>0);assert.ok(depth>=2,`failure ${failAt} reaches copied builder`);
+ }
+ }
+});
