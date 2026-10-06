@@ -2012,3 +2012,21 @@ test('AddOr arm DONE suppresses later parent discovery unlike successful zero-ar
  assert.equal(completion.done,true,'attempted scan DONE is distinct and carrier resets each call');
  }
 });
+test('sPk ignored upper child DONE resumes enclosing lower just like real index',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.t.indexes=Object.freeze([]);
+ const r=resolve('SELECT id FROM t WHERE id>?1 AND id>?2 AND id<?3',s),c=analyzeWhere(r).clause;
+ const sentinel=new Error('sPk late enclosing lower'),late={...c.terms[1]};
+ Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([c.terms[0],late,c.terms[2]]);
+ for(const remaining of [1,2]){
+ const costs={a:[]},completion={done:false},budget={remaining};
+ const run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget,completion});
+ if(remaining===2)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
+ assert.equal(costs.a.length,0);assert.equal(budget.remaining,0);
+ }
+ const clean=wherePlanning.whereClause([c.terms[0],c.terms[2]]),completion={done:true};
+ btreeLoops(r.sources[0],0,clean,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:2},completion});
+ assert.equal(completion.done,true,'standalone enclosing upper later attempts own DONE');
+ }
+});

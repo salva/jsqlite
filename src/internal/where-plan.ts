@@ -328,11 +328,14 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
   if(term.operator==="eq"||term.operator==="is"){
    if(!propose(term,null,null))return Object.freeze(loops);
   }else if(term.operator==="gt"||term.operator==="ge"){
-   if(!propose(null,term,null))return Object.freeze(loops);
+   const rc=propose(null,term,null);
    for(const upper of rowCostTerms(true)){
     if(upper.operator!=="lt"&&upper.operator!=="le")continue;
-    if(!propose(null,term,upper))return Object.freeze(loops);
+    if(!propose(null,term,upper))break;
    }
+   // sPk uses the same ignored recursive upper return as real indexes.
+   completion.done=!rc;
+   if(!rc)return Object.freeze(loops);
   }else if(term.operator==="lt"||term.operator==="le"){
    if(!propose(null,null,term))return Object.freeze(loops);
   }
