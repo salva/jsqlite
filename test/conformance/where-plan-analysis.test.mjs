@@ -844,3 +844,13 @@ test('VECTOR constant walk visits every element and retains ordered operand iden
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('CAST empty typetoken compares its retained empty token',()=>{
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=CAST(1 AS) OR a<CAST(1 AS)',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('CAST empty type identity retains child and excludes named type',()=>{
+ for(const [rhs,other] of [['CAST(1 AS)','CAST(2 AS)'],['CAST(1 AS)','CAST(1 AS INTEGER)']]){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs} OR a<${other}`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+ }
+});

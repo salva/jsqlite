@@ -745,7 +745,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         const tokens=asExpr(type).tokens;
         // Multi-token types retain source span (including inter-token trivia)
         // upstream. Until that span is carried, do not assert equivalence.
-        return tokens.length===1?dequotedName(tokens[0]!.text,false):null;
+        return tokens.length===0?"":tokens.length===1?dequotedName(tokens[0]!.text,false):null;
        };
        const xt=typeToken(x),yt=typeToken(y),xc=exprChildren(x)[0],yc=exprChildren(y)[0];
        return xt!==null&&xt===yt&&!!xc&&!!yc&&same(xc,yc);
