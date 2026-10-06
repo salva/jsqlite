@@ -2094,3 +2094,18 @@ test('cost completion resets across calls and ignored child OK empty does not le
  }
  }
 });
+test('empty rejected upper recursion preserves own OK at zero for sPk and real index',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rowid of [false,true]){
+ const s=schema(encoding);if(rowid)s.t.indexes=Object.freeze([]);
+ const r=resolve(`SELECT id FROM t WHERE ${rowid?'id':'a'}>?1 AND ${rowid?'id':'a'}<?2`,s),c=analyzeWhere(r).clause;
+ const upper={...c.terms[1],outerJoinSafe:{...c.terms[1].outerJoinSafe,mayDrive:false}},clause=wherePlanning.whereClause([c.terms[0],upper]);
+ const set={a:[]},completion={done:true},budget={remaining:rowid?2:1};
+ btreeLoops(r.sources[0],0,clause,{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ assert.equal(budget.remaining,0);assert.equal(completion.done,false);
+ assert.equal(set.a.length,1,'no rejected upper proposal may clear retained lower cost');
+ const onlyLower={a:[]};btreeLoops(r.sources[0],0,wherePlanning.whereClause([c.terms[0]]),{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:onlyLower,planBudget:{remaining:rowid?2:1}});
+ assert.equal(set.a[0].rRun,onlyLower.a[0].rRun);
+ assert.equal(set.a[0].prereq,onlyLower.a[0].prereq);
+ assert.equal(set.a[0].nOut,onlyLower.a[0].nOut-1n,'rejected seek upper remains residual for output adjustment');
+ }
+});
