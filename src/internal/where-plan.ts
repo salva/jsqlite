@@ -532,7 +532,8 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
     if(!term.left||!same(term.left,slots[i]!))continue;
     // Expression-index fields require ExprCompareSkip, not sentinel equality.
     if(target.columnIndex===-2)continue;
-    if(i>0&&term.origin.kind==="join-on"&&term.origin.join==="left")continue;
+    const origin=term.parentId!==null?wc.terms[term.parentId]?.origin??term.origin:term.origin;
+    if(i>0&&origin.kind==="join-on"&&origin.join==="left")continue;
     const right=rhs(term);
     if(term.equivalence&&right&&slots.length<11&&!slots.some(slot=>same(slot,right)))slots.push(right);
     if(!accept(term))continue;
