@@ -300,6 +300,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
   for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms){
    // whereScanNext opMask precedes builder safety/target admission.
    if(upperOnly?term.operator!=="lt"&&term.operator!=="le":!term.operator||!["eq","is","gt","ge","lt","le"].includes(term.operator))continue;
+   // whereLoopAddBtreeIndex rejects self-dependent RHS before join safety.
+   if((term.prereqRight&sourceBit(sourceOrdinal))!==0n)continue;
    if(term.left?.source!==source||!term.left.rowid||!term.outerJoinSafe.mayDrive||!leftTargetCompatible(term,source,sourceOrdinal))continue;
    yield term;
   }

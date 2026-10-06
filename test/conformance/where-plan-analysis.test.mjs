@@ -1259,3 +1259,13 @@ test('rowid upper restart filters opMask before semantic safety reads',()=>{
  assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a[0].nOut,139n);
  }
 });
+test('rowid cost rejects source-self prerequisites before safety admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?',s),c=analyzeWhere(r).clause,base=c.terms[0];
+ let reads=0;const self=Object.freeze({...base,prereqRight:1n,get outerJoinSafe(){reads++;throw new Error('self rowid safety');}}),set={a:[]},budget={remaining:4};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,wherePlanning.whereClause([self]),{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,0);assert.equal(set.a.length,0);assert.equal(budget.remaining,3);
+ const allowed={a:[]};btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:allowed,planBudget:{remaining:4}});
+ assert.equal(allowed.a.length,1);
+ }
+});
