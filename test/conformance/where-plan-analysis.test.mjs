@@ -305,3 +305,10 @@ test('two-way OR emits necessary virtual bound while retaining original truth re
  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'&&t.left.column.name==='a'));
  assert.equal(c.terms[0].operator,null);assert.equal(c.terms[0].virtual,false);
 });
+test('pinned combine admission uses indexable and total OR nTerm, not original-arm count',()=>{
+ const unindexed=analyzeWhere(resolve('SELECT id FROM t WHERE 1=2 OR 1<2',schema())).clause;
+ assert.equal(unindexed.terms.filter(t=>t.virtual).length,0,'zero indexable prevents combines');
+ const copied=analyzeWhere(resolve('SELECT t.id FROM t AS t JOIN t AS u WHERE t.a=u.a OR t.a<=u.a',schema())).clause;
+ assert.ok(copied.terms[0].info.clause.terms.length>2);
+ assert.equal(copied.terms.filter(t=>t.virtual).length,0,'commuted children make nTerm exceed2');
+});

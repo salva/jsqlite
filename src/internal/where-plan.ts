@@ -520,7 +520,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
    Object.assign(term,{info:freeze({kind:"or" as const,parentTerm:term,clause:child,indexable})});
    // whereNthSubterm / whereCombineDisjuncts: two original arms only.
    const arms=child.terms.filter(t=>!t.virtual);
-   if(arms.length===2){
+   if(indexable!==0n&&child.terms.length===2){
     const subterms=(arm:WhereTerm)=>arm.info?.kind==="and"?arm.info.clause.terms:[arm];
     const allowed=new Set<WhereOperator>(["eq","lt","le","gt","ge"]);
     for(const one of subterms(arms[0]!))for(const two of subterms(arms[1]!)){
