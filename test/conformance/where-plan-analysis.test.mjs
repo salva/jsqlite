@@ -786,8 +786,13 @@ test('parser AND folds produced false empty-IN child before singleton constant w
  }
 });
 test('produced false AND proof preserves HasFunc and immediate-flag boundaries',()=>{
- for(const rhs of ['(1 IN ()) AND abs(u.a)','0 AND u.a','((1 IN ()) OR 1) AND u.a','((1 IN ()) AND 1) AND u.a']){
+ for(const rhs of ['(1 IN ()) AND abs(u.a)','0 AND u.a','((1 IN ()) OR 1) AND u.a']){
  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
+});
+test('returned ExprInt32 zero retains IsFalse for enclosing parser AND',()=>{
+ const rhs='((1 IN ()) AND 1) AND u.a';
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
