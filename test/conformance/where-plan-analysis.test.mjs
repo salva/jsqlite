@@ -1056,3 +1056,26 @@ test('OR direct arm handoff owns exactly one term and selects its cursor orienta
  const reversed=wherePlanning.orArmClause(commuted,1,main);
  assert.deepEqual(reversed.terms,[commuted]);assert.equal(reversed.outer,main);
 });
+test('production OR cost visits matching stored commutations once in stored order',async()=>{
+ const {whereOrAccumulate}=await import('../../src/internal/where-or-cost.ts');
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding),r=resolve('SELECT u.id FROM t JOIN t AS u WHERE t.a<u.a OR t.a>u.a',s),main=analyzeWhere(r).clause;
+  const info=main.terms.find(t=>t.info?.kind==='or').info;
+  const arms=info.clause.terms.map(t=>wherePlanning.orArmClause(t,1,main)).filter(Boolean);
+  assert.equal(arms.length,2);assert.ok(arms.every(c=>c.terms.length===1&&c.terms[0].virtual));
+  const expected={a:[]};let first=true,spent=0;
+  for(const clause of arms){
+   const current={a:[]},budget={remaining:100};
+   btreeLoops(r.sources[1],1,clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:current});
+   assert.ok(current.a.length);spent+=100-budget.remaining;
+   assert.ok(whereOrAccumulate(expected,current,first,logEstAdd));first=false;
+  }
+  const actual={a:[]},budget={remaining:100};
+  btreeLoops(r.sources[1],1,main,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:actual});
+  assert.deepEqual(actual.a,expected.a.map(c=>({...c,rRun:c.rRun+1n})));
+  const enclosingBudget={remaining:100};
+  btreeLoops(r.sources[1],1,wherePlanning.whereClause(main.terms.filter(t=>t.info!==info)),{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:enclosingBudget,orSet:{a:[]}});
+  assert.equal(100-budget.remaining,spent+(100-enclosingBudget.remaining)+expected.a.length,'enclosing inventory, stored arms and parent publications');
+  assert.ok(actual.a.every(c=>c.prereq===sourceBit(0)));
+ }
+});
