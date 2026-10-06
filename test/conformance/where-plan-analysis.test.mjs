@@ -1316,3 +1316,9 @@ test('WITHOUT ROWID construction never admits fake sPk rowid constraints',()=>{
  assert.equal(costs.a.length,0,'no constrained fake IPK cost');
  }
 });
+test('scanner raw reverse-cycle proof preserves parenthesized COLLATE opcode',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=(t.a COLLATE NOCASE)',schema(encoding)),c=analyzeWhere(r).clause,target=c.terms[0].left,wrapped=c.terms[1];
+ assert.ok([...wherePlanning.scanWhereTerms(c,target,r,t=>t.operator==='eq')].includes(wrapped),'parentheses disappear in C but COLLATE does not in raw reverse test');
+ }
+});

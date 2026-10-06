@@ -614,7 +614,10 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
  const rhs=(term:WhereTerm,skipCollate:boolean):ColumnBinding|null=>{
   const root=term.expression.reduction;
   if(!root||root.kind!=="reduction")return null;
-  const children=exprChildren(root),node=children[term.originalIndexedOperand==="right"?0:1];
+  const children=exprChildren(root);let node=children[term.originalIndexedOperand==="right"?0:1];
+  // parse.y parentheses retain the expression opcode, not a wrapper. Remove
+  // only those carriers before testing raw TK_COLUMN; keep COLLATE intact.
+  while(node?.signature==="expr ::= LP expr RP")node=exprChildren(node)[0];
   // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
   return node&&(skipCollate||!node.signature.startsWith("expr ::= expr COLLATE"))?binding(resolved,node):null;
  };
