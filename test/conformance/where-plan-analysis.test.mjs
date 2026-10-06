@@ -1388,3 +1388,9 @@ test('equivalence producer follows deferred likely operand affinity and collatio
  assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,`${lhs}=${rhs}`);
  }
 });
+test('deferred likely metadata follows resolved argument aliases recursively',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [expr,lhs,expected] of [['b','b',true],['a','a',true],['CAST(? AS REAL)','b',true],['b COLLATE BINARY','b',false],['a','b',false]]){
+ const r=resolve(`SELECT ${expr} AS operand FROM t WHERE ${lhs}=likely(operand)`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,`${lhs}=likely(${expr})`);
+ }
+});

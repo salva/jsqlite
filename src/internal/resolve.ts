@@ -598,6 +598,9 @@ export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:
  if(expression.kind!=='reduction')return undefined;
  let node=expression;
  for(;;){
+  // resolveAlias copies operands before sqlite3ExprAffinity visits them.
+  const alias=plan.aliasUses?.get(node);
+  if(alias){node=alias;continue;}
   const likely=deferredLikelyArgument(node);
   if(likely){node=likely;continue;}
   const merged=resolvedDeferredCoalesce(node,plan)?.mergedSources?.[0];
@@ -713,6 +716,8 @@ export function resolvedCompoundAffinity(plans:readonly ResolvedSelect[],index:n
  * EP_Collate child selection. SELECT contents do not propagate Expr flags. */
 export function resolvedExpressionCollation(expression:LemonValue<SqlToken>,plan:ResolvedSelect):string|undefined{
  if(expression.kind!=='reduction')return undefined;
+ const alias=plan.aliasUses?.get(expression);
+ if(alias)return resolvedExpressionCollation(alias,plan);
  const likely=deferredLikelyArgument(expression);
  if(likely)return resolvedExpressionCollation(likely,plan);
  const merged=resolvedDeferredCoalesce(expression,plan)?.mergedSources?.[0];
