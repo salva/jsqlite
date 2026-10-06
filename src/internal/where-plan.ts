@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return at;
+ return emptyInProduction(at);
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -703,6 +703,19 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 }
 /** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
  * SELECT-carried flags remain unproved and must not certify that replacement. */
+function emptyInProduction(node:ExprReduction):ExprReduction {
+ if(node.signature!=="expr ::= expr in_op LP exprlist RP")return node;
+ const list=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+ const lhs=exprChildren(node)[0],op=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+ if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return node;
+ const hasSelect=(part:LemonValue<SqlToken>):boolean=>part.kind==="reduction"&&(part.signature.startsWith("select ::=")||part.children.some(hasSelect));
+ if(hasSelect(lhs))return node;
+ const negative=op.signature.includes("NOT"),seed=asExpr(node).tokens[0]!;
+ const constant:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:negative?"true":"false"}}]};
+ if(producesEmptyInTruth(node))return constant;
+ const operator=negative?"OR":"AND";
+ return {kind:"reduction",rule:0,signature:`expr ::= expr ${operator} expr`,children:[constant,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:operator}},lhs]};
+}
 function producesEmptyInTruth(node:ExprReduction):boolean {
  if(node.signature!=="expr ::= expr in_op LP exprlist RP")return false;
  const list=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -816,11 +829,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return n;
        const hasSelect=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.children.some(hasSelect));
        if(hasSelect(lhs))return n; // SELECT-carried flags not yet proved.
-       const seed=asExpr(n).tokens[0]!,negative=op.signature.includes("NOT");
-       const value:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:negative?"true":"false"}}]};
-       if(producesEmptyInTruth(n)){if(!negative)producedFalse.add(value);return value;}
-       const operator=negative?"OR":"AND";
-       return {kind:"reduction",rule:0,signature:`expr ::= expr ${operator} expr`,children:[value,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:operator}},lhs]};
+       const value=emptyInProduction(n);
+       if(producesEmptyInTruth(n)&&!op.signature.includes("NOT"))producedFalse.add(value);
+       return value;
       };
       const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
        const es=exprChildren(n);

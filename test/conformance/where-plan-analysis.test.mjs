@@ -1500,3 +1500,20 @@ test('IS empty IN function flag prevents TRUEFALSE replacement',()=>{
  assert.equal(analyzeWhere(r).clause.terms[0].operator,'is',rhs);
  }
 });
+test('empty IN semantic term has no WO_IN after parser constant production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['b IN ()','b NOT IN ()','abs(b) IN ()']){
+ const term=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(term.operator,null,predicate);
+ }
+});
+
+test('empty IN physical IN admission removed while nonempty and HasFunc carriers survive',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT id FROM t WHERE b IN () OR b>?',schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].info.indexable,0n);
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE abs(b) NOT IN ()',schema(encoding))).clause;
+ assert.equal(c.terms[0].info.kind,'or');
+ assert.equal(c.terms[0].info.clause.terms[1].expression.reduction.signature,'expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP');
+ assert.equal(analyzeWhere(resolve('SELECT id FROM t WHERE b IN (?,?)',schema(encoding))).clause.terms[0].operator,'in');
+ }
+});
