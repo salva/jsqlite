@@ -27,3 +27,16 @@ identity, fixture hash, timings and full typed rows, or the interrupted stage.
 Timeout/error exits nonzero. Completion alone is not correctness acceptance;
 compare the saved rows independently. The test is deliberately not a 30-minute
 CI gate and never writes Saivage state or modifies the autonomous worktree.
+
+## Decompose the slow query
+
+Set the same browser environment and `JSQLITE_BREAKDOWN_DIR` to an external
+evidence directory, then run `python3 test/browser/query-breakdown.py`. It runs
+thirteen progressively isolated queries sequentially: filter/count, partial and
+complete join, grouping without/with the join, separate aggregates, combined
+aggregates, HAVING, ORDER BY and LIMIT. Each gets the benchmark's 30-minute
+deadline unless overridden. It saves full individual reports and a running
+summary, and compares values with the local C-backed Python SQLite version
+(recorded explicitly, not asserted to be the pinned oracle). Unordered results
+are compared as multisets. Different queries can select different plans, so
+timing deltas localize suspects rather than proving additive operator costs.
