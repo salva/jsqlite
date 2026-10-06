@@ -589,8 +589,26 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const operator=negative?"OR":"AND";
        return {kind:"reduction",rule:0,signature:`expr ::= expr ${operator} expr`,children:[value,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:operator}},lhs]};
       };
+      const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
+       const es=exprChildren(n);
+       if(es.length===2&&(n.signature==="expr ::= expr IS expr"||n.signature==="expr ::= expr IS NOT expr")&&isNullLiteral(asExpr(parens(es[1]!))))return {op:n.signature.includes("IS NOT")?"NOTNULL":"ISNULL",child:es[0]!};
+       if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
+       return null;
+      };
+      const foldNullLiteral=(n:ExprReduction):ExprReduction=>{
+       const test=nullTest(n);if(!test)return n;
+       let child=parens(test.child);
+       while(child.signature==="expr ::= PLUS|MINUS expr")child=parens(exprChildren(child)[0]!);
+       const tokens=asExpr(child).tokens;
+       // sqlite3PExprIsNull inspects opcode after stripping unary signs,
+       // not runtime value, numeric conversion or constant evaluation.
+       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return n;
+       const value:SqlToken={...tokens[0]!,kind:"integer",text:test.op==="NOTNULL"?"1":"0"};
+       const result:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
+       if(test.op==="ISNULL")producedFalse.add(result);return result;
+      };
       const producedAnd=(n:ExprReduction):ExprReduction=>{
-       n=emptyIn(parens(n));
+       n=foldNullLiteral(emptyIn(isAlias(parens(n))));
        if(n.signature!=="expr ::= expr AND expr")return n;
        const es=exprChildren(n).map(producedAnd);
        // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
@@ -688,23 +706,6 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
 
       // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
       // Compare the produced unary opcode and its child, not grammar aliases.
-      const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
-       const es=exprChildren(n);
-       if(es.length===2&&(n.signature==="expr ::= expr IS expr"||n.signature==="expr ::= expr IS NOT expr")&&isNullLiteral(asExpr(parens(es[1]!))))return {op:n.signature.includes("IS NOT")?"NOTNULL":"ISNULL",child:es[0]!};
-       if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
-       return null;
-      };
-      const foldNullLiteral=(n:ExprReduction):ExprReduction=>{
-       const test=nullTest(n);if(!test)return n;
-       let child=parens(test.child);
-       while(child.signature==="expr ::= PLUS|MINUS expr")child=parens(exprChildren(child)[0]!);
-       const tokens=asExpr(child).tokens;
-       // sqlite3PExprIsNull inspects opcode after stripping unary signs,
-       // not runtime value, numeric conversion or constant evaluation.
-       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return n;
-       const value:SqlToken={...tokens[0]!,kind:"integer",text:test.op==="NOTNULL"?"1":"0"};
-       return {kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
-      };
       x=foldNullLiteral(x);y=foldNullLiteral(y);
       const xn=nullTest(x),yn=nullTest(y);
       if(xn||yn)return !!xn&&!!yn&&xn.op===yn.op&&same(xn.child,yn.child);

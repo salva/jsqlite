@@ -796,3 +796,15 @@ test('returned ExprInt32 zero retains IsFalse for enclosing parser AND',()=>{
  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('literal ISNULL ExprInt32 false flag folds enclosing parser AND',()=>{
+ for(const rhs of ['(1 ISNULL) AND u.a','u.a AND ((-2) IS NULL)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('null-test false flags require literal opcode and retain function exclusion',()=>{
+ for(const rhs of ['(:bound ISNULL) AND u.a','(1 NOTNULL) AND u.a','(NULL ISNULL) AND u.a','(1 ISNULL) AND abs(u.a)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
