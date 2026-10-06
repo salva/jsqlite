@@ -191,7 +191,50 @@ replan physical arms from these clauses, preserving binding/seek provenance.
 Selected cost production is bounded to rowid persistent-index/equality/range/AND/
 nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
 or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
-scans are not selected OR. Case5/RowSet VM/SELECT lowering is outstanding. Three
+scans are not selected OR. Single-table Case5 lowering replans owned
+arms into shared-builder seeks and RowSetTest/Gosub/Return with complete arm
+and parent truth and the existing ORDER sorter. Nested selected arms recursively
+consume their actual selected plan with independent RowSet/return registers and
+the shared construction frontier; no ordinary-only filtering remains. Represented
+inner callers now use per-level RowSet/Gosub continuations with initialization
+per outer row and full residual truth. Arm AND terms are tested individually only
+when prereqAll is positioned; unready OR atoms are deferred intact. The ordinary
+caller retains full parent truth until downstream sources are ready (no parent
+disableTerm/omission optimization). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+Correlated arm replanning retains the
+actual already-positioned outer mask; unready prerequisites remain excluded.
+Single-table Case5 retains a common physical index only when every selected
+leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
+covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
+reads and existing deferred table positioning intact. Full arm/parent residuals
+remain tested (no TERM_CODED omission or index-only execution claim). Index Rowid
+uses the integer tail cached during physical positioning; no separate index
+movement is introduced. Represented-inner levels likewise share an owned arm index
+cursor and publish common physical identity for level-bounded Column/Rowid rewrite;
+nested/non-index/different arms invalidate it. Full residuals remain tested.
+See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
+and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+Runtime arm scope is separate from cost exploration: Case5 factors only
+original indexable enclosing terms, excluding virtual, nullable-ON and
+subquery-bearing expressions. Both direct and AND arms retain owned terms;
+full parent truth remains in the common body. Represented terms have no
+coded/slice state and row-value slices are not admitted. See
+[focused factoring evidence](research/card-s-f-or/verification.md#runtime-factored-constraint-exclusion-repair).
+Represented IN-list arms use shared RHS iterator registers with inside-out
+restart, NULL/duplicate suppression and full arm truth; scalar equality NULL
+exits the arm while range/scan exhaustion advances its IN probe.
+Factored-AND exclusions remain incomplete; this
+is not accepted full runtime delivery. Selected planning and arm replanning
+now consume the enclosing builder construction frontier. The bounded public
+reproducer passes with tagged native binding classes and full repeated-arm
+execution roots; see [consumer evidence](research/card-s-f-or/verification.md). Internal
+`rowset.ts` translates chunk/list/forest batch algorithms; Mem owns its destructor
+and VM RowSetTest implements first-batch test bypass and final-batch insert bypass.
+Logical charges are 64-byte owner and 1016-byte/42-entry retained chunks (including
+forest links/merged duplicates), not JS heap measurements. Async checkpoints bound
+primitive work; no selected caller/runtime acceptance follows. Native/internal
+primitive evidence and remaining integration gates: [[card:card-s-f-c]] status.
+Three
 encoding plan-only handoffs pass independently of still-red lowering opcode and
 selected-work assertions in `or-rowid-red.test.mjs`; no runtime acceptance follows.
 

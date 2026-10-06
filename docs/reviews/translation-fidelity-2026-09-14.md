@@ -1,13 +1,39 @@
 # Translation fidelity audit — 2026-09-14
 
+## Current canonical-null consumer repair
+
+The previously failing partial-admission/residual and joined null-test consumer
+seams now retain canonical NOTNULL identity and unary operand ownership. The
+synthetic foundation source also carries required resolved join flags. This is
+not recursive/join OR completion or optimizer-wide credit; baseline/current
+failure provenance and fresh checks are in
+[repair evidence](../research/card-s-f-or/verification.md#canonical-null-consumer-repair).
+
 ## Current partial OR prelowering boundary
 
 [[card:card-s-f-b]] implements clause-owned OR/AND graph and lazy shared-budget
-cost-only production, not Case5/RowSet lowering. Exact stored three-slot insertion,
+cost-only production, not Case5 SELECT lowering. [[card:card-s-f-c]] adds internal
+native-backed RowSet list/forest/batch algorithms, Mem destructor ownership and
+VM RowSetTest and single-table shared-body selected lowering including
+recursive selected AND-arm consumption and represented inner per-level continuations;
+correlated arm replanning preserves enclosing ready prerequisites; represented
+IN-list arms own RHS iterators and inside-out restart. Runtime Case5 factoring
+now excludes subquery/virtual/nullable-ON terms separately from cost exploration
+and retains full parent residual; represented terms have no coded/slice state.
+Single-table and represented-inner common-index Column/Rowid rewrite now consume
+retained physical arm identity. Joined arm residuals now skip notReady terms and
+retain full downstream parent truth; TERM_CODED/untested parent omission remains
+unimplemented, not early-read equivalence. Broader
+join/factoring fidelity remains incomplete. Planning/arm replanning now share the enclosing
+construction frontier; bounded public reproducer passes, not full runtime
+acceptance. Internal primitive evidence is in that card's status, not public
+compatibility credit. Exact stored three-slot insertion,
 frame-local ignored child rc, per-call DONE and parent publication have focused
 controls. Immutable parent loops have capability:null/setup0/sort0; lowering owns
 physical arm replanning and seek/binding provenance. Three encoding planning
-handoffs are green separately from outstanding opcode/public selected-work tests.
+handoffs, draft opcode checks and the bounded tagged-binding public reproducer
+are green separately from incomplete broader acceptance. Current attempts and unchanged harness weaknesses are recorded in
+[[card:card-s-f-c]] status; no complete consumer acceptance is inferred.
 Ordinary/forced-index fallback is retained; WR union and unsafe selected joins are
 deferred, not owner-scope withdrawals. Full expression comparison/flags, recursive
 admission/cleanup, transitive lowering and native cost parity remain unproved.
