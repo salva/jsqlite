@@ -320,8 +320,8 @@ test('combine families retain exact strict/equality ties and reject opposing dir
  }
 });
 test('combine compares resolved column cursor/column identity independent of qualifiers and recursive arithmetic',()=>{
- for(const predicate of ['a=5 OR t.a<5','a=(b+1) OR t.a<(t.b+1)']){
-  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause;
+ for(const predicate of ['a=5 OR t.a<5','t.a=(u.b+1) OR t.a<(u.b+1)']){
+  const c=analyzeWhere(resolve(`SELECT t.id FROM t ${predicate.includes("u.b")?"JOIN t AS u":""} WHERE ${predicate}`,schema())).clause;
   assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),predicate);
  }
  const c=analyzeWhere(resolve('SELECT id FROM t WHERE a COLLATE BINARY=5 OR t.a<5',schema())).clause;
@@ -334,8 +334,8 @@ test('OR operand comparison never equates distinct anonymous variables inside ar
  }
 });
 test('combine resolves columns recursively through function argument and IN list carriers',()=>{
- for(const rhs of [['abs(b)','abs(t.b)'],['(b IN (a,1))','(t.b IN (t.a,1))']]){
-  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs[0]} OR t.a<${rhs[1]}`,schema())).clause;
+ for(const rhs of [['abs(u.b)','abs(u.b)'],['(u.b IN (u.a,1))','(u.b IN (u.a,1))']]){
+  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=${rhs[0]} OR t.a<${rhs[1]}`,schema())).clause;
   assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs.join(' / '));
  }
 });
@@ -347,4 +347,10 @@ test('exprAnalyzeOrTerm stops AND info construction once stored-order indexable 
  const reversed=analyzeWhere(resolve('SELECT id FROM t WHERE (a=5 AND b=2) OR 1',schema())).clause.terms[0].info;
  assert.equal(reversed.indexable,0n);
  assert.equal(reversed.clause.terms[0].info.kind,'and','already visited ownership is retained');
+});
+test('OR indexable excludes overlapping operand usage per exprAnalyze opMask WO_EQUIV',()=>{
+ for(const predicate of ['a=b OR a=5','a<b OR a=5','(a=b AND b=a) OR a=5']){
+  const info=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause.terms[0].info;
+  assert.equal(info.indexable,0n,predicate);
+ }
 });

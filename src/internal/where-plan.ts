@@ -469,6 +469,11 @@ function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
  };
  return usage(resolved,node);
 }
+// exprAnalyze's opMask admits WO_SINGLE only when operand usage is disjoint.
+// Keep binding/operator evidence for residuals; it is not indexable evidence.
+function singleIndexMask(term:WhereTerm):SourceMask {
+ return term.operator&&term.left&&(term.prereqRight&sourceBit(term.left.sourceOrdinal))===0n?sourceBit(term.left.sourceOrdinal):0n;
+}
 function splitAnd(node:ExprReduction,out:ExprReduction[]):void {if(node.signature==="expr ::= expr AND expr"){for(const child of exprChildren(node))splitAnd(child,out);}else out.push(node);}
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
 function reverseOperator(op:WhereOperator):WhereOperator{return op==="lt"?"gt":op==="le"?"ge":op==="gt"?"lt":op==="ge"?"le":op;}
@@ -513,8 +518,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
     let mask=0n;
     for(const alt of alternatives){
-     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
-     else if(alt.operator&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
+     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){mask|=singleIndexMask(sub);}
+     else mask|=singleIndexMask(alt);
     }
     indexable&=mask;
    }
@@ -589,11 +594,11 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
    // commuted child; non-single AND masks use allowed single operators.
    if(!term.operator){
     let mask=0n;
-    if(term.info?.kind==="and")for(const sub of term.info.clause.terms)if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);
+    if(term.info?.kind==="and")for(const sub of term.info.clause.terms)mask|=singleIndexMask(sub);
     orIndexable&=mask;
    }else if(term.virtual||term.childIds.length===0){
-    let mask=term.left?sourceBit(term.left.sourceOrdinal):0n;
-    if(term.virtual&&term.parentId!==null){const parent=terms[term.parentId]!;if(parent.left)mask|=sourceBit(parent.left.sourceOrdinal);}
+    let mask=singleIndexMask(term);
+    if(term.virtual&&term.parentId!==null){const parent=terms[term.parentId]!;mask|=singleIndexMask(parent);}
     orIndexable&=mask;
    }
   }
