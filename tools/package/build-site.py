@@ -27,9 +27,14 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / 'site', OUT)
+    query = (source / 'examples/browser/query.js').read_text()
+    query = query.replace("'../../dist/index.js'", "'./engine/index.js'")
+    # Demo wrapper policy, not a change to the pinned engine.
+    query = query.replace('timeoutMs: 10000', 'timeoutMs: 60000')
+    query_name = 'query-' + hashlib.sha256(query.encode()).hexdigest()[:12] + '.js'
     # Content-address the UI/worker so Pages' ten-minute cache cannot retain
     # a previous worker after deployment. Engine inputs are pinned separately.
-    worker_text = (OUT / 'worker.js').read_text()
+    worker_text = (OUT / 'worker.js').read_text().replace("'./assets/query.js'", repr('./assets/' + query_name))
     worker_name = 'worker-' + hashlib.sha256(worker_text.encode()).hexdigest()[:12] + '.js'
     (OUT / worker_name).write_text(worker_text)
     app_text = (OUT / 'app.js').read_text().replace("'worker.js'", repr(worker_name))
@@ -45,9 +50,7 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     shutil.copytree(source / 'dist', assets / 'engine')
     for name in ['chinook.sqlite', 'CHINOOK-LICENSE.md']:
         shutil.copyfile(source / 'examples/browser' / name, assets / name)
-    query = (source / 'examples/browser/query.js').read_text()
-    query = query.replace("'../../dist/index.js'", "'./engine/index.js'")
-    (assets / 'query.js').write_text(query)
+    (assets / query_name).write_text(query)
     for name in ['LICENSE', 'NOTICE.md']:
         shutil.copyfile(ROOT / name, OUT / name)
     # Include preferred source for the pinned engine and the site/build itself.

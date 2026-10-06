@@ -22,7 +22,7 @@ development tools are copied into the Pages artifact. Its SQLite fixture is
 Chinook, whose MIT license is included separately.
 
 Queries execute in a new dedicated worker per run. The UI can terminate that
-worker, including after a ten-second watchdog; this is a demo containment
+worker, including after a sixty-second watchdog; this is a demo containment
 mechanism, not proof of the engine's own cancellation semantics. The UI uses
 textContent for SQL result cells, preserves duplicate column names and exact
 INTEGER strings, and limits results to 1,000 rows. No telemetry, query backend,

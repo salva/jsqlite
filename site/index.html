@@ -23,7 +23,7 @@
         <div class="editor"><label for="example">Choose an example</label><select id="example"><option value="albums">Albums & tracks</option><option value="artists">Browse artists</option><option value="types">SQLite value types</option></select>
           <label for="sql">SQL <span>Editable · one statement at a time</span></label><textarea id="sql" spellcheck="false" rows="10" aria-describedby="demo-note"></textarea>
           <div class="actions"><button id="run" disabled>Run query</button><button id="cancel" disabled class="quiet">Cancel</button></div>
-          <p id="demo-note">The browser fetches a bundled 1 MB Chinook database, then executes SQL in a dedicated worker. No SQL is sent to a backend. Demo limit: 1,000 rows and 10 seconds per run.</p>
+          <p id="demo-note">The browser fetches a bundled 1 MB Chinook database, then executes SQL in a dedicated worker. No SQL is sent to a backend. Demo limit: 1,000 rows and 60 seconds per run.</p>
         </div>
         <div class="output"><div class="output-head"><h3>Results</h3><span id="timing"></span></div><p id="status" role="status" aria-live="polite">Loading playground…</p><div id="results" class="table-wrap" tabindex="0" aria-label="Query results"></div><p class="hint">INTEGER values are displayed exactly; NULL and BLOB values retain their types. Hover over a cell to see its storage class.</p></div>
       </div>

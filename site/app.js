@@ -27,7 +27,7 @@ $('run').addEventListener('click', () => {
   worker.onmessage = ({ data }) => { stop(); $('timing').textContent = `${Math.round(performance.now() - started)} ms total`; render(data); };
   worker.onerror = () => { stop(); setStatus('The query worker failed. Try again or report the query on GitHub.', true); };
   // A UI watchdog terminates the disposable worker; it is not an engine timeout guarantee.
-  deadline = setTimeout(() => { stop(); setStatus('Demo stopped this run after 10 seconds. Try a smaller query.', true); }, 10000);
+  deadline = setTimeout(() => { stop(); setStatus('Demo stopped this run after 60 seconds. Try a smaller query.', true); }, 60000);
   worker.postMessage({ sql: $('sql').value });
 });
 $('cancel').addEventListener('click', () => { stop(); setStatus('Cancelled: the disposable query worker was terminated.'); });

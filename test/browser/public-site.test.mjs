@@ -33,6 +33,7 @@ try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.JSQLITE_SITE_CHROMIUM });
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}/jsqlite/`);
+  assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   async function run() {
     await page.locator('#run').click();
     await page.waitForFunction(() => !document.getElementById('run').disabled);
