@@ -17,7 +17,7 @@ export type LogicalEstimate=bigint;
 export type WhereOperator="eq"|"is"|"is-null"|"in"|"lt"|"le"|"gt"|"ge";
 export type TermOrigin={readonly kind:"where"}|{readonly kind:"join-on";readonly rightSource:number;readonly join:"inner"|"left"|"right"|"full"}|{readonly kind:"using";readonly rightSource:number;readonly name:string}|{readonly kind:"derived";readonly parentTerm:number;readonly reason:"commuted"|"transitive"|"range"};
 export interface ColumnBinding {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly column:ColumnNode|null;readonly columnIndex:number;readonly rowid:boolean}
-export interface WhereTerm {readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
+export interface WhereTerm {readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
 export type WhereTermInfo={readonly kind:"or";readonly parentTerm:WhereTerm;readonly clause:WhereClause;readonly indexable:SourceMask}|{readonly kind:"and";readonly clause:WhereClause};
 export interface WhereClause {readonly split:"and"|"or";readonly terms:readonly WhereTerm[];readonly outer:WhereClause|null}
 export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation}|{readonly kind:"is-null"};
@@ -497,6 +497,23 @@ function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
 }
 // exprAnalyze's opMask admits WO_SINGLE only when operand usage is disjoint.
 // Keep binding/operator evidence for residuals; it is not indexable evidence.
+/** whereexpr.c:termIsEquivalence (default SQLITE_Transitive enabled).
+ * This flag belongs to semantic analysis, independently of single-index
+ * admission. It is not permission to substitute a transitive seek operand. */
+function termEquivalence(resolved:ResolvedSelect,draft:{node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null}):boolean {
+ if(draft.operator!=="eq"&&draft.operator!=="is")return false;
+ if(draft.origin.kind==="join-on"&&draft.origin.join==="left")return false;
+ const hasCollate=(node:ExprReduction):boolean=>node.signature.startsWith("expr ::= expr COLLATE")||exprChildren(node).some(hasCollate);
+ if(hasCollate(draft.node))return false;
+ if(draft.operator==="is"&&resolved.sources.length>=2&&resolved.sources[0]?.leftOfRightJoin)return false;
+ const children=exprChildren(draft.node),lhs=children[0],rhs=children[1];
+ if(!lhs||!rhs)return false;
+ const l=binding(resolved,lhs),r=binding(resolved,rhs);
+ if(!l||!r)return false;
+ const a=resolvedExpressionAffinity(lhs,resolved)??"blob",b=resolvedExpressionAffinity(rhs,resolved)??"blob";
+ if(a!==b&&(!numericAffinity(a)||!numericAffinity(b)))return false;
+ return sqliteAsciiFold(l.column?.collation??"binary")===sqliteAsciiFold(r.column?.collation??"binary");
+}
 function singleIndexMask(term:WhereTerm):SourceMask {
  return term.operator&&term.left&&(term.prereqRight&sourceBit(term.left.sourceOrdinal))===0n?sourceBit(term.left.sourceOrdinal):0n;
 }
@@ -529,7 +546,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  // parent/child IDs rather than exposing interleaved construction order.
  const ordered=[...drafts.filter(draft=>!draft.virtual),...drafts.filter(draft=>draft.virtual)];
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
- const terms:WhereTerm[]=ordered.map((draft,id)=>({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
  let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;

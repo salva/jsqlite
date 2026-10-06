@@ -1079,3 +1079,13 @@ test('production OR cost visits matching stored commutations once in stored orde
   assert.ok(actual.a.every(c=>c.prereq===sourceBit(0)));
  }
 });
+test('exprAnalyze produces equivalence ownership only after source affinity collseq and ON proof',()=>{
+ for(const [predicate,expected] of [['t.a=u.a',true],['t.b=u.id',true],['t.blob=u.b',false],['t.a COLLATE NOCASE=u.a',false],['t.a IS u.a',true]]){
+  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE ${predicate}`,schema())).clause;
+  const pair=c.terms.filter(t=>t.left);
+  assert.equal(pair.length,2);
+  assert.ok(pair.every(t=>t.equivalence===expected),predicate);
+ }
+ const c=analyzeWhere(resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a',schema())).clause;
+ assert.ok(c.terms.filter(t=>t.left).every(t=>t.equivalence===false),'EP_OuterON excludes transitive producer');
+});
