@@ -1447,3 +1447,24 @@ test('necessary operand proof follows resolved noncolumn alias copies',()=>{
  }
  }
 });
+test('resolved IS TRUE FALSE owns truth opcode not indexable IS equality',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['TRUE','FALSE','(TRUE)','likely(FALSE)','TRUE COLLATE BINARY']){
+ const r=resolve(`SELECT id FROM t WHERE b IS ${rhs}`,schema(encoding));
+ const term=analyzeWhere(r).clause.terms[0];
+ assert.equal(term.operator,null,rhs);
+ assert.equal(term.equivalence,false,rhs);
+ }
+});
+
+test('IS truth production distinguishes integer and bound alias operands',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const rhs of ['1','b','CAST(TRUE AS INTEGER)']){
+ const r=resolve(`SELECT id FROM t WHERE b IS ${rhs}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,'is',rhs);
+ }
+ const r=resolve('SELECT b AS operand FROM t WHERE b IS operand',schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,'is');
+ const or=resolve('SELECT id FROM t WHERE b IS TRUE OR b>?',schema(encoding));
+ assert.equal(analyzeWhere(or).clause.terms[0].info.indexable,0n);
+ }
+});
