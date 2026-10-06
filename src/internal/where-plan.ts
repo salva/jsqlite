@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return emptyInProduction(at);
+ return singletonInProduction(emptyInProduction(at));
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -703,6 +703,59 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 }
 /** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
  * SELECT-carried flags remain unproved and must not certify that replacement. */
+function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=emptyInProduction):ExprReduction {
+ const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
+       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
+       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+       if(list?.kind!=="reduction"||op?.kind!=="reduction")return n;
+       const values=directExprReductions(list),lhs=exprChildren(n)[0];
+       if(values.length!==1||!lhs)return n;
+       const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
+       // exprNodeIsConstant(mode=1) continues through ordinary operators
+       // and walks their children; it does not evaluate arithmetic. Keep
+       // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
+       // token and assigned-slot identity is checked later by same().
+       // Keep ID/column/function/SELECT admission unproved here.
+       const constant=(v:ExprReduction):boolean=>{
+        // Constant walking observes parser-produced empty-IN replacement,
+        // not the discarded raw lhs. Reuse that semantic producer.
+        v=produce(parens(v));
+        const ts=asExpr(v).tokens;
+        // TK_ID converts to TK_TRUEFALSE before name resolution in this
+        // parser-time mode1 walk; EP_Quoted must prevent that conversion.
+        if(v.signature==="expr ::= ID|INDEXED|JOIN_KW"&&ts.length===1&&/^(true|false)$/i.test(ts[0]!.text))return true;
+        if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
+        const es=exprChildren(v);
+        const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
+        // TK_CASE pLeft is optional; x.pList appends ordered WHEN/THEN
+        // expressions and optional ELSE. Walk every expression, not results.
+        if(v.signature==="expr ::= LP nexprlist COMMA expr RP")return directExprReductions(v).every(constant);
+        if(v.signature==="expr ::= CASE case_operand case_exprlist case_else END"){
+         const values=directExprReductions(v);
+         return values.length>=2&&values.every(constant);
+        }
+        // Nonempty TK_IN owns pLeft plus x.pList; singleton constant
+        // production becomes EQ/UPLUS with the same child obligations. SELECT-backed IN
+        // is deliberately excluded: exprIsConst installs SelectWalkFail.
+        if(v.signature==="expr ::= expr in_op LP exprlist RP"){
+         const list=v.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+         const values=list?.kind==="reduction"?directExprReductions(list):[];
+         return es.length===1&&values.length>=1&&constant(es[0]!)&&values.every(constant);
+        }
+        // TK_BETWEEN owns pLeft plus a two-element x.pList. Its optional
+        // NOT parent does not change the constant walk's child obligations.
+        if(v.signature==="expr ::= expr between_op expr AND expr")return es.length===3&&es.every(constant);
+        const booleanOrComparison=["expr ::= expr ISNULL|NOTNULL","expr ::= expr NOT NULL","expr ::= NOT expr","expr ::= expr EQ|NE expr","expr ::= expr LT|GT|GE|LE expr","expr ::= expr AND expr","expr ::= expr OR expr","expr ::= expr IS expr","expr ::= expr IS NOT expr","expr ::= expr COLLATE ID|STRING"].includes(v.signature);
+        return (ordinary||booleanOrComparison)&&es.length>0&&es.every(constant);
+       };
+       if(!constant(rhs))return n;
+       if(parens(lhs).signature==="expr ::= LP nexprlist COMMA expr RP")return n;
+       const token=(text:string,kind:SqlToken["kind"])=>({kind:"terminal" as const,tokenId:0,value:{...tokens[0]!,kind,text}});
+       const plus:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= PLUS|MINUS expr",children:[token("+","punct"),rhs]};
+       const eq:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr EQ|NE expr",children:[lhs,token("=","punct"),plus]};
+       return op.signature.includes("NOT")?{kind:"reduction",rule:0,signature:"expr ::= NOT expr",children:[token("NOT","keyword"),eq]}:eq;
+}
 function emptyInProduction(node:ExprReduction):ExprReduction {
  if(node.signature!=="expr ::= expr in_op LP exprlist RP")return node;
  const list=node.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
@@ -869,59 +922,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // parse.y singleton IN with a constant RHS and scalar LHS produces
       // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
       // constants here; function/compound constant admission needs its walker.
-      const singletonIn=(n:ExprReduction):ExprReduction=>{
-       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
-       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
-       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
-       if(list?.kind!=="reduction"||op?.kind!=="reduction")return n;
-       const values=directExprReductions(list),lhs=exprChildren(n)[0];
-       if(values.length!==1||!lhs)return n;
-       const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
-       // exprNodeIsConstant(mode=1) continues through ordinary operators
-       // and walks their children; it does not evaluate arithmetic. Keep
-       // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
-       // token and assigned-slot identity is checked later by same().
-       // Keep ID/column/function/SELECT admission unproved here.
-       const constant=(v:ExprReduction):boolean=>{
-        // Constant walking observes parser-produced empty-IN replacement,
-        // not the discarded raw lhs. Reuse that semantic producer.
-        v=producedAnd(isAlias(parens(v)));
-        const ts=asExpr(v).tokens;
-        // TK_ID converts to TK_TRUEFALSE before name resolution in this
-        // parser-time mode1 walk; EP_Quoted must prevent that conversion.
-        if(v.signature==="expr ::= ID|INDEXED|JOIN_KW"&&ts.length===1&&/^(true|false)$/i.test(ts[0]!.text))return true;
-        if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
-        const es=exprChildren(v);
-        const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
-        // TK_CASE pLeft is optional; x.pList appends ordered WHEN/THEN
-        // expressions and optional ELSE. Walk every expression, not results.
-        if(v.signature==="expr ::= LP nexprlist COMMA expr RP")return directExprReductions(v).every(constant);
-        if(v.signature==="expr ::= CASE case_operand case_exprlist case_else END"){
-         const values=directExprReductions(v);
-         return values.length>=2&&values.every(constant);
-        }
-        // Nonempty TK_IN owns pLeft plus x.pList; singleton constant
-        // production becomes EQ/UPLUS with the same child obligations. SELECT-backed IN
-        // is deliberately excluded: exprIsConst installs SelectWalkFail.
-        if(v.signature==="expr ::= expr in_op LP exprlist RP"){
-         const list=v.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
-         const values=list?.kind==="reduction"?directExprReductions(list):[];
-         return es.length===1&&values.length>=1&&constant(es[0]!)&&values.every(constant);
-        }
-        // TK_BETWEEN owns pLeft plus a two-element x.pList. Its optional
-        // NOT parent does not change the constant walk's child obligations.
-        if(v.signature==="expr ::= expr between_op expr AND expr")return es.length===3&&es.every(constant);
-        const booleanOrComparison=["expr ::= expr ISNULL|NOTNULL","expr ::= expr NOT NULL","expr ::= NOT expr","expr ::= expr EQ|NE expr","expr ::= expr LT|GT|GE|LE expr","expr ::= expr AND expr","expr ::= expr OR expr","expr ::= expr IS expr","expr ::= expr IS NOT expr","expr ::= expr COLLATE ID|STRING"].includes(v.signature);
-        return (ordinary||booleanOrComparison)&&es.length>0&&es.every(constant);
-       };
-       if(!constant(rhs))return n;
-       if(parens(lhs).signature==="expr ::= LP nexprlist COMMA expr RP")return n;
-       const token=(text:string,kind:SqlToken["kind"])=>({kind:"terminal" as const,tokenId:0,value:{...tokens[0]!,kind,text}});
-       const plus:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= PLUS|MINUS expr",children:[token("+","punct"),rhs]};
-       const eq:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr EQ|NE expr",children:[lhs,token("=","punct"),plus]};
-       return op.signature.includes("NOT")?{kind:"reduction",rule:0,signature:"expr ::= NOT expr",children:[token("NOT","keyword"),eq]}:eq;
-      };
-      x=singletonIn(x);y=singletonIn(y);
+
+      x=singletonInProduction(x,v=>producedAnd(isAlias(v)));y=singletonInProduction(y,v=>producedAnd(isAlias(v)));
       // parse.y BETWEEN produces a TK_BETWEEN with ordered two-item list,
       // then an optional TK_NOT parent. Normalize the semantic wrapper,
       // not Boolean value equivalence or reassociation of its children.

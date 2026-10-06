@@ -1517,3 +1517,17 @@ test('empty IN physical IN admission removed while nonempty and HasFunc carriers
  assert.equal(analyzeWhere(resolve('SELECT id FROM t WHERE b IN (?,?)',schema(encoding))).clause.terms[0].operator,'in');
  }
 });
+test('singleton constant IN term owns EQ not WO_IN after parser production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['1','?','1+2']){
+ assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE b IN (${rhs})`,schema(encoding))).clause.terms[0].operator,'eq',rhs);
+ }
+});
+test('singleton production retains UPLUS and NOT while column/function RHS remains IN',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE b IN (?)',schema(encoding))).clause;
+ assert.equal(c.terms[0].expression.reduction.signature,'expr ::= expr EQ|NE expr');
+ assert.equal(c.terms[0].expression.reduction.children.filter(v=>v.kind==='reduction'&&v.signature.startsWith('expr ::='))[1].signature,'expr ::= PLUS|MINUS expr');
+ assert.equal(analyzeWhere(resolve('SELECT id FROM t WHERE b NOT IN (1)',schema(encoding))).clause.terms[0].operator,null);
+ for(const rhs of ['a','abs(1)','?,?'])assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE b IN (${rhs})`,schema(encoding))).clause.terms[0].operator,'in',rhs);
+ }
+});
