@@ -25,6 +25,7 @@ int main(void){
     if(op=='i'){scanf("%lld",&value);sqlite3RowSetInsert(p,(i64)value);}
     else if(op=='t'){scanf("%d %lld",&batch,&value);printf("%d\n",sqlite3RowSetTest(p,batch,(i64)value));}
     else if(op=='n'){i64 v=0;int found=sqlite3RowSetNext(p,&v);if(found)printf("%lld\n",(long long)v);else puts("null");}
+    else if(op=='x'){sqlite3RowSetClear(p);}
     else if(op=='c'){sqlite3RowSetDelete(p);p=sqlite3RowSetInit(&db);}
     else return 2;
   }

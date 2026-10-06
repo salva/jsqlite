@@ -67,7 +67,7 @@ for(const v of capture.variants){
     for(const [runOrdinal,run] of c.runs.entries()){
      st.reset();st.clearBindings();assert.deepEqual(run.bindingCells.map(c=>c.type),run.bindingTypes,'native executed binding storage classes');run.bindingCells.forEach((b,i)=>st.bind(i+1,decode(b)));
      const rows=[],types=[];
-     while(await st.step(c.id==='inner-cover'?{maxWorkUnits:100000}:undefined)==='row'){rows.push(Array.from({length:st.columnCount},(_,i)=>st.column(i)));types.push(Array.from({length:st.columnCount},(_,i)=>st.columnType(i)))}
+     while(await st.step(c.id==='inner-cover'?{maxWorkUnits:100000}:undefined)==='row'){rows.push(Array.from({length:st.columnCount},(_,i)=>{assert.equal(st.columnType(i),run.rows[rows.length]?.[i]?.type);return st.column(i)}));types.push(Array.from({length:st.columnCount},(_,i)=>st.columnType(i)))}
      assert.deepEqual(rows,run.rows.map(r=>r.map(decode)));
      assert.deepEqual(types,run.rows.map(r=>r.map(c=>c.type)));
      if(c.selectedRequired){
@@ -183,6 +183,83 @@ for(const v of capture.variants){
  }));
 }
 
+for(const v of capture.variants){
+ test(`${v.id}: streaming composite IN OR reset interrupts live arm continuation`,async()=>withDb(v,async db=>{
+  const captured=v.cases.find(c=>c.id==='inner-in-composite');assert.ok(captured);
+  const sql=captured.sql.replace(/ ORDER BY i\.id$/,'');assert.notEqual(sql,captured.sql);
+  const expected=captured.runs[0].rows.map(row=>decode(row[0])).sort((a,b)=>a<b?-1:a>b?1:0);
+  const schema=loadSchemaGraph(db),resolved=expandAndResolveSelect(parseSql(sql).statement,schema);
+  const program=compileTableSelect(parseSql(sql).statement,schema,btreeFromConnection(db),Number.MAX_SAFE_INTEGER);
+  assert.ok(!program.ops.some(op=>op.code==='SorterOpen'),'public yield must not be buffered by ORDER sorter');
+  assert.equal(program.ops.filter(op=>op.code==='InListValue').length,2);
+  const roots=['oa','ob'].map(name=>resolved.sources[1].table.indexes.find(index=>index.name===name).rootPage);
+  const st=db.prepare(sql).statement;
+  try{
+   for(let cycle=0;cycle<3;cycle++){
+    assert.equal(await st.step(),'row');
+    assert.ok(expected.includes(st.column(0)));
+    assert.deepEqual(privateAccounting(st).orBranchRoots,[roots[0]],'second branch has not run at first live-arm yield');
+    st.reset();
+    const rows=[];while(await st.step()==='row')rows.push(st.column(0));
+    rows.sort((a,b)=>a<b?-1:a>b?1:0);
+    assert.deepEqual(rows,expected,'unordered variant preserves pinned ordered query multiset including duplicate counts');
+    assert.deepEqual(privateAccounting(st).orBranchRoots,roots);
+    st.reset();
+   }
+  }finally{st.finalize()}
+ }));
+}
+for(const v of capture.variants){
+ test(`${v.id}: composite IN OR early reset rebuilds inside-out arm iterators`,async()=>withDb(v,async db=>{
+  const captured=v.cases.find(c=>c.id==='inner-in-composite');assert.ok(captured);
+  const expected=captured.runs[0].rows.map(row=>row.map(decode));assert.ok(expected.length>0);
+  const schema=loadSchemaGraph(db),resolved=expandAndResolveSelect(parseSql(captured.sql).statement,schema);
+  const program=compileTableSelect(parseSql(captured.sql).statement,schema,btreeFromConnection(db),Number.MAX_SAFE_INTEGER);
+  assert.equal(program.ops.filter(op=>op.code==='InListValue').length,2);
+  const roots=['oa','ob'].map(name=>resolved.sources[1].table.indexes.find(index=>index.name===name).rootPage);
+  const st=db.prepare(captured.sql).statement;
+  try{
+   // Interrupt the public result sequence and reconstruct composite arm
+   // state. ORDER sorting may have already exhausted physical iterators:
+   // this is restart coverage, not proof of suspension inside an IN step.
+   for(const prefix of [...new Set([1,Math.min(2,expected.length)])]){
+    for(let i=0;i<prefix;i++){
+     assert.equal(await st.step(),'row');
+     assert.deepEqual(expected[i].map((_,column)=>st.column(column)),expected[i]);
+    }
+    st.reset();
+    const rows=[];while(await st.step()==='row')rows.push(expected[0].map((_,column)=>st.column(column)));
+    assert.deepEqual(rows,expected,'both IN positions and RowSet batch restart after early reset');
+    assert.deepEqual(privateAccounting(st).orBranchRoots,roots,'full selected branch sequence after reset');
+    st.reset();
+   }
+  }finally{st.finalize()}
+ }));
+}
+for(const v of capture.variants){
+ test(`${v.id}: correlated OR early reset reconstructs enclosing and shared-body continuations`,async()=>withDb(v,async db=>{
+  const captured=v.cases.find(c=>c.id==='correlated-or');assert.ok(captured);
+  const expected=captured.runs[0].rows.map(row=>row.map(decode));assert.ok(expected.length>1);
+  const st=db.prepare(captured.sql).statement;
+  const schema=loadSchemaGraph(db),resolved=expandAndResolveSelect(parseSql(captured.sql).statement,schema);
+  const roots=['oa','ob','oa','ob'].map(name=>resolved.sources[1].table.indexes.find(index=>index.name===name).rootPage);
+  try{
+   // Halt between shared-body yields instead of completing whereEnd. Reset
+   // must destroy old RowSet/return state and restart the enclosing loop.
+   for(const prefix of [1,2,1]){
+    for(let i=0;i<prefix;i++){
+     assert.equal(await st.step(),'row');
+     assert.deepEqual(expected[i].map((_,column)=>st.column(column)),expected[i]);
+    }
+    st.reset();
+    const rows=[];while(await st.step()==='row')rows.push(expected[0].map((_,column)=>st.column(column)));
+    assert.deepEqual(rows,expected,'no stale RowSet suppresses first outer iteration after reset');
+    assert.deepEqual(privateAccounting(st).orBranchRoots,roots,'complete repeated enclosing-loop root sequence after reset');
+    st.reset();
+   }
+  }finally{st.finalize()}
+ }));
+}
 // wherecode.c Case 5 tag-20220303a: factored subqueries must not
 // become arm index constraints; their common-body truth remains required.
 for(const v of capture.variants){

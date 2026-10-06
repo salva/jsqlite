@@ -20,3 +20,18 @@ for(const c of cases)test(`linked scalar child destination: ${c.sql}`,async()=>{
   }
  }finally{s?.finalize();db.close();}
 });
+
+// wherecode.c Cases 2/3: bound operands retain NameContext identity and the
+// end comparison is directional (pStart/pEnd swap on reverse traversal).
+const boundNative=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-f-or/correlated-bound-native.json',import.meta.url)));
+for(const fixture of boundNative.cases)test(`owned scalar rowid bounds ${fixture.encoding}`,async()=>{
+ const bytes=fs.readFileSync(new URL(`../../${fixture.path}`,import.meta.url));
+ const prior=globalThis.fetch;let db;
+ try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/scalar-bounds');}finally{globalThis.fetch=prior;}
+ try{for(const c of fixture.runs){const s=db.prepare(c.sql).statement;try{
+  for(let run=0;run<2;run++){
+   const rows=[];while(await s.step({maxWorkUnits:10000})==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>s.columnType(i)==='null'?{type:'null'}:{type:s.columnType(i),value:String(s.column(i))}));
+   assert.deepEqual(rows,c.rows,c.sql);if(run===0)s.reset();
+  }
+ }finally{s.finalize();}}}finally{db.close();}
+});

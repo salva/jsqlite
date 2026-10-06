@@ -1260,3 +1260,7 @@ Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
 Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](research/card-e-h-stat4-admission.md).
+
+## Scoped OR caller closure
+
+Selected OR caller metadata/error/cleanup and expanded native batch/forest tests: [scoped closure](research/card-s-f-or/scoped-closure.md). Scalar output provenance is owned by enclosing resolution, including derived/view transient source descriptors; aggregate-result WHERE retains NC_AllowAgg and missing AggInfo errors are codegen-owned. Rowid arm bounds consume their bound operand and reverse traversal swaps termination bounds. Independent delivery review remains pending.

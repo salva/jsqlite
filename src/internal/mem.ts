@@ -346,11 +346,15 @@ export class Mem {
   }
   #drop(runCleanup = true): void {
     this.#generation.invalidate();
-    if (runCleanup) this.#rowset?.delete();
+    // vdbemem.c clears dynamic ownership to MEM_Null after xDel. C xDel
+    // cannot throw; detach first so a TS cleanup exception cannot retain an
+    // already-destroyed owner or repeat its destructor on reset.
+    const rowset = this.#rowset, aggregate = this.#aggregate;
     this.#rowset = null;
-    if (runCleanup && this.#aggregate?.cleanup) this.#aggregate.cleanup();
     this.#numeric = null; this.#bytes = null; this.#aggregate = null; this.#subtype = null;
-    this.#fromBind = false; this.#clearedNull = false;
+    this.#fromBind = false; this.#clearedNull = false; this.#manifest = "null";
+    if (runCleanup) rowset?.delete();
+    if (runCleanup && aggregate?.cleanup) aggregate.cleanup();
   }
   setNull(options: { cleared?: boolean } = {}): void {
     this.#drop(); this.#manifest = "null"; this.#clearedNull = options.cleared ?? false;

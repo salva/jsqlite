@@ -57,6 +57,28 @@ test('recursive arm accumulation moves first arm then ordered products with prer
  assert.equal(whereOrAccumulate(sum,next,false,logEstAdd),true);
  assert.deepEqual(sum.a,[{prereq:5n,rRun:logEstAdd(20n,10n),nOut:logEstAdd(4n,2n)},{prereq:6n,rRun:logEstAdd(30n,10n),nOut:logEstAdd(6n,2n)}]);
 });
+test('pinned C cost-set insertion and move agree after every ordered transition',async()=>{
+ const fs=await import('node:fs');const path=await import('node:path');const {spawnSync}=await import('node:child_process');
+ const work=path.join(process.env.SAIVAGE_CARD_WORK_ROOT,'or-cost-native');fs.mkdirSync(work,{recursive:true});
+ const source=fs.readFileSync('reference/sqlite/sqlite-src-3530400/src/where.c','utf8');
+ const start=source.indexOf('static void whereOrMove(');
+ const end=source.indexOf('/*\n** Return the bitmask',start);
+ assert.ok(start>=0&&end>start,'extract actual pinned insertion/move routines');
+ const driver=`#include <stdint.h>\n#include <stdio.h>\n#include <string.h>\ntypedef uint16_t u16; typedef uint64_t Bitmask; typedef int16_t LogEst;\n#define N_OR_COST 3\ntypedef struct {Bitmask prereq; LogEst rRun,nOut;} WhereOrCost;\ntypedef struct {u16 n; WhereOrCost a[3];} WhereOrSet;\n${source.slice(start,end)}\nint main(void){WhereOrSet s={0},d={0}; unsigned long long mask; int run,out; while(scanf("%llu %d %d",&mask,&run,&out)==3){int rc=whereOrInsert(&s,(Bitmask)mask,(LogEst)run,(LogEst)out);whereOrMove(&d,&s);printf("%d",rc);for(int i=0;i<d.n;i++)printf(" %llu,%d,%d",(unsigned long long)d.a[i].prereq,d.a[i].rRun,d.a[i].nOut);puts("");}return 0;}\n`;
+ fs.writeFileSync(path.join(work,'driver.c'),driver);
+ const compiled=spawnSync('cc',['-std=c99','-Wall','-Wextra','-Werror',path.join(work,'driver.c'),'-o',path.join(work,'driver')],{encoding:'utf8'});
+ assert.equal(compiled.status,0,compiled.stderr);
+ // Incomparable masks fill all slots before a deterministic tie/subset matrix;
+ // high bits exercise unsigned C Bitmask versus the TS BigInt representation.
+ const inputs=[[1n,30n,7n],[2n,10n,6n],[4n,20n,5n],[8n,9n,12n]];
+ const masks=[0n,1n,2n,3n,4n,5n,8n,1n<<63n,(1n<<63n)|1n];
+ for(let i=0;i<360;i++)inputs.push([masks[(i*7)%masks.length],BigInt((i*13)%41-10),BigInt((i*11)%29-5)]);
+ const native=spawnSync(path.join(work,'driver'),[],{encoding:'utf8',input:inputs.map(c=>c.join(' ')).join('\n')+'\n'});
+ assert.equal(native.status,0,native.stderr);
+ const actual=[],s=set(),moved=set();
+ for(const [mask,run,out] of inputs){const rc=whereOrInsert(s,mask,run,out);whereOrMove(moved,s);actual.push([rc?'1':'0',...moved.a.map(c=>`${c.prereq},${c.rRun},${c.nOut}`)].join(' '));assert.notStrictEqual(moved.a,s.a);for(let i=0;i<s.a.length;i++)assert.notStrictEqual(moved.a[i],s.a[i]);}
+ assert.deepEqual(actual,native.stdout.trim().split('\n'));
+});
 test('zero alternative arm clears previous sum, including first arm, not a table-scan substitute',()=>{
  const sum=set(cost(1,20,4));
  assert.equal(whereOrAccumulate(sum,set(),false,logEstAdd),false);assert.deepEqual(sum.a,[]);
