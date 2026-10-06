@@ -50,7 +50,9 @@ try:
         actual = json.loads(report.read_text())
         entry = {'name': name, 'sql': sql, 'nativeMedianMs': statistics.median(native_times), 'nativeRows': len(expected), 'outcome': actual['outcome'], 'timings': actual.get('timings'), 'exitCode': result.returncode, 'report': str(report)}
         if actual['outcome'] == 'completed':
-            cells = [[int(cell['value']) if cell['type'] == 'integer' else cell['value'] for cell in row] for row in actual['rows']]
+            # JSON serializes integral REALs as e.g. 10, not 10.0. Restore the
+            # reported storage class before repr-based multiset comparison.
+            cells = [[int(cell['value']) if cell['type'] == 'integer' else float(cell['value']) if cell['type'] == 'real' else cell['value'] for cell in row] for row in actual['rows']]
             reference = [list(row) for row in expected]
             # Preserve duplicates; only disregard row order where SQL doesn't
             # promise ordering. The limited join is checked as one actual sample,
