@@ -437,6 +437,9 @@ test('suspended capability enumeration does not resume after last permitted inse
  const loops=btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget});
  assert.equal(budget.remaining,0);assert.equal(visits,1,'only first equality capability is constructed');assert.equal(closed,1);
  assert.ok(loops.some(l=>l.kind==='index'));
+ visits=0;closed=0;budget.remaining=2;const costs={a:[]};
+ btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
+ assert.equal(visits,1,'pOrSet also stops without resuming equality inventory');assert.equal(closed,1);assert.equal(costs.a.length,1);
  const later=resolve('SELECT id FROM t WHERE id=?',schema());budget.remaining+=1000;
  const laterLoops=btreeLoops(later.sources[0],0,analyzeWhere(later).clause,{neededColumns:needed,orderBy:[],resolved:later,planBudget:budget});
  assert.ok(laterLoops.some(l=>l.kind==='rowid'),'replenished construction budget admits later source proposals');
