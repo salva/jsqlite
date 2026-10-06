@@ -566,3 +566,11 @@ test('nested OR copied builders close suspended arm inventory on mid-arm exhaust
   assert.deepEqual(costs.a,[],'incomplete arm cannot publish an OR cost');
  }finally{proto.return=original;}
 });
+test('necessary bound variable identity requires token spelling as well as assigned slot',()=>{
+ // expr.c ExprCompare first checks zToken via strcmp, then iColumn.
+ // AssignVarNumber aliases numbered spellings, but that is not Expr identity.
+ for(const [x,y,expected] of [['?01','?1',false],['?0002','?2',false],['?1','?1',true],['?1','?2',false]]){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${x} OR a<${y}`,schema())).clause;
+  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
+ }
+});
