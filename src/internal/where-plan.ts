@@ -597,8 +597,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       };
       const foldNullLiteral=(n:ExprReduction):ExprReduction=>{
        const test=nullTest(n);if(!test)return n;
-       let child=parens(test.child);
-       while(child.signature==="expr ::= PLUS|MINUS expr")child=parens(exprChildren(child)[0]!);
+       let child=producedAnd(test.child);
+       while(child.signature==="expr ::= PLUS|MINUS expr")child=producedAnd(exprChildren(child)[0]!);
        const tokens=asExpr(child).tokens;
        // sqlite3PExprIsNull inspects opcode after stripping unary signs,
        // not runtime value, numeric conversion or constant evaluation.

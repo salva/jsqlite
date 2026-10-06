@@ -808,3 +808,15 @@ test('null-test false flags require literal opcode and retain function exclusion
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('nested null tests inspect parser-produced child opcode before AND proof',()=>{
+ for(const rhs of ['((1 ISNULL) ISNULL) AND u.a','((-(1 ISNULL)) ISNULL) AND u.a']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('nested null-test opcode proof does not treat TRUEFALSE or variables as INTEGER',()=>{
+ for(const rhs of ['((1 IN ()) ISNULL) AND u.a','((:bound ISNULL) ISNULL) AND u.a','((abs(1) ISNULL) ISNULL) AND u.a']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(0))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
