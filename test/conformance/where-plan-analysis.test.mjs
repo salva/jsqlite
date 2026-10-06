@@ -854,3 +854,15 @@ test('CAST empty type identity retains child and excludes named type',()=>{
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
  }
 });
+test('CAST multi-token type identity uses exact typetoken span including trivia',()=>{
+ for(const type of ['DOUBLE PRECISION','DECIMAL(10, 2)','DOUBLE /*é*/ PRECISION']){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=CAST(1 AS ${type}) OR a<CAST(1 AS ${type})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),type);
+ }
+});
+test('CAST typetoken span does not normalize case, spaces, comments or parameters',()=>{
+ for(const [x,y] of [['DOUBLE PRECISION','DOUBLE  PRECISION'],['DOUBLE PRECISION','double precision'],['DOUBLE /*a*/ PRECISION','DOUBLE /*b*/ PRECISION'],['DECIMAL(10,2)','DECIMAL(10, 2)'],['DECIMAL(10,2)','DECIMAL(11,2)']]){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=CAST(1 AS ${x}) OR a<CAST(1 AS ${y})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});

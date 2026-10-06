@@ -275,6 +275,8 @@ function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[],sqlBytes:Ui
 function deepFreeze<T>(value:T):T {if(value&&typeof value==="object"&&!Object.isFrozen(value)){for(const child of Object.values(value as object))deepFreeze(child);Object.freeze(value);}return value;}
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
+ // parse.y typetoken/typename lengths span raw SQL, not joined tokens.
+ if(signature.startsWith("typetoken ::="))return exactSource(leaves(root),sqlBytes)??"";
  if(signature==="wqas ::= AS")return "any" satisfies CteMaterialization;
  if(signature==="wqas ::= AS MATERIALIZED")return "materialized" satisfies CteMaterialization;
  if(signature==="wqas ::= AS NOT MATERIALIZED")return "not-materialized" satisfies CteMaterialization;

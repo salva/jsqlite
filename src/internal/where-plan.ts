@@ -743,9 +743,10 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         const type=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("typetoken ::="));
         if(!type||type.kind!=="reduction")return null;
         const tokens=asExpr(type).tokens;
-        // Multi-token types retain source span (including inter-token trivia)
-        // upstream. Until that span is carried, do not assert equivalence.
-        return tokens.length===0?"":tokens.length===1?dequotedName(tokens[0]!.text,false):null;
+        // The production carries parse.y's exact byte span, including trivia.
+        // Synthetic reductions without it retain only provable single tokens.
+        const raw=typeof type.semantic==="string"?type.semantic:tokens.length===0?"":tokens.length===1?tokens[0]!.text:null;
+        return raw===null?null:dequotedName(raw,false);
        };
        const xt=typeToken(x),yt=typeToken(y),xc=exprChildren(x)[0],yc=exprChildren(y)[0];
        return xt!==null&&xt===yt&&!!xc&&!!yc&&same(xc,yc);
