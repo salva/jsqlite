@@ -866,3 +866,21 @@ test('CAST typetoken span does not normalize case, spaces, comments or parameter
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('necessary bound STRING ExprAlloc compares dequoted value, not grammar quote spelling',()=>{
+ for(const [x,y] of [["'abc'","'abc'"],["'a''b'","'a''b'"]]){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${x} OR a<${y}`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+ }
+});
+test('CAST quoted first typename follows Dequote closing delimiter truncation',()=>{
+ for(const type of ['"DOUBLE" PRECISION',"'DOUBLE' PRECISION",'`DOUBLE` PRECISION','[DOUBLE] PRECISION']){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=CAST(1 AS ${type}) OR a<CAST(1 AS "DOUBLE")`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),type);
+ }
+});
+test('CAST quoted typetoken truncation preserves escaped delimiter and case identity',()=>{
+ for(const [x,y,expected] of [['"DO""UBLE" PRECISION','"DO""UBLE"',true],["'DO''UBLE'(10)","'DO''UBLE'",true],['"Double" PRECISION','"DOUBLE"',false],['DOUBLE "PRECISION"','DOUBLE',false]]){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=CAST(1 AS ${x}) OR a<CAST(1 AS ${y})`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
+ }
+});

@@ -410,7 +410,16 @@ function asExpr(node:ExprReduction):ExprNode {const tokens:SqlToken[]=[];const c
 function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signature==="expr ::= LP expr RP"||at.signature.startsWith("expr ::= expr COLLATE")){const child=exprChildren(at)[0];if(!child)break;at=child;}return at;}
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
- if(quote==='"'||quote==="'"||quote==="`"||quote==="[")text=text.slice(1,-1).split(end!+end!).join(end!);
+ if(quote==='"'||quote==="'"||quote==="`"||quote==="["){
+  // util.c sqlite3Dequote stops at the first unescaped closing delimiter.
+  // A CAST typetoken may include trailing size/name text after that quote.
+  let value="";
+  for(let i=1;i<text.length;i++){
+   if(text[i]===end){if(text[i+1]!==end)break;value+=end;i++;}
+   else value+=text[i];
+  }
+  text=value;
+ }
  return fold?sqliteAsciiFold(text):text;
 }
 function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?dequotedName(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
