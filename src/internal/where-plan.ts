@@ -701,10 +701,8 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
  const inspected=skipCollateAndLikely(at,resolved);
  if(inspected.signature==="expr ::= expr AND expr"){for(const child of exprChildren(inspected))splitAnd(child,out,resolved);}else out.push(at);
 }
-/** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
- * SELECT-carried flags remain unproved and must not certify that replacement. */
-/** sqlite3PExprIs removes only a root TK_NULL RHS, never descendant NULL. */
-function literalNullProduction(node:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=v=>v,onFalse?:(v:ExprReduction)=>void):ExprReduction {
+/** parse.y PExprIsNull inspects the already-produced child opcode after signs. */
+function literalNullProduction(node:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=v=>literalNullProduction(v),onFalse?:(v:ExprReduction)=>void):ExprReduction {
  node=nullIsProduction(node);
  if(node.signature!=="expr ::= expr ISNULL|NOTNULL"&&node.signature!=="expr ::= expr NOT NULL")return node;
  const initial=exprChildren(node)[0];if(!initial)return node;

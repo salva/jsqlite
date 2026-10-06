@@ -1578,3 +1578,16 @@ test('literal null production inspects opcode not evaluated NULL or value',()=>{
  for(const predicate of ['NULL ISNULL','CAST(1 AS TEXT) ISNULL','abs(1) ISNULL','b ISNULL'])assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0].expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL');
  }
 });
+test('nested literal null-test production consumes child produced opcode',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['(1 ISNULL) ISNULL','-(1 ISNULL) ISNULL','(1 NOTNULL) NOTNULL']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= term',predicate);
+ assert.equal(t.expression.tokens[0].text,predicate.endsWith('NOTNULL')?'1':'0');
+ }
+});
+test('nested null production retains nonliteral child opcodes without evaluation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['(b ISNULL) ISNULL','(NULL ISNULL) ISNULL','(CAST(1 AS TEXT) ISNULL) ISNULL','(abs(1) ISNULL) ISNULL']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL',predicate);
+ }
+});
