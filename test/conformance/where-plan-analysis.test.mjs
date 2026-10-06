@@ -1341,3 +1341,9 @@ test('termIsEquivalence owns affinity and collation proof independent of RHS col
  }
  }
 });
+test('scanner raw RHS uses resolved alias opcode rather than identifier carrier',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const expr of ['t.a COLLATE NOCASE','(t.a COLLATE NOCASE)','likely(t.a)','t.a']){
+ const r=resolve(`SELECT ${expr} AS ta FROM t JOIN t AS u WHERE t.a=u.a AND u.a=ta`,schema(encoding)),c=analyzeWhere(r).clause;
+ assert.equal([...wherePlanning.scanWhereTerms(c,c.terms[0].left,r,t=>t.operator==='eq')].includes(c.terms[1]),expr!=='t.a','copied COLLATE/function differs from copied TK_COLUMN');
+ }
+});

@@ -637,7 +637,14 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
   const children=exprChildren(root);let node=children[term.originalIndexedOperand==="right"?0:1];
   // parse.y parentheses retain the expression opcode, not a wrapper. Remove
   // only those carriers before testing raw TK_COLUMN; keep COLLATE intact.
-  while(node?.signature==="expr ::= LP expr RP")node=exprChildren(node)[0];
+  while(node){
+   if(node.signature==="expr ::= LP expr RP"){node=exprChildren(node)[0];continue;}
+   // resolve.c resolveAlias copies the expression opcode, not TK_ID. Keep
+   // its COLLATE/function carrier for raw reverse-cycle inspection.
+   const alias=resolved.aliasUses?.get(node);
+   if(!alias)break;
+   node=alias;
+  }
   // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
   if(skipCollate&&node)node=skipCollateAndLikely(node);
   return node&&!node.signature.startsWith("expr ::= expr COLLATE")?binding(resolved,node):null;
