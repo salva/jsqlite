@@ -651,6 +651,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
         // TK_CASE pLeft is optional; x.pList appends ordered WHEN/THEN
         // expressions and optional ELSE. Walk every expression, not results.
+        if(v.signature==="expr ::= LP nexprlist COMMA expr RP")return directExprReductions(v).every(constant);
         if(v.signature==="expr ::= CASE case_operand case_exprlist case_else END"){
          const values=directExprReductions(v);
          return values.length>=2&&values.every(constant);

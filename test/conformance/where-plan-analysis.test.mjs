@@ -832,3 +832,15 @@ test('singleton IN scalar admission unwraps parentheses before vector exclusion'
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),lhs);
  }
 });
+test('singleton IN constant walker traverses VECTOR list independently of lhs scalar gate',()=>{
+ for(const rhs of ['(1,2)','(:bound,2)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('VECTOR constant walk visits every element and retains ordered operand identity',()=>{
+ for(const [rhs,other] of [['(u.a,2)','(u.a,2)'],['(1,u.a)','(1,u.a)'],['(1,abs(2))','(1,abs(2))'],['(1,2)','(2,1)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
