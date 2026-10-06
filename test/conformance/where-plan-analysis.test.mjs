@@ -1800,3 +1800,15 @@ test('nested pOrSet closes needed-column iterators and abandons exhausted accumu
  }
  }
 });
+test('cost prefix recursion restores lower and upper flags before next equality prefix',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b>?2 AND b<?3 AND b=?4 AND a=?5',s),base=analyzeWhere(r).clause;
+ const trace=[];
+ const terms=base.terms.map(t=>({...t,get outerJoinSafe(){trace.push(t.id);return t.outerJoinSafe;}}));
+ const c=wherePlanning.whereClause(terms),budget={remaining:1000},costs={a:[]};
+ btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:budget,orSet:costs});
+ assert.deepEqual(trace,[0,0,1,1,2,2,2,3,3,4,4,1,2,2,3],'first admissions read safety twice, cached admissions once');
+ assert.equal(budget.remaining,990,'two prefixes each insert prefix/lower/pair/upper/equality');
+ assert.ok(costs.a.length>0);
+ }
+});
