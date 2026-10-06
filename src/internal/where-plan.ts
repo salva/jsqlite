@@ -774,6 +774,12 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const xv=intValue(xtokens[0]!.text),yv=intValue(ytokens[0]!.text);
        return xv!==null||yv!==null?xv!==null&&yv!==null&&xv===yv:xtokens[0]!.text===ytokens[0]!.text;
       }
+      // parse.y STAR and omitted exprlist both call ExprFunction with null list.
+      const emptyFunction=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= ID|INDEXED|JOIN_KW LP STAR RP")return n;
+       return {...n,signature:"expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP",children:[n.children[0]!,n.children[1]!,{kind:"reduction",rule:0,signature:"distinct ::=",children:[]},{kind:"reduction",rule:0,signature:"exprlist ::=",children:[]},n.children[3]!]};
+      };
+      x=emptyFunction(x);y=emptyFunction(y);
       // sqlite3ExprFunction dequotes its name before ExprCompare's
       // case-insensitive TK_FUNCTION token check. Other terminals keep
       // their own semantics (including DISTINCT and list order).

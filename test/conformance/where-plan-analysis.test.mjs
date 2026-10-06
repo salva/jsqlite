@@ -884,3 +884,12 @@ test('CAST quoted typetoken truncation preserves escaped delimiter and case iden
  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
  }
 });
+test('zero-argument function STAR and empty list share source ExprFunction production',()=>{
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=random(*) OR a<random()',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('STAR null argument list obeys ordinary function arity and name proof',()=>{
+ for(const sql of ['SELECT abs(*) FROM t','SELECT coalesce(*) FROM t'])assert.throws(()=>resolve(sql,schema()),/wrong number of arguments/);
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=random(*) OR a<sqlite_version()',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
