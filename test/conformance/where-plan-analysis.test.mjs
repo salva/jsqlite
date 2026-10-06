@@ -333,3 +333,9 @@ test('OR operand comparison never equates distinct anonymous variables inside ar
   assert.equal(c.terms.filter(t=>t.virtual).length,0,rhs);
  }
 });
+test('combine resolves columns recursively through function argument and IN list carriers',()=>{
+ for(const rhs of [['abs(b)','abs(t.b)'],['(b IN (a,1))','(t.b IN (t.a,1))']]){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs[0]} OR t.a<${rhs[1]}`,schema())).clause;
+  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs.join(' / '));
+ }
+});

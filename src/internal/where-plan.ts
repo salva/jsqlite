@@ -544,17 +544,21 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
       }
       const xc=exprChildren(x),yc=exprChildren(y);
-      if(xc.length||yc.length){
+      if(xc.length||yc.length||[...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::="))){
        if(x.signature!==y.signature||xc.length!==yc.length)return false;
-       // List/SELECT carriers need their own comparison; do not silently
-       // compare only the direct LHS (IN) or omit function arguments.
+       // exprCompareList compares argument/list elements in stored order.
+       // Walk grammar carriers, delegating expression nodes back to resolved
+       // comparison rather than comparing their original qualified spelling.
        if([...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::="))){
-        // exprCompare rejects EP_xIsSelect. Preserve anonymous slot identity
-        // even inside a list carrier before any structural fallback.
-        const containsSelect=(n:LemonValue<SqlToken>):boolean=>n.kind==="reduction"&&(n.signature.startsWith("select ::=")||n.children.some(containsSelect));
-        if(containsSelect(x)||containsSelect(y))return false;
-        if([...asExpr(x).tokens,...asExpr(y).tokens].some(t=>t.kind==="variable"&&t.text==="?"))return x===y;
-        return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
+        const carrier=(a:LemonValue<SqlToken>,b:LemonValue<SqlToken>):boolean=>{
+         if(a.kind!==b.kind)return false;
+         if(a.kind==="terminal"&&b.kind==="terminal")return a.value.kind===b.value.kind&&(a.value.kind==="id"||a.value.kind==="keyword"?sqliteAsciiFold(a.value.text)===sqliteAsciiFold(b.value.text):a.value.text===b.value.text);
+         if(a.kind!=="reduction"||b.kind!=="reduction")return false;
+         if(a.signature.startsWith("expr ::=")&&b.signature.startsWith("expr ::="))return same(a,b);
+         if(a.signature!==b.signature||a.children.length!==b.children.length)return false;
+         return a.children.every((c,i)=>carrier(c,b.children[i]!));
+        };
+        return x.children.length===y.children.length&&x.children.every((c,i)=>carrier(c,y.children[i]!));
        }
        const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?sqliteAsciiFold(c.value.text):"").join("|");
        if(terminals(x)!==terminals(y))return false;
