@@ -660,3 +660,14 @@ test('singleton variable IN proof keeps token-before-slot and distinct bind posi
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('singleton IN constant proof walks CAST child without evaluating it',()=>{
+ const rhs='CAST(1 AS INTEGER)';
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('singleton IN CAST walk retains type token, child and nonconstant exclusions',()=>{
+ for(const [rhs,other] of [['CAST(1 AS INTEGER)','CAST(1 AS integer)'],['CAST(1 AS INTEGER)','CAST(2 AS INTEGER)'],['CAST(u.a AS INTEGER)','CAST(u.a AS INTEGER)'],['CAST(abs(1) AS INTEGER)','CAST(abs(1) AS INTEGER)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
+ }
+});
