@@ -625,11 +625,15 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
     // Expression-index fields require ExprCompareSkip, not sentinel equality.
     if(target.columnIndex===-2)continue;
     if(i>0&&term.outerOn)continue;
-    const right=rhs(term,true);
-    if(term.equivalence&&right&&slots.length<11&&!slots.some(slot=>same(slot,right)))slots.push(right);
+    if(term.equivalence&&slots.length<11){
+     const right=rhs(term,true);
+     if(right&&!slots.some(slot=>same(slot,right)))slots.push(right);
+    }
     if(!accept(term))continue;
-    const rawRight=rhs(term,false);
-    if((term.operator==="eq"||term.operator==="is")&&rawRight&&same(rawRight,target))continue;
+    if(term.operator==="eq"||term.operator==="is"){
+     const rawRight=rhs(term,false);
+     if(rawRight&&same(rawRight,target))continue;
+    }
     yield term;
    }
   }

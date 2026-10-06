@@ -1288,3 +1288,11 @@ test('cost rowid scanner follows column equivalence retaining original RHS prere
  assert.ok(ordinary.filter(l=>l.kind==='rowid').every(l=>l.prereq===2n),'physical ordinary rowid handoff unchanged');
  }
 });
+test('whereScanNext masked non-equivalence term does not inspect RHS expression',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,[lower,upper]=c.terms;
+ let reads=0;const masked=Object.freeze({...lower,get expression(){reads++;throw new Error('masked RHS');}});
+ const terms=[...wherePlanning.scanWhereTerms(wherePlanning.whereClause([masked,upper]),lower.left,r,t=>t.operator==='lt')];
+ assert.deepEqual(terms,[upper]);assert.equal(reads,0);
+ }
+});
