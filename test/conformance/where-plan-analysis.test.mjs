@@ -1119,3 +1119,13 @@ test('whereScanNext raw RHS reverse-cycle proof does not skip COLLATE like expan
  assert.equal(wrapped.left.sourceOrdinal,1);
  assert.ok([...wherePlanning.scanWhereTerms(c,target,r,t=>t.operator==='eq')].includes(wrapped),'raw TK_COLLATE is not TK_COLUMN for reverse-cycle exclusion');
 });
+test('actual pOrSet cost construction consumes transitive column scanner without synthetic terms',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=?',s),c=analyzeWhere(r).clause;
+ const budget={remaining:200},set={a:[]};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget});
+ assert.ok(set.a.some(v=>v.prereq===0n),'transitive constant index alternative retains RHS prereq0, not intermediate cursor');
+ const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[]});
+ assert.ok(ordinary.filter(l=>l.capability?.equalityPrefix.length).every(l=>l.prereq!==0n),'ordinary lowering remains unchanged until caller handoff');
+ }
+});
