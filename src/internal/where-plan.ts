@@ -600,7 +600,18 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const values=directExprReductions(list),lhs=exprChildren(n)[0];
        if(values.length!==1||!lhs)return n;
        const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
-       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind)&&tokens[0]!.text.toUpperCase()!=="NULL")return n;
+       // exprNodeIsConstant(mode=1) continues through ordinary operators
+       // and walks their children; it does not evaluate arithmetic. Keep
+       // unresolved ID/column/function/SELECT admission unproved here.
+       const constant=(v:ExprReduction):boolean=>{
+        v=parens(v);
+        const ts=asExpr(v).tokens;
+        if(ts.length===1)return ["integer","float","string","blob"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
+        const es=exprChildren(v);
+        const ordinary=v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
+        return ordinary&&es.length>0&&es.every(constant);
+       };
+       if(!constant(rhs))return n;
        if(lhs.signature==="expr ::= LP nexprlist COMMA expr RP")return n;
        const token=(text:string,kind:SqlToken["kind"])=>({kind:"terminal" as const,tokenId:0,value:{...tokens[0]!,kind,text}});
        const plus:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= PLUS|MINUS expr",children:[token("+","punct"),rhs]};

@@ -636,3 +636,15 @@ test('function-bearing empty IN proof retains operand order, operator and child'
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('singleton IN constant proof walks signed and arithmetic RHS',()=>{
+ for(const rhs of ['-1','1+2','(1*2)+3']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton arithmetic IN proof does not evaluate or admit column/function children',()=>{
+ for(const [rhs,other] of [['1+2','3'],['1+2','2+1'],['u.a+1','u.a+1'],['abs(1)+2','abs(1)+2']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
+ }
+});
