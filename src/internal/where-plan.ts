@@ -530,6 +530,10 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const subterms=(arm:WhereTerm)=>arm.info?.kind==="and"?arm.info.clause.terms:[arm];
     const allowed=new Set<WhereOperator>(["eq","lt","le","gt","ge"]);
     for(const one of subterms(arms[0]!))for(const two of subterms(arms[1]!)){
+     // whereCombineDisjuncts tests eOperator WO_EQ/LT/LE/GT/GE, not
+     // the retained SQL operator. AND allowedOp cursor masks may include
+     // overlapping terms whose analyzed eOperator is only WO_EQUIV/zero.
+     if(singleIndexMask(one)===0n||singleIndexMask(two)===0n)continue;
      if(!one.operator||!two.operator||!allowed.has(one.operator)||!allowed.has(two.operator))continue;
      const ops=[one.operator,two.operator];
      if(!ops.every(op=>["eq","lt","le"].includes(op))&&!ops.every(op=>["eq","gt","ge"].includes(op)))continue;

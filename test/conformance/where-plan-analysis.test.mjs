@@ -374,3 +374,9 @@ test('necessary combine maps normalized operator back to retained right-indexed 
   assert.equal(bound.originalIndexedOperand,'right');
  }
 });
+test('necessary combines reject non-WO_SINGLE overlapping operands within AND arms',()=>{
+ for(const predicate of ['a=b OR a<b','(a=b AND id>0) OR (a<b AND id>1)']){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause;
+  assert.equal(c.terms.filter(t=>t.virtual).length,0,predicate);
+ }
+});
