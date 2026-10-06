@@ -349,10 +349,10 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
     btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
     if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
     first=false;
-    if(budget.remaining===0){sum.a.length=0;break;}
+    // Last successful arm remains OK at zero; publication owns DONE.
    }
-   for(const cost of sum.a){if(!insert(freeze({source,sourceOrdinal,kind:"multi-or",orInfo:info,capability:null,sortIdentity:0,prereq:cost.prereq,setupCost:0n,runCost:cost.rRun+1n,outputRows:cost.nOut,terms:Object.freeze([parent])})))break;}
-   if(budget.remaining===0)break;
+   for(const cost of sum.a){if(!insert(freeze({source,sourceOrdinal,kind:"multi-or",orInfo:info,capability:null,sortIdentity:0,prereq:cost.prereq,setupCost:0n,runCost:cost.rRun+1n,outputRows:cost.nOut,terms:Object.freeze([parent])})))return Object.freeze(loops);}
+   if(!options.orSet&&budget.remaining===0)break;
   }
  }
  if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);

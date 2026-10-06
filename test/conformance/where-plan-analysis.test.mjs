@@ -1948,3 +1948,17 @@ test('cost scan OK at zero reaches sPk admission; initial DONE does not',()=>{
  }
  }
 });
+test('AddOr terminal last arm at zero attempts publication DONE instead of dropping sum',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.t.indexes=Object.freeze([]);
+ const r=resolve('SELECT id FROM t WHERE id=?1 OR id>?2',s),c=analyzeWhere(r).clause;
+ assert.ok(c.terms.some(t=>t.info?.kind==='or'&&t.info.indexable!==0n));
+ for(const remaining of [5,6]){
+ const set={a:[{prereq:0n,rRun:300n,nOut:200n}]},budget={remaining};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
+ assert.equal(budget.remaining,0);
+ assert.equal(set.a.length,remaining===5?0:1,'5 constructs last arm then attempts parent at zero; 6 publishes parent');
+ if(remaining===6)assert.ok(set.a[0].rRun<300n);
+ }
+ }
+});
