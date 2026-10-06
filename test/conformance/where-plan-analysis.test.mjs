@@ -695,3 +695,15 @@ test('singleton boolean/comparison constant walk retains child rejection and str
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
  }
 });
+test('singleton IN constant walker visits BETWEEN left and both ordered bounds',()=>{
+ for(const rhs of ['1 BETWEEN 0 AND 2','1 NOT BETWEEN 0 AND 2']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton BETWEEN constant walk rejects nonconstant left and either bound',()=>{
+ for(const rhs of ['u.a BETWEEN 0 AND 2','1 BETWEEN u.a AND 2','1 NOT BETWEEN 0 AND u.a','1 BETWEEN abs(0) AND 2']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});

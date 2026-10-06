@@ -614,6 +614,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
         const es=exprChildren(v);
         const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
+        // TK_BETWEEN owns pLeft plus a two-element x.pList. Its optional
+        // NOT parent does not change the constant walk's child obligations.
+        if(v.signature==="expr ::= expr between_op expr AND expr")return es.length===3&&es.every(constant);
         const booleanOrComparison=["expr ::= NOT expr","expr ::= expr EQ|NE expr","expr ::= expr LT|GT|GE|LE expr","expr ::= expr AND expr","expr ::= expr OR expr","expr ::= expr IS expr","expr ::= expr IS NOT expr","expr ::= expr COLLATE ID|STRING"].includes(v.signature);
         return (ordinary||booleanOrComparison)&&es.length>0&&es.every(constant);
        };
