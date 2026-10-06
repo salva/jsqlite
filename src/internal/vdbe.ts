@@ -3521,10 +3521,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // belongs to this WHERE invocation, not the immutable analysis or a scan.
   const whereTerms=analyzeWhere(expanded,true).clause.terms.filter(term=>!term.virtual&&term.origin.kind==='where');
   const codedWhere=new Set<number>();
+  const codedOrIdentities=new Set<string>();
   const codeOuterConstraints=(level:number,ready:bigint):void=>{
     if(loopSources[level]!.leftOfRightJoin)return;
     for(const term of whereTerms){
-      if(codedWhere.has(term.id)||(term.prereqAll&~ready)!==0n)continue;
+      if(codedWhere.has(term.id)||codedOrIdentities.has(expressionStructuralIdentity(term.expression))||(term.prereqAll&~ready)!==0n)continue;
       const at=compilePredicate(term.expression);
       if(at!==undefined){jumps.push({at,level});codedWhere.add(term.id);}
     }
@@ -3559,6 +3560,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const rowset=allocate(),rowid=allocate(),returnRegister=allocate(),calls:number[]=[];
     ops.push({code:'Null',p2:rowset});const safe=ops.length;ops.push({code:'Integer',p1:0n,p2:returnRegister});
     const arms=parent.orInfo!.clause.terms.filter(term=>!term.virtual);
+    const available=readyMask|(1n<<BigInt(parent.sourceOrdinal));
+    // Native untestedTerms leaves parent residual enabled if recursive
+    // WhereBegin cannot test an arm at this ready frontier.
+    if(arms.every(arm=>(arm.prereqAll&~available)===0n)){
+      for(const term of parent.terms)codedOrIdentities.add(expressionStructuralIdentity(term.expression));
+    }
     const commonIndexCursor=builder.cursor();let covering:PhysicalIndex|null=null;
     const needed=new Set(parent.source.table.columns);needed.add(ROWID_NEEDED as never);
     for(const [batch,arm] of arms.entries()){
@@ -3566,14 +3573,14 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       if(!clause)throw new JSQLiteError('internal','joined OR lost owned arm');
       const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
       const branch=wherePathSolver([candidates],1,undefined,0,1,null,readyMask).loops[0]!;
-      const consume=():void=>{
+      const consume=(tested=false):void=>{
         // wherecode.c OR_SUBCLAUSE: test only terms whose prereqAll is
         // positioned. An AND arm owns individual terms; an OR atom must not
-        // be partially tested. The enclosing caller retains full parent truth
-        // until all sources are ready (no disableTerm/omission here).
+        // be partially tested. Untested parents remain in the enclosing
+        // caller; fully tested parents are disabled for this invocation.
         const ready=readyMask|(1n<<BigInt(parent.sourceOrdinal));
         const residuals:number[]=[];
-        const terms=arm.info?.kind==='and'?arm.info.clause.terms:[arm];
+        const terms=tested?[]:arm.info?.kind==='and'?arm.info.clause.terms:[arm];
         for(const term of terms){
           if(term.virtual||(term.prereqAll&~ready)!==0n)continue;
           const at=compilePredicate(term.expression);
@@ -3585,7 +3592,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         for(const at of residuals)(ops[at] as {p2:number}).p2=ops.length;
         (ops[duplicate] as {p2:number}).p2=ops.length;
       };
-      if(branch.kind==='multi-or'){covering=null;emitJoinedOr(branch,clause,tableCursor,readyMask,consume);continue;}
+      if(branch.kind==='multi-or'){covering=null;emitJoinedOr(branch,clause,tableCursor,readyMask,()=>consume((arm.prereqAll&~available)===0n));continue;}
       const cap=branch.capability,physical=cap?.physicalIndex,indexCursor=physical?commonIndexCursor:undefined;
       covering=physical&&(batch===0||physical===covering)?physical:null;
       const guards:number[]=[],ends:number[]=[],equalityGuards:number[]=[],iterators:number[]=[];
@@ -5731,16 +5738,17 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         if(!clause)throw new JSQLiteError('internal','selected OR lost owned arm');
         const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
         const branch=wherePathSolver([candidates],1).loops[0]!;
-        const emitArm=():void=>{
-          const predicate=resolveExpression(arm.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
-          const residual=ops.length;ops.push({code:'IfNot',p1:truth,p2:0,residual:true});
+        const emitArm=(tested=false):void=>{
+          let residual:number|undefined;
+          if(!tested){const predicate=resolveExpression(arm.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
+          residual=ops.length;ops.push({code:'IfNot',p1:truth,p2:0,residual:true});}
           ops.push({code:'Rowid',p2:rowid});const test=ops.length;ops.push({code:'RowSetTest',p1:rowset,p2:0,p3:rowid,p4:ordinal===arms.length-1?-1:ordinal});
           calls.push(ops.length);ops.push({code:'Gosub',p1:returnRegister,p2:0});
-          const next=ops.length;(ops[residual] as {p2:number}).p2=next;(ops[test] as {p2:number}).p2=next;
+          const next=ops.length;if(residual!==undefined)(ops[residual] as {p2:number}).p2=next;(ops[test] as {p2:number}).p2=next;
         };
         if(branch.kind==='multi-or'){
           covering=null;
-          emitOr(branch,clause,emitArm);
+          emitOr(branch,clause,()=>emitArm(true));
         }else{
           const cap=branch.capability;
           selectedPhysical=cap?.physicalIndex??null;selectedNeedsTableLookup=!!selectedPhysical;
@@ -5869,7 +5877,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const rowidConstraints=[rowidEquality,rowidLower,rowidUpper].filter((term):term is WhereTerm=>term!==null),allRowidTermsAdmitted=!select.hasSubquery&&rowidConstraints.length>0&&selectedLoopTerms.filter(term=>!term.virtual).every(term=>rowidConstraints.some(candidate=>candidate.id===term.id&&candidate.outerJoinSafe.mayOmitResidual));
   if (select.where && !(allRowidTermsAdmitted||allWhereTermsAdmitted)) {
     if (!select.where.reduction) throw new JSQLiteError("unsupported", "WHERE predicate is not implemented", { unsupportedClassification: "temporary" });
-    const predicate=resolveExpression(select.where);
+    // wherecode.c Case5: !untestedTerms disables only the owned OR term.
+    // Single-table arm truth is fully evaluated before dedup/Gosub. Other
+    // enclosing conjuncts remain independently owned residuals.
+    const remainingOrTerms=selectedOr?selectedOrClause!.terms.filter(term=>!term.virtual&&!selectedOr!.terms.includes(term)):null;
     const compilePredicate=(tree:Expression):number=>{
       if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")return compileExpressionSubquery(tree);
       if(tree.kind==="binary"&&(tree.op==="AND"||tree.op==="OR")){
@@ -5879,8 +5890,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       }
       return compileExpressionTree(tree,ops,()=>builder.register(),parameters,compileExpressionSubquery);
     };
-    const output=compilePredicate(predicate);
-    builder.jump(scanNext,{code:"IfNot",p1:output,p2:0,residual:true},(op,pc)=>({...op,p2:pc} as Op));
+    for(const expression of remainingOrTerms?remainingOrTerms.map(term=>term.expression):[select.where]){
+      const output=compilePredicate(resolveExpression(expression));
+      builder.jump(scanNext,{code:"IfNot",p1:output,p2:0,residual:true},(op,pc)=>({...op,p2:pc} as Op));
+    }
   }
   const body=ops.length;
   projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:resultStart+i});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:resultStart+i})}else{const physicalField=selectedPhysical?.fields.findIndex(field=>field.column===table.columns[x.column!]);if(selectedPhysical&&physicalField!==undefined&&physicalField>=0)ops.push({code:"Column",p1:physicalField,p2:resultStart+i,p3:accessCursor});else ops.push({code:"Column",p1:tableStorageColumn(x.column),p2:resultStart+i});if(x.realAffinity)ops.push({code:"RealAffinity",p1:resultStart+i});}});

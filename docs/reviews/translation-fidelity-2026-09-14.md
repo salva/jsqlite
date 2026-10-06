@@ -19,7 +19,8 @@ recursive selected AND-arm consumption and represented inner per-level continuat
 correlated arm replanning preserves enclosing ready prerequisites; represented
 IN-list arms own RHS iterators and inside-out restart. Runtime Case5 factoring
 now excludes subquery/virtual/nullable-ON terms separately from cost exploration
-and retains full parent residual; represented terms have no coded/slice state.
+and retains untested parent residual; fully tested parents are omitted after
+arm truth/dedup. Represented terms have no general coded/slice state.
 Single-table and represented-inner common-index Column/Rowid rewrite now consume
 retained physical arm identity. Joined arm residuals now skip notReady terms and
 retain full downstream parent truth; TERM_CODED/untested parent omission remains

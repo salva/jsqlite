@@ -448,3 +448,20 @@ for(const v of movement.variants){
   }finally{st.finalize();BtreeDatabase.prototype.page=original}
  }));
 }
+
+// Pinned Case5 omission probe: native non-deterministic random override returns
+// zero, counts four arm invocations (verification evidence); no public hooks.
+for(const v of capture.variants){
+ test(`${v.id}/selected OR tested-parent omission preserves volatile call ownership`,async()=>withDb(v,async db=>{
+  const descriptor=Object.getOwnPropertyDescriptor(globalThis,'crypto');let calls=0;
+  Object.defineProperty(globalThis,'crypto',{configurable:true,value:{getRandomValues(bytes){calls++;bytes.fill(0);return bytes;}}});
+  const st=db.prepare("SELECT id FROM o WHERE (a=1 AND random()=0) OR (b='beta' AND random()=0) ORDER BY id").statement;
+  try{
+   for(let repeat=0;repeat<2;repeat++){
+    calls=0;const rows=[];while(await st.step()==='row')rows.push(st.column(0));
+    assert.deepEqual(rows,[1n,2n,3n]);assert.equal(calls,4,'tested OR parent must not evaluate the arms again');
+    assert.equal(privateAccounting(st).orBranchStarts,2);assert.equal(privateAccounting(st).orDuplicateSkips,1);st.reset();
+   }
+  }finally{st.finalize();if(descriptor)Object.defineProperty(globalThis,'crypto',descriptor);else delete globalThis.crypto;}
+ }));
+}

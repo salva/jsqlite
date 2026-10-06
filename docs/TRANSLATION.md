@@ -205,8 +205,8 @@ the shared construction frontier; no ordinary-only filtering remains. Represente
 inner callers now use per-level RowSet/Gosub continuations with initialization
 per outer row and full residual truth. Arm AND terms are tested individually only
 when prereqAll is positioned; unready OR atoms are deferred intact. The ordinary
-caller retains full parent truth until downstream sources are ready (no parent
-disableTerm/omission optimization). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+caller retains untested parent truth until downstream sources are ready; fully
+tested parents are omitted after arm truth (Case5 disableTerm ownership). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
 Correlated arm replanning retains the
 actual already-positioned outer mask; unready prerequisites remain excluded.
 Single-table Case5 retains a common physical index only when every selected
@@ -223,7 +223,9 @@ and [inner-level evidence](research/card-s-f-or/verification.md#represented-inne
 Runtime arm scope is separate from cost exploration: Case5 factors only
 original indexable enclosing terms, excluding virtual, nullable-ON and
 subquery-bearing expressions. Both direct and AND arms retain owned terms;
-full parent truth remains in the common body. Represented terms have no
+fully tested selected parents omit repeated common-body truth; parents with
+unready arm terms retain their residual. Other enclosing conjuncts remain
+independent residuals. Represented terms have no
 coded/slice state and row-value slices are not admitted. See
 [focused factoring evidence](research/card-s-f-or/verification.md#runtime-factored-constraint-exclusion-repair).
 Represented IN-list arms use shared RHS iterator registers with inside-out

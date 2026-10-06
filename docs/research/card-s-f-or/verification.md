@@ -519,3 +519,22 @@ First archives missing that dependency and the attributed export's omitted
 evidence overlay failed; successful reruns do not erase those revision-bound
 findings. This doc-only correction changes no runtime/test inputs; independent
 goal acceptance and shared-root integration remain separate steps.
+
+
+## Tested-parent OR omission repair
+
+Pinned wherecode.c Case5 tests arm truth before RowSetTest/Gosub and disables
+its owned parent term only when recursive WhereBegin has no untested terms.
+The delivered full common-parent residual repeated volatile calls: native-first
+controlled nondeterministic random override produced four calls, versus seven
+TS calls for the same three INTEGER rows and selected roots16/17. See
+[retained probe](omission-probe.json) and [[card:card-s-f-c]] status v174 plus
+current repair evidence. The native override is not built-in PRNG output parity.
+
+The owning lowerer now omits fully tested parent terms, retains independent
+enclosing conjuncts, and retains joined parents with later-source untested arm
+terms. Nested selected arms do not re-evaluate truth already supplied by their
+child continuation. No SQL-text exception, public hook or parallel evaluator.
+Three-encoding public regression counts four RNG calls and typed rows on two
+reset runs, with selected branch/dedup assertions. Broader coded/factored term
+omission and error multiplicity are not established by this finite repair.
