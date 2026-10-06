@@ -4,7 +4,7 @@
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
 import {whereOrCollect,whereOrInsert,whereOrAccumulate,type WhereOrSet} from "./where-or-cost.ts";
 import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
-import {resolvedExpressionAffinity,type ResolvedSelect,type ResolvedSource} from "./resolve.ts";
+import {resolvedExpressionAffinity,resolvedExpressionCollation,type ResolvedSelect,type ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {SqlToken} from "./tokenize.ts";
 import {sqliteAsciiFold} from "./sqlite-case.ts";
@@ -621,11 +621,9 @@ function termEquivalence(resolved:ResolvedSelect,draft:{node:ExprReduction;origi
  if(draft.operator==="is"&&resolved.sources.length>=2&&resolved.sources[0]?.leftOfRightJoin)return false;
  const children=exprChildren(draft.node),lhs=children[0],rhs=children[1];
  if(!lhs||!rhs)return false;
- const l=binding(resolved,lhs),r=binding(resolved,rhs);
- if(!l||!r)return false;
  const a=resolvedExpressionAffinity(lhs,resolved)??"blob",b=resolvedExpressionAffinity(rhs,resolved)??"blob";
  if(a!==b&&(!numericAffinity(a)||!numericAffinity(b)))return false;
- return sqliteAsciiFold(l.column?.collation??"binary")===sqliteAsciiFold(r.column?.collation??"binary");
+ return sqliteAsciiFold(resolvedExpressionCollation(lhs,resolved)??"binary")===sqliteAsciiFold(resolvedExpressionCollation(rhs,resolved)??"binary");
 }
 /** where.c:whereScanNext column equivalence visitation. Acceptance callback
  * owns opMask/index affinity/collation admission; yielded terms retain their

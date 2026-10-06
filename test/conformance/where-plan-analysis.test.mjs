@@ -1333,3 +1333,11 @@ test('whereRightSubexprIsColumn skips likely carriers for expansion but not raw 
  assert.ok([...wherePlanning.scanWhereTerms(rc,rc.terms[0].left,reverse,t=>t.operator==='eq')].includes(rc.terms[1]),'raw TK_FUNCTION is not excluded as TK_COLUMN');
  }
 });
+test('termIsEquivalence owns affinity and collation proof independent of RHS column shape',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const [sql,expected] of [['b=CAST(? AS REAL)',true],['b=CAST(? AS INTEGER)',true],['a=CAST(? AS TEXT)',false],['b=CAST(? AS TEXT)',false]]){
+ const r=resolve(`SELECT id FROM t WHERE ${sql}`,schema(encoding)),c=analyzeWhere(r).clause;
+ assert.equal(c.terms[0].equivalence,expected,sql);
+ }
+ }
+});
