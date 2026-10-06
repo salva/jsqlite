@@ -1922,8 +1922,18 @@ test('sPk cost DONE clears pending range while terminal equality retains exact b
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  for(const [predicate,remaining,empty] of [['id>?1 AND id<?2',2,true],['id>?1 AND id<?2',3,true],['id=?1',2,false]]){
  const s=schema(encoding),r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining};
- btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,notIndexed:true});
  assert.equal(budget.remaining,0);assert.equal(set.a.length,empty?0:1,predicate+remaining);
+ }
+ }
+});
+test('completed sPk at zero continues AddBtree into persistent index DONE',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?1',s),c=analyzeWhere(r).clause;
+ for(const notIndexed of [false,true]){
+ const set={a:[]},budget={remaining:2};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,notIndexed});
+ assert.equal(set.a.length,notIndexed?1:0,'optional covering index attempts insertion at zero unless suppressed');
  }
  }
 });
