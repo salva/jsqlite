@@ -1168,3 +1168,15 @@ test('transitive pOrSet ISNULL bypasses comparison affinity and collseq admissio
  assert.ok(set.a.some(v=>v.prereq===0n),'WO_ISNULL exempts affinity as well as collseq');
  }
 });
+test('pOrSet unordered index excludes range operators but retains equality',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const predicate of ['a>?','a<?','a=?']){
+ const s=schema(encoding);s.i.unordered=true;
+ const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ assert.equal(set.a.length>0,predicate==='a=?',`${encoding}: ${predicate}`);
+ const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],forcedIndex:s.i});
+ assert.ok(ordinary.every(l=>!l.capability?.lower&&!l.capability?.upper),'same primitive excludes ordinary unordered range admission');
+ }
+ }
+});
