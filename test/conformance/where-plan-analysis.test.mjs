@@ -1001,3 +1001,24 @@ test('OR-IN XN_EXPR equality proof rejects different fields and collation nodes'
  const c=analyzeWhere(resolve('SELECT id FROM t WHERE (b+1)=2 OR b+1=3',s)).clause;
  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='in'));
 });
+test('nested copied OR builders share exhaustion and unwind errors at later recursive visits',()=>{
+ const s=schema(),r=resolve('SELECT id FROM t WHERE a=? OR (a=? AND (blob=? OR (blob=? AND (a=? OR a=?))))',s),a=analyzeWhere(r);
+ // Capability construction is suspended. Observe actual copied-builder visits,
+ // not an eager inventory. Every injection has a distinct sentinel identity.
+ let visits=0,live=0;
+ const needed={*[Symbol.iterator](){visits++;live++;try{yield ROWID_NEEDED;}finally{live--;}}};
+ btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:200}});
+ assert.ok(visits>4);assert.equal(live,0);
+ for(let stop=1;stop<=visits;stop++){
+  let entered=0,active=0;const sentinel=new Error(`recursive needed ${stop}`);
+  const throwing={*[Symbol.iterator](){entered++;active++;try{if(entered===stop)throw sentinel;yield ROWID_NEEDED;}finally{active--;}}};
+  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:200}}),e=>e===sentinel);
+  assert.equal(active,0,`unwind ${stop}`);
+ }
+ for(let remaining=1;remaining<=20;remaining++){
+  const budget={remaining};let active=0;
+  const bounded={*[Symbol.iterator](){active++;try{yield ROWID_NEEDED;}finally{active--;}}};
+  btreeLoops(r.sources[0],0,a.clause,{neededColumns:bounded,orderBy:[],resolved:r,planBudget:budget});
+  assert.equal(active,0,`budget ${remaining}`);assert.ok(budget.remaining>=0&&budget.remaining<=remaining);
+ }
+});
