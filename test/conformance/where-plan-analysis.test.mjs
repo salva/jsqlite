@@ -1422,3 +1422,20 @@ test('IS NULL opcode production checks the RHS root not descendant NULL tokens',
  assert.equal(analyzeWhere(r).clause.terms[0].operator,op,rhs);
  }
 });
+test('IS NOT DISTINCT FROM shares IS operator production, DISTINCT remains residual',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [predicate,expected] of [['a IS NOT DISTINCT FROM ?','is'],['a IS NOT DISTINCT FROM (NULL)','is-null'],['a IS DISTINCT FROM ? ',null]]){
+ const r=resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,expected,predicate);
+ }
+});
+
+test('distinct spelling feeds equivalence and OR arm indexable production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT id FROM t WHERE b IS NOT DISTINCT FROM b',schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].equivalence,true);
+ const or=resolve('SELECT id FROM t WHERE b IS NOT DISTINCT FROM ? OR b>?',schema(encoding));
+ const parent=analyzeWhere(or).clause.terms[0];
+ assert.equal(parent.info.kind,'or');
+ assert.equal(parent.info.indexable,1n);
+ }
+});
