@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return singletonInProduction(emptyInProduction(nullIsProduction(at)));
+ return singletonInProduction(emptyInProduction(literalNullProduction(at)));
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -704,6 +704,21 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 /** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
  * SELECT-carried flags remain unproved and must not certify that replacement. */
 /** sqlite3PExprIs removes only a root TK_NULL RHS, never descendant NULL. */
+function literalNullProduction(node:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=v=>v,onFalse?:(v:ExprReduction)=>void):ExprReduction {
+ node=nullIsProduction(node);
+ if(node.signature!=="expr ::= expr ISNULL|NOTNULL"&&node.signature!=="expr ::= expr NOT NULL")return node;
+ const initial=exprChildren(node)[0];if(!initial)return node;
+ let child:ExprReduction=initial;
+ const normalize=(v:ExprReduction):ExprReduction=>{while(v.signature==="expr ::= LP expr RP")v=exprChildren(v)[0]!;return produce(v);};
+ child=normalize(child);
+ while(child.signature==="expr ::= PLUS|MINUS expr")child=normalize(exprChildren(child)[0]!);
+ const tokens=asExpr(child).tokens;
+ if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return node;
+ const isFalse=asExpr(node).tokens.at(-1)?.text.toUpperCase()==="ISNULL";
+ const value:SqlToken={...tokens[0]!,kind:"integer",text:isFalse?"0":"1"};
+ const result:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
+ if(isFalse)onFalse?.(result);return result;
+}
 function nullIsProduction(node:ExprReduction):ExprReduction {
  node=distinctFromProduction(node);
  if(node.signature!=="expr ::= expr IS expr"&&node.signature!=="expr ::= expr IS NOT expr")return node;
@@ -903,18 +918,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
        return null;
       };
-      const foldNullLiteral=(n:ExprReduction):ExprReduction=>{
-       const test=nullTest(n);if(!test)return n;
-       let child=producedAnd(test.child);
-       while(child.signature==="expr ::= PLUS|MINUS expr")child=producedAnd(exprChildren(child)[0]!);
-       const tokens=asExpr(child).tokens;
-       // sqlite3PExprIsNull inspects opcode after stripping unary signs,
-       // not runtime value, numeric conversion or constant evaluation.
-       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return n;
-       const value:SqlToken={...tokens[0]!,kind:"integer",text:test.op==="NOTNULL"?"1":"0"};
-       const result:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
-       if(test.op==="ISNULL")producedFalse.add(result);return result;
-      };
+      const foldNullLiteral=(n:ExprReduction):ExprReduction=>literalNullProduction(n,producedAnd,v=>producedFalse.add(v));
       const producedAnd=(n:ExprReduction):ExprReduction=>{
        n=foldNullLiteral(emptyIn(distinctFromProduction(parens(n))));
        if(n.signature!=="expr ::= expr AND expr")return n;

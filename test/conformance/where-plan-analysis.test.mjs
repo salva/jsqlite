@@ -1565,3 +1565,16 @@ test('IS NOT NULL produced NOTNULL stays residual and descendant NULL stays bina
  }
  }
 });
+test('literal null-test term folds to ExprInt32 with no column admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['1 ISNULL','-1 IS NULL',"'x' NOTNULL"]){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= term');assert.equal(t.operator,null);
+ }
+});
+test('literal null production inspects opcode not evaluated NULL or value',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const predicate of ['1 ISNULL','-1 ISNULL',"x'00' ISNULL"]){const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];assert.equal(t.expression.tokens[0].text,'0');}
+ for(const predicate of ['1 NOTNULL',"'x' NOT NULL"]){const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];assert.equal(t.expression.tokens[0].text,'1');}
+ for(const predicate of ['NULL ISNULL','CAST(1 AS TEXT) ISNULL','abs(1) ISNULL','b ISNULL'])assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0].expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL');
+ }
+});
