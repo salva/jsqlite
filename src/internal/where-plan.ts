@@ -511,6 +511,28 @@ type ExprReduction=LemonValue<SqlToken>&{readonly kind:"reduction"};
 function exprChildren(node:ExprReduction):ExprReduction[]{return node.children.filter((x):x is ExprReduction=>x.kind==="reduction"&&x.signature.startsWith("expr ::="));}
 function asExpr(node:ExprReduction):ExprNode {const tokens:SqlToken[]=[];const collect=(x:LemonValue<SqlToken>):void=>{if(x.kind==="terminal"){if(x.value)tokens.push(x.value);}else x.children.forEach(collect)};collect(node);return Object.freeze({kind:"tokens",tokens:Object.freeze(tokens),reduction:node});}
 function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signature==="expr ::= LP expr RP"||at.signature.startsWith("expr ::= expr COLLATE")){const child=exprChildren(at)[0];if(!child)break;at=child;}return at;}
+/** expr.c:sqlite3ExprSkipCollateAndLikely, with parse.y parentheses as
+ * transparent carriers. Resolved builtin likely/unlikely/likelihood calls
+ * carry EP_Unlikely upstream; do not skip arbitrary function arguments. */
+function skipCollateAndLikely(node:ExprReduction):ExprReduction {
+ let at=unwrap(node);
+ while(at.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){
+  const token=at.children.find(x=>x.kind==="terminal");
+  const name=token?.kind==="terminal"?dequotedName(token.value.text):"";
+  if(!["likely","unlikely","likelihood"].includes(name))break;
+  const list=at.children.find((x):x is ExprReduction=>x.kind==="reduction"&&x.signature.startsWith("exprlist ::="));
+  const args:ExprReduction[]=[];
+  const collect=(part:ExprReduction):void=>{
+   for(const child of part.children)if(child.kind==="reduction"){
+    if(child.signature.startsWith("expr ::="))args.push(child);else collect(child);
+   }
+  };
+  if(list)collect(list);
+  if(args.length!==(name==="likelihood"?2:1))break;
+  at=unwrap(args[0]!);
+ }
+ return at;
+}
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
  if(quote==='"'||quote==="'"||quote==="`"||quote==="["){
@@ -619,7 +641,8 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
   // only those carriers before testing raw TK_COLUMN; keep COLLATE intact.
   while(node?.signature==="expr ::= LP expr RP")node=exprChildren(node)[0];
   // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
-  return node&&(skipCollate||!node.signature.startsWith("expr ::= expr COLLATE"))?binding(resolved,node):null;
+  if(skipCollate&&node)node=skipCollateAndLikely(node);
+  return node&&!node.signature.startsWith("expr ::= expr COLLATE")?binding(resolved,node):null;
  };
  for(let i=0;i<slots.length;i++){
   for(let wc:WhereClause|null=clause;wc;wc=wc.outer){

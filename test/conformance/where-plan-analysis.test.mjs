@@ -1322,3 +1322,14 @@ test('scanner raw reverse-cycle proof preserves parenthesized COLLATE opcode',()
  assert.ok([...wherePlanning.scanWhereTerms(c,target,r,t=>t.operator==='eq')].includes(wrapped),'parentheses disappear in C but COLLATE does not in raw reverse test');
  }
 });
+test('whereRightSubexprIsColumn skips likely carriers for expansion but not raw reverse exclusion',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['likely(u.a)','unlikely(u.a)','likelihood(u.a,0.5)','likely((unlikely(u.a)))','abs(u.a)']){
+ const r=resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=${rhs} AND u.a=?`,schema(encoding)),c=analyzeWhere(r).clause,target=c.terms[0].left;
+ // Scanner contract control: producer affinity/equivalence of likely remains
+ // separately incomplete. Supply WO_EQUIV to isolate C's RHS skip primitive.
+ const seed={...c.terms[0],equivalence:true},clause=wherePlanning.whereClause([seed,...c.terms.slice(1)]);
+ assert.equal([...wherePlanning.scanWhereTerms(clause,target,r,t=>t.operator==='eq')].includes(c.terms[1]),rhs!=='abs(u.a)','only likely carriers expand');
+ const reverse=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=likely(t.a)',schema(encoding)),rc=analyzeWhere(reverse).clause;
+ assert.ok([...wherePlanning.scanWhereTerms(rc,rc.terms[0].left,reverse,t=>t.operator==='eq')].includes(rc.terms[1]),'raw TK_FUNCTION is not excluded as TK_COLUMN');
+ }
+});
