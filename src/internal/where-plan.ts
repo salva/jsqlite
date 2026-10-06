@@ -554,7 +554,7 @@ function dequotedName(text:string,fold=true):string {
  }
  return fold?sqliteAsciiFold(text):text;
 }
-function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?dequotedName(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
+function explicitExprCollation(node:ExprReduction,resolved:ResolvedSelect):BuiltinCollation|null {const alias=resolved.aliasUses?.get(node);if(alias)return explicitExprCollation(alias,resolved);if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?dequotedName(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of node.children){if(child.kind!=="reduction"||child.signature.startsWith("select ::="))continue;const found=explicitExprCollation(child,resolved);if(found)return found;}return null;}
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
 function reductionContains(root:ExprReduction,needle:ExprReduction):boolean {return root===needle||root.children.some(x=>x.kind==="reduction"&&reductionContains(x,needle));}
 function columnUse(resolved:ResolvedSelect,node:ExprReduction){let plain=unwrap(node);while(resolved.aliasUses?.has(plain))plain=unwrap(resolved.aliasUses.get(plain)!);return resolved.columnUses.find(use=>use.selectDepth===0&&use.expression===plain);}
@@ -704,7 +704,7 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 }
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
 function reverseOperator(op:WhereOperator):WhereOperator{return op==="lt"?"gt":op==="le"?"ge":op==="gt"?"lt":op==="ge"?"le":op;}
-function effectiveCollation(left:ExprReduction,right:ExprReduction,leftBinding:ColumnBinding|null,rightBinding:ColumnBinding|null):BuiltinCollation {return explicitExprCollation(left)??explicitExprCollation(right)??((leftBinding?.column?.collation&&sqliteAsciiFold(leftBinding.column.collation)) as BuiltinCollation|null)??((rightBinding?.column?.collation&&sqliteAsciiFold(rightBinding.column.collation)) as BuiltinCollation|null)??"binary";}
+function effectiveCollation(left:ExprReduction,right:ExprReduction,leftBinding:ColumnBinding|null,rightBinding:ColumnBinding|null,resolved:ResolvedSelect):BuiltinCollation {return explicitExprCollation(left,resolved)??explicitExprCollation(right,resolved)??((leftBinding?.column?.collation&&sqliteAsciiFold(leftBinding.column.collation)) as BuiltinCollation|null)??((rightBinding?.column?.collation&&sqliteAsciiFold(rightBinding.column.collation)) as BuiltinCollation|null)??"binary";}
 export interface WhereAnalysis {readonly clause:WhereClause;readonly plannerEligible:boolean;readonly fallback:"right-full"|null}
 /** whereexpr.c sqlite3WhereSplit/exprAnalyze subset. It consumes resolved
  * expression identity and is the only production constructor for WhereTerm. */
@@ -718,7 +718,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const drafts:Draft[]=[];
  for(const spec of specs){const node=skipCollateAndLikely(spec.node,resolved),origin=spec.origin;let op=comparisonOperator(node);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=indexedBinding(resolved,originalLeftNode),originalRight=indexedBinding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
   if(!left&&originalRight&&op&&op!=="in"){orientation="right";op=reverseOperator(op);leftNode=originalRightNode;rightNode=originalLeftNode;left=originalRight;}
-  const rightUse=rhsPrereq(resolved,node,orientation,op),leftUse=prereq(resolved,leftNode);const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&(rightUse&leftUse)===0n&&!(rightUse&sourceBit(left.sourceOrdinal))&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,originalLeft,originalRight),parentId=drafts.length;
+  const rightUse=rhsPrereq(resolved,node,orientation,op),leftUse=prereq(resolved,leftNode);const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&(rightUse&leftUse)===0n&&!(rightUse&sourceBit(left.sourceOrdinal))&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,originalLeft,originalRight,resolved),parentId=drafts.length;
   const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
   // whereexpr.c:exprAnalyze creates a virtual commuted child when both
   // operands are indexable columns. It retains original expression collation
@@ -1185,8 +1185,8 @@ export function resolvedWhereOrder(resolved:ResolvedSelect):readonly OrderRequir
   const source=use?.source??(result?.resolution==="direct"?result.source:null),columnIndex=use?.columnIndex??result?.columnIndex;
   if(!source||columnIndex==null)return Object.freeze([]);
   const column=columnIndex<0?source.table.columns.find(candidate=>isIntegerPrimaryKeyAlias(source.table,candidate)):source.table.columns[columnIndex];if(!column)return Object.freeze([]);
-  const override=term.expr.reduction?.kind==="reduction"?explicitExprCollation(term.expr.reduction as ExprReduction):null;
-  const collation=override??explicitExprCollation(node)??sqliteAsciiFold(column.collation??"binary");
+  const override=term.expr.reduction?.kind==="reduction"?explicitExprCollation(term.expr.reduction as ExprReduction,resolved):null;
+  const collation=override??explicitExprCollation(node,resolved)??sqliteAsciiFold(column.collation??"binary");
   if(collation!=="binary"&&collation!=="nocase"&&collation!=="rtrim")return Object.freeze([]);
   requirements.push(freeze({sourceOrdinal:resolved.sources.indexOf(source),column,descending:term.descending,collation,nulls:term.nulls}));
  }

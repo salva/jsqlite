@@ -1394,3 +1394,11 @@ test('deferred likely metadata follows resolved argument aliases recursively',()
  assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,`${lhs}=likely(${expr})`);
  }
 });
+test('comparison collation production sees explicit COLLATE in resolved alias copies',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const [expr,predicate,expected] of [['a COLLATE BINARY','a=operand','binary'],['likely(a COLLATE BINARY)','a=operand','binary'],['a COLLATE BINARY','a COLLATE RTRIM=operand','rtrim'],['a','a=operand','nocase']]){
+ const r=resolve(`SELECT ${expr} AS operand FROM t WHERE ${predicate}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].effectiveCollation,expected,expr+predicate);
+ }
+ }
+});
