@@ -736,16 +736,26 @@ function andProduction(node:ExprReduction):ExprReduction {
       };
  return producedAnd(node);
 }
+/** Produce units before descent so transient AND IsFalse stays in its owner. */
+function producedExpressionTree(v:LemonValue<SqlToken>,produce:(v:ExprReduction)=>ExprReduction):LemonValue<SqlToken> {
+ if(v.kind!=="reduction"||v.signature.startsWith("select ::="))return v;
+ const next=v.signature.startsWith("expr ::=")?produce(v):v;
+ const children=next.children.map(c=>producedExpressionTree(c,produce));
+ return children.some((c,i)=>c!==next.children[i])?{...next,children}:next;
+}
 function literalNullProduction(node:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=v=>literalNullProduction(v),onFalse?:(v:ExprReduction)=>void):ExprReduction {
  node=nullIsProduction(node);
  if(node.signature!=="expr ::= expr ISNULL|NOTNULL"&&node.signature!=="expr ::= expr NOT NULL")return node;
  const initial=exprChildren(node)[0];if(!initial)return node;
- let child:ExprReduction=initial;
+ const producedLeft=producedExpressionTree(initial,produce) as ExprReduction;
+ let child:ExprReduction=producedLeft;
  const normalize=(v:ExprReduction):ExprReduction=>{while(v.signature==="expr ::= LP expr RP")v=exprChildren(v)[0]!;return produce(v);};
  child=normalize(child);
  while(child.signature==="expr ::= PLUS|MINUS expr")child=normalize(exprChildren(child)[0]!);
  const tokens=asExpr(child).tokens;
- if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return node;
+ if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind)){
+  return producedLeft===initial?node:{...node,children:node.children.map(c=>c===initial?producedLeft:c)};
+ }
  const isFalse=asExpr(node).tokens.at(-1)?.text.toUpperCase()==="ISNULL";
  const value:SqlToken={...tokens[0]!,kind:"integer",text:isFalse?"0":"1"};
  const result:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
@@ -777,15 +787,7 @@ function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprRe
        if(values.length!==1||!lhs)return n;
        // C parser has produced every descendant before exprIsConst and UPLUS.
        // Traverse expression containers, but never SELECT scopes.
-       const producedChild=(v:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
-        if(v.kind!=="reduction"||v.signature.startsWith("select ::="))return v;
-        // Produce AND as one unit so its transient IsFalse ownership is
-        // not lost by separately publishing its children first.
-        const next=v.signature.startsWith("expr ::=")?produce(v):v;
-        const children=next.children.map(producedChild);
-        return children.some((c,i)=>c!==next.children[i])?{...next,children}:next;
-       };
-       const rhs=producedChild(values[0]!) as ExprReduction,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
+       const rhs=producedExpressionTree(values[0]!,produce) as ExprReduction,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
        // exprNodeIsConstant(mode=1) continues through ordinary operators
        // and walks their children; it does not evaluate arithmetic. Keep
        // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained

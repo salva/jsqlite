@@ -1640,3 +1640,22 @@ test('recursive singleton production preserves HasFunc arithmetic arm',()=>{
  assert.equal(t.operator,'in');
  }
 });
+test('null-test producer retains produced child even when outer cannot fold',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE (((1 ISNULL) AND a=?) + b) ISNULL',schema(encoding))).clause.terms[0];
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr AND expr'||v.children.some(visit));
+ assert.equal(t.expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL');
+ assert.equal(visit(t.expression.reduction),false);
+ }
+});
+test('unfolded null-test keeps sign positioning and HasFunc child ownership',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE -(((1 ISNULL) AND a=?) + b) ISNULL',schema(encoding))).clause.terms[0];
+ const es=t.expression.reduction.children.filter(c=>c.kind==='reduction'&&c.signature.startsWith('expr ::='));
+ assert.equal(es[0].signature,'expr ::= PLUS|MINUS expr');
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr AND expr'||v.children.some(visit));
+ assert.equal(visit(t.expression.reduction),false);
+ const fn=analyzeWhere(resolve('SELECT id FROM t WHERE (((1 ISNULL) AND abs(a)=?) + b) ISNULL',schema(encoding))).clause.terms[0];
+ assert.equal(visit(fn.expression.reduction),true);
+ }
+});
