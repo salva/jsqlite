@@ -1304,3 +1304,15 @@ test('pOrSet scan exhaustion precedes outer clause lookup inventory',()=>{
  assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
  }
 });
+test('WITHOUT ROWID construction never admits fake sPk rowid constraints',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding,true),r=resolve('SELECT id FROM t WHERE id=?',s),c=analyzeWhere(r).clause;
+ // A borrowed rowid-shaped constraint must not create a cursor/index absent
+ // from this table. whereLoopAddBtree selects pTab->pIndex, not sPk.
+ const term={...c.terms[0],left:{...c.terms[0].left,column:null,columnIndex:-1,rowid:true}},clause=wherePlanning.whereClause([term]);
+ const ordinary=btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true});
+ assert.ok(ordinary.every(l=>l.kind!=='rowid'),'real primary storage only');
+ const costs={a:[]};btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:costs,planBudget:{remaining:100}});
+ assert.equal(costs.a.length,0,'no constrained fake IPK cost');
+ }
+});
