@@ -1360,3 +1360,14 @@ test('scanner expansion skips interleaved alias copies and likely carriers',()=>
  assert.equal([...wherePlanning.scanWhereTerms(clause,c.terms[0].left,r,t=>t.operator==='eq')].includes(c.terms[1]),expr!=='abs(u.a)','resolved copy is inspected before next skip step');
  }
 });
+test('WhereSplit removes parenthesis carriers before AND arm ownership',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const predicate of ['(a=? AND b>?)','likely(a=? AND b>?)','(a=? AND b>?) COLLATE BINARY']){
+ const r=resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding)),c=analyzeWhere(r).clause;
+ assert.equal(c.terms.filter(t=>!t.virtual).length,2,predicate);
+ }
+ const ro=resolve('SELECT id FROM t WHERE (a=? AND b>?) OR id=?',schema(encoding)),co=analyzeWhere(ro).clause,info=co.terms[0].info;
+ assert.equal(info.kind,'or');assert.equal(info.clause.terms[0].info.kind,'and');
+ assert.equal(info.clause.terms[0].info.clause.terms.filter(t=>!t.virtual).length,2);
+ }
+});

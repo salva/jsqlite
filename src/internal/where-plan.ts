@@ -694,7 +694,14 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
 function singleIndexMask(term:WhereTerm):SourceMask {
  return term.operator&&term.left&&(term.prereqRight&sourceBit(term.left.sourceOrdinal))===0n?sourceBit(term.left.sourceOrdinal):0n;
 }
-function splitAnd(node:ExprReduction,out:ExprReduction[]):void {if(node.signature==="expr ::= expr AND expr"){for(const child of exprChildren(node))splitAnd(child,out);}else out.push(node);}
+function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect):void {
+ // parse.y LP expr RP returns the same Expr; unlike COLLATE it is not an
+ // opcode that WhereSplit must preserve as an unsplit residual term.
+ let at=node;
+ while(at.signature==="expr ::= LP expr RP"){const child=exprChildren(at)[0];if(!child)break;at=child;}
+ const inspected=skipCollateAndLikely(at,resolved);
+ if(inspected.signature==="expr ::= expr AND expr"){for(const child of exprChildren(inspected))splitAnd(child,out,resolved);}else out.push(at);
+}
 function comparisonOperator(node:ExprReduction):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"){const rhs=exprChildren(node)[1];if(rhs&&asExpr(rhs).tokens.some(token=>sqliteAsciiFold(token.text)==="null"))return "is-null";return "is";}if(node.signature==="expr ::= expr ISNULL|NOTNULL"&&!text.includes("notnull"))return "is-null";return null;}
 function reverseOperator(op:WhereOperator):WhereOperator{return op==="lt"?"gt":op==="le"?"ge":op==="gt"?"lt":op==="ge"?"le":op;}
 function effectiveCollation(left:ExprReduction,right:ExprReduction,leftBinding:ColumnBinding|null,rightBinding:ColumnBinding|null):BuiltinCollation {return explicitExprCollation(left)??explicitExprCollation(right)??((leftBinding?.column?.collation&&sqliteAsciiFold(leftBinding.column.collation)) as BuiltinCollation|null)??((rightBinding?.column?.collation&&sqliteAsciiFold(rightBinding.column.collation)) as BuiltinCollation|null)??"binary";}
@@ -704,8 +711,8 @@ export interface WhereAnalysis {readonly clause:WhereClause;readonly plannerElig
 export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false):WhereAnalysis {return analyzeClause(resolved,includeRightTerms);}
 function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and",orOwner:WhereClause|null=null):WhereAnalysis {
  if(!includeRightTerms&&resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
- const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
- resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
+ const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
+ resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
  if(input){specs.length=0;specs.push(...input);}
  type Draft={node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
  const drafts:Draft[]=[];
@@ -1108,7 +1115,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
    }
 
   }else if(split==="or"&&orIndexable!==0n&&singleIndexMask(term)===0n){
-   const parts:ExprReduction[]=[];splitAnd(node,parts);
+   const parts:ExprReduction[]=[];splitAnd(node,parts,resolved);
    const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),orOwner).clause;
    Object.assign(term,{info:freeze({kind:"and" as const,clause:child})});
   }
