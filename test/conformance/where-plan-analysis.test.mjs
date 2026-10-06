@@ -1626,3 +1626,17 @@ test('singleton EQ retains produced zero RHS and HasFunc prevents deletion',()=>
  assert.equal(blocked.operator,'in');
  }
 });
+test('singleton produced arithmetic child no longer owns discarded AND column',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b IN (((1 ISNULL) AND a=?) + 2)',schema(encoding))).clause.terms[0];
+ assert.equal(t.operator,'eq');
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr AND expr'||v.children.some(visit));
+ assert.equal(visit(t.expression.reduction),false);
+ }
+});
+test('recursive singleton production preserves HasFunc arithmetic arm',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b IN (((1 ISNULL) AND abs(a)=?) + 2)',schema(encoding))).clause.terms[0];
+ assert.equal(t.operator,'in');
+ }
+});

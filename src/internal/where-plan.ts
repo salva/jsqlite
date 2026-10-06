@@ -775,7 +775,17 @@ function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprRe
        if(list?.kind!=="reduction"||op?.kind!=="reduction")return n;
        const values=directExprReductions(list),lhs=exprChildren(n)[0];
        if(values.length!==1||!lhs)return n;
-       const rhs=produce(values[0]!),leaf=parens(rhs),tokens=asExpr(leaf).tokens;
+       // C parser has produced every descendant before exprIsConst and UPLUS.
+       // Traverse expression containers, but never SELECT scopes.
+       const producedChild=(v:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
+        if(v.kind!=="reduction"||v.signature.startsWith("select ::="))return v;
+        // Produce AND as one unit so its transient IsFalse ownership is
+        // not lost by separately publishing its children first.
+        const next=v.signature.startsWith("expr ::=")?produce(v):v;
+        const children=next.children.map(producedChild);
+        return children.some((c,i)=>c!==next.children[i])?{...next,children}:next;
+       };
+       const rhs=producedChild(values[0]!) as ExprReduction,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
        // exprNodeIsConstant(mode=1) continues through ordinary operators
        // and walks their children; it does not evaluate arithmetic. Keep
        // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
