@@ -398,3 +398,15 @@ test('necessary combine compares dequoted COLLATE names without quote delimiters
   assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('necessary combine function name proof follows dequoted TK_FUNCTION names',()=>{
+ for(const name of ['"ABS"','[ABS]','`ABS`']){
+  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=abs(u.b) OR t.a<${name}(u.b)`,schema())).clause;
+  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),name);
+ }
+});
+test('function proof retains different names and DISTINCT after dequoting',()=>{
+ for(const rhs of ['length(u.b)','abs(DISTINCT u.b)']){
+  const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=abs(u.b) OR t.a<${rhs}`,schema())).clause;
+  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
