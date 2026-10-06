@@ -381,7 +381,12 @@ function indexLoopEstimate(index:IndexNode,cap:BtreeCapability,source:ResolvedSo
    if(admission.operator==="is-null")rows+=10n;
    if(admission.operator==="in"){
      // whereLoopAddBtreeIndex: literal list contributes seek iterations.
-     const n=admission.term.expression.tokens.filter(t=>t.text===",").length+1;
+     const root=admission.term.expression.reduction;
+     const list=root?.kind==="reduction"?root.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::=")):undefined;
+     // pExpr->x.pList->nExpr counts immediate entries, never commas in
+     // function arguments, CASE arms or other expression descendants.
+     const n=list?.kind==="reduction"?directExprReductions(list).length:0;
+     if(n===0)throw new Error("IN admission requires a nonempty expression list");
      inMul+=BigInt(sqliteLogEst(BigInt(n)));
    }
  }

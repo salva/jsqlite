@@ -1812,3 +1812,16 @@ test('cost prefix recursion restores lower and upper flags before next equality 
  assert.ok(costs.a.length>0);
  }
 });
+test('IN seek iteration cost counts expression-list entries not descendant commas',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);
+ const cost=rhs=>{
+ const r=resolve(`SELECT id FROM t WHERE a IN (${rhs})`,s),c=analyzeWhere(r).clause;
+ return btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[]})[0];
+ };
+ const plain=cost('?1,?2');
+ for(const rhs of ['coalesce(?1,?3),?2','coalesce(?1,coalesce(?3,?4)),?2']){
+ const nested=cost(rhs);assert.equal(nested.runCost,plain.runCost);assert.equal(nested.outputRows,plain.outputRows);
+ }
+ }
+});
