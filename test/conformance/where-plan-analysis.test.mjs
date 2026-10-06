@@ -1745,3 +1745,37 @@ test('multicolumn scalar-subquery is rejected by resolver before singleton produ
  assert.throws(()=>resolve('SELECT id FROM t WHERE (SELECT a,b FROM t) IN (1)',schema(encoding)),/sub-select returns 2 columns - expected 1/);
  }
 });
+test('scanner eleven-slot capacity expands before rejected acceptance and stops at boundary',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const names=Array.from({length:13},(_,i)=>`u${i}`);
+ const from=names.map(n=>`t AS ${n}`).join(' CROSS JOIN ');
+ const links=names.slice(0,-1).map((n,i)=>`${n}.a=${names[i+1]}.a`);
+ const bounds=names.map(n=>`${n}.a=?`);
+ const r=resolve(`SELECT u0.id FROM ${from} WHERE ${[...links,...bounds].join(' AND ')}`,schema(encoding));
+ const c=analyzeWhere(r).clause,target=c.terms[0].left;
+ const visited=[];
+ const result=[...wherePlanning.scanWhereTerms(c,target,r,t=>{
+  visited.push(t.left.sourceOrdinal);
+  return !t.equivalence;
+ })];
+ assert.deepEqual(result.map(t=>t.left.sourceOrdinal),Array.from({length:11},(_,i)=>i));
+ assert.equal(Math.max(...visited),10);
+ assert.equal(new Set(result).size,11);
+ }
+});
+test('scanner rejected acceptance expands equivalences across outer and closes on callback error',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT t.id FROM t CROSS JOIN t AS u CROSS JOIN t AS v WHERE t.a=u.a AND u.a=v.a AND v.a=?',schema(encoding));
+ const c=analyzeWhere(r).clause;
+ const original=c.terms.filter(t=>!t.virtual);
+ const outer=wherePlanning.whereClause(original.slice(1));
+ const local=wherePlanning.whereClause([original[0]],outer);
+ const accepted=[...wherePlanning.scanWhereTerms(local,original[0].left,r,t=>!t.equivalence)];
+ assert.deepEqual(accepted,[original[2]]);
+ const sentinel=new Error('scanner callback');let calls=0;
+ const it=wherePlanning.scanWhereTerms(local,original[0].left,r,()=>{calls++;throw sentinel;});
+ assert.throws(()=>it.next(),e=>e===sentinel);
+ assert.deepEqual(it.next(),{done:true,value:undefined});assert.equal(calls,1);
+ assert.deepEqual([...wherePlanning.scanWhereTerms(local,original[0].left,r,t=>!t.equivalence)],accepted);
+ }
+});
