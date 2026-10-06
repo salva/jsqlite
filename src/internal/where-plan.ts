@@ -248,8 +248,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n||parent.origin.kind==="join-on"&&parent.origin.join==="left")continue;
    const sum:WhereOrSet={a:[]};let first=true;
    for(const arm of info.clause.terms){
-    if(arm.virtual)continue;
-    const armClause=arm.info?.kind==="and"?arm.info.clause:whereClause([arm,...info.clause.terms.filter(t=>t.parentId===arm.id)],clause);
+    const armClause=orArmClause(arm,sourceOrdinal,clause);
+    if(!armClause)continue;
     const current:WhereOrSet={a:[]};
     btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
     if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
@@ -261,6 +261,13 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
   }
  }
  if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
+}
+/** where.c:whereLoopAddOr arm dispatch. AND info owns its clause; a direct
+ * term must match iCur and tempWC owns one stored orientation only. The OR
+ * clause itself is not an outer constraint scope. Internal lowering handoff. */
+export function orArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause):WhereClause|null {
+ if(arm.info?.kind==="and")return arm.info.clause;
+ return arm.left?.sourceOrdinal===sourceOrdinal?whereClause([arm],outer):null;
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */

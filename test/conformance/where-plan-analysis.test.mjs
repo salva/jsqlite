@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import * as wherePlanning from '../../src/internal/where-plan.ts';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wherePathChoiceWidth,logEstAdd,planWhere,ROWID_NEEDED,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
@@ -1041,4 +1042,17 @@ test('outer constraint scan unions prerequisites without admitting sibling OR ar
  const loop=loops.find(l=>l.capability?.equalityPrefix.length===2);assert.ok(loop);assert.equal(loop.prereq,sourceBit(1));
  assert.ok(!loop.capability.equalityPrefix.some(e=>e.term===parent.info.clause.terms[1]));
  assert.equal(parent.info.clause.outer,null);
+});
+
+test('OR direct arm handoff owns exactly one term and selects its cursor orientation',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a OR t.a=u.a',s),main=analyzeWhere(r).clause;
+ const or=main.terms.find(t=>t.info?.kind==='or').info;
+ const original=or.clause.terms.find(t=>!t.virtual),commuted=or.clause.terms.find(t=>t.parentId===original.id);
+ assert.ok(commuted);
+ assert.equal(typeof wherePlanning.orArmClause,'function');
+ const direct=wherePlanning.orArmClause(original,0,main);
+ assert.deepEqual(direct.terms,[original]);assert.equal(direct.outer,main);
+ assert.equal(wherePlanning.orArmClause(original,1,main),null);
+ const reversed=wherePlanning.orArmClause(commuted,1,main);
+ assert.deepEqual(reversed.terms,[commuted]);assert.equal(reversed.outer,main);
 });
