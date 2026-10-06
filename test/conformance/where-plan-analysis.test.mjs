@@ -767,3 +767,15 @@ test('singleton postfix null-test proof preserves nonconstant child and opcode i
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton IN constant proof walks produced DISTINCT FROM alias opcodes',()=>{
+ for(const [rhs,other] of [['1 IS DISTINCT FROM 2','1 IS NOT 2'],['1 IS NOT DISTINCT FROM 2','1 IS 2']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('DISTINCT FROM constant admission retains child exclusions and polarity',()=>{
+ for(const [rhs,other] of [['u.a IS DISTINCT FROM 2','u.a IS NOT 2'],['1 IS NOT DISTINCT FROM u.a','1 IS u.a'],['1 IS DISTINCT FROM 2','1 IS 2'],['1 IS NOT DISTINCT FROM 2','1 IS NOT 2']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
