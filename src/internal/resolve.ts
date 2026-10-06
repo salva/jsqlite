@@ -581,10 +581,25 @@ export function resolvedImplicitCollation(expression:LemonValue<SqlToken>,plan:R
 // expr.c sqlite3ExprAffinity: affinity belongs to the resolved column, CAST,
 // or COLLATE operand. Unlike collation, unary plus removes affinity. Parentheses
 // are absent in C Expr and are peeled here only as a Lemon representation step.
+// expr.c SQLITE_AFF_DEFER: resolved likelihood builtins inherit their first
+// argument, unlike ordinary functions. Function registration here is fixed.
+function deferredLikelyArgument(node:ExprReduction):ExprReduction|undefined{
+ if(!node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP'))return undefined;
+ const token=node.children.find(child=>child.kind==='terminal');
+ const name=token?.kind==='terminal'&&token.value?identifier(token.value.text).toLowerCase():'';
+ if(!['likely','unlikely','likelihood'].includes(name))return undefined;
+ const list=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('exprlist ::='));
+ const args:ExprReduction[]=[];
+ const collect=(part:ExprReduction):void=>{for(const child of part.children)if(child.kind==='reduction'){if(child.signature.startsWith('expr ::='))args.push(child);else collect(child);}};
+ if(list)collect(list);
+ return args.length===(name==='likelihood'?2:1)?args[0]:undefined;
+}
 export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:ResolvedSelect):ColumnNode['affinity']|undefined{
  if(expression.kind!=='reduction')return undefined;
  let node=expression;
  for(;;){
+  const likely=deferredLikelyArgument(node);
+  if(likely){node=likely;continue;}
   const merged=resolvedDeferredCoalesce(node,plan)?.mergedSources?.[0];
   if(merged)return merged.columnIndex<0?'integer':merged.source.table.columns[merged.columnIndex]?.affinity;
 
@@ -698,6 +713,8 @@ export function resolvedCompoundAffinity(plans:readonly ResolvedSelect[],index:n
  * EP_Collate child selection. SELECT contents do not propagate Expr flags. */
 export function resolvedExpressionCollation(expression:LemonValue<SqlToken>,plan:ResolvedSelect):string|undefined{
  if(expression.kind!=='reduction')return undefined;
+ const likely=deferredLikelyArgument(expression);
+ if(likely)return resolvedExpressionCollation(likely,plan);
  const merged=resolvedDeferredCoalesce(expression,plan)?.mergedSources?.[0];
  if(merged)return merged.columnIndex<0?undefined:merged.source.table.columns[merged.columnIndex]?.collation??'binary';
  const children=expression.children.filter((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));

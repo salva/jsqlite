@@ -1382,3 +1382,9 @@ test('WhereClauseInsert normalizes likely carriers for OR graph and ordinary arm
  assert.equal(ac.terms[0].info.clause.terms[1].operator,'gt');
  }
 });
+test('equivalence producer follows deferred likely operand affinity and collation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [lhs,rhs,expected] of [['b','likely(b)',true],['a','unlikely(a)',true],['b','likelihood(CAST(? AS REAL),0.5)',true],['a','likely(b)',false],['b','abs(b)',false]]){
+ const r=resolve(`SELECT id FROM t WHERE ${lhs}=${rhs}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,`${lhs}=${rhs}`);
+ }
+});
