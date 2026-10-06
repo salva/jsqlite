@@ -1900,3 +1900,14 @@ test('ISNULL arm output reaches parent OR; NOT NULL arm cannot masquerade as a s
  }
  }
 });
+test('ISNULL proposal budgets stop at prefix lower pair upper without eager later work',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a IS NULL AND b>?1 AND b<?2',s),c=analyzeWhere(r).clause;
+ for(let n=0;n<=5;n++){
+ const costs={a:[]},budget={remaining:n};
+ const loops=btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ assert.deepEqual(loops,[]);assert.equal(budget.remaining,Math.max(0,n-4));
+ if(n===0)assert.deepEqual(costs.a,[]);else assert.equal(costs.a[0].nOut,[0n,41n,22n,10n,10n,10n][n]);
+ }
+ }
+});
