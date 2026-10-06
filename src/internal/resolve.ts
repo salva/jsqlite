@@ -491,7 +491,12 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    childBindings.set(derived.index,table);
   }
  }
- let resolved=expandAndResolveSelect(child,schema,context,nextCursor,childBindings);
+ // resolve.c resolves each compound arm in its own SrcList. The parser's
+ // compound result carrier is not necessarily the final arm's EList.
+ const finalArm=child.hasCompound?child.arms.at(-1):undefined;
+ const resolutionSource=finalArm?{...child,result:finalArm.result,from:finalArm.from,where:finalArm.where}:child;
+ let resolved=expandAndResolveSelect(resolutionSource,schema,context,nextCursor,childBindings);
+ resolved=Object.freeze({...resolved,source:child});
  if(child.hasCompound){
   const compoundArms=child.arms.map(arm=>{const single:SelectNode={...child,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([arm])};const plan=expandAndResolveSelect(single,schema,context,nextCursor);nextCursor=Math.max(nextCursor,lastCursor(plan)+1);return plan;});
   resolved=Object.freeze({...resolved,compoundArms:Object.freeze(compoundArms),correlated:resolved.correlated||compoundArms.some(plan=>plan.correlated)});

@@ -2613,7 +2613,8 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         return compileSubquery({...expression,select:flattened});
       }
     }
-    if(nested.from.items.length===1&&!nested.from.derived&&!nested.from.cteDerived?.length&&
+    // Retained producer predicates run after producer LIMIT, not in this direct child.
+    if(!postProducerPredicates.has(nested)&&!nested.hasSubquery&&nested.from.items.length===1&&!nested.from.derived&&!nested.from.cteDerived?.length&&
        !nested.hasGroupBy&&!nested.hasHaving&&!selectHasAggregate(nested)&&!selectHasWindow(nested)){
       // select.c/expr.c: the ordinary child uses the enclosing destination and
       // normalized first-row limiter, not a separate scan-only evaluator.
@@ -2639,7 +2640,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         }
         compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
         (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
-        if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
+        if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:comparisonAffinity(expressionAffinity(expression.left),plan.result[0]!.descriptor.affinity??expressionAffinity(expressionFromReduction(nested.result[0]!.reduction!))),negated:expression.negated});}
         return destination;
       }
     }

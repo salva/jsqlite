@@ -4906,3 +4906,14 @@ are bound before RHS extraction, including outer references. Simple rowid scalar
 children of no-FROM SELECT now use the shared ordinary selected WHERE generator.
 Native-first first/empty/sorted/correlated reset evidence is [here](../research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair).
 This is bounded caller credit, not original whole-goal integration or full flags/cleanup proof.
+
+
+### c bounded caller correction (candidate, independent acceptance pending)
+
+The df009d3 revision-bound baseline LIMIT/filter and IN-affinity failures are
+repaired in the candidate owning callers: retained producer ordering, resolved
+RHS affinity, and compound EList/SrcList pairing. Original 204 checks pass; six
+new all-encoding binding lifecycle checks pass with independently captured native
+rows/errors. This does not confer broad optimizer/cost/error-multiplicity parity.
+See [source and attempt evidence](../research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair)
+and [[card:card-s-f-c]] status for fresh whole-inventory/package/browser results.

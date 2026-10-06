@@ -819,3 +819,15 @@ Revision-bound repair evidence: [[card:card-e-h]] status and
 | `vdbemem.c`, `vdbeapi.c` cleanup ownership | detach-before-callback `Mem`, primary-error reset/finalize adaptation; synthetic cleanup controls |
 
 [Scoped source assessment and revision-bound evidence](research/card-s-f-or/scoped-closure.md).
+
+
+### Scalar caller LIMIT and IN affinity ownership
+
+`select.c:pushDownWhereTerms` restriction (3) → retained derived post-producer
+predicate and independent producer LIMIT in `vdbe.ts`; the direct ordinary child
+caller cannot bypass this state. `expr.c:sqlite3CompareAffinity` → ordinary child
+InSet consumes resolved RHS EList affinity. `resolve.c:resolveSelectStep` pPrior
+iteration → nested compound EList/SrcList are paired per arm in `resolve.ts`.
+Existing scalar-child/subquery-view regressions and all-three-encoding bound
+reset/rebind/clear native controls map these branches. Detailed evidence and
+attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair).
