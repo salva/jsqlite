@@ -364,3 +364,13 @@ test('overlapping comparison OR arms own AND info despite retaining ordinary ope
  assert.equal(arm.info.clause.outer.terms[0],info.parentTerm);
  assert.equal(info.indexable,1n,'AND allowedOp includes same-table comparison left cursor');
 });
+test('necessary combine maps normalized operator back to retained right-indexed operand order',()=>{
+ for(const [sql,expected] of [['5=a OR 5<a','<='],['5=a OR 5>a','>=']]){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${sql}`,schema())).clause;
+  const bound=c.terms.find(t=>t.virtual);
+  assert.ok(bound,sql);
+  assert.equal(bound.expression.reduction.children.find(c=>c.kind==='terminal').value.text,expected,sql);
+  assert.equal(bound.operator,expected==='<='?'ge':'le',sql);
+  assert.equal(bound.originalIndexedOperand,'right');
+ }
+});

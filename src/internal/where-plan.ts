@@ -576,7 +576,11 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
      };
      if(!same(ac[0]!,bc[0]!)||!same(ac[1]!,bc[1]!))continue;
-     const op=(one.operator===two.operator?one.operator:ops.some(op=>op==="lt"||op==="le")?"le":"ge") as "eq"|"lt"|"le"|"gt"|"ge",text={eq:"=",lt:"<",le:"<=",gt:">",ge:">="}[op];
+     const normalized=(one.operator===two.operator?one.operator:ops.some(op=>op==="lt"||op==="le")?"le":"ge") as "eq"|"lt"|"le"|"gt"|"ge";
+     // Our retained expression keeps the original operands even when analysis
+     // commutes a right-indexed term. Convert the operator back at this seam;
+     // analyzing it again then produces the same normalized necessary bound.
+     const op=(one.originalIndexedOperand==="right"?reverseOperator(normalized):normalized) as "eq"|"lt"|"le"|"gt"|"ge",text={eq:"=",lt:"<",le:"<=",gt:">",ge:">="}[op];
      const node:ExprReduction={...a,signature:op==="eq"?"expr ::= expr EQ|NE expr":"expr ::= expr LT|GT|GE|LE expr",children:a.children.map(x=>x.kind==="terminal"?{...x,value:{...x.value,text}}:x)};
      const analyzed=analyzeClause(resolved,includeRightTerms,[{node,origin}]).clause;
      const base=terms.length+combined.length;
