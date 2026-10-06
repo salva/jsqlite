@@ -1853,3 +1853,19 @@ test('residual equality cap consumes parser-produced ExprInt32 RHS',()=>{
  assert.equal(scan('5 IN ()').outputRows,180n,'empty-IN produces TRUEFALSE, not EP_IntValue');
  }
 });
+test('small-table pOrSet range clamps retain saved-output minus bound count below ten',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const prefix of [0,1,4,10,11,33]){
+ const s=schema(encoding);s.t.nRowLogEst=40;s.i.rowLogEst=Object.freeze([40,prefix,0]);
+ const collect=tail=>{
+ const r=resolve(`SELECT id FROM t WHERE a=?1 AND b>?2 ${tail}`,s),c=analyzeWhere(r).clause,costs={a:[]},budget={remaining:100};
+ btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ return {costs,budget};
+ };
+ const one=collect(''),two=collect('AND b<?3');
+ assert.equal(one.budget.remaining,98);assert.equal(two.budget.remaining,96);
+ const expectedOne=BigInt(Math.min(prefix-1,Math.max(10,prefix-20)));
+ const expectedTwo=BigInt(Math.min(prefix-2,Math.max(10,prefix-60)));
+ assert.equal(one.costs.a[0].nOut,expectedOne);
+ assert.equal(two.costs.a[0].nOut,expectedTwo);
+ }
+});
