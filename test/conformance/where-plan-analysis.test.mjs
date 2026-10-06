@@ -466,3 +466,15 @@ test('CAST dequotes type tokens without folding or dropping operand identity',()
  const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=CAST(u.b AS INTEGER) OR t.a<CAST(u.a AS INTEGER)',schema())).clause;
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('necessary operand proof uses produced IS/ISNOT opcodes for DISTINCT aliases',()=>{
+ for(const [x,y] of [['u.b IS u.a','u.b IS NOT DISTINCT FROM u.a'],['u.b IS NOT u.a','u.b IS DISTINCT FROM u.a']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('IS alias proof keeps opposite null-equality and operand identities distinct',()=>{
+ for(const rhs of ['u.b IS DISTINCT FROM u.a','u.a IS NOT DISTINCT FROM u.b']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IS u.a) OR t.a<(${rhs})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+ }
+});

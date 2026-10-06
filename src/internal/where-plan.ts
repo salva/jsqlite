@@ -550,6 +550,17 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // original qualifier spelling. COLLATE remains a distinct node.
       const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
       x=parens(x);y=parens(y);
+      // parse.y routes DISTINCT FROM aliases through sqlite3PExprIs
+      // with TK_IS/TK_ISNOT. Normalize the semantic production, not SQL text.
+      const isAlias=(n:ExprReduction):ExprReduction=>{
+       const op=n.signature==="expr ::= expr IS NOT DISTINCT FROM expr"?"IS":n.signature==="expr ::= expr IS DISTINCT FROM expr"?"IS NOT":null;
+       if(op===null)return n;
+       const es=exprChildren(n),tokens=n.children.filter(c=>c.kind==="terminal");
+       const is=tokens[0]!;if(is.kind!=="terminal")return n;
+       return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
+      };
+      x=isAlias(x);y=isAlias(y);
+
       const containsSelect=(n:LemonValue<SqlToken>):boolean=>n.kind==="reduction"&&(n.signature.startsWith("select ::=")||n.children.some(containsSelect));
       if(containsSelect(x)||containsSelect(y))return false;
       if(x.signature.startsWith("expr ::= expr COLLATE")||y.signature.startsWith("expr ::= expr COLLATE")){
