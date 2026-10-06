@@ -919,3 +919,21 @@ test('infix HasFunc prevents false child AND deletion',()=>{
  const c=analyzeWhere(resolve("SELECT t.id FROM t JOIN t AS u WHERE t.a=((1 IN ()) AND (u.b LIKE 'x')) OR t.a<0",schema())).clause;
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('TK_NULL operand identity ignores spelling through function and CASE lists',()=>{
+ for(const [x,y] of [['NULL','null'],['coalesce(u.b,NULL)','coalesce(u.b,null)'],['CASE u.b WHEN NULL THEN 1 ELSE 2 END','CASE u.b WHEN null THEN 1 ELSE 2 END']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),x);
+ }
+});
+test('false-child AND observes recursively produced children under arithmetic wrappers',()=>{
+ const c=analyzeWhere(resolve("SELECT t.id FROM t JOIN t AS u WHERE t.a=((u.b + ((1 IN ()) AND 2)) ISNULL) OR t.a<((u.b+0) ISNULL)",schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('infix HasFunc propagates through CASE CAST and ordered argument carriers',()=>{
+ for(const lhs of ["CASE u.b WHEN 1 THEN u.b LIKE 'x' ELSE 0 END","CAST((u.b LIKE 'x') AS INT)","coalesce(u.b GLOB 'x',0)"]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=((${lhs}) IN ()) OR t.a<(false AND (${lhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),lhs);
+ const d=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=((1 IN ()) AND (${lhs})) OR t.a<0`,schema())).clause;
+ assert.ok(!d.terms.some(t=>t.virtual&&t.operator==='le'),lhs);
+ }
+});
