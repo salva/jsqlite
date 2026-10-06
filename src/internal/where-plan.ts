@@ -530,9 +530,24 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
      if(one.originalIndexedOperand!==two.originalIndexedOperand)continue;
      const a=one.expression.reduction as ExprReduction,b=two.expression.reduction as ExprReduction,ac=exprChildren(a),bc=exprChildren(b);
      if(ac.length!==2||bc.length!==2)continue;
-     const same=(x:ExprReduction,y:ExprReduction)=>{
-      const xb=binding(resolved,x),yb=binding(resolved,y);
-      if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex&&expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
+     const same=(x:ExprReduction,y:ExprReduction):boolean=>{
+      // exprCompare compares resolved TK_COLUMN iTable/iColumn, not the
+      // original qualifier spelling. COLLATE remains a distinct node.
+      const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
+      x=parens(x);y=parens(y);
+      if(x.signature.startsWith("expr ::= expr COLLATE")||y.signature.startsWith("expr ::= expr COLLATE")){
+       if(x.signature!==y.signature)return false;
+      }else{
+       const xb=binding(resolved,x),yb=binding(resolved,y);
+       if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
+      }
+      const xc=exprChildren(x),yc=exprChildren(y);
+      if(xc.length||yc.length){
+       if(x.signature!==y.signature||xc.length!==yc.length)return false;
+       const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?sqliteAsciiFold(c.value.text):"").join("|");
+       if(terminals(x)!==terminals(y))return false;
+       return xc.every((n,i)=>same(n,yc[i]!));
+      }
       // Anonymous variables at different token positions own distinct slots.
       const xt=asExpr(x).tokens,yt=asExpr(y).tokens;
       if(xt.some(t=>t.text==="?")||yt.some(t=>t.text==="?"))return x===y;

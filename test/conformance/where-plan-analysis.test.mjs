@@ -319,3 +319,11 @@ test('combine families retain exact strict/equality ties and reject opposing dir
   assert.ok(Object.isFrozen(c.terms));assert.equal(c.terms[0].virtual,false);
  }
 });
+test('combine compares resolved column cursor/column identity independent of qualifiers and recursive arithmetic',()=>{
+ for(const predicate of ['a=5 OR t.a<5','a=(b+1) OR t.a<(t.b+1)']){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause;
+  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),predicate);
+ }
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a COLLATE BINARY=5 OR t.a<5',schema())).clause;
+ assert.equal(c.terms.filter(t=>t.virtual).length,0,'COLLATE difference is nonzero exprCompare');
+});
