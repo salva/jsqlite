@@ -297,12 +297,17 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  function* rowCostTerms(upperOnly=false):Generator<WhereTerm> {
   // Suspend semantic admission at each proposal, including the enclosing
   // upper-only restart. Exhaustion closes both for-of iterators.
-  for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms){
-   // whereScanNext opMask precedes builder safety/target admission.
-   if(upperOnly?term.operator!=="lt"&&term.operator!=="le":!term.operator||!["eq","is","gt","ge","lt","le"].includes(term.operator))continue;
-   // whereLoopAddBtreeIndex rejects self-dependent RHS before join safety.
+  const mask=(term:WhereTerm):boolean=>upperOnly?term.operator==="lt"||term.operator==="le":!!term.operator&&["eq","is","gt","ge","lt","le"].includes(term.operator);
+  const target:ColumnBinding=freeze({source,sourceOrdinal,column:null,columnIndex:-1,rowid:true});
+  const direct=function*():Generator<WhereTerm>{
+   for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms)if(term.left?.source===source&&term.left.rowid&&mask(term))yield term;
+  };
+  // whereScanInit(sPk,-1) leaves zCollName null: no comparison affinity or
+  // collseq filtering, but equivalence expansion/reverse-cycle proof applies.
+  const candidates=options.resolved?scanWhereTerms(clause,target,options.resolved,mask):direct();
+  for(const term of candidates){
    if((term.prereqRight&sourceBit(sourceOrdinal))!==0n)continue;
-   if(term.left?.source!==source||!term.left.rowid||!term.outerJoinSafe.mayDrive||!leftTargetCompatible(term,source,sourceOrdinal))continue;
+   if(!term.outerJoinSafe.mayDrive||!leftTargetCompatible(term,source,sourceOrdinal))continue;
    yield term;
   }
  }
@@ -310,13 +315,12 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // sPk uses whereLoopAddBtreeIndex: insert current lower before restarting
  // upper-only scan, then resume stored term order. No Cartesian inventory.
  rowCost:for(const term of rowCostTerms()){
-  if(!term.left?.rowid)continue;
   if(term.operator==="eq"||term.operator==="is"){
    if(!propose(term,null,null)||budget.remaining===0)break;
   }else if(term.operator==="gt"||term.operator==="ge"){
    if(!propose(null,term,null)||budget.remaining===0)break;
    for(const upper of rowCostTerms(true)){
-    if(!upper.left?.rowid||(upper.operator!=="lt"&&upper.operator!=="le"))continue;
+    if(upper.operator!=="lt"&&upper.operator!=="le")continue;
     if(!propose(null,term,upper)||budget.remaining===0)break rowCost;
    }
   }else if(term.operator==="lt"||term.operator==="le"){

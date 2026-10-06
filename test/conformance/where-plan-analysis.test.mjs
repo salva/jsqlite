@@ -1269,3 +1269,22 @@ test('rowid cost rejects source-self prerequisites before safety admission',()=>
  assert.equal(allowed.a.length,1);
  }
 });
+test('cost rowid scanner follows column equivalence retaining original RHS prerequisites',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.id AND u.id=?',s),c=analyzeWhere(r).clause,set={a:[]};
+ assert.equal(c.terms[0].equivalence,true);
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining:100}});
+ assert.ok(set.a.some(v=>v.prereq===0n),'sPk whereScanNext discovers other-cursor constant');
+ const cross=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.b AND u.b=?',s),crossCosts={a:[]};
+ btreeLoops(cross.sources[0],0,analyzeWhere(cross).clause,{resolved:cross,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:crossCosts,planBudget:{remaining:100}});
+ assert.ok(crossCosts.a.some(v=>v.prereq===0n),'equivalent nonrowid LHS is not relabeled or rejected');
+ const mismatch=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.a AND u.a=?',s),mismatchCosts={a:[]};
+ assert.equal(analyzeWhere(mismatch).clause.terms[0].equivalence,false,'numeric/text NOCASE lacks equivalence proof');
+ btreeLoops(mismatch.sources[0],0,analyzeWhere(mismatch).clause,{resolved:mismatch,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mismatchCosts,planBudget:{remaining:100}});
+ assert.ok(mismatchCosts.a.every(v=>v.prereq!==0n));
+
+
+ const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true});
+ assert.ok(ordinary.filter(l=>l.kind==='rowid').every(l=>l.prereq===2n),'physical ordinary rowid handoff unchanged');
+ }
+});
