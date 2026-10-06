@@ -1101,3 +1101,15 @@ test('fixed-slot equivalence scan resets outer position and excludes reverse equ
  const left=analyzeWhere(resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a WHERE u.a=?',s)).clause;
  assert.equal([...wherePlanning.scanWhereTerms(left,left.terms.find(t=>t.left?.sourceOrdinal===0).left,resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a WHERE u.a=?',s),()=>true)].length,1);
 });
+test('copied outer-ON flag survives one-term and relocated scanner clauses',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a JOIN t AS v WHERE v.a=u.a',s),main=analyzeWhere(r).clause;
+ const on=main.terms.find(t=>t.origin.kind==='join-on'&&t.origin.join==='left');
+ const copied=main.terms.find(t=>t.parentId===on.id);
+ const link=main.terms.find(t=>t.origin.kind==='where'&&t.left?.sourceOrdinal===2);
+ assert.ok(copied);assert.ok(link);
+ // tempWC borrows stored terms. Local ordinal is not the original parent ID;
+ // the expression's EP_OuterON belongs to the copy itself.
+ const temp=wherePlanning.whereClause([link,copied]);
+ assert.deepEqual([...wherePlanning.scanWhereTerms(temp,link.left,r,()=>true)],[link]);
+ assert.equal(on.outerOn,true);assert.equal(copied.outerOn,true);assert.equal(link.outerOn,false);
+});
