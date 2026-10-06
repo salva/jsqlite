@@ -584,7 +584,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     }
    }
 
-  }else if(split==="or"&&orIndexable!==0n&&!term.operator){
+  }else if(split==="or"&&orIndexable!==0n&&singleIndexMask(term)===0n){
    const parts:ExprReduction[]=[];splitAnd(node,parts);
    const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),orOwner).clause;
    Object.assign(term,{info:freeze({kind:"and" as const,clause:child})});
@@ -592,7 +592,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   if(split==="or"&&orIndexable!==0n){
    // exprAnalyzeOrTerm: copied originals defer their mask to the virtual
    // commuted child; non-single AND masks use allowed single operators.
-   if(!term.operator){
+   if(term.info?.kind==="and"||singleIndexMask(term)===0n){
     let mask=0n;
     if(term.info?.kind==="and")for(const sub of term.info.clause.terms)if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);
     orIndexable&=mask;

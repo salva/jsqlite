@@ -348,11 +348,19 @@ test('exprAnalyzeOrTerm stops AND info construction once stored-order indexable 
  assert.equal(reversed.indexable,0n);
  assert.equal(reversed.clause.terms[0].info.kind,'and','already visited ownership is retained');
 });
-test('OR indexable excludes overlapping operand usage per exprAnalyze opMask WO_EQUIV',()=>{
+test('OR overlap loses single eligibility but AND allowedOp retains cursor masks',()=>{
  for(const predicate of ['a=b OR a=5','a<b OR a=5']){
   const info=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause.terms[0].info;
-  assert.equal(info.indexable,0n,predicate);
+  assert.equal(info.indexable,1n,predicate);
+  assert.equal(info.clause.terms[0].info.kind,'and',predicate);
  }
  const andInfo=analyzeWhere(resolve('SELECT id FROM t WHERE (a=b AND b=a) OR a=5',schema())).clause.terms[0].info;
  assert.equal(andInfo.indexable,1n,'AND uses allowedOp/leftCursor, not WO_SINGLE opMask');
+});
+test('overlapping comparison OR arms own AND info despite retaining ordinary operator evidence',()=>{
+ const info=analyzeWhere(resolve('SELECT id FROM t WHERE a=b OR a=5',schema())).clause.terms[0].info;
+ const arm=info.clause.terms[0];
+ assert.equal(arm.info?.kind,'and','WO_EQUIV lacks WO_SINGLE and must take non-single ownership branch');
+ assert.equal(arm.info.clause.outer.terms[0],info.parentTerm);
+ assert.equal(info.indexable,1n,'AND allowedOp includes same-table comparison left cursor');
 });
