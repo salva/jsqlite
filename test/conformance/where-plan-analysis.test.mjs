@@ -327,3 +327,9 @@ test('combine compares resolved column cursor/column identity independent of qua
  const c=analyzeWhere(resolve('SELECT id FROM t WHERE a COLLATE BINARY=5 OR t.a<5',schema())).clause;
  assert.equal(c.terms.filter(t=>t.virtual).length,0,'COLLATE difference is nonzero exprCompare');
 });
+test('OR operand comparison never equates distinct anonymous variables inside argument/list carriers or SELECTs',()=>{
+ for(const rhs of ['abs(?)','(b IN (?))','(SELECT 5)']){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs} OR a<${rhs}`,schema())).clause;
+  assert.equal(c.terms.filter(t=>t.virtual).length,0,rhs);
+ }
+});

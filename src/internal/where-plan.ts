@@ -535,6 +535,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // original qualifier spelling. COLLATE remains a distinct node.
       const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
       x=parens(x);y=parens(y);
+      const containsSelect=(n:LemonValue<SqlToken>):boolean=>n.kind==="reduction"&&(n.signature.startsWith("select ::=")||n.children.some(containsSelect));
+      if(containsSelect(x)||containsSelect(y))return false;
       if(x.signature.startsWith("expr ::= expr COLLATE")||y.signature.startsWith("expr ::= expr COLLATE")){
        if(x.signature!==y.signature)return false;
       }else{
@@ -546,7 +548,14 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(x.signature!==y.signature||xc.length!==yc.length)return false;
        // List/SELECT carriers need their own comparison; do not silently
        // compare only the direct LHS (IN) or omit function arguments.
-       if([...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::=")))return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
+       if([...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::="))){
+        // exprCompare rejects EP_xIsSelect. Preserve anonymous slot identity
+        // even inside a list carrier before any structural fallback.
+        const containsSelect=(n:LemonValue<SqlToken>):boolean=>n.kind==="reduction"&&(n.signature.startsWith("select ::=")||n.children.some(containsSelect));
+        if(containsSelect(x)||containsSelect(y))return false;
+        if([...asExpr(x).tokens,...asExpr(y).tokens].some(t=>t.kind==="variable"&&t.text==="?"))return x===y;
+        return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
+       }
        const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?sqliteAsciiFold(c.value.text):"").join("|");
        if(terminals(x)!==terminals(y))return false;
        return xc.every((n,i)=>same(n,yc[i]!));
