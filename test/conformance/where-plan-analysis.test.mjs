@@ -1190,3 +1190,12 @@ test('NOT NULL index field excludes ISNULL cost and ordinary admission, not IS e
  assert.ok(ordinary.every(l=>l.capability.equalityPrefix.every(a=>a.operator!=='is-null')));
  }
 });
+test('transitive pOrSet retains semantic producer mayDrive rejection',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=?',s),c=analyzeWhere(r).clause;
+ const constant=c.terms.find(t=>t.left?.sourceOrdinal===1&&t.prereqRight===0n);assert.ok(constant);
+ const clause=wherePlanning.whereClause(c.terms.map(t=>t===constant?Object.freeze({...t,outerJoinSafe:Object.freeze({mayDrive:false,mayOmitResidual:false})}):t)),set={a:[]};
+ btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ assert.ok(set.a.every(v=>v.prereq!==0n),'transitive cost must not bypass producer safety contract');
+ }
+});

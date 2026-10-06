@@ -84,6 +84,9 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   const target=costScan&&scanField.column?freeze({source:costScan.source,sourceOrdinal:ordinal,column:scanField.column,columnIndex:costScan.source.table.columns.indexOf(scanField.column),rowid:false}):null;
   const matches=target&&costScan?scanWhereTerms(costScan.clause,target,costScan.resolved,term=>term.operator!==null&&(term.prereqRight&sourceBit(ordinal))===0n):terms;
   const admit=(term:WhereTerm):IndexConstraintAdmission|null=>{
+   // Transitive matches retain the original semantic admission contract.
+   // Changing the physical target is not permission to revive an unsafe term.
+   if(!term.outerJoinSafe.mayDrive)return null;
    // indexColumnNotNull: declared columns own nullability; expression fields
    // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
    if(term.operator==="is-null"&&scanField.column?.notNull)return null;
