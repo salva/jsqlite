@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Query immutable SQLite databases in your browser with JSQLite, a read-only TypeScript translation. No WebAssembly or query server.">
+  <title>JSQLite — SQLite queries, right in your browser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><a class="brand" href="#">JSQLite<span>alpha</span></a><nav aria-label="Main"><a href="#demo">Try it</a><a href="#start">Get started</a><a href="#limits">Compatibility</a><a href="https://github.com/salva/jsqlite">GitHub ↗</a></nav></header>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">READ-ONLY SQLITE · PURE TYPESCRIPT</p>
+      <h1>Your database.<br>Your browser.<br><em>No query server.</em></h1>
+      <p class="intro">Open an immutable SQLite file over HTTP and query it locally. JSQLite translates SQLite's C internals into browser-safe JavaScript — without native code or WebAssembly.</p>
+      <a class="button" href="#demo">Run a real query ↓</a><a class="secondary" href="#start">How it works</a>
+      <div class="facts"><span>Named ESM exports</span><span>Exact 64-bit integers</span><span>Prepared statements</span></div>
+    </section>
+    <section id="demo" class="demo">
+      <div class="section-heading"><div><p class="eyebrow">LIVE PLAYGROUND</p><h2>Meet your next query.</h2></div><p>A real SQLite music database.<br>Actual results, computed on your device.</p></div>
+      <div class="playground">
+        <div class="editor"><label for="example">Choose an example</label><select id="example"><option value="albums">Albums & tracks</option><option value="artists">Browse artists</option><option value="types">SQLite value types</option></select>
+          <label for="sql">SQL <span>Editable · one statement at a time</span></label><textarea id="sql" spellcheck="false" rows="10" aria-describedby="demo-note"></textarea>
+          <div class="actions"><button id="run" disabled>Run query</button><button id="cancel" disabled class="quiet">Cancel</button></div>
+          <p id="demo-note">The browser fetches a bundled 1 MB Chinook database, then executes SQL in a dedicated worker. No SQL is sent to a backend. Demo limit: 1,000 rows and 10 seconds per run.</p>
+        </div>
+        <div class="output"><div class="output-head"><h3>Results</h3><span id="timing"></span></div><p id="status" role="status" aria-live="polite">Loading playground…</p><div id="results" class="table-wrap" tabindex="0" aria-label="Query results"></div><p class="hint">INTEGER values are displayed exactly; NULL and BLOB values retain their types. Hover over a cell to see its storage class.</p></div>
+      </div>
+      <p class="attribution">Dataset: <a href="https://github.com/lerocha/chinook-database">Chinook</a> · <a href="assets/CHINOOK-LICENSE.md">MIT license</a>. Engine pinned to <a href="https://github.com/salva/jsqlite/tree/v0.0.0-alpha.4">v0.0.0-alpha.4</a>. This demo is not a complete compatibility test.</p>
+    </section>
+    <section id="start"><p class="eyebrow">SMALL API. REAL SQLITE FILES.</p><h2>From URL to rows.</h2><div class="columns"><div><h3>1. Serve a clean snapshot</h3><p>Publish an immutable SQLite main database file. Apply pending WAL/journal changes before publishing. For another origin, configure CORS to allow browser access.</p><h3>2. Open, prepare, step</h3><p>Execution is asynchronous; local column access isn't. INTEGER values use <code>bigint</code>, blobs use <code>Uint8Array</code>, and SQL NULL is <code>null</code>.</p><h3>3. Release your handles</h3><p>Finalize each statement and close its connection. Use cancellation and resource limits for untrusted SQL or files.</p></div><pre><code>import { open } from './assets/engine/index.js';
+
+const db = await open(new URL(
+  './assets/chinook.sqlite', import.meta.url
+));
+try {
+  const { statement } = db.prepare(
+    'SELECT Name FROM Artist LIMIT 5'
+  );
+  if (statement) {
+    try {
+      while (await statement.step() === 'row') {
+        console.log(statement.column(0));
+      }
+    } finally { statement.finalize(); }
+  }
+} finally { db.close(); }</code></pre></div><p>Serve the complete ESM module tree, not only <code>index.js</code>. No npm registry release is available yet. Build from the tagged source for a local package; see the <a href="https://github.com/salva/jsqlite/blob/v0.0.0-alpha.4/README.md">build instructions</a> and <a href="https://github.com/salva/jsqlite/blob/v0.0.0-alpha.4/docs/api.md">API reference</a>.</p></section>
+    <section id="limits"><p class="eyebrow">EXPERIMENTAL, WITH HONEST BOUNDARIES</p><h2>A working core. Not all of SQLite.</h2><div class="cards"><article><h3>What it does</h3><p>Read-only queries on immutable database files, with implemented SELECT, joins, aggregates, subqueries, CTEs, windows, functions and index paths at documented admission boundaries. UTF-8 and both UTF-16 encodings are supported.</p></article><article><h3>What it doesn't promise</h3><p>Not every query composition or optimizer path is implemented. Unsupported cases should fail explicitly; report incorrect results. Chromium has tested coverage; other browsers are not yet certified. Large temporary working sets are memory-limited; OPFS spill is not advertised.</p></article><article><h3>What stays out of scope</h3><p>Writes, transactions, WAL recovery, native/WASM query backends and external extensions. Publishers supply clean immutable files; the browser does the query work.</p></article></div><p>Read the <a href="https://github.com/salva/jsqlite/blob/v0.0.0-alpha.4/docs/research/card-v-private-alpha.md">evidence-backed alpha matrix</a> before choosing JSQLite for an application. The broad compatibility goal is ongoing, not a percentage already achieved.</p></section>
+  </main><footer><span>© 2026 Salvador Fandiño and JSQLite contributors. No warranty.</span><a href="https://github.com/salva/jsqlite/issues">Report a bug ↗</a><span>Free software: redistribute under <a href="LICENSE">GPL v3 or later</a> · <a href="NOTICE.md">Notices</a> · <a href="source.tar.gz">Corresponding source</a></span></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

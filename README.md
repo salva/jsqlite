@@ -1,5 +1,16 @@
 # JSQLite2
 
+## Public project and license
+
+JSQLite is published under **GNU GPL version 3 or later (`GPL-3.0-or-later`)**.
+See [LICENSE](LICENSE) and [third-party notices](NOTICE.md).
+The owner authorized the public repository and documentation/demo on 2026-10-06;
+the private-local distribution restriction in historical alpha evidence below
+is superseded for this publication, not a change to its compatibility evidence.
+There is no npm registry publication yet. Public documentation and a live browser
+playground are maintained independently on the `public-site` branch:
+https://salva.github.io/jsqlite/.
+
 A fresh TypeScript translation of SQLite's read-only C implementation and tests
 for browsers and Fetch-compatible runtimes. The runtime must not embed
 C, native SQLite, or WebAssembly.

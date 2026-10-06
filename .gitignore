@@ -14,3 +14,5 @@ node_modules/
 /reference/sqlite/sqlite-src-*/
 *.log
 *.tsbuildinfo
+_site/
+.site-build/
