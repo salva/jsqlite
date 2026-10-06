@@ -808,6 +808,14 @@ Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](research/card-e-h-stat4-admission.md).
 
-## OR caller closure evidence
+## Selected OR caller closure
 
-Selected OR caller metadata/error/cleanup and expanded native batch/forest tests: [scoped closure](research/card-s-f-or/scoped-closure.md). Scalar output provenance is owned by enclosing resolution, including derived/view transient source descriptors; aggregate-result WHERE retains NC_AllowAgg and missing AggInfo errors are codegen-owned. Rowid arm bounds consume their bound operand and reverse traversal swaps termination bounds. Independent delivery review remains pending.
+| Pinned owner | TS owner / regression |
+| --- | --- |
+| `select.c:columnTypeImpl`, `sqlite3ExpandSubquery` | `compileScalarSelect`, `resolve.ts` transient derived/view descriptors; scalar/derived metadata tests |
+| `resolve.c:resolveSelectStep`, `expr.c:TK_AGG_FUNCTION` | aggregate WHERE admission followed by missing-context codegen error; resolver and public preparation tests |
+| `wherecode.c` rowid Case3 start/end and Case5 branch positioning | bound rowid operands, reverse end check, secondary PK `DeferredSeek`; correlated native/public and OR traces |
+| `rowset.c:sqlite3RowSetClear`, `sqlite3RowSetTest` | chunk/list/forest batch state; native clear/forest/label regressions |
+| `vdbemem.c`, `vdbeapi.c` cleanup ownership | detach-before-callback `Mem`, primary-error reset/finalize adaptation; synthetic cleanup controls |
+
+[Scoped source assessment and revision-bound evidence](research/card-s-f-or/scoped-closure.md).

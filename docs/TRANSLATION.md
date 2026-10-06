@@ -101,6 +101,10 @@ state while preserving bindings; `finalize()` is terminal; close owns children.
 Cancellation, timeout, work/row/result/private limits remain mandatory across
 physical, coroutine and materialized producers. Exact C work-count, intermediate
 error and suspension parity is not established merely by matching final rows.
+Synthetic destructor callbacks may throw in TS. Mem detaches and becomes NULL
+before invoking a destructor; reset/finalize finish cleanup and preserve the saved
+primary error (otherwise the first cleanup error). This is a throwing-callback
+adaptation, not native destructor exception parity.
 See [API lifecycle and errors](api.md#lifecycle-and-cleanup).
 
 ## Immutable storage and schema
@@ -310,6 +314,12 @@ primary index layout, not a rowid table root. Loop continuation returns to
 `scan.loopStart` including deferred positioning before projection; every new
 DeferredSeek target invalidates the base-row cache. Preserve accepted selected
 WHERE evidence, without general optimizer or plan-identity credit.
+
+Caller descriptors resolve scalar output provenance before destination lowering,
+including derived/view transient metadata. Aggregate-result WHERE retains
+NC_AllowAgg; missing AggInfo errors remain codegen-owned. Rowid arm operands
+retain bound identity and reverse traversal swaps start/end bounds. See
+[scoped caller and native transition evidence](research/card-s-f-or/scoped-closure.md).
 
 ## ORDER, DISTINCT, compounds and VALUES
 
@@ -1260,7 +1270,3 @@ Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
 Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](research/card-e-h-stat4-admission.md).
-
-## Scoped OR caller closure
-
-Selected OR caller metadata/error/cleanup and expanded native batch/forest tests: [scoped closure](research/card-s-f-or/scoped-closure.md). Scalar output provenance is owned by enclosing resolution, including derived/view transient source descriptors; aggregate-result WHERE retains NC_AllowAgg and missing AggInfo errors are codegen-owned. Rowid arm bounds consume their bound operand and reverse traversal swaps termination bounds. Independent delivery review remains pending.

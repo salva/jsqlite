@@ -1,3 +1,13 @@
+## Scoped selected OR caller revision
+
+The scoped dedicated-lineage candidate now includes bound rowid start/end,
+secondary-PK deferred positioning, enclosing scalar/derived/view metadata,
+aggregate WHERE diagnostic-phase ownership, and throwing-destructor cleanup
+repairs. Five test overlays have Executor source assessment and native/public
+transition coverage; independent review remains outstanding. Native C cost parity,
+full recursive error/PRNG multiplicity, baseline derived LIMIT/filter and IN
+subquery affinity are not certified. [Detailed evidence](../research/card-s-f-or/scoped-closure.md).
+
 # Translation fidelity audit — 2026-09-14
 
 ## Current canonical-null consumer repair
