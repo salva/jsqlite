@@ -544,6 +544,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       const xc=exprChildren(x),yc=exprChildren(y);
       if(xc.length||yc.length){
        if(x.signature!==y.signature||xc.length!==yc.length)return false;
+       // List/SELECT carriers need their own comparison; do not silently
+       // compare only the direct LHS (IN) or omit function arguments.
+       if([...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::=")))return expressionStructuralIdentity(asExpr(x))===expressionStructuralIdentity(asExpr(y));
        const terminals=(n:ExprReduction)=>n.children.filter(c=>c.kind==="terminal").map(c=>c.kind==="terminal"?sqliteAsciiFold(c.value.text):"").join("|");
        if(terminals(x)!==terminals(y))return false;
        return xc.every((n,i)=>same(n,yc[i]!));
