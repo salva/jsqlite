@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return singletonInProduction(emptyInProduction(at));
+ return singletonInProduction(emptyInProduction(distinctFromProduction(at)));
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -703,6 +703,13 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 }
 /** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
  * SELECT-carried flags remain unproved and must not certify that replacement. */
+function distinctFromProduction(n:ExprReduction):ExprReduction {
+       const op=n.signature==="expr ::= expr IS NOT DISTINCT FROM expr"?"IS":n.signature==="expr ::= expr IS DISTINCT FROM expr"?"IS NOT":null;
+       if(op===null)return n;
+       const es=exprChildren(n),tokens=n.children.filter(c=>c.kind==="terminal");
+       const is=tokens[0]!;if(is.kind!=="terminal")return n;
+       return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
+}
 function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprReduction=emptyInProduction):ExprReduction {
  const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
        if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
@@ -720,7 +727,7 @@ function singletonInProduction(n:ExprReduction,produce:(v:ExprReduction)=>ExprRe
        const constant=(v:ExprReduction):boolean=>{
         // Constant walking observes parser-produced empty-IN replacement,
         // not the discarded raw lhs. Reuse that semantic producer.
-        v=produce(parens(v));
+        v=distinctFromProduction(produce(parens(v)));
         const ts=asExpr(v).tokens;
         // TK_ID converts to TK_TRUEFALSE before name resolution in this
         // parser-time mode1 walk; EP_Quoted must prevent that conversion.
@@ -860,14 +867,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
 
       // parse.y routes DISTINCT FROM aliases through sqlite3PExprIs
       // with TK_IS/TK_ISNOT. Normalize the semantic production, not SQL text.
-      const isAlias=(n:ExprReduction):ExprReduction=>{
-       const op=n.signature==="expr ::= expr IS NOT DISTINCT FROM expr"?"IS":n.signature==="expr ::= expr IS DISTINCT FROM expr"?"IS NOT":null;
-       if(op===null)return n;
-       const es=exprChildren(n),tokens=n.children.filter(c=>c.kind==="terminal");
-       const is=tokens[0]!;if(is.kind!=="terminal")return n;
-       return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
-      };
-      x=isAlias(x);y=isAlias(y);
+
+      x=distinctFromProduction(x);y=distinctFromProduction(y);
       // parse.y empty IN replaces a function-free lhs with lower-case
       // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
       // claim that replacement for function, PTR-function or SELECT carriers.
@@ -905,7 +906,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(test.op==="ISNULL")producedFalse.add(result);return result;
       };
       const producedAnd=(n:ExprReduction):ExprReduction=>{
-       n=foldNullLiteral(emptyIn(isAlias(parens(n))));
+       n=foldNullLiteral(emptyIn(distinctFromProduction(parens(n))));
        if(n.signature!=="expr ::= expr AND expr")return n;
        const es=exprChildren(n).map(producedAnd);
        // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
@@ -923,7 +924,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
       // constants here; function/compound constant admission needs its walker.
 
-      x=singletonInProduction(x,v=>producedAnd(isAlias(v)));y=singletonInProduction(y,v=>producedAnd(isAlias(v)));
+      x=singletonInProduction(x,v=>producedAnd(distinctFromProduction(v)));y=singletonInProduction(y,v=>producedAnd(distinctFromProduction(v)));
       // parse.y BETWEEN produces a TK_BETWEEN with ordered two-item list,
       // then an optional TK_NOT parent. Normalize the semantic wrapper,
       // not Boolean value equivalence or reassociation of its children.

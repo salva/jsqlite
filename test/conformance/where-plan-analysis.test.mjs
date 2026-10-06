@@ -1531,3 +1531,17 @@ test('singleton production retains UPLUS and NOT while column/function RHS remai
  for(const rhs of ['a','abs(1)','?,?'])assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE b IN (${rhs})`,schema(encoding))).clause.terms[0].operator,'in',rhs);
  }
 });
+test('singleton constant walker owns DISTINCT FROM grammar aliases in term production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const rhs of ['1 IS DISTINCT FROM 2','1 IS NOT DISTINCT FROM 2']){
+ assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE b IN (${rhs})`,schema(encoding))).clause.terms[0].operator,'eq',rhs);
+ }
+});
+test('DISTINCT FROM shared opcode production retains nonconstant RHS and ISNOT residual',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const rhs of ['a IS DISTINCT FROM 1','abs(1) IS NOT DISTINCT FROM 2'])assert.equal(analyzeWhere(resolve(`SELECT id FROM t WHERE b IN (${rhs})`,schema(encoding))).clause.terms[0].operator,'in');
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE b IS NOT DISTINCT FROM ?',schema(encoding))).clause;
+ assert.equal(c.terms[0].expression.reduction.signature,'expr ::= expr IS expr');
+ assert.equal(c.terms[0].operator,'is');
+ assert.equal(analyzeWhere(resolve('SELECT id FROM t WHERE b IS DISTINCT FROM ?',schema(encoding))).clause.terms[0].operator,null);
+ }
+});
