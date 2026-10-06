@@ -831,3 +831,12 @@ iteration → nested compound EList/SrcList are paired per arm in `resolve.ts`.
 Existing scalar-child/subquery-view regressions and all-three-encoding bound
 reset/rebind/clear native controls map these branches. Detailed evidence and
 attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair).
+
+### Logical REAL extraction — joined projection
+
+`expr.c:sqlite3ExprCodeGetColumnOfTable` → `update.c:sqlite3ColumnDefault` →
+`vdbe.c:OP_RealAffinity`; `where.c:WhereEnd` covering rewrites retain affinity.
+`vdbe.ts:compileInnerTableSelect/emitResultColumn` shares direct/coalesced logical
+extraction; expression and single-table producers already emit RealAffinity.
+Rowid and raw storage/key reads stay separate. Tests: `real-projection-caller`
+and `or-correlated-in-lifecycle-review`; [evidence and boundaries](research/card-s-f-or/scoped-closure.md#expanded-logical-column-controls).

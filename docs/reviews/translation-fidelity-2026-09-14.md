@@ -4917,3 +4917,12 @@ new all-encoding binding lifecycle checks pass with independently captured nativ
 rows/errors. This does not confer broad optimizer/cost/error-multiplicity parity.
 See [source and attempt evidence](../research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair)
 and [[card:card-s-f-c]] status for fresh whole-inventory/package/browser results.
+
+### Current joined logical REAL extraction repair
+
+The joined direct/coalesced result shortcut now emits logical RealAffinity
+after Column, matching sqlite3ColumnDefault; covering cursor rewrite does not
+remove it. Raw Column/key affinity and Rowid are unchanged. Original nested
+caller REAL mismatch and later enclosing-counter attribution are retained in
+[scoped evidence](../research/card-s-f-or/scoped-closure.md#real-joined-projection-repair-uncommitted-continuation). Expanded source/native controls are bounded,
+not whole-lowerer parity; independent delivery review remains pending.

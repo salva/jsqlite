@@ -224,6 +224,9 @@ cursor and publish common physical identity for level-bounded Column/Rowid rewri
 nested/non-index/different arms invalidate it. Full residuals remain tested.
 See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
 and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+Joined direct/coalesced result extraction preserves logical REAL expansion after
+Column, including covering rewrites; Rowid remains INTEGER. Raw storage/key
+reads are unchanged. [Focused evidence and remaining trace assertion](research/card-s-f-or/scoped-closure.md#real-joined-projection-repair-uncommitted-continuation).
 Prepared scalar consumers bind the owned constraint expression before extracting
 its RHS, preserving outer NameContext identity. Simple persistent rowid children
 of zero-FROM SELECT use the same selected shared-builder WHERE lowerer and
