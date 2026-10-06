@@ -21,16 +21,23 @@ async function withDb(v,run){
 // These are active acceptance tests, not expected-failure wrappers. Missing OR
 // production must stay visible as red; final rows on a scan are not selection.
 for(const v of capture.variants){
- test(`${v.id}: production multi-or handoff and shared-builder opcodes (red before implementation)`,async()=>withDb(v,async db=>{
-  const schema=loadSchemaGraph(db),database=btreeFromConnection(db);
+ test(`${v.id}: production multi-or immutable planning handoff`,async()=>withDb(v,async db=>{
+  const schema=loadSchemaGraph(db);
   const c=v.cases.find(c=>c.id==='overlap'),parsed=parseSql(c.sql).statement,resolved=expandAndResolveSelect(parsed,schema);
   const chosen=planWhere(resolved,{neededColumns:[new Set([...resolved.sources[0].table.columns,ROWID_NEEDED])],orderBy:[]});
   const loop=chosen.path?.loops[0];
   assert.equal(loop?.kind,'multi-or','selected production must not be an ordinary full scan');
-  // Proposed immutable handoff names; adjust together with approved contract,
+  // Approved immutable handoff; physical arm choice belongs to lowering.
   // never infer branches from SQL text or native EQP at runtime.
   assert.ok(chosen.analysis.clause.terms.includes(loop.orInfo.parentTerm),'OR parent retains analyzed term identity');
   assert.equal(loop.sortIdentity,0);
+  assert.equal(loop.capability,null);
+  assert.equal(loop.setupCost,0n);
+  assert.ok(Object.isFrozen(loop));
+ }));
+ test(`${v.id}: shared-builder multi-or opcodes (lowering remains red)`,async()=>withDb(v,async db=>{
+  const schema=loadSchemaGraph(db),database=btreeFromConnection(db);
+  const c=v.cases.find(c=>c.id==='overlap'),parsed=parseSql(c.sql).statement,resolved=expandAndResolveSelect(parsed,schema);
   const program=compileTableSelect(parsed,schema,database,Number.MAX_SAFE_INTEGER);
   const opens=program.ops.filter(op=>op.code==='OpenIndex');
   for(const name of ['oa','ob']){const index=resolved.sources[0].table.indexes.find(index=>index.name===name);assert.ok(opens.some(op=>op.physical===index.physical&&op.p1===index.rootPage),`selected branch uses loaded ${name} identity/root`)}

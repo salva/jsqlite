@@ -2044,3 +2044,22 @@ test('ignored real-index child DONE returns OK empty costs; sPk own DONE still r
  assert.equal(set.a.length,0);assert.equal(state.done,true,'error is thrown, not swallowed by pre-existing DONE');
  }
 });
+test('AddOr OK zero-arm failure continues later parents while DONE stops',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.t.indexes=Object.freeze([]);
+ const r=resolve('SELECT id FROM t WHERE ((id=?1 AND id>?2) OR id=?3) AND (id=?4 OR id=?5)',s),c=analyzeWhere(r).clause,parents=c.terms.filter(t=>t.info?.kind==='or');
+ assert.equal(parents.length,2);
+ const first=parents[0],arm=first.info.clause.terms.find(t=>t.info?.kind==='and');assert.ok(arm);
+ const blocked=wherePlanning.whereClause(arm.info.clause.terms.map(t=>({...t,outerJoinSafe:{...t.outerJoinSafe,mayDrive:false}})),null);
+ const arms=first.info.clause.terms.map(t=>t===arm?{...t,info:{...t.info,clause:blocked}}:t);
+ const parent={...first,info:{...first.info,clause:wherePlanning.whereClause(arms,null)}};
+ const sentinel=new Error('later parent after successful zero-arm'),late={...parents[1]};Object.defineProperty(late,'info',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([parent,late]);
+ for(const remaining of [1,2]){
+ const set={a:[]},completion={done:false},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining},completion});
+ if(remaining===2)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
+ assert.equal(set.a.length,0);
+ if(remaining===1)assert.equal(completion.done,true);
+ }
+ }
+});
