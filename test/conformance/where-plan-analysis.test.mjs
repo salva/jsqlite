@@ -1416,3 +1416,9 @@ test('comparison RHS affinity production uses resolved expression metadata',()=>
  assert.equal(analyzeWhere(alias).clause.terms[0].rightAffinity,expected,`alias ${rhs}`);
  }
 });
+test('IS NULL opcode production checks the RHS root not descendant NULL tokens',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [rhs,op] of [['(NULL)','is-null'],['CAST(NULL AS TEXT)','is'],['coalesce(NULL,?)','is'],['NULL+?','is'],['NULL COLLATE BINARY','is']]){
+ const r=resolve(`SELECT id FROM t WHERE a IS ${rhs}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,op,rhs);
+ }
+});
