@@ -1717,3 +1717,31 @@ test('COLLATE HasFunc barrier is retained through unary/arithmetic flags',()=>{
  assert.equal(c.terms.length,1);
  }
 });
+test('empty-IN produced truth observes COLLATE HasFunc barrier and keeps uncollated function',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (abs(a) COLLATE BINARY) IN ()',schema(encoding))).clause;
+ assert.equal(c.terms.length,1);assert.equal(c.terms[0].operator,null);
+ assert.equal(c.terms[0].expression.tokens[0].text.toLowerCase(),'false');
+ const retained=analyzeWhere(resolve('SELECT id FROM t WHERE abs(a) IN ()',schema(encoding))).clause;
+ assert.equal(retained.terms.length,2);
+ const outer=analyzeWhere(resolve('SELECT id FROM t WHERE b IS ((abs(a) COLLATE BINARY) IN ())',schema(encoding))).clause;
+ assert.equal(outer.terms[0].operator,null);
+ }
+});
+test('singleton constant walker does not convert quoted TRUE identifier',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b IN ("true")',schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= expr in_op LP exprlist RP');
+ }
+});
+test('parent AND flags reflect produced null-test child deleting function-free subtree',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (1 ISNULL) AND ((1 IN ((abs(a) COLLATE BINARY) IN ())) ISNULL)',schema(encoding))).clause;
+ assert.equal(c.terms.length,1);
+ }
+});
+test('multicolumn scalar-subquery is rejected by resolver before singleton production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ assert.throws(()=>resolve('SELECT id FROM t WHERE (SELECT a,b FROM t) IN (1)',schema(encoding)),/sub-select returns 2 columns - expected 1/);
+ }
+});
