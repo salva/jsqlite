@@ -465,3 +465,26 @@ for(const v of capture.variants){
   }finally{st.finalize();if(descriptor)Object.defineProperty(globalThis,'crypto',descriptor);else delete globalThis.crypto;}
  }));
 }
+
+// Native capture includes first-row, empty, sorted and correlated prepared callers.
+const scalarNative=JSON.parse(fs.readFileSync('docs/research/card-s-f-or/scalar-native.json'));
+for(const v of capture.variants){
+ test(`${v.id}: prepared scalar selected OR owns seeks and first-row destination`,async()=>withDb(v,async db=>{
+  const cases=scalarNative.variants.find(x=>x.id===v.id).cases;
+  for(const c of cases){
+   const st=db.prepare(c.sql).statement;
+   try{
+    for(let run=0;run<2;run++){
+     const rows=[];while(await st.step()==='row')rows.push(Array.from({length:st.columnCount},(_,i)=>{assert.equal(st.columnType(i),c.result[0][rows.length]?.[i]?.type);return st.column(i)}));
+     assert.deepEqual(rows,c.result[0].map(row=>row.map(decode)));
+     for(const row of c.result[0])assert.ok(row.every(cell=>['integer','null'].includes(cell.type)));
+     const work=privateAccounting(st);
+     assert.ok(work.orBranchStarts>0,'actual selected child branches, not root-only planning');
+     assert.ok(work.indexSeeks>0);
+     if(c.sql.includes('ORDER BY'))assert.ok(work.sorterRows>0||rows[0]?.[0]?.type==='null');
+     st.reset();
+    }
+   }finally{st.finalize();}
+  }
+ }));
+}

@@ -220,6 +220,11 @@ cursor and publish common physical identity for level-bounded Column/Rowid rewri
 nested/non-index/different arms invalidate it. Full residuals remain tested.
 See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
 and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+Prepared scalar consumers bind the owned constraint expression before extracting
+its RHS, preserving outer NameContext identity. Simple persistent rowid children
+of zero-FROM SELECT use the same selected shared-builder WHERE lowerer and
+normalized first-row destination; ordering remains sorter-owned. See
+[scalar caller evidence](research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair).
 Runtime arm scope is separate from cost exploration: Case5 factors only
 original indexable enclosing terms, excluding virtual, nullable-ON and
 subquery-bearing expressions. Both direct and AND arms retain owned terms;

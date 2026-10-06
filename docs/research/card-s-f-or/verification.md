@@ -538,3 +538,29 @@ child continuation. No SQL-text exception, public hook or parallel evaluator.
 Three-encoding public regression counts four RNG calls and typed rows on two
 reset runs, with selected branch/dedup assertions. Broader coded/factored term
 omission and error multiplicity are not established by this finite repair.
+
+## Prepared scalar selected OR caller repair
+
+Accepted red v183 identified scalarPrepared discarding selection, but its zero-FROM
+query also exposed an older independent scan emitter. Merely removing the guard
+left the reproducer red (proc-a3c989198d5b); traced RowSet insert was also zero
+(proc-555a810eb9d5). Root private counters were not the cause: the zero-FROM
+producer did not call the selected lowerer. Simple persistent rowid children now
+route into the existing shared lowerer with normalized scalar limit/destination.
+Prepared constraints bind their full original reduction before extracting the
+operand, rather than trying to bind an unowned RHS. Initial correlated regression
+failed with outer_o.a identity loss (proc-ad95b03ce42c): double-binding an already
+bound RHS removed; final focused proc-3b58aff97776 passes3/3. Initial test
+registration referenced nonexistent native variable (proc-07ceb79bf069), corrected.
+
+`scalar-native.json` holds independently queried pinned read-only results/EQP
+for4 queries ×3encodings, using unchanged native build and fixture hashes from
+`native.json`; source ID checked. Not a native-production import. Tests compare
+INTEGER/NULL typed rows, selected branch/seeks, sorter and two reset runs.
+Existing reproducer preserved card-locally. Nine-suite run proc-2aa0703b64ec
+passes540/540 but following typecheck failed exactOptionalPropertyTypes on
+optional child limiter; fixed conditional field construction, no runtime change.
+Original225/browser/package/overlay closure and interrupted VM mutation/flags
+proof remain outside this reproduced caller repair, not claimed complete.
+
+Second type attempt also failed (proc-1b06ac02e94d, proc-bb01a7111e6a): scalar limiter lacked combined/capacity. Corrected by translating the existing prepared scalar normalization, count1 default, offset, combined and capacity registers; not casting away the contract. Final production nine suites proc-27fdd21c1571 **540/540/type0/diff0**. Then explicit columnType assertions added: original preserved reproducer plus focused3/type0/diff0 proc-86689d3635c8. Final traces first-row executes only first branch/root16 as expected (LIMIT stops further arms). No broad counters/optimizer parity credit.

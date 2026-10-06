@@ -2605,6 +2605,36 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         return compileSubquery({...expression,select:flattened});
       }
     }
+    if(nested.from.items.length===1&&!nested.from.derived&&!nested.from.cteDerived?.length&&
+       !nested.hasGroupBy&&!nested.hasHaving&&!selectHasAggregate(nested)&&!selectHasWindow(nested)){
+      // select.c/expr.c: the ordinary child uses the enclosing destination and
+      // normalized first-row limiter, not a separate scan-only evaluator.
+      const plan=expandAndResolveSelect(nested,schema,null,selectProgramBuilder.cursors);
+      const source=plan.sources[0]!;
+      if(!source.table.withoutRowid&&!source.table.columns.some(column=>column.generatedExpr)){
+        const destination=allocate(),isIn=expression.kind==='in-subquery';
+        const cursor=isIn?selectProgramBuilder.cursor():-1;
+        if(isIn)resultOps.push({code:'OpenEphemeral',p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
+        else resultOps.push(expression.exists?{code:'Integer',p1:0n,p2:destination}:{code:'Null',p2:destination});
+        const once=allocate(),onceAt=resultOps.length;resultOps.push({code:'Once',p1:once,p2:0});
+        let childLimit:LimitRegisters|undefined;
+        if(isIn)childLimit=computeLimitRegisters(nested,resultOps,allocate,parameters);
+        else {
+          const scalar=computeScalarLimitRegisters(nested,resultOps,allocate,parameters,compileSubquery);
+          const count=scalar?.count??allocate();if(!scalar)resultOps.push({code:'Integer',p1:1n,p2:count});
+          const ifZero=scalar?.ifZero??resultOps.length;if(!scalar)resultOps.push({code:'IfNot',p1:count,p2:0});
+          const offset=nested.offset?compileExpressionTree(expressionFromReduction(nested.offset.reduction!),resultOps,allocate,parameters,compileSubquery):undefined;
+          if(offset!==undefined)resultOps.push({code:'MustBeInt',p1:offset});
+          const combined=allocate(),capacity=allocate();
+          resultOps.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});
+          childLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
+        }
+        compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
+        (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
+        if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
+        return destination;
+      }
+    }
     const derived=nested.from.derived;
     // select.c:flattenSubquery restriction (7) leaves a zero-source FROM
     // producer unflattened. Emit its result into the outer SRT destination
@@ -3489,7 +3519,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   whereAccounting=Object.freeze({plannerCandidates:multiWhere.plannerCandidates,plannerPaths:multiWhere.plannerPaths});
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const sorterCursor=owner?owner.builder.cursor():expanded.sources.length,distinctCursor=owner?owner.builder.cursor():sorterCursor+1,rightMatchCursor=owner?owner.builder.cursor():distinctCursor+1;
-  const selectedBySource=new Map(owner?.scalarPrepared?[]:multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
+  const selectedBySource=new Map(multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
   for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=owner?owner.builder.cursor():rightMatchCursor+rightLevels.length+ordinal;indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
   const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!),identity=tree;while(identity.kind==='collate')identity=identity.value;let resultIndex=-1;if(identity.kind==='literal'&&typeof identity.value==='bigint'){if(identity.value<1n||identity.value>BigInt(expanded.result.length)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${expanded.result.length}`,{code:1});}resultIndex=Number(identity.value-1n);}else if(identity.kind==='column'&&!identity.name.includes('.'))resultIndex=expanded.result.findIndex(result=>sqliteIdentifierEqual(result.name,sqlName(identity.name)));return{tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};});
   if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
@@ -3535,9 +3565,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // table positioning deferred until an uncovered read.  Keep cursor identity
   // distinct from source, sorter and RIGHT-join cursors.
   // Linked scalar preparation supplies a normalized first-row Mem consumer.
-  // Generated candidate seek operands lack reduction/outer phase identity;
-  // retain its existing full scan through this ordinary WHERE loop until the
-  // root WHERE interface carries those operands (see scalar owner census).
+  // Bind each owned constraint expression with its reduction before selecting
+  // the RHS: prepared scalar outer references retain their NameContext phase.
 
   // where.c:wherePathSolver chooses both access and loop order. wherecode.c
   // evaluates each RHS only after its prereqRight cursors are positioned.
@@ -3598,12 +3627,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const guards:number[]=[],ends:number[]=[],equalityGuards:number[]=[],iterators:number[]=[];
       const rhs=(term:WhereTerm):Expression=>{
         // Canonical null tests have a generated NULL RHS, not a resolved child.
-        const expression=expressionFromReduction(term.expression.reduction!);
+        const expression=resolveTree(expressionFromReduction(term.expression.reduction!),term.expression.reduction as Reduction);
         if(term.operator==='is-null')return {kind:'literal',value:null};
         if(expression.kind!=='binary')throw new JSQLiteError('internal','joined OR bound lost expression');
         return term.originalIndexedOperand==='left'?expression.right:expression.left;
       };
-      const key=(term:WhereTerm):number=>compileExpressionTree(resolveTree(rhs(term)),ops,allocate,parameters,compileJoinSubquery);
+      const key=(term:WhereTerm):number=>compileExpressionTree(rhs(term),ops,allocate,parameters,compileJoinSubquery);
       let rewind:number,single=false;
       if(physical){
         ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:indexCursor!,physical,orBranch:true});
@@ -3666,7 +3695,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(continuation.covering)orCovering.set(level,{physical:continuation.covering,cursor:continuation.indexCursor,tableCursor:cursorFor(source),start:ops.length});
   }else {
   rewinds.push(ops.length);
-  if(rowEq){const tree=expressionFromReduction(rowEq.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
+  if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(resolveTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
     const usable=indexCursor!==undefined&&capability&&(capability.equalityPrefix.length||capability.lower||capability.upper);
     const reverseRange=!!usable&&(capability.reverse!==!!capability.physicalIndex?.fields[capability.equalityPrefix.length]?.descending);
@@ -3676,7 +3705,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // RHS value the inner index register must be reset before its first probe.
     const inAdmissions=admissions.filter(admission=>admission.operator==='in');
     const ready=admissions.every(admission=>(admission.term.prereqRight&~readyMask)===0n);
-    const bound=(term:WhereTerm):Expression=>{const expression=expressionFromReduction(term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined index bound lost binary expression');return term.originalIndexedOperand==='left'?expression.right:expression.left;};
+    const bound=(term:WhereTerm):Expression=>{const expression=resolveTree(expressionFromReduction(term.expression.reduction!),term.expression.reduction as Reduction);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined index bound lost binary expression');return term.originalIndexedOperand==='left'?expression.right:expression.left;};
     if(usable&&admissions.length&&ready){
       const inTargets=new Map<typeof admissions[number],number>();
       const iterators:number[]=[];
@@ -3692,7 +3721,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         inTargets.set(admission,target);
       }
       if(iterators.length)inRestarts.set(level,{iterators,advance:iterators.at(-1)!});
-      const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(resolveTree(bound(admission.term)),ops,allocate,parameters,compileJoinSubquery));
+      const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery));
       // codeAllEqualityTerms: '=' NULL exits this level, not the next IN
       // value. IS/IS NULL retain searchable NULL keys; IN skips NULL itself.
       capability.equalityPrefix.forEach((admission,i)=>{if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
@@ -3727,7 +3756,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       }else ops.push({code:'DeferredSeek',p1:indexCursor,p2:cursorFor(source)});
     }
   }
-  const rowUpperCandidate=selected?.capability?.rowidUpper,rowUpper=rowUpperCandidate&&(rowUpperCandidate.term.prereqRight&~readyMask)===0n?rowUpperCandidate:null;if(rowUpper&&!singleRows[level]){const tree=expressionFromReduction(rowUpper.term.expression.reduction!);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid upper bound lost binary expression');const key=compileExpressionTree(resolveTree(rowUpper.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'RowidUpperBound',p1:cursorFor(source),key,inclusive:rowUpper.bound==='upper-inclusive',p2:0});jumps.push({at,level:-1});}const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0},{code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;if(isLeft||right)codeOuterConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
+  const rowUpperCandidate=selected?.capability?.rowidUpper,rowUpper=rowUpperCandidate&&(rowUpperCandidate.term.prereqRight&~readyMask)===0n?rowUpperCandidate:null;if(rowUpper&&!singleRows[level]){const tree=resolveTree(expressionFromReduction(rowUpper.term.expression.reduction!),rowUpper.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid upper bound lost binary expression');const key=compileExpressionTree(resolveTree(rowUpper.originalIndexedOperand==='left'?tree.right:tree.left),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'RowidUpperBound',p1:cursorFor(source),key,inclusive:rowUpper.bound==='upper-inclusive',p2:0});jumps.push({at,level:-1});}const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0},{code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;if(isLeft||right)codeOuterConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
   const joinedBodyStart=ops.length;
   // Delayed inner-join ON clauses can reference a source positioned later in
   // the chosen path. Their residual is evaluated only at the complete row.

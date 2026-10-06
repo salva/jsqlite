@@ -4880,3 +4880,11 @@ Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
 Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](../research/card-e-h-stat4-admission.md).
+
+### Prepared scalar selected-OR caller repair
+
+The prior scalarPrepared scan-only selection suppression is removed: owned expressions
+are bound before RHS extraction, including outer references. Simple rowid scalar
+children of no-FROM SELECT now use the shared ordinary selected WHERE generator.
+Native-first first/empty/sorted/correlated reset evidence is [here](../research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair).
+This is bounded caller credit, not original whole-goal integration or full flags/cleanup proof.
