@@ -440,7 +440,7 @@ test('suspended capability enumeration does not resume after last permitted inse
  assert.ok(loops.some(l=>l.kind==='index'));
  visits=0;closed=0;budget.remaining=2;const costs={a:[]};
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
- assert.equal(visits,1,'pOrSet also stops without resuming equality inventory');assert.equal(closed,1);assert.equal(costs.a.length,1);
+ assert.equal(visits,2,'pOrSet constructs only the next proposal before insertion returns DONE');assert.equal(closed,2);assert.equal(costs.a.length,0);
  const later=resolve('SELECT id FROM t WHERE id=?',schema());budget.remaining+=1000;
  const laterLoops=btreeLoops(later.sources[0],0,analyzeWhere(later).clause,{neededColumns:needed,orderBy:[],resolved:later,planBudget:budget});
  assert.ok(laterLoops.some(l=>l.kind==='rowid'),'replenished construction budget admits later source proposals');
@@ -530,7 +530,7 @@ test('actual capabilities generators close through IteratorClose at budget bound
   const costs={a:[]};
   btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2},orSet:costs});
   assert.ok(closes>=2,'cost-only builder closes actual suspended generators too');
-  assert.equal(costs.a.length,1);
+  assert.equal(costs.a.length,0,'next attempted insertion clears pOrSet on DONE');
 
   closes=0;
   const sentinel=new Error('needed columns sentinel');
@@ -1129,12 +1129,12 @@ test('actual pOrSet cost construction consumes transitive column scanner without
  assert.ok(ordinary.filter(l=>l.capability?.equalityPrefix.length).every(l=>l.prereq!==0n),'ordinary lowering remains unchanged until caller handoff');
  }
 });
-test('pOrSet exhausted budget closes suspended field scanner before later term RHS',()=>{
+test('pOrSet zero remaining still reaches next equality scan before DONE',()=>{
  const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND a=?',s),c=analyzeWhere(r).clause;
  const sentinel=new Error('late scanner RHS must remain suspended');
  const late={...c.terms[1]};Object.defineProperty(late,'expression',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
  assert.equal(budget.remaining,0);
 });
 test('pOrSet range proposal suspends scanner before later outer RHS when budget exhausts',()=>{
@@ -1145,12 +1145,12 @@ test('pOrSet range proposal suspends scanner before later outer RHS when budget 
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
  assert.equal(budget.remaining,0);
 });
-test('pOrSet inserts equality prefix before touching deeper index field',()=>{
+test('pOrSet equality prefix OK enters deeper field even at zero remaining',()=>{
  const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND b=?',s),c=analyzeWhere(r).clause;
  const sentinel=new Error('deeper field must remain suspended'),late={...c.terms[1]};
  Object.defineProperty(late,'expression',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
  assert.equal(budget.remaining,0);
 });
 test('transitive pOrSet ISNULL bypasses comparison affinity and collseq admission',()=>{

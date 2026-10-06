@@ -115,8 +115,10 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    return freeze({term,physicalIndex:physical!,fieldOrdinal:field,field:scanField,keyInfoTerm:physical!.keyInfo.terms[field]!,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison,bound:bound(term.operator)});
   };
   if(target&&costScan){
-   // whereLoopAddBtreeIndex resumes whereScanNext only after the current
-   // term recursion returns SQLITE_OK. Do not inventory later RHS terms.
+   // where.c:3284,3580–3613: the enclosing insertion rc owns the next
+   // scan transition; decrement-to-zero is still SQLITE_OK. Recursive
+   // return is ignored by C. Explore lazily until insertion returns DONE,
+   // rather than predicting DONE from the remaining counter.
    let constrained=false;
    for(const term of matches){
     const admission=admit(term);if(!admission)continue;
@@ -329,7 +331,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  }
  }else if(rowEquals.length){for(const term of rowEquals){if(!propose(term,null,null)||budget.remaining===0)break;}}else {rowRanges:for(const lower of rowLowers.length?rowLowers:[null])for(const upper of rowUppers.length?rowUppers:[null]){if(!propose(null,lower,upper)||budget.remaining===0)break rowRanges;}}}
  if(budget.remaining===0)return Object.freeze(loops);
- indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source}:undefined)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))||budget.remaining===0)break indexes;}}
+ indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source}:undefined)){if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)})))return Object.freeze(loops);if(!options.orSet&&budget.remaining===0)break indexes;}}
 
  // whereLoopAddOr. Copied cost builders share the construction budget;
  // physical branch choice is deliberately absent from the published union.
