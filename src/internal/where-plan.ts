@@ -606,6 +606,17 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const xb=binding(resolved,x),yb=binding(resolved,y);
        if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
       }
+      // resolve.c lookupName converts unbound, unquoted true/false IDs to
+      // TK_TRUEFALSE without rewriting zToken. ExprCompare uses strcmp for
+      // that opcode (not the function/collation case-insensitive branch).
+      // Resolved columns above retain their own owner/column identity.
+      const booleanToken=(n:ExprReduction):string|null=>{
+       if(n.signature!=="expr ::= ID|INDEXED|JOIN_KW")return null;
+       const token=asExpr(n).tokens[0];
+       return token&&/^(true|false)$/i.test(token.text)?token.text:null;
+      };
+      const xbool=booleanToken(x),ybool=booleanToken(y);
+      if(xbool!==null||ybool!==null)return xbool!==null&&xbool===ybool;
       if(x.signature.startsWith("expr ::= CAST")||y.signature.startsWith("expr ::= CAST")){
        if(x.signature!==y.signature)return false;
        // parse.y passes typetoken to ExprAlloc(dequote=1); ExprCompare

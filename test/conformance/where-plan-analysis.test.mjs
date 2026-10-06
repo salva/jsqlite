@@ -574,3 +574,9 @@ test('necessary bound variable identity requires token spelling as well as assig
   assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
  }
 });
+test('necessary boolean operand proof retains produced TK_TRUEFALSE token case',()=>{
+ for(const [x,y,expected] of [['true','TRUE',false],['false','FALSE',false],['true','true',true],['false','false',true],['true','false',false]]){
+ const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${x} OR a<${y}`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
+ }
+});
