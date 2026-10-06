@@ -538,7 +538,7 @@ function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprRe
   if(args.length!==(name==="likelihood"?2:1))break;
   at=copied(args[0]!);
  }
- return singletonInProduction(emptyInProduction(distinctFromProduction(at)));
+ return singletonInProduction(emptyInProduction(nullIsProduction(at)));
 }
 function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
@@ -703,6 +703,16 @@ function splitAnd(node:ExprReduction,out:ExprReduction[],resolved:ResolvedSelect
 }
 /** parse.y empty IN deletes a function-free lhs and produces TK_TRUEFALSE.
  * SELECT-carried flags remain unproved and must not certify that replacement. */
+/** sqlite3PExprIs removes only a root TK_NULL RHS, never descendant NULL. */
+function nullIsProduction(node:ExprReduction):ExprReduction {
+ node=distinctFromProduction(node);
+ if(node.signature!=="expr ::= expr IS expr"&&node.signature!=="expr ::= expr IS NOT expr")return node;
+ const es=exprChildren(node);let rhs=es[1];
+ while(rhs?.signature==="expr ::= LP expr RP")rhs=exprChildren(rhs)[0];
+ if(!rhs||!isNullLiteral(asExpr(rhs)))return node;
+ const seed=asExpr(node).tokens[0]!;
+ return {...node,signature:"expr ::= expr ISNULL|NOTNULL",children:[es[0]!,{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:node.signature.includes("IS NOT")?"NOTNULL":"ISNULL"}}]};
+}
 function distinctFromProduction(n:ExprReduction):ExprReduction {
        const op=n.signature==="expr ::= expr IS NOT DISTINCT FROM expr"?"IS":n.signature==="expr ::= expr IS DISTINCT FROM expr"?"IS NOT":null;
        if(op===null)return n;
@@ -888,8 +898,8 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return value;
       };
       const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
+       n=nullIsProduction(n);
        const es=exprChildren(n);
-       if(es.length===2&&(n.signature==="expr ::= expr IS expr"||n.signature==="expr ::= expr IS NOT expr")&&isNullLiteral(asExpr(parens(es[1]!))))return {op:n.signature.includes("IS NOT")?"NOTNULL":"ISNULL",child:es[0]!};
        if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
        return null;
       };

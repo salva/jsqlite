@@ -1545,3 +1545,23 @@ test('DISTINCT FROM shared opcode production retains nonconstant RHS and ISNOT r
  assert.equal(analyzeWhere(resolve('SELECT id FROM t WHERE b IS DISTINCT FROM ?',schema(encoding))).clause.terms[0].operator,null);
  }
 });
+test('IS NULL shared semantic term has unary produced opcode and no RHS',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['b IS NULL','b IS NOT DISTINCT FROM NULL']){
+ const n=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0].expression.reduction;
+ assert.equal(n.signature,'expr ::= expr ISNULL|NOTNULL');
+ assert.equal(n.children.filter(v=>v.kind==='reduction'&&v.signature.startsWith('expr ::=')).length,1);
+ }
+});
+test('IS NOT NULL produced NOTNULL stays residual and descendant NULL stays binary',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const predicate of ['b IS NOT NULL','b IS DISTINCT FROM NULL']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= expr ISNULL|NOTNULL');
+ assert.equal(t.expression.tokens.at(-1).text,'NOTNULL');assert.equal(t.operator,null);
+ }
+ for(const rhs of ['CAST(NULL AS TEXT)','NULL COLLATE BINARY','coalesce(NULL,?)']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE b IS ${rhs}`,schema(encoding))).clause.terms[0];
+ assert.equal(t.expression.reduction.signature,'expr ::= expr IS expr');assert.equal(t.operator,'is');
+ }
+ }
+});
