@@ -1241,3 +1241,12 @@ test('pOrSet rowid lower prefix inserts before upper recursion at budget boundar
 
  }
 });
+test('rowid cost budget suspends lookup before later outer safety annotation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>?',s),local=analyzeWhere(r).clause,base=local.terms[0];
+ let reads=0;const late=Object.freeze({...base,id:99,get outerJoinSafe(){reads++;throw new Error('late rowid admission');}});
+ const clause=wherePlanning.whereClause(local.terms,wherePlanning.whereClause([late])),set={a:[]},budget={remaining:2};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,0);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0);
+ }
+});

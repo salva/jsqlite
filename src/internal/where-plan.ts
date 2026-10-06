@@ -281,7 +281,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // by this arm, and outer OR parents must not trigger recursive exploration.
  const scanTerms:WhereTerm[]=[],seenTerms=new Set<WhereTerm>();
  for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms)if(!seenTerms.has(term)){seenTerms.add(term);scanTerms.push(term);}
- const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=scanTerms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive&&leftTargetCompatible(term,source,sourceOrdinal)),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
+ const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=options.orSet?[]:scanTerms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive&&leftTargetCompatible(term,source,sourceOrdinal)),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
  // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
@@ -294,16 +294,24 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(budget.remaining===0)return Object.freeze(loops);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
  const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
- if(!options.forcedIndex&&(rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):boolean=>{const used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});return insert(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",indexRowSize:3n,setupCost:0n,runCost:logEstAdd(BigInt(source.table.nRowLogEst)<=10n?0n:BigInt(sqliteLogEst(BigInt(source.table.nRowLogEst))-33),(rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper))+16n),outputRows:rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper),terms:Object.freeze(owned)}));};if(options.orSet){
+ function* rowCostTerms():Generator<WhereTerm> {
+  // Suspend semantic admission at each proposal, including the enclosing
+  // upper-only restart. Exhaustion closes both for-of iterators.
+  for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms){
+   if(term.left?.source!==source||!term.left.rowid||!term.outerJoinSafe.mayDrive||!leftTargetCompatible(term,source,sourceOrdinal))continue;
+   yield term;
+  }
+ }
+ if(!options.forcedIndex&&(options.orSet||rowEquals.length||rowLowers.length||rowUppers.length)){const make=(term:WhereTerm|null):RowidConstraint|null=>term&&term.operator?freeze({term,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,bound:bound(term.operator)}):null,propose=(rowEq:WhereTerm|null,rowLower:WhereTerm|null,rowUpper:WhereTerm|null):boolean=>{const rowidCovering=[...options.neededColumns].every(need=>need===ROWID_NEEDED),used=[rowEq,rowLower,rowUpper].filter((x):x is WhereTerm=>!!x),cap:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:1,orderTermsSatisfied:rowOrder?1:0,reverse:rowOrder?.descending??false,covering:rowidCovering,needsTableLookup:!rowidCovering,rowidEquality:make(rowEq),rowidLower:make(rowLower),rowidUpper:make(rowUpper)});return insert(freeze({source,sourceOrdinal,prereq:used.reduce((m,t)=>m|t.prereqRight,sourcePrereq),capability:cap,kind:"rowid",indexRowSize:3n,setupCost:0n,runCost:logEstAdd(BigInt(source.table.nRowLogEst)<=10n?0n:BigInt(sqliteLogEst(BigInt(source.table.nRowLogEst))-33),(rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper))+16n),outputRows:rowEq?0n:rangeRows(BigInt(source.table.nRowLogEst),!!rowLower,!!rowUpper),terms:Object.freeze(owned)}));};if(options.orSet){
  // sPk uses whereLoopAddBtreeIndex: insert current lower before restarting
  // upper-only scan, then resume stored term order. No Cartesian inventory.
- rowCost:for(const term of own){
+ rowCost:for(const term of rowCostTerms()){
   if(!term.left?.rowid)continue;
   if(term.operator==="eq"||term.operator==="is"){
    if(!propose(term,null,null)||budget.remaining===0)break;
   }else if(term.operator==="gt"||term.operator==="ge"){
    if(!propose(null,term,null)||budget.remaining===0)break;
-   for(const upper of own){
+   for(const upper of rowCostTerms()){
     if(!upper.left?.rowid||(upper.operator!=="lt"&&upper.operator!=="le"))continue;
     if(!propose(null,term,upper)||budget.remaining===0)break rowCost;
    }
