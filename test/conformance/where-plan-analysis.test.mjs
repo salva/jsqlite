@@ -502,3 +502,13 @@ test('null-test literal folding does not evaluate other opcodes',()=>{
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('unary sign proof follows parser replacement of existing UPLUS',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=(-+u.b) OR t.a<(-u.b)',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('unary sign replacement retains minus chains and child ownership',()=>{
+ for(const [lhs,rhs,want] of [['++u.b','+u.b',true],['-++u.b','-u.b',true],['+-u.b','-u.b',false],['- -u.b','u.b',false],['-+u.b','-u.a',false]]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${lhs}) OR t.a<(${rhs})`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),want,`${lhs}/${rhs}`);
+ }
+});

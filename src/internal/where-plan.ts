@@ -550,6 +550,16 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       // original qualifier spelling. COLLATE remains a distinct node.
       const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
       x=parens(x);y=parens(y);
+      // parse.y mutates an existing TK_UPLUS root to the outer sign,
+      // rather than attaching another unary node. Preserve UMINUS children.
+      const unarySign=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= PLUS|MINUS expr")return n;
+       let child=unarySign(parens(exprChildren(n)[0]!));
+       if(child.signature==="expr ::= PLUS|MINUS expr"&&asExpr(child).tokens[0]?.text==="+")child=exprChildren(child)[0]!;
+       return {...n,children:[n.children[0]!,child]};
+      };
+      x=unarySign(x);y=unarySign(y);
+
       // parse.y routes DISTINCT FROM aliases through sqlite3PExprIs
       // with TK_IS/TK_ISNOT. Normalize the semantic production, not SQL text.
       const isAlias=(n:ExprReduction):ExprReduction=>{
