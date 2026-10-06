@@ -1468,3 +1468,16 @@ test('IS truth production distinguishes integer and bound alias operands',()=>{
  assert.equal(analyzeWhere(or).clause.terms[0].info.indexable,0n);
  }
 });
+test('TRUE result alias resolves before builtin truth fallback for OR admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const name of ['TRUE','FALSE','"TRUE"']){
+ const r=resolve(`SELECT b AS ${name} FROM t WHERE b IS ${name}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].operator,'is',name);
+ assert.equal(r.aliasUses.size,1);
+ }
+ const s=schema(encoding);s.t.columns=Object.freeze([...s.t.columns,col('TRUE','REAL')]);
+ const column=resolve('SELECT a AS TRUE FROM t WHERE b IS TRUE',s);
+ assert.equal(column.aliasUses.size,0,'actual column precedes alias');
+ assert.equal(analyzeWhere(column).clause.terms[0].operator,'is');
+ }
+});
