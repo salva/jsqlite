@@ -29,7 +29,7 @@ export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:S
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
-export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet;readonly ordinaryLoops?:readonly WhereLoop[]}
+export interface CandidateOptions {readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet;readonly ordinaryLoops?:readonly WhereLoop[];readonly completion?:{done:boolean}}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
 export interface WherePlanBudget {remaining:number}
 const freeze=<T>(value:T):Readonly<T>=>Object.freeze(value);
@@ -281,6 +281,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // WITHOUT ROWID's primary index is storage, not an optional access path.
  const primary=source.table.withoutRowid?source.table.indexes.find(index=>index.origin==="primary-key"):undefined;
  if(primary&&!primary.physical){const collation=missingCollation(primary);if(collation)throw new SqlParseError(`no such collation sequence: ${collation}`);}
+ const completion=options.completion??{done:false};completion.done=false;
  const sourcePrereq=options.sourcePrereq??0n;
  const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  const scanCapability:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:0,orderTermsSatisfied:scanOrder?1:0,reverse:scanOrder?.descending??false,covering:true,needsTableLookup:false,rowidEquality:null,rowidLower:null,rowidUpper:null});
@@ -295,7 +296,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
  const insert=(loop:WhereLoop):boolean=>{
   const candidate=freeze({...loop,outputRows:loop.kind==="multi-or"?loop.outputRows:outputAdjust(loop,clause),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?source.table.indexes.indexOf(loop.capability.index)+2:1):0});
-  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0)return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
+  if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.equalityPrefix.length+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0){completion.done=true;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});}budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
   return whereLoopInsert(loops,candidate,budget,options.ordinaryLoops);
  };
  if(!options.forcedIndex&&!source.table.withoutRowid&&!insert(scan))return Object.freeze(loops);
@@ -340,7 +341,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // AddBtree continues from successful sPk into real indexes even at zero.
  if(!options.orSet&&budget.remaining===0)return Object.freeze(loops);
  const indexResult={ok:true};
- indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source,result:indexResult}:undefined)){indexResult.ok=true;if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))){if(options.orSet)indexResult.ok=false;else return Object.freeze(loops);}if(!options.orSet&&budget.remaining===0)break indexes;}if(options.orSet&&!indexResult.ok)return Object.freeze(loops);}
+ indexes:for(const index of source.table.indexes){const physicalPrimary=source.table.withoutRowid&&index.origin==="primary-key";if(options.notIndexed&&!physicalPrimary)continue;if(options.forcedIndex&&index!==options.forcedIndex)continue;if(!usablePartialIndex(index,clause.terms,source,sourceOrdinal,options.resolved))continue;for(const cap of capabilities(index,own,sourceOrdinal,options.neededColumns,options.orderBy,source,options.orSet&&options.resolved?{clause,resolved:options.resolved,source,result:indexResult}:undefined)){indexResult.ok=true;if(!options.forcedIndex&&!physicalPrimary&&!index.partialWhere&&cap.constrainedFields===0&&!indexMightHelpWithOrderBy(index,sourceOrdinal,source.table,options.orderBy)&&(!cap.covering||index.unordered||index.szIdxRow>=source.table.szTabRow))continue;const selected=[...cap.equalityPrefix,cap.lower,cap.upper].filter((a):a is IndexConstraintAdmission=>a!==null);const prereq=selected.reduce((mask,admission)=>mask|admission.term.prereqRight,sourcePrereq),estimate=indexLoopEstimate(index,cap,source,clause,options.resolved);if(!insert(freeze({source,sourceOrdinal,prereq,capability:cap,kind:"index",indexRowSize:BigInt(index.szIdxRow),setupCost:0n,runCost:estimate.run,outputRows:estimate.rows,terms:Object.freeze(owned)}))){if(options.orSet)indexResult.ok=false;else return Object.freeze(loops);}if(!options.orSet&&budget.remaining===0)break indexes;}if(options.orSet){completion.done=!indexResult.ok;if(completion.done)return Object.freeze(loops);}}
 
  // whereLoopAddOr. Copied cost builders share the construction budget;
  // physical branch choice is deliberately absent from the published union.
@@ -352,8 +353,9 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    for(const arm of info.clause.terms){
     const armClause=orArmClause(arm,sourceOrdinal,clause);
     if(!armClause)continue;
-    const current:WhereOrSet={a:[]};
-    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
+    const current:WhereOrSet={a:[]},armCompletion={done:false};
+    btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,completion:armCompletion,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
+    if(armCompletion.done){completion.done=true;return Object.freeze(loops);}
     if(!whereOrAccumulate(sum,current,first,logEstAdd))break;
     first=false;
     // Last successful arm remains OK at zero; publication owns DONE.

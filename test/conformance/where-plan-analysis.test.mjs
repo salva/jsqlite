@@ -1994,3 +1994,21 @@ test('range child DONE restores lower rc; own lower DONE still runs upper recurs
  assert.throws(()=>btreeLoops(r.sources[0],0,pair,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:0}}),e=>e===upperSentinel);
  }
 });
+test('AddOr arm DONE suppresses later parent discovery unlike successful zero-arm failure',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.t.indexes=Object.freeze([]);
+ const r=resolve('SELECT id FROM t WHERE (id=?1 OR id=?2) AND (id=?3 OR id=?4)',s),c=analyzeWhere(r).clause;
+ const parents=c.terms.filter(t=>t.info?.kind==='or');assert.equal(parents.length,2);
+ const sentinel=new Error('later OR parent after DONE'),late={...parents[1]};
+ Object.defineProperty(late,'info',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([parents[0],late]),set={a:[]};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:2}}));
+ assert.equal(set.a.length,0);
+ const completion={done:true};
+ const scanClause=wherePlanning.whereClause([]);
+ btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1},completion});
+ assert.equal(completion.done,false,'successful unconstrained scan at zero is OK despite empty cost set');
+ btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:0},completion});
+ assert.equal(completion.done,true,'attempted scan DONE is distinct and carrier resets each call');
+ }
+});
