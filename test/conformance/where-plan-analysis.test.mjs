@@ -2068,8 +2068,13 @@ test('nested OR publication DONE propagates distinct completion with shared budg
  const s=schema(encoding);s.t.indexes=Object.freeze([]);
  const r=resolve('SELECT id FROM t WHERE ((id=?1 OR id=?2) AND id>?3) OR id=?4',s),c=analyzeWhere(r).clause;
  for(const remaining of [7,8,11,12,13,14]){
- const set={a:[]},completion={done:false},budget={remaining};
+ // Stored dispatch: outer scan; AND scan/lower; first nested arm scan/eq/outer lower;
+ // second nested arm scan/eq/outer lower; nested publication; last outer arm
+ // scan/eq; outer publication. These are 13 inserts, not 11 SQL-arm inserts.
+ let count=remaining;const decrements=[];
+ const set={a:[]},completion={done:false},budget={get remaining(){return count;},set remaining(value){decrements.push([count,value]);count=value;}};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ assert.deepEqual(decrements,Array.from({length:Math.min(remaining,13)},(_,i)=>[remaining-i,remaining-i-1]));
  assert.equal(budget.remaining,Math.max(0,remaining-13));
  assert.equal(completion.done,remaining<13);
  assert.equal(set.a.length,remaining<13?0:1);
