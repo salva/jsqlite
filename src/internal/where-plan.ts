@@ -294,10 +294,12 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(budget.remaining===0)return Object.freeze(loops);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
  const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
- function* rowCostTerms():Generator<WhereTerm> {
+ function* rowCostTerms(upperOnly=false):Generator<WhereTerm> {
   // Suspend semantic admission at each proposal, including the enclosing
   // upper-only restart. Exhaustion closes both for-of iterators.
   for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms){
+   // whereScanNext opMask precedes builder safety/target admission.
+   if(upperOnly?term.operator!=="lt"&&term.operator!=="le":!term.operator||!["eq","is","gt","ge","lt","le"].includes(term.operator))continue;
    if(term.left?.source!==source||!term.left.rowid||!term.outerJoinSafe.mayDrive||!leftTargetCompatible(term,source,sourceOrdinal))continue;
    yield term;
   }
@@ -311,7 +313,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    if(!propose(term,null,null)||budget.remaining===0)break;
   }else if(term.operator==="gt"||term.operator==="ge"){
    if(!propose(null,term,null)||budget.remaining===0)break;
-   for(const upper of rowCostTerms()){
+   for(const upper of rowCostTerms(true)){
     if(!upper.left?.rowid||(upper.operator!=="lt"&&upper.operator!=="le"))continue;
     if(!propose(null,term,upper)||budget.remaining===0)break rowCost;
    }

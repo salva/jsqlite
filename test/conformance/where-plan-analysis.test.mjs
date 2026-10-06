@@ -1250,3 +1250,12 @@ test('rowid cost budget suspends lookup before later outer safety annotation',()
  assert.equal(reads,0);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0);
  }
 });
+test('rowid upper restart filters opMask before semantic safety reads',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,[lower,upper]=c.terms;
+ let reads=0;const skipped=Object.freeze({...lower,id:99,get outerJoinSafe(){reads++;throw new Error('masked lower safety');}});
+ const clause=wherePlanning.whereClause([lower,skipped,upper]),set={a:[]},budget={remaining:3};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
+ assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a[0].nOut,139n);
+ }
+});
