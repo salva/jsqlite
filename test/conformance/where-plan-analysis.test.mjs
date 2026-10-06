@@ -512,3 +512,30 @@ test('unary sign replacement retains minus chains and child ownership',()=>{
  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),want,`${lhs}/${rhs}`);
  }
 });
+test('named variable operand proof retains case-sensitive SQLite variable identity',()=>{
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=:X OR a<:x',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('actual capabilities generators close through IteratorClose at budget boundary and error',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? AND a=? AND a=?',schema()),a=analyzeWhere(r);
+ const proto=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})()));
+ const original=proto.return;let closes=0;
+ proto.return=function(value){closes++;return original.call(this,value);};
+ try{
+  const needed=new Set([ROWID_NEEDED]);
+  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2}});
+  assert.ok(closes>=2,'outer capabilities and delegated visit close on break');
+  closes=0;
+  const costs={a:[]};
+  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2},orSet:costs});
+  assert.ok(closes>=2,'cost-only builder closes actual suspended generators too');
+  assert.equal(costs.a.length,1);
+
+  closes=0;
+  const sentinel=new Error('needed columns sentinel');
+  const failing={*[Symbol.iterator](){throw sentinel;}};
+  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:failing,orderBy:[],resolved:r,planBudget:{remaining:1000}}),e=>e===sentinel);
+  // A throw inside the generator terminates it by unwinding, not by return().
+  assert.equal(closes,0,'internal generation error propagates without resuming suspended proposals');
+ }finally{proto.return=original;}
+});
