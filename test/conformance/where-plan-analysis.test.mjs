@@ -2081,3 +2081,16 @@ test('nested OR publication DONE propagates distinct completion with shared budg
  }
  }
 });
+test('cost completion resets across calls and ignored child OK empty does not leak DONE',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),clause=analyzeWhere(r).clause;
+ const completion={done:false};
+ for(const remaining of [0,1,0,2,1]){
+ const set={a:[]},budget={remaining};
+ btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ assert.equal(completion.done,remaining===0);
+ assert.equal(set.a.length,remaining===2?1:0);
+ assert.equal(budget.remaining,0);
+ }
+ }
+});
