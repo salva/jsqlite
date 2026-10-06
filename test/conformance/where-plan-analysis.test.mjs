@@ -339,3 +339,12 @@ test('combine resolves columns recursively through function argument and IN list
   assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs.join(' / '));
  }
 });
+test('exprAnalyzeOrTerm stops AND info construction once stored-order indexable reaches zero',()=>{
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE 1 OR (a=5 AND b=2)',schema())).clause;
+ const info=c.terms[0].info;
+ assert.equal(info.indexable,0n);
+ assert.equal(info.clause.terms[1].info,undefined,'later non-single arm is retained but not given AND ownership after zero');
+ const reversed=analyzeWhere(resolve('SELECT id FROM t WHERE (a=5 AND b=2) OR 1',schema())).clause.terms[0].info;
+ assert.equal(reversed.indexable,0n);
+ assert.equal(reversed.clause.terms[0].info.kind,'and','already visited ownership is retained');
+});

@@ -501,6 +501,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const terms:WhereTerm[]=ordered.map((draft,id)=>({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,left:draft.left,rightAffinity:literalAffinity(draft.rightNode)??binding(resolved,draft.rightNode)?.column?.affinity??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
+ let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;
  for(const term of terms){
   const node=unwrap(ordered[term.id]!.node),origin=ordered[term.id]!.origin;
   if(node.signature==="expr ::= expr OR expr"){
@@ -578,10 +579,23 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     }
    }
 
-  }else if(split==="or"&&!term.operator){
+  }else if(split==="or"&&orIndexable!==0n&&!term.operator){
    const parts:ExprReduction[]=[];splitAnd(node,parts);
    const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),orOwner).clause;
    Object.assign(term,{info:freeze({kind:"and" as const,clause:child})});
+  }
+  if(split==="or"&&orIndexable!==0n){
+   // exprAnalyzeOrTerm: copied originals defer their mask to the virtual
+   // commuted child; non-single AND masks use allowed single operators.
+   if(!term.operator){
+    let mask=0n;
+    if(term.info?.kind==="and")for(const sub of term.info.clause.terms)if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);
+    orIndexable&=mask;
+   }else if(term.virtual||term.childIds.length===0){
+    let mask=term.left?sourceBit(term.left.sourceOrdinal):0n;
+    if(term.virtual&&term.parentId!==null){const parent=terms[term.parentId]!;if(parent.left)mask|=sourceBit(parent.left.sourceOrdinal);}
+    orIndexable&=mask;
+   }
   }
   freeze(term);
  }
