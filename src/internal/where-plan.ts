@@ -518,7 +518,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
     let mask=0n;
     for(const alt of alternatives){
-     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){mask|=singleIndexMask(sub);}
+     if(alt.info?.kind==="and")for(const sub of alt.info.clause.terms){if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);}
      else mask|=singleIndexMask(alt);
     }
     indexable&=mask;
@@ -594,7 +594,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
    // commuted child; non-single AND masks use allowed single operators.
    if(!term.operator){
     let mask=0n;
-    if(term.info?.kind==="and")for(const sub of term.info.clause.terms)mask|=singleIndexMask(sub);
+    if(term.info?.kind==="and")for(const sub of term.info.clause.terms)if(sub.operator&&sub.left)mask|=sourceBit(sub.left.sourceOrdinal);
     orIndexable&=mask;
    }else if(term.virtual||term.childIds.length===0){
     let mask=singleIndexMask(term);

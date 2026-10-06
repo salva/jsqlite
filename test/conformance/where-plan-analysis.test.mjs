@@ -349,8 +349,10 @@ test('exprAnalyzeOrTerm stops AND info construction once stored-order indexable 
  assert.equal(reversed.clause.terms[0].info.kind,'and','already visited ownership is retained');
 });
 test('OR indexable excludes overlapping operand usage per exprAnalyze opMask WO_EQUIV',()=>{
- for(const predicate of ['a=b OR a=5','a<b OR a=5','(a=b AND b=a) OR a=5']){
+ for(const predicate of ['a=b OR a=5','a<b OR a=5']){
   const info=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause.terms[0].info;
   assert.equal(info.indexable,0n,predicate);
  }
+ const andInfo=analyzeWhere(resolve('SELECT id FROM t WHERE (a=b AND b=a) OR a=5',schema())).clause.terms[0].info;
+ assert.equal(andInfo.indexable,1n,'AND uses allowedOp/leftCursor, not WO_SINGLE opMask');
 });
