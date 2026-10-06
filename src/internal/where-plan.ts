@@ -520,11 +520,12 @@ function termEquivalence(resolved:ResolvedSelect,draft:{node:ExprReduction;origi
 export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved:ResolvedSelect,accept:(term:WhereTerm)=>boolean):Generator<WhereTerm> {
  const slots:ColumnBinding[]=[target];
  const same=(a:ColumnBinding,b:ColumnBinding):boolean=>a.sourceOrdinal===b.sourceOrdinal&&a.columnIndex===b.columnIndex;
- const rhs=(term:WhereTerm):ColumnBinding|null=>{
+ const rhs=(term:WhereTerm,skipCollate:boolean):ColumnBinding|null=>{
   const root=term.expression.reduction;
   if(!root||root.kind!=="reduction")return null;
   const children=exprChildren(root),node=children[term.originalIndexedOperand==="right"?0:1];
-  return node?binding(resolved,node):null;
+  // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
+  return node&&(skipCollate||!node.signature.startsWith("expr ::= expr COLLATE"))?binding(resolved,node):null;
  };
  for(let i=0;i<slots.length;i++){
   for(let wc:WhereClause|null=clause;wc;wc=wc.outer){
@@ -533,10 +534,11 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
     // Expression-index fields require ExprCompareSkip, not sentinel equality.
     if(target.columnIndex===-2)continue;
     if(i>0&&term.outerOn)continue;
-    const right=rhs(term);
+    const right=rhs(term,true);
     if(term.equivalence&&right&&slots.length<11&&!slots.some(slot=>same(slot,right)))slots.push(right);
     if(!accept(term))continue;
-    if((term.operator==="eq"||term.operator==="is")&&right&&same(right,target))continue;
+    const rawRight=rhs(term,false);
+    if((term.operator==="eq"||term.operator==="is")&&rawRight&&same(rawRight,target))continue;
     yield term;
    }
   }

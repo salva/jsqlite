@@ -1113,3 +1113,9 @@ test('copied outer-ON flag survives one-term and relocated scanner clauses',()=>
  assert.deepEqual([...wherePlanning.scanWhereTerms(temp,link.left,r,()=>true)],[link]);
  assert.equal(on.outerOn,true);assert.equal(copied.outerOn,true);assert.equal(link.outerOn,false);
 });
+test('whereScanNext raw RHS reverse-cycle proof does not skip COLLATE like expansion',()=>{
+ const r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=t.a COLLATE NOCASE',schema()),c=analyzeWhere(r).clause;
+ const target=c.terms[0].left,wrapped=c.terms[1];
+ assert.equal(wrapped.left.sourceOrdinal,1);
+ assert.ok([...wherePlanning.scanWhereTerms(c,target,r,t=>t.operator==='eq')].includes(wrapped),'raw TK_COLLATE is not TK_COLUMN for reverse-cycle exclusion');
+});
