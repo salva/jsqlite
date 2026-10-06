@@ -707,3 +707,15 @@ test('singleton BETWEEN constant walk rejects nonconstant left and either bound'
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton IN constant proof visits nested IN scalar and list children',()=>{
+ for(const rhs of ['1 IN (2,3)','1 NOT IN (2,3)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('nested IN constant proof retains scalar/list rejection, order and SELECT exclusion',()=>{
+ for(const [rhs,other] of [['u.a IN (2,3)','u.a IN (2,3)'],['1 IN (u.a,3)','1 IN (u.a,3)'],['1 NOT IN (2,u.a)','1 NOT IN (2,u.a)'],['1 IN (2,3)','1 IN (3,2)'],['1 IN (SELECT 2)','1 IN (SELECT 2)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
+ }
+});
