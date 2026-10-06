@@ -414,3 +414,18 @@ test('function ALL and omitted distinct produce the same Expr flags for combine'
  const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=abs(u.b) OR t.a<abs(ALL u.b)',schema())).clause;
  assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('actual recursive cost production stops capability traversal on exhaustion and propagates errors',()=>{
+ const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (a>? OR id<?))',schema()),a=analyzeWhere(r);
+ let visits=0;
+ const needed={*[Symbol.iterator](){visits++;yield ROWID_NEEDED;}};
+ const budget={remaining:1},costs={a:[]};
+ btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
+ assert.equal(budget.remaining,0);assert.equal(visits,0,'scan exhausts before any capability exploration');assert.deepEqual(costs.a,[]);
+ budget.remaining=1000;
+ btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
+ assert.ok(visits>0);assert.ok(costs.a.length>0,'replenished builder resumes production, not a sticky DONE');
+ const sentinel=new Error('capability construction failure');let entries=0;
+ const throwing={*[Symbol.iterator](){entries++;throw sentinel;}};
+ assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:1000},orSet:{a:[]}}),e=>e===sentinel);
+ assert.equal(entries,1,'error prevents later capability/source exploration');
+});
