@@ -867,14 +867,16 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     // Expression-index identity is deliberately unproved at this producer seam.
     if(candidate.left.columnIndex===-2)continue;
     const selected:WhereTerm[]=[];let ok=true;
-    for(const arm of originals){
-     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
-     const oriented=alternatives.find(t=>t.operator==="eq"&&t.left?.sourceOrdinal===previousCursor);
-     if(!oriented?.left||oriented.left.columnIndex!==candidate.left.columnIndex){ok=false;break;}
+    // The pinned TERM_OK pass visits every stored entry, including copied
+    // originals and virtual commutations. Other cursors clear their mark;
+    // column/affinity failures do not stop the pass or reorder its entries.
+    for(const oriented of child.terms){
+     if(oriented.left?.sourceOrdinal!==previousCursor)continue;
+     if(oriented.left.columnIndex!==candidate.left.columnIndex){ok=false;continue;}
      const es=exprChildren(oriented.expression.reduction as ExprReduction);
      const lhs=es[oriented.originalIndexedOperand==="right"?1:0]!,rhs=es[oriented.originalIndexedOperand==="right"?0:1]!;
      const rightAffinity=resolvedExpressionAffinity(rhs,resolved),leftAffinity=resolvedExpressionAffinity(lhs,resolved);
-     if(rightAffinity!==undefined&&rightAffinity!==leftAffinity){ok=false;break;}
+     if(rightAffinity!==undefined&&rightAffinity!==leftAffinity){ok=false;continue;}
      selected.push(oriented);
     }
     if(!ok)continue;

@@ -954,3 +954,29 @@ test('OR-IN proof retains orientation, affinity and join provenance',()=>{
  const child=c.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
  assert.equal(child.origin.kind,'join-on');assert.equal(child.outerJoinSafe.mayOmitResidual,false);
 });
+test('OR-IN two-cursor retry clears marked first-cursor entries and keeps stored list order',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a OR t.blob=u.a',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='in')); // mismatched affinities even on retry
+ const d=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a OR t.id=u.id',schema())).clause;
+ assert.ok(!d.terms.some(t=>t.virtual&&t.operator==='in')); // neither cursor has one common column
+ const e=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a OR u.a=t.a',schema())).clause;
+ const child=e.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
+ assert.equal(child.left.sourceOrdinal,0);
+ assert.equal(child.prereqRight,sourceBit(1));
+});
+test('OR-IN production proof and ordinary admission run in all encodings',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve("SELECT id FROM t WHERE a='x' OR 'y'=a",s);
+ const a=analyzeWhere(r),child=a.clause.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
+ const loops=[...btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[]})];
+ assert.ok(loops.some(l=>l.capability?.equalityPrefix.some(e=>e.term===child)),encoding);
+ }
+});
+test('OR-IN retry chooses second cursor and publishes marked RHS in clause order',()=>{
+ const s=schema();s.t.columns=Object.freeze(s.t.columns.map(c=>c===s.b?Object.freeze({...c,affinity:'text'}):c));
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a OR t.b=u.a',s)).clause;
+ const child=c.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
+ assert.equal(child.left.sourceOrdinal,1);assert.equal(child.left.columnIndex,1);
+ assert.equal(child.prereqRight,sourceBit(0));
+ assert.equal(child.expression.tokens.map(t=>t.text).join(' '),'u . a IN ( t . a , t . b )');
+});
