@@ -421,7 +421,7 @@ test('actual recursive cost production stops capability traversal on exhaustion 
  const needed={*[Symbol.iterator](){visits++;yield ROWID_NEEDED;}};
  const budget={remaining:1},costs={a:[]};
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
- assert.equal(budget.remaining,0);assert.equal(visits,0,'scan exhausts before any capability exploration');assert.deepEqual(costs.a,[]);
+ assert.equal(budget.remaining,0);assert.equal(visits,1,'scan returns OK at zero; next reached index proposal attempts DONE');assert.deepEqual(costs.a,[]);
  budget.remaining=1000;
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
  assert.ok(visits>0);assert.ok(costs.a.length>0,'replenished builder resumes production, not a sticky DONE');
@@ -1934,6 +1934,17 @@ test('completed sPk at zero continues AddBtree into persistent index DONE',()=>{
  const set={a:[]},budget={remaining:2};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,notIndexed});
  assert.equal(set.a.length,notIndexed?1:0,'optional covering index attempts insertion at zero unless suppressed');
+ }
+ }
+});
+test('cost scan OK at zero reaches sPk admission; initial DONE does not',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?1',s),base=analyzeWhere(r).clause.terms[0],sentinel=new Error('sPk admission after scan OK');
+ const term={...base,get outerJoinSafe(){throw sentinel;}},clause=wherePlanning.whereClause([term]);
+ for(const remaining of [0,1]){
+ const set={a:[]},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining}});
+ if(remaining)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
+ assert.equal(set.a.length,0);
  }
  }
 });
