@@ -633,7 +633,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         // TK_BETWEEN owns pLeft plus a two-element x.pList. Its optional
         // NOT parent does not change the constant walk's child obligations.
         if(v.signature==="expr ::= expr between_op expr AND expr")return es.length===3&&es.every(constant);
-        const booleanOrComparison=["expr ::= NOT expr","expr ::= expr EQ|NE expr","expr ::= expr LT|GT|GE|LE expr","expr ::= expr AND expr","expr ::= expr OR expr","expr ::= expr IS expr","expr ::= expr IS NOT expr","expr ::= expr COLLATE ID|STRING"].includes(v.signature);
+        const booleanOrComparison=["expr ::= expr ISNULL|NOTNULL","expr ::= expr NOT NULL","expr ::= NOT expr","expr ::= expr EQ|NE expr","expr ::= expr LT|GT|GE|LE expr","expr ::= expr AND expr","expr ::= expr OR expr","expr ::= expr IS expr","expr ::= expr IS NOT expr","expr ::= expr COLLATE ID|STRING"].includes(v.signature);
         return (ordinary||booleanOrComparison)&&es.length>0&&es.every(constant);
        };
        if(!constant(rhs))return n;

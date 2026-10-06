@@ -755,3 +755,15 @@ test('CASE constant walk rejects each nonconstant carrier and retains ordered br
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton IN constant walk continues through postfix null-test opcodes',()=>{
+ for(const rhs of ['1 ISNULL','1 NOTNULL','1 NOT NULL',':bound ISNULL']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton postfix null-test proof preserves nonconstant child and opcode identity',()=>{
+ for(const [rhs,other] of [['u.a ISNULL','u.a ISNULL'],['abs(1) NOTNULL','abs(1) NOTNULL'],[':bound ISNULL',':bound NOTNULL'],[':bound ISNULL',':other ISNULL']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
