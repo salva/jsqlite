@@ -1225,3 +1225,19 @@ test('LEFT rowid costs use same target ON ownership gate as persistent indexes',
  assert.equal(loops.some(l=>l.kind==='rowid'),onOwned);
  }
 });
+test('pOrSet rowid lower prefix inserts before upper recursion at budget boundary',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining:2};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget});
+ assert.equal(budget.remaining,0);assert.equal(set.a.length,1);
+ assert.equal(set.a[0].nOut,179n,'scan then lower-only construction, not lower+upper');
+ const mixed=resolve('SELECT id FROM t WHERE id>? AND id=?',s),mixCost={a:[]},mixBudget={remaining:2};
+ btreeLoops(mixed.sources[0],0,analyzeWhere(mixed).clause,{resolved:mixed,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mixCost,planBudget:mixBudget});
+ assert.equal(mixCost.a[0].nOut,179n,'later equality cannot suppress stored first range construction');
+ const full={a:[]},fullBudget={remaining:5};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:full,planBudget:fullBudget});
+ assert.equal(fullBudget.remaining,1,'scan, lower, lower+upper, upper-only constructions');
+ assert.equal(full.a[0].nOut,140n);
+
+ }
+});
