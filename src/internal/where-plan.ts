@@ -570,6 +570,19 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
       };
       x=isAlias(x);y=isAlias(y);
+      // parse.y BETWEEN produces a TK_BETWEEN with ordered two-item list,
+      // then an optional TK_NOT parent. Normalize the semantic wrapper,
+      // not Boolean value equivalence or reassociation of its children.
+      const between=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= expr between_op expr AND expr")return n;
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("between_op ::="));
+       if(op?.kind!=="reduction"||!op.signature.includes("NOT"))return n;
+       const base={...n,children:n.children.map(c=>c===op?{...op,signature:"between_op ::= BETWEEN",children:op.children.filter(v=>v.kind!=="terminal"||v.value.text.toUpperCase()!=="NOT")}:c)};
+       const token=op.children.find(c=>c.kind==="terminal"&&c.value.text.toUpperCase()==="NOT");
+       return token?{...n,signature:"expr ::= NOT expr",children:[token,base]}:n;
+      };
+      x=between(x);y=between(y);
+
       // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
       // Compare the produced unary opcode and its child, not grammar aliases.
       const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{

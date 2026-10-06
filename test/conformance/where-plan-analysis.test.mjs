@@ -580,3 +580,13 @@ test('necessary boolean operand proof retains produced TK_TRUEFALSE token case',
  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
  }
 });
+test('necessary operand proof follows NOT BETWEEN semantic wrapper',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b NOT BETWEEN 1 AND 2) OR t.a<(NOT (u.b BETWEEN 1 AND 2))',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('BETWEEN proof retains wrapper polarity and list order',()=>{
+ for(const rhs of ['u.b BETWEEN 1 AND 2','NOT (u.b BETWEEN 2 AND 1)','NOT (u.a BETWEEN 1 AND 2)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b NOT BETWEEN 1 AND 2) OR t.a<(${rhs})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
