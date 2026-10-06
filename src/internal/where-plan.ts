@@ -88,10 +88,15 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    // Cost-only whereScanNext admission. Keep original term/RHS provenance;
    // physical target is the index field, not a fabricated term.left.
    if(!term.operator||term.operator==="in")return null; // IN requires its existing admission contract.
-   if(term.operator!=="is-null"&&term.effectiveCollation!==scanField.collation)return null;
-   const affinity=comparisonAffinity(scanField.column!,term.rightAffinity);
-   if(!affinityOk(scanField.column!,affinity))return null;
-   return freeze({term,physicalIndex:physical!,fieldOrdinal:field,field:scanField,keyInfoTerm:physical!.keyInfo.terms[field]!,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison:term.operator==="is-null"?freeze({kind:"is-null" as const}):freeze({kind:"comparison" as const,affinity,collation:scanField.collation}),bound:bound(term.operator)});
+   let comparison:SeekComparisonMode;
+   if(term.operator==="is-null")comparison=freeze({kind:"is-null"});
+   else {
+    if(term.effectiveCollation!==scanField.collation)return null;
+    const affinity=comparisonAffinity(scanField.column!,term.rightAffinity);
+    if(!affinityOk(scanField.column!,affinity))return null;
+    comparison=freeze({kind:"comparison",affinity,collation:scanField.collation});
+   }
+   return freeze({term,physicalIndex:physical!,fieldOrdinal:field,field:scanField,keyInfoTerm:physical!.keyInfo.terms[field]!,operator:term.operator,originalIndexedOperand:term.originalIndexedOperand,comparison,bound:bound(term.operator)});
   };
   if(target&&costScan){
    // whereLoopAddBtreeIndex resumes whereScanNext only after the current

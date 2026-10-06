@@ -1153,3 +1153,18 @@ test('pOrSet inserts equality prefix before touching deeper index field',()=>{
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
  assert.equal(budget.remaining,0);
 });
+test('transitive pOrSet ISNULL bypasses comparison affinity and collseq admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a IS NULL',s),c=analyzeWhere(r).clause;
+ const nullTerm=c.terms.find(t=>t.operator==='is-null');assert.ok(nullTerm);
+ // ISNULL has no RHS comparison. Poison comparison-only annotations to prove
+ // the source gate never consumes them after equivalence expansion.
+ const annotated={...nullTerm};
+ Object.defineProperty(annotated,'rightAffinity',{get(){throw new Error('ISNULL RHS affinity read');}});
+ Object.defineProperty(annotated,'effectiveCollation',{get(){throw new Error('ISNULL collseq read');}});
+ const clause=wherePlanning.whereClause(c.terms.map(t=>t===nullTerm?Object.freeze(annotated):t));
+ const set={a:[]},budget={remaining:200};
+ btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget});
+ assert.ok(set.a.some(v=>v.prereq===0n),'WO_ISNULL exempts affinity as well as collseq');
+ }
+});
