@@ -716,7 +716,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  if(input){specs.length=0;specs.push(...input);}
  type Draft={node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
  const drafts:Draft[]=[];
- for(const {node,origin} of specs){let op=comparisonOperator(node);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=indexedBinding(resolved,originalLeftNode),originalRight=indexedBinding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
+ for(const spec of specs){const node=skipCollateAndLikely(spec.node,resolved),origin=spec.origin;let op=comparisonOperator(node);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=indexedBinding(resolved,originalLeftNode),originalRight=indexedBinding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
   if(!left&&originalRight&&op&&op!=="in"){orientation="right";op=reverseOperator(op);leftNode=originalRightNode;rightNode=originalLeftNode;left=originalRight;}
   const rightUse=rhsPrereq(resolved,node,orientation,op),leftUse=prereq(resolved,leftNode);const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&(rightUse&leftUse)===0n&&!(rightUse&sourceBit(left.sourceOrdinal))&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,originalLeft,originalRight),parentId=drafts.length;
   const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
@@ -740,7 +740,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   const node=unwrap(ordered[term.id]!.node),origin=ordered[term.id]!.origin;
   if(node.signature==="expr ::= expr OR expr"){
    const parts:ExprReduction[]=[];
-   const collect=(n:ExprReduction):void=>{const u=unwrap(n);if(u.signature==="expr ::= expr OR expr")for(const child of exprChildren(u))collect(child);else parts.push(u);};collect(node);
+   const collect=(n:ExprReduction):void=>{const u=skipCollateAndLikely(n,resolved);if(u.signature==="expr ::= expr OR expr")for(const child of exprChildren(u))collect(child);else parts.push(n);};collect(node);
    const child=analyzeClause(resolved,includeRightTerms,parts.map(node=>({node,origin})),null,"or",clause).clause;
    let indexable=(1n<<BigInt(resolved.sources.length))-1n;
    for(const arm of child.terms.filter(t=>!t.virtual)){

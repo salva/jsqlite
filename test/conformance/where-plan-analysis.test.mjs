@@ -1371,3 +1371,14 @@ test('WhereSplit removes parenthesis carriers before AND arm ownership',()=>{
  assert.equal(info.clause.terms[0].info.clause.terms.filter(t=>!t.virtual).length,2);
  }
 });
+test('WhereClauseInsert normalizes likely carriers for OR graph and ordinary arm admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const r=resolve('SELECT id FROM t WHERE likely(a=? OR b>?)',schema(encoding)),c=analyzeWhere(r).clause;
+ assert.equal(c.terms[0].expression.reduction.signature,'expr ::= expr OR expr');
+ assert.equal(c.terms[0].info?.kind,'or');
+ const nested=resolve('SELECT id FROM t WHERE a=? OR likely(b>? OR id=?)',schema(encoding)),nc=analyzeWhere(nested).clause;
+ assert.equal(nc.terms[0].info.clause.terms.filter(t=>!t.virtual).length,3);
+ const arm=resolve('SELECT id FROM t WHERE a=? OR likely(b>?)',schema(encoding)),ac=analyzeWhere(arm).clause;
+ assert.equal(ac.terms[0].info.clause.terms[1].operator,'gt');
+ }
+});
