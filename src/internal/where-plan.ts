@@ -84,6 +84,9 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   const target=costScan&&scanField.column?freeze({source:costScan.source,sourceOrdinal:ordinal,column:scanField.column,columnIndex:costScan.source.table.columns.indexOf(scanField.column),rowid:false}):null;
   const matches=target&&costScan?scanWhereTerms(costScan.clause,target,costScan.resolved,term=>term.operator!==null&&(term.prereqRight&sourceBit(ordinal))===0n):terms;
   const admit=(term:WhereTerm):IndexConstraintAdmission|null=>{
+   // indexColumnNotNull: declared columns own nullability; expression fields
+   // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
+   if(term.operator==="is-null"&&scanField.column?.notNull)return null;
    // whereLoopAddBtreeIndex removes all range bits from bUnordered opMask.
    if(index.unordered&&(term.operator==="gt"||term.operator==="ge"||term.operator==="lt"||term.operator==="le"))return null;
    if(!target||term.left?.source===target.source&&term.left.columnIndex===target.columnIndex)return admitIndexConstraint(term,physical!,field);
