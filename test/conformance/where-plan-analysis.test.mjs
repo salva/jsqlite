@@ -478,3 +478,15 @@ test('IS alias proof keeps opposite null-equality and operand identities distinc
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
  }
 });
+test('necessary operand proof compares produced nullable ISNULL and NOTNULL aliases',()=>{
+ for(const [x,y] of [['u.b IS NULL','u.b ISNULL'],['u.b IS NOT NULL','u.b NOTNULL'],['u.b NOT NULL','u.b NOTNULL']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('nullable test operand proof retains opcode and child distinctions',()=>{
+ for(const rhs of ['u.b NOTNULL','u.a ISNULL']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IS NULL) OR t.a<(${rhs})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+ }
+});

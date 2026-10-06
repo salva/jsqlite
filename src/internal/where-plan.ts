@@ -560,6 +560,17 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
       };
       x=isAlias(x);y=isAlias(y);
+      // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
+      // Compare the produced unary opcode and its child, not grammar aliases.
+      const nullTest=(n:ExprReduction):{op:"ISNULL"|"NOTNULL";child:ExprReduction}|null=>{
+       const es=exprChildren(n);
+       if(es.length===2&&(n.signature==="expr ::= expr IS expr"||n.signature==="expr ::= expr IS NOT expr")&&isNullLiteral(asExpr(parens(es[1]!))))return {op:n.signature.includes("IS NOT")?"NOTNULL":"ISNULL",child:es[0]!};
+       if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
+       return null;
+      };
+      const xn=nullTest(x),yn=nullTest(y);
+      if(xn||yn)return !!xn&&!!yn&&xn.op===yn.op&&same(xn.child,yn.child);
+
 
       const containsSelect=(n:LemonValue<SqlToken>):boolean=>n.kind==="reduction"&&(n.signature.startsWith("select ::=")||n.children.some(containsSelect));
       if(containsSelect(x)||containsSelect(y))return false;
