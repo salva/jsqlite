@@ -1022,3 +1022,23 @@ test('nested copied OR builders share exhaustion and unwind errors at later recu
   assert.equal(active,0,`budget ${remaining}`);assert.ok(budget.remaining>=0&&budget.remaining<=remaining);
  }
 });
+test('OR arm index scan traverses owning outer clause without copying residual ownership',()=>{
+ const s=schema(),r=resolve("SELECT id FROM t WHERE a='x' AND (b=1 OR b=2)",s),main=analyzeWhere(r).clause;
+ const parent=main.terms.find(t=>t.info?.kind==='or'),arm=parent.info.clause.terms[0];
+ const temp={terms:Object.freeze([arm]),outer:main,split:'and'};
+ const loops=btreeLoops(r.sources[0],0,temp,{neededColumns:new Set([s.id]),orderBy:[],resolved:r});
+ const composite=loops.find(l=>l.capability?.equalityPrefix.length===2);
+ assert.ok(composite,'whereScanNext reaches outer a equality for b arm');
+ assert.ok(composite.capability.equalityPrefix.some(e=>e.term===arm));
+ assert.ok(composite.capability.equalityPrefix.some(e=>e.term===main.terms[0]));
+ assert.deepEqual(composite.terms,[arm],'residual ownership stays local');
+});
+test('outer constraint scan unions prerequisites without admitting sibling OR arms',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND (t.b=1 OR t.b=2)',s),main=analyzeWhere(r).clause;
+ const parent=main.terms.find(t=>t.info?.kind==='or'),arm=parent.info.clause.terms[0];
+ const temp={terms:Object.freeze([arm]),outer:main,split:'and'};
+ const loops=btreeLoops(r.sources[0],0,temp,{neededColumns:new Set([s.id]),orderBy:[],resolved:r});
+ const loop=loops.find(l=>l.capability?.equalityPrefix.length===2);assert.ok(loop);assert.equal(loop.prereq,sourceBit(1));
+ assert.ok(!loop.capability.equalityPrefix.some(e=>e.term===parent.info.clause.terms[1]));
+ assert.equal(parent.info.clause.outer,null);
+});

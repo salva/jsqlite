@@ -218,7 +218,12 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  const sourcePrereq=options.sourcePrereq??0n;
  const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
  const scanCapability:BtreeCapability=freeze({index:null,physicalIndex:null,equalityPrefix:Object.freeze([]),lower:null,upper:null,constrainedFields:0,orderTermsSatisfied:scanOrder?1:0,reverse:scanOrder?.descending??false,covering:true,needsTableLookup:false,rowidEquality:null,rowidLower:null,rowidUpper:null});
- const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=owned.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
+ // whereScanNext walks pWC then pOuter for constraint lookup. Keep the
+ // clause-local residual inventory separate: outer constraints are not owned
+ // by this arm, and outer OR parents must not trigger recursive exploration.
+ const scanTerms:WhereTerm[]=[],seenTerms=new Set<WhereTerm>();
+ for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms)if(!seenTerms.has(term)){seenTerms.add(term);scanTerms.push(term);}
+ const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=scanTerms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
  // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
