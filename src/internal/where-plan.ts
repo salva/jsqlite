@@ -570,6 +570,21 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
       };
       x=isAlias(x);y=isAlias(y);
+      // parse.y empty IN replaces a function-free lhs with lower-case
+      // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
+      // claim that replacement for function, PTR-function or SELECT carriers.
+      const emptyIn=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
+       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+       const lhs=exprChildren(n)[0];
+       if(!lhs||list?.kind!=="reduction"||op?.kind!=="reduction"||directExprReductions(list).length!==0)return n;
+       const unsafe=(v:LemonValue<SqlToken>):boolean=>v.kind==="reduction"&&(v.signature.startsWith("select ::=")||v.signature.includes(" PTR ")||v.signature.startsWith("expr ::= ID")&&v.signature.includes(" LP ")||v.children.some(unsafe));
+       if(unsafe(lhs))return n;
+       const seed=asExpr(n).tokens[0]!;
+       return {kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"id",text:op.signature.includes("NOT")?"true":"false"}}]};
+      };
+      x=emptyIn(x);y=emptyIn(y);
       // parse.y singleton IN with a constant RHS and scalar LHS produces
       // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
       // constants here; function/compound constant admission needs its walker.

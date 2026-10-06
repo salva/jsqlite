@@ -612,3 +612,15 @@ test('singleton IN proof retains unary-plus affinity boundary and nonconstant ex
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('necessary operand proof follows empty IN boolean production without functions',()=>{
+ for(const [x,y] of [['u.b IN ()','false'],['u.b NOT IN ()','true']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('empty IN operand proof preserves function lhs and boolean token identity',()=>{
+ for(const [x,y] of [['abs(u.b) IN ()','false'],['(u.b+abs(u.a)) NOT IN ()','true'],['u.b IN ()','true'],['u.b IN ()','FALSE'],['u.b NOT IN ()','false']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
