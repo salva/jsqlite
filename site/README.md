@@ -28,5 +28,10 @@ textContent for SQL result cells, preserves duplicate column names and exact
 INTEGER strings, and limits results to 1,000 rows. No telemetry, query backend,
 remote user-database upload, or public npm publication is involved.
 
+Pages can compress static database responses, making the wire Content-Length
+different from the decoded byte length. This demo downloads its fixed fixture,
+then opens a local Blob URL with the exact decoded size and revokes it after
+cleanup. No changes to the pinned engine or transport guarantees are implied.
+
 Updating the pinned engine requires a deliberately validated release selection
 and refreshed browser tests. Do not simply change the site to run dirty HEAD.
