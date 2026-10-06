@@ -1911,3 +1911,11 @@ test('ISNULL proposal budgets stop at prefix lower pair upper without eager late
  }
  }
 });
+test('terminal exact-budget cost is distinct from a pending range continuation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a IS NULL AND b<?1',s),c=analyzeWhere(r).clause;
+ const costs={a:[]},budget={remaining:2};
+ btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ assert.equal(budget.remaining,0);assert.equal(costs.a[0].nOut,23n,'terminal upper proposal has no next constrained insertion');
+ }
+});
