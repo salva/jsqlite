@@ -1145,3 +1145,11 @@ test('pOrSet range proposal suspends scanner before later outer RHS when budget 
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
  assert.equal(budget.remaining,0);
 });
+test('pOrSet inserts equality prefix before touching deeper index field',()=>{
+ const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND b=?',s),c=analyzeWhere(r).clause;
+ const sentinel=new Error('deeper field must remain suspended'),late={...c.terms[1]};
+ Object.defineProperty(late,'expression',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.equal(budget.remaining,0);
+});

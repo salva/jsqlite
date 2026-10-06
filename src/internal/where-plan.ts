@@ -100,7 +100,11 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    for(const term of matches){
     const admission=admit(term);if(!admission)continue;
     constrained=true;
-    if(admission.bound==="equality")yield* visit(field+1,[...equality,admission]);
+    if(admission.bound==="equality"){
+     const prefix=[...equality,admission];
+     yield makeCapability(index,physical!,prefix,null,null,ordinal,needed,order);
+     if(field+1<physical!.declaredFieldCount)yield* visit(field+1,prefix);
+    }
     else if(admission.bound.startsWith("lower")){
      yield makeCapability(index,physical!,equality,admission,null,ordinal,needed,order);
      // WHERE_BTM_LIMIT recursion permits upper bounds only, restarting
@@ -110,7 +114,7 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
      }
     }else yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);
    }
-   if(!constrained)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);
+   if(!constrained&&equality.length===0)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);
    return;
   }
   const admissions=[...matches].map(admit).filter((item):item is IndexConstraintAdmission=>item!==null).sort(admissionOrder);
