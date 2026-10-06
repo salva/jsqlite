@@ -2063,3 +2063,16 @@ test('AddOr OK zero-arm failure continues later parents while DONE stops',()=>{
  }
  }
 });
+test('nested OR publication DONE propagates distinct completion with shared budget',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.t.indexes=Object.freeze([]);
+ const r=resolve('SELECT id FROM t WHERE ((id=?1 OR id=?2) AND id>?3) OR id=?4',s),c=analyzeWhere(r).clause;
+ for(const remaining of [7,8,11,12,13,14]){
+ const set={a:[]},completion={done:false},budget={remaining};
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ assert.equal(budget.remaining,Math.max(0,remaining-13));
+ assert.equal(completion.done,remaining<13);
+ assert.equal(set.a.length,remaining<13?0:1);
+ }
+ }
+});
