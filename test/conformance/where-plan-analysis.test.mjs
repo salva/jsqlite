@@ -2109,3 +2109,17 @@ test('empty rejected upper recursion preserves own OK at zero for sPk and real i
  assert.equal(set.a[0].nOut,onlyLower.a[0].nOut-1n,'rejected seek upper remains residual for output adjustment');
  }
 });
+
+test('canonical NOTNULL retains opcode identity across schema and analyzed predicates',()=>{
+ const predicate=sql=>parseSql(`SELECT a FROM t WHERE ${sql}`).statement.where;
+ const identity=wherePlanning.expressionStructuralIdentity;
+ const expected=identity(predicate('a IS NOT NULL'));
+ for(const sql of ['a NOTNULL','a NOT NULL','(a) IS NOT (NULL)','(a NOTNULL)']){
+  assert.equal(identity(predicate(sql)),expected,sql);
+  const r=resolve(`SELECT a FROM t WHERE ${sql}`,schema());
+  assert.equal(identity(analyzeWhere(r).clause.terms[0].expression),expected,`${sql}/analyzed`);
+ }
+ assert.notEqual(identity(predicate('a IS NULL')),expected);
+ assert.notEqual(identity(predicate('b NOTNULL')),expected);
+ assert.notEqual(identity(predicate('a IS NOT 1')),expected);
+});
