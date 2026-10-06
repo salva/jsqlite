@@ -719,3 +719,15 @@ test('nested IN constant proof retains scalar/list rejection, order and SELECT e
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
  }
 });
+test('singleton IN constant walk includes nested singleton scalar children',()=>{
+ for(const rhs of ['1 IN (2)','1 NOT IN (2)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('nested singleton IN constant proof rejects scalar and RHS columns',()=>{
+ for(const rhs of ['u.a IN (2)','1 IN (u.a)','1 NOT IN (abs(2))']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
