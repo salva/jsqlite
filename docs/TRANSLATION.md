@@ -229,8 +229,8 @@ coded/slice state and row-value slices are not admitted. See
 Represented IN-list arms use shared RHS iterator registers with inside-out
 restart, NULL/duplicate suppression and full arm truth; scalar equality NULL
 exits the arm while range/scan exhaustion advances its IN probe.
-Factored-AND exclusions remain incomplete; this
-is not accepted full runtime delivery. Selected planning and arm replanning
+Factored-AND and full caller cleanup equivalence remain nonexhaustive; the
+delivered runtime boundary and focused acceptance below are not whole-goal approval. Selected planning and arm replanning
 now consume the enclosing builder construction frontier. The bounded public
 reproducer passes with tagged native binding classes and full repeated-arm
 execution roots; see [consumer evidence](research/card-s-f-or/verification.md). Internal
@@ -238,11 +238,13 @@ execution roots; see [consumer evidence](research/card-s-f-or/verification.md). 
 and VM RowSetTest implements first-batch test bypass and final-batch insert bypass.
 Logical charges are 64-byte owner and 1016-byte/42-entry retained chunks (including
 forest links/merged duplicates), not JS heap measurements. Async checkpoints bound
-primitive work; no selected caller/runtime acceptance follows. Native/internal
-primitive evidence and remaining integration gates: [[card:card-s-f-c]] status.
-Three
-encoding plan-only handoffs pass independently of still-red lowering opcode and
-selected-work assertions in `or-rowid-red.test.mjs`; no runtime acceptance follows.
+primitive work. Native/internal RowSet checks and selected single-table/inner
+public checks pass within the demonstrated boundary; broader resource/cleanup
+proofs remain incomplete. Earlier plan-only handoffs and red lowering/work
+assertions are historical reproducer stages, not current failures. Current
+focused511/typecheck and separate browser/public evidence, reviewer test overlays
+and pending integration/goal acceptance are attributed in [[card:card-s-f-c]]
+status and [consumer evidence](research/card-s-f-or/verification.md).
 
 Detailed source comparisons, parser/scanner limitations and revision inventories
 are preserved in [prelowering evidence](research/card-s-f-b-prelowering-detail.md)

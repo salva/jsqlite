@@ -9,7 +9,7 @@ not recursive/join OR completion or optimizer-wide credit; baseline/current
 failure provenance and fresh checks are in
 [repair evidence](../research/card-s-f-or/verification.md#canonical-null-consumer-repair).
 
-## Current partial OR prelowering boundary
+## Current bounded OR analysis and runtime boundary
 
 [[card:card-s-f-b]] implements clause-owned OR/AND graph and lazy shared-budget
 cost-only production, not Case5 SELECT lowering. [[card:card-s-f-c]] adds internal
@@ -31,9 +31,11 @@ compatibility credit. Exact stored three-slot insertion,
 frame-local ignored child rc, per-call DONE and parent publication have focused
 controls. Immutable parent loops have capability:null/setup0/sort0; lowering owns
 physical arm replanning and seek/binding provenance. Three encoding planning
-handoffs, draft opcode checks and the bounded tagged-binding public reproducer
-are green separately from incomplete broader acceptance. Current attempts and unchanged harness weaknesses are recorded in
-[[card:card-s-f-c]] status; no complete consumer acceptance is inferred.
+handoffs, selected opcode/work checks and the bounded tagged-binding public
+reproducer are green; finite delivered runtime acceptance is distinct from
+incomplete whole-goal source/caller review. Historical harness weaknesses, their
+repairs, exact candidate gates and separate reviewer overlays are recorded in
+[[card:card-s-f-c]] status; no exhaustive consumer acceptance is inferred.
 Ordinary/forced-index fallback is retained; WR union and unsafe selected joins are
 deferred, not owner-scope withdrawals. Full expression comparison/flags, recursive
 admission/cleanup, transitive lowering and native cost parity remain unproved.
@@ -42,7 +44,8 @@ Current contracts/mappings: [WHERE guide](../TRANSLATION.md#where-joins-and-phys
 [source map](../SQLITE_SOURCE_MAP.md#where-and-joins). Detailed superseded assertions
 are preserved in [revision-bound evidence](../research/card-s-f-b-prelowering-detail.md)
 and the card status, not competing current guidance. This supersedes baseline
-preimplementation predictions only for graph/cost production, not runtime acceptance.
+preimplementation predictions for graph/cost and the demonstrated bounded
+runtime path, not exhaustive runtime equivalence or whole-goal acceptance.
 
 This is a mutable project audit and correction input, not a completed remediation
 report or an instruction to discard the engine. Keep `docs/SPEC.md` scope and the
