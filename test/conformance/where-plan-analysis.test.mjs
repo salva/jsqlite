@@ -731,3 +731,15 @@ test('nested singleton IN constant proof rejects scalar and RHS columns',()=>{
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton constant proof sees nested empty IN production drop function-free lhs',()=>{
+ for(const rhs of ['u.a IN ()','u.a NOT IN ()']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('nested empty IN constant proof preserves function-bearing and SELECT exclusions',()=>{
+ for(const rhs of ['abs(u.a) IN ()','abs(1) NOT IN ()','(SELECT u.a) IN ()']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});

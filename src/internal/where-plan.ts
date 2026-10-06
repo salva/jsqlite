@@ -606,7 +606,9 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        // token and assigned-slot identity is checked later by same().
        // Keep ID/column/function/SELECT admission unproved here.
        const constant=(v:ExprReduction):boolean=>{
-        v=parens(v);
+        // Constant walking observes parser-produced empty-IN replacement,
+        // not the discarded raw lhs. Reuse that semantic producer.
+        v=emptyIn(parens(v));
         const ts=asExpr(v).tokens;
         // TK_ID converts to TK_TRUEFALSE before name resolution in this
         // parser-time mode1 walk; EP_Quoted must prevent that conversion.
