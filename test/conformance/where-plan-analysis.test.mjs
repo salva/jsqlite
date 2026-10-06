@@ -683,3 +683,15 @@ test('singleton boolean IN proof retains case token and quoted ID exclusion',()=
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
  }
 });
+test('singleton IN mode-one walk continues through boolean and comparison nodes',()=>{
+ for(const rhs of ['NOT 1','1=2','1<2','1 AND 2','1 OR 2','1 IS NULL','1 COLLATE NOCASE']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton boolean/comparison constant walk retains child rejection and structural identity',()=>{
+ for(const [rhs,other] of [['NOT u.a','NOT u.a'],['1=u.a','1=u.a'],['abs(1) AND 2','abs(1) AND 2'],['1<2','2>1'],['1 COLLATE NOCASE','1 COLLATE BINARY']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${rhs}/${other}`);
+ }
+});
