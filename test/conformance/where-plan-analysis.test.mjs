@@ -490,3 +490,15 @@ test('nullable test operand proof retains opcode and child distinctions',()=>{
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
  }
 });
+test('null-test literal folding produces integer operands for necessary bounds',()=>{
+ for(const [x,y] of [['1 ISNULL','0'],['-1 NOTNULL','1'],["'x' IS NULL",'0'],["X'01' NOT NULL",'1'],['1.0 IS NOT NULL','1']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('null-test literal folding does not evaluate other opcodes',()=>{
+ for(const rhs of ['NULL ISNULL','(1+1) ISNULL','CAST(1 AS INTEGER) ISNULL','1 NOTNULL']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t WHERE t.a=(1 ISNULL) OR t.a<(${rhs})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});

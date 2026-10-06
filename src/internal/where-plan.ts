@@ -568,6 +568,18 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        if(es.length===1&&(n.signature==="expr ::= expr ISNULL|NOTNULL"||n.signature==="expr ::= expr NOT NULL"))return {op:asExpr(n).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?"ISNULL":"NOTNULL",child:es[0]!};
        return null;
       };
+      const foldNullLiteral=(n:ExprReduction):ExprReduction=>{
+       const test=nullTest(n);if(!test)return n;
+       let child=parens(test.child);
+       while(child.signature==="expr ::= PLUS|MINUS expr")child=parens(exprChildren(child)[0]!);
+       const tokens=asExpr(child).tokens;
+       // sqlite3PExprIsNull inspects opcode after stripping unary signs,
+       // not runtime value, numeric conversion or constant evaluation.
+       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind))return n;
+       const value:SqlToken={...tokens[0]!,kind:"integer",text:test.op==="NOTNULL"?"1":"0"};
+       return {kind:"reduction",rule:0,signature:"expr ::= term",children:[{kind:"reduction",rule:0,signature:"term ::= INTEGER",children:[{kind:"terminal",tokenId:0,value}]}]};
+      };
+      x=foldNullLiteral(x);y=foldNullLiteral(y);
       const xn=nullTest(x),yn=nullTest(y);
       if(xn||yn)return !!xn&&!!yn&&xn.op===yn.op&&same(xn.child,yn.child);
 
