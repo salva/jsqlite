@@ -553,6 +553,18 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        const xb=binding(resolved,x),yb=binding(resolved,y);
        if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
       }
+      const xtokens=asExpr(x).tokens,ytokens=asExpr(y).tokens;
+      if(xtokens.length===1&&ytokens.length===1&&xtokens[0]!.kind==="integer"&&ytokens[0]!.kind==="integer"){
+       // sqlite3ExprAlloc EP_IntValue uses sqlite3GetInt32, not int64
+       // runtime numeric conversion. Decimal parsing retains its prefix rule.
+       const intValue=(text:string):bigint|null=>{
+        const hex=/^0[xX][0-9a-fA-F]+$/.test(text),digits=hex?text:/^[0-9]+/.exec(text)?.[0];
+        if(!digits)return null;
+        const value=BigInt(digits);return value<=2147483647n?value:null;
+       };
+       const xv=intValue(xtokens[0]!.text),yv=intValue(ytokens[0]!.text);
+       return xv!==null||yv!==null?xv!==null&&yv!==null&&xv===yv:xtokens[0]!.text===ytokens[0]!.text;
+      }
       const xc=exprChildren(x),yc=exprChildren(y);
       if(xc.length||yc.length||[...x.children,...y.children].some(c=>c.kind==="reduction"&&!c.signature.startsWith("expr ::="))){
        if(x.signature!==y.signature||xc.length!==yc.length)return false;

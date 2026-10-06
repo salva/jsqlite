@@ -380,3 +380,9 @@ test('necessary combines reject non-WO_SINGLE overlapping operands within AND ar
   assert.equal(c.terms.filter(t=>t.virtual).length,0,predicate);
  }
 });
+test('necessary combine integer identity follows EP_IntValue boundary, not all int64 values',()=>{
+ for(const [rhs1,rhs2,expected] of [['5','0x5',true],['2147483648','0x80000000',false],['1_000','1000',false]]){
+  const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs1} OR a<${rhs2}`,schema())).clause;
+  assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${rhs1}/${rhs2}`);
+ }
+});
