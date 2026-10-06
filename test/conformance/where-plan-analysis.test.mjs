@@ -1347,3 +1347,9 @@ test('scanner raw RHS uses resolved alias opcode rather than identifier carrier'
  assert.equal([...wherePlanning.scanWhereTerms(c,c.terms[0].left,r,t=>t.operator==='eq')].includes(c.terms[1]),expr!=='t.a','copied COLLATE/function differs from copied TK_COLUMN');
  }
 });
+test('equivalence production consumes resolved alias expressions and copied COLLATE flags',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [expr,expected] of [['b',true],['CAST(? AS REAL)',true],['b COLLATE BINARY',false],['CAST(? AS TEXT)',false]]){
+ const r=resolve(`SELECT ${expr} AS bb FROM t WHERE b=bb`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,expr);
+ }
+});

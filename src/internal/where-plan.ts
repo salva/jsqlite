@@ -616,14 +616,28 @@ function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
 function termEquivalence(resolved:ResolvedSelect,draft:{node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null}):boolean {
  if(draft.operator!=="eq"&&draft.operator!=="is")return false;
  if(draft.origin.kind==="join-on"&&draft.origin.join==="left")return false;
- const hasCollate=(node:ExprReduction):boolean=>node.signature.startsWith("expr ::= expr COLLATE")||exprChildren(node).some(hasCollate);
+ // resolveAlias copies result expression and its flags before analysis.
+ const aliasOperand=(node:ExprReduction):ExprReduction=>{
+  let at=node;
+  for(;;){
+   const alias=resolved.aliasUses?.get(at);
+   if(alias){at=alias;continue;}
+   if(at.signature==="expr ::= LP expr RP"){const child=exprChildren(at)[0];if(child){at=child;continue;}}
+   return at;
+  }
+ };
+ const hasCollate=(carrier:ExprReduction):boolean=>{
+  const node=aliasOperand(carrier);
+  return node.signature.startsWith("expr ::= expr COLLATE")||node.children.some(child=>child.kind==="reduction"&&(child.signature.startsWith("expr ::=")||child.signature.startsWith("exprlist ::=")||child.signature.startsWith("nexprlist ::="))&&hasCollate(child));
+ };
  if(hasCollate(draft.node))return false;
  if(draft.operator==="is"&&resolved.sources.length>=2&&resolved.sources[0]?.leftOfRightJoin)return false;
  const children=exprChildren(draft.node),lhs=children[0],rhs=children[1];
  if(!lhs||!rhs)return false;
- const a=resolvedExpressionAffinity(lhs,resolved)??"blob",b=resolvedExpressionAffinity(rhs,resolved)??"blob";
+ const left=aliasOperand(lhs),right=aliasOperand(rhs);
+ const a=resolvedExpressionAffinity(left,resolved)??"blob",b=resolvedExpressionAffinity(right,resolved)??"blob";
  if(a!==b&&(!numericAffinity(a)||!numericAffinity(b)))return false;
- return sqliteAsciiFold(resolvedExpressionCollation(lhs,resolved)??"binary")===sqliteAsciiFold(resolvedExpressionCollation(rhs,resolved)??"binary");
+ return sqliteAsciiFold(resolvedExpressionCollation(left,resolved)??"binary")===sqliteAsciiFold(resolvedExpressionCollation(right,resolved)??"binary");
 }
 /** where.c:whereScanNext column equivalence visitation. Acceptance callback
  * owns opMask/index affinity/collation admission; yielded terms retain their
