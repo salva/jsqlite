@@ -160,6 +160,46 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
 ## WHERE, joins and physical indexes
 
+Selected rowid multi-index OR is a **partial prelowering implementation**, not
+runtime compatibility credit. `where-plan.ts` owns tagged immutable clause-owned
+OR/AND info, original residual terms, stable term references and indexable masks.
+OR clauses have no outer; AND clauses refer to the enclosing clause. Constraint
+lookup walks local then outer clauses, while residuals/OR discovery stay local.
+`orArmClause` supplies AND clauses or a source-matching one-term temporary clause
+with enclosing outer; stored commutations remain separate entries.
+
+`whereexpr.c:exprAnalyzeOrTerm/whereCombineDisjuncts` own masks, copied/commuted
+terms, two-way necessary combines and OR-to-IN production. Virtual IN retains the
+original OR residual and goes through existing IN admission. Comparison uses
+resolved operands, produced parser flags/opcodes, affinity/collation and join
+origin, not SQL-text matching. Expression equivalence/alias, constant production
+and all recursive flags remain bounded; this is not exhaustive ExprCompare or
+expression-index admission fidelity. `scanWhereTerms` models the 11-slot
+local/outer equivalence scan and reverse EQ/IS exclusion; transitive scan results
+retain original term/RHS and explicit seek target. Ordinary transitive lowering,
+rowid IN, SELECT-IN multiplicity and full RIGHT/LTORJ proof remain incomplete.
+
+`where-or-cost.ts` owns the mutable three-slot prereq/run/output set. Insertion
+uses stored first-match replacement/discard, minimum nOut on replacement, and the
+pinned surprising smallest-rRun full-slot comparison, not generic Pareto pruning.
+Move copies active slots without aliasing. Arm products preserve order, union
+prerequisites and LogEstAdd; zero-cost arms abandon their parent. Publication is
+immutable `kind:"multi-or"`, original `orInfo`, capability:null, setup0/sort0,
+run+1/output estimate and no captured physical branch choice. Lowering must
+replan physical arms from these clauses, preserving binding/seek provenance.
+
+Selected cost production is bounded to rowid persistent-index/equality/range/AND/
+nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
+or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
+scans are not selected OR. Case5/RowSet VM/SELECT lowering is outstanding. Three
+encoding plan-only handoffs pass independently of still-red lowering opcode and
+selected-work assertions in `or-rowid-red.test.mjs`; no runtime acceptance follows.
+
+Detailed source comparisons, parser/scanner limitations and revision inventories
+are preserved in [prelowering evidence](research/card-s-f-b-prelowering-detail.md)
+and [[card:card-s-f-b]] status; [native proposal evidence](research/card-s-f-or.md)
+is independently captured, not a current implementation oracle for every branch.
+
 `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
@@ -168,22 +208,28 @@ solver uses ordered candidate insertion and unsorted bounded slots with separate
 setup/run/output and total/unsorted costs (where.c2744–2939,5835ff), not generic
 Pareto pruning. Source/sort identities are separate; budget is builder-owned.
 Candidate exploration is suspended at each immutable proposal and inserted
-immediately, rather than building an eager capability list. Exhaustion closes
-recursive/index/rowid exploration; `planWhere` retains the per-source increment
+immediately, rather than building an eager capability list. Early stops close
+suspended recursive/index/rowid iterators; `planWhere` retains the per-source increment
 and later-source continuation (where.c3284,3580ff,4966,5025ff). Private small-budget
 production checks observe both leaf construction and later-index access stopping.
-Potential ORDER usefulness follows `indexMightHelpWithOrderBy` (where.c3664ff):
-a same-cursor rowid/IPK term preserves every ordered persistent index's identity
-before dominance, even when complete physical ORDER satisfaction is zero.
-The all-encoding before/after stat-choice and production analysis tests cover
-this distinction; an `unordered` statistic still prevents ORDER usefulness.
-Indexed row-size metadata is now produced and consumed in the in-progress
-[[card:card-s-e-b]] repair below; OR-set lowering, automatic-index execution,
-STAT4 and star heuristics remain residuals, not full optimizer coverage.
-The approved SECOND immutable row-width/stat1 owner proposal and pinned
-native-first acceptance are in [card-s-e-row-width](research/card-s-e-row-width.md).
-Runtime acceptance remains red; proposal approval is not compatibility credit.
-[Repair decisions/evidence](research/card-s-d-a-ordered-where.md). Alias/ordinal ORDER resolution occurs before immutable plan handoff.
+**Cost-mode completion:** copied builders share mutable construction budget,
+not their per-call `completion.done` carrier. Successful insertion consuming the
+last unit returns OK; attempted insertion at zero clears its set and returns DONE,
+before nLTerm admission. Scan OK-at-zero continues to sPk/index safety; DONE
+stops before admission. Persistent and sPk frames save their own insertion rc,
+execute permitted child recursion even after own DONE, ignore child return at the
+pinned boundary, restore own rc, then stop their own scan on own DONE. Upper-only
+frames stop on their own failed insert. Thrown errors unwind, not become DONE.
+
+Returned OK may have empty costs after ignored child DONE. AddOr successful
+zero-arm failure continues later parents, but actual arm DONE stops discovery.
+Completed last-arm sums attempt publication even at zero; publication DONE clears
+the caller set. Exploration is suspended rather than an eager inventory;
+suspended scanners close on stop/error, while completed capability frames can
+finish naturally. Ordinary budget/per-source continuation is retained. Nested
+budget evidence must count outer-clause proposals, not visible SQL arms alone.
+Full recursive flags/restoration and admission remain unproved; focused tests do
+not establish general optimizer or native cost parity (status attempts134–149).
 
 Ordinary comma/CROSS/INNER/LEFT routes and represented repeated RIGHT/FULL
 barriers execute at the documented gates. The single-barrier milestone is

@@ -1,5 +1,23 @@
 # Translation fidelity audit — 2026-09-14
 
+## Current partial OR prelowering boundary
+
+[[card:card-s-f-b]] implements clause-owned OR/AND graph and lazy shared-budget
+cost-only production, not Case5/RowSet lowering. Exact stored three-slot insertion,
+frame-local ignored child rc, per-call DONE and parent publication have focused
+controls. Immutable parent loops have capability:null/setup0/sort0; lowering owns
+physical arm replanning and seek/binding provenance. Three encoding planning
+handoffs are green separately from outstanding opcode/public selected-work tests.
+Ordinary/forced-index fallback is retained; WR union and unsafe selected joins are
+deferred, not owner-scope withdrawals. Full expression comparison/flags, recursive
+admission/cleanup, transitive lowering and native cost parity remain unproved.
+
+Current contracts/mappings: [WHERE guide](../TRANSLATION.md#where-joins-and-physical-indexes),
+[source map](../SQLITE_SOURCE_MAP.md#where-and-joins). Detailed superseded assertions
+are preserved in [revision-bound evidence](../research/card-s-f-b-prelowering-detail.md)
+and the card status, not competing current guidance. This supersedes baseline
+preimplementation predictions only for graph/cost production, not runtime acceptance.
+
 This is a mutable project audit and correction input, not a completed remediation
 report or an instruction to discard the engine. Keep `docs/SPEC.md` scope and the
 translation-first default in `AGENTS.md` and `docs/TRANSLATION.md`. The sole source

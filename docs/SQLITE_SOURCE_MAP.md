@@ -68,6 +68,24 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+Partial prelowering OR mapping (current contracts: [WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes)):
+
+| Pinned owner | TypeScript producer/consumer | Focused evidence |
+| --- | --- | --- |
+| `whereexpr.c:exprAnalyzeOrTerm/whereCombineDisjuncts`, `whereInt.h` OR/AND info | `where-plan.ts` clause-owned analysis, masks, commutations, necessary combines, virtual IN retaining residual | `where-plan-analysis.test.mjs`; comparison/affinity/parser flags remain bounded |
+| `where.c:whereScanInit/Next` | `scanWhereTerms`, local/outer lookup, stable RHS/seek provenance, 11-slot equivalence | analysis tests; ordinary transitive lowering and full outer-join proof outstanding |
+| `where.c:whereOrInsert/Move`, `whereInt.h:WhereOrSet` | `where-or-cost.ts` exact ordered three-slot insertion/move/products | `where-or-cost.test.mjs`, including smallest-run full-slot behavior |
+| `where.c:whereLoopInsert` pOrSet, `whereLoopAddBtreeIndex`3284/3580ff, `whereLoopAddOr`4837/4880/4912ff | `btreeLoops` lazy proposals, shared budget, frame-local ignored recursive rc, per-call completion and immutable parent publication | production budget/completion tests in `where-plan-analysis.test.mjs`; status134–149 |
+| `where.c:whereLoopAddAll`4966/5025ff | `planWhere` source continuation/budget | ordinary budget/index controls; no exhaustive cleanup claim |
+| `wherecode.c` Case5, `sqlite3WhereEnd`, VM RowSet/Gosub/Return | outstanding direct lowering; replan arms via `orArmClause`, never use physical cost inventory | `or-rowid-red.test.mjs`: three encoding plan handoffs separated from still-red opcode/public execution tests |
+
+Immutable multi-or loops retain original OR info, prerequisites, capability:null,
+setup0/sort0 and run+1/output; physical choice belongs to lowering. WR/unsafe joins
+remain fallback. [Native proposal](research/card-s-f-or.md),
+[revision-bound source detail](research/card-s-f-b-prelowering-detail.md) and
+[[card:card-s-f-b]] status retain commands/failures/provenance. This map grants no
+runtime OR selection or exhaustive compatibility credit.
+
 `whereLoopAddBtreeIndex` exploration (where.c3284,3580ff) maps to suspended
 `capabilities` proposals and immediate `whereLoopInsert` in `btreeLoops`;
 exhaustion closes exploration, not just admissions. `whereLoopAddAll`4966/5025ff
