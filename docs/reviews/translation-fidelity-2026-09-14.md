@@ -4926,3 +4926,13 @@ remove it. Raw Column/key affinity and Rowid are unchanged. Original nested
 caller REAL mismatch and later enclosing-counter attribution are retained in
 [scoped evidence](../research/card-s-f-or/scoped-closure.md#real-joined-projection-repair-uncommitted-continuation). Expanded source/native controls are bounded,
 not whole-lowerer parity; independent delivery review remains pending.
+
+### Current Case5 tested/untested residual ownership
+
+Current guide removes the superseded unconditional full-parent/no-TERM_CODED
+assertion: arm readiness controls tested-parent omission and untested-parent
+downstream retention, not covering status. Original parent truth remains intact
+when any arm prerequisite is unavailable; independent enclosing conjuncts are
+not disabled by factoring. [Source/overlay evidence and remaining independent
+review boundary](../research/card-s-f-or/residual-frontier-closure.md). This
+contract correction does not certify exhaustive recursive cleanup or cost parity.

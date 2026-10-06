@@ -840,3 +840,17 @@ attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.
 extraction; expression and single-table producers already emit RealAffinity.
 Rowid and raw storage/key reads stay separate. Tests: `real-projection-caller`
 and `or-correlated-in-lifecycle-review`; [evidence and boundaries](research/card-s-f-or/scoped-closure.md#expanded-logical-column-controls).
+
+### Case5 residual frontier ownership
+
+`wherecode.c` Case5 factored-scope construction and `untestedTerms`/`disableTerm`
+→ `where-plan.ts:orRuntimeArmClause` and `vdbe.ts:emitJoinedOr`, single-table
+OR arm truth, `codedOrIdentities`/`codedWhere` common-body residual routing.
+Eligible original indexable conjuncts exclude virtual, nullable-ON and subquery
+terms; represented row-value slices are not admitted. Fully tested parents omit
+repeated truth; unready arm predicates keep the complete original parent until
+the enclosing ready frontier. Other enclosing conjuncts retain independent
+residual ownership. Covering cursor rewrites do not determine truth ownership.
+Tests: `or-unready-arm-frontier-review`, `or-nested-rowset-lifecycle-review`,
+`or-correlated-in-lifecycle-review`, `or-rowid-red`. [Authentication, source
+comparison and bounds](research/card-s-f-or/residual-frontier-closure.md).

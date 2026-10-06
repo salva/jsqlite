@@ -1,0 +1,193 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": "SELECT i.id,y.id FROM o i CROSS JOIN o y WHERE ((i.a=1 AND y.id=1) OR (i.b='beta' AND y.id=2)) AND y.id<=2",
+  "classification": "supplemental",
+  "variants": [
+    {
+      "id": "utf8",
+      "fixture": {
+        "path": "test/fixtures/or-rowid/utf8.db",
+        "bytes": 86016,
+        "sha256": "7ab050a57c647203f8c915cac00cc450b282851fe5eb39cf0ad7aa531cd3daf4"
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH i USING INDEX oa (a=?)",
+        "INDEX 2",
+        "SEARCH i USING INDEX ob (b=?)",
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)",
+        "INDEX 2",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)"
+      ]
+    },
+    {
+      "id": "utf16le",
+      "fixture": {
+        "path": "test/fixtures/or-rowid/utf16le.db",
+        "bytes": 86016,
+        "sha256": "6be246f7e414ac90d46dc8319f993bd43d9829515b60139c89a1b33497016681"
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH i USING INDEX oa (a=?)",
+        "INDEX 2",
+        "SEARCH i USING INDEX ob (b=?)",
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)",
+        "INDEX 2",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)"
+      ]
+    },
+    {
+      "id": "utf16be",
+      "fixture": {
+        "path": "test/fixtures/or-rowid/utf16be.db",
+        "bytes": 86016,
+        "sha256": "c02f44e25fe6ce0d0cc2e382e8a04a723d0dd8c3520399dc9027d5c25af1e163"
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH i USING INDEX oa (a=?)",
+        "INDEX 2",
+        "SEARCH i USING INDEX ob (b=?)",
+        "MULTI-INDEX OR",
+        "INDEX 1",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)",
+        "INDEX 2",
+        "SEARCH y USING INTEGER PRIMARY KEY (rowid=?)"
+      ]
+    }
+  ]
+}

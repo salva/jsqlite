@@ -216,17 +216,17 @@ actual already-positioned outer mask; unready prerequisites remain excluded.
 Single-table Case5 retains a common physical index only when every selected
 leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
 covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
-reads and existing deferred table positioning intact. Full arm/parent residuals
-remain tested (no TERM_CODED omission or index-only execution claim). Index Rowid
+reads and existing deferred table positioning intact. Arm truth is tested at its ready frontier; fully tested selected parents omit
+repeated common-body truth, while untested parents remain downstream residuals. Index Rowid
 uses the integer tail cached during physical positioning; no separate index
 movement is introduced. Represented-inner levels likewise share an owned arm index
 cursor and publish common physical identity for level-bounded Column/Rowid rewrite;
-nested/non-index/different arms invalidate it. Full residuals remain tested.
+nested/non-index/different arms invalidate it. The same tested/untested parent frontier applies, independent of covering.
 See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
 and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
 Joined direct/coalesced result extraction preserves logical REAL expansion after
 Column, including covering rewrites; Rowid remains INTEGER. Raw storage/key
-reads are unchanged. [Focused evidence and remaining trace assertion](research/card-s-f-or/scoped-closure.md#real-joined-projection-repair-uncommitted-continuation).
+reads are unchanged. [Focused evidence and resolved trace ownership](research/card-s-f-or/scoped-closure.md#real-joined-projection-repair-uncommitted-continuation).
 Prepared scalar consumers bind the owned constraint expression before extracting
 its RHS, preserving outer NameContext identity. Simple persistent rowid children
 of zero-FROM SELECT use the same selected shared-builder WHERE lowerer and
