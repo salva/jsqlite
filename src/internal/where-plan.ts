@@ -570,6 +570,25 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:`expr ::= expr ${op} expr`,children:op==="IS"?[es[0]!,is,es[1]!]:[es[0]!,is,{...is,kind:"terminal",value:{...is.value,kind:"keyword",text:"NOT"}},es[1]!]};
       };
       x=isAlias(x);y=isAlias(y);
+      // parse.y singleton IN with a constant RHS and scalar LHS produces
+      // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
+      // constants here; function/compound constant admission needs its walker.
+      const singletonIn=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
+       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+       if(list?.kind!=="reduction"||op?.kind!=="reduction")return n;
+       const values=directExprReductions(list),lhs=exprChildren(n)[0];
+       if(values.length!==1||!lhs)return n;
+       const rhs=values[0]!,leaf=parens(rhs),tokens=asExpr(leaf).tokens;
+       if(tokens.length!==1||!["integer","float","string","blob"].includes(tokens[0]!.kind)&&tokens[0]!.text.toUpperCase()!=="NULL")return n;
+       if(lhs.signature==="expr ::= LP nexprlist COMMA expr RP")return n;
+       const token=(text:string,kind:SqlToken["kind"])=>({kind:"terminal" as const,tokenId:0,value:{...tokens[0]!,kind,text}});
+       const plus:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= PLUS|MINUS expr",children:[token("+","punct"),rhs]};
+       const eq:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr EQ|NE expr",children:[lhs,token("=","punct"),plus]};
+       return op.signature.includes("NOT")?{kind:"reduction",rule:0,signature:"expr ::= NOT expr",children:[token("NOT","keyword"),eq]}:eq;
+      };
+      x=singletonIn(x);y=singletonIn(y);
       // parse.y BETWEEN produces a TK_BETWEEN with ordered two-item list,
       // then an optional TK_NOT parent. Normalize the semantic wrapper,
       // not Boolean value equivalence or reassociation of its children.

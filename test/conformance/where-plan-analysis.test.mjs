@@ -600,3 +600,15 @@ test('multi-item NOT IN operand proof preserves polarity, list order and variabl
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('necessary operands follow singleton constant IN equality and unary-plus production',()=>{
+ for(const [x,y] of [['u.b IN (1)','u.b=+1'],['u.b NOT IN (1)','NOT (u.b=+1)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('singleton IN proof retains unary-plus affinity boundary and nonconstant exclusions',()=>{
+ for(const [x,y] of [['u.b IN (1)','u.b=1'],['u.b IN (1)','u.b=+2'],['u.b NOT IN (1)','u.b=+1'],['u.b IN (u.a)','u.b=+u.a'],['u.b IN (?)','u.b=+?']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
