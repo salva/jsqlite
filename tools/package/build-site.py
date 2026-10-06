@@ -1,5 +1,6 @@
 """Build a static site with the accepted alpha engine, never a dirty runtime overlay."""
 from pathlib import Path
+import hashlib
 import shutil
 import subprocess
 import tarfile
@@ -26,6 +27,19 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / 'site', OUT)
+    # Content-address the UI/worker so Pages' ten-minute cache cannot retain
+    # a previous worker after deployment. Engine inputs are pinned separately.
+    worker_text = (OUT / 'worker.js').read_text()
+    worker_name = 'worker-' + hashlib.sha256(worker_text.encode()).hexdigest()[:12] + '.js'
+    (OUT / worker_name).write_text(worker_text)
+    app_text = (OUT / 'app.js').read_text().replace("'worker.js'", repr(worker_name))
+    app_name = 'app-' + hashlib.sha256(app_text.encode()).hexdigest()[:12] + '.js'
+    (OUT / app_name).write_text(app_text)
+    css = (OUT / 'style.css').read_bytes()
+    css_name = 'style-' + hashlib.sha256(css).hexdigest()[:12] + '.css'
+    (OUT / css_name).write_bytes(css)
+    html = (OUT / 'index.html').read_text().replace('src="app.js"', f'src="{app_name}"').replace('href="style.css"', f'href="{css_name}"')
+    (OUT / 'index.html').write_text(html)
     assets = OUT / 'assets'
     assets.mkdir()
     shutil.copytree(source / 'dist', assets / 'engine')

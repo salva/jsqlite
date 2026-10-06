@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,12 +22,18 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 tools/package/build-site.py
+      - name: Install isolated browser test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/jsqlite-site-tests" --no-audit --no-fund playwright@1.60.0
+          "$RUNNER_TEMP/jsqlite-site-tests/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Validate actual browser playground
+        run: JSQLITE_PLAYWRIGHT="$RUNNER_TEMP/jsqlite-site-tests/node_modules/playwright/index.mjs" node test/browser/public-site.test.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
