@@ -624,3 +624,15 @@ test('empty IN operand proof preserves function lhs and boolean token identity',
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
  }
 });
+test('empty IN operand proof preserves function lhs in ordered boolean production',()=>{
+ for(const [x,y] of [['abs(u.b) IN ()','false AND abs(u.b)'],['abs(u.b) NOT IN ()','true OR abs(u.b)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
+test('function-bearing empty IN proof retains operand order, operator and child',()=>{
+ for(const [x,y] of [['abs(u.b) IN ()','abs(u.b) AND false'],['abs(u.b) NOT IN ()','true AND abs(u.b)'],['abs(u.b) IN ()','false AND abs(u.a)']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
