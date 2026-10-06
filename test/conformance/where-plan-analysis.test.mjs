@@ -743,3 +743,15 @@ test('nested empty IN constant proof preserves function-bearing and SELECT exclu
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton IN mode-one CASE walk includes optional operand and ordered WHEN THEN ELSE list',()=>{
+ for(const rhs of ['CASE WHEN 1 THEN 2 END','CASE 1 WHEN 1 THEN 2 ELSE 3 END']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('CASE constant walk rejects each nonconstant carrier and retains ordered branches',()=>{
+ for(const [rhs,other] of [['CASE u.a WHEN 1 THEN 2 END','CASE u.a WHEN 1 THEN 2 END'],['CASE WHEN u.a THEN 2 END','CASE WHEN u.a THEN 2 END'],['CASE WHEN 1 THEN u.a END','CASE WHEN 1 THEN u.a END'],['CASE WHEN 1 THEN 2 ELSE u.a END','CASE WHEN 1 THEN 2 ELSE u.a END'],['CASE WHEN 1 THEN 2 ELSE 3 END','CASE WHEN 1 THEN 3 ELSE 2 END']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${other}))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});

@@ -616,6 +616,12 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         if(ts.length===1)return ["integer","float","string","blob","variable"].includes(ts[0]!.kind)||ts[0]!.text.toUpperCase()==="NULL";
         const es=exprChildren(v);
         const ordinary=v.signature.startsWith("expr ::= CAST LP expr AS ")||v.signature==="expr ::= PLUS|MINUS expr"||v.signature==="expr ::= BITNOT expr"||/^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
+        // TK_CASE pLeft is optional; x.pList appends ordered WHEN/THEN
+        // expressions and optional ELSE. Walk every expression, not results.
+        if(v.signature==="expr ::= CASE case_operand case_exprlist case_else END"){
+         const values=directExprReductions(v);
+         return values.length>=2&&values.every(constant);
+        }
         // Nonempty TK_IN owns pLeft plus x.pList; singleton constant
         // production becomes EQ/UPLUS with the same child obligations. SELECT-backed IN
         // is deliberately excluded: exprIsConst installs SelectWalkFail.
