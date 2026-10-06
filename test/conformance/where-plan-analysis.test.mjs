@@ -1659,3 +1659,30 @@ test('unfolded null-test keeps sign positioning and HasFunc child ownership',()=
  assert.equal(visit(fn.expression.reduction),true);
  }
 });
+test('AND false production sees function removed by nested empty-IN production',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (1 ISNULL) AND ((1 IN ()) AND abs(a)=?)',schema(encoding))).clause;
+ // HasFunc survives the inner AND; it must prevent outer false folding too.
+ assert.ok(c.terms.some(t=>t.operator==='eq'));
+ }
+});
+test('empty-IN HasFunc constant parent prevents redundant AND folding',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE (abs(a) IN ()) AND b=?',schema(encoding))).clause;
+ assert.ok(c.terms.some(t=>t.operator==='eq'));
+ }
+});
+test('comparison semantic production drops parser-discarded arithmetic descendant',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const t=analyzeWhere(resolve('SELECT id FROM t WHERE b = (((1 ISNULL) AND a=?) + 2)',schema(encoding))).clause.terms[0];
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr AND expr'||v.children.some(visit));
+ assert.equal(visit(t.expression.reduction),false);
+ }
+});
+test('recursive comparison production preserves HasFunc and raw-zero arithmetic',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['b = (((1 ISNULL) AND abs(a)=?) + 2)','b = ((0 AND a=?) + 2)']){
+ const t=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema(encoding))).clause.terms[0];
+ const visit=v=>v.kind==='reduction'&&(v.signature==='expr ::= expr AND expr'||v.children.some(visit));
+ assert.equal(visit(t.expression.reduction),true);
+ }
+});
