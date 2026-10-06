@@ -582,6 +582,20 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return token?{...n,signature:"expr ::= NOT expr",children:[token,base]}:n;
       };
       x=between(x);y=between(y);
+      // parse.y applies a NOT parent after constructing nonempty IN.
+      // Restrict this proof to multi-item scalar lists: empty lists and
+      // singleton constant lists have separate semantic production branches.
+      const notIn=(n:ExprReduction):ExprReduction=>{
+       if(n.signature!=="expr ::= expr in_op LP exprlist RP")return n;
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("in_op ::="));
+       const list=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::="));
+       if(op?.kind!=="reduction"||!op.signature.includes("NOT")||list?.kind!=="reduction"||directExprReductions(list).length<2)return n;
+       const token=op.children.find(c=>c.kind==="terminal"&&c.value.text.toUpperCase()==="NOT");
+       const base={...n,children:n.children.map(c=>c===op?{...op,signature:"in_op ::= IN",children:op.children.filter(v=>v!==token)}:c)};
+       return token?{...n,signature:"expr ::= NOT expr",children:[token,base]}:n;
+      };
+      x=notIn(x);y=notIn(y);
+
 
       // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
       // Compare the produced unary opcode and its child, not grammar aliases.

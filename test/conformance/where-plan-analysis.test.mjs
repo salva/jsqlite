@@ -590,3 +590,13 @@ test('BETWEEN proof retains wrapper polarity and list order',()=>{
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('necessary operands compare produced NOT parent for multi-item IN',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b NOT IN (1,2)) OR t.a<(NOT (u.b IN (1,2)))',schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('multi-item NOT IN operand proof preserves polarity, list order and variable positions',()=>{
+ for(const [x,y] of [['u.b NOT IN (1,2)','u.b IN (1,2)'],['u.b NOT IN (1,2)','NOT (u.b IN (2,1))'],['u.b NOT IN (?,2)','NOT (u.b IN (?,2))'],['u.b NOT IN (1,2)','NOT (u.a IN (1,2))']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),`${x}/${y}`);
+ }
+});
