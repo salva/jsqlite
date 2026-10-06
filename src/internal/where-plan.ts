@@ -514,8 +514,15 @@ function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signatur
 /** expr.c:sqlite3ExprSkipCollateAndLikely, with parse.y parentheses as
  * transparent carriers. Resolved builtin likely/unlikely/likelihood calls
  * carry EP_Unlikely upstream; do not skip arbitrary function arguments. */
-function skipCollateAndLikely(node:ExprReduction):ExprReduction {
- let at=unwrap(node);
+function skipCollateAndLikely(node:ExprReduction,resolved:ResolvedSelect):ExprReduction {
+ // C resolveAlias has already replaced identifiers before this loop. In TS,
+ // follow that carrier at every step, including function-list arguments.
+ const copied=(value:ExprReduction):ExprReduction=>{
+  let at=unwrap(value);
+  while(resolved.aliasUses?.has(at))at=unwrap(resolved.aliasUses.get(at)!);
+  return at;
+ };
+ let at=copied(node);
  while(at.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){
   const token=at.children.find(x=>x.kind==="terminal");
   const name=token?.kind==="terminal"?dequotedName(token.value.text):"";
@@ -529,7 +536,7 @@ function skipCollateAndLikely(node:ExprReduction):ExprReduction {
   };
   if(list)collect(list);
   if(args.length!==(name==="likelihood"?2:1))break;
-  at=unwrap(args[0]!);
+  at=copied(args[0]!);
  }
  return at;
 }
@@ -660,7 +667,7 @@ export function* scanWhereTerms(clause:WhereClause,target:ColumnBinding,resolved
    node=alias;
   }
   // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
-  if(skipCollate&&node)node=skipCollateAndLikely(node);
+  if(skipCollate&&node)node=skipCollateAndLikely(node,resolved);
   return node&&!node.signature.startsWith("expr ::= expr COLLATE")?binding(resolved,node):null;
  };
  for(let i=0;i<slots.length;i++){

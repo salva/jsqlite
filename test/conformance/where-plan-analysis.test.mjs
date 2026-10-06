@@ -1353,3 +1353,10 @@ test('equivalence production consumes resolved alias expressions and copied COLL
  assert.equal(analyzeWhere(r).clause.terms[0].equivalence,expected,expr);
  }
 });
+test('scanner expansion skips interleaved alias copies and likely carriers',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const expr of ['unlikely(u.a)','(unlikely(u.a))','unlikely(u.a) COLLATE NOCASE','abs(u.a)']){
+ const r=resolve(`SELECT ${expr} AS ua FROM t JOIN t AS u WHERE t.a=likely(ua) AND u.a=?`,schema(encoding)),c=analyzeWhere(r).clause;
+ const seed={...c.terms[0],equivalence:true},clause=wherePlanning.whereClause([seed,...c.terms.slice(1)]);
+ assert.equal([...wherePlanning.scanWhereTerms(clause,c.terms[0].left,r,t=>t.operator==='eq')].includes(c.terms[1]),expr!=='abs(u.a)','resolved copy is inspected before next skip step');
+ }
+});
