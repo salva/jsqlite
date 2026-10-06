@@ -1216,3 +1216,12 @@ test('LEFT target index costs accept only terms owned by its ON cursor',()=>{
 
  }
 });
+test('LEFT rowid costs use same target ON ownership gate as persistent indexes',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const onOwned of [false,true]){
+ const s=schema(encoding),r=resolve(onOwned?'SELECT t.id FROM t LEFT JOIN t AS u ON u.id=t.id':'SELECT t.id FROM t LEFT JOIN t AS u ON u.b=t.b WHERE u.id=?',s),c=analyzeWhere(r).clause,set={a:[]};
+ btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ assert.equal(set.a.length>0,onOwned,'LEFT rowid constraint must belong to target ON');
+ const loops=btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[]});
+ assert.equal(loops.some(l=>l.kind==='rowid'),onOwned);
+ }
+});

@@ -8,7 +8,7 @@ const table = Object.freeze({kind:'table', name:'t', tableName:'t', rootPage:2,
   szTabRow:16, nRowLogEst:200, hasStat1:false,
   columns:Object.freeze([]), indexes:Object.freeze([]), withoutRowid:false,
   primaryKey:Object.freeze([]), primaryKeyTerms:Object.freeze([])});
-const source = Object.freeze({table, cursorId:0});
+const source = Object.freeze({table, cursorId:0, joinFromLeft:Object.freeze({left:false,right:false})});
 const loop = (kind, runCost=10n, outputRows=0n) => Object.freeze({source,
   sourceOrdinal:0, prereq:0n, capability:null, kind, setupCost:0n,
   runCost, outputRows, terms:Object.freeze([])});

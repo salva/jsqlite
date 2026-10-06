@@ -74,6 +74,11 @@ function makeCapability(index:IndexNode,physical:PhysicalIndex,equality:readonly
 /** whereLoopAddBtreeIndex proposes alternatives rather than choosing the first
  * term. Each equality chain and each applicable lower/upper pair retains its
  * own exact admissions and prerequisite mask for whereLoopInsert/path solving. */
+/** where.c:constraintCompatibleWithOuterJoin, represented LEFT tranche.
+ * Both sPk rowid exploration and persistent fields share this target proof. */
+function leftTargetCompatible(term:WhereTerm,source:ResolvedSource,ordinal:number):boolean {
+ return !source.joinFromLeft.left||(term.outerOn===true&&term.joinOwner===ordinal);
+}
 function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number,needed:ReadonlySet<NeededColumn>,order:readonly OrderRequirement[],targetSource:ResolvedSource,costScan?:{clause:WhereClause;resolved:ResolvedSelect;source:ResolvedSource}):Generator<BtreeCapability> {
  const physical=index.physical;if(!physical)return;
  // A suspended generator is the represented recursive rc==SQLITE_OK seam:
@@ -89,7 +94,7 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    if(!term.outerJoinSafe.mayDrive)return null;
    // constraintCompatibleWithOuterJoin: nullable LEFT target requires its
    // own outer ON carrier, stable even in borrowed one-term clauses.
-   if(targetSource.joinFromLeft.left&&(!term.outerOn||term.joinOwner!==ordinal))return null;
+   if(!leftTargetCompatible(term,targetSource,ordinal))return null;
    // indexColumnNotNull: declared columns own nullability; expression fields
    // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
    if(term.operator==="is-null"&&scanField.column?.notNull)return null;
@@ -276,7 +281,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // by this arm, and outer OR parents must not trigger recursive exploration.
  const scanTerms:WhereTerm[]=[],seenTerms=new Set<WhereTerm>();
  for(let wc:WhereClause|null=clause;wc;wc=wc.outer)for(const term of wc.terms)if(!seenTerms.has(term)){seenTerms.add(term);scanTerms.push(term);}
- const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=scanTerms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
+ const owned=clause.terms.filter(term=>(term.prereqAll&sourceBit(sourceOrdinal))!==0n),own=scanTerms.filter(term=>term.left?.source===source&&term.outerJoinSafe.mayDrive&&leftTargetCompatible(term,source,sourceOrdinal)),scan:WhereLoop=freeze({source,sourceOrdinal,prereq:sourcePrereq,capability:scanCapability,kind:"table-scan",setupCost:0n,runCost:BigInt(source.table.nRowLogEst)+16n,outputRows:BigInt(source.table.nRowLogEst),terms:Object.freeze(owned)});
  // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000};
