@@ -408,10 +408,10 @@ type ExprReduction=LemonValue<SqlToken>&{readonly kind:"reduction"};
 function exprChildren(node:ExprReduction):ExprReduction[]{return node.children.filter((x):x is ExprReduction=>x.kind==="reduction"&&x.signature.startsWith("expr ::="));}
 function asExpr(node:ExprReduction):ExprNode {const tokens:SqlToken[]=[];const collect=(x:LemonValue<SqlToken>):void=>{if(x.kind==="terminal"){if(x.value)tokens.push(x.value);}else x.children.forEach(collect)};collect(node);return Object.freeze({kind:"tokens",tokens:Object.freeze(tokens),reduction:node});}
 function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signature==="expr ::= LP expr RP"||at.signature.startsWith("expr ::= expr COLLATE")){const child=exprChildren(at)[0];if(!child)break;at=child;}return at;}
-function dequotedName(text:string):string {
+function dequotedName(text:string,fold=true):string {
  const quote=text[0],end=quote==="["?"]":quote;
  if(quote==='"'||quote==="'"||quote==="`"||quote==="[")text=text.slice(1,-1).split(end!+end!).join(end!);
- return sqliteAsciiFold(text);
+ return fold?sqliteAsciiFold(text):text;
 }
 function explicitExprCollation(node:ExprReduction):BuiltinCollation|null {if(node.signature.startsWith("expr ::= expr COLLATE")){const token=node.children.filter(x=>x.kind==="terminal").at(-1);const name=token?.kind==="terminal"?dequotedName(token.value.text):"";return name==="binary"||name==="nocase"||name==="rtrim"?name:null;}for(const child of exprChildren(node)){const found=explicitExprCollation(child);if(found)return found;}return null;}
 function literalAffinity(_node:ExprReduction):ColumnNode["affinity"]|null {return null;}
@@ -561,6 +561,21 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
       }else{
        const xb=binding(resolved,x),yb=binding(resolved,y);
        if(xb||yb)return !!xb&&!!yb&&xb.source===yb.source&&xb.columnIndex===yb.columnIndex;
+      }
+      if(x.signature.startsWith("expr ::= CAST")||y.signature.startsWith("expr ::= CAST")){
+       if(x.signature!==y.signature)return false;
+       // parse.y passes typetoken to ExprAlloc(dequote=1); ExprCompare
+       // uses strcmp for TK_CAST, unlike function/collation names.
+       const typeToken=(n:ExprReduction)=>{
+        const type=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("typetoken ::="));
+        if(!type||type.kind!=="reduction")return null;
+        const tokens=asExpr(type).tokens;
+        // Multi-token types retain source span (including inter-token trivia)
+        // upstream. Until that span is carried, do not assert equivalence.
+        return tokens.length===1?dequotedName(tokens[0]!.text,false):null;
+       };
+       const xt=typeToken(x),yt=typeToken(y),xc=exprChildren(x)[0],yc=exprChildren(y)[0];
+       return xt!==null&&xt===yt&&!!xc&&!!yc&&same(xc,yc);
       }
       const xtokens=asExpr(x).tokens,ytokens=asExpr(y).tokens;
       if(xtokens.length===1&&ytokens.length===1&&xtokens[0]!.kind==="integer"&&ytokens[0]!.kind==="integer"){

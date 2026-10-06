@@ -454,3 +454,15 @@ test('necessary comparison opcode proof does not merge different operators',()=>
  const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b!=1) OR t.a<(u.b=1)',schema())).clause;
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('CAST token identity is case sensitive in necessary operand proof',()=>{
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=CAST(u.b AS INTEGER) OR t.a<CAST(u.b AS integer)',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('CAST dequotes type tokens without folding or dropping operand identity',()=>{
+ for(const [x,y,expected] of [['INTEGER','"INTEGER"',true],['INTEGER','[INTEGER]',true],['INTEGER','`INTEGER`',true],['"INTEGER"','"integer"',false],['INTEGER','TEXT',false]]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=CAST(u.b AS ${x}) OR t.a<CAST(u.b AS ${y})`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${x}/${y}`);
+ }
+ const c=analyzeWhere(resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=CAST(u.b AS INTEGER) OR t.a<CAST(u.a AS INTEGER)',schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
