@@ -1408,3 +1408,11 @@ test('comparison implicit collation follows deferred operands before right colum
  assert.equal(analyzeWhere(r).clause.terms[0].effectiveCollation,expected,`${lhs}=${rhs}`);
  }
 });
+test('comparison RHS affinity production uses resolved expression metadata',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [rhs,expected] of [['CAST(? AS REAL)','real'],['likely(b)','real'],['+b',null],['abs(b)',null]]){
+ const r=resolve(`SELECT id FROM t WHERE a=${rhs}`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms[0].rightAffinity,expected,rhs);
+ const alias=resolve(`SELECT ${rhs} AS operand FROM t WHERE a=operand`,schema(encoding));
+ assert.equal(analyzeWhere(alias).clause.terms[0].rightAffinity,expected,`alias ${rhs}`);
+ }
+});
