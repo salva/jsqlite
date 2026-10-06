@@ -315,7 +315,7 @@ test('pinned combine admission uses indexable and total OR nTerm, not original-a
 test('combine families retain exact strict/equality ties and reject opposing direction or operand proofs',()=>{
  for(const [predicate,expected] of [['a=5 OR a<5','le'],['a>5 OR a=5','ge'],['a<5 OR a<=5','le'],['a>5 OR a>=5','ge'],['a<5 OR a<5','lt'],['a>=5 OR a>=5','ge'],['a=5 OR a=5','eq'],['a<5 OR a>5',null],['a<5 OR a<6',null],['a=5 OR b<5',null],['a IS 5 OR a<5',null],['5=a OR a<5',null],['a COLLATE BINARY=5 OR a COLLATE NOCASE<5',null]]){
   const c=analyzeWhere(resolve(`SELECT id FROM t WHERE ${predicate}`,schema())).clause;
-  assert.deepEqual(c.terms.filter(t=>t.virtual).map(t=>t.operator),expected?[expected]:[],predicate);
+  assert.deepEqual(c.terms.filter(t=>t.virtual&&t.operator!=='in').map(t=>t.operator),expected?[expected]:[],predicate);
   assert.ok(Object.isFrozen(c.terms));assert.equal(c.terms[0].virtual,false);
  }
 });
@@ -936,4 +936,21 @@ test('infix HasFunc propagates through CASE CAST and ordered argument carriers',
  const d=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=((1 IN ()) AND (${lhs})) OR t.a<0`,schema())).clause;
  assert.ok(!d.terms.some(t=>t.virtual&&t.operator==='le'),lhs);
  }
+});
+test('OR equality produces clause-owned virtual IN retaining original residual',()=>{
+ const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=1 OR a=2',schema())).clause;
+ const parent=c.terms.find(t=>t.info?.kind==='or');
+ const child=c.terms.find(t=>t.virtual&&t.operator==='in'&&t.parentId===parent.id);
+ assert.ok(child);assert.ok(parent.childIds.includes(child.id));
+ assert.equal(parent.expression.tokens.filter(t=>t.text.toUpperCase()==='OR').length,1);
+ assert.equal(child.prereqRight,0n);
+});
+test('OR-IN proof retains orientation, affinity and join provenance',()=>{
+ for(const [predicate,expected] of [['1=a OR 2=a',true],['a=1 OR b=2',false],['a=1 OR a<2',false],['a=u.b OR a=2',false],['a=u.a OR a=2',true],['a=1 OR (a=2 AND b>0)',false]]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE ${predicate.replaceAll('a=','t.a=').replaceAll('b=','t.b=').replaceAll('=a','=t.a').replace('a<','t.a<').replace('b>','t.b>')}`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='in'),expected,predicate);
+ }
+ const c=analyzeWhere(resolve('SELECT t.id FROM t LEFT JOIN t AS u ON u.a=1 OR u.a=2',schema())).clause;
+ const child=c.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
+ assert.equal(child.origin.kind,'join-on');assert.equal(child.outerJoinSafe.mayOmitResidual,false);
 });

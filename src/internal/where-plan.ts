@@ -4,7 +4,7 @@
 // publishes no opcodes: lowering consumes the retained admissions unchanged.
 import {whereOrCollect,whereOrInsert,whereOrAccumulate,type WhereOrSet} from "./where-or-cost.ts";
 import {SqlParseError,type ExprNode,type SelectNode} from "./parse.ts";
-import type {ResolvedSelect,ResolvedSource} from "./resolve.ts";
+import {resolvedExpressionAffinity,type ResolvedSelect,type ResolvedSource} from "./resolve.ts";
 import type {LemonValue} from "./lemon-runtime.ts";
 import type {SqlToken} from "./tokenize.ts";
 import {sqliteAsciiFold} from "./sqlite-case.ts";
@@ -847,6 +847,51 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
      const base=terms.length+combined.length;
      for(const derived of analyzed.terms)combined.push(freeze({...derived,id:base+derived.id,virtual:true,parentId:derived.parentId===null?null:base+derived.parentId,childIds:Object.freeze(derived.childIds.map(id=>base+id))}));
     }
+   }
+
+   // exprAnalyzeOrTerm case 1: candidate cursor mask follows copied/virtual
+   // EQ orientations. Physical IN admission remains the ordinary IN contract.
+   const originals=child.terms.filter(t=>!t.virtual);
+   let chngToIN=indexable;
+   for(const arm of originals){
+    const orientations=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
+    let mask=0n;
+    for(const alt of orientations)if(alt.operator==="eq"&&singleIndexMask(alt)!==0n&&alt.left)mask|=sourceBit(alt.left.sourceOrdinal);
+    chngToIN&=mask;
+   }
+   let previousCursor:number|null=null;
+   for(let attempt=0;attempt<2&&chngToIN!==0n;attempt++){
+    const candidate=child.terms.find(t=>t.operator==="eq"&&t.left&&t.left.sourceOrdinal!==previousCursor&&(chngToIN&sourceBit(t.left.sourceOrdinal))!==0n);
+    if(!candidate?.left)break;
+    previousCursor=candidate.left.sourceOrdinal;
+    // Expression-index identity is deliberately unproved at this producer seam.
+    if(candidate.left.columnIndex===-2)continue;
+    const selected:WhereTerm[]=[];let ok=true;
+    for(const arm of originals){
+     const alternatives=[arm,...child.terms.filter(t=>t.parentId===arm.id)];
+     const oriented=alternatives.find(t=>t.operator==="eq"&&t.left?.sourceOrdinal===previousCursor);
+     if(!oriented?.left||oriented.left.columnIndex!==candidate.left.columnIndex){ok=false;break;}
+     const es=exprChildren(oriented.expression.reduction as ExprReduction);
+     const lhs=es[oriented.originalIndexedOperand==="right"?1:0]!,rhs=es[oriented.originalIndexedOperand==="right"?0:1]!;
+     const rightAffinity=resolvedExpressionAffinity(rhs,resolved),leftAffinity=resolvedExpressionAffinity(lhs,resolved);
+     if(rightAffinity!==undefined&&rightAffinity!==leftAffinity){ok=false;break;}
+     selected.push(oriented);
+    }
+    if(!ok)continue;
+    // TERM_OK entries are appended in stored clause order, not arm choice order.
+    const chosen=child.terms.filter(t=>selected.includes(t));
+    const operands=(t:WhereTerm)=>exprChildren(t.expression.reduction as ExprReduction);
+    const last=chosen.at(-1)!;const lhs=operands(last)[last.originalIndexedOperand==="right"?1:0]!;
+    const seed=asExpr(node).tokens[0]!;
+    const punct=(text:string):LemonValue<SqlToken>=>({kind:"terminal",tokenId:0,value:{...seed,kind:"punct",text}});
+    let list:ExprReduction={kind:"reduction",rule:0,signature:"nexprlist ::= expr",children:[operands(chosen[0]!)[chosen[0]!.originalIndexedOperand==="right"?0:1]!]};
+    for(const entry of chosen.slice(1))list={kind:"reduction",rule:0,signature:"nexprlist ::= nexprlist COMMA expr",children:[list,punct(","),operands(entry)[entry.originalIndexedOperand==="right"?0:1]!]};
+    const inNode:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr in_op LP exprlist RP",children:[lhs,{kind:"reduction",rule:0,signature:"in_op ::= IN",children:[{kind:"terminal",tokenId:0,value:{...seed,kind:"keyword",text:"IN"}}]},punct("("),{kind:"reduction",rule:0,signature:"exprlist ::= nexprlist",children:[list]},punct(")")]};
+    const derived=analyzeClause(resolved,includeRightTerms,[{node:inNode,origin}]).clause.terms[0]!;
+    const id=terms.length+combined.length;
+    combined.push(freeze({...derived,id,virtual:true,parentId:term.id}));
+    Object.assign(term,{childIds:Object.freeze([...term.childIds,id])});
+    break;
    }
 
   }else if(split==="or"&&orIndexable!==0n&&singleIndexMask(term)===0n){
