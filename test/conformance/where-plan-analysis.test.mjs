@@ -1439,3 +1439,11 @@ test('distinct spelling feeds equivalence and OR arm indexable production',()=>{
  assert.equal(parent.info.indexable,1n);
  }
 });
+test('necessary operand proof follows resolved noncolumn alias copies',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ for(const [expr,rhs,expected] of [['CAST(u.b AS INTEGER)','CAST(u.b AS INTEGER)',true],['abs(u.b)','abs(u.b)',true],['u.b IS u.a','u.b IS NOT DISTINCT FROM u.a',true],['u.b COLLATE BINARY','u.b COLLATE NOCASE',false],['CAST(u.b AS INTEGER)','CAST(u.a AS INTEGER)',false]]){
+ const r=resolve(`SELECT ${expr} AS operand FROM t JOIN t AS u WHERE t.a=operand OR t.a<(${rhs})`,schema(encoding));
+ assert.equal(analyzeWhere(r).clause.terms.some(t=>t.virtual&&t.operator==='le'),expected,expr+'/'+rhs);
+ }
+ }
+});

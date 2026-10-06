@@ -760,7 +760,12 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
      const same=(x:ExprReduction,y:ExprReduction):boolean=>{
       // exprCompare compares resolved TK_COLUMN iTable/iColumn, not the
       // original qualifier spelling. COLLATE remains a distinct node.
-      const parens=(n:ExprReduction):ExprReduction=>n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
+      const parens=(n:ExprReduction):ExprReduction=>{
+       // resolveAlias duplicates the complete expression before ExprCompare.
+       const alias=resolved.aliasUses?.get(n);
+       if(alias)return parens(alias);
+       return n.signature==="expr ::= LP expr RP"?parens(exprChildren(n)[0]!):n;
+      };
       x=parens(x);y=parens(y);
       // parse.y mutates an existing TK_UPLUS root to the outer sign,
       // rather than attaching another unary node. Preserve UMINUS children.
