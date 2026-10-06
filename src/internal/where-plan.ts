@@ -780,6 +780,21 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:"expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP",children:[n.children[0]!,n.children[1]!,{kind:"reduction",rule:0,signature:"distinct ::=",children:[]},{kind:"reduction",rule:0,signature:"exprlist ::=",children:[]},n.children[3]!]};
       };
       x=emptyFunction(x);y=emptyFunction(y);
+      // parse.y likeop constructs Function(pattern,lhs[,escape]), then NOT.
+      const infixFunction=(n:ExprReduction):ExprReduction=>{
+       if(!n.signature.startsWith("expr ::= expr likeop expr"))return n;
+       const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("likeop ::="));
+       if(!op||op.kind!=="reduction")return n;
+       const name=op.children.find(c=>c.kind==="terminal"&&c.value.text.toUpperCase()!=="NOT");
+       if(!name||name.kind!=="terminal")return n;
+       const es=exprChildren(n),args=[es[1]!,es[0]!,...es.slice(2)];
+       let list:ExprReduction={kind:"reduction",rule:0,signature:"nexprlist ::= expr",children:[args[0]!]};
+       const punct=(text:string):LemonValue<SqlToken>=>({...name,value:{...name.value,kind:"punct",text}});
+       for(const arg of args.slice(1))list={kind:"reduction",rule:0,signature:"nexprlist ::= nexprlist COMMA expr",children:[list,punct(","),arg]};
+       const fn:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP",children:[name,punct("("),{kind:"reduction",rule:0,signature:"distinct ::=",children:[]},{kind:"reduction",rule:0,signature:"exprlist ::= nexprlist",children:[list]},punct(")")]};
+       return op.signature.includes("NOT")?{kind:"reduction",rule:0,signature:"expr ::= NOT expr",children:[op.children[0]!,fn]}:fn;
+      };
+      x=infixFunction(x);y=infixFunction(y);
       // sqlite3ExprFunction dequotes its name before ExprCompare's
       // case-insensitive TK_FUNCTION token check. Other terminals keep
       // their own semantics (including DISTINCT and list order).

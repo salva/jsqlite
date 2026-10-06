@@ -893,3 +893,19 @@ test('STAR null argument list obeys ordinary function arity and name proof',()=>
  const c=analyzeWhere(resolve('SELECT id FROM t WHERE a=random(*) OR a<sqlite_version()',schema())).clause;
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'));
 });
+test('IS parenthesized NULL uses produced null opcode rather than raw rhs tokens',()=>{
+ for(const [x,y] of [['u.b IS (NULL)','u.b ISNULL'],['u.b IS NOT ((NULL))','u.b NOTNULL']]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),x);
+ }
+});
+test('LIKE infix operand follows function production argument reversal',()=>{
+ const c=analyzeWhere(resolve("SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b LIKE 'x') OR t.a<like('x',u.b)",schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'));
+});
+test('infix function operand retains NOT, escape argument and stored reversal',()=>{
+ for(const [x,y,expected] of [["u.b NOT LIKE 'x'","NOT like('x',u.b)",true],["u.b LIKE 'x' ESCAPE '!'","like('x',u.b,'!')",true],["u.b GLOB 'x'","glob('x',u.b)",true],["u.b LIKE 'x'","like(u.b,'x')",false],["u.b NOT LIKE 'x'","like('x',u.b)",false],["u.b LIKE 'x' ESCAPE '!'","like('x',u.b,'?')",false]]){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${x}) OR t.a<(${y})`,schema())).clause;
+ assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,x);
+ }
+});
