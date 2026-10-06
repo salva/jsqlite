@@ -2030,3 +2030,17 @@ test('sPk ignored upper child DONE resumes enclosing lower just like real index'
  assert.equal(completion.done,true,'standalone enclosing upper later attempts own DONE');
  }
 });
+test('ignored real-index child DONE returns OK empty costs; sPk own DONE still reads upper safety',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),c=analyzeWhere(r).clause;
+ const completion={done:true},costs={a:[]},budget={remaining:1};
+ btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget,completion});
+ assert.equal(budget.remaining,0);assert.equal(costs.a.length,0);
+ assert.equal(completion.done,false,'own prefix OK survives ignored child DONE after enclosing scan ends');
+ const rr=resolve('SELECT id FROM t WHERE id>?1 AND id<?2',s),cc=analyzeWhere(rr).clause,sentinel=new Error('sPk recursive upper safety after own DONE'),upper={...cc.terms[1]};
+ Object.defineProperty(upper,'outerJoinSafe',{get(){throw sentinel;}});
+ const clause=wherePlanning.whereClause([cc.terms[0],upper]),state={done:false},set={a:[]};
+ assert.throws(()=>btreeLoops(rr.sources[0],0,clause,{resolved:rr,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1},completion:state}),e=>e===sentinel);
+ assert.equal(set.a.length,0);assert.equal(state.done,true,'error is thrown, not swallowed by pre-existing DONE');
+ }
+});
