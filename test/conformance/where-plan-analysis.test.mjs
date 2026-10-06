@@ -1825,3 +1825,31 @@ test('IN seek iteration cost counts expression-list entries not descendant comma
  }
  }
 });
+test('range clamp precedes residual adjustment and unavailable residual prerequisites are ignored',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);
+ const loop=(suffix)=>{
+ const r=resolve(`SELECT t.id FROM t JOIN t AS u ON 1 WHERE t.a=?1 AND t.b>?2 AND t.b<?3 ${suffix}`,s),c=analyzeWhere(r).clause;
+ return btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[]}).find(l=>l.capability?.lower&&l.capability?.upper);
+ };
+ const base=loop(''),local=loop('AND t.blob<>?4'),remote=loop('AND t.blob<>u.blob');
+ assert.ok(base&&local&&remote);
+ assert.equal(base.outputRows,10n,'prefix33 minus paired60 clamps to10');
+ assert.equal(local.outputRows,9n,'residual is applied after range clamp');
+ assert.equal(remote.outputRows,10n,'unavailable cursor prerequisite excludes residual');
+ assert.equal(local.runCost,base.runCost,'residual does not reduce physical work');
+ assert.equal(remote.runCost,base.runCost);
+ }
+});
+test('residual equality cap consumes parser-produced ExprInt32 RHS',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),scan=rhs=>{
+ const r=resolve(`SELECT id FROM t WHERE blob=(${rhs})`,s),c=analyzeWhere(r).clause;
+ return btreeLoops(r.sources[0],0,c,{notIndexed:true,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[]})[0];
+ };
+ const zero=scan('0'),produced=scan('5 IS NULL');
+ assert.equal(zero.outputRows,190n);assert.equal(produced.outputRows,zero.outputRows);
+ assert.equal(produced.runCost,zero.runCost);
+ assert.equal(scan('5 IN ()').outputRows,180n,'empty-IN produces TRUEFALSE, not EP_IntValue');
+ }
+});
