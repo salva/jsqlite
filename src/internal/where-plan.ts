@@ -670,7 +670,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
         return (ordinary||booleanOrComparison)&&es.length>0&&es.every(constant);
        };
        if(!constant(rhs))return n;
-       if(lhs.signature==="expr ::= LP nexprlist COMMA expr RP")return n;
+       if(parens(lhs).signature==="expr ::= LP nexprlist COMMA expr RP")return n;
        const token=(text:string,kind:SqlToken["kind"])=>({kind:"terminal" as const,tokenId:0,value:{...tokens[0]!,kind,text}});
        const plus:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= PLUS|MINUS expr",children:[token("+","punct"),rhs]};
        const eq:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr EQ|NE expr",children:[lhs,token("=","punct"),plus]};

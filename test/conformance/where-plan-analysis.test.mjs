@@ -820,3 +820,15 @@ test('nested null-test opcode proof does not treat TRUEFALSE or variables as INT
  assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
  }
 });
+test('singleton IN mode1 walks unary BITNOT without evaluation',()=>{
+ for(const rhs of ['~1','~:bound','~(1+2)']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(u.b IN (${rhs})) OR t.a<(u.b=+(${rhs}))`,schema())).clause;
+ assert.ok(c.terms.some(t=>t.virtual&&t.operator==='le'),rhs);
+ }
+});
+test('singleton IN scalar admission unwraps parentheses before vector exclusion',()=>{
+ for(const lhs of ['((u.a,u.b))','(((u.a,u.b)))']){
+ const c=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE t.a=(${lhs} IN (1)) OR t.a<(${lhs}=+(1))`,schema())).clause;
+ assert.ok(!c.terms.some(t=>t.virtual&&t.operator==='le'),lhs);
+ }
+});
