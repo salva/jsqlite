@@ -96,16 +96,20 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   if(target&&costScan){
    // whereLoopAddBtreeIndex resumes whereScanNext only after the current
    // term recursion returns SQLITE_OK. Do not inventory later RHS terms.
-   const lowers:IndexConstraintAdmission[]=[],uppers:IndexConstraintAdmission[]=[];
    let constrained=false;
    for(const term of matches){
     const admission=admit(term);if(!admission)continue;
     constrained=true;
     if(admission.bound==="equality")yield* visit(field+1,[...equality,admission]);
-    else if(admission.bound.startsWith("lower"))lowers.push(admission);
-    else uppers.push(admission);
+    else if(admission.bound.startsWith("lower")){
+     yield makeCapability(index,physical!,equality,admission,null,ordinal,needed,order);
+     // WHERE_BTM_LIMIT recursion permits upper bounds only, restarting
+     // the field scan after the lower-only proposal is inserted.
+     for(const upperTerm of scanWhereTerms(costScan.clause,target,costScan.resolved,t=>(t.operator==="lt"||t.operator==="le")&&(t.prereqRight&sourceBit(ordinal))===0n)){
+      const upper=admit(upperTerm);if(upper)yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);
+     }
+    }else yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);
    }
-   for(const lower of lowers.length?lowers:[null])for(const upper of uppers.length?uppers:[null])if(lower||upper)yield makeCapability(index,physical!,equality,lower,upper,ordinal,needed,order);
    if(!constrained)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);
    return;
   }
