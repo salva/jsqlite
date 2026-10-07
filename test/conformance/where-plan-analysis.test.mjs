@@ -1346,7 +1346,7 @@ test('cost rowid scanner follows column equivalence retaining original RHS prere
 
 
  const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true});
- assert.ok(ordinary.filter(l=>l.kind==='rowid').every(l=>l.prereq===2n),'physical ordinary rowid handoff unchanged');
+ assert.ok(ordinary.some(l=>l.kind==='rowid'&&l.prereq===0n),'ordinary sPk shares source equivalence scanner with cost proposals');
  }
 });
 test('whereScanNext masked non-equivalence term does not inspect RHS expression',()=>{
