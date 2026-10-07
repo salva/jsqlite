@@ -1,3 +1,4 @@
+import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -12,12 +13,13 @@ test('public large partition seek accounts visits, host yields, aborts/deadlines
  const bytes=fs.readFileSync(new URL('../fixtures/endpoint-seek/partition.db',import.meta.url));
  const server=http.createServer((q,r)=>{r.writeHead(200,{'Content-Length':String(bytes.length)});r.end(bytes)});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
- const original=EphemeralIndexCursor.prototype.seekRowid,timer=globalThis.setTimeout,now=Date.now;
+ const original=EphemeralIndexCursor.prototype.seekRowid,yieldTask=ExecutionTaskScheduler.prototype.yield,now=Date.now;
  let mode='normal',visits=0,active=false,hostYields=0,controller;
  EphemeralIndexCursor.prototype.seekRowid=async function(rowid,control){active=true;try{return await original.call(this,rowid,{checkpoint:async(units=0)=>{visits+=units;if(mode==='deadline'&&visits===260)Date.now=()=>now()+100000;await control.checkpoint(units);}})}finally{active=false;}};
- globalThis.setTimeout=(callback,delay,...args)=>{
-  if(active&&delay===0){hostYields++;return timer(()=>{assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse','connection remains admitted during actual seek host suspension');if(mode==='abort')controller.abort();callback(...args)},delay);}
-  return timer(callback,delay,...args);
+ ExecutionTaskScheduler.prototype.yield=async function(){
+  const duringSeek=active;
+  await yieldTask.call(this);
+  if(duringSeek){hostYields++;assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse','connection remains admitted during actual seek host suspension');if(mode==='abort')controller.abort();}
  };
  let db,s;
  const prefix=async(options)=>{for(let i=1;i<600;i++){assert.equal(await s.step(options),'row');assert.equal(s.column(0),BigInt(i));assert.equal(s.columnType(1),'null');}assert.equal(visits,0);};
@@ -38,5 +40,5 @@ test('public large partition seek accounts visits, host yields, aborts/deadlines
   visits=0;await prefix();mode='deadline';
   await assert.rejects(s.step({timeoutMs:10000}),e=>e.kind==='timeout');assert.equal(visits,260);
   Date.now=now;assert.throws(()=>s.reset(),e=>e.kind==='timeout');mode='normal';visits=0;await prefix();assert.equal(await s.step(),'row');s.finalize();s=undefined;
- }finally{Date.now=now;globalThis.setTimeout=timer;EphemeralIndexCursor.prototype.seekRowid=original;try{s?.finalize()}catch{}db?.close();await new Promise(r=>server.close(r));}
+ }finally{Date.now=now;ExecutionTaskScheduler.prototype.yield=yieldTask;EphemeralIndexCursor.prototype.seekRowid=original;try{s?.finalize()}catch{}db?.close();await new Promise(r=>server.close(r));}
 });

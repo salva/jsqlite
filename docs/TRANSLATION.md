@@ -1361,7 +1361,12 @@ in Vdbe; synchronous scalar traversal checks are not independently preemptible.
 
 This browser adaptation avoids measured nested-timer latency while preserving real
 timer opportunities; no cross-task-source ordering or hard real-time/background-tab
-guarantee is inferred. SQLite `vdbe.c:check_for_interrupt`/progress thresholds own
+guarantee is inferred. Cancellation fixtures observe the execution-owned scheduler's
+real yield (and hold its caller before resume), not a particular task source or the
+first zero-delay timer. This preserves lifecycle assertions with both channel and
+timer delivery; it is test orchestration, not engine-interruption proof. Repair
+and finite-run evidence: [integration outcome](research/card-w-current-integration-outcome.md).
+SQLite `vdbe.c:check_for_interrupt`/progress thresholds own
 checks and errors, not browser task scheduling. Decision, source comparison,
 exact program/work/type equivalence and repeated browser evidence: [scheduler
 evidence](research/card-h-e/green.md), [decision](research/card-h-e/decision.md).
