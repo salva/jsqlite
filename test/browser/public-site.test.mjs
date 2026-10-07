@@ -32,7 +32,9 @@ let browser;
 try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.JSQLITE_SITE_CHROMIUM });
   const page = await browser.newPage();
-  await page.goto(`http://127.0.0.1:${server.address().port}/jsqlite/`);
+  const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
+  await page.goto(base);
+  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.5/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   async function run() {
     await page.locator('#run').click();
@@ -47,6 +49,23 @@ try {
   await page.locator('#example').selectOption('types');
   assert.match(await run(), /^1 row returned/);
   assert.deepEqual(await page.locator('tbody td').allTextContents(), ['42', '3.5', 'NULL', "X'cafe'"]);
+  await page.locator('#sql').fill('SELECT a.Title AS album,COUNT(*) AS tracks,ROUND(SUM(t.Milliseconds)/60000.0,1) AS total_minutes,ROUND(AVG(t.UnitPrice),2) AS average_price,SUM(CASE WHEN t.Milliseconds>300000 THEN 1 ELSE 0 END) AS tracks_over_5_minutes FROM Album a JOIN Track t ON t.AlbumId=a.AlbumId WHERE a.AlbumId BETWEEN 1 AND 20 GROUP BY a.AlbumId,a.Title HAVING COUNT(*)>=5 ORDER BY total_minutes DESC,album LIMIT 10;');
+  const started = Date.now();
+  assert.match(await run(), /^10 rows returned/);
+  const expected = [
+    ['Big Ones', '15', '73.5', '0.99', '8'],
+    ['Alcohol Fueled Brewtality Live! [Disc 1]', '13', '67.7', '0.99', '6'],
+    ['Audioslave', '14', '65.5', '0.99', '5'],
+    ['Chemical Wedding', '11', '61.6', '0.99', '5'],
+    ['Jagged Little Pill', '13', '57.5', '0.99', '2'],
+    ['Facelift', '12', '54.2', '0.99', '3'],
+    ['Out Of Exile', '12', '53.7', '0.99', '1'],
+    ['Body Count', '17', '53.2', '0.99', '5'],
+    ['Warner 25 Anos', '14', '48.4', '0.99', '1'],
+    ['The Best Of Billy Cobham', '8', '44.7', '0.99', '3'],
+  ];
+  assert.deepEqual(await page.locator('tbody td').allTextContents(), expected.flat());
+  console.log(`Original Chinook query: ${Date.now() - started} ms including worker/open/prepare/render; ten native-matching rows`);
   await page.locator('#sql').fill('SELECT nope FROM missing_table');
   assert.match(await run(), /no such table/);
   await page.locator('#example').selectOption('albums');
@@ -57,7 +76,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   for (const name of ['LICENSE', 'NOTICE.md', 'source.tar.gz']) {
-    assert.equal((await page.request.get(`http://127.0.0.1:${server.address().port}/jsqlite/${name}`)).status(), 200);
+    assert.equal((await page.request.get(new URL(name, base).href)).status(), 200);
   }
   console.log('PASS: public site queries, gzip fixture, /jsqlite/ path, types, errors, cancellation/reuse, mobile layout and GPL/source links');
 } finally {

@@ -7,7 +7,7 @@ import tarfile
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ALPHA = '1984a9a4581746f5fb12e66ae03fad3451bf45bc'
+ALPHA = 'a3eb29659c793f630a9bd1a9c2b89836bf9bbe52'
 OUT = ROOT / '_site'
 
 def run(*args, cwd=ROOT):
@@ -28,7 +28,8 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / 'site', OUT)
     query = (source / 'examples/browser/query.js').read_text()
-    query = query.replace("'../../dist/index.js'", "'./engine/index.js'")
+    engine_name = 'engine-' + ALPHA[:12]
+    query = query.replace("'../../dist/index.js'", repr('./' + engine_name + '/index.js'))
     # Demo wrapper policy, not a change to the pinned engine.
     query = query.replace('timeoutMs: 10000', 'timeoutMs: 60000')
     query_name = 'query-' + hashlib.sha256(query.encode()).hexdigest()[:12] + '.js'
@@ -47,7 +48,7 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     (OUT / 'index.html').write_text(html)
     assets = OUT / 'assets'
     assets.mkdir()
-    shutil.copytree(source / 'dist', assets / 'engine')
+    shutil.copytree(source / 'dist', assets / engine_name)
     for name in ['chinook.sqlite', 'CHINOOK-LICENSE.md']:
         shutil.copyfile(source / 'examples/browser' / name, assets / name)
     (assets / query_name).write_text(query)

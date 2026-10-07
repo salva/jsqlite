@@ -1,6 +1,6 @@
 # Public documentation and playground
 
-This site runs the accepted `v0.0.0-alpha.4` engine, independently of development
+This site runs the accepted `v0.0.0-alpha.5` engine, independently of development
 HEAD. The site itself is maintained on the `public-site` branch so autonomous
 engine development on `master` cannot implicitly change the published demo.
 

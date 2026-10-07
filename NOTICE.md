@@ -8,8 +8,9 @@ See [LICENSE](LICENSE) for the complete terms. JSQLite is provided without any
 warranty, including merchantability or fitness for a particular purpose.
 
 This grant includes the JSQLite translation at the published alpha source
-`1984a9a4581746f5fb12e66ae03fad3451bf45bc`; the old tag remains unchanged for
-reproducibility. The licensing notice does not change the alpha's tested runtime.
+`1984a9a4581746f5fb12e66ae03fad3451bf45bc` (alpha.4) and
+`a3eb29659c793f630a9bd1a9c2b89836bf9bbe52` (alpha.5); release tags remain unchanged
+for reproducibility. The licensing notice does not change the alphas' tested runtime.
 The GPL grant applies to JSQLite contributions, not to independently licensed
 third-party material:
 
