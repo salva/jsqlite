@@ -341,9 +341,9 @@ report the 47/47 native capture as TypeScript runtime credit.
 
 Public typed execution now credits all 15 bounded RIGHT/FULL-adjacent stage-3 manifest cases: 13 successful result/metadata cases and two pinned prepare diagnostics. Coverage includes terminal and downstream barriers, both unmatched sides, USING/NATURAL and wildcard ownership, WHERE/ON placement, and FULL downstream composition. UTF-16le/be smoke probes supplement the UTF-8 captured matrix. This is not a claim for neighboring aggregate, subquery, generated-column, or WITHOUT ROWID SQL, which retains its documented gates.
 
-### Repeated-barrier correction (2026-09-17, current)
+### Historical repeated-barrier gate (2026-09-17; superseded by represented per-barrier execution)
 
-The 15-case promotion above remains the complete pinned **single-barrier** denominator; it is not evidence for repeated RIGHT/FULL barriers. Repeated RIGHT, repeated FULL, and mixed RIGHT/FULL statements are now public prepare-time atomic failures. Focused tests cover representative downstream and WHERE shapes and prove no partially lowered execution is returned. Per-barrier execution remains an explicit next tranche.
+The 15-case promotion above remains the complete pinned **single-barrier** denominator; it is not evidence for repeated RIGHT/FULL barriers. At this checkpoint repeated RIGHT, repeated FULL, and mixed RIGHT/FULL statements were public prepare-time atomic failures. The gate tests proved no partially lowered execution was returned. This singleton boundary is superseded by the represented per-barrier tranche in the current API/translation guide; its integrated acceptance remains pending.
 
 ## Aggregate GROUP/HAVING bounded runtime evidence ([[card:card-l-c]])
 
@@ -738,7 +738,7 @@ pass typed rows, forced alternatives and selected access/sorter accounting;
 `run-advanced-index-ts.test.mjs` pass 98/98 together. The latter's joined
 single-field IN expectation was corrected against independent pinned 3.53.4
 read-only EXPLAIN (join equality index seek; IN residual); it is not a
-multiple-probe credit. Unsupported stat4 and additional stat1 formats are not
+multiple-probe credit. Unrepresented STAT4 refinements and additional stat1 formats are not
 covered by the six fixture choices; no general planner parity is claimed.
 
 [[card:card-s-c-d-f]] regression checkpoint: the six stat-choice public cases
@@ -838,3 +838,21 @@ reset in all three encodings; physical trace/page-count tests run internally in
 Node. Whole-product compatibility and untested nullable/WR union optimizations
 are not implied. Candidate identities and fresh delivery gates are retained in
 [[card:card-s-f-c]] status.
+
+### Bounded STAT4 consumer verification (in progress)
+
+`stat4-keystats.test.mjs` compares virtual-prefix/gap/count/error behavior against
+`stat4-keystats-oracle.c`, independently compiled with the pinned amalgamation.
+The retained captures allow ordinary runs without a native backend; optional
+`STAT4_KEY_ORACLE` reruns internal comparisons. Research `public-first.test.mjs`
+checks selected private actual cursor work and public typed rows/metadata/reset/
+errors across three encodings. These checks do not establish parameter plan parity
+or exhaustive caller/resource acceptance. Current extent and residuals:
+[guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers);
+[revision-bound commands/results](research/card-s-h/c-red/consumer-progress.md).
+Finite ordinary and OR/join consuming work/reservation unwind controls and native
+success/error frontier controls are retained in
+[OR lifecycle evidence](research/card-s-h/c-red/or-unwind-progress.md). Exact
+committed candidate integration checks are documented separately in
+[isolation evidence](research/card-s-h/c-red/isolation-progress.md); passing these
+bounded checks is not overflow discovery metering or independent review acceptance.

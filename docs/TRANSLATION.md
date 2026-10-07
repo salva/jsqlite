@@ -1296,13 +1296,21 @@ The shared WHERE prerequisite owner now follows only SELECT-bearing expression i
 ### Outer-join WHERE continuation ownership
 `wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending. The index-planner LEFT WHERE safety fixture counts ON once and two base terms on each matched/synthetic-null body entry (five residual checks); these private counts are not native allocator or VM-step parity. Fixture/source-assertion repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
 
-## Optional STAT4 loading (estimates pending)
+## Optional STAT4 loading and selectivity consumers
 
 `analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
 `schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
 and alias skip, original-order load and average initialization. Temporary stat1
 raw counts are discarded after loading; no-stat1 files can still load samples.
-Samples are not yet consumed for selectivity: no STAT4 cost/plan parity claim.
+The current consumer uses samples for literal equality/IS/ISNULL, contiguous
+known multicolumn prefixes, represented literal-list IN, and ordinary scalar
+ranges. This bounded extent is not general STAT4 cost/plan parity. Ordinary
+rowid proposals now share the source sPk equivalence/range exploration used by
+OR cost proposals; equality does not suppress competing rowid ranges. A fully
+matched outer-loop ORDER list stays matched through inner loops; partial joined
+proofs remain conservative. Independent caller rows/metadata/reset and qualitative
+actual-work evidence (not exact VM counts) is in
+[caller progress](research/card-s-h/c-red/callers-progress.md).
 `sqliteInt.h:IndexSample` ownership maps to privately copied bytes (inspection
 returns copies), frozen count arrays, and connection/storage cache lifetime.
 `storage.ts` owns an internal checked logical schema envelope derived from the
@@ -1317,20 +1325,59 @@ extraction from existing Lemon semantic productions and all-slot Mem cleanup.
 NOTFOUND is not SQL NULL; parameters mark sensitivity and explicitly fall back
 (no initial binding plan-parity claim). Unsupported expressions/functions remain
 unavailable, not a parallel evaluator. Prefix scopes restore nField/nRecValid;
-consuming KeyStats/selectivity estimates remain pending. Numeric token extraction
+KeyStats uses the source virtual-prefix binary search, exact counts and
+anAvgEq gap interpolation; it does not sort a histogram. Builder-local probes
+restore active/valid prefixes and release all Mem slots on exit. Numeric token extraction
 preserves source spelling for TEXT affinity before numeric conversion; typed
 INTEGER/REAL results follow valueFromExpr rather than execution CAST alone.
 Count digits, outer btree payload copies and probe token work charge existing
-prepare checks. Full payload reconstruction consumes the existing
-`payloadChunks` overflow iterator sequentially: check before page fetch, then
-check/copy the current page before inspecting its successor. Current-copy primary
-failures therefore precede successor corruption; cycle/range/overflow-limit and
-strict terminal-link checks remain intact. The strict terminal-link check is
-existing admission behavior, not a claim of upstream malformed-byte parity.
-Standalone `overflowPages` discovery is unchanged and is not used by payload
-reconstruction. Host codecs/allocations remain synchronous (no event-loop
+prepare checks. Host codecs/allocations remain synchronous (no event-loop
 preemption). Internal source oracle tests cover padded malformed comparison and
 value extraction; public prepare failure/retry tests do not imply estimate parity.
+
+`where-plan.ts` translates sample caller gating before run costing, DESC
+bound swapping/inclusive prefix clamps/same-sample tuning, HIGHTRUTH/HEURTRUTH
+shared builder state, and a whole-loop second construction pass before solving.
+Each complete AddAll invocation initializes the source construction limit (20000,
+plus 1000 per source); second-pass rebuilding starts from that same limit, not
+from previously consumed lowering state. Empty construction frontiers report
+source `SQLITE_ERROR` / `no query solution`, not unsupported SQL; finite native
+controls are retained in [frontier evidence](research/card-s-h/c-red/frontier-progress.md).
+Nested use of a shared carrier restores
+the enclosing truth and insertion frontier on success/error. Failed outer
+invocations likewise discard their clause-local carrier and restore prior
+completed state; only successful outer invocations publish builder state.
+[Unwind evidence](research/card-s-h/c-red/unwind-progress.md) covers every checked
+work/reservation frontier in bounded hot/membership/range builders. The completed
+internal selection publishes frozen flag arrays owned by that clause, copied
+from the mutable builder sets; builder reuse cannot mutate earlier publication.
+RIGHT/FULL fallback initializes the same fresh reusable carrier before publishing
+empty flags, not stale prior-clause state. [Fallback lifecycle evidence](research/card-s-h/c-red/fallback-progress.md).
+Tests and
+source branch comparison: [publication evidence](research/card-s-h/c-red/publication-progress.md).
+Truth remains local
+to its clause invocation rather than leaking into a later selected-arm analysis.
+Equality proposal frames now own sample extraction through insertion and child
+recursion; frame-finally restores valid/active prefixes on sibling advance,
+generator close and work failure. Literal-list IN restores its inherited prefix
+per member; unavailable members discard the partial sample estimate.
+The ordered solver applies the source interstage heuristic only after the first
+solver selected leading equality/NULL/IN searches. Full-table scan penalty uses
+the source sample-present adjustment. Unknown/skip prefixes retain stat1 range
+fallback. Initial parameters remain unavailable for sample costing (no reprepare
+lifecycle); vector/function/subquery probes and skipscan sample refinement remain
+unimplemented. Production probes reserve all-field Mem/record metadata and
+conservative per-slot extraction/value high-water capacity in the existing
+connection schema envelope before allocation/extraction, releasing on all-slot
+ProbeFree. This logical allowance is not measured JS heap or maxPrivateBytes;
+capacity is held until builder exit, including unavailable expressions. Ordinary
+and selected OR-arm replanning use the same owner. Exhaustive construction-frontier,
+OR/join and failure-restoration coverage remain verification/implementation work;
+see [[card:card-s-h-c]] and [current repair evidence](research/card-s-h/c-red/reservation-progress.md).
+
+Tests: `stat4-keystats.test.mjs` (direct pinned internal oracle controls and
+production second pass), existing research `public-first.test.mjs` (public typed
+rows/metadata/errors and private actual cursor work).
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
 `stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive`, `stat4-probe-primitive` under `test/conformance`,

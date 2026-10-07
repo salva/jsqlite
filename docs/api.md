@@ -459,4 +459,12 @@ contracts. Represented LEFT ON-OR uses the shared source-owned pipeline;
 RIGHT/FULL and unrepresented nullable outer-OR combinations remain excluded. Current boundaries and source rationale are in
 [the WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes).
 
-Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, STAT4, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).
+Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, general STAT4 sample-parity, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).
+
+Optional STAT4 samples are an internal selectivity input for represented literal
+equality/IS/NULL, contiguous known prefixes, literal-list IN and scalar ranges.
+Parameters retain fallback (no reprepare/parameter plan-parity guarantee); vectors,
+function/subquery probes and skipscan sample range refinement remain unimplemented.
+This changes no public planner/timing/work-count or covering/affinity guarantee.
+Consumer resource/caller verification is still in progress; see
+[translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).

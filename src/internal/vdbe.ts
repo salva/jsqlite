@@ -3527,7 +3527,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrder=resolvedWhereOrder(expanded);
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
-  multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...(source.table.withoutRowid?[]:[ROWID_NEEDED])])),orderBy:multiOrder,planBudget:builder.wherePlanBudget});
+  multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...(source.table.withoutRowid?[]:[ROWID_NEEDED])])),orderBy:multiOrder,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
   whereAccounting=Object.freeze({plannerCandidates:multiWhere.plannerCandidates,plannerPaths:multiWhere.plannerPaths});
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const sorterCursor=owner?owner.builder.cursor():expanded.sources.length,distinctCursor=owner?owner.builder.cursor():sorterCursor+1,rightMatchCursor=owner?owner.builder.cursor():distinctCursor+1;
@@ -3616,7 +3616,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(const [batch,arm] of arms.entries()){
       const clause=orRuntimeArmClause(arm,parent.sourceOrdinal,outer,parent.orInfo!.clause);
       if(!clause)throw new JSQLiteError('internal','joined OR lost owned arm');
-      const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
+      const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
       const branch=wherePathSolver([candidates],1,undefined,0,1,null,readyMask).loops[0]!;
       const consumed=branchConsumedTerms(branch,clause,available);
       const consume=(tested=false):void=>{
@@ -5597,7 +5597,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     ]);
     if(expanded.result.some(result=>result.source===expanded.sources[0]&&result.columnIndex===-1))needed.add(ROWID_NEEDED as never);
     const orderBy=resolvedWhereOrder(expanded);
-    const selection=planWhere(expanded,{neededColumns:[needed],orderBy,planBudget:builder.wherePlanBudget}),loop=selection.path?.loops[0];
+    const selection=planWhere(expanded,{neededColumns:[needed],orderBy,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})}),loop=selection.path?.loops[0];
     if(loop?.kind==="multi-or"){selectedOr=loop;selectedOrClause=selection.analysis.clause;}
     whereAccounting=Object.freeze({plannerCandidates:selection.plannerCandidates,plannerPaths:selection.plannerPaths});selectedLoopTerms=loop?.terms??Object.freeze([]);
     if(loop?.kind==="table-scan"&&loop.capability){rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
@@ -5832,7 +5832,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       for(const [ordinal,arm] of arms.entries()){
         const clause=orRuntimeArmClause(arm,0,outer,parent.orInfo!.clause);
         if(!clause)throw new JSQLiteError('internal','selected OR lost owned arm');
-        const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
+        const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
         const branch=wherePathSolver([candidates],1).loops[0]!;
         const consumed=branchConsumedTerms(branch,clause,1n<<BigInt(branch.sourceOrdinal));
         const emitArm=(tested=false):void=>{

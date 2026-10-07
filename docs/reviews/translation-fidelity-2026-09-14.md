@@ -4904,8 +4904,17 @@ paths. See the same evidence link for failed runs and current bounded results.
 
 `analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
 independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
-owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
-load supported stat1, and do not read optional sample payloads for estimates.
+owner now loads Index-owned optional raw samples/counts through the STAT4 loader.
+Current consumers cost represented literal equality/IS/NULL, contiguous known
+prefixes, literal-list IN and ordinary scalar ranges with shared hot-term
+analysis and whole-loop reconstruction. Connection-owned probe reservations now
+cover all-field metadata/Mem and conservative extraction/value high-water capacity,
+with all-slot release. Finite AddAll stop controls now independently compare
+native success/no-path error outcomes; empty frontiers retain SQLITE_ERROR rather
+than unsupported classification. Fuller resource/frontier/plan coverage remains
+unfinished; [frontier evidence](../research/card-s-h/c-red/frontier-progress.md).
+See [[card:card-s-h-c]] and
+[repair evidence](../research/card-s-h/c-red/reservation-progress.md).
 Presence of samples alone is not an unsupported-file error. Ordinary schema,
 record and type validation remains in force on consumed paths. This provides
 file/query admission, not native STAT4 selectivity or cost/plan parity; sample

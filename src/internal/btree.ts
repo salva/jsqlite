@@ -48,6 +48,7 @@ function limit(value: number | undefined, fallback: number, name: string): numbe
 
 export class BtreeDatabase {
   readonly #storage: ImmutableStorage;
+  reserveSchemaTemporary(bytes: number): () => void { return this.#storage.reserveSchemaTemporary(bytes); }
   readonly pageSize: number;
   readonly pageCount: number;
   readonly usableSize: number;

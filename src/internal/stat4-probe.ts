@@ -53,15 +53,36 @@ export class Stat4Probe extends UnpackedRecordKey {
  nRecValid=0;
  parameterSensitive=false;
  readonly check:(units:number)=>void;
- constructor(info:KeyInfo,check:(units:number)=>void=()=>{}){
-  super(Array.from({length:info.totalFieldCount},()=>new Mem()),0,'stat4',info);this.nField=0;this.check=check;
+ readonly reserve:((bytes:number)=>()=>void)|undefined;
+ private reservations:(()=>void)[]=[];
+ private slotCapacity:number[]=[];
+ private releasedReservation=false;
+ // Logical allowance covers metadata, every Mem slot, value and extraction
+ // scratch. High-water capacity lasts until ProbeFree, not measured JS heap.
+ private reserveSlot(slot:number,bytes:number):void {
+  const prior=this.slotCapacity[slot]??0;
+  if(bytes>prior){const release=this.reserve?.(bytes-prior+32);if(release)this.reservations.push(release);this.slotCapacity[slot]=bytes;}
+ }
+ override release():void {
+  if(this.releasedReservation)return;
+  try{super.release();}finally{for(const release of this.reservations)release();this.reservations=[];this.releasedReservation=true;}
+ }
+ constructor(info:KeyInfo,check:(units:number)=>void=()=>{},reserve?:((bytes:number)=>()=>void)){
+  // Reserve before allocating the all-field Mem array, source valueNew.
+  const release=reserve?.(64+64*info.totalFieldCount);
+  try{super(Array.from({length:info.totalFieldCount},()=>new Mem()),0,'stat4',info);}catch(error){release?.();throw error;}this.nField=0;this.check=check;this.reserve=reserve;if(release)this.reservations.push(release);
  }
  setLiteral(slot:number,value:null|bigint|number|string|Uint8Array):void{
   this.assertLive();if(!Number.isInteger(slot)||slot<0||slot>=this.values.length)throw new RangeError('probe slot out of range');
-  this.check(1);const m=memFromPublic(value,this.keyInfo.encoding);try{this.values[slot]!.moveFrom(m)}finally{m.release()}
+  this.check(1);this.reserveSlot(slot,32+(typeof value==='string'?value.length*8:value instanceof Uint8Array?value.byteLength*2:0));const m=memFromPublic(value,this.keyInfo.encoding);try{this.values[slot]!.moveFrom(m)}finally{m.release()}
  }
  setExpression(slot:number,n:LemonValue<SqlToken>|undefined,affinity:MemAffinity):boolean{
   this.assertLive();if(!Number.isInteger(slot)||slot<0||slot>=this.values.length)throw new RangeError('probe slot out of range');
+  // Conservative lexical bound includes codecs, token traversal and CAST
+  // scratch. Reserve before extraction; parameters remain unavailable.
+  let bytes=32;
+  const size=(node:LemonValue<SqlToken>):void=>{this.check(1);if(node.kind==='terminal')bytes+=node.value.text.length*8+32;else for(const child of node.children)size(child);};
+  if(n)size(n);this.reserveSlot(slot,bytes);
   const m=stat4ValueFromExpr(n,affinity,this.keyInfo.encoding,()=>{this.parameterSensitive=true},this.check);
   if(!m)return false;try{this.values[slot]!.moveFrom(m);return true}finally{m.release()}
  }
