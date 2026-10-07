@@ -1,0 +1,51 @@
+✔ copy failure on first overflow preserves primary before accessing malformed successor (9.931296ms)
+✔ sequential reader preserves exact payload and single read per overflow page (0.445347ms)
+✔ cycle/trailing/range/limit failures retain owning error provenance (1.976025ms)
+✔ every payload callback frontier preserves exact primary and same-reader retry (1.844558ms)
+✔ STAT4 loader checks progress between overflow discovery page visits (62.727184ms)
+✔ overflow consumer progress failure preserves primary, no publication, same-owner retry (50.770339ms)
+✔ real overflow successor corruption does not outrank current copy cancellation (25.577465ms)
+✔ second copy-chunk failure closes traversal before malformed successor and allows retry (9.348234ms)
+✔ partial final overflow page charges only requested bytes and closes exactly once (2.270068ms)
+✔ pre-fetch failure closes traversal without reading overflow, then same owner succeeds (0.598701ms)
+✔ low internal schema envelope failure leaves no cache, same-handle retry and close release (89.978677ms)
+✔ pass failures preserve primary error, unpublished bytes and retry on same owner (141.854073ms)
+✔ no stat1 still loads samples, WITHOUT ROWID aliases do not merge capacities (17.778851ms)
+✔ close during construction prevents publication and keeps primary failure (10.114716ms)
+✔ schema sample bytes are privately owned, published count arrays are frozen (11.223435ms)
+✔ outer stat4 btree payload copy is checked before unpublished schema construction (22.464878ms)
+✔ index clearPosition invalidates physical movement and borrowed payload (30.283088ms)
+✔ multi-level table cursor supports complete movement and boundary seeks (35.292788ms)
+✔ interior and leaf index entries traverse in order in both directions and seek (86.03182ms)
+▶ sparse multi-level table seek crosses a child boundary without materializing the tree
+  ✔ fallback path still enforces depth and corruption (0.96384ms)
+✔ sparse multi-level table seek crosses a child boundary without materializing the tree (8.44135ms)
+▶ table and index seek descend only through the selected pages
+  ✔ table minimum ignores a malformed rightmost subtree (0.702589ms)
+  ✔ non-leftmost table seek ignores a malformed unrelated subtree (0.489864ms)
+  ✔ table seek rejects a selected-path cycle (0.532191ms)
+  ✔ index minimum ignores a malformed rightmost subtree (1.167361ms)
+  ✔ index exact and inexact LE retain predecessor placement (0.928744ms)
+  ✔ index seek comparison work is path-local and boundary placement is stable (1.015194ms)
+  ✔ non-leftmost index seek ignores a malformed unrelated subtree (0.593759ms)
+  ✔ index movement after seek remains page-local (0.561221ms)
+  ✔ a malformed selected index child still reports corruption (0.501788ms)
+  ✔ index seek depth is charged on the selected path (0.557221ms)
+  ✔ index seek rejects a selected-path cycle (0.646838ms)
+  ✔ a malformed selected table child still reports corruption (0.572077ms)
+✔ table and index seek descend only through the selected pages (13.791045ms)
+✔ real overflow payload is reconstructed and movement invalidates only borrowed views (16.500867ms)
+✔ overflow cycle is corruption (2.726103ms)
+✔ all storage page sizes and database encodings retain table/index boundaries (47.731956ms)
+✔ tree depth and malformed cell pointers fail distinctly (6.213164ms)
+✔ shared storage validation has public/internal parity and pristine encoding-zero support (50.797704ms)
+✔ closing the shared owner invalidates cursors, operations, and page/record borrows (2.383247ms)
+✔ public Fetch connection is the b-tree owner and close invalidates its consumer (7.408086ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1299.029004

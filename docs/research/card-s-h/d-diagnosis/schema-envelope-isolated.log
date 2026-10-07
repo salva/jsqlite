@@ -1,0 +1,44 @@
+✔ schema envelope derives acquisition allowance 106496 and conserves ownership at exact boundary (3.891205ms)
+✔ schema envelope derives acquisition allowance 212992 and conserves ownership at exact boundary (0.410734ms)
+✔ schema envelope derives acquisition allowance 9007199254740991 and conserves ownership at exact boundary (0.355907ms)
+✔ UTF-8 KeyStats direct native virtual-prefix/gap controls (25.263183ms)
+✔ UTF-16le KeyStats direct native virtual-prefix/gap controls (13.236333ms)
+✔ UTF-16be KeyStats direct native virtual-prefix/gap controls (8.938124ms)
+✔ KeyStats throwing work callback restores active extent and valid prefix (6.264784ms)
+✔ production hot equality rebuilds every group with shared truth; cold prefix and range retain searches (28.352874ms)
+✔ KeyStats native overflow count/error controls (7.381783ms)
+✔ KeyStats native zero count/error controls (6.58863ms)
+✔ KeyStats native malformed count/error controls (6.749118ms)
+✔ production unavailable IN member preserves prefix fallback and sibling builder retry (11.144288ms)
+✔ recursive proposal frame closes child and parent sample scopes on stop/error (6.846522ms)
+✔ connection-owned probe reservations reject over-envelope and restore on all-slot free (5.791577ms)
+✔ production probe reservation releases on second pass and work failure, same owner retry (7.581064ms)
+✔ nested planning restores enclosing truth carrier and invocation construction limit (7.810982ms)
+✔ nested failed invocation restores truth, insertion frontier and outstanding probes (5.370261ms)
+✔ bounded source AddAll construction resets per invocation, retaining stop/error outcome (6.773779ms)
+✔ complete multi-group rebuild publishes immutable clause-owned truth independently of builder reuse (6.895531ms)
+✔ fallback selection publishes empty truth rather than a previous clause carrier (6.997731ms)
+✔ native finite AddAll frontier preserves SQLITE_ERROR rather than unsupported classification (7.726789ms)
+✔ every consuming work frontier unwinds second-pass and membership probes before same-owner retry (1373.027121ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 49 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 161 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 241 work frontiers
+ℹ SELECT id FROM t WHERE a IN (99,?1) AND b=4: 24 work frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 143 work frontiers
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0: 257 work frontiers
+✔ every consuming reservation frontier preserves primary memory failure and releases prior index builders (110.397092ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 20 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 14 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 14 reservation frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 32 reservation frontiers
+✔ failed outer invocation does not publish partial clause truth over prior completed analysis (5.753489ms)
+✔ forced-index exhausted AddAll frontier retains native no-query-solution error channel (12.101257ms)
+✔ native OR and joined finite frontiers retain outcome and failed owner cleanup (245.760016ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2169.032951

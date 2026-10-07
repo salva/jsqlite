@@ -1,0 +1,11 @@
+✔ schema envelope derives acquisition allowance 106496 and conserves ownership at exact boundary (3.210206ms)
+✔ schema envelope derives acquisition allowance 212992 and conserves ownership at exact boundary (0.294027ms)
+✔ schema envelope derives acquisition allowance 9007199254740991 and conserves ownership at exact boundary (0.234514ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 121.901421
