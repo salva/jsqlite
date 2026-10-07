@@ -1,0 +1,10 @@
+✔ finite STAT4 runtime, source-based tests and acquired native inputs match explicit closure hashes (36.978905ms)
+✔ closure guard rejects altered native sample bytes rather than laundering mixed input evidence (7.492911ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.601226
