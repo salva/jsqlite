@@ -1317,7 +1317,13 @@ extraction from existing Lemon semantic productions and all-slot Mem cleanup.
 NOTFOUND is not SQL NULL; parameters mark sensitivity and explicitly fall back
 (no initial binding plan-parity claim). Unsupported expressions/functions remain
 unavailable, not a parallel evaluator. Prefix scopes restore nField/nRecValid;
-consuming KeyStats/selectivity estimates remain pending.
+consuming KeyStats/selectivity estimates remain pending. Numeric token extraction
+preserves source spelling for TEXT affinity before numeric conversion; typed
+INTEGER/REAL results follow valueFromExpr rather than execution CAST alone.
+Count digits, outer btree payload copies and probe token work charge existing
+prepare checks. Host codecs/allocations remain synchronous (no event-loop
+preemption). Internal source oracle tests cover padded malformed comparison and
+value extraction; public prepare failure/retry tests do not imply estimate parity.
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
 `stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive`, `stat4-probe-primitive` under `test/conformance`,

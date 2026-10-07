@@ -32,3 +32,15 @@ test('failure preserves previous slot and nested scopes restore valid/prefix wit
  assert.equal(probe.nField,1);assert.equal(probe.nRecValid,1);
  }finally{probe.release()}
 });
+test('pinned valueFromExpr token text affinity preserves out-of-range spelling, typed numeric affinity',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [sql,affinity,expected] of [
+ ['1.0','blob',1],['1.0','numeric',1n],['1.0','real',1n],['1.5','real',1.5],
+ ['9223372036854775808','text','9223372036854775808'],['1e0','text','1e0'],['0xffffffffffffffff','text','-1'],
+ ['-9223372036854775809','text','-9223372036854775809']]){
+ const m=p.stat4ValueFromExpr(expr(sql),affinity,encoding);try{assert.deepEqual(memToPublicInitial(m),expected,`${sql}/${affinity}/${encoding}`)}finally{m.release()}
+ }
+});
+test('large literal extraction charges checked token work before Mem allocation',()=>{
+ const primary=new Error('literal budget');let checks=0;
+ assert.throws(()=>p.stat4ValueFromExpr(expr("'"+'a'.repeat(10000)+"'"),'text','utf-8',()=>{},units=>{if(units>=4096){checks++;throw primary}}),e=>e===primary);assert.equal(checks,1);
+});

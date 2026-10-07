@@ -898,3 +898,11 @@ and evidence: [card-h-e](research/card-h-e/green.md). Tests:
 `test/select/task-scheduler.test.mjs`, `test/browser/scheduler-controls.mjs`,
 `test/browser/scheduler-latency-green.mjs` (unchanged red-program comparison),
 `test/select/first-select.test.mjs` (overflow/lifecycle).
+
+STAT4 primitive verification: `vdbemem.c:valueFromExpr` token affinity/encoding
+maps to `stat4-probe.ts` and `stat4-value-oracle.c`/`stat4-probe-primitive.test.mjs`;
+`vdbeaux.c:sqlite3VdbeRecordCompareWithSkip` padded malformed controls map to
+`stat4-padded-record-oracle.c`/`stat4-padded-oracle.test.mjs`. Schema copy/count
+checks and prepare retry map to `stat4-prepare-controls.test.mjs` and lifecycle
+regressions. Detailed commands, identities and limits: [[card:card-s-h-b]] status.
+Consumers/selectivity estimates remain pending.
