@@ -194,13 +194,28 @@ function defaultRowEst(index:IndexNode):void {
  if(index.unique)rows[index.terms.length]=0;
  (index as Mutable<IndexNode>).rowLogEst=rows;
 }
-/** analyze.c decodeIntArray: one-space prefix advance, uint64 accumulation. */
-function decodeEstimates(z:string,rows:number[],width:number):{rows:number[];width:number;unordered:boolean;noSkipScan:boolean} {
- let at=0;
- for(let i=0;i<rows.length&&at<z.length;i++){
-  let v=0n;while(at<z.length&&z[at]!>="0"&&z[at]!<="9"){v=BigInt.asUintN(64,v*10n+BigInt(z.charCodeAt(at++)-48));}
-  rows[i]=sqliteLogEst(v);if(z[at]===" ")at++;
+/** analyze.c decodeIntArray: zero allocated counts, uint64 accumulation.
+ * Reused aiRowEst destinations preserve untouched trailing slots. */
+export function decodeStat4Counts(z: string | null, nOut: number, out: bigint[] = Array<bigint>(nOut).fill(0n)): bigint[] {
+ if (!Number.isSafeInteger(nOut) || nOut < 0 || out.length !== nOut) throw new SchemaStateError("invalid statistics count array capacity");
+ decodeCountPrefix(z ?? "", nOut, (i, value) => { out[i] = value; });
+ return out;
+}
+/** Shared numeric producer, not a second STAT4 text parser. */
+function decodeCountPrefix(z: string, nOut: number, put: (i: number, value: bigint) => void): number {
+ let at = 0;
+ for (let i = 0; i < nOut && at < z.length && z[at] !== "\0"; i++) {
+  let value = 0n;
+  while (at < z.length && z[at]! >= "0" && z[at]! <= "9") {
+   value = BigInt.asUintN(64, value * 10n + BigInt(z.charCodeAt(at++) - 48));
+  }
+  put(i, value);
+  if (z[at] === " ") at++;
  }
+ return at;
+}
+function decodeEstimates(z:string,rows:number[],width:number):{rows:number[];width:number;unordered:boolean;noSkipScan:boolean} {
+ let at=decodeCountPrefix(z,rows.length,(i,v)=>{rows[i]=sqliteLogEst(v);});
  let unordered=false,noSkipScan=false;
  while(at<z.length){const tail=z.slice(at);
   if(tail.startsWith("unordered"))unordered=true;
