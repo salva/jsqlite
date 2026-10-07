@@ -1,0 +1,15 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": "WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<10000) SELECT sum(x), count(*) FROM q",
+  "rows": [
+    {
+      "type": 1,
+      "integer": "50005000"
+    },
+    {
+      "type": 1,
+      "integer": "10000"
+    }
+  ],
+  "terminal": 101
+}

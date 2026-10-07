@@ -872,3 +872,15 @@ WHERE full-index admission/order: where.c4233–4295 → `where-plan.ts:indexPro
 | Upstream owner | Current translation and tests |
 | --- | --- |
 | `select.c:8531,8884 sqlite3WhereBegin/End` joined aggregate input | `vdbe.ts:compileAggregateSelect` → existing `compileInnerTableSelect.consumeRow` / `planWhere`; group sorter capture and implicit update use positioned physical cursors. `aggregate-where-chinook.test.mjs`, outer/phase/derived aggregate suites. [Bounded evidence](research/card-l-c/aggregate-where-consumer.md). |
+
+### Execution host-task adaptation
+
+`vdbe.c:sqlite3VdbeExec`, `check_for_interrupt`, progress `nProgressLimit`;
+`vdbeapi.c:sqlite3_step/reset/finalize`, `vdbeaux.c:sqlite3VdbeHalt/Reset` →
+Vdbe checkpoint/control/error/lifecycle owners in `src/internal/vdbe.ts`; shared
+browser wait policy in `src/internal/task-scheduler.ts`. Host-task delivery is a
+bounded browser adaptation, not native VM-step/timing parity. Source rationale
+and evidence: [card-h-e](research/card-h-e/green.md). Tests:
+`test/select/task-scheduler.test.mjs`, `test/browser/scheduler-controls.mjs`,
+`test/browser/scheduler-latency-green.mjs` (unchanged red-program comparison),
+`test/select/first-select.test.mjs` (overflow/lifecycle).

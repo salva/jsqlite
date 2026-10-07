@@ -1,3 +1,12 @@
+## Current bounded host scheduling adaptation — [[card:card-h-e]]
+
+Nested browser timer latency is reproduced on current substantial work independent
+of optimized Chinook. Shared MessageChannel task delivery with periodic timer turns
+changes only suspension, retains work/program/state/error ownership and closes
+pending ports before resume. It does not repair unrelated SQL fidelity gaps or
+preempt synchronous scalar code. [Current rationale and scoped verification](../research/card-h-e/green.md);
+no hard real-time, native progress timing or whole-release recertification claim.
+
 ## Selected OR isolated acceptance and MAIN incorporation
 
 Goal review12 approves e853/tree2409 bounded isolated source; MAIN incorporation

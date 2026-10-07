@@ -1,3 +1,4 @@
+import { ExecutionTaskScheduler } from "./task-scheduler.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
 import {resolvedResultColumn} from "./resolve.ts";
@@ -7220,6 +7221,7 @@ export class VdbeStatement implements Statement {
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
+  readonly #taskScheduler = new ExecutionTaskScheduler();
   #savedError: unknown = null;
   #currentTime: bigint|null = null;
   #privateAccounting:VdbePrivateAccounting=zeroPrivateAccounting();
@@ -7259,7 +7261,7 @@ export class VdbeStatement implements Statement {
     try {
       while (this.#pc < this.#program.ops.length) {
         this.#checkControl(options, limit, started);
-        if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await new Promise<void>(resolve => setTimeout(resolve, 0)); this.#state = "running"; }
+        if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.yield(); this.#state = "running"; this.#checkControl(options, limit, started); }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
@@ -7534,7 +7536,7 @@ export class VdbeStatement implements Statement {
     // sqlite3VdbeReset returns the saved execution error after cleanup. TS
     // destructors may throw: finish releases and restore READY first.
     for (const value of this.#registers) try { value.setNull(); } catch (error) { if (cleanup === null) cleanup = error; }
-    this.#rows=0; this.#work=0; this.#currentTime=null; this.#executionStarted=false; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
+    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
     this.#pc = 0; this.#state = "prepared";
     if (primary !== null) throw primary;
     if (cleanup !== null) throw cleanup;
@@ -7573,7 +7575,7 @@ export class VdbeStatement implements Statement {
       // checkpoint. PC and cursor stay on the current row while suspended.
       if (chunks.length > 1) {
         this.#state = "suspended";
-        await new Promise<void>(resolve => setTimeout(resolve, 0));
+        await this.#taskScheduler.yield();
         this.#state = "running";
       }
     }
@@ -7584,7 +7586,7 @@ export class VdbeStatement implements Statement {
     this.#records.set(cursorId,decodeRecord(payload, this.#program.database!.encoding));
     this.#recordRowids.set(cursorId,this.#cursors.get(cursorId)!.rowid);
   }
-  async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running";}}}
+  async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.yield();this.#state="running";}}}
   #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
   #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
   #mapExecutionError(error: unknown): unknown {
@@ -7606,7 +7608,7 @@ export class VdbeStatement implements Statement {
   #privateControl(options:OperationOptions,limit:number,started:number):PrivateStateControl {
     return {checkpoint:async(units=0)=>{
       if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
-      for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await new Promise<void>(resolve=>setTimeout(resolve,0));this.#state="running"}}
+      for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.yield();this.#state="running"}}
       this.#checkControl(options,limit,started);
     }};
   }

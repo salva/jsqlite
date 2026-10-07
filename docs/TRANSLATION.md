@@ -1347,3 +1347,22 @@ update (`select.c:sqlite3WhereBegin/End`). ON/WHERE, outer continuation and sele
 access remain WHERE-owned; finalization/HAVING/destinations remain aggregate-owned.
 Single-source and retained coroutine contracts are unchanged. See
 [bounded consumer evidence](research/card-l-c/aggregate-where-consumer.md).
+
+### Bounded execution host scheduling
+
+The shared execution-owned scheduler changes host suspension only: existing main
+opcode, scalar input, async Function/private and overflow checkpoints retain PC,
+register/cursor state and statement-wide work charges. Seven MessageChannel task
+turns alternate with an explicit timer turn; unavailable/throwing channel delivery
+falls back to timers. At most two ports are live for an awaited yield, detached and
+closed before resume. Reset restarts cadence. Main dispatch rechecks controls after
+suspension before incrementing PC/work. Error/halt/reset/admission ownership remains
+in Vdbe; synchronous scalar traversal checks are not independently preemptible.
+
+This browser adaptation avoids measured nested-timer latency while preserving real
+timer opportunities; no cross-task-source ordering or hard real-time/background-tab
+guarantee is inferred. SQLite `vdbe.c:check_for_interrupt`/progress thresholds own
+checks and errors, not browser task scheduling. Decision, source comparison,
+exact program/work/type equivalence and repeated browser evidence: [scheduler
+evidence](research/card-h-e/green.md), [decision](research/card-h-e/decision.md).
+No SQL-plan or work-cap change, native-step parity or expanded SQL scope follows.

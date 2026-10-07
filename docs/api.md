@@ -151,6 +151,9 @@ await statement.step(options) // "row" | "done"
 
 `"row"` and `"done"` are control outcomes, never exceptions. Execution runs in
 bounded chunks and yields to the host between chunks, preserving VM state. It
+uses bounded host task delivery (MessageChannel with periodic timer turns, or
+timer fallback), not microtask-only suspension. Pending task resources are released
+before resumption; this is not a hard real-time or background-tab latency guarantee. It
 checks the effective signal, deadline, and work budget between chunks and within
 bounded traversal/recursion loops. Statement operation options may only tighten,
 never relax, connection limits. `maxWorkUnits` is an implementation-defined stable
