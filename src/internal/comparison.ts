@@ -3,7 +3,7 @@
 // sqlite3IntFloatCompare/sqlite3VdbeRecordCompare and
 // main.c:binCollFunc/nocaseCollatingFunc/rtrimCollFunc.
 import { BorrowLifetime, type BorrowToken, Mem, MemError, memFromRawRecord } from "./mem.ts";
-import { decodeRecord, type DatabaseEncoding, RawRecordReader, RecordFormatError } from "./record.ts";
+import { decodeVarint, decodeRecord, type DatabaseEncoding, RawRecordReader, RecordFormatError } from "./record.ts";
 
 export type BuiltinCollation = "binary" | "nocase" | "rtrim";
 export interface BuiltinCollationSpec {
@@ -83,11 +83,13 @@ export class UnpackedRecordKey {
   readonly keyInfo: KeyInfo;
   readonly values: readonly Mem[];
   readonly defaultRc: -1 | 0 | 1;
-  readonly caller: "record" | "seek";
+  readonly caller: "record" | "seek" | "stat4";
+  nField: number;
+  errCode = 0;
   eqSeen = false;
   #released = false;
-  constructor(values: readonly Mem[], defaultRc: -1 | 0 | 1, caller: "record" | "seek", keyInfo: KeyInfo) {
-    this.values = Object.freeze([...values]); this.defaultRc = defaultRc; this.caller = caller; this.keyInfo = keyInfo;
+  constructor(values: readonly Mem[], defaultRc: -1 | 0 | 1, caller: "record" | "seek" | "stat4", keyInfo: KeyInfo) {
+    this.nField = values.length; this.values = Object.freeze([...values]); this.defaultRc = defaultRc; this.caller = caller; this.keyInfo = keyInfo;
   }
   assertLive(): void { if (this.#released) throw new ComparisonError("internal", "unpacked record key has been released"); }
   release(): void { if (!this.#released) { for (const value of this.values) value.release(); this.#released = true; } }
@@ -248,6 +250,7 @@ export function unpackRecordKey(
  * the unpacked RHS defaultRc. */
 export function compareRecordKey(packed: Uint8Array, unpacked: UnpackedRecordKey, keyInfo: KeyInfo, limits: RecordKeyLimits = {}): -1 | 0 | 1 {
   unpacked.assertLive(); validateKeyInfo(keyInfo); validateLimits(limits);
+  if(unpacked.caller==="stat4")throw new ComparisonError("internal","STAT4 requires raw padded comparison channel");
   if (keyInfo !== unpacked.keyInfo) throw new ComparisonError("internal", "comparison KeyInfo identity does not match unpacked key");
   // Generic complete unpack may produce zero/short records for inspection, but
   // ordinary record comparison requires RHS nField to cover nKeyField. Only an
@@ -301,4 +304,63 @@ export function compareRecordKey(packed: Uint8Array, unpacked: UnpackedRecordKey
     if (error instanceof RecordFormatError) throw new ComparisonError("corrupt", error.message, { cause: error });
     throw error;
   } finally { lifetime.close(); }
+}
+
+/** vdbeaux.c:sqlite3VdbeRecordCompareWithSkip (skip=0), STAT4 raw
+ * buffer contract. n excludes eight readable zero padding bytes. Strict
+ * ordinary cursors keep RawRecordReader; malformed sample error ownership
+ * belongs to RHS errCode, not record decoding exceptions. */
+export function compareStat4RecordKey(p: Uint8Array, n: number, rhs: UnpackedRecordKey, info: KeyInfo, check: () => void = () => {}): -1 | 0 | 1 {
+ rhs.assertLive(); validateKeyInfo(info);
+ if(rhs.caller!=="stat4" || rhs.keyInfo!==info || rhs.nField<1 || rhs.nField>rhs.values.length || rhs.nField>info.totalFieldCount || rhs.nField>info.terms.length)
+  throw new ComparisonError("internal","invalid STAT4 comparison prefix");
+ if(!Number.isSafeInteger(n)||n<0||p.length<n+8)throw new ComparisonError("internal","STAT4 requires raw padded length");
+ const corrupt=():0=>{rhs.errCode=11;return 0};
+ check();
+ const header=decodeVarint(p,0);
+ const sz=Number(header.value>0xffffffffn?0xffffffffn:header.value);let idx=header.length,d=sz;
+ if(d>n)return corrupt();
+ const length=(t:number)=>t<5?t:t===5?6:t===6||t===7?8:t<12?0:(t-12)>>>1;
+ const numeric=(t:number,m:Mem)=>{
+  if(t===0||t===10||t===11){m.setNull();return;}
+  if(t===7){const v=new DataView(p.buffer,p.byteOffset+d,8).getFloat64(0,false);m.setDouble(v);return;}
+  if(t===8||t===9){m.setInt64(BigInt(t-8));return;}
+  let v=0n;const count=length(t);for(let j=0;j<count;j++)v=(v<<8n)|BigInt(p[d+j]!);
+  m.setInt64(BigInt.asIntN(count*8,v));
+ };
+ for(let i=0;;i++){
+  check();const r=rhs.values[i]!,kind=r.initialStorageClass;let t=p[idx]!,rc:-1|0|1=0;
+  const m=new Mem();
+  try{
+   if(kind==="integer"||kind==="real"){
+    if(t>=10)rc=t===10?-1:1;
+    else if(t===0)rc=-1;
+    else{numeric(t,m);rc=compareMem(m,r);}
+   }else if(kind==="text"||kind==="blob"){
+    const serial=decodeVarint(p,idx).value;t=Number(serial>0xffffffffn?0xffffffffn:serial);
+    if(kind==="text"?(t<12||!(t&1)):(t<12||!!(t&1))){rc=kind==="text"&&t>=12?1:-1;}
+    else{
+     const bytes=length(t);if(d+bytes>n)return corrupt();
+     if(kind==="text")m.setText(p.subarray(d,d+bytes),info.encoding);else m.setBlob(p.subarray(d,d+bytes));
+     rc=compareMem(m,r,info.terms[i]!.collation);
+    }
+   }else{
+    if(t===0||t===10)rc=0;
+    else if(t===7){numeric(t,m);rc=m.initialStorageClass==="null"?0:1;}
+    else rc=1;
+   }
+   if(rc){const term=info.terms[i]!;
+    // Source uses serial_type==0, not a decoded reserved/NaN NULL.
+    if(term.nullsLarge&&(t===0||kind==="null"))rc=-rc as -1|1;
+    if(term.desc)rc=-rc as -1|1;
+    return rc;
+   }
+  }finally{m.release();}
+  if(i+1===rhs.nField)break;
+  d+=length(t);if(d>n)break;
+  // sqlite3VarintLen operates on the decoded serial type.
+  let v=BigInt(t),bytes=1;while(v>=128n){v>>=7n;bytes++;}idx+=bytes;
+  if(idx>=sz)return corrupt();
+ }
+ rhs.eqSeen=true;return rhs.defaultRc;
 }

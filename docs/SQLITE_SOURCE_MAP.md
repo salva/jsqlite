@@ -813,11 +813,15 @@ returns copies), frozen count arrays, and connection/storage cache lifetime.
 `storage.ts` owns an internal checked logical schema envelope derived from the
 configured acquisition allowance; it is not maxPrivateBytes or a new public
 budget. Prepare checks work/cancellation/deadline in passes and bounded copies;
-synchronous prepare does not promise event-loop preemption. Packed sample
-comparison/probe extraction and consuming estimates remain pending.
+synchronous prepare does not promise event-loop preemption. Packed sample comparison now shares KeyInfo/Mem with an active RHS nField
+and errCode/eqSeen channel (`comparison.ts:compareStat4RecordKey`, pinned
+`vdbeaux.c:sqlite3VdbeRecordCompareWithSkip`, skip=0). Numeric padded reads and
+matching text/blob bounds preserve branch-specific malformed handling; normal
+record/seek callers retain strict decoding. Builder-local probe extraction and
+consuming estimates remain pending.
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
-`stat4-loader-primitive`, `stat4-schema-lifecycle` under `test/conformance`,
+`stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive` under `test/conformance`,
 and `docs/research/card-s-h/first-owner.test.mjs`. Detailed current delivery
 and resource accounting: [[card:card-s-h-b]] status. Original admission provenance
 is unchanged: [admission evidence](research/card-e-h-stat4-admission.md),
