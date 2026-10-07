@@ -243,6 +243,89 @@ export function initStat4AvgEq(state: Stat4AverageState, nKeyCol: number, aiRowE
  }
 }
 
+export interface Stat4InputRow {
+ readonly name: string | null;
+ readonly neq: string | null;
+ readonly nlt: string | null;
+ readonly ndlt: string | null;
+ readonly bytes: Uint8Array;
+}
+export interface Stat4Sample extends Stat4SampleCounts { readonly p: Uint8Array; readonly n: number; }
+export interface IndexStat4 {
+ readonly mxSample: number;
+ readonly nSample: number;
+ readonly nSampleCol: number;
+ readonly samples: readonly Stat4Sample[];
+ readonly nRowEst0: bigint;
+ readonly aAvgEq: readonly bigint[];
+}
+export interface Stat4LoadOptions {
+ /** INTERNAL logical schema envelope, never execution-private accounting. */
+ readonly maxBytes: number;
+ readonly check?: (phase: "count" | "capacity" | "load" | "copy" | "finalize", units: number) => void;
+}
+/** analyze.c:loadStatTbl. Iterator factory is reopened for the load pass;
+ * no retained decoded table/index or sample cap. Grouped count state alone is
+ * retained between passes. Native sample metadata costs 40 logical bytes per
+ * slot, each rowcnt costs 8, and each owned record costs n+8. This is logical
+ * accounting, not a claim about host object heap sizes. */
+export function loadStat4Samples<T extends object>(
+ rows: () => Iterable<Stat4InputRow>,
+ find: (name: string) => T | null,
+ layout: (index: T) => { nSampleCol: number; nKeyCol: number; aiRowEst: readonly bigint[] | null },
+ options: Stat4LoadOptions,
+): Map<T, IndexStat4> {
+ const groups = new Map<string, { name: string; count: number }>();
+ const states = new Map<T, { mxSample: number; nSample: number; nSampleCol: number; samples: Stat4Sample[]; nRowEst0: bigint; aAvgEq: bigint[] }>();
+ const max = options.maxBytes;
+ if (!Number.isSafeInteger(max) || max < 0) throw new SchemaStateError("invalid statistics allocation envelope");
+ let used = 0;
+ const charge = (bytes: bigint) => {
+  if (bytes < 0n || bytes > BigInt(max - used)) throw new SchemaStateError("statistics allocation envelope exceeded");
+  used += Number(bytes);
+ };
+ const check = (phase: Parameters<NonNullable<Stat4LoadOptions["check"]>>[0], units = 1) => options.check?.(phase, units);
+ for (const row of rows()) {
+  check("count");
+  if (row.name === null) continue;
+  const key = sqliteAsciiFold(row.name), group = groups.get(key);
+  if (group) {
+   if (group.count === 0x7fffffff) throw new SchemaStateError("statistics allocation capacity overflow");
+   group.count++;
+  } else { charge(32n + BigInt(row.name.length) * 2n); groups.set(key, { name: row.name, count: 1 }); }
+ }
+ for (const [, group] of [...groups].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+  check("capacity");
+  const index = find(group.name);
+  if (!index || states.has(index)) continue;
+  const { nSampleCol } = layout(index);
+  if (!Number.isSafeInteger(nSampleCol) || nSampleCol < 1) throw new SchemaStateError("statistics allocation column overflow");
+  charge(BigInt(group.count) * (40n + 24n * BigInt(nSampleCol)) + 8n * BigInt(nSampleCol));
+  states.set(index, { mxSample: group.count, nSample: 0, nSampleCol, samples: [], nRowEst0: 0n, aAvgEq: Array<bigint>(nSampleCol).fill(0n) });
+ }
+ let previous: T | null = null;
+ const average = (index: T | null) => { if (index) { const info = layout(index); initStat4AvgEq(states.get(index)!, info.nKeyCol, info.aiRowEst); } };
+ for (const row of rows()) {
+  check("load");
+  if (row.name === null) continue;
+  const index = find(row.name), state = index && states.get(index);
+  if (!index || !state || state.nSample >= state.mxSample) continue;
+  if (index !== previous) { average(previous); previous = index; }
+  // Count decoding precedes the record allocation/copy in the source.
+  const anEq = decodeStat4Counts(row.neq, state.nSampleCol);
+  const anLt = decodeStat4Counts(row.nlt, state.nSampleCol);
+  const anDLt = decodeStat4Counts(row.ndlt, state.nSampleCol);
+  const n = row.bytes.byteLength;
+  charge(BigInt(n) + 8n);
+  const p = new Uint8Array(n + 8);
+  for (let at = 0; at < n; at += 4096) { const end = Math.min(n, at + 4096); check("copy", end - at); p.set(row.bytes.subarray(at, end), at); }
+  const sample = { p, n, anEq, anLt, anDLt };
+  state.samples.push(sample); state.nSample++;
+ }
+ check("finalize"); average(previous);
+ return states;
+}
+
 /** analyze.c decodeIntArray: zero allocated counts, uint64 accumulation.
  * Reused aiRowEst destinations preserve untouched trailing slots. */
 export function decodeStat4Counts(z: string | null, nOut: number, out: bigint[] = Array<bigint>(nOut).fill(0n)): bigint[] {
