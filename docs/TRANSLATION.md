@@ -174,7 +174,7 @@ Selected rowid multi-index OR has bounded delivered runtime execution in
 ordinary single-table and represented inner-join callers: selected arms replan
 into shared-builder RowSetTest/Gosub/Return continuations, with full residual
 truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
-or C-cost parity; WR union, unsafe nullable outer-join selection, and broader
+or C-cost parity; WR union, unrepresented nullable outer-join selection, and broader
 cleanup/liveness proofs remain outside the demonstrated boundary. See
 [delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
 `where-plan.ts` owns tagged immutable clause-owned
@@ -1336,6 +1336,6 @@ Joined and ordinary lowering share `resolvedWhereOrder`, including implicit XN_R
 
 Skip-scan evidence and still-open original implementation obligations are consolidated in [coverage ledger](research/card-s-g/COVERAGE.md). Selected physical-DESC recursive OR now has ordinary/joined source-oracle witnesses without ORDER BY; ORDER-bearing cost-rejected controls remain separate. Synchronous construction shares a statement-owned progress callback through the planner budget: source deep-equality recursion and unused-term output adjustment check cancellation/deadline/work before proceeding. This does not add event-loop suspension inside synchronous construction.
 
-Remaining skip-scan delivery ledger now links source subset/insertion Cartesian controls, redundant WR declared/PK layout and typed REAL reset/rebinding companions plus selected payload-size corruption evidence in [coverage](research/card-s-g/COVERAGE.md). These are bounded production/source checks, not original-b closure; [mixed ownership handoff](research/card-s-g/HANDOFF.md) remains pending peer reconciliation. Reserved serial11 native progress interruption is not corrupt11-equivalence evidence.
+Remaining skip-scan delivery ledger now links source subset/insertion Cartesian controls, redundant WR declared/PK layout and typed REAL reset/rebinding companions plus selected payload-size corruption evidence in [coverage](research/card-s-g/COVERAGE.md). These are bounded production/source checks, not original-b closure; [mixed ownership handoff](research/card-s-g/HANDOFF.md) has delivered scoped owner dispositions; committed integration evidence remains separately gated. Reserved serial11 native progress interruption is not corrupt11-equivalence evidence.
 
 LEFT ON-OR now uses the same source-owned multi-OR/skip-prefix pipeline as represented inner callers (where.c4835 excludes RIGHT/FULL, not LEFT). Final LEFT exhaustion nulls the Case5 covering cursor as well as the table before shared body re-entry, preserving rewritten Column/Rowid NULLs (where.c7694). Bounded matching/empty/composite and mixed-IN controls are mapped in [coverage](research/card-s-g/COVERAGE.md#left-on-or-owner-repair); this is not broader join/optimizer completion.

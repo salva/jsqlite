@@ -452,14 +452,8 @@ shared-body index arms with statement-private deduplication. This is an internal
 optimization, not an API addition or an ordering guarantee: full WHERE truth,
 parameter/reset behavior and existing ORDER sorters remain authoritative.
 Unsupported optimization shapes retain existing semantic fallback and forced-index
-contracts. WITHOUT ROWID union and unsafe nullable outer-join OR selection are not
-admitted optimizations. Current boundaries and source rationale are in
+contracts. Represented LEFT ON-OR uses the shared source-owned pipeline;
+RIGHT/FULL and unrepresented nullable outer-OR combinations remain excluded. Current boundaries and source rationale are in
 [the WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes).
-
-Stat1-supported leading-prefix index skipscan is an internal optimization for
-represented scalar equality/IS/ISNULL/ranges and existing literal-list IN paths;
-it does not add public diagnostics or expand the SQL constructs supported by
-this contract. No-stat1, noskipscan and low-duplicate indexes use valid alternatives.
-See [engineering boundaries and evidence](TRANSLATION.md).
 
 Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, STAT4, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).
