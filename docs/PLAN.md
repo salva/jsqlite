@@ -43,9 +43,10 @@ independently verified w227/native3, fresh isolated offline package closure72fil
 35JS and focused23 pass. Original query now supplied: independent pinned native
 10typed rows/all metadata match installed-tarball Chromium Fetch across three
 reset/reexecutions with actual task responsiveness measurements and fresh browser
-controls/security. **No next version/acceptance yet**: original a/c workflow must
-construct versioned LOCAL package/demo and recapture exact artifact; independent
-acceptance follows. Historical timing settings unavailable, no causal speedup ratio.
+controls/security. **Alpha.5 candidate packaging** proceeds through the original a/c workflow:
+[current package evidence](research/card-v-a-alpha-five.md) identifies the explicit
+release source/artifact. Installed demo/browser and independent finite acceptance
+follow; source readiness is not artifact acceptance. Historical timing settings unavailable, no causal speedup ratio.
 Named historical sorter fixture red→current pass retained; unspecified concern
 unverified, not claimed fixed or a new blocker.
 

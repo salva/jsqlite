@@ -33,11 +33,13 @@ meaningful milestones with source, tests, and oracle updated together.
 The local alpha packages the implemented, bounded read-only core; it is not full
 SQLite compatibility, arbitrary SQL-composition support or a public release.
 [Finite supported/gap/exclusion matrix](docs/research/card-v-private-alpha.md)
-and [release evidence/identity](docs/research/card-v-a-final-alpha.md) identify the
+and [current candidate evidence/identity](docs/research/card-v-a-alpha-five.md) identify the
 exact source, artifact and independent test boundaries. SPEC breadth is unchanged;
 unimplemented in-scope constructs remain temporary gaps, not new exclusions.
-Core stabilization and targeted adversarial/reuse, credential/CORS and realistic
-indexed/overflow scenarios pass on the identified runtime. Performance observations
+The alpha.5 candidate includes accepted skipscan, joined aggregate, task scheduler
+and parser repairs, with exact-source finite readiness evidence. New versioned
+installed-demo and independent acceptance remain required; historical alpha.4
+acceptance is unchanged, not transferred to this artifact. Performance observations
 are finite tests, not workload-wide latency/heap guarantees or other-browser proof.
 Only private local consumption is authorized: no registry, public repository or
 external distribution. Final installed-artifact demo/review is tied to its digest.
@@ -45,9 +47,9 @@ external distribution. Final installed-artifact demo/review is tied to its diges
 ```sh
 # Use the full source identity in the release evidence, not HEAD or dirty source.
 python3 tools/package/local-alpha.py \
-  --commit <40-hex-release-source-commit> --version 0.0.0-alpha.4 --name alpha-local
+  --commit <40-hex-release-source-commit> --version 0.0.0-alpha.5 --name alpha-local
 npm install --ignore-scripts --no-audit --no-fund \
-  "$SAIVAGE_CARD_WORK_ROOT/alpha-local/jsqlite2-0.0.0-alpha.4.tgz"
+  "$SAIVAGE_CARD_WORK_ROOT/alpha-local/jsqlite2-0.0.0-alpha.5.tgz"
 ```
 
 ```ts
