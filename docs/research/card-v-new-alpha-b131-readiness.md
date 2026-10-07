@@ -1,7 +1,7 @@
 # New local-alpha readiness at b131 — [[card:card-v-d]]
 
-**Readiness blocked on exact original slow Chinook input**, not automatically
-accepted by current integration green. No next alpha version selected. Immutable
+**Finite source readiness established for original a/c versioned LOCAL workflow**;
+new versioned artifact/demo and independent acceptance remain outstanding. No next alpha version selected. Immutable
 alpha.4 source1984a9a/artifactd5949e25 remains accepted unchanged; this is a separate
 future LOCAL assessment, not a replacement/public release.
 
@@ -47,21 +47,59 @@ these identified cases only. Unqualified owner “sorter-check” has no separat
 retained identifier; additional sorter claim needs exact SQL/fixture/run identity.
 Historical killed42-file monolith and prior failures remain unwaived.
 
-## Required original input handoff
+## Original-query evidence and remaining handoff
 
-Read root current status and original scheduler owner h-e9 and committed red/green/
-decision documents. They explicitly say **no Chinook retiming** and use a recursive
-empty-fixture sum/count probe, not the original slow Chinook query. Searches of
-committed current docs/test context do not establish which10-row query owner meant.
-**Planner/root must supply original SQL bytes/bindings, prior slow-run identity and
-fixture/setup/options** (and any separate sorter-check case). Do not substitute
-fast indexed throughput query, demo LIMIT10 or recursive scheduler probe.
+Owner supplied verbatim original SQL (no bindings); see [frozen native capture](card-v-original-chinook-b131/native.json).
+Previous missing-input blockage is resolved. Historical diagnosis0947820269571354384fc2db20549db08a265576:
+owner reports inline125.341s/instrumented120.586s,6110645dispatch/1215888scan loads/
+last work8584633 and23882dispatch waits100.4249s+151private waits0.6096s.
+Historical full driver/options unavailable: **not comparable timing settings**, no
+causal speedup ratio, CPU subtraction or old diagnostics extrapolation. Served-byte
+MessageChannel/microtask alternatives were diagnostics, not accepted implementation.
+No external clone/mount/dirty import used.
 
-After input arrives, independently capture pinned native10 typed rows/all positional
-metadata against immutable Chinook digest7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15;
-run exact candidate performance/task responsiveness/reset and fresh applicable
-installed-browser/native controls. Actual timings only, no timer extrapolation/CPU
-subtraction/universal termination. Then original package/demo owners construct and
-recapture versioned LOCAL artifact with explicit source identity; independent actual
-tarball browser/demo acceptance remains required. No next version chosen or acceptance
-inferred from current227. Fresh semantic defects route via root/original owners.
+Fresh independent native public ctypes READONLY capture uses source-ID-checked
+w freshly built SQLite3.53.4 library and shipped Chinook digest7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15.
+Exact10rows including INTEGER vs IEEE754 REAL and TEXT UTF8 bytes, all5columns'
+name/declaredType/database/table/origin metadata, reset and second native execution
+match. Capture SHAea3a4addd811e5b3154188d2eefb07578865753fc672c1d962461bb8b63b90d5.
+
+Fresh uninstrumented **actual installed tarball**35JS closure served locally through
+HTTP Fetch, Chromium148.0.7778.96/Playwright1.60.0, sourceb131/artifact1a55b610….
+Explicit connection maxWorkUnits10000000 equals current default; all other open/step
+limits default, no signal/deadline override, no parameters. External harness90s
+watchdog, not an SQL guarantee. Prepare115.6ms; three executions337.3/378.9/351.9ms
+(includes two statement resets/reexecutions), exact ordered typed rows and all
+metadata match native. Real5ms interval tasks64/70/66; measured max task gaps
+8.8/11.7/9.1ms **during step execution**, not prepare/setup preemption evidence.
+Operation error remains primary over finalize/close; success cleans up statement/db,
+browser and HTTP connections. No production instrumentation/evaluator added.
+Report [browser-report.json](card-v-original-chinook-b131/browser-report.json)
+SHAb30a5fcb2b3e3abad10371ddf7807216c9d6b6c21c6797836a27f445ca884d7a;
+all35 installed JS hashes recorded, byte-equal to isolated source build.
+
+Fresh applicable installed-dist browser scheduler controls pass all3encodings,
+main/private/scalar/async Function/overflow, lifecycle/admission/cancellation/
+first-error/reset/work/deadline cases; max2/live0 ports,22pulse ticks, absent-channel
+fallback917ticks. Exact compiled closure credentials/CORS test passes8 assertions:
+default omission, explicit include/preflight, no-ACAO transport error and reuse.
+Focused23 lifecycle/acquisition/sorter tests above remain applicable.
+Evidence proc-f6f3293a33e2 and proc-8174ce9ef7ba (partial read through8assertions),
+controls work:///cards/card-v-d/original-chinook-controls/scheduler-green/controls.json.
+
+Reviewer attempts retained: initial ad-hoc script missing brace syntax error;
+incorrect cache path missing executable; corrected tags to native IEEE754/UTF8
+representation before first browser comparison. Scheduler controls initially passed
+assertions but report write ENOENT; required report directory created and rerun.
+Credentials invocation initially omitted required Playwright environment; corrected
+fresh rerun passes. No assertion weakening or runtime repair.
+
+**Handoff to original [[card:card-v-a]]/[[card:card-v-c]]:** construct next versioned
+LOCAL package from explicitly agreed committed source (b131 engine; later evidence-only
+docs commits separately identified), recapture reproducibility/types/offline actual
+install/publish dry-run and installed static demo/current38/separate gap2; independent
+acceptance after exact artifact identity. No version chosen in this assessment.
+Current source readiness is not next artifact acceptance, public release, full227
+certification, cross-browser/hard realtime or universal composition termination.
+Identified historical sorter red→current pass retained; unspecified separate sorter
+concern is unverified, not a fixed claim or new blocker. Immutable alpha.4 unchanged.
