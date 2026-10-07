@@ -380,6 +380,12 @@ across arms using upstream ownership; no leftmost-default shortcut. Represented
 scalar/set and table/CTE/aggregate compound branches use shared destinations,
 including same-VM coroutine merge where implemented.
 
+Index prefix seeks must retain physical boundary bias through interior descent:
+GE descends before equal separators; LE descends after equal separators. Equal
+interior records are not unique prefix matches. Leaf and parent fallback retain
+exactness and positioned movement; no eager index union. Source/default_rc and
+native multi-page regression evidence: [prefix seek repair](research/card-s-f-or/verification.md#multi-page-prefix-seek-boundary-repair).
+
 ### Surviving finite materialization adaptation
 
 Some finite scalar/VALUES ordered UNION ALL and finite literal-parent set routes
@@ -745,7 +751,7 @@ Ordinary lowering now maps table cursor columns through the physical primary
 index while covering columns remain mapped through chosen secondary; includes
 residual expressions and direct projection. Joined lowering remains uncertified.
 Unknown stat1 tails are ignored, noskipscan
-retained without skip-scan credit; optional STAT4 samples are not consumed. WHERE uses
+consumed by default stat1-supported skipped-prefix admission: hasStat1, !noSkipScan and duplicate LogEst>=42, with leading nullable positional slots. NULL slots represent skipped key ordinals, not SQL NULL terms. Unordered stat1 indexes may supply equality proposals but never physical ORDER BY credit (where.c5289). Default public companions now validate compiled skipped-prefix ordinary/joined/recursive-OR and WR paths against pinned native rows, columns, bindings/reset and strict cursor restarts, bounded evidence, not whole optimizer compatibility ([evidence](research/card-s-g/IMPLEMENTATION.md)); optional STAT4 samples are not consumed. Source low-multiplier unfavorable stat1 literal-IN proposals now carry IN_SEEKSCAN by default, with shared GE-only lowering and joined invocation invalidation tested against native-first ordinary/joined companions through public execution. Explicit-disabled control retains IN as residual on valid prefixes; default skipped-prefix lowering uses the shared strict physical-prefix restart owner. Normal IN earlyout/SeekHit/SeekEq fidelity remains open. Default ordinary index frames now share source insertion/recursive-return feedback with skip/OR; ordinary scalar transitive whereScanNext now feeds the same admission/lowering owners, preserving original RHS orientation/ready masks and residuals, with native-first public join/LEFT/NULL evidence; borrowed IN remains unadmitted (same evidence). Represented column NOTNULL now produces a linked virtual GT-NULL range (excluding rowid/IPK and outer-ON), with VNULL selectivity and source start/end NULL-guard exemption in ordinary/joined/OR consumers. Shared zero-constraint positioning emits Rewind/Last rather than an invalid empty seek; when constraints equal nSkip, initial/restart Column already positions the cursor and no suffix re-seek is emitted (wherecode2026). Joined/OR consumers retain positional prefix metadata independently of the positioning opcode; recursive OR arms receive no ORDER BY (wherecode2431), so outer DESC sorts results without reversing arm cursors; normal NULL end bounds exit before comparison; native-first NULL/caller companions cover the current bounded path. Unrepresented EXISTS transformation, borrowed IN, and full cost/order/resource matrix closure remain implementation gaps, not algorithm exceptions (same evidence). WHERE uses
 explicit BigInt conversions and consumes immutable width/cost capabilities;
 synthetic IPK width3 is not a persistent index. DDL type token spans preserve
 immediate BLOB dimensions rather than inserting spaces. Fourth checkpoint
@@ -957,8 +963,7 @@ export original240/240, closure2034/2034 and read-only pinned120 snapshot equali
 are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
 reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
-STAT4 sample estimates unimplemented, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
-OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
+Historical checkpoint only (superseded for skip-scan production): STAT4 sample estimates were unimplemented and noSkipScan was unconsumed outside the internal opt-in producer; advanced24/30, analyzeC0/24 and the then-current fences describe that revision, not current admission. Current bounded admission and remaining obligations are in [WHERE, joins, and physical indexes](#where-joins-and-physical-indexes) and the [skip-scan coverage contract](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review). Detailed checkpoint evidence remains in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
 
 
 ### Current bounded infix caller repair — card-p-b-c (2026-10-04)
@@ -1308,3 +1313,29 @@ Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
 Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](research/card-e-h-stat4-admission.md).
+
+
+### WHERE integration preservation contracts
+
+Full-index alternatives precede constrained recursion under where.c4233–4295 eligibility, including prerequisite-free WR storage access when equalities depend on later cursors. Partial-key GE comparisons use vdbe4943–4952 default_rc+1; comparator-zero instrumentation is not prefix equality. Physical positioning and subsequent equality filtering retain the native contract. Statement construction binds one realm-available clock (Performance, otherwise Date) for deadline checks. [Focused repair evidence](research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07) is workspace evidence, not committed integration acceptance. Full-index insertion DONE belongs to the index loop, not an ignored recursive child. Empty constraint recursion does not produce a second full scan; full-index admission remains owned by AddBtree. Private recursive controls invoke the same internal AddBtreeIndex capability/cost/insertion owners; whole-AddBtree companions retain forced/covering full-scan admission and its debit/DONE. Own DONE closes the suspended constraint scanner; ignored child DONE retains parent return. [d9 control reconciliation](research/card-s-g/IMPLEMENTATION.md#d9-source-owner-controls-reconciled-2026-10-08) provides focused workspace evidence, not committed integration acceptance.
+
+### Bounded scalar caller ownership
+
+`select.c:pushDownWhereTerms` restriction (3) → retained derived post-producer
+predicate and independent producer LIMIT in `vdbe.ts`; the direct ordinary child
+caller cannot bypass this state. `expr.c:sqlite3CompareAffinity` → ordinary child
+InSet consumes resolved RHS EList affinity. `resolve.c:resolveSelectStep` pPrior
+iteration → nested compound EList/SrcList are paired per arm in `resolve.ts`.
+Existing scalar-child/subquery-view regressions and all-three-encoding bound
+reset/rebind/clear native controls map these branches. Detailed evidence and
+attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair).
+
+Implicit rowid ORDER ownership does not require a declared INTEGER PRIMARY KEY column: the internal order carrier uses null for XN_ROWID, distinct from nullable skip slots. Scan and physical rowid-tail consumers preserve sort identity (where.c2749/5353); evidence and remaining joined exhaustion gap: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+
+Joined and ordinary lowering share `resolvedWhereOrder`, including implicit XN_ROWID, aliases and collation ownership; joined lowering must not reconstruct ORDER from column-name text. Joined OR range-end fixups own the emitted range opcode after RHS/NULL guards (wherecode.c2090ff). Favorable DESC companions validate selected nested IN and native SCAN controls, not selected physical-DESC OR; bounded evidence is in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+
+Skip-scan evidence and still-open original implementation obligations are consolidated in [coverage ledger](research/card-s-g/COVERAGE.md). Selected physical-DESC recursive OR now has ordinary/joined source-oracle witnesses without ORDER BY; ORDER-bearing cost-rejected controls remain separate. Synchronous construction shares a statement-owned progress callback through the planner budget: source deep-equality recursion and unused-term output adjustment check cancellation/deadline/work before proceeding. This does not add event-loop suspension inside synchronous construction.
+
+Remaining skip-scan delivery ledger now links source subset/insertion Cartesian controls, redundant WR declared/PK layout and typed REAL reset/rebinding companions plus selected payload-size corruption evidence in [coverage](research/card-s-g/COVERAGE.md). These are bounded production/source checks, not original-b closure; [mixed ownership handoff](research/card-s-g/HANDOFF.md) remains pending peer reconciliation. Reserved serial11 native progress interruption is not corrupt11-equivalence evidence.
+
+LEFT ON-OR now uses the same source-owned multi-OR/skip-prefix pipeline as represented inner callers (where.c4835 excludes RIGHT/FULL, not LEFT). Final LEFT exhaustion nulls the Case5 covering cursor as well as the table before shared body re-entry, preserving rewritten Column/Rowid NULLs (where.c7694). Bounded matching/empty/composite and mixed-IN controls are mapped in [coverage](research/card-s-g/COVERAGE.md#left-on-or-owner-repair); this is not broader join/optimizer completion.

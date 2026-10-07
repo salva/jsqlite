@@ -445,3 +445,21 @@ parity. Exact-export evidence and inherited prerequisite attribution are in
 Outer-join inline continuations apply uncoded ready WHERE terms after ON hit/match recording, before downstream positioning; LEFT synthetic rows and unmatched RIGHT/FULL calls share that constraint body. Unmatched RIGHT/FULL scans also extract ready non-ON residuals through the shared selected WHERE scan. Later-source predicates remain deferred and levels left of a later RIGHT retain upstream suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.
 
 Nested SELECT dependencies in represented WHERE scalar/EXISTS expressions retain enclosing-source readiness, including transitive nesting and resolved aliases. They must wait for later-source positioning just as direct column predicates do. Joined IN SELECT in this route remains temporary unsupported before execution; no result parity is claimed for its native captures.
+
+### Selected rowid OR execution
+Represented single-table and inner-join rowid OR alternatives may execute through
+shared-body index arms with statement-private deduplication. This is an internal
+optimization, not an API addition or an ordering guarantee: full WHERE truth,
+parameter/reset behavior and existing ORDER sorters remain authoritative.
+Unsupported optimization shapes retain existing semantic fallback and forced-index
+contracts. WITHOUT ROWID union and unsafe nullable outer-join OR selection are not
+admitted optimizations. Current boundaries and source rationale are in
+[the WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes).
+
+Stat1-supported leading-prefix index skipscan is an internal optimization for
+represented scalar equality/IS/ISNULL/ranges and existing literal-list IN paths;
+it does not add public diagnostics or expand the SQL constructs supported by
+this contract. No-stat1, noskipscan and low-duplicate indexes use valid alternatives.
+See [engineering boundaries and evidence](TRANSLATION.md).
+
+Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, STAT4, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).

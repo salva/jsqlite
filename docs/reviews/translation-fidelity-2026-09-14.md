@@ -684,6 +684,16 @@ the former limitation. Neither denominator is a general SQLite compatibility cla
 
 ### 2026-09-19 revision — direct REAL column extraction
 
+Current affected joined direct/coalesced outputs also apply logical Column then
+RealAffinity before Copy/NotNull, with a separate Rowid branch. The mixed-root
+omission of the reviewed caller hunk is repaired; raw storage/index/Mem remain
+unchanged. Three-encoding native controls and fresh repair/integration evidence
+are retained in [[card:card-s-f-c]] status and
+[REAL caller capture](../research/card-s-f-or/real-projection-native.json).
+This does not extend independent be1e5b3 readiness to a mixed root or establish
+whole-product compatibility. The following earlier revision evidence retains
+its original scope.
+
 Fresh source-ID-checked pinned 3.53.4 execution showed declared REAL columns
 returning REAL 20.0/10.0 even when record storage uses an integer serial type;
 public TypeScript returned INTEGER/bigint before this correction. The mismatch was
@@ -4635,8 +4645,7 @@ export original240/240, closure2034/2034 and read-only pinned120 snapshot equali
 are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
 reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
-STAT4 sample estimates unimplemented, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
-OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
+Historical checkpoint only (superseded for skip-scan production): at this revision, STAT4 sample estimates were unimplemented and noSkipScan was unconsumed outside the internal opt-in positional producer; advanced24/30 and analyzeC0/24 and the then-current fences describe that revision, not current admission. For the single current bounded production contract and independent-review disposition, see the [skip-scan coverage contract](../research/card-s-g/COVERAGE.md#current-bounded-contract-and-review). Detailed chronology remains in [IMPLEMENTATION](../research/card-s-g/IMPLEMENTATION.md).
 
 
 ### Current bounded infix caller repair — card-p-b-c (2026-10-04)
@@ -4933,3 +4942,22 @@ metadata gap, not the separate IN-affinity or derived LIMIT/filter row findings.
 [Evidence](../research/card-s-f-or/verification.md#scalar-metadata-caller-ownership).
 
 Nested scalar metadata follow-up: ordinary retained single-source derived producers now receive the same transient source construction as compound producers before resolution (`sqlite3ExpandSubquery`). Independent constant-derived aggregate scalar/EXISTS/IN regression passes twice/reset. Schema-view transient construction now resolves that later `v1` prepare gap; full scalar-child traversal reaches the previously attributed producer LIMIT/filter mismatch. Producer LIMIT/filter and IN-affinity remain unresolved. [Bounded evidence](../research/card-s-f-or/verification.md#nested-derived-source-metadata-handoff-repair); no broader acceptance credit.
+
+### Current bounded skipscan revision (workspace, not committed acceptance)
+
+Default stat1-supported leading-prefix skipscan now selects canonical nullable slots and shared strict physical-prefix restart for represented ordinary/joined/recursive-OR paths. Source admission/recursive return/physical-tail owners and original ready/commuted/residual contracts are exercised by native-first default public companions; [current mapping](../SQLITE_SOURCE_MAP.md) and [revision evidence](../research/card-s-g/IMPLEMENTATION.md). Earlier no-production-skipscan predictions are superseded within this bounded slice only. Full matrix/error/resource closure, committed integration/review/exact225/build/browser gates remain open. No whole optimizer fidelity claim or product-scope expansion.
+
+Current bounded NOTNULL continuation: source-linked VNULL child/start-end exemption, normal end-NULL exits and zero-constraint Rewind/Last positioning now have native-first direction/caller companions and source-state regression; see [evidence](../research/card-s-g/IMPLEMENTATION.md). This replaces missing-NOTNULL predictions only in the represented column path, not full optimizer or matrix acceptance.
+
+Bounded current prefix continuation supersedes the partial joined wrong-row observation: no-start skip prefixes now enter shared positioning even with zero suffix admissions; no-reseek label is distinguished from joined OR final-return Goto. See source2026/state and public evidence in [IMPLEMENTATION](../research/card-s-g/IMPLEMENTATION.md); broad matrix acceptance remains open.
+
+Current bounded correction: ordinary/joined ORDER handoff now shares resolver-owned requirements including implicit XN_ROWID; joined OR end fixups record actual range opcode after RHS/NULL guard. Favorable DESC native18-shape companions pass selected nested-IN private cursors and SCAN controls; this does not prove selected DESC recursive OR or whole optimizer acceptance. Revision/test details: [IMPLEMENTATION](../research/card-s-g/IMPLEMENTATION.md).
+
+Reopened original skip-scan delivery: native-selected physical-DESC recursive OR now has18 shape36 execution ordinary/joined proof; cost-rejected controls remain distinct. Source construction ProgressCheck now shares a throwing statement control callback for deep equality and output adjustment; candidate debit remains a separate DONE frontier. Synchronous event-loop suspension is not claimed. Original scope gaps and peer reconciliation are explicit in [coverage ledger](../research/card-s-g/COVERAGE.md); focused closure is not whole delivery acceptance.
+
+Current bounded LEFT ON-OR repair: planner follows where.c4835 RIGHT/FULL-only exclusion and joined WhereEnd nulls Case5 covering cursor per7694, fixing native-selected suppression and stale covering values on exhausted prefixes. Native-first mixed30 cases/default60 typed resets plus private restarts retained in [coverage](../research/card-s-g/COVERAGE.md#left-on-or-owner-repair). Earlier missing LEFT selection diagnosis superseded within this slice only; original optimizer/resource/ownership review remains open.
+
+
+### Integration preservation recheck (b workspace, 2026-10-07)
+
+The d original225 red remains revision-bound evidence, not waived or deleted. Focused b repair restores eligible full-index insertion before dependent recursion; corrects source-biased GE private instrumentation and typed BigInt budget assertion; binds a minimal-realm construction clock. Fresh unchanged preservation312/312, source32/32, default skipscan92/92 and package isolated-VM pass; [diagnosis/commands/failed attempts](../research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07). No committed-MAIN225 or GUI-browser acceptance claimed; parent independent re-review/integration remains required. Subsequent d9 unchanged225224/1 and b source-owner control reconciliation analysis259/259 plus producer26/26/allvariant92/92 passes in workspace: full-index versus recursive DONE/debit controls are [reconciled in focused workspace evidence](../research/card-s-g/IMPLEMENTATION.md#d9-source-owner-controls-reconciled-2026-10-08); independent review and committed integration remain open. The earlier focused pass counts above are revision-bound, not current green.
