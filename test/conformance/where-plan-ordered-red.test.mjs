@@ -58,9 +58,9 @@ test('setup invariant checked before dominance; budget consumed even by dropped 
  const {whereLoopInsertCandidates}=await import('../../src/internal/where-plan.ts');
  const zero=loop('table-scan',30n), setup=Object.freeze({...zero,setupCost:10n});
  assert.throws(()=>whereLoopInsertCandidates([zero,setup]),/setup invariant/);
- const budget={remaining:2}, winner=loop('table-scan',10n), worse=loop('table-scan',20n);
+ const budget={remaining:2n}, winner=loop('table-scan',10n), worse=loop('table-scan',20n);
  assert.deepEqual(whereLoopInsertCandidates([winner,worse,loop('rowid',1n)],budget),[winner]);
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
  assert.deepEqual(whereLoopInsertCandidates([winner],budget),[]);
 });
 

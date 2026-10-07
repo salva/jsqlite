@@ -55,7 +55,7 @@ for(const v of capture.variants){
   assert.notEqual(builder.wherePlanBudget.remaining,initial,'planning and selected arm lowering consume the enclosing construction frontier');
   const after=builder.wherePlanBudget.remaining;
   compileTableSelect(parsed,schema,database,Number.MAX_SAFE_INTEGER,undefined,undefined,undefined,{builder,parameters,destination:{kind:'output'}});
-  assert.equal(builder.wherePlanBudget.remaining-initial,2*(after-initial),'shared caller never replaces the construction budget');
+  assert.equal(builder.wherePlanBudget.remaining-initial,2n*(after-initial),'shared caller never replaces the construction budget');
 
  }));
  for(const c of v.cases){
@@ -274,7 +274,7 @@ for(const v of capture.variants){
   const clause=orRuntimeArmClause(arm,0,chosen.analysis.clause);
   const candidates=btreeLoops(resolved.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([...resolved.sources[0].table.columns,ROWID_NEEDED]),orderBy:[],resolved});
   const index=candidates.find(loop=>loop.kind==='index'&&loop.capability.physicalIndex.index.name==='oa');assert.ok(index);
-  assert.equal(index.capability.equalityPrefix.length,1,'EP_Subquery residual must not be factored into composite access');
+  assert.equal(index.capability.equalitySlots.length,1,'EP_Subquery residual must not be factored into composite access');
   assert.equal(clause.outer.outer,null,'factored scope must not retain unsafe pOuter');
   const plain=expandAndResolveSelect(parseSql("SELECT id FROM o WHERE ((a=1 AND c>3) OR b='beta') AND c<7").statement,schema);
   const analysis=planWhere(plain,{neededColumns:[new Set([...plain.sources[0].table.columns,ROWID_NEEDED])],orderBy:[]}).analysis;

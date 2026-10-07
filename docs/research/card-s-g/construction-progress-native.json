@@ -1,0 +1,8 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": "SELECT f FROM t INDEXED BY ix WHERE a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6",
+  "prepareRc": 9,
+  "callbackCount": 1,
+  "recoveryRows": [],
+  "chronology": "before planner progress repair; in-memory development oracle, no fixture mutation"
+}

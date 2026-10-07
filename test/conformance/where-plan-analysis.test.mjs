@@ -14,16 +14,16 @@ test('whereLoopInsert keeps the cheaper represented IN/range proposal',()=>{
   const r=resolve("SELECT a FROM t INDEXED BY i_ab WHERE a IN ('x','y') AND a >= 'w' AND a < 'z' AND b >= 1.5 AND b < 3.0",s);
   const analyzed=analyzeWhere(r);
   const caps=btreeLoops(r.sources[0],0,analyzed.clause,{forcedIndex:s.i,neededColumns:new Set([s.a]),orderBy:[]}).filter(loop=>loop.kind==='index').map(loop=>loop.capability);
-  assert.ok(caps.some(cap=>cap.equalityPrefix[0]?.operator==='in'&&cap.lower?.operator==='ge'&&cap.upper?.operator==='lt'&&cap.lower?.fieldOrdinal===1&&cap.upper?.fieldOrdinal===1),`${encoding}: IN prefix with second-slot bounds`);
+  assert.ok(caps.some(cap=>cap.equalitySlots[0]?.operator==='in'&&cap.lower?.operator==='ge'&&cap.upper?.operator==='lt'&&cap.lower?.fieldOrdinal===1&&cap.upper?.fieldOrdinal===1),`${encoding}: IN prefix with second-slot bounds`);
   assert.equal(caps.length,1,`${encoding}: dominated same-sort first-slot range is discarded`);
  }
 });
 // whereLoopFindLesser compares equal-sort costs: default index selectivity may
 // dominate an IPK range; keep the independently driven NOT INDEXED rowid control.
-test('production split/analyze commutes operands and derives rowid/range masks',()=>{const s=schema(),r=resolve("SELECT a FROM t WHERE 5 < id AND a COLLATE nocase = 'x' AND b <= 1.5",s),a=analyzeWhere(r);assert.equal(a.clause.terms.length,3);assert.equal(a.clause.terms[0].operator,'gt');assert.equal(a.clause.terms[0].originalIndexedOperand,'right');assert.equal(a.clause.terms[0].left.rowid,true);assert.equal(a.clause.terms[1].effectiveCollation,'nocase');assert.equal(a.clause.terms[2].rightAffinity,null);const loops=btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set([s.a,s.blob]),orderBy:[]});assert.equal(loops.length,1);assert.equal(loops[0].capability.index,s.i);assert.equal(loops[0].capability.equalityPrefix.length,1);const rowOnly=resolve('SELECT a FROM t NOT INDEXED WHERE 5 < id',s);const rowLoops=btreeLoops(rowOnly.sources[0],0,analyzeWhere(rowOnly).clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]});assert.equal(rowLoops[0].kind,'rowid');assert.equal(rowLoops[0].capability.rowidLower.term.operator,'gt');
-const onlyB=analyzeWhere(resolve('SELECT a FROM t WHERE b>1',s));const bLoop=btreeLoops(r.sources[0],0,onlyB.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]});assert.deepEqual(bLoop.map(x=>x.kind),['index']);assert.ok(bLoop.slice(1).every(x=>x.capability.covering&&x.capability.constrainedFields===0));const selected=planWhere(r,{neededColumns:[new Set([s.a,s.blob])],orderBy:[]});assert.equal(selected.path.loops[0].capability.index,s.i);assert.equal(selected.path.loops[0].capability.equalityPrefix[0].term,selected.analysis.clause.terms[1]);});
+test('production split/analyze commutes operands and derives rowid/range masks',()=>{const s=schema(),r=resolve("SELECT a FROM t WHERE 5 < id AND a COLLATE nocase = 'x' AND b <= 1.5",s),a=analyzeWhere(r);assert.equal(a.clause.terms.length,3);assert.equal(a.clause.terms[0].operator,'gt');assert.equal(a.clause.terms[0].originalIndexedOperand,'right');assert.equal(a.clause.terms[0].left.rowid,true);assert.equal(a.clause.terms[1].effectiveCollation,'nocase');assert.equal(a.clause.terms[2].rightAffinity,null);const loops=btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set([s.a,s.blob]),orderBy:[]});assert.equal(loops.length,1);assert.equal(loops[0].capability.index,s.i);assert.equal(loops[0].capability.equalitySlots.length,1);const rowOnly=resolve('SELECT a FROM t NOT INDEXED WHERE 5 < id',s);const rowLoops=btreeLoops(rowOnly.sources[0],0,analyzeWhere(rowOnly).clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]});assert.equal(rowLoops[0].kind,'rowid');assert.equal(rowLoops[0].capability.rowidLower.term.operator,'gt');
+const onlyB=analyzeWhere(resolve('SELECT a FROM t WHERE b>1',s));const bLoop=btreeLoops(r.sources[0],0,onlyB.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]});assert.deepEqual(bLoop.map(x=>x.kind),['index']);assert.ok(bLoop.slice(1).every(x=>x.capability.covering&&x.capability.constrainedFields===0));const selected=planWhere(r,{neededColumns:[new Set([s.a,s.blob])],orderBy:[]});assert.equal(selected.path.loops[0].capability.index,s.i);assert.equal(selected.path.loops[0].capability.equalitySlots[0].term,selected.analysis.clause.terms[1]);});
 test('gates NOT INDEXED, forced full index and pointless index; RIGHT/FULL fallback unchanged',()=>{const s=schema(),r=resolve('SELECT a FROM t',s),a=analyzeWhere(r);assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).map(x=>x.kind),['index']);assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[{sourceOrdinal:0,column:s.a,descending:false,collation:'nocase'}]}).map(x=>x.capability.index),[s.iblob,s.i]);assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{forcedIndex:s.i,neededColumns:new Set(),orderBy:[]}).map(x=>x.kind),['index']);assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,notIndexed:true,neededColumns:new Set(),orderBy:[]}).map(x=>x.kind),['table-scan']);const row=resolve('SELECT a FROM t WHERE id=1',s),rowAnalysis=analyzeWhere(row);assert.deepEqual(btreeLoops(row.sources[0],0,rowAnalysis.clause,{forcedIndex:null,notIndexed:true,neededColumns:new Set(),orderBy:[]}).map(x=>x.kind),['rowid']);assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{forcedIndex:s.i,notIndexed:true,neededColumns:new Set(),orderBy:[]}),WherePlanningUnsupportedError);const rr=resolve('SELECT t.a FROM t RIGHT JOIN t AS u ON t.id=u.id',s);assert.deepEqual(analyzeWhere(rr),{clause:{split:'and',terms:[],outer:null},plannerEligible:false,fallback:'right-full'});});
-test('all encodings flow analysis through admission, candidate and selected identity',()=>{for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [sql,affinity,operator,orientation] of [["SELECT a FROM t WHERE a='01'",null,'eq','left'],["SELECT a FROM t WHERE 'z'=a COLLATE nocase",null,'eq','right'],["SELECT a FROM t WHERE a='x' AND b=9007199254740991",null,'eq','left'],["SELECT a FROM t WHERE a='x' AND b<9007199254740991.5",null,'lt','left'],["SELECT a FROM t WHERE blob=x'00ff'",null,'eq','left'],["SELECT a FROM t WHERE a = NULL",null,'eq','left'],["SELECT a FROM t WHERE a IS NULL",null,'is-null','left']]){const s=schema(encoding),r=resolve(sql,s),analysis=analyzeWhere(r),term=analysis.clause.terms.at(-1),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]}),candidate=loops.find(x=>x.kind==='index'&&(x.capability.equalityPrefix.some(a=>a.term===term)||x.capability.lower?.term===term||x.capability.upper?.term===term));assert.equal(s.i.physical.keyInfo.encoding,encoding);assert.equal(term.rightAffinity,affinity);assert.equal(term.operator,operator);assert.equal(term.originalIndexedOperand,orientation);assert.ok(candidate);const admission=candidate.capability.equalityPrefix.find(a=>a.term===term)??(candidate.capability.lower?.term===term?candidate.capability.lower:candidate.capability.upper);assert.equal(admission.physicalIndex,sql.includes('blob=')?s.iblob.physical:s.i.physical);assert.equal(admission.term,term);if(sql.includes('= NULL'))assert.equal(admission.comparison.kind,'comparison');if(sql.includes('IS NULL'))assert.equal(admission.comparison.kind,'is-null');const selected=planWhere(r,{neededColumns:[new Set([s.a])],orderBy:[]});assert.ok(selected.path.loops[0].capability?.physicalIndex);assert.equal(selected.path.loops[0].capability.physicalIndex.keyInfo.encoding,encoding);}});
+test('all encodings flow analysis through admission, candidate and selected identity',()=>{for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const [sql,affinity,operator,orientation] of [["SELECT a FROM t WHERE a='01'",null,'eq','left'],["SELECT a FROM t WHERE 'z'=a COLLATE nocase",null,'eq','right'],["SELECT a FROM t WHERE a='x' AND b=9007199254740991",null,'eq','left'],["SELECT a FROM t WHERE a='x' AND b<9007199254740991.5",null,'lt','left'],["SELECT a FROM t WHERE blob=x'00ff'",null,'eq','left'],["SELECT a FROM t WHERE a = NULL",null,'eq','left'],["SELECT a FROM t WHERE a IS NULL",null,'is-null','left']]){const s=schema(encoding),r=resolve(sql,s),analysis=analyzeWhere(r),term=analysis.clause.terms.at(-1),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]}),candidate=loops.find(x=>x.kind==='index'&&(x.capability.equalitySlots.some(a=>a.term===term)||x.capability.lower?.term===term||x.capability.upper?.term===term));assert.equal(s.i.physical.keyInfo.encoding,encoding);assert.equal(term.rightAffinity,affinity);assert.equal(term.operator,operator);assert.equal(term.originalIndexedOperand,orientation);assert.ok(candidate);const admission=candidate.capability.equalitySlots.find(a=>a.term===term)??(candidate.capability.lower?.term===term?candidate.capability.lower:candidate.capability.upper);assert.equal(admission.physicalIndex,sql.includes('blob=')?s.iblob.physical:s.i.physical);assert.equal(admission.term,term);if(sql.includes('= NULL'))assert.equal(admission.comparison.kind,'comparison');if(sql.includes('IS NULL'))assert.equal(admission.comparison.kind,'is-null');const selected=planWhere(r,{neededColumns:[new Set([s.a])],orderBy:[]});assert.ok(selected.path.loops[0].capability?.physicalIndex);assert.equal(selected.path.loops[0].capability.physicalIndex.keyInfo.encoding,encoding);}});
 test('LEFT provenance prerequisites and N-best LogEst path selection',()=>{const s=schema(),r=resolve('SELECT t.a FROM t LEFT JOIN t AS u ON u.a=t.a WHERE t.id>0',s),a=analyzeWhere(r),on=a.clause.terms.find(x=>x.origin.kind==='join-on');assert.ok(on);assert.equal(on.prereqRight,sourceBit(0));assert.equal(on.outerJoinSafe.mayOmitResidual,false);assert.equal(logEstAdd(10n,10n),20n);const mk=(source,n,prereq,cost,rows)=>Object.freeze({source,sourceOrdinal:n,prereq,capability:null,kind:'table-scan',setupCost:0n,runCost:cost,outputRows:rows,terms:Object.freeze([])});const p=wherePathSolver([[mk(r.sources[0],0,0n,20n,10n)],[mk(r.sources[1],1,sourceBit(0),5n,1n)]],2);assert.deepEqual(p.loops.map(x=>x.sourceOrdinal),[0,1]);});
 
 test('LEFT barriers constrain every production candidate for ON and WHERE orientations',()=>{const s=schema();for(const sql of ["SELECT t.a FROM t LEFT JOIN t AS u ON u.id=t.id WHERE u.id>0","SELECT t.a FROM t LEFT JOIN t AS u ON t.id=u.id WHERE 0<u.id"]){const r=resolve(sql,s),selection=planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.id])],orderBy:[]});assert.deepEqual(selection.path.loops.map(x=>x.sourceOrdinal),[0,1]);const rhs=selection.path.loops[1];assert.equal(rhs.prereq&sourceBit(0),sourceBit(0));assert.ok(selection.analysis.clause.terms.some(term=>term.origin.kind==='join-on'&&term.outerJoinSafe.mayOmitResidual===false));}const empty=resolve('SELECT t.a FROM t LEFT JOIN t AS u ON 0',s),emptyPlan=planWhere(empty,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]});assert.deepEqual(emptyPlan.path.loops.map(x=>x.sourceOrdinal),[0,1]);assert.equal(emptyPlan.path.loops[1].prereq,sourceBit(0));});
@@ -79,14 +79,14 @@ test('WITHOUT ROWID secondary layout appends immutable primary-key suffix and pl
 
 test('LEFT outer-ON extraRight keeps preserved-side equality/range residual',()=>{const s=schema();for(const [on,kind] of [['t.id=1','rowid'],['t.a>\'m\'','index']]){const r=resolve(`SELECT t.a FROM t LEFT JOIN t AS u ON ${on}`,s),analysis=analyzeWhere(r),preserved=analysis.clause.terms.find(term=>term.origin.kind==='join-on'&&term.left?.sourceOrdinal===0);assert.ok(preserved);assert.equal(preserved.outerJoinSafe.mayDrive,false);const loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]});assert.equal(loops.some(loop=>loop.kind===kind&&loop.capability&&(loop.capability.rowidEquality?.term===preserved||loop.capability.lower?.term===preserved)),false);const selected=planWhere(r,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]});assert.equal(selected.path.loops[0].capability?.rowidEquality?.term===preserved||selected.path.loops[0].capability?.lower?.term===preserved,false);const wr=resolve(`SELECT t.a FROM t LEFT JOIN t AS u ON 1 WHERE ${on}`,s),wa=analyzeWhere(wr),whereTerm=wa.clause.terms.find(term=>term.origin.kind==='where');assert.equal(whereTerm.outerJoinSafe.mayDrive,true);assert.ok(btreeLoops(wr.sources[0],0,wa.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]}).some(loop=>loop.kind===kind));}const right=resolve("SELECT t.a FROM t LEFT JOIN t AS u ON u.a='x'",s),rightAnalysis=analyzeWhere(right),rightTerm=rightAnalysis.clause.terms.find(term=>term.origin.kind==='join-on');assert.equal(rightTerm.outerJoinSafe.mayDrive,true);assert.ok(btreeLoops(right.sources[1],1,rightAnalysis.clause,{forcedIndex:null,sourcePrereq:sourceBit(0),neededColumns:new Set([s.a]),orderBy:[]}).some(loop=>loop.kind==='index'));});
 
-test('both-column analysis publishes exact virtual commuted children and orientation-stable RHS admission',()=>{const s=schema();for(const join of ['JOIN','LEFT JOIN']){const seen=[];for(const on of ['t.a=u.a','u.a=t.a']){const r=resolve(`SELECT t.a FROM t ${join} t AS u ON ${on}`,s),analysis=analyzeWhere(r),parent=analysis.clause.terms.find(term=>!term.virtual),child=analysis.clause.terms.find(term=>term.virtual);assert.ok(parent&&child);assert.deepEqual(parent.childIds,[child.id]);assert.equal(child.parentId,parent.id);assert.equal(child.origin.kind,'derived');assert.equal(child.origin.reason,'commuted');assert.equal(child.operator,parent.operator);assert.equal(child.effectiveCollation,parent.effectiveCollation);assert.equal(child.left.sourceOrdinal,parent.left.sourceOrdinal===0?1:0);assert.equal(child.prereqRight,sourceBit(parent.left.sourceOrdinal));const rhs=analysis.clause.terms.find(term=>term.left?.sourceOrdinal===1);assert.ok(rhs);if(join==='LEFT JOIN')assert.equal(analysis.clause.terms.find(term=>term.left?.sourceOrdinal===0).outerJoinSafe.mayDrive,false);assert.equal(rhs.outerJoinSafe.mayDrive,true);const loops=btreeLoops(r.sources[1],1,analysis.clause,{forcedIndex:null,sourcePrereq:sourceBit(0),neededColumns:new Set([s.a]),orderBy:[]}),ix=loops.find(loop=>loop.kind==='index');assert.ok(ix);const admission=ix.capability.equalityPrefix[0];assert.equal(admission.term,rhs);assert.equal(admission.field,s.i.physical.fields[0]);seen.push(admission.field);}assert.equal(seen[0],seen[1]);}});
+test('both-column analysis publishes exact virtual commuted children and orientation-stable RHS admission',()=>{const s=schema();for(const join of ['JOIN','LEFT JOIN']){const seen=[];for(const on of ['t.a=u.a','u.a=t.a']){const r=resolve(`SELECT t.a FROM t ${join} t AS u ON ${on}`,s),analysis=analyzeWhere(r),parent=analysis.clause.terms.find(term=>!term.virtual),child=analysis.clause.terms.find(term=>term.virtual);assert.ok(parent&&child);assert.deepEqual(parent.childIds,[child.id]);assert.equal(child.parentId,parent.id);assert.equal(child.origin.kind,'derived');assert.equal(child.origin.reason,'commuted');assert.equal(child.operator,parent.operator);assert.equal(child.effectiveCollation,parent.effectiveCollation);assert.equal(child.left.sourceOrdinal,parent.left.sourceOrdinal===0?1:0);assert.equal(child.prereqRight,sourceBit(parent.left.sourceOrdinal));const rhs=analysis.clause.terms.find(term=>term.left?.sourceOrdinal===1);assert.ok(rhs);if(join==='LEFT JOIN')assert.equal(analysis.clause.terms.find(term=>term.left?.sourceOrdinal===0).outerJoinSafe.mayDrive,false);assert.equal(rhs.outerJoinSafe.mayDrive,true);const loops=btreeLoops(r.sources[1],1,analysis.clause,{forcedIndex:null,sourcePrereq:sourceBit(0),neededColumns:new Set([s.a]),orderBy:[]}),ix=loops.find(loop=>loop.kind==='index');assert.ok(ix);const admission=ix.capability.equalitySlots[0];assert.equal(admission.term,rhs);assert.equal(admission.field,s.i.physical.fields[0]);seen.push(admission.field);}assert.equal(seen[0],seen[1]);}});
 
 test('three-source LEFT then INNER/CROSS barriers retain nullable side before later source',()=>{const s=schema();for(const tail of ['JOIN t AS v ON u.a=v.a','CROSS JOIN t AS v']){const r=resolve(`SELECT t.a FROM t LEFT JOIN t AS u ON t.a=u.a ${tail}`,s),selection=planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.a]),new Set([s.a])],orderBy:[]});assert.deepEqual(selection.path.loops.map(loop=>loop.sourceOrdinal),[0,1,2]);const third=selection.path.loops[2];assert.equal(third.prereq&(sourceBit(0)|sourceBit(1)),sourceBit(0)|sourceBit(1));if(tail.startsWith('JOIN')){const parent=selection.analysis.clause.terms.find(term=>term.origin.kind==='join-on'&&term.origin.rightSource===2),nullable=selection.analysis.clause.terms.find(term=>term.parentId===parent?.id&&term.left?.sourceOrdinal===2);assert.ok(parent&&nullable);assert.equal(nullable.prereqRight,sourceBit(1));}}});
 
-test('compare affinity follows expression affinity, not literal storage class, in every encoding',()=>{for(const encoding of ['utf-8','utf-16le','utf-16be']){const s=schema(encoding);for(const sql of ["SELECT a FROM t WHERE a=1","SELECT a FROM t WHERE 1=a","SELECT a FROM t WHERE a='nonnumeric'","SELECT a FROM t WHERE a=NULL","SELECT a FROM t WHERE NULL=a","SELECT a FROM t WHERE a='x' AND b='1'","SELECT a FROM t WHERE a='x' AND 'nonnumeric'=b","SELECT a FROM t WHERE a='x' AND b=9007199254740991","SELECT a FROM t WHERE a='x' AND 9007199254740991.5>b","SELECT a FROM t WHERE blob='text'","SELECT a FROM t WHERE x'00ff'=blob"]){const r=resolve(sql,s),analysis=analyzeWhere(r),term=analysis.clause.terms.at(-1),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]}),ix=loops.find(loop=>loop.kind==='index'&&[...loop.capability.equalityPrefix,loop.capability.lower,loop.capability.upper].some(a=>a?.term===term));assert.ok(ix,`${encoding}: ${sql}`);const admission=[...ix.capability.equalityPrefix,ix.capability.lower,ix.capability.upper].find(a=>a?.term===term);assert.equal(admission.term,term);assert.equal(admission.physicalIndex.keyInfo.encoding,encoding);const selected=planWhere(r,{neededColumns:[new Set([s.a])],orderBy:[]});assert.ok(selected.path.loops[0].capability?.physicalIndex);}
- for(const sql of ["SELECT x.a FROM t AS x JOIN t AS y ON x.a=y.b","SELECT x.a FROM t AS x JOIN t AS y ON x.b=y.a","SELECT a FROM t WHERE a COLLATE binary='x'"]){const r=resolve(sql,s),analysis=analyzeWhere(r),target=analysis.clause.terms.find(term=>term.left?.sourceOrdinal===0),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]});assert.equal(loops.some(loop=>loop.kind==='index'&&[...loop.capability.equalityPrefix,loop.capability.lower,loop.capability.upper].some(a=>a?.term===target)),false,`${encoding}: ${sql}`);}}});
+test('compare affinity follows expression affinity, not literal storage class, in every encoding',()=>{for(const encoding of ['utf-8','utf-16le','utf-16be']){const s=schema(encoding);for(const sql of ["SELECT a FROM t WHERE a=1","SELECT a FROM t WHERE 1=a","SELECT a FROM t WHERE a='nonnumeric'","SELECT a FROM t WHERE a=NULL","SELECT a FROM t WHERE NULL=a","SELECT a FROM t WHERE a='x' AND b='1'","SELECT a FROM t WHERE a='x' AND 'nonnumeric'=b","SELECT a FROM t WHERE a='x' AND b=9007199254740991","SELECT a FROM t WHERE a='x' AND 9007199254740991.5>b","SELECT a FROM t WHERE blob='text'","SELECT a FROM t WHERE x'00ff'=blob"]){const r=resolve(sql,s),analysis=analyzeWhere(r),term=analysis.clause.terms.at(-1),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]}),ix=loops.find(loop=>loop.kind==='index'&&[...loop.capability.equalitySlots,loop.capability.lower,loop.capability.upper].some(a=>a?.term===term));assert.ok(ix,`${encoding}: ${sql}`);const admission=[...ix.capability.equalitySlots,ix.capability.lower,ix.capability.upper].find(a=>a?.term===term);assert.equal(admission.term,term);assert.equal(admission.physicalIndex.keyInfo.encoding,encoding);const selected=planWhere(r,{neededColumns:[new Set([s.a])],orderBy:[]});assert.ok(selected.path.loops[0].capability?.physicalIndex);}
+ for(const sql of ["SELECT x.a FROM t AS x JOIN t AS y ON x.a=y.b","SELECT x.a FROM t AS x JOIN t AS y ON x.b=y.a","SELECT a FROM t WHERE a COLLATE binary='x'"]){const r=resolve(sql,s),analysis=analyzeWhere(r),target=analysis.clause.terms.find(term=>term.left?.sourceOrdinal===0),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:[]});assert.equal(loops.some(loop=>loop.kind==='index'&&[...loop.capability.equalitySlots,loop.capability.lower,loop.capability.upper].some(a=>a?.term===target)),false,`${encoding}: ${sql}`);}}});
 
-test('loop alternatives preserve exact admissions and are text-order invariant',()=>{const s=schema();for(const pair of [["t.a=u.a AND t.a='x'","t.a='x' AND t.a=u.a"],["t.a>u.a AND t.a>'m' AND t.a<'z'","t.a<'z' AND t.a>'m' AND t.a>u.a"]]){const selected=[];for(const predicates of pair){const r=resolve(`SELECT t.a FROM t JOIN t AS u ON 1 WHERE ${predicates}`,s),analysis=analyzeWhere(r),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:s.i,neededColumns:new Set([s.a]),orderBy:[]}),indexLoops=loops.filter(loop=>loop.kind==='index');assert.ok(indexLoops.length>=1);assert.ok(indexLoops.some(loop=>loop.prereq===0n));for(const loop of indexLoops)for(const admission of [...loop.capability.equalityPrefix,loop.capability.lower,loop.capability.upper].filter(Boolean))assert.equal(admission.term,analysis.clause.terms[admission.term.id]);selected.push(planWhere(r,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]}).path.loops[0].prereq);}assert.deepEqual(selected,[0n,0n]);}const left=resolve("SELECT t.a FROM t LEFT JOIN t AS u ON t.a=u.a WHERE t.a='x'",s),lp=planWhere(left,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]});assert.equal(lp.path.loops[0].prereq,0n);assert.equal(lp.path.loops[0].capability.equalityPrefix[0].term.origin.kind,'where');});
+test('loop alternatives preserve exact admissions and are text-order invariant',()=>{const s=schema();for(const pair of [["t.a=u.a AND t.a='x'","t.a='x' AND t.a=u.a"],["t.a>u.a AND t.a>'m' AND t.a<'z'","t.a<'z' AND t.a>'m' AND t.a>u.a"]]){const selected=[];for(const predicates of pair){const r=resolve(`SELECT t.a FROM t JOIN t AS u ON 1 WHERE ${predicates}`,s),analysis=analyzeWhere(r),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:s.i,neededColumns:new Set([s.a]),orderBy:[]}),indexLoops=loops.filter(loop=>loop.kind==='index');assert.ok(indexLoops.length>=1);assert.ok(indexLoops.some(loop=>loop.prereq===0n));for(const loop of indexLoops)for(const admission of [...loop.capability.equalitySlots,loop.capability.lower,loop.capability.upper].filter(Boolean))assert.equal(admission.term,analysis.clause.terms[admission.term.id]);selected.push(planWhere(r,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]}).path.loops[0].prereq);}assert.deepEqual(selected,[0n,0n]);}const left=resolve("SELECT t.a FROM t LEFT JOIN t AS u ON t.a=u.a WHERE t.a='x'",s),lp=planWhere(left,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]});assert.equal(lp.path.loops[0].prereq,0n);assert.equal(lp.path.loops[0].capability.equalitySlots[0].term.origin.kind,'where');});
 
 test('multi-source path order is conservatively zero despite local index order facts',()=>{const s=schema(),r=resolve('SELECT t.a FROM t JOIN t AS u ON 1',s),order=[{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],analysis=analyzeWhere(r),groups=r.sources.map((source,i)=>btreeLoops(source,i,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:order}));assert.ok(groups[1].some(loop=>loop.capability?.orderTermsSatisfied===1));const path=wherePathSolver(groups,2);assert.equal(path.orderTermsSatisfied,0);const reverse=[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'},{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],rp=planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.a])],orderBy:reverse}).path;assert.equal(rp.orderTermsSatisfied,0);assert.equal(rp.reverse===0n||rp.reverse!==0n,true);const single=resolve("SELECT a FROM t WHERE a='x'",s),sp=planWhere(single,{neededColumns:[new Set([s.a])],orderBy:[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'}]}).path;assert.equal(sp.orderTermsSatisfied,1);});
 
@@ -111,12 +111,12 @@ test('only direct ordinary operands bind; same-source RHS including every IN mem
  for(const predicate of ['id+1=2','2=id+1','+id=2','CAST(id AS INTEGER)=2','abs(id)=2','a+1=2']){
   const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),analysis=analyzeWhere(r),term=analysis.clause.terms[0];
   assert.equal(term.left,null,predicate);assert.equal(term.outerJoinSafe.mayDrive,false,predicate);
-  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalityPrefix.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
+  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalitySlots.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
  }
  for(const predicate of ['id=a','a=b','id IN (99,a)','a IN (\'x\',b)']){
   const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),analysis=analyzeWhere(r);
   for(const term of analysis.clause.terms){assert.equal(term.prereqRight,sourceBit(0),predicate);assert.equal(term.outerJoinSafe.mayDrive,false,predicate);}
-  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalityPrefix.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
+  assert.equal(btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).some(loop=>loop.capability?.rowidEquality||loop.capability?.equalitySlots.length||loop.capability?.lower||loop.capability?.upper),false,predicate);
  }
  for(const predicate of ['id=2','(id)=2','id COLLATE BINARY=2','2=id']){
   const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),term=analyzeWhere(r).clause.terms[0];assert.ok(term.left,predicate);assert.equal(term.prereqRight,0n);assert.equal(term.outerJoinSafe.mayDrive,true);
@@ -143,41 +143,43 @@ test('production budget stops branching exploration before later index and permi
  const analysis=analyzeWhere(resolved), original=s.iblob.physical;
  let laterIndexReads=0;
  Object.defineProperty(s.iblob,'physical',{configurable:true,get(){laterIndexReads++;return original;}});
- const budget={remaining:1};
+ const budget={remaining:1n};
  const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[],resolved,planBudget:budget});
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
  assert.equal(candidates.length,1);
  assert.equal(laterIndexReads,0,'SQLITE_DONE must stop index exploration, not truncate an eagerly constructed list');
  // whereLoopAddAll adds its per-source increment after an abbreviated search.
- budget.remaining+=1000;
+ budget.remaining+=1000n;
  const next=schema(), nextResolved=resolve('SELECT id FROM t WHERE id=7',next);
  const continued=btreeLoops(nextResolved.sources[0],1,analyzeWhere(nextResolved).clause,{forcedIndex:null,neededColumns:new Set([next.id]),orderBy:[],planBudget:budget});
  assert.ok(continued.length>0);
- assert.ok(budget.remaining<1000);
+ assert.ok(budget.remaining<1000n);
 });
 
+// Direct AddBtreeIndex controls retain original budgets/SQL; AddBtree's
+// forced/covering full-scan debit is asserted independently below.
 test('forced composite producer suspends recursion at budget boundary without constructing siblings',()=>{
  const s=schema(),resolved=resolve("SELECT id FROM t INDEXED BY i_ab WHERE a='x' AND a='y' AND b=1 AND b=2",s),analysis=analyzeWhere(resolved);
  let constructed=0;
  const needed={*[Symbol.iterator](){constructed++;yield s.id;}};
- const budget={remaining:1};
- const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:s.i,neededColumns:needed,orderBy:[],resolved,planBudget:budget});
- assert.equal(constructed,1,'covering calculation observes only the first constructed leaf');
- assert.equal(budget.remaining,0);
+ const budget={remaining:1n};
+ const candidates=wherePlanning.btreeIndexLoops(resolved.sources[0],0,resolved.sources[0].table.indexes[0],analysis.clause,{forcedIndex:s.i,neededColumns:needed,orderBy:[],resolved,planBudget:budget});
+ assert.equal(constructed,4,'source parent OK recurses: parent, two child DONE proposals, next parent DONE');
+ assert.equal(budget.remaining,0n);
  assert.equal(candidates.length,1);
- assert.equal(candidates[0].capability.equalityPrefix.length,2);
- assert.ok(Object.isFrozen(candidates[0].capability.equalityPrefix));
+ assert.equal(candidates[0].capability.equalitySlots.length,1);
+ assert.ok(Object.isFrozen(candidates[0].capability.equalitySlots));
 });
 
 test('production duplicate drop consumes budget and preserves first admission before later source restart',()=>{
  const s=schema(),resolved=resolve('SELECT id FROM t WHERE id=7 AND id=8 AND id=9',s),analysis=analyzeWhere(resolved);
- const budget={remaining:3};
+ const budget={remaining:3n};
  const candidates=btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[],planBudget:budget});
- assert.equal(budget.remaining,0); // scan, replacement, duplicate drop
+ assert.equal(budget.remaining,0n); // scan, replacement, duplicate drop
  assert.equal(candidates.length,1);
  assert.equal(candidates[0].capability.rowidEquality.term,analysis.clause.terms[0]);
  assert.equal(btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[],planBudget:budget}).length,0);
- budget.remaining+=1000;
+ budget.remaining+=1000n;
  assert.equal(btreeLoops(resolved.sources[0],0,analysis.clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[],planBudget:budget}).length,1);
 });
 
@@ -242,12 +244,12 @@ test('production OR cost publishes immutable parent union, no branch physical ca
 });
 test('cost-only Btree producer bypasses ordinary list and shares construction budget',()=>{
  const r=expandAndResolveSelect(parseSql('SELECT id FROM t WHERE id>?').statement,schema()),clause=analyzeWhere(r).clause;
- const costs={a:[]},budget={remaining:20};
+ const costs={a:[]},budget={remaining:20n};
  const loops=btreeLoops(r.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:costs});
- assert.deepEqual(loops,[]);assert.ok(costs.a.length>0);assert.ok(budget.remaining<20);
- const empty={a:[]},tiny={remaining:1};
+ assert.deepEqual(loops,[]);assert.ok(costs.a.length>0);assert.ok(budget.remaining<20n);
+ const empty={a:[]},tiny={remaining:1n};
  btreeLoops(r.sources[0],0,clause,{forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:tiny,orSet:empty});
- assert.equal(tiny.remaining,0);assert.deepEqual(empty.a,[],'unconstrained scan consumes budget but never contributes OR cost');
+ assert.equal(tiny.remaining,0n);assert.deepEqual(empty.a,[],'unconstrained scan consumes budget but never contributes OR cost');
 });
 test('all encodings expose the same prelowering OR owner; recursive AND and zero-arm boundaries',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
@@ -267,10 +269,10 @@ test('pinned AND indexable mask excludes OR-info (not an allowedOp) even if recu
 test('recursive production consumes the shared budget and never publishes partial union costs',()=>{
  const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (b>? OR id<?))',schema()),a=analyzeWhere(r);
  for(const remaining of [0,1,2,3,4,5,6,7,8,9,10]){
-  const budget={remaining},costs={a:[]};
+  const budget={remaining:BigInt(remaining)},costs={a:[]};
   assert.deepEqual(btreeLoops(r.sources[0],0,a.clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:costs}),[]);
-  assert.ok(budget.remaining>=0&&budget.remaining<=remaining);
-  if(budget.remaining===0)assert.deepEqual(costs.a,[],'DONE clears parent collector');
+  assert.ok(budget.remaining>=0n&&budget.remaining<=remaining);
+  if(budget.remaining===0n)assert.deepEqual(costs.a,[],'DONE clears parent collector');
  }
 });
 test('OR clause has no outer link; AND arm outer links to enclosing main clause not OR sibling scope',()=>{
@@ -280,9 +282,9 @@ test('OR clause has no outer link; AND arm outer links to enclosing main clause 
 });
 test('cost-only insertion adjusts against shared enclosing ordinary loops before collecting',()=>{
  const r=resolve('SELECT id FROM t WHERE a=?',schema()),clause=analyzeWhere(r).clause,options={forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r};
- const constrained=btreeLoops(r.sources[0],0,clause,options).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
+ const constrained=btreeLoops(r.sources[0],0,clause,options).find(l=>l.kind==='index'&&l.capability.equalitySlots.length);
  assert.ok(constrained);
- const previous=Object.freeze({...constrained,runCost:0n,outputRows:10n,capability:Object.freeze({...constrained.capability,equalityPrefix:[],lower:null,upper:null,constrainedFields:0})});
+ const previous=Object.freeze({...constrained,runCost:0n,outputRows:10n,capability:Object.freeze({...constrained.capability,equalitySlots:[],lower:null,upper:null,constrainedFields:0})});
  const ordinary=[previous],costs={a:[]};
  btreeLoops(r.sources[0],0,clause,{...options,orSet:costs,ordinaryLoops:ordinary});
  assert.equal(costs.a.length,1);assert.equal(costs.a[0].rRun,0n);assert.equal(costs.a[0].nOut,9n);
@@ -290,10 +292,10 @@ test('cost-only insertion adjusts against shared enclosing ordinary loops before
 });
 test('ordinary builder and copied OR builders read same pre-existing loop adjustment state',()=>{
  const r=resolve('SELECT id FROM t WHERE a=?',schema()),clause=analyzeWhere(r).clause,opts={forcedIndex:null,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r};
- const strong=btreeLoops(r.sources[0],0,clause,opts).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
- const weak=Object.freeze({...strong,runCost:0n,outputRows:10n,capability:Object.freeze({...strong.capability,equalityPrefix:[],lower:null,upper:null,constrainedFields:0})});
+ const strong=btreeLoops(r.sources[0],0,clause,opts).find(l=>l.kind==='index'&&l.capability.equalitySlots.length);
+ const weak=Object.freeze({...strong,runCost:0n,outputRows:10n,capability:Object.freeze({...strong.capability,equalitySlots:[],lower:null,upper:null,constrainedFields:0})});
  const ordinary=[weak];
- const adjusted=btreeLoops(r.sources[0],0,clause,{...opts,ordinaryLoops:ordinary}).find(l=>l.kind==='index'&&l.capability.equalityPrefix.length);
+ const adjusted=btreeLoops(r.sources[0],0,clause,{...opts,ordinaryLoops:ordinary}).find(l=>l.kind==='index'&&l.capability.equalitySlots.length);
  assert.equal(adjusted.runCost,0n);assert.equal(adjusted.outputRows,9n);assert.deepEqual(ordinary,[weak]);
 });
 test('two-way OR emits necessary virtual bound while retaining original truth residual',()=>{
@@ -419,29 +421,29 @@ test('actual recursive cost production stops capability traversal on exhaustion 
  const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (a>? OR id<?))',schema()),a=analyzeWhere(r);
  let visits=0;
  const needed={*[Symbol.iterator](){visits++;yield ROWID_NEEDED;}};
- const budget={remaining:1},costs={a:[]};
+ const budget={remaining:1n},costs={a:[]};
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
- assert.equal(budget.remaining,0);assert.equal(visits,1,'scan returns OK at zero; next reached index proposal attempts DONE');assert.deepEqual(costs.a,[]);
- budget.remaining=1000;
+ assert.equal(budget.remaining,0n);assert.equal(visits,1,'scan returns OK at zero; next reached index proposal attempts DONE');assert.deepEqual(costs.a,[]);
+ budget.remaining=1000n;
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
  assert.ok(visits>0);assert.ok(costs.a.length>0,'replenished builder resumes production, not a sticky DONE');
  const sentinel=new Error('capability construction failure');let entries=0;
  const throwing={*[Symbol.iterator](){entries++;throw sentinel;}};
- assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:1000},orSet:{a:[]}}),e=>e===sentinel);
+ assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:1000n},orSet:{a:[]}}),e=>e===sentinel);
  assert.equal(entries,1,'error prevents later capability/source exploration');
 });
 test('suspended capability enumeration does not resume after last permitted insertion',()=>{
  const r=resolve('SELECT id FROM t WHERE a=? AND a=? AND a=?',schema()),a=analyzeWhere(r);
  let visits=0,closed=0;
  const needed={*[Symbol.iterator](){visits++;try{yield ROWID_NEEDED;}finally{closed++;}}};
- const budget={remaining:2};
+ const budget={remaining:2n};
  const loops=btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget});
- assert.equal(budget.remaining,0);assert.equal(visits,1,'only first equality capability is constructed');assert.equal(closed,1);
+ assert.equal(budget.remaining,0n);assert.equal(visits,2,'source zero debit is OK, next insertion returns DONE');assert.equal(closed,2);
  assert.ok(loops.some(l=>l.kind==='index'));
- visits=0;closed=0;budget.remaining=2;const costs={a:[]};
+ visits=0;closed=0;budget.remaining=2n;const costs={a:[]};
  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
  assert.equal(visits,2,'pOrSet constructs only the next proposal before insertion returns DONE');assert.equal(closed,2);assert.equal(costs.a.length,0);
- const later=resolve('SELECT id FROM t WHERE id=?',schema());budget.remaining+=1000;
+ const later=resolve('SELECT id FROM t WHERE id=?',schema());budget.remaining+=1000n;
  const laterLoops=btreeLoops(later.sources[0],0,analyzeWhere(later).clause,{neededColumns:needed,orderBy:[],resolved:later,planBudget:budget});
  assert.ok(laterLoops.some(l=>l.kind==='rowid'),'replenished construction budget admits later source proposals');
 });
@@ -524,20 +526,20 @@ test('actual capabilities generators close through IteratorClose at budget bound
  proto.return=function(value){closes++;return original.call(this,value);};
  try{
   const needed=new Set([ROWID_NEEDED]);
-  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2}});
-  assert.ok(closes>=2,'outer capabilities and delegated visit close on break');
+  wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2n}});
+  assert.equal(closes,1,'own DONE closes suspended whereScanNext while capability frames finish naturally');
   closes=0;
   const costs={a:[]};
-  btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2},orSet:costs});
+  wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:2n},orSet:costs});
   assert.equal(closes,1,'own DONE closes suspended constraint scan while capability frames finish naturally');
   assert.equal(costs.a.length,0,'next attempted insertion clears pOrSet on DONE');
 
   closes=0;
   const sentinel=new Error('needed columns sentinel');
   const failing={*[Symbol.iterator](){throw sentinel;}};
-  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:failing,orderBy:[],resolved:r,planBudget:{remaining:1000}}),e=>e===sentinel);
-  // A throw inside the generator terminates it by unwinding, not by return().
-  assert.equal(closes,0,'internal generation error propagates without resuming suspended proposals');
+  assert.throws(()=>wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],a.clause,{neededColumns:failing,orderBy:[],resolved:r,planBudget:{remaining:1000n}}),e=>e===sentinel);
+  // Capability throw unwinds its suspended term scanner via IteratorClose.
+  assert.equal(closes,1,'internal generation error closes scanner without resuming proposals');
  }finally{proto.return=original;}
 });
 test('production AddAll replenishes shared budget after exhausted source and continues later source',()=>{
@@ -547,23 +549,26 @@ test('production AddAll replenishes shared budget after exhausted source and con
  const needed0={*[Symbol.iterator](){first++;try{yield ROWID_NEEDED;}finally{closed++;}}};
  const needed1={*[Symbol.iterator](){later++;yield ROWID_NEEDED;}};
  const selected=planWhere(r,{neededColumns:[needed0,needed1],orderBy:[]});
- assert.equal(first,20999,'21000 initial source budget includes scan before equality products');
+ assert.equal(first,21002,'21000 includes scan; child DONE ignored, next child and next parent constructed before owning DONE');
  assert.equal(closed,first);
  assert.ok(later>0,'second source resumes capability production after +1000 budget');
  assert.ok(selected.path.loops.some(l=>l.sourceOrdinal===1&&l.kind==='index'));
 });
+// Equal-width unordered optional indexes exclude full scans while preserving
+// constrained arm recursion. Own insertion DONE closes its suspended scanner.
 test('nested OR copied builders close suspended arm inventory on mid-arm exhaustion',()=>{
- const r=resolve('SELECT id FROM t WHERE a=? OR (a=? AND (a=? OR a=?))',schema()),a=analyzeWhere(r);
+ const s=schema();s.i.szIdxRow=s.t.szTabRow;s.iblob.szIdxRow=s.t.szTabRow;s.i.unordered=true;s.iblob.unordered=true;
+ const r=resolve('SELECT id FROM t WHERE a=? OR (a=? AND (a=? OR a=?))',s),a=analyzeWhere(r);
  const proto=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})()));
  const original=proto.return;let closes=0,visits=0;
  proto.return=function(value){closes++;return original.call(this,value);};
  try{
   const needed={*[Symbol.iterator](){visits++;yield ROWID_NEEDED;}};
-  const budget={remaining:5},costs={a:[]};
+  const budget={remaining:5n},costs={a:[]};
   btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,orSet:costs});
-  assert.equal(budget.remaining,0);
+  assert.equal(budget.remaining,0n);
   assert.ok(visits>1,'recursive arms reached after enclosing inventory');
-  assert.equal(closes,0,'arm cost frames complete naturally on own DONE');
+  assert.equal(closes,1,'own DONE breaks one suspended whereScanNext; recursive capability frames finish naturally');
   assert.deepEqual(costs.a,[],'incomplete arm cannot publish an OR cost');
  }finally{proto.return=original;}
 });
@@ -970,7 +975,7 @@ test('OR-IN production proof and ordinary admission run in all encodings',()=>{
  const s=schema(encoding),r=resolve("SELECT id FROM t WHERE a='x' OR 'y'=a",s);
  const a=analyzeWhere(r),child=a.clause.terms.find(t=>t.virtual&&t.operator==='in');assert.ok(child);
  const loops=[...btreeLoops(r.sources[0],0,a.clause,{forcedIndex:null,neededColumns:new Set([s.id]),orderBy:[]})];
- assert.ok(loops.some(l=>l.capability?.equalityPrefix.some(e=>e.term===child)),encoding);
+ assert.ok(loops.some(l=>l.capability?.equalitySlots.some(e=>e.term===child)),encoding);
  }
 });
 test('OR-IN retry chooses second cursor and publishes marked RHS in clause order',()=>{
@@ -1064,19 +1069,19 @@ test('nested copied OR builders share exhaustion and unwind errors at later recu
  // not an eager inventory. Every injection has a distinct sentinel identity.
  let visits=0,live=0;
  const needed={*[Symbol.iterator](){visits++;live++;try{yield ROWID_NEEDED;}finally{live--;}}};
- btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:200}});
+ btreeLoops(r.sources[0],0,a.clause,{neededColumns:needed,orderBy:[],resolved:r,planBudget:{remaining:200n}});
  assert.ok(visits>4);assert.equal(live,0);
  for(let stop=1;stop<=visits;stop++){
   let entered=0,active=0;const sentinel=new Error(`recursive needed ${stop}`);
   const throwing={*[Symbol.iterator](){entered++;active++;try{if(entered===stop)throw sentinel;yield ROWID_NEEDED;}finally{active--;}}};
-  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:200}}),e=>e===sentinel);
+  assert.throws(()=>btreeLoops(r.sources[0],0,a.clause,{neededColumns:throwing,orderBy:[],resolved:r,planBudget:{remaining:200n}}),e=>e===sentinel);
   assert.equal(active,0,`unwind ${stop}`);
  }
  for(let remaining=1;remaining<=20;remaining++){
-  const budget={remaining};let active=0;
+  const budget={remaining:BigInt(remaining)};let active=0;
   const bounded={*[Symbol.iterator](){active++;try{yield ROWID_NEEDED;}finally{active--;}}};
   btreeLoops(r.sources[0],0,a.clause,{neededColumns:bounded,orderBy:[],resolved:r,planBudget:budget});
-  assert.equal(active,0,`budget ${remaining}`);assert.ok(budget.remaining>=0&&budget.remaining<=remaining);
+  assert.equal(active,0,`budget ${remaining}`);assert.ok(budget.remaining>=0n&&budget.remaining<=remaining);
  }
 });
 test('OR arm index scan traverses owning outer clause without copying residual ownership',()=>{
@@ -1084,10 +1089,10 @@ test('OR arm index scan traverses owning outer clause without copying residual o
  const parent=main.terms.find(t=>t.info?.kind==='or'),arm=parent.info.clause.terms[0];
  const temp={terms:Object.freeze([arm]),outer:main,split:'and'};
  const loops=btreeLoops(r.sources[0],0,temp,{neededColumns:new Set([s.id]),orderBy:[],resolved:r});
- const composite=loops.find(l=>l.capability?.equalityPrefix.length===2);
+ const composite=loops.find(l=>l.capability?.equalitySlots.length===2);
  assert.ok(composite,'whereScanNext reaches outer a equality for b arm');
- assert.ok(composite.capability.equalityPrefix.some(e=>e.term===arm));
- assert.ok(composite.capability.equalityPrefix.some(e=>e.term===main.terms[0]));
+ assert.ok(composite.capability.equalitySlots.some(e=>e.term===arm));
+ assert.ok(composite.capability.equalitySlots.some(e=>e.term===main.terms[0]));
  assert.deepEqual(composite.terms,[arm],'residual ownership stays local');
 });
 test('outer constraint scan unions prerequisites without admitting sibling OR arms',()=>{
@@ -1095,8 +1100,8 @@ test('outer constraint scan unions prerequisites without admitting sibling OR ar
  const parent=main.terms.find(t=>t.info?.kind==='or'),arm=parent.info.clause.terms[0];
  const temp={terms:Object.freeze([arm]),outer:main,split:'and'};
  const loops=btreeLoops(r.sources[0],0,temp,{neededColumns:new Set([s.id]),orderBy:[],resolved:r});
- const loop=loops.find(l=>l.capability?.equalityPrefix.length===2);assert.ok(loop);assert.equal(loop.prereq,sourceBit(1));
- assert.ok(!loop.capability.equalityPrefix.some(e=>e.term===parent.info.clause.terms[1]));
+ const loop=loops.find(l=>l.capability?.equalitySlots.length===2);assert.ok(loop);assert.equal(loop.prereq,sourceBit(1));
+ assert.ok(!loop.capability.equalitySlots.some(e=>e.term===parent.info.clause.terms[1]));
  assert.equal(parent.info.clause.outer,null);
 });
 
@@ -1119,19 +1124,19 @@ test('production OR cost visits matching stored commutations once in stored orde
   const info=main.terms.find(t=>t.info?.kind==='or').info;
   const arms=info.clause.terms.map(t=>wherePlanning.orArmClause(t,1,main)).filter(Boolean);
   assert.equal(arms.length,2);assert.ok(arms.every(c=>c.terms.length===1&&c.terms[0].virtual));
-  const expected={a:[]};let first=true,spent=0;
+  const expected={a:[]};let first=true,spent=0n;
   for(const clause of arms){
-   const current={a:[]},budget={remaining:100};
+   const current={a:[]},budget={remaining:100n};
    btreeLoops(r.sources[1],1,clause,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:current});
-   assert.ok(current.a.length);spent+=100-budget.remaining;
+   assert.ok(current.a.length);spent+=100n-budget.remaining;
    assert.ok(whereOrAccumulate(expected,current,first,logEstAdd));first=false;
   }
-  const actual={a:[]},budget={remaining:100};
+  const actual={a:[]},budget={remaining:100n};
   btreeLoops(r.sources[1],1,main,{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:budget,orSet:actual});
   assert.deepEqual(actual.a,expected.a.map(c=>({...c,rRun:c.rRun+1n})));
-  const enclosingBudget={remaining:100};
+  const enclosingBudget={remaining:100n};
   btreeLoops(r.sources[1],1,wherePlanning.whereClause(main.terms.filter(t=>t.info!==info)),{neededColumns:new Set([ROWID_NEEDED]),orderBy:[],resolved:r,planBudget:enclosingBudget,orSet:{a:[]}});
-  assert.equal(100-budget.remaining,spent+(100-enclosingBudget.remaining)+expected.a.length,'enclosing inventory, stored arms and parent publications');
+  assert.equal(100n-budget.remaining,spent+(100n-enclosingBudget.remaining)+BigInt(expected.a.length),'enclosing inventory, stored arms and parent publications');
   assert.ok(actual.a.every(c=>c.prereq===sourceBit(0)));
  }
 });
@@ -1178,36 +1183,37 @@ test('whereScanNext raw RHS reverse-cycle proof does not skip COLLATE like expan
 test('actual pOrSet cost construction consumes transitive column scanner without synthetic terms',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=?',s),c=analyzeWhere(r).clause;
- const budget={remaining:200},set={a:[]};
+ const budget={remaining:200n},set={a:[]};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget});
  assert.ok(set.a.some(v=>v.prereq===0n),'transitive constant index alternative retains RHS prereq0, not intermediate cursor');
  const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[]});
- assert.ok(ordinary.filter(l=>l.capability?.equalityPrefix.length).every(l=>l.prereq!==0n),'ordinary lowering remains unchanged until caller handoff');
+ assert.ok(ordinary.some(l=>l.capability?.equalitySlots.length&&l.prereq===0n),'ordinary scalar transitive admission retains original RHS ready mask');
  }
 });
 test('pOrSet zero remaining still reaches next equality scan before DONE',()=>{
  const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND a=?',s),c=analyzeWhere(r).clause;
+ s.i.szIdxRow=s.t.szTabRow;s.iblob.szIdxRow=s.t.szTabRow;s.i.unordered=true;s.iblob.unordered=true;
  const sentinel=new Error('late scanner RHS must remain suspended');
  const late={...c.terms[1]};Object.defineProperty(late,'expression',{get(){throw sentinel;}});
- const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
+ const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2n},set={a:[]};
  assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
 });
 test('pOrSet range proposal suspends scanner before later outer RHS when budget exhausts',()=>{
  const s=schema(),r=resolve('SELECT t.id FROM t WHERE a>? AND a>?',s),c=analyzeWhere(r).clause;
  const sentinel=new Error('late range RHS must remain suspended'),late={...c.terms[1]};
  Object.defineProperty(late,'expression',{get(){throw sentinel;}});
- const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
+ const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2n},set={a:[]};
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}));
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
 });
 test('pOrSet equality prefix OK enters deeper field even at zero remaining',()=>{
  const s=schema(),r=resolve('SELECT t.id FROM t WHERE a=? AND b=?',s),c=analyzeWhere(r).clause;
  const sentinel=new Error('deeper field must remain suspended'),late={...c.terms[1]};
  Object.defineProperty(late,'expression',{get(){throw sentinel;}});
- const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2},set={a:[]};
+ const clause=wherePlanning.whereClause([c.terms[0]],wherePlanning.whereClause([late])),budget={remaining:2n},set={a:[]};
  assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
 });
 test('transitive pOrSet ISNULL bypasses comparison affinity and collseq admission',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
@@ -1219,7 +1225,7 @@ test('transitive pOrSet ISNULL bypasses comparison affinity and collseq admissio
  Object.defineProperty(annotated,'rightAffinity',{get(){throw new Error('ISNULL RHS affinity read');}});
  Object.defineProperty(annotated,'effectiveCollation',{get(){throw new Error('ISNULL collseq read');}});
  const clause=wherePlanning.whereClause(c.terms.map(t=>t===nullTerm?Object.freeze(annotated):t));
- const set={a:[]},budget={remaining:200};
+ const set={a:[]},budget={remaining:200n};
  btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:budget});
  assert.ok(set.a.some(v=>v.prereq===0n),'WO_ISNULL exempts affinity as well as collseq');
  }
@@ -1229,7 +1235,7 @@ test('pOrSet unordered index excludes range operators but retains equality',()=>
  for(const predicate of ['a>?','a<?','a=?']){
  const s=schema(encoding);s.i.unordered=true;
  const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]};
- btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200n}});
  assert.equal(set.a.length>0,predicate==='a=?',`${encoding}: ${predicate}`);
  const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],forcedIndex:s.i});
  assert.ok(ordinary.every(l=>!l.capability?.lower&&!l.capability?.upper),'same primitive excludes ordinary unordered range admission');
@@ -1240,10 +1246,10 @@ test('pOrSet unordered index excludes range operators but retains equality',()=>
 test('NOT NULL index field excludes ISNULL cost and ordinary admission, not IS equality',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['a IS NULL','a IS ?']){
  const s=schema(encoding,false,true),r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]};
- btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200n}});
  assert.equal(set.a.length>0,predicate==='a IS ?',`${encoding}: ${predicate}`);
  const ordinary=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],forcedIndex:s.i});
- assert.ok(ordinary.every(l=>l.capability.equalityPrefix.every(a=>a.operator!=='is-null')));
+ assert.ok(ordinary.every(l=>l.capability.equalitySlots.every(a=>a.operator!=='is-null')));
  }
 });
 test('transitive pOrSet retains semantic producer mayDrive rejection',()=>{
@@ -1251,22 +1257,22 @@ test('transitive pOrSet retains semantic producer mayDrive rejection',()=>{
  const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.a=u.a AND u.a=?',s),c=analyzeWhere(r).clause;
  const constant=c.terms.find(t=>t.left?.sourceOrdinal===1&&t.prereqRight===0n);assert.ok(constant);
  const clause=wherePlanning.whereClause(c.terms.map(t=>t===constant?Object.freeze({...t,outerJoinSafe:Object.freeze({mayDrive:false,mayOmitResidual:false})}):t)),set={a:[]};
- btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200n}});
  assert.ok(set.a.every(v=>v.prereq!==0n),'transitive cost must not bypass producer safety contract');
  }
 });
 test('LEFT target index costs accept only terms owned by its ON cursor',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT t.id FROM t LEFT JOIN t AS u ON u.b=t.b WHERE u.a=?',s),c=analyzeWhere(r).clause,set={a:[]};
- btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200n}});
  assert.ok(set.a.every(v=>v.prereq!==1n),'WHERE equality cannot drive LEFT nullable target');
  const ordinary=btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],forcedIndex:s.i});
- assert.ok(ordinary.every(l=>l.capability.equalityPrefix.every(a=>a.term.origin.kind!=='where')));
+ assert.ok(ordinary.every(l=>l.capability.equalitySlots.every(a=>a.term.origin.kind!=='where')));
  const on=resolve('SELECT t.id FROM t LEFT JOIN t AS u ON t.a=u.a',s),onClause=analyzeWhere(on).clause;
  const copied=onClause.terms.find(t=>t.virtual&&t.left?.sourceOrdinal===1);assert.ok(copied);assert.equal(copied.joinOwner,1);
  for(const owner of [1,2]){
  const borrowed=wherePlanning.whereClause([Object.freeze({...copied,joinOwner:owner})]),cost={a:[]};
- btreeLoops(on.sources[1],1,borrowed,{resolved:on,neededColumns:new Set([s.id]),orderBy:[],orSet:cost,planBudget:{remaining:200}});
+ btreeLoops(on.sources[1],1,borrowed,{resolved:on,neededColumns:new Set([s.id]),orderBy:[],orSet:cost,planBudget:{remaining:200n}});
  assert.equal(cost.a.length>0,owner===1,'borrowed copied ON retains owning cursor');
  }
 
@@ -1275,7 +1281,7 @@ test('LEFT target index costs accept only terms owned by its ON cursor',()=>{
 test('LEFT rowid costs use same target ON ownership gate as persistent indexes',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const onOwned of [false,true]){
  const s=schema(encoding),r=resolve(onOwned?'SELECT t.id FROM t LEFT JOIN t AS u ON u.id=t.id':'SELECT t.id FROM t LEFT JOIN t AS u ON u.b=t.b WHERE u.id=?',s),c=analyzeWhere(r).clause,set={a:[]};
- btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200}});
+ btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],orSet:set,planBudget:{remaining:200n}});
  assert.equal(set.a.length>0,onOwned,'LEFT rowid constraint must belong to target ON');
  const loops=btreeLoops(r.sources[1],1,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[]});
  assert.equal(loops.some(l=>l.kind==='rowid'),onOwned);
@@ -1283,15 +1289,15 @@ test('LEFT rowid costs use same target ON ownership gate as persistent indexes',
 });
 test('pOrSet rowid lower prefix inserts before upper recursion at budget boundary',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
- const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining:2};
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining:2n};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget});
- assert.equal(budget.remaining,0);assert.equal(set.a.length,0,'next pair insertion returns DONE');
- const mixed=resolve('SELECT id FROM t WHERE id>? AND id=?',s),mixCost={a:[]},mixBudget={remaining:2};
+ assert.equal(budget.remaining,0n);assert.equal(set.a.length,0,'next pair insertion returns DONE');
+ const mixed=resolve('SELECT id FROM t WHERE id>? AND id=?',s),mixCost={a:[]},mixBudget={remaining:2n};
  btreeLoops(mixed.sources[0],0,analyzeWhere(mixed).clause,{resolved:mixed,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mixCost,planBudget:mixBudget});
  assert.equal(mixCost.a.length,0,'later equality reaches insertion DONE after stored first range');
- const full={a:[]},fullBudget={remaining:5};
+ const full={a:[]},fullBudget={remaining:5n};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:full,planBudget:fullBudget});
- assert.equal(fullBudget.remaining,1,'scan, lower, lower+upper, upper-only constructions');
+ assert.equal(fullBudget.remaining,1n,'scan, lower, lower+upper, upper-only constructions');
  assert.equal(full.a[0].nOut,140n);
 
  }
@@ -1300,27 +1306,27 @@ test('rowid cost budget suspends lookup before later outer safety annotation',()
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>?',s),local=analyzeWhere(r).clause,base=local.terms[0];
  let reads=0;const late=Object.freeze({...base,id:99,get outerJoinSafe(){reads++;throw new Error('late rowid admission');}});
- const clause=wherePlanning.whereClause(local.terms,wherePlanning.whereClause([late])),set={a:[]},budget={remaining:2};
+ const clause=wherePlanning.whereClause(local.terms,wherePlanning.whereClause([late])),set={a:[]},budget={remaining:2n};
  assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,1);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0);
+ assert.equal(reads,1);assert.equal(set.a[0].nOut,180n);assert.equal(budget.remaining,0n);
  }
 });
 test('rowid upper restart filters opMask before semantic safety reads',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id>? AND id<?',s),c=analyzeWhere(r).clause,[lower,upper]=c.terms;
  let reads=0;const skipped=Object.freeze({...lower,id:99,get outerJoinSafe(){reads++;throw new Error('masked lower safety');}});
- const clause=wherePlanning.whereClause([lower,skipped,upper]),set={a:[]},budget={remaining:3};
+ const clause=wherePlanning.whereClause([lower,skipped,upper]),set={a:[]},budget={remaining:3n};
  assert.throws(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,1,'upper restart skips lower, then enclosing scan resumes it after OK');assert.equal(budget.remaining,0);assert.equal(set.a[0].nOut,139n);
+ assert.equal(reads,1,'upper restart skips lower, then enclosing scan resumes it after OK');assert.equal(budget.remaining,0n);assert.equal(set.a[0].nOut,139n);
  }
 });
 test('rowid cost rejects source-self prerequisites before safety admission',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?',s),c=analyzeWhere(r).clause,base=c.terms[0];
- let reads=0;const self=Object.freeze({...base,prereqRight:1n,get outerJoinSafe(){reads++;throw new Error('self rowid safety');}}),set={a:[]},budget={remaining:4};
+ let reads=0;const self=Object.freeze({...base,prereqRight:1n,get outerJoinSafe(){reads++;throw new Error('self rowid safety');}}),set={a:[]},budget={remaining:4n};
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,wherePlanning.whereClause([self]),{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,0);assert.equal(set.a.length,0);assert.equal(budget.remaining,3);
- const allowed={a:[]};btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:allowed,planBudget:{remaining:4}});
+ assert.equal(reads,0);assert.equal(set.a.length,0);assert.equal(budget.remaining,3n);
+ const allowed={a:[]};btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:allowed,planBudget:{remaining:4n}});
  assert.equal(allowed.a.length,1);
  }
 });
@@ -1328,14 +1334,14 @@ test('cost rowid scanner follows column equivalence retaining original RHS prere
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.id AND u.id=?',s),c=analyzeWhere(r).clause,set={a:[]};
  assert.equal(c.terms[0].equivalence,true);
- btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining:100}});
+ btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining:100n}});
  assert.ok(set.a.some(v=>v.prereq===0n),'sPk whereScanNext discovers other-cursor constant');
  const cross=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.b AND u.b=?',s),crossCosts={a:[]};
- btreeLoops(cross.sources[0],0,analyzeWhere(cross).clause,{resolved:cross,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:crossCosts,planBudget:{remaining:100}});
+ btreeLoops(cross.sources[0],0,analyzeWhere(cross).clause,{resolved:cross,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:crossCosts,planBudget:{remaining:100n}});
  assert.ok(crossCosts.a.some(v=>v.prereq===0n),'equivalent nonrowid LHS is not relabeled or rejected');
  const mismatch=resolve('SELECT t.id FROM t JOIN t AS u WHERE t.id=u.a AND u.a=?',s),mismatchCosts={a:[]};
  assert.equal(analyzeWhere(mismatch).clause.terms[0].equivalence,false,'numeric/text NOCASE lacks equivalence proof');
- btreeLoops(mismatch.sources[0],0,analyzeWhere(mismatch).clause,{resolved:mismatch,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mismatchCosts,planBudget:{remaining:100}});
+ btreeLoops(mismatch.sources[0],0,analyzeWhere(mismatch).clause,{resolved:mismatch,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:mismatchCosts,planBudget:{remaining:100n}});
  assert.ok(mismatchCosts.a.every(v=>v.prereq!==0n));
 
 
@@ -1354,9 +1360,9 @@ test('whereScanNext masked non-equivalence term does not inspect RHS expression'
 test('pOrSet scan exhaustion precedes outer clause lookup inventory',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?',s),c=analyzeWhere(r).clause;let reads=0;
- const outer={outer:null,get terms(){reads++;throw new Error('outer lookup before scan exhaustion');}},clause=wherePlanning.whereClause(c.terms,outer),set={a:[]},budget={remaining:1};
+ const outer={outer:null,get terms(){reads++;throw new Error('outer lookup before scan exhaustion');}},clause=wherePlanning.whereClause(c.terms,outer),set={a:[]},budget={remaining:1n};
  assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:set,planBudget:budget}));
- assert.equal(reads,0);assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ assert.equal(reads,0);assert.equal(budget.remaining,0n);assert.equal(set.a.length,0);
  }
 });
 test('WITHOUT ROWID construction never admits fake sPk rowid constraints',()=>{
@@ -1367,7 +1373,7 @@ test('WITHOUT ROWID construction never admits fake sPk rowid constraints',()=>{
  const term={...c.terms[0],left:{...c.terms[0].left,column:null,columnIndex:-1,rowid:true}},clause=wherePlanning.whereClause([term]);
  const ordinary=btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true});
  assert.ok(ordinary.every(l=>l.kind!=='rowid'),'real primary storage only');
- const costs={a:[]};btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:costs,planBudget:{remaining:100}});
+ const costs={a:[]};btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([s.id]),orderBy:[],notIndexed:true,orSet:costs,planBudget:{remaining:100n}});
  assert.equal(costs.a.length,0,'no constrained fake IPK cost');
  }
 });
@@ -1836,22 +1842,23 @@ test('scanner rejected acceptance expands equivalences across outer and closes o
 });
 test('nested pOrSet closes needed-column iterators and abandons exhausted accumulation',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
- const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (a>? OR id<?))',schema(encoding)),c=analyzeWhere(r).clause;
+ const s=schema(encoding);s.i.szIdxRow=s.t.szTabRow;s.iblob.szIdxRow=s.t.szTabRow;s.i.unordered=true;s.iblob.unordered=true;
+ const r=resolve('SELECT id FROM t WHERE a=? OR (id>? AND (a>? OR id<?))',s),c=analyzeWhere(r).clause;
  for(const limit of [2,5,10,20,100]){
  let entries=0,closed=0;
  const needed={*[Symbol.iterator](){entries++;try{yield ROWID_NEEDED;}finally{closed++;}}};
- const costs={a:[]},budget={remaining:limit};
+ const costs={a:[]},budget={remaining:BigInt(limit)};
  const loops=btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:needed,orderBy:[],orSet:costs,planBudget:budget});
  assert.equal(entries,closed);assert.deepEqual(loops,[]);
- if(budget.remaining===0)assert.deepEqual(costs.a,[]);
+ if(budget.remaining===0n)assert.deepEqual(costs.a,[]);
  }
  // Throw after outer ordinary proposals so error is encountered in copied builders.
  for(const failAt of [3,4,5]){
  let entries=0,closed=0,depth=0;const sentinel=new Error(`nested-needed-${failAt}`);
  const needed={*[Symbol.iterator](){entries++;try{if(entries===failAt){depth=(new Error().stack.match(/at btreeLoops/g)||[]).length;throw sentinel;}yield ROWID_NEEDED;}finally{closed++;}}};
- const costs={a:[]},budget={remaining:1000};
+ const costs={a:[]},budget={remaining:1000n};
  assert.throws(()=>btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:needed,orderBy:[],orSet:costs,planBudget:budget}),e=>e===sentinel);
- assert.equal(entries,failAt);assert.equal(closed,entries);assert.ok(budget.remaining>0);assert.ok(depth>=2,`failure ${failAt} reaches copied builder`);
+ assert.equal(entries,failAt);assert.equal(closed,entries);assert.ok(budget.remaining>0n);assert.ok(depth>=2,`failure ${failAt} reaches copied builder`);
  }
  }
 });
@@ -1860,10 +1867,10 @@ test('cost prefix recursion restores lower and upper flags before next equality 
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b>?2 AND b<?3 AND b=?4 AND a=?5',s),base=analyzeWhere(r).clause;
  const trace=[];
  const terms=base.terms.map(t=>({...t,get outerJoinSafe(){trace.push(t.id);return t.outerJoinSafe;}}));
- const c=wherePlanning.whereClause(terms),budget={remaining:1000},costs={a:[]};
- btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:budget,orSet:costs});
+ const c=wherePlanning.whereClause(terms),budget={remaining:1000n},costs={a:[]};
+ wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:budget,orSet:costs});
  assert.deepEqual(trace,[0,0,1,1,2,2,2,3,3,4,4,1,2,2,3],'first admissions read safety twice, cached admissions once');
- assert.equal(budget.remaining,990,'two prefixes each insert prefix/lower/pair/upper/equality');
+ assert.equal(budget.remaining,990n,'two prefixes each insert prefix/lower/pair/upper/equality');
  assert.ok(costs.a.length>0);
  }
 });
@@ -1912,12 +1919,12 @@ test('small-table pOrSet range clamps retain saved-output minus bound count belo
  for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const prefix of [0,1,4,10,11,33]){
  const s=schema(encoding);s.t.nRowLogEst=40;s.i.rowLogEst=Object.freeze([40,prefix,0]);
  const collect=tail=>{
- const r=resolve(`SELECT id FROM t WHERE a=?1 AND b>?2 ${tail}`,s),c=analyzeWhere(r).clause,costs={a:[]},budget={remaining:100};
- btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ const r=resolve(`SELECT id FROM t WHERE a=?1 AND b>?2 ${tail}`,s),c=analyzeWhere(r).clause,costs={a:[]},budget={remaining:100n};
+ wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
  return {costs,budget};
  };
  const one=collect(''),two=collect('AND b<?3');
- assert.equal(one.budget.remaining,98);assert.equal(two.budget.remaining,96);
+ assert.equal(one.budget.remaining,98n);assert.equal(two.budget.remaining,96n);
  const expectedOne=BigInt(Math.min(prefix-1,Math.max(10,prefix-20)));
  const expectedTwo=BigInt(Math.min(prefix-2,Math.max(10,prefix-60)));
  assert.equal(one.costs.a[0].nOut,expectedOne);
@@ -1928,7 +1935,7 @@ test('ISNULL prefix cost retains ten LogEst across deeper equality and range',()
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),collect=predicate=>{
  const r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,costs={a:[]};
- btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:{remaining:100}});return costs.a[0];
+ btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:{remaining:100n}});return costs.a[0];
  };
  assert.equal(collect('a IS NULL AND b=?1').nOut,42n);
  assert.equal(collect('a IS NULL AND b>?1').nOut,23n);
@@ -1959,9 +1966,9 @@ test('ISNULL proposal budgets stop at prefix lower pair upper without eager late
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a IS NULL AND b>?1 AND b<?2',s),c=analyzeWhere(r).clause;
  for(let n=0;n<=5;n++){
- const costs={a:[]},budget={remaining:n};
- const loops=btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
- assert.deepEqual(loops,[]);assert.equal(budget.remaining,Math.max(0,n-4));
+ const costs={a:[]},budget={remaining:BigInt(n)};
+ const loops=wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ assert.deepEqual(loops,[]);assert.equal(budget.remaining,BigInt(Math.max(0,n-4)));
  if(n<4)assert.deepEqual(costs.a,[],'next attempted insertion at zero returns DONE and clears costs');else assert.equal(costs.a[0].nOut,10n);
  }
  }
@@ -1969,17 +1976,17 @@ test('ISNULL proposal budgets stop at prefix lower pair upper without eager late
 test('terminal exact-budget cost is distinct from a pending range continuation',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a IS NULL AND b<?1',s),c=analyzeWhere(r).clause;
- const costs={a:[]},budget={remaining:2};
- btreeLoops(r.sources[0],0,c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
- assert.equal(budget.remaining,0);assert.equal(costs.a[0].nOut,23n,'terminal upper proposal has no next constrained insertion');
+ const costs={a:[]},budget={remaining:2n};
+ wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],c,{resolved:r,forcedIndex:s.i,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget});
+ assert.equal(budget.remaining,0n);assert.equal(costs.a[0].nOut,23n,'terminal upper proposal has no next constrained insertion');
  }
 });
 test('sPk cost DONE clears pending range while terminal equality retains exact budget',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  for(const [predicate,remaining,empty] of [['id>?1 AND id<?2',2,true],['id>?1 AND id<?2',3,true],['id=?1',2,false]]){
- const s=schema(encoding),r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining};
+ const s=schema(encoding),r=resolve(`SELECT id FROM t WHERE ${predicate}`,s),c=analyzeWhere(r).clause,set={a:[]},budget={remaining:BigInt(remaining)};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,notIndexed:true});
- assert.equal(budget.remaining,0);assert.equal(set.a.length,empty?0:1,predicate+remaining);
+ assert.equal(budget.remaining,0n);assert.equal(set.a.length,empty?0:1,predicate+remaining);
  }
  }
 });
@@ -1987,7 +1994,7 @@ test('completed sPk at zero continues AddBtree into persistent index DONE',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?1',s),c=analyzeWhere(r).clause;
  for(const notIndexed of [false,true]){
- const set={a:[]},budget={remaining:2};
+ const set={a:[]},budget={remaining:2n};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,notIndexed});
  assert.equal(set.a.length,notIndexed?1:0,'optional covering index attempts insertion at zero unless suppressed');
  }
@@ -1997,8 +2004,8 @@ test('cost scan OK at zero reaches sPk admission; initial DONE does not',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE id=?1',s),base=analyzeWhere(r).clause.terms[0],sentinel=new Error('sPk admission after scan OK');
  const term={...base,get outerJoinSafe(){throw sentinel;}},clause=wherePlanning.whereClause([term]);
- for(const remaining of [0,1]){
- const set={a:[]},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining}});
+ for(const remaining of [0n,1n]){
+ const set={a:[]},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],notIndexed:true,orSet:set,planBudget:{remaining:BigInt(remaining)}});
  if(remaining)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
  assert.equal(set.a.length,0);
  }
@@ -2010,9 +2017,9 @@ test('AddOr terminal last arm at zero attempts publication DONE instead of dropp
  const r=resolve('SELECT id FROM t WHERE id=?1 OR id>?2',s),c=analyzeWhere(r).clause;
  assert.ok(c.terms.some(t=>t.info?.kind==='or'&&t.info.indexable!==0n));
  for(const remaining of [5,6]){
- const set={a:[{prereq:0n,rRun:300n,nOut:200n}]},budget={remaining};
+ const set={a:[{prereq:0n,rRun:300n,nOut:200n}]},budget={remaining:BigInt(remaining)};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
  assert.equal(set.a.length,remaining===5?0:1,'5 constructs last arm then attempts parent at zero; 6 publishes parent');
  if(remaining===6)assert.ok(set.a[0].rRun<300n);
  }
@@ -2023,13 +2030,13 @@ test('ignored recursive BtreeIndex DONE resumes enclosing equality scanner',()=>
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2 AND a=?3',s),c=analyzeWhere(r).clause;
  const sentinel=new Error('enclosing scan after ignored recursive DONE'),late={...c.terms[2]};
  Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
- const clause=wherePlanning.whereClause([c.terms[0],c.terms[1],late]),set={a:[]},budget={remaining:1};
+ const clause=wherePlanning.whereClause([c.terms[0],c.terms[1],late]),set={a:[]},budget={remaining:1n};
  // Forced index isolates AddBtreeIndex: first a prefix returns OK at zero;
  // b recursion attempts DONE; caller ignores its rc and resumes a scan.
- assert.throws(()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
- assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
- budget.remaining=0;
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}));
+ assert.throws(()=>wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}),e=>e===sentinel);
+ assert.equal(budget.remaining,0n);assert.equal(set.a.length,0);
+ budget.remaining=0n;
+ assert.doesNotThrow(()=>wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget}));
  assert.equal(set.a.length,0);
  }
 });
@@ -2039,15 +2046,15 @@ test('range child DONE restores lower rc; own lower DONE still runs upper recurs
  const sentinel=new Error('late enclosing lower admission'),late={...c.terms[2]};
  Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([c.terms[0],late,c.terms[1]]);
- for(const remaining of [0,1]){
- const set={a:[]},budget={remaining},run=()=>btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
+ for(const remaining of [0n,1n]){
+ const set={a:[]},budget={remaining:BigInt(remaining)},run=()=>wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget});
  if(remaining)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
- assert.equal(budget.remaining,0);assert.equal(set.a.length,0);
+ assert.equal(budget.remaining,0n);assert.equal(set.a.length,0);
  }
  const upperSentinel=new Error('upper recursion even after own lower DONE'),upper={...c.terms[1]};
  Object.defineProperty(upper,'outerJoinSafe',{get(){throw upperSentinel;}});
  const pair=wherePlanning.whereClause([c.terms[0],upper]);
- assert.throws(()=>btreeLoops(r.sources[0],0,pair,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:0}}),e=>e===upperSentinel);
+ assert.throws(()=>wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],pair,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:0n}}),e=>e===upperSentinel);
  }
 });
 test('AddOr arm DONE suppresses later parent discovery unlike successful zero-arm failure',()=>{
@@ -2058,13 +2065,13 @@ test('AddOr arm DONE suppresses later parent discovery unlike successful zero-ar
  const sentinel=new Error('later OR parent after DONE'),late={...parents[1]};
  Object.defineProperty(late,'info',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([parents[0],late]),set={a:[]};
- assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:2}}));
+ assert.doesNotThrow(()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:2n}}));
  assert.equal(set.a.length,0);
  const completion={done:true};
  const scanClause=wherePlanning.whereClause([]);
- btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1},completion});
+ btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1n},completion});
  assert.equal(completion.done,false,'successful unconstrained scan at zero is OK despite empty cost set');
- btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:0},completion});
+ btreeLoops(r.sources[0],0,scanClause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:0n},completion});
  assert.equal(completion.done,true,'attempted scan DONE is distinct and carrier resets each call');
  }
 });
@@ -2076,27 +2083,27 @@ test('sPk ignored upper child DONE resumes enclosing lower just like real index'
  Object.defineProperty(late,'outerJoinSafe',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([c.terms[0],late,c.terms[2]]);
  for(const remaining of [1,2]){
- const costs={a:[]},completion={done:false},budget={remaining};
+ const costs={a:[]},completion={done:false},budget={remaining:BigInt(remaining)};
  const run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget,completion});
  if(remaining===2)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
- assert.equal(costs.a.length,0);assert.equal(budget.remaining,0);
+ assert.equal(costs.a.length,0);assert.equal(budget.remaining,0n);
  }
  const clean=wherePlanning.whereClause([c.terms[0],c.terms[2]]),completion={done:true};
- btreeLoops(r.sources[0],0,clean,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:2},completion});
+ btreeLoops(r.sources[0],0,clean,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:{a:[]},planBudget:{remaining:2n},completion});
  assert.equal(completion.done,true,'standalone enclosing upper later attempts own DONE');
  }
 });
 test('ignored real-index child DONE returns OK empty costs; sPk own DONE still reads upper safety',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),c=analyzeWhere(r).clause;
- const completion={done:true},costs={a:[]},budget={remaining:1};
- btreeLoops(r.sources[0],0,c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget,completion});
- assert.equal(budget.remaining,0);assert.equal(costs.a.length,0);
+ const completion={done:true},costs={a:[]},budget={remaining:1n};
+ wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],c,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:costs,planBudget:budget,completion});
+ assert.equal(budget.remaining,0n);assert.equal(costs.a.length,0);
  assert.equal(completion.done,false,'own prefix OK survives ignored child DONE after enclosing scan ends');
  const rr=resolve('SELECT id FROM t WHERE id>?1 AND id<?2',s),cc=analyzeWhere(rr).clause,sentinel=new Error('sPk recursive upper safety after own DONE'),upper={...cc.terms[1]};
  Object.defineProperty(upper,'outerJoinSafe',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([cc.terms[0],upper]),state={done:false},set={a:[]};
- assert.throws(()=>btreeLoops(rr.sources[0],0,clause,{resolved:rr,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1},completion:state}),e=>e===sentinel);
+ assert.throws(()=>btreeLoops(rr.sources[0],0,clause,{resolved:rr,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:1n},completion:state}),e=>e===sentinel);
  assert.equal(set.a.length,0);assert.equal(state.done,true,'error is thrown, not swallowed by pre-existing DONE');
  }
 });
@@ -2112,7 +2119,7 @@ test('AddOr OK zero-arm failure continues later parents while DONE stops',()=>{
  const sentinel=new Error('later parent after successful zero-arm'),late={...parents[1]};Object.defineProperty(late,'info',{get(){throw sentinel;}});
  const clause=wherePlanning.whereClause([parent,late]);
  for(const remaining of [1,2]){
- const set={a:[]},completion={done:false},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining},completion});
+ const set={a:[]},completion={done:false},run=()=>btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:{remaining:BigInt(remaining)},completion});
  if(remaining===2)assert.throws(run,e=>e===sentinel);else assert.doesNotThrow(run);
  assert.equal(set.a.length,0);
  if(remaining===1)assert.equal(completion.done,true);
@@ -2127,11 +2134,11 @@ test('nested OR publication DONE propagates distinct completion with shared budg
  // Stored dispatch: outer scan; AND scan/lower; first nested arm scan/eq/outer lower;
  // second nested arm scan/eq/outer lower; nested publication; last outer arm
  // scan/eq; outer publication. These are 13 inserts, not 11 SQL-arm inserts.
- let count=remaining;const decrements=[];
+ let count=BigInt(remaining);const decrements=[];
  const set={a:[]},completion={done:false},budget={get remaining(){return count;},set remaining(value){decrements.push([count,value]);count=value;}};
  btreeLoops(r.sources[0],0,c,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
- assert.deepEqual(decrements,Array.from({length:Math.min(remaining,13)},(_,i)=>[remaining-i,remaining-i-1]));
- assert.equal(budget.remaining,Math.max(0,remaining-13));
+ assert.deepEqual(decrements,Array.from({length:Math.min(remaining,13)},(_,i)=>[BigInt(remaining-i),BigInt(remaining-i-1)]));
+ assert.equal(budget.remaining,BigInt(Math.max(0,remaining-13)));
  assert.equal(completion.done,remaining<13);
  assert.equal(set.a.length,remaining<13?0:1);
  }
@@ -2142,11 +2149,11 @@ test('cost completion resets across calls and ignored child OK empty does not le
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),clause=analyzeWhere(r).clause;
  const completion={done:false};
  for(const remaining of [0,1,0,2,1]){
- const set={a:[]},budget={remaining};
- btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ const set={a:[]},budget={remaining:BigInt(remaining)};
+ wherePlanning.btreeIndexLoops(r.sources[0],0,r.sources[0].table.indexes[0],clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
  assert.equal(completion.done,remaining===0);
  assert.equal(set.a.length,remaining===2?1:0);
- assert.equal(budget.remaining,0);
+ assert.equal(budget.remaining,0n);
  }
  }
 });
@@ -2155,11 +2162,11 @@ test('empty rejected upper recursion preserves own OK at zero for sPk and real i
  const s=schema(encoding);if(rowid)s.t.indexes=Object.freeze([]);
  const r=resolve(`SELECT id FROM t WHERE ${rowid?'id':'a'}>?1 AND ${rowid?'id':'a'}<?2`,s),c=analyzeWhere(r).clause;
  const upper={...c.terms[1],outerJoinSafe:{...c.terms[1].outerJoinSafe,mayDrive:false}},clause=wherePlanning.whereClause([c.terms[0],upper]);
- const set={a:[]},completion={done:true},budget={remaining:rowid?2:1};
- btreeLoops(r.sources[0],0,clause,{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
- assert.equal(budget.remaining,0);assert.equal(completion.done,false);
+ const set={a:[]},completion={done:true},budget={remaining:rowid?2n:1n};
+ (rowid?btreeLoops:(source,ordinal,clause,options)=>wherePlanning.btreeIndexLoops(source,ordinal,s.i,clause,options))(r.sources[0],0,clause,{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:set,planBudget:budget,completion});
+ assert.equal(budget.remaining,0n);assert.equal(completion.done,false);
  assert.equal(set.a.length,1,'no rejected upper proposal may clear retained lower cost');
- const onlyLower={a:[]};btreeLoops(r.sources[0],0,wherePlanning.whereClause([c.terms[0]]),{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:onlyLower,planBudget:{remaining:rowid?2:1}});
+ const onlyLower={a:[]};(rowid?btreeLoops:(source,ordinal,clause,options)=>wherePlanning.btreeIndexLoops(source,ordinal,s.i,clause,options))(r.sources[0],0,wherePlanning.whereClause([c.terms[0]]),{forcedIndex:rowid?undefined:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],orSet:onlyLower,planBudget:{remaining:rowid?2n:1n}});
  assert.equal(set.a[0].rRun,onlyLower.a[0].rRun);
  assert.equal(set.a[0].prereq,onlyLower.a[0].prereq);
  assert.equal(set.a[0].nOut,onlyLower.a[0].nOut-1n,'rejected seek upper remains residual for output adjustment');
@@ -2178,4 +2185,77 @@ test('canonical NOTNULL retains opcode identity across schema and analyzed predi
  assert.notEqual(identity(predicate('a IS NULL')),expected);
  assert.notEqual(identity(predicate('b NOTNULL')),expected);
  assert.notEqual(identity(predicate('a IS NOT 1')),expected);
+});
+
+// where.c:4233–4290 and whereLoopInsert:2838–2844. A full-index
+// proposal owns DONE, unlike an ignored recursive child return.
+test('eligible full-index DONE retains distinct owning completion',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),clause=analyzeWhere(r).clause;
+ const completion={done:false},budget={remaining:0n},costs={a:[]};
+ const loops=btreeLoops(r.sources[0],0,clause,{forcedIndex:s.i,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:budget,completion,orSet:costs});
+ assert.deepEqual(loops,[]);assert.deepEqual(costs.a,[]);
+ assert.equal(completion.done,true);assert.equal(budget.remaining,0n);
+ }
+});
+
+// whereLoopAddBtreeIndex initializes rc=OK, then inserts only admitted
+// constraints or recursively admitted skips. It does not produce another
+// full-index proposal on an empty term scan (AddBtree owns that proposal).
+test('empty ineligible real-index recursion neither constructs nor debits a phantom scan',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding);s.i.szIdxRow=s.t.szTabRow;s.iblob.szIdxRow=s.t.szTabRow;
+ const r=resolve('SELECT id FROM t WHERE b>?1',s),clause=analyzeWhere(r).clause;
+ let entries=0;const needed={*[Symbol.iterator](){entries++;yield ROWID_NEEDED;}};
+ const budget={remaining:10n},costs={a:[]},completion={done:true};
+ btreeLoops(r.sources[0],0,clause,{resolved:r,neededColumns:needed,orderBy:[],planBudget:budget,completion,orSet:costs});
+ assert.equal(entries,0);assert.equal(budget.remaining,9n,'only sPk table scan insertion');
+ assert.deepEqual(costs.a,[]);assert.equal(completion.done,false);
+ }
+});
+
+// Invoke the actual generator used by indexProposals, not AddBtree's forced
+// full-scan admission. This isolates source child-return ownership without
+// altering SQL or granting a test-only planner admission switch.
+test('shared AddBtreeIndex owner restores parent OK after child DONE',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),clause=analyzeWhere(r).clause;
+ const result={ok:true},templates=[];
+ for(const cap of wherePlanning.whereLoopAddBtreeIndex(s.i,[],0,new Set([ROWID_NEEDED]),[],r.sources[0],true,true,{clause,resolved:r,source:r.sources[0],result})){
+ templates.push(cap.equalitySlots.length);
+ result.ok=templates.length===1;
+ }
+ assert.deepEqual(templates,[1,2]);
+ assert.equal(result.ok,true,'first prefix own OK survives ignored child DONE');
+ }
+});
+
+test('shared recursive insertion owner debits exact budget and ignores child DONE',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE a=?1 AND b=?2',s),clause=analyzeWhere(r).clause;
+ const budget={remaining:1n},completion={done:true},orSet={a:[]};
+ const loops=wherePlanning.btreeIndexLoops(r.sources[0],0,s.i,clause,{resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:budget,completion,orSet});
+ assert.deepEqual(loops,[]);assert.equal(budget.remaining,0n);assert.deepEqual(orSet.a,[]);
+ assert.equal(completion.done,false,'parent successful insertion owns OK after child clears exhausted OR set');
+ }
+});
+
+test('AddBtree forced full-scan debit precedes the same isolated recursive owner',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve("SELECT id FROM t INDEXED BY i_ab WHERE a='x' AND a='y' AND b=1 AND b=2",s),clause=analyzeWhere(r).clause;
+ const run=(produce,remaining,orSet)=>{
+ let constructed=0;const needed={*[Symbol.iterator](){constructed++;yield s.id;}},budget={remaining},completion={done:false};
+ const loops=produce(r.sources[0],0,clause,{forcedIndex:s.i,neededColumns:needed,orderBy:[],resolved:r,planBudget:budget,completion,orSet});
+ return {constructed,budget,completion,loops};
+ };
+ const direct=(source,ordinal,clause,options)=>wherePlanning.btreeIndexLoops(source,ordinal,s.i,clause,options);
+ const recursive=run(direct,1n),full=run(btreeLoops,2n);
+ assert.equal(full.constructed,recursive.constructed+1,'one preceding full-index template');
+ assert.equal(full.budget.remaining,recursive.budget.remaining);
+ assert.equal(full.loops.length,recursive.loops.length);
+ assert.equal(full.loops[0].capability.nEq,recursive.loops[0].capability.nEq);
+ const terminal=run(btreeLoops,0n,{a:[]});
+ assert.equal(terminal.constructed,1,'own full-scan DONE prevents entering recursive owner');
+ assert.equal(terminal.completion.done,true);
+ }
 });

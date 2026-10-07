@@ -140,6 +140,10 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
     this.#assertResident();
     if (this.#state !== "open") failure("misuse", "connection is closed");
     try {
+      // Minimal browser/VM realms need not expose Performance. Bind one clock
+      // for the entire construction interval; no cross-clock subtraction.
+      const prepareNow=typeof globalThis.performance?.now==="function"?()=>globalThis.performance.now():()=>Date.now();
+      const prepareStarted=prepareNow();
       const operationWork = finiteLimit(options?.maxWorkUnits, "maxWorkUnits", this.#limits.maxWorkUnits);
       // Connection maxWorkUnits is the statement execution budget. Keep parse
       // admission independently bounded when that execution budget is tiny;
@@ -177,10 +181,16 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       const window = recursiveOwner===null&&selectHasWindow(selected);
       if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const recursiveEncoding = this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be";
+      let constructionWork=0;
       const program = compileSelect(
         selected, schema, btreeFromConnection(this, this.#btreeLimits), recursiveEncoding,
         this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes,
         this.#limits.privateStateLimits, recursiveOwner !== null,
+        () => {
+          if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
+          if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
+          if(++constructionWork>parserWork)failure("limit","statement construction work limit exceeded");
+        },
       );
       let statement!: VdbeStatement;
       const executionProgram=this.#dateTimeEnvironment?{...program,dateTimeEnvironment:this.#dateTimeEnvironment}:program;

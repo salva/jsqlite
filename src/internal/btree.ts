@@ -1,4 +1,6 @@
 import { decodeVarint, type DatabaseEncoding } from "./record.ts";
+import { ComparisonError, compareRecordKey, UnpackedRecordKey, type KeyInfo } from "./comparison.ts";
+import type { Mem } from "./mem.ts";
 import { ImmutableStorage, StorageClosedError, StorageCorruptError, storageOwner, type StorageOwnerCarrier } from "./storage.ts";
 
 /** Read-only translation of the pinned btree.c page, cell, payload and cursor paths. */
@@ -438,6 +440,47 @@ export class IndexCursor extends CursorBase<IndexEntry> {
     const result = this.database.indexSeek(this.#root, compareCurrentToTarget, bias);
     this.#set(result.position);
     return result.exact;
+  }
+  /** vdbe.c:4935–5025 / btreeIndexMoveto: nField is the supplied prefix.
+   * Strict GT/LT bias equal prefixes before descent, without a pre-scan.
+   * Input cells transfer to the unpacked key; errors release them too.
+   * Return positioning success, not equality as in seek(). */
+  /** vdbe.c:OP_SeekScan5093: bounded forward steps before a SeekGE.
+   * `found` bypasses seek (range overshoot allowed); `exhausted` takes
+   * SeekGE's exit; `seek` falls through. Never changes an invalid cursor.
+   * The unpacked prefix has default_rc0, unlike strict seekKey. */
+  seekScan(values: readonly Mem[], keyInfo: KeyInfo, steps: number, hasRange: boolean, charge?: () => void, moved?: () => void): "seek" | "found" | "exhausted" {
+    const key = new UnpackedRecordKey(values, 0, "seek", keyInfo);
+    try {
+      if (!this.valid) return "seek";
+      let remaining = steps;
+      while (true) {
+        charge?.();
+        const result = compareRecordKey(this.payload(), key, keyInfo);
+        if (result > 0 && !hasRange) return "exhausted";
+        if (result >= 0) return "found";
+        if (remaining <= 0) return "seek";
+        remaining--;
+        moved?.();
+        if (!this.next()) return "exhausted";
+      }
+    } catch (error) {
+      if (error instanceof ComparisonError && error.reason === "corrupt") corrupt(error.message);
+      throw error;
+    } finally { key.release(); }
+  }
+  seekKey(values: readonly Mem[], keyInfo: KeyInfo, direction: "ge" | "gt" | "le" | "lt"): boolean {
+    const reverse = direction === "le" || direction === "lt";
+    const key = new UnpackedRecordKey(values, direction === "gt" || direction === "le" ? -1 : 1, "seek", keyInfo);
+    try {
+      this.seek(payload => compareRecordKey(payload, key, keyInfo), reverse ? "le" : "ge");
+      return this.valid;
+    } catch (error) {
+      // btreeIndexMoveto owns unpacked-key errCode: malformed record
+      // comparison returns SQLITE_CORRUPT through the b-tree boundary.
+      if(error instanceof ComparisonError && error.reason === "corrupt")corrupt(error.message);
+      throw error;
+    } finally { key.release(); }
   }
 }
 export function openBtreeDatabase(bytes: Uint8Array, limits: BtreeLimits = {}): BtreeDatabase {

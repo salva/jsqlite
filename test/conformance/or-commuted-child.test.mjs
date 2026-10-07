@@ -16,7 +16,7 @@ for(const v of capture.variants)test(`${v.id}: commuted-child selected consumpti
    for(const arm of owned.terms.filter(term=>!term.virtual)){
     const clause=orRuntimeArmClause(arm,1,outer,owned);
     const branch=wherePathSolver([btreeLoops(resolved.sources[1],1,clause,{forcedIndex:null,neededColumns:new Set(resolved.sources[1].table.columns),orderBy:[],resolved})],1,undefined,0,1,null,1n).loops[0];
-    const admission=branch.capability.equalityPrefix[0];
+    const admission=branch.capability.equalitySlots[0];
     assert.ok(admission.term.virtual,'actual selected commuted virtual child');
     assert.equal(admission.term.parentId,arm.id);
     assert.ok(branchConsumedTerms(branch,clause,3n).has(arm),'ready child propagates to original parent');

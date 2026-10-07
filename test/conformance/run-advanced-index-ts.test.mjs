@@ -17,6 +17,9 @@ import {decodeRecord} from '../../src/internal/record.ts';
 const capture=JSON.parse(fs.readFileSync(new URL('./cases/stage3-advanced-index.json',import.meta.url),'utf8'));
 const specification=JSON.parse(fs.readFileSync(new URL('./cases/stage3-advanced-index.spec.json',import.meta.url),'utf8'));
 const pinnedManifest=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url),'utf8'));
+// vdbe.c4943–4952: GE uses default_rc+1 for equal partial keys.
+// indexSeek.exact reports comparator zero, not post-seek prefix equality.
+// Public rows and physical next/position/live-key checks below still prove equality filtering.
 const privateContracts=new Map(specification.cases.map(c=>[c.id,c.futurePrivateExpected]));
 const decode=c=>c.type==='null'?null:c.type==='integer'?BigInt(c.value):c.type==='real'?Buffer.from(c.ieee754be,'hex').readDoubleBE():c.type==='text'?Buffer.from(c.utf8Hex,'hex').toString():Uint8Array.from(Buffer.from(c.hex,'hex'));
 const value=v=>v&&v.type==='blob'?Uint8Array.from(Buffer.from(v.hex,'hex')):typeof v==='number'&&Number.isInteger(v)?BigInt(v):v;
@@ -68,7 +71,7 @@ test('forced frozen selected paths hand off exact loaded roots and KeyInfo to th
    assert.equal(loop.source,resolved.sources[0],`${variant.id}/${name}: resolved source`);
    assert.equal(loop.capability.index,physical.index,`${variant.id}/${name}: exact root owner`);
    assert.equal(loop.capability.physicalIndex,physical,`${variant.id}/${name}: exact descriptor`);
-   const admissions=[...loop.capability.equalityPrefix,...(loop.capability.lower?[loop.capability.lower]:[]),...(loop.capability.upper?[loop.capability.upper]:[])];
+   const admissions=[...loop.capability.equalitySlots,...(loop.capability.lower?[loop.capability.lower]:[]),...(loop.capability.upper?[loop.capability.upper]:[])];
    assert.ok(admissions.length,`${variant.id}/${name}: index constraints admitted`);
    for(const admission of admissions){
     assert.equal(admission.physicalIndex,physical);
@@ -197,7 +200,7 @@ test('frozen partial/expression access survives reset after one public row',asyn
     }
     for(const [phase,events] of [['first',first],['empty',empty],['rebound',rebound]]){
      assert.deepEqual(events.opens,root?[root]:[],`${variant.id}/${spec.id}/${phase}: opened root`);
-     assert.deepEqual(events.seeks,root&&phase!=='empty'?[{root,bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${phase}: seek restarts with live bound prefix`);
+     assert.deepEqual(events.seeks,root&&phase!=='empty'?[{root,bias:'ge',exact:false}]:[],`${variant.id}/${spec.id}/${phase}: seek restarts with live GE-biased bound prefix`);
      assert.deepEqual(events.boundaries,[],`${variant.id}/${spec.id}/${phase}: no full-index boundary fallback during active-row reset`);
      assert.deepEqual(events.nexts,root&&phase==='rebound'?events.cursors:[],`${variant.id}/${spec.id}/${phase}: active reset has no stale index iteration`);
      assert.deepEqual(events.moves,root&&phase==='rebound'?['next']:[],`${variant.id}/${spec.id}/${phase}: only complete rebound advances physically`);
@@ -231,7 +234,7 @@ test('frozen unforced executions open the expected runtime index root only on se
  const openIndex=BtreeDatabase.prototype.indexCursor,seekIndex=BtreeDatabase.prototype.indexSeek,cursorSeek=IndexCursor.prototype.seek,indexBoundary=BtreeDatabase.prototype.indexBoundary,indexMove=BtreeDatabase.prototype.indexMove,scanTable=BtreeDatabase.prototype.tableScanCursor,seekTable=BtreeDatabase.prototype.tableSeek,scanFirst=TableScanCursor.prototype.first,scanNext=TableScanCursor.prototype.next,indexFirst=IndexCursor.prototype.first,indexLast=IndexCursor.prototype.last,indexPrevious=IndexCursor.prototype.previous,indexNext=IndexCursor.prototype.next,assertLive=UnpackedRecordKey.prototype.assertLive;
  let observation=null,expectedKeyInfo=null,expectedSeekWidth=null,expectedSeekValues=null;
  UnpackedRecordKey.prototype.assertLive=function(){
-  if(expectedKeyInfo){assert.equal(this.keyInfo,expectedKeyInfo,'runtime unpacked seek KeyInfo is the selected PhysicalIndex KeyInfo');assert.equal(this.caller,'seek','runtime comparison uses a seek key');assert.equal(this.values.length,expectedSeekWidth,'runtime seek width matches pinned equality prefix');assert.deepEqual(this.values.map(v=>v.initialStorageClass==='null'?null:v.initialStorageClass==='integer'?v.integerValue():v.textValue()),expectedSeekValues,'runtime equality seek preserves bound values and storage classes');observation.keyChecks++}
+  if(expectedKeyInfo){assert.equal(this.keyInfo,expectedKeyInfo,'runtime unpacked seek KeyInfo is the selected PhysicalIndex KeyInfo');assert.equal(this.caller,'seek','runtime comparison uses a seek key');assert.equal(this.defaultRc,1,'GE uses pinned default_rc +1');assert.equal(this.values.length,expectedSeekWidth,'runtime seek width matches pinned equality prefix');assert.deepEqual(this.values.map(v=>v.initialStorageClass==='null'?null:v.initialStorageClass==='integer'?v.integerValue():v.textValue()),expectedSeekValues,'runtime equality seek preserves bound values and storage classes');observation.keyChecks++}
   return assertLive.call(this)
  };
  BtreeDatabase.prototype.indexCursor=function(root){const cursor=openIndex.call(this,root);if(observation){observation.opens.push(root);observation.indexCursors.add(cursor)}return cursor};
@@ -326,7 +329,7 @@ test('frozen unforced executions open the expected runtime index root only on se
     const root=expected?graph.indexes.get(expected).rootPage:null;
     assert.deepEqual(opens,expected?[root]:[],`${variant.id}/${spec.id}/${run}: exact runtime index opens`);
     assert.deepEqual(boundaries,[],`${variant.id}/${spec.id}/${run}: frozen equality seek/scan never silently starts a full-index boundary scan`);
-    assert.deepEqual(cursorSeeks,expected&&run!==1?[{bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${run}: selected cursor ge prefix seek returns exact only for non-NULL binding`);
+    assert.deepEqual(cursorSeeks,expected&&run!==1?[{bias:'ge',exact:false}]:[],`${variant.id}/${spec.id}/${run}: selected cursor GE comparison is nonzero for partial keys`);
     assert.deepEqual(seeks.map(({root,bias})=>({root,bias})),expected&&run!==1?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: exact runtime index seeks`);
     const selectedSeeks=seeks.filter(seek=>selectedRoots.includes(seek.root));
     assert.deepEqual(selectedSeeks.map(({root,bias})=>({root,bias})),expected&&run!==1?[{root,bias:'ge'}]:[],`${variant.id}/${spec.id}/${run}: actual runtime selected seek`);
@@ -336,8 +339,8 @@ test('frozen unforced executions open the expected runtime index root only on se
      assert.ok(selectedSeeks[0].keyChecks.every(count=>count===1),`${variant.id}/${spec.id}/${run}: every physical comparison validates one live seek key with selected KeyInfo`);
      assert.equal(observed.keyChecks,selectedSeeks[0].comparisons,`${variant.id}/${spec.id}/${run}: no unaccounted live seek-key comparisons`);
      assert.equal(selectedSeeks[0].positioned,true,`${variant.id}/${spec.id}/${run}: ge prefix seek positions before equality filtering`);
-     assert.equal(selectedSeeks[0].exact,run!==1,`${variant.id}/${spec.id}/${run}: exact match only for non-NULL frozen prefix`);
-     assert.equal(selectedSeeks[0].signs.includes(0),run!==1,`${variant.id}/${spec.id}/${run}: physical KeyInfo comparator finds equality only for non-NULL prefix`);
+     assert.equal(selectedSeeks[0].exact,false,`${variant.id}/${spec.id}/${run}: GE default_rc +1 is not prefix equality`);
+     assert.equal(selectedSeeks[0].signs.includes(0),false,`${variant.id}/${spec.id}/${run}: physical GE comparator preserves default_rc +1, never zero`);
      assert.ok(observed.keyChecks>0,`${variant.id}/${spec.id}/${run}: runtime unpacked KeyInfo checked`);
      assert.ok(selectedSeeks[0].keyChecks.every(count=>count>0),`${variant.id}/${spec.id}/${run}: every selected payload comparison checks physical KeyInfo`);
      assert.ok(selectedSeeks[0].signs.every(sign=>sign===-1||sign===0||sign===1),`${variant.id}/${spec.id}/${run}: ordered comparison result`);
@@ -452,7 +455,7 @@ test('frozen selected partial and expression paths restart after NULL reset/rebi
     const selectedRoot=graph.indexes.get(chosen.get(spec.id)).rootPage;
     assert.deepEqual(indexOpens,[selectedRoot],`${variant.id}/${spec.id}/${run}: one selected cursor, no other index opened`);
     assert.deepEqual(boundaries,[],`${variant.id}/${spec.id}/${run}: equality prefix does not fall back to index boundary scan`);
-    assert.deepEqual(physicalSeeks.map(({root,bias,exact})=>({root,bias,exact})),run==='first'||run==='rebound'?[{root:selectedRoot,bias:'ge',exact:true}]:[],`${variant.id}/${spec.id}/${run}: selected physical equality result`);
+    assert.deepEqual(physicalSeeks.map(({root,bias,exact})=>({root,bias,exact})),run==='first'||run==='rebound'?[{root:selectedRoot,bias:'ge',exact:false}]:[],`${variant.id}/${spec.id}/${run}: selected physical GE-biased result`);
     // codeAllEqualityTerms exits before seeking on any NULL '=' operand.
     if(run==='null'||run==='second-null')assert.deepEqual(tableSeeks,[],`${variant.id}/${spec.id}/${run}: NULL equality prefix performs no deferred base lookup`);
     assert.equal(seekKeys.length>0,run==='first'||run==='rebound',`${variant.id}/${spec.id}/${run}: only non-NULL equality seeks compare entries`);

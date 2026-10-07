@@ -1,0 +1,3063 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "chronology": "after rowid-tail recursion repair; before IN-tail consuming evidence/any further repair",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf8-stat1.db",
+      "sha256": "26a5bc57a63b2f1dba19c023a06bea9dcdc0d4b11999ae70ef53947125a5d6e1",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (1,2,NULL,1) AND c IN (3,5,NULL) AND id>0 ORDER BY a DESC,b,c,id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "17"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "101"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "185"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "89"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "173"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "26"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "110"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "194"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "73"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "157"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "61"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "145"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "229"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "82"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "166"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "45"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "129"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "213"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "33"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "117"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "201"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "54"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "138"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "222"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 63,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 63,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 62,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 11,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 14
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 50,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 44,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 26,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 516
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha','Alpha',NULL) COLLATE BINARY AND a IN ('alpha',NULL) COLLATE NOCASE AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 13
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 69,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 16
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 14
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 2736
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha',NULL) COLLATE BINARY AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 40,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 9
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 52,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 10
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 1645
+          },
+          "nSkip": 0
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf16le-stat1.db",
+      "sha256": "bba6d6cb51840f6c9396d3ac1af9294bdc7419e9b48414555ee9bbe533fdb724",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (1,2,NULL,1) AND c IN (3,5,NULL) AND id>0 ORDER BY a DESC,b,c,id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "17"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "101"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "185"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "89"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "173"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "26"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "110"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "194"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "73"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "157"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "61"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "145"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "229"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "82"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "166"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "45"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "129"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "213"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "33"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "117"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "201"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "54"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "138"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "222"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 63,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 63,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 62,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 11,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 14
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 50,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 44,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 26,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 516
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha','Alpha',NULL) COLLATE BINARY AND a IN ('alpha',NULL) COLLATE NOCASE AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 13
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 69,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 16
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 14
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 2736
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha',NULL) COLLATE BINARY AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 40,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 9
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 52,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 10
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 1645
+          },
+          "nSkip": 0
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf16be-stat1.db",
+      "sha256": "84944d5c2d940da0190d4acfa718809898d66f114efc6e7b041261d09aeedd92",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (1,2,NULL,1) AND c IN (3,5,NULL) AND id>0 ORDER BY a DESC,b,c,id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "17"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "101"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "185"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "89"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "173"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "26"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "110"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "194"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "73"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "157"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "61"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "145"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "229"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "82"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "166"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "45"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "129"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "213"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "33"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "117"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "201"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "54"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "138"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "222"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 63,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 63,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 62,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 4,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 11,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 14
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 50,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 44,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 26,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 516
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha','Alpha',NULL) COLLATE BINARY AND a IN ('alpha',NULL) COLLATE NOCASE AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 13
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 69,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 16
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 15
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 14
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 2736
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a IN ('Alpha',NULL) COLLATE BINARY AND b IN (2,4,6,NULL) ORDER BY c DESC,b",
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN w USING COVERING INDEX wc",
+            "USE TEMP B-TREE FOR LAST TERM OF ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 40,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 8
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 9
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 52,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 10
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 239,
+            "sortOperations": 3,
+            "vmSteps": 1645
+          },
+          "nSkip": 0
+        }
+      ]
+    }
+  ]
+}

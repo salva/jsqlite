@@ -1,0 +1,945 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "chronology": "after dormant wiring before unordered order owner correction",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf8-stat1.db",
+      "sha256": "26a5bc57a63b2f1dba19c023a06bea9dcdc0d4b11999ae70ef53947125a5d6e1",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b=2 AND c=3 AND id>0 ORDER BY a DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 99
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a='A' COLLATE BINARY AND b>0 AND c=3 ORDER BY c DESC",
+          "rows": [],
+          "eqp": [
+            "SEARCH w USING COVERING INDEX wc (c=? AND a=?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 12
+          },
+          "nSkip": 1
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf16le-stat1.db",
+      "sha256": "bba6d6cb51840f6c9396d3ac1af9294bdc7419e9b48414555ee9bbe533fdb724",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b=2 AND c=3 AND id>0 ORDER BY a DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 99
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a='A' COLLATE BINARY AND b>0 AND c=3 ORDER BY c DESC",
+          "rows": [],
+          "eqp": [
+            "SEARCH w USING COVERING INDEX wc (c=? AND a=?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 12
+          },
+          "nSkip": 1
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "fixtures/utf16be-stat1.db",
+      "sha256": "84944d5c2d940da0190d4acfa718809898d66f114efc6e7b041261d09aeedd92",
+      "cases": [
+        {
+          "sql": "SELECT id,a,b,c FROM s INDEXED BY sa WHERE b=2 AND c=3 AND id>0 ORDER BY a DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "38"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "122"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "206"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62c3a95461"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "94"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "178"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "66"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "150"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "234"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH s USING COVERING INDEX sa (ANY(a) AND b=? AND c=? AND rowid>?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 21,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 20,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 13,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 99
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT a,b,c FROM w INDEXED BY wc WHERE a='A' COLLATE BINARY AND b>0 AND c=3 ORDER BY c DESC",
+          "rows": [],
+          "eqp": [
+            "SEARCH w USING COVERING INDEX wc (c=? AND a=?)"
+          ],
+          "opcodes": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 16,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 3,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 7
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 0,
+            "vmSteps": 12
+          },
+          "nSkip": 1
+        }
+      ]
+    }
+  ]
+}

@@ -44,9 +44,9 @@ test('whereOrMove copies active values and order; clearing source cannot change 
  whereOrMove(dst,src);assert.deepEqual(dst.a,[]);
 });
 test('pOrSet collector consumes shared budget before nLTerm guard and clears on DONE',()=>{
- const s=set(),budget={remaining:2},c=cost(1,20,4);
- assert.equal(whereOrCollect(s,budget,0,c),true);assert.equal(budget.remaining,1);assert.deepEqual(s.a,[]);
- assert.equal(whereOrCollect(s,budget,1,c),true);assert.equal(budget.remaining,0);assert.deepEqual(s.a,[c]);
+ const s=set(),budget={remaining:2n},c=cost(1,20,4);
+ assert.equal(whereOrCollect(s,budget,0,c),true);assert.equal(budget.remaining,1n);assert.deepEqual(s.a,[]);
+ assert.equal(whereOrCollect(s,budget,1,c),true);assert.equal(budget.remaining,0n);assert.deepEqual(s.a,[c]);
  assert.equal(whereOrCollect(s,budget,1,c),false);assert.deepEqual(s.a,[]);
 });
 test('recursive arm accumulation moves first arm then ordered products with prereq union and LogEstAdd',()=>{

@@ -1,3 +1,4 @@
+import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
 import {resolvedResultColumn} from "./resolve.ts";
 import {integerPrimaryKeyColumn,freezeTransientTable} from "./schema.ts";
@@ -109,6 +110,7 @@ type Op =
   | { readonly code: "Subtract"; readonly p1: number; readonly p2: number; readonly p3: number }
   | { readonly code: "BitNot" | "Not"; readonly p1: number; readonly p2: number }
   | { readonly code: "OpenRead"; readonly p1: number; readonly p2?: number }
+  | { readonly code: "IndexNullRow";readonly p1:number }
   | { readonly code: "OpenIndex"; readonly orBranch?:boolean; readonly p1: number; readonly p2: number; readonly physical: PhysicalIndex }
   | { readonly code: "JsonTableRewind"; readonly p1:number; readonly input:number; readonly root?:number; readonly recursive:boolean; readonly binaryContainers:boolean; readonly rowStart:number; readonly p2:number }
   | { readonly code: "JsonTableNext"; readonly p1:number; readonly rowStart:number; readonly p2:number }
@@ -160,7 +162,7 @@ type Op =
   | { readonly code: "IndexRewind"; readonly p1: number; readonly p2: number }
   | { readonly code: "IndexLast"; readonly p1: number; readonly p2: number }
   | { readonly code:"InListValue";readonly values:readonly number[];readonly indexRegister:number;readonly target:number;readonly p2:number;readonly setKey?:{readonly affinity:MemAffinity;readonly keyInfo:KeyInfo;readonly fieldOrdinal?:number;readonly reverse?:boolean} }
-  | { readonly code:"IndexSeekPrefix";readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly reverse:boolean;readonly strict?:boolean;readonly p2:number }
+  | { readonly code:"IndexSeekPrefix";readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly reverse:boolean;readonly strict?:boolean;readonly seekScan?:Readonly<{steps:number;hasRange:boolean}>;readonly p2:number }
   | { readonly code:"IndexPrefixEnd";readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly p2:number }
   | { readonly code:"IndexRangeEnd";readonly p1:number;readonly field:number;readonly key:number;readonly affinity:MemAffinity;readonly collation:BuiltinCollation;readonly operator:"lt"|"le"|"gt"|"ge";readonly p2:number }
   | { readonly code: "DeferredSeek"; readonly p1: number; readonly p2: number }
@@ -3521,7 +3523,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // select.c:multiSelect(TK_ALL) forwards the compound iLimit/iOffset into
   // each arm; only the enclosing producer initializes those registers.
   const limit=owner?.compoundLimit?owner.compoundLimit.registers:owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,allocate,parameters));
-  const multiOrder=select.orderBy.flatMap(term=>{let tree=expressionFromReduction(term.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=="column")return [];const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,sourceOrdinal=expanded.sources.findIndex(source=>(parts.length===1||sqliteIdentifierEqual(parts.at(-2)!,source.alias??source.table.name))&&source.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)));if(sourceOrdinal<0)return [];const column=expanded.sources[sourceOrdinal]!.table.columns.find(column=>sqliteIdentifierEqual(column.name,name))!;return [{sourceOrdinal,column,descending:term.descending,collation:sqliteAsciiFold(column.collation??'binary') as BuiltinCollation}];});
+  const multiOrder=resolvedWhereOrder(expanded);
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
   multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...(source.table.withoutRowid?[]:[ROWID_NEEDED])])),orderBy:multiOrder,planBudget:builder.wherePlanBudget});
@@ -3589,7 +3591,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     :expanded.sources.map((_,ordinal)=>ordinal);
   const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
 
-  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],loopEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>(),nullPasses=new Map<number,number>(),nullContinues=new Map<number,number>();
+  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],loopEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>(),prefixLoops=new Map<number,PrefixLoop>(),nullPasses=new Map<number,number>(),nullContinues=new Map<number,number>();
   // A forward RIGHT drain can enter a deeper body even when an empty outer
   // scan never initialized that level. Its LEFT continuation flags must be
   // valid integers before any body is callable (where.c/wherecode.c reset).
@@ -3647,12 +3649,16 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         return term.originalIndexedOperand==='left'?expression.right:expression.left;
       };
       const key=(term:WhereTerm):number=>compileExpressionTree(rhs(term),ops,allocate,parameters,compileJoinSubquery);
-      let rewind:number,single=false;
+      let rewind:number,single=false,prefixLoop:PrefixLoop|undefined;
       if(physical){
         ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:indexCursor!,physical,orBranch:true});
-        const reverse=cap!.reverse,rangeReverse=reverse!==!!physical.fields[cap!.equalityPrefix.length]?.descending;
+        const equalities=cap!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
+        const reverse=cap!.reverse,rangeReverse=reverse!==!!physical.fields[cap!.nEq]?.descending;
         const start=rangeReverse?cap!.upper:cap!.lower;
-        const admissions=start?[...cap!.equalityPrefix,start]:cap!.equalityPrefix;
+        const admissions=start?[...equalities,start]:equalities;
+        const skippedKeys=Array.from({length:cap!.nSkip},allocate),skippedAffinities=Array<MemAffinity>(cap!.nSkip).fill("blob");
+        const prefixEntry=beginPrefixLoop(ops,indexCursor!,skippedKeys,skippedAffinities,physical.keyInfo,reverse,cap!.nSkip);
+        const ordinal=(admission:IndexConstraintAdmission)=>cap!.nSkip+admissions.indexOf(admission);
         // codeEqualityTerm: owned IN RHS iterators reset per invocation;
         // WhereEnd restarts inner values before advancing outer values.
         const inTargets=new Map<typeof admissions[number],number>();
@@ -3662,18 +3668,18 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           const values=tree.values.map(value=>compileExpressionTree(value,ops,allocate,parameters,compileJoinSubquery));
           const indexRegister=allocate(),target=allocate();
           ops.push({code:'Integer',p1:0n,p2:indexRegister});iterators.push(ops.length);
-          ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:physical.keyInfo,fieldOrdinal:admissions.indexOf(admission),reverse:reverse!==!!physical.fields[admissions.indexOf(admission)]?.descending}});
+          ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:physical.keyInfo,fieldOrdinal:ordinal(admission),reverse:reverse!==!!physical.fields[ordinal(admission)]?.descending}});
           inTargets.set(admission,target);
         }
         const keys=admissions.map(admission=>inTargets.get(admission)??key(admission.term)),affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-        admissions.forEach((admission,i)=>{if(admission.operator==='eq'||admission===start){(admission===start?guards:equalityGuards).push(ops.length);ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
+        admissions.forEach((admission,i)=>{if(admission.operator==='eq'||admission===start&&!admission.term.virtualNull){(admission===start?guards:equalityGuards).push(ops.length);ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
         rewind=ops.length;
-        if(admissions.length)ops.push({code:'IndexSeekPrefix',p1:indexCursor!,keys,affinities,keyInfo:physical.keyInfo,reverse,strict:!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),p2:0});
+        if(admissions.length||cap!.nSkip)prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],physical.keyInfo,reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!cap!.inSeekScan,rowLogEst:cap!.index!.rowLogEst[0]??99,hasRange:!!(cap!.lower||cap!.upper)});
         else ops.push({code:reverse?'IndexLast':'IndexRewind',p1:indexCursor!,p2:0});
         const loopStart=ops.length;
-        if(cap!.equalityPrefix.length){ends.push(ops.length);ops.push({code:'IndexPrefixEnd',p1:indexCursor!,keys:keys.slice(0,cap!.equalityPrefix.length),affinities:affinities.slice(0,cap!.equalityPrefix.length),keyInfo:physical.keyInfo,p2:0});}
+        if(cap!.nEq){ends.push(ops.length);ops.push({code:'IndexPrefixEnd',p1:indexCursor!,keys:[...skippedKeys,...keys].slice(0,cap!.nEq),affinities:[...skippedAffinities,...affinities].slice(0,cap!.nEq),keyInfo:physical.keyInfo,p2:0});}
         const end=rangeReverse?cap!.lower:cap!.upper;
-        if(end){const endKey=key(end.term);ends.push(ops.length);ops.push({code:'IndexRangeEnd',p1:indexCursor!,field:cap!.equalityPrefix.length,key:endKey,affinity:end.comparison.kind==='comparison'?end.comparison.affinity:'blob',collation:end.comparison.kind==='comparison'?end.comparison.collation:'binary',operator:end.operator as 'lt'|'le'|'gt'|'ge',p2:0});}
+        if(end){const endKey=key(end.term);if(!end.term.virtualNull){ops.push({code:'IsNull',p1:endKey,p2:0});ends.push(ops.length-1);}ops.push({code:'IndexRangeEnd',p1:indexCursor!,field:cap!.nEq,key:endKey,affinity:end.comparison.kind==='comparison'?end.comparison.affinity:'blob',collation:end.comparison.kind==='comparison'?end.comparison.collation:'binary',operator:end.operator as 'lt'|'le'|'gt'|'ge',p2:0});ends.push(ops.length-1);}
         ops.push({code:'DeferredSeek',p1:indexCursor!,p2:tableCursor});consume();
         ops.push({code:reverse?'IndexPrev':'IndexNext',p1:indexCursor!,p2:loopStart});
       }else{
@@ -3691,9 +3697,10 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         if(i<iterators.length-1)(ops[iterators[i+1]!] as {p2:number}).p2=ops.length;
         ops.push({code:'Goto',p2:iterators[i]!});
       }
+      if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)finishPrefixLoop(ops,prefixLoop,ops.length+1);
       const exit=ops.length;
-      if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=exit;
-      for(const at of [rewind,...guards,...ends])(ops[at] as {p2:number}).p2=advance;
+      if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=prefixLoop?.restart??exit;
+      for(const at of [rewind,...guards,...ends])if(ops[at]!.code!=="Goto")(ops[at] as {p2:number}).p2=advance;
       // '=' NULL terminates the arm, not just the current IN probe.
       for(const at of equalityGuards)(ops[at] as {p2:number}).p2=exit;
     }
@@ -3711,16 +3718,21 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   rewinds.push(ops.length);
   if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
-    const usable=indexCursor!==undefined&&capability&&(capability.equalityPrefix.length||capability.lower||capability.upper);
-    const reverseRange=!!usable&&(capability.reverse!==!!capability.physicalIndex?.fields[capability.equalityPrefix.length]?.descending);
+    const equalities=capability?.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null)??[];
+    const usable=indexCursor!==undefined&&capability&&(capability.nEq||capability.lower||capability.upper);
+    const reverseRange=!!usable&&(capability.reverse!==!!capability.physicalIndex?.fields[capability.nEq]?.descending);
     const start=usable?(reverseRange?capability.upper:capability.lower):null;
-    const admissions=usable?(start?[...capability.equalityPrefix,start]:capability.equalityPrefix):[];
+    const admissions=usable?(start?[...equalities,start]:equalities):[];
     // where.c:sqlite3WhereEnd advances IN loops inside-out. On a new outer
     // RHS value the inner index register must be reset before its first probe.
     const inAdmissions=admissions.filter(admission=>admission.operator==='in');
     const ready=admissions.every(admission=>(admission.term.prereqRight&~readyMask)===0n);
-    const bound=(term:WhereTerm):Expression=>{const expression=resolveTree(expressionFromReduction(term.expression.reduction!),term.expression.reduction as Reduction);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined index bound lost binary expression');return term.originalIndexedOperand==='left'?expression.right:expression.left;};
-    if(usable&&admissions.length&&ready){
+    const bound=(term:WhereTerm):Expression=>{if(term.operator==='is-null')return {kind:'literal',value:null};const expression=resolveTree(expressionFromReduction(term.expression.reduction!),term.expression.reduction as Reduction);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined index bound lost binary expression');return term.originalIndexedOperand==='left'?expression.right:expression.left;};
+    if(usable&&(admissions.length||capability.nSkip)&&ready){
+      if(capability.inSeekScan&&level>0)ops.push({code:'IndexNullRow',p1:indexCursor!});
+      const skippedKeys=Array.from({length:capability.nSkip},allocate),skippedAffinities=Array<MemAffinity>(capability.nSkip).fill('blob');
+      const prefixEntry=beginPrefixLoop(ops,indexCursor!,skippedKeys,skippedAffinities,capability.physicalIndex!.keyInfo,capability.reverse,capability.nSkip);
+      const ordinal=(admission:IndexConstraintAdmission)=>capability.nSkip+admissions.indexOf(admission);
       const inTargets=new Map<typeof admissions[number],number>();
       const iterators:number[]=[];
       for(const admission of inAdmissions){
@@ -3730,7 +3742,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const indexRegister=allocate(),target=allocate();
         ops.push({code:'Integer',p1:0n,p2:indexRegister});
         const iterator=ops.length;
-        ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:capability.physicalIndex!.keyInfo,fieldOrdinal:admissions.indexOf(admission),reverse:capability.reverse!==!!capability.physicalIndex!.fields[admissions.indexOf(admission)]?.descending}});
+        ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:capability.physicalIndex!.keyInfo,fieldOrdinal:ordinal(admission),reverse:capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending}});
         iterators.push(iterator);
         inTargets.set(admission,target);
       }
@@ -3738,12 +3750,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery));
       // codeAllEqualityTerms: '=' NULL exits this level, not the next IN
       // value. IS/IS NULL retain searchable NULL keys; IN skips NULL itself.
-      capability.equalityPrefix.forEach((admission,i)=>{if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
+      equalities.forEach((admission,i)=>{if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
       // wherecode.c Case 4: nullable pRangeStart exits to addrNxt before
       // affinity or seek. This is the next IN value (or outer loop), not Halt.
-      if(start){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
+      if(start&&!start.term.virtualNull){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
       const affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-      rewinds[level]=ops.length;ops.push({code:'IndexSeekPrefix',p1:indexCursor!,keys,affinities,keyInfo:capability.physicalIndex!.keyInfo,reverse:capability.reverse,strict:!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),p2:0});
+      const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
+      rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
     }else ops.push(indexCursor===undefined&&!source.table.withoutRowid?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:scanCursor,p2:0});
     singleRows[level]=false;
   }
@@ -3751,16 +3764,16 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   starts.push(ops.length);
   if(indexCursor!==undefined){
     const capability=selected!.capability!,seek=ops[rewinds[level]!];
-    if(seek?.code==='IndexSeekPrefix'){
-      if(capability.equalityPrefix.length){ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:seek.keys.slice(0,capability.equalityPrefix.length),affinities:seek.affinities.slice(0,capability.equalityPrefix.length),keyInfo:capability.physicalIndex!.keyInfo,p2:0});loopEnds.push({at:ops.length-1,level});}
-      const rangeReverse=capability.reverse!==!!capability.physicalIndex?.fields[capability.equalityPrefix.length]?.descending;
+    if(seek?.code==='IndexSeekPrefix'||seek?.code==='IndexRewind'||seek?.code==='IndexLast'||(seek?.code==='Goto'&&prefixLoops.has(level))){
+      if(capability.nEq&&prefixLoops.has(level)){const prefix=prefixLoops.get(level)!;ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:prefix.keys.slice(0,capability.nEq),affinities:prefix.affinities.slice(0,capability.nEq),keyInfo:capability.physicalIndex!.keyInfo,p2:0});loopEnds.push({at:ops.length-1,level});}
+      const rangeReverse=capability.reverse!==!!capability.physicalIndex?.fields[capability.nEq]?.descending;
       const end=rangeReverse?capability.lower:capability.upper;
       // wherecode.c Case 4 keeps pRangeStart and pRangeEnd separate. A
       // one-sided range never becomes its own end test: the equality-prefix
       // check (if any) bounds this scan and the original predicate filters
       // rows until strict range positioning is available here.
       const rangeEnd=end;
-      if(rangeEnd&&rangeEnd.operator!=='in'&&(rangeEnd.term.prereqRight&~readyMask)===0n){const expression=expressionFromReduction(rangeEnd.term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined range bound lost binary expression');const bound=rangeEnd.term.originalIndexedOperand==='left'?expression.right:expression.left;const key=compileExpressionTree(resolveTree(bound),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'IndexRangeEnd',p1:indexCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.affinity:'blob',collation:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.collation:'binary',operator:rangeEnd.operator as 'lt'|'le'|'gt'|'ge',p2:0});loopEnds.push({at:ops.length-1,level});}
+      if(rangeEnd&&rangeEnd.operator!=='in'&&(rangeEnd.term.prereqRight&~readyMask)===0n){const expression=expressionFromReduction(rangeEnd.term.expression.reduction!);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined range bound lost binary expression');const bound=rangeEnd.term.originalIndexedOperand==='left'?expression.right:expression.left;const key=compileExpressionTree(resolveTree(bound),ops,allocate,parameters,compileJoinSubquery);if(!rangeEnd.term.virtualNull){loopEnds.push({at:ops.length,level});ops.push({code:'IsNull',p1:key,p2:0});}ops.push({code:'IndexRangeEnd',p1:indexCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.affinity:'blob',collation:rangeEnd.comparison.kind==='comparison'?rangeEnd.comparison.collation:'binary',operator:rangeEnd.operator as 'lt'|'le'|'gt'|'ge',p2:0});loopEnds.push({at:ops.length-1,level});}
     }
     // wherecode.c Case 4: only a WITHOUT ROWID primary index is the
     // table itself. A rowid table's declared PRIMARY KEY remains a secondary
@@ -3842,13 +3855,16 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       if(i<restart.iterators.length-1)(ops[restart.iterators[i+1]!] as {p2:number}).p2=ops.length;
       ops.push({code:'Goto',p2:iterator});
     }
-  }const match=leftMatches[level];if(match!==undefined){
+  }const prefixLoop=prefixLoops.get(level);if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)ops.push({code:"Goto",p2:prefixLoop.restart});
+  const match=leftMatches[level];if(match!==undefined){
     rewindEmpty[level]=ops.length;
     const matched=ops.length;
     ops.push({code:'IfPos',p1:match,p2:0,p3:0},{code:'Integer',p1:1n,p2:match},{code:'NullRow',p1:cursorFor(expanded.sources[level]!)});
     // where.c:sqlite3WhereEnd nulls both the table and its selected index
     // before re-entering the LEFT body. Neither may expose a previous hit.
-    const indexCursor=indexCursors.get(loopOrdinals[level]!);
+    // where.c7694: MULTI_OR pCoveringIdx is a separate cursor owner.
+    // Body Column/Rowid rewrites must observe NULL, not the final arm record.
+    const indexCursor=indexCursors.get(loopOrdinals[level]!)??orCovering.get(level)?.cursor;
     if(indexCursor!==undefined)ops.push({code:'NullRow',p1:indexCursor});
     ops.push({code:'Integer',p1:1n,p2:nullPasses.get(level)!},{code:'Goto',p2:bodies[level]!});
     const nullContinue=nullContinues.get(level);if(nullContinue!==undefined)(ops[nullContinue] as {p2:number}).p2=ops.length;
@@ -3899,10 +3915,14 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   const scanEnd=ops.length;
   if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=nextAt.at(-1)!;for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
-  for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
+  for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
   for(const [level,restart] of inRestarts){
     const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
-    (ops[restart.iterators[0]!] as {p2:number}).p2=exit;
+    (ops[restart.iterators[0]!] as {p2:number}).p2=prefixLoops.get(level)?.restart??exit;
+  }
+  for(const [level,prefix] of prefixLoops){
+    const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
+    for(const at of [prefix.restart,prefix.empty])if(at!==null)(ops[at] as {p2:number}).p2=exit;
   }
   let halt:number;
   if(orderTerms.length){
@@ -3918,7 +3938,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   halt=ops.length;builder.mark(destinationExit);builder.resolveLabel(destinationExit);
   if(!owner)ops.push({code:'Halt'});
-  for(let level=0;level<rewinds.length;level++){(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[advanceAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=rewindEmpty[guard.level]??(guard.level===0?normalScanEnd:nextAt[guard.level-1]!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
+  for(let level=0;level<rewinds.length;level++){if(!(prefixLoops.get(level)?.seek===rewinds[level]&&ops[rewinds[level]!]!.code==="Goto"))(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[advanceAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=rewindEmpty[guard.level]??(guard.level===0?normalScanEnd:nextAt[guard.level-1]!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
   // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn: ordinary continuation
   // targets must stay inside the interior or reach its Return. Producer
   // Explicit producer stops may terminate early; ordinary escapes must reach
@@ -3953,7 +3973,7 @@ function sqlName(text: string): string {
   return text;
 }
 
-interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[] }
+interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[]; readonly prefixLoop?:PrefixLoop }
 /** Bounded first-plan translation seam for sqlite3WhereBegin/wherecode.c. */
 function sqlite3WhereBegin(ops: Op[], rootPage: number): FullScanPlan {
   ops.push({code:"OpenRead",p1:rootPage}); const rewindIndex=ops.length;
@@ -3970,11 +3990,13 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
     if(i<iterators.length-1)(ops[iterators[i+1]!] as {p2:number}).p2=ops.length;
     ops.push({code:"Goto",p2:iterators[i]!});
   }
+  if(plan.prefixLoop?.restart!==null&&plan.prefixLoop?.restart!==undefined)finishPrefixLoop(ops,plan.prefixLoop,ops.length+1);
   const scanExit=ops.length;
+  const prefixExit=plan.prefixLoop?.restart??scanExit;
   // Scan exhaustion falls through to the SELECT-owned drain/exit.
-  if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=scanExit;
-  const exit=iterators.at(-1)??scanExit;
-  (ops[plan.rewindIndex] as {p2:number}).p2=exit;
+  if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=prefixExit;
+  const exit=iterators.at(-1)??prefixExit;
+  if(ops[plan.rewindIndex]?.code!=="Goto")(ops[plan.rewindIndex] as {p2:number}).p2=exit;
   for(const at of plan.equalityNullGuards??[])(ops[at] as {p2:number}).p2=scanExit;
   for(const at of plan.startNullGuards??[])(ops[at] as {p2:number}).p2=exit;
   for(const op of ops)if((op.code==="RowidLowerBound"||op.code==="RowidUpperBound"||op.code==="IndexPrefixEnd"||op.code==="IndexRangeEnd")&&op.p2===0)(op as {p2:number}).p2=exit;
@@ -5562,7 +5584,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // the existing table path until their seek opcodes are available.
 
   let selectedOr:WhereLoop|null=null,selectedOrClause:import("./where-plan.ts").WhereClause|null=null;
-  let selectedPhysical:PhysicalIndex|null=null,selectedNeedsTableLookup=false,selectedEqualities:readonly IndexConstraintAdmission[]=Object.freeze([]),selectedIndexLower:IndexConstraintAdmission|null=null,selectedIndexUpper:IndexConstraintAdmission|null=null,selectedIndexReverse=false,selectedLoopTerms:readonly WhereTerm[]=Object.freeze([]),whereAccounting:Program["whereAccounting"],rowidEquality:WhereTerm|null=null,rowidLower:WhereTerm|null=null,rowidUpper:WhereTerm|null=null,rowidReverse=false,rowidOrderConsumed=false,indexOrderConsumed=false;
+  let selectedPhysical:PhysicalIndex|null=null,selectedNeedsTableLookup=false,selectedEqualities:readonly IndexConstraintAdmission[]=Object.freeze([]),selectedIndexLower:IndexConstraintAdmission|null=null,selectedIndexUpper:IndexConstraintAdmission|null=null,selectedIndexReverse=false,selectedNSkip=0,selectedNEq=0,selectedInSeekScan=false,selectedLoopTerms:readonly WhereTerm[]=Object.freeze([]),whereAccounting:Program["whereAccounting"],rowidEquality:WhereTerm|null=null,rowidLower:WhereTerm|null=null,rowidUpper:WhereTerm|null=null,rowidReverse=false,rowidOrderConsumed=false,indexOrderConsumed=false;
   try {
     // Covering is determined from every value read after positioning: result,
     // residual WHERE, and sorter inputs. Do not narrow this to projection
@@ -5579,7 +5601,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     whereAccounting=Object.freeze({plannerCandidates:selection.plannerCandidates,plannerPaths:selection.plannerPaths});selectedLoopTerms=loop?.terms??Object.freeze([]);
     if(loop?.kind==="table-scan"&&loop.capability){rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
     if(loop?.kind==="rowid"&&loop.capability){rowidEquality=loop.capability.rowidEquality?.term??null;rowidLower=loop.capability.rowidLower?.term??null;rowidUpper=loop.capability.rowidUpper?.term??null;rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
-    if(loop?.kind==="index"&&loop.capability){selectedPhysical=loop.capability.physicalIndex;selectedNeedsTableLookup=loop.capability.needsTableLookup;selectedEqualities=loop.capability.equalityPrefix;selectedIndexLower=loop.capability.lower;selectedIndexUpper=loop.capability.upper;selectedIndexReverse=loop.capability.reverse;indexOrderConsumed=select.orderBy.length>0&&!loop.capability.equalityPrefix.some(admission=>admission.operator==="in")&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
+    if(loop?.kind==="index"&&loop.capability){selectedPhysical=loop.capability.physicalIndex;selectedNeedsTableLookup=loop.capability.needsTableLookup;selectedEqualities=loop.capability.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);selectedNSkip=loop.capability.nSkip;selectedNEq=loop.capability.nEq;selectedInSeekScan=!!loop.capability.inSeekScan;selectedIndexLower=loop.capability.lower;selectedIndexUpper=loop.capability.upper;selectedIndexReverse=loop.capability.reverse;indexOrderConsumed=select.orderBy.length>0&&!loop.capability.equalitySlots.some(admission=>admission?.operator==="in")&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
   } catch(error) { if(error instanceof WherePlanningUnsupportedError)throw new JSQLiteError("unsupported",error.message,{unsupportedClassification:"temporary"});throw error; }
   // expr.c sqlite3ExprCodeGetColumnOfTable maps table columns through the
   // primary index for WITHOUT ROWID, not through declared column ordinals.
@@ -5718,7 +5740,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // still use the direct-column fast path.
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:resolvedResultKeyTerms(expanded)})});
   const emitPosition=():FullScanPlan=>{
-  let rewindIndex:number;const inIterators:number[]=[],startNullGuards:number[]=[],equalityNullGuards:number[]=[];
+  let rewindIndex:number,prefixLoop:PrefixLoop|undefined;const inIterators:number[]=[],startNullGuards:number[]=[],equalityNullGuards:number[]=[];
   const boundRhs=(term:WhereTerm):Expression=>{if(term.operator==="is-null")return {kind:"literal",value:null};const expression=resolveExpression(term.expression);if(expression.kind!=="binary")throw new JSQLiteError("internal","rowid bound lost binary expression");return term.originalIndexedOperand==="left"?expression.right:expression.left;};
   const inValues=(term:WhereTerm):Expression[]=>{const expression=resolveExpression(term.expression);if(expression.kind!=="in-list"||expression.negated)throw new JSQLiteError("internal","IN constraint lost value list");return expression.values;};
   if(rowidEquality?.expression.reduction){
@@ -5731,10 +5753,14 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   }else if((rowidReverse?rowidUpper:rowidLower)?.expression.reduction){
     const start=rowidReverse?rowidUpper!:rowidLower!,key=compileExpressionTree(boundRhs(start),ops,()=>builder.register(),parameters);rewindIndex=ops.length;ops.push({code:"SeekRowidRange",key,inclusive:start.operator==="le"||start.operator==="ge",reverse:rowidReverse,p2:0});
   }else if(selectedPhysical&&(selectedEqualities.length||selectedIndexLower||selectedIndexUpper)){
-    const rangeField=selectedPhysical.fields[selectedEqualities.length];
+    const rangeField=selectedPhysical.fields[selectedNEq];
     const backwardsOnRange=selectedIndexReverse!==!!rangeField?.descending;
     const start=backwardsOnRange?selectedIndexUpper:selectedIndexLower,admissions=start?[...selectedEqualities,start]:selectedEqualities;
-    const inAdmissions=admissions.filter(admission=>admission.operator==="in");
+    const ordinal=(admission:IndexConstraintAdmission)=>selectedNSkip+admissions.indexOf(admission);
+    const skippedKeys=Array.from({length:selectedNSkip},()=>builder.register());
+    const skippedAffinities=Array<MemAffinity>(selectedNSkip).fill("blob");
+    const prefixEntry=beginPrefixLoop(ops,accessCursor,skippedKeys,skippedAffinities,selectedPhysical.keyInfo,selectedIndexReverse,selectedNSkip);
+    const inAdmissions=admissions.filter(admission=>admission?.operator==="in");
     let keys:number[];
     if(inAdmissions.length){
       // where.c:sqlite3WhereEnd advances IN cursors inside-out, resetting
@@ -5744,7 +5770,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register(),target=builder.register();
         ops.push({code:"Integer",p1:0n,p2:indexRegister});
         const iterator=ops.length;
-        ops.push({code:"InListValue",values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==="comparison"?admission.comparison.affinity:"blob",keyInfo:selectedPhysical.keyInfo,fieldOrdinal:admissions.indexOf(admission),reverse:selectedIndexReverse!==!!selectedPhysical.fields[admissions.indexOf(admission)]?.descending}});
+        ops.push({code:"InListValue",values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==="comparison"?admission.comparison.affinity:"blob",keyInfo:selectedPhysical.keyInfo,fieldOrdinal:ordinal(admission),reverse:selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending}});
         inIterators.push(iterator);
         targets.set(admission,target);
       }
@@ -5757,8 +5783,8 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // wherecode.c Case 4 emits OP_IsNull on the nullable range start RHS
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.
-    if(start){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[keys.length-1]!,p2:0});}
-    const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);rewindIndex=ops.length;ops.push({code:"IndexSeekPrefix",p1:accessCursor,keys,affinities,keyInfo:selectedPhysical.keyInfo,reverse:selectedIndexReverse,strict:!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),p2:0});
+    if(start&&!start.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[keys.length-1]!,p2:0});}
+    const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);prefixLoop=emitPrefixSeek(ops,prefixEntry,accessCursor,[...skippedKeys,...keys],[...skippedAffinities,...affinities],selectedPhysical.keyInfo,selectedIndexReverse,!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),{enabled:selectedInSeekScan,rowLogEst:selectedPhysical.index.rowLogEst[0]??99,hasRange:!!(selectedIndexLower||selectedIndexUpper)});rewindIndex=prefixLoop.seek;
   }else {
     // wherecode.c Case 4 aStartOp: an unconstrained reverse index loop
     // positions with OP_Last, paired with OP_Prev in sqlite3WhereEnd.
@@ -5767,18 +5793,18 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       ? {code:selectedIndexReverse?"IndexLast":"IndexRewind",p1:accessCursor,p2:0}
       : {code:rowidReverse?"Last":"Rewind",p2:0});
   }
-  const selectedPrimarySingleRow=selectedPhysical?.index.origin==="primary-key"&&selectedEqualities.length===selectedPhysical.keyInfo.keyFieldCount;
+  const selectedPrimarySingleRow=!selectedNSkip&&selectedPhysical?.index.origin==="primary-key"&&selectedNEq===selectedPhysical.keyInfo.keyFieldCount;
   // Pinned where.c whereLoopAddBtreeIndex marks a PRIMARY KEY loop WHERE_ONEROW
   // once nEq reaches nKeyCol. wherecode.c then omits the loop-step opcode. This
   // is safe for WITHOUT ROWID PKs because every key term is non-NULL and unique.
-  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(startNullGuards.length?{startNullGuards}:{}),...(equalityNullGuards.length?{equalityNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
-  if(selectedPhysical&&selectedEqualities.length){const seek=ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedEqualities.length),affinities:seek.affinities.slice(0,selectedEqualities.length),keyInfo:selectedPhysical.keyInfo,p2:0});}
-  const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedEqualities.length]?.descending;
+  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(prefixLoop?{prefixLoop}:{}),startNullGuards,...(equalityNullGuards.length?{equalityNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
+  if(selectedPhysical&&selectedNEq){const seek=prefixLoop??ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedNEq),affinities:seek.affinities.slice(0,selectedNEq),keyInfo:selectedPhysical.keyInfo,p2:0});}
+  const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedNEq]?.descending;
   const indexEnd=rangeBackwards?selectedIndexLower:selectedIndexUpper,indexStart=rangeBackwards?selectedIndexUpper:selectedIndexLower;
   // wherecode.c emits a prefix seek and an Idx* termination check. For a
   // range that begins at the prefix edge in physical scan order, the retained
   // bound is the termination test; no independently reconstructed key exists.
-  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>builder.register(),parameters);ops.push({code:"IndexRangeEnd",p1:accessCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
+  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>builder.register(),parameters);if(!rangeEnd.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:key,p2:0});}ops.push({code:"IndexRangeEnd",p1:accessCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
   const end=rowidReverse?rowidLower:rowidUpper;if(end?.expression.reduction){const key=compileExpressionTree(boundRhs(end),ops,()=>builder.register(),parameters);ops.push({code:rowidReverse?"RowidLowerBound":"RowidUpperBound",key,inclusive:end.operator==="le"||end.operator==="ge",p2:0});}
   if(selectedPhysical&&selectedNeedsTableLookup){
     if(table.withoutRowid){const primary=table.indexes.find(index=>index.origin==="primary-key")?.physical!;const primaryKeyFields=selectedPhysical.primaryKeyFields;if(primaryKeyFields.length!==primary.keyInfo.keyFieldCount)throw new JSQLiteError("unsupported","WITHOUT ROWID secondary primary-key mapping is not represented",{unsupportedClassification:"temporary"});ops.push({code:"DeferredIndexSeek",p1:accessCursor,p2:0,primaryKeyFields,physical:primary});}
@@ -5827,7 +5853,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
           selectedPhysical=cap?.physicalIndex??null;selectedNeedsTableLookup=!!selectedPhysical;
           // Case5 pCov: once any arm disagrees, later arms cannot restore it.
           covering=selectedPhysical&&(ordinal===0||selectedPhysical===covering)?selectedPhysical:null;
-          selectedEqualities=cap?.equalityPrefix??[];selectedIndexLower=cap?.lower??null;selectedIndexUpper=cap?.upper??null;selectedIndexReverse=false;
+          selectedEqualities=cap?.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null)??[];selectedNSkip=cap?.nSkip??0;selectedNEq=cap?.nEq??0;selectedInSeekScan=!!cap?.inSeekScan;selectedIndexLower=cap?.lower??null;selectedIndexUpper=cap?.upper??null;selectedIndexReverse=false;
           rowidEquality=cap?.rowidEquality?.term??null;rowidLower=cap?.rowidLower?.term??null;rowidUpper=cap?.rowidUpper?.term??null;rowidReverse=false;
           if(selectedPhysical)ops.push({code:'OpenIndex',p1:selectedPhysical.index.rootPage,p2:accessCursor,physical:selectedPhysical,orBranch:true});
           const scan=emitPosition();
@@ -7350,6 +7376,7 @@ export class VdbeStatement implements Statement {
           case "SeekRowidRange": {const cursor=op.p1??0,root=this.#cursorRoots.get(cursor),key=this.#registers[op.key]!;if(root===undefined)throw new JSQLiteError("internal","range seek on unopened cursor");if(key.initialStorageClass!=="integer"){this.#pc=op.p2;break;}let table=this.#tableSeekCursors.get(cursor);if(!table){table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursor,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const exact=table.seek(key.integerValue(),op.reverse?"le":"ge");if(!table.valid||(!op.inclusive&&exact&&!(op.reverse?table.previous():table.next()))){this.#pc=op.p2;break;}this.#loadTableSeekRecord(cursor,table);break;}
           case "RowidUpperBound": {const rowid=this.#recordRowids.get(op.p1??0),key=this.#registers[op.key]!;if(rowid===undefined||key.initialStorageClass!=="integer"||(op.inclusive?rowid>key.integerValue():rowid>=key.integerValue()))this.#pc=op.p2;break;}
           case "RowidLowerBound": {const rowid=this.#recordRowids.get(op.p1??0),key=this.#registers[op.key]!;if(rowid===undefined||key.initialStorageClass!=="integer"||(op.inclusive?rowid<key.integerValue():rowid<=key.integerValue()))this.#pc=op.p2;break;}
+          case "IndexNullRow": {const cursor=this.#indexCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","NullRow on unopened index cursor");cursor.clearPosition();this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);break;}
           case "IndexRewind": {const cursor=this.#indexCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","rewind on unopened index cursor");this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);if(!cursor.first())this.#pc=op.p2;else this.#loadIndexRecord(op.p1);break;}
           case "IndexLast": {const cursor=this.#indexCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","last on unopened index cursor");this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);if(!cursor.last())this.#pc=op.p2;else this.#loadIndexRecord(op.p1);break;}
           case "InListValue": {
@@ -7396,7 +7423,36 @@ export class VdbeStatement implements Statement {
             }
             break;
           }
-          case "IndexSeekPrefix": {const cursor=this.#indexCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","seek on unopened index cursor");const values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;}),key=new UnpackedRecordKey(values,op.strict?(op.reverse?1:-1):(op.reverse?-1:0),"seek",op.keyInfo);this.#privateAccounting={...this.#privateAccounting,indexSeeks:this.#privateAccounting.indexSeeks+1};try{cursor.seek(payload=>compareRecordKey(payload,key,op.keyInfo),op.reverse?"le":"ge");if(!cursor.valid)this.#pc=op.p2;else this.#loadIndexRecord(op.p1);}finally{key.release();}break;}
+          case "IndexSeekPrefix": {
+            const cursor=this.#indexCursors.get(op.p1);
+            if(!cursor)throw new JSQLiteError("internal","seek on unopened index cursor");
+            const values:Mem[]=[];
+            try {
+              for(let index=0;index<op.keys.length;index++){
+                const value=new Mem();values.push(value);
+                value.copyFrom(this.#registers[op.keys[index]!]!);
+                value.applyAffinity(op.affinities[index]!,this.#program.encoding);
+              }
+              // vdbe.c:5093: only forward inclusive SeekGE may consume
+              // SeekScan. Prefix restarts must retain strict GT/LT semantics.
+              if(op.seekScan){
+                if(op.reverse||op.strict)throw new JSQLiteError("internal","SeekScan requires SeekGE");
+                const scanValues=values.map(value=>{const copy=new Mem();copy.copyFrom(value);return copy;});
+                const outcome=cursor.seekScan(scanValues,op.keyInfo,op.seekScan.steps,op.seekScan.hasRange,()=>{this.#checkControl(options,limit,started);this.#work++;},()=>{this.#privateAccounting={...this.#privateAccounting,indexNext:this.#privateAccounting.indexNext+1};});
+                // Any Next invalidates decoded records, including DONE.
+                this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);
+                if(outcome==="exhausted"){this.#pc=op.p2;break;}
+                if(outcome==="found"){this.#loadIndexRecord(op.p1);break;}
+              }
+              this.#privateAccounting={...this.#privateAccounting,indexSeeks:this.#privateAccounting.indexSeeks+1};
+              // vdbe.c:4935ff: partial-key bias belongs to Seek*, not to
+              // an equality callback. All lowering callers share this owner.
+              const direction=op.reverse?(op.strict?"lt":"le"):(op.strict?"gt":"ge");
+              if(!cursor.seekKey(values,op.keyInfo,direction))this.#pc=op.p2;
+              else this.#loadIndexRecord(op.p1);
+            } finally {for(const value of values)value.release();}
+            break;
+          }
           case "IndexPrefixEnd": {const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.values[i];if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;break;}
           case "IndexRangeEnd": {const record=this.#records.get(op.p1),raw=record?.values[op.field],key=this.#registers[op.key]!;if(!raw){this.#pc=op.p2;break;}const current=memFromRawRecord(raw,this.#borrow),bound=new Mem();bound.copyFrom(key);bound.applyAffinity(op.affinity,this.#program.encoding);try{const comparison=compareMem(current,bound,op.collation),passes=op.operator==="lt"?comparison<0:op.operator==="le"?comparison<=0:op.operator==="gt"?comparison>0:comparison>=0;if(!passes)this.#pc=op.p2;}finally{current.release();bound.release();}break;}
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.values.at(-1);if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
