@@ -17,6 +17,8 @@ export function reachesOwningReturn(ops:readonly {readonly code:string;readonly 
 }
 export class SelectProgramBuilder<Op extends {readonly code:string}> {
   readonly ops:Op[]=[];
+  /** where.c shared construction frontier, including selected arm replanning. */
+  readonly wherePlanBudget={remaining:20000};
   registers=0;
   cursors=0;
   private labels=new Map<number,number>();

@@ -1,6 +1,6 @@
 import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
 import {windowFrame,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
-import type {ColumnNode,TableNode} from './schema.ts';
+import type {ColumnNode,TableNode,ViewNode} from './schema.ts';
 import {sqliteAsciiFold,sqliteIdentifierEqual} from './sqlite-case.ts';
 import type {LemonValue} from './lemon-runtime.ts';
 import type {SqlToken} from './tokenize.ts';
@@ -25,7 +25,7 @@ export function transientColumnNames(names:readonly string[]):readonly string[]{
  return Object.freeze(result);
 }
 
-export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>}
+export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>;readonly views?:ReadonlyMap<string,ViewNode>}
 export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{readonly cursorId:number;readonly table:TableNode}
 export interface ResultColumnDescriptor {readonly name:string;readonly declaredType:string|null;readonly database:string|null;readonly table:string|null;readonly origin:string|null;readonly affinity:ColumnNode['affinity']|null;readonly collation:string}
 export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly columnIndex:number;readonly name:string}
@@ -442,8 +442,25 @@ function expressionListForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]
 function sortExpressionsForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]{const items:ExprNode[]=[];const visit=(part:LemonValue<SqlToken>):void=>{if(part.kind!=='reduction')return;if(part.signature.startsWith('sortlist ::=')){const expression=part.children.find(child=>child.kind==='reduction'&&!child.signature.startsWith('sortlist ::=')&&!child.signature.startsWith('sortorder ::=')&&!child.signature.startsWith('nulls ::='));if(expression?.kind==='reduction'){const leaves=(n:LemonValue<SqlToken>):SqlToken[]=>n.kind==='terminal'?(n.value?[n.value]:[]):n.children.flatMap(leaves);items.push(Object.freeze({kind:'tokens',tokens:Object.freeze(leaves(expression)),reduction:expression}));}}for(const child of part.children)if(child.kind==='reduction'&&child.signature.startsWith('sortlist ::='))visit(child);};visit(node);return Object.freeze(items.sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0)));}
 
 /** Bounded ports of select.c:selectExpander and resolve.c:lookupName for ordinary tables. */
+// build.c:sqlite3ViewGetColumnNames and select.c:selectExpander populate the
+// transient source before resolve.c walks its consumers. Keep stored view output
+// names separate from the linked producer's underlying column provenance.
+const resolvingViews=new Set<ViewNode>();
+function resolvedViewTable(view:ViewNode,schema:ResolutionSchema):TableNode{
+ if(resolvingViews.has(view))throw new NameResolutionError(`view ${view.name} is circularly defined`);
+ resolvingViews.add(view);
+ try{
+  const producer=expandAndResolveSelect(view.select,schema);
+  if(view.columns.length&&view.columns.length!==producer.result.length)throw new NameResolutionError(`expected ${view.columns.length} columns for '${view.name}' but got ${producer.result.length}`);
+  const names=transientColumnNames(view.columns.length?view.columns:producer.result.map(item=>item.name));
+  const columns=names.map((name,index)=>{const descriptor=producer.result[index]!.descriptor;return {szEst:0,name,declaredType:transientDeclaredType(descriptor.declaredType,descriptor.affinity??'blob'),affinity:descriptor.affinity??'blob',collation:descriptor.collation,primaryKeyPosition:null} as ColumnNode;});
+  const table={integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name:view.name,tableName:view.name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:view.sql} as TableNode;
+  bindTransientProducer(table,producer);
+  return table;
+ }finally{resolvingViews.delete(view)}
+}
 export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0,transientTables:ReadonlyMap<number,TableNode>=new Map()):ResolvedSelect{
- const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const table=transientTables.get(cursorOffset)??findSchemaTable(schema,item.tableName);if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
+ const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const view=schema.views?.get(sqliteAsciiFold(item.tableName));const table=transientTables.get(cursorOffset)??findSchemaTable(schema,item.tableName)??(view?resolvedViewTable(view,schema):undefined);if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
  for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
  const columnUses:ResolvedColumnUse[]=[];
@@ -456,12 +473,15 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // storage cursor is supplied later by the derived producer, not schema lookup.
  const derived=child.from.derived;
  const childBindings=new Map<number,TableNode>();
- if(derived&&derived.index===0&&child.from.items.length===1&&derived.select.hasCompound){
-  const first=derived.select.arms[0];
-  if(first&&first.result.length&&derived.select.arms.every(arm=>arm.result.length===first.result.length)){
+ if(derived&&derived.index===0&&child.from.items.length===1){
+  // sqlite3ExpandSubquery creates this relationship for ordinary and
+  // compound producers alike; pPrior only changes which output owns names.
+  const arms=derived.select.hasCompound?derived.select.arms:[derived.select];
+  const first=arms[0];
+  if(first&&first.result.length&&arms.every(arm=>arm.result.length===first.result.length)){
    // select.c:sqlite3ColumnsFromExprList resolves TK_COLUMN before naming
    // a transient Table. Qualified token text is not its column name.
-   const armPlans=derived.select.arms.map(arm=>expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,arms:Object.freeze([arm]),hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema,null,nextCursor));
+   const armPlans=arms.map(arm=>expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,arms:Object.freeze([arm]),hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema,null,nextCursor));
    const firstResolved=armPlans[0]!;
    const names=transientColumnNames(firstResolved.result.map(item=>item.name));
    const columns=names.map((name,index)=>({szEst:0,name,declaredType:transientDeclaredType(resolvedExpressionDeclaredType(firstResolved.result[index]!.expression.reduction!,firstResolved),resolvedCompoundAffinity(armPlans,index)),affinity:resolvedCompoundAffinity(armPlans,index),collation:resolvedExpressionCollation(firstResolved.result[index]!.expression.reduction!,firstResolved)??'binary',primaryKeyPosition:null} as ColumnNode));
@@ -471,7 +491,12 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
    childBindings.set(derived.index,table);
   }
  }
- let resolved=expandAndResolveSelect(child,schema,context,nextCursor,childBindings);
+ // resolve.c resolves each compound arm in its own SrcList. The parser's
+ // compound result carrier is not necessarily the final arm's EList.
+ const finalArm=child.hasCompound?child.arms.at(-1):undefined;
+ const resolutionSource=finalArm?{...child,result:finalArm.result,from:finalArm.from,where:finalArm.where}:child;
+ let resolved=expandAndResolveSelect(resolutionSource,schema,context,nextCursor,childBindings);
+ resolved=Object.freeze({...resolved,source:child});
  if(child.hasCompound){
   const compoundArms=child.arms.map(arm=>{const single:SelectNode={...child,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([arm])};const plan=expandAndResolveSelect(single,schema,context,nextCursor);nextCursor=Math.max(nextCursor,lastCursor(plan)+1);return plan;});
   resolved=Object.freeze({...resolved,compoundArms:Object.freeze(compoundArms),correlated:resolved.correlated||compoundArms.some(plan=>plan.correlated)});
@@ -487,7 +512,9 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  for(const definition of activeWindowDefinitions){for(const expression of definition.partitionBy){const nested=firstWindowName(expression);if(nested)throw new NameResolutionError(`misuse of window function ${nested}()`);resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);}for(const expression of definition.orderBy){const nested=firstWindowName(expression);if(nested)throw new NameResolutionError(`misuse of window function ${nested}()`);resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);}}
  for(const expression of select.result){const tokens=expression.tokens,star=tokens.length===1&&tokens[0]!.text==='*',qualifiedStar=tokens.length===3&&tokens[1]!.text==='.'&&tokens[2]!.text==='*';if(star||qualifiedStar){const qualifier=qualifiedStar?identifier(tokens[0]!.text):null,selected=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.table.name,qualifier));if(!selected.length)throw new NameResolutionError(`no such table: ${qualifier}`);for(const source of selected)source.table.columns.forEach((column,columnIndex)=>{if(qualifier===null&&source.using?.some(name=>sqliteIdentifierEqual(name,column.name)))return;const participates=sources.slice(1).some(rhs=>rhs.joinFromLeft.right&&rhs.using?.some(name=>sqliteIdentifierEqual(name,column.name)));if(participates){const match=direct({kind:'tokens',tokens:Object.freeze([{...tokens[0]!,text:column.name,kind:'id' as const}])},sources);if(match){output.push(result(expression,match.resolved,column.name,match.mergedSources));return;}}output.push(result(expression,{source,columnIndex:columnIndex===integerPrimaryKeyIndex(source.table)?-1:columnIndex,name:column.name},column.name));});continue;}const bareWindow=bareBuiltinWindowName(expression);if(bareWindow)throw new NameResolutionError(`misuse of window function ${bareWindow}()`);const match=lookupName(expression,context,context,expression.reduction as ExprReduction|undefined);if(!match)resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);const resolved=match?.resolved??null,name=expression.alias??(resolved?resolvedResultColumnName(resolved):null)??expression.sourceText??tokens.map(t=>t.text).join(' ');output.push(result(expression,resolved,name,match?.mergedSources??null));}
  if(select.having){if(!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError('HAVING clause on a non-aggregate query');resolveAgainstSources(select.having,sources,select.result,false,false,true,select.windowNames,select.windowDefinitions,context,resolveNested);}
- if(select.where)resolveAgainstSources(select.where,sources,select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
+ // resolve.c retains NC_AllowAgg after aggregate result/GROUP classification.
+ // A WHERE aggregate without AggInfo then fails at expr.c codegen, not here.
+ if(select.where)resolveAgainstSources(select.where,sources,select.result,true,!select.groupBy.length&&!select.result.some(hasAggregate),true,select.windowNames,select.windowDefinitions,context,resolveNested);
  for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
  for(let i=0;i<select.groupBy.length;i++){
   const expression=select.groupBy[i]!,parsed=groupByInteger(expression);

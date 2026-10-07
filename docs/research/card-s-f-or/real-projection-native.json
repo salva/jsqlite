@@ -1,0 +1,3735 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "classification": "supplemental",
+  "variants": [
+    {
+      "encoding": "utf-8",
+      "fixture": {
+        "path": "test/conformance/fixtures/row-width-real-metadata-utf-8.db",
+        "sha256": "076068883948a20f1dc2489c46d89ce77e6de2afb3049b325f2980070e3975cd"
+      },
+      "cases": [
+        {
+          "id": "single-covering",
+          "sql": "SELECT rowid,c FROM t INDEXED BY tc WHERE c>=?1 ORDER BY c",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX tc (c>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary",
+          "sql": "SELECT x.id,y.id,y.c,y.tag FROM t x CROSS JOIN t y NOT INDEXED WHERE x.id=1 AND y.id>=?1 ORDER BY y.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "tag",
+              "declaredType": "CHAR(100)",
+              "database": "main",
+              "table": "t",
+              "origin": "tag"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING INTEGER PRIMARY KEY (rowid>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 14,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "index-or-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND ((y.c>=?1 AND y.c<2) OR (y.c>=2.5 AND y.c<3)) ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 26,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 34,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 8
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND y.c>=?1 ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING COVERING INDEX tc (c>?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 17,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 4
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "coalesced",
+          "sql": "SELECT c,x.rowid,y.rowid FROM t x FULL JOIN t y USING(c) WHERE x.rowid<=?1 OR y.rowid<=?1 ORDER BY x.rowid,y.rowid",
+          "metadata": [
+            {
+              "name": "c",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "eqp": [
+            "SCAN x",
+            "SEARCH y USING INDEX tc (c=?) LEFT-JOIN",
+            "RIGHT-JOIN t",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 45,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 3,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 5,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 5,
+              "p2": 59,
+              "p3": 15
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 5,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 5,
+              "p2": 49,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 2,
+              "p3": 11
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf-16le",
+      "fixture": {
+        "path": "test/conformance/fixtures/row-width-real-metadata-utf-16le.db",
+        "sha256": "8fafe2fd228ee0b7f40aa84167a53be59c9b1fb6a2d00fc81a50717c5e078c0c"
+      },
+      "cases": [
+        {
+          "id": "single-covering",
+          "sql": "SELECT rowid,c FROM t INDEXED BY tc WHERE c>=?1 ORDER BY c",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX tc (c>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary",
+          "sql": "SELECT x.id,y.id,y.c,y.tag FROM t x CROSS JOIN t y NOT INDEXED WHERE x.id=1 AND y.id>=?1 ORDER BY y.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "tag",
+              "declaredType": "CHAR(100)",
+              "database": "main",
+              "table": "t",
+              "origin": "tag"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING INTEGER PRIMARY KEY (rowid>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 14,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "index-or-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND ((y.c>=?1 AND y.c<2) OR (y.c>=2.5 AND y.c<3)) ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 26,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 34,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 8
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND y.c>=?1 ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING COVERING INDEX tc (c>?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 17,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 4
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "coalesced",
+          "sql": "SELECT c,x.rowid,y.rowid FROM t x FULL JOIN t y USING(c) WHERE x.rowid<=?1 OR y.rowid<=?1 ORDER BY x.rowid,y.rowid",
+          "metadata": [
+            {
+              "name": "c",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "eqp": [
+            "SCAN x",
+            "SEARCH y USING INDEX tc (c=?) LEFT-JOIN",
+            "RIGHT-JOIN t",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 45,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 3,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 5,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 5,
+              "p2": 59,
+              "p3": 15
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 5,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 5,
+              "p2": 49,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 2,
+              "p3": 11
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf-16be",
+      "fixture": {
+        "path": "test/conformance/fixtures/row-width-real-metadata-utf-16be.db",
+        "sha256": "d783953600c6771509070092fc0292cbeac4adfe98be2324625149eae97846f1"
+      },
+      "cases": [
+        {
+          "id": "single-covering",
+          "sql": "SELECT rowid,c FROM t INDEXED BY tc WHERE c>=?1 ORDER BY c",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX tc (c>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary",
+          "sql": "SELECT x.id,y.id,y.c,y.tag FROM t x CROSS JOIN t y NOT INDEXED WHERE x.id=1 AND y.id>=?1 ORDER BY y.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "tag",
+              "declaredType": "CHAR(100)",
+              "database": "main",
+              "table": "t",
+              "origin": "tag"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING INTEGER PRIMARY KEY (rowid>?)"
+          ],
+          "ops": [
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 1,
+              "p2": 14,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "6e"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "index-or-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND ((y.c>=?1 AND y.c<2) OR (y.c>=2.5 AND y.c<3)) ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 26,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 34,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 10
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 8
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "ordinary-covering",
+          "sql": "SELECT x.id,y.rowid,y.c FROM t x CROSS JOIN t y INDEXED BY tc WHERE x.id=1 AND y.c>=?1 ORDER BY y.rowid",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "c",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SEARCH y USING COVERING INDEX tc (c>?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 17,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 25,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 4
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        },
+        {
+          "id": "coalesced",
+          "sql": "SELECT c,x.rowid,y.rowid FROM t x FULL JOIN t y USING(c) WHERE x.rowid<=?1 OR y.rowid<=?1 ORDER BY x.rowid,y.rowid",
+          "metadata": [
+            {
+              "name": "c",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "eqp": [
+            "SCAN x",
+            "SEARCH y USING INDEX tc (c=?) LEFT-JOIN",
+            "RIGHT-JOIN t",
+            "SCAN y USING COVERING INDEX tc",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "ops": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 45,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 4
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 3,
+              "p2": 39,
+              "p3": 4
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 3,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 11
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 15,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 9,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 5,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 5,
+              "p2": 59,
+              "p3": 15
+            },
+            {
+              "opcode": "DeferredSeek",
+              "p1": 5,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 5,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 5,
+              "p2": 49,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 1,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 0,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 6,
+              "p2": 2,
+              "p3": 11
+            }
+          ],
+          "runs": [
+            {
+              "binding": {
+                "type": "integer",
+                "value": 1
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "real",
+                "value": 1.0
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "integer",
+                "value": 2
+              },
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4004000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "resultCode": 101
+            },
+            {
+              "binding": {
+                "type": "null",
+                "value": null
+              },
+              "rows": [],
+              "resultCode": 101
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "legacyControls": [
+    {
+      "id": "left",
+      "fixture": "test/conformance/fixtures/multisource-inner-oracle.db",
+      "sql": "SELECT * FROM l AS left_side LEFT JOIN r AS right_side USING(k) ORDER BY left_side.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "61"
+          },
+          {
+            "type": "blob",
+            "hex": ""
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff8000000000000"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7261"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "42"
+          },
+          {
+            "type": "blob",
+            "hex": "00ff"
+          },
+          {
+            "type": "real",
+            "ieee754be": "0000000000000000"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7262"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "9223372036854775807"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "736f6c6f"
+          },
+          {
+            "type": "blob",
+            "hex": "31"
+          },
+          {
+            "type": "real",
+            "ieee754be": "4000000000000000"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf8/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf8.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16le/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/forward",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM p NOT INDEXED JOIN m ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/reversed",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM m JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "utf16be/left",
+      "fixture": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "sql": "SELECT p.id,p.c FROM m LEFT JOIN p NOT INDEXED ON p.a=m.c WHERE m.id=?1 ORDER BY p.id",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "real",
+            "ieee754be": "3ff0000000000000"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import type { RowSet } from "./rowset.ts";
 // Internal SQLite Mem translation, pinned to SQLite 3.53.4 vdbeInt.h Mem and
 // vdbemem.c set/copy/move/release paths. C allocation flags are represented as
 // semantic ownership and checked lifetimes rather than exposed bit masks.
@@ -8,7 +9,7 @@ import { decodeSqliteText, sqliteUtf16ToUtf8 } from "./utf.ts";
 const INT64_MIN = -(1n << 63n);
 const INT64_MAX = (1n << 63n) - 1n;
 
-export type MemManifest = "null" | "integer" | "real" | "text" | "blob" | "aggregate";
+export type MemManifest = "null" | "integer" | "real" | "text" | "blob" | "aggregate" | "rowset";
 export type MemOwnership = "owned" | "borrowed" | "static";
 export type MemFailureReason = "invalid-state" | "expired-borrow" | "limit" | "invalid-int64" | "invalid-text";
 
@@ -333,19 +334,27 @@ export class Mem {
   #bytes: BytesState | null = null;
   #subtype: number | null = null;
   #aggregate: MemAggregateState | null = null;
+  #rowset: RowSet | null = null;
   #generation = new BorrowLifetime();
   #fromBind = false;
   #clearedNull = false;
 
-  get initialStorageClass(): Exclude<MemManifest, "aggregate"> {
+  get initialStorageClass(): Exclude<MemManifest, "aggregate" | "rowset"> {
+    if (this.#manifest === "rowset") throw new MemStateError("rowset has no public storage class");
     if (this.#manifest === "aggregate") throw new MemStateError("aggregate has no public storage class");
     return this.#manifest;
   }
   #drop(runCleanup = true): void {
     this.#generation.invalidate();
-    if (runCleanup && this.#aggregate?.cleanup) this.#aggregate.cleanup();
+    // vdbemem.c clears dynamic ownership to MEM_Null after xDel. C xDel
+    // cannot throw; detach first so a TS cleanup exception cannot retain an
+    // already-destroyed owner or repeat its destructor on reset.
+    const rowset = this.#rowset, aggregate = this.#aggregate;
+    this.#rowset = null;
     this.#numeric = null; this.#bytes = null; this.#aggregate = null; this.#subtype = null;
-    this.#fromBind = false; this.#clearedNull = false;
+    this.#fromBind = false; this.#clearedNull = false; this.#manifest = "null";
+    if (runCleanup) rowset?.delete();
+    if (runCleanup && aggregate?.cleanup) aggregate.cleanup();
   }
   setNull(options: { cleared?: boolean } = {}): void {
     this.#drop(); this.#manifest = "null"; this.#clearedNull = options.cleared ?? false;
@@ -380,6 +389,8 @@ export class Mem {
     this.#bytes = { kind, bytes: ownership === "owned" ? copyBytes(bytes) : bytes, encoding,
       terminated: options.terminated ?? false, ownership, ...(token === undefined ? {} : { token }), zeroTail };
   }
+  setRowSet(rowset: RowSet): void { this.#drop(); this.#manifest = "rowset"; this.#rowset = rowset; }
+  rowSet(): RowSet | null { return this.#rowset; }
   setAggregate(state: MemAggregateState): void { this.#drop(); this.#manifest = "aggregate"; this.#aggregate = state; }
   /** sqlite3_aggregate_context owner. Aggregate opcodes are the only callers. */
   aggregateState(): MemAggregateState | null { return this.#manifest === "aggregate" ? this.#aggregate : null; }
@@ -601,6 +612,7 @@ export class Mem {
   }
   shallowCopyFrom(source: Mem, ownership: "borrowed" | "static" = "borrowed"): void {
     if (source === this) return;
+    if (source.#manifest === "rowset") throw new MemError("invalid-state", "rowset state cannot be copied");
     if (source.#manifest === "aggregate") throw new MemError("invalid-state", "aggregate state cannot be shallow-copied");
     this.#drop(); this.#manifest = source.#manifest; this.#numeric = source.#numeric; this.#subtype = source.#subtype;
     this.#fromBind = source.#fromBind; this.#clearedNull = source.#clearedNull;
@@ -614,6 +626,7 @@ export class Mem {
   }
   copyFrom(source: Mem): void {
     if (source === this) return;
+    if (source.#manifest === "rowset") throw new MemError("invalid-state", "rowset state cannot be copied");
     if (source.#manifest === "aggregate") throw new MemError("invalid-state", "aggregate state cannot be copied");
     this.#drop(); this.#manifest = source.#manifest; this.#numeric = source.#numeric; this.#subtype = source.#subtype;
     this.#fromBind = source.#fromBind; this.#clearedNull = source.#clearedNull;
@@ -627,8 +640,8 @@ export class Mem {
     if (source === this) return;
     source.#bytes?.token?.assertValid(); this.#drop();
     this.#manifest = source.#manifest; this.#numeric = source.#numeric; this.#bytes = source.#bytes;
-    this.#subtype = source.#subtype; this.#aggregate = source.#aggregate; this.#fromBind = source.#fromBind; this.#clearedNull = source.#clearedNull;
-    source.#aggregate = null; source.#drop(false); source.#manifest = "null";
+    this.#subtype = source.#subtype; this.#aggregate = source.#aggregate; this.#rowset = source.#rowset; this.#fromBind = source.#fromBind; this.#clearedNull = source.#clearedNull;
+    source.#aggregate = null; source.#rowset = null; source.#drop(false); source.#manifest = "null";
   }
   release(): void { this.setNull(); }
   diagnostic(): MemDiagnostic {

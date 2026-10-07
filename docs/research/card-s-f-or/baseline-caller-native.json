@@ -1,0 +1,536 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "utf8",
+      "cases": [
+        {
+          "id": "derived",
+          "sql": "SELECT (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS filtered, EXISTS(SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS present, 3 IN (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS member",
+          "runs": [
+            {
+              "bindings": [
+                1,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                2,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                0,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [],
+              "stepCode": 20
+            }
+          ]
+        },
+        {
+          "id": "affinity",
+          "sql": "SELECT ?1 IN (SELECT a FROM t1) AS bound, '1' IN (SELECT a FROM t1) AS text, 1.0 IN (SELECT a FROM t1) AS real",
+          "runs": [
+            {
+              "bindings": [
+                "1"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                "99"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                1
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "cases": [
+        {
+          "id": "derived",
+          "sql": "SELECT (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS filtered, EXISTS(SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS present, 3 IN (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS member",
+          "runs": [
+            {
+              "bindings": [
+                1,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                2,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                0,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [],
+              "stepCode": 20
+            }
+          ]
+        },
+        {
+          "id": "affinity",
+          "sql": "SELECT ?1 IN (SELECT a FROM t1) AS bound, '1' IN (SELECT a FROM t1) AS text, 1.0 IN (SELECT a FROM t1) AS real",
+          "runs": [
+            {
+              "bindings": [
+                "1"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                "99"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                1
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "cases": [
+        {
+          "id": "derived",
+          "sql": "SELECT (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS filtered, EXISTS(SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS present, 3 IN (SELECT d.y FROM (SELECT x+1 AS y FROM t2 LIMIT ?1) d WHERE d.y>?2) AS member",
+          "runs": [
+            {
+              "bindings": [
+                1,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                2,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                0,
+                2
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [],
+              "stepCode": 20
+            }
+          ]
+        },
+        {
+          "id": "affinity",
+          "sql": "SELECT ?1 IN (SELECT a FROM t1) AS bound, '1' IN (SELECT a FROM t1) AS text, 1.0 IN (SELECT a FROM t1) AS real",
+          "runs": [
+            {
+              "bindings": [
+                "1"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                "99"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": [
+                1
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            },
+            {
+              "bindings": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "stepCode": 101
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

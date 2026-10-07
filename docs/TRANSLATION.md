@@ -75,6 +75,11 @@ smoke coverage, not an additional evaluator or full compatibility claim.
 - `Vdbe`, `Mem` → immutable published operations and mutable statement VM state.
   INTEGER is signed int64 BigInt; REAL remains double even when integral. NULL,
   TEXT, BLOB, subtype, cached conversions and ownership are distinct state.
+  Logical declared-REAL column extraction emits Column then RealAffinity;
+  joined direct/coalesced results share that owner before Copy/NotNull. Rowid
+  remains separate, and raw record/index decoding is unchanged. See [native
+  caller evidence](research/card-s-f-or/real-projection-native.json) and
+  [[card:card-s-f-c]] integration diagnosis/status (mixed root is not candidate acceptance).
   Borrowed record/page values must not outlive their owner; copied public BLOBs
   must not expose mutable internal buffers.
 - `KeyInfo`, `UnpackedRecord` → typed full-key descriptors and record values.
@@ -98,6 +103,11 @@ suspension retains those states and connection admission; it is not a second
 query interpreter. Failure retains the primary error and releases private state
 in the owning cleanup path. `reset()` clears execution/current row and private
 state while preserving bindings; `finalize()` is terminal; close owns children.
+Mem detaches dynamic ownership before TS cleanup callbacks; reset/finalize finish
+register releases and state transitions before reporting the saved primary error
+(or the first cleanup diagnostic when no primary exists). Synthetic RowSet
+collision/reset-reuse evidence is [bounded separately](research/card-s-f-or/verification.md#rowset-cleanup-collision-repair);
+this does not establish exhaustive caller cleanup parity.
 Cancellation, timeout, work/row/result/private limits remain mandatory across
 physical, coroutine and materialized producers. Exact C work-count, intermediate
 error and suspension parity is not established merely by matching final rows.
@@ -160,8 +170,14 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
 ## WHERE, joins and physical indexes
 
-Selected rowid multi-index OR is a **partial prelowering implementation**, not
-runtime compatibility credit. `where-plan.ts` owns tagged immutable clause-owned
+Selected rowid multi-index OR has bounded delivered runtime execution in
+ordinary single-table and represented inner-join callers: selected arms replan
+into shared-builder RowSetTest/Gosub/Return continuations, with full residual
+truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
+or C-cost parity; WR union, unsafe nullable outer-join selection, and broader
+cleanup/liveness proofs remain outside the demonstrated boundary. See
+[delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
+`where-plan.ts` owns tagged immutable clause-owned
 OR/AND info, original residual terms, stable term references and indexable masks.
 OR clauses have no outer; AND clauses refer to the enclosing clause. Constraint
 lookup walks local then outer clauses, while residuals/OR discovery stay local.
@@ -191,9 +207,85 @@ replan physical arms from these clauses, preserving binding/seek provenance.
 Selected cost production is bounded to rowid persistent-index/equality/range/AND/
 nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
 or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
-scans are not selected OR. Case5/RowSet VM/SELECT lowering is outstanding. Three
-encoding plan-only handoffs pass independently of still-red lowering opcode and
-selected-work assertions in `or-rowid-red.test.mjs`; no runtime acceptance follows.
+scans are not selected OR. Single-table Case5 lowering replans owned
+arms into shared-builder seeks and RowSetTest/Gosub/Return with complete arm
+and parent truth and the existing ORDER sorter. Nested selected arms recursively
+consume their actual selected plan with independent RowSet/return registers and
+the shared construction frontier; no ordinary-only filtering remains. Represented
+inner callers now use per-level RowSet/Gosub continuations with initialization
+per outer row and full residual truth. Arm terms remaining after exact selected-constraint consumption are tested only
+when prereqAll is positioned; unready OR atoms are deferred intact.
+Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
+no whole-arm indexed-operand replay. Ordinary driveable commuted children consume their original parent at zero remaining children; owned arm handoff retains both identities. Nullable LEFT ON remains conservative. [Commutation evidence](research/card-s-f-or/commuted-child.md). Admission owns affinity/collation equivalence;
+non-admitted/lossy/slice terms remain truth. [Branch-owner evidence](research/card-s-f-or/branch-consumption.md). The ordinary
+caller retains untested parent truth until downstream sources are ready; fully
+tested parents are omitted after arm truth (Case5 disableTerm ownership). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+Correlated arm replanning retains the
+actual already-positioned outer mask; unready prerequisites remain excluded.
+Single-table Case5 retains a common physical index only when every selected
+leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
+covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
+reads and existing deferred table positioning intact. Remaining arm truth is tested before
+deduplication; fully tested parents omit repeated common-body truth, while untested
+parents retain their complete residual. This is not an index-only execution claim. Index Rowid
+uses the integer tail cached during physical positioning; no separate index
+movement is introduced. Represented-inner levels likewise share an owned arm index
+cursor and publish common physical identity for level-bounded Column/Rowid rewrite;
+nested/non-index/different arms invalidate it. Invocation-local tested identities
+are consumed by both ordinary final residuals and outer constraints; independent
+conjuncts and untested parents retain their residuals. See
+[tested-parent ownership evidence](research/card-s-f-or/tested-parent-owner.md).
+See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
+and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+Prepared scalar consumers bind the owned constraint expression before extracting
+its RHS, preserving outer NameContext identity; rowid equality/end operands
+are compiled directly after that binding, never re-resolved without the carrier.
+Reverse rowid scans use a lower end check (forward scans use an upper check),
+matching Case3's pStart/pEnd swap. [Correlated bound evidence](research/card-s-f-or/verification.md#correlated-rowid-bound-caller-repair).
+Zero-FROM scalar result metadata consumes the resolved linked child expression,
+not metadata accumulated incidentally by a chosen runtime branch. TK_SELECT
+inherits first-child type/origin independently of empty results or physical
+selection; NameResolutionError is translated at the caller before emission.
+Nested retained single-source derived producers install transient columns before
+child name resolution for ordinary as well as compound output. Immutable schema
+views likewise expose transient column names linked to their stored resolved
+producer, with circular/width checks and exception-safe expansion state. This
+metadata handoff does not correct producer LIMIT/filter ordering. Aggregate WHERE resolution retains aggregate admission after result/GROUP classification; unbound aggregate ownership errors remain codegen-owned ([evidence](research/card-s-f-or/verification.md#aggregate-where-error-phase-ownership)).
+[Metadata evidence](research/card-s-f-or/verification.md#scalar-metadata-caller-ownership).
+Simple persistent rowid children
+of zero-FROM SELECT use the same selected shared-builder WHERE lowerer and
+normalized first-row destination; ordering remains sorter-owned. See
+[scalar caller evidence](research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair). Ordinary selected index continuations distinguish
+rowid-table PRIMARY KEY indexes from WITHOUT ROWID table storage: table-backed
+reads receive deferred rowid positioning even when the index origin is primary-key.
+[Positioning evidence](research/card-s-f-or/verification.md#rowid-primary-index-positioning-repair).
+Runtime arm scope is separate from cost exploration: Case5 factors only
+original indexable enclosing terms, excluding virtual, nullable-ON and
+subquery-bearing expressions. Both direct and AND arms retain owned terms;
+fully tested selected parents omit repeated common-body truth; parents with
+unready arm terms retain their residual. Other enclosing conjuncts remain
+independent residuals. Represented terms have no
+coded/slice state and row-value slices are not admitted. See
+[focused factoring evidence](research/card-s-f-or/verification.md#runtime-factored-constraint-exclusion-repair).
+Represented IN-list arms use shared RHS iterator registers with inside-out
+restart, NULL/duplicate suppression and full arm truth; scalar equality NULL
+exits the arm while range/scan exhaustion advances its IN probe.
+Factored-AND and full caller cleanup equivalence remain nonexhaustive; the
+delivered runtime boundary and focused acceptance below are not whole-goal approval. Selected planning and arm replanning
+now consume the enclosing builder construction frontier. The bounded public
+reproducer passes with tagged native binding classes and full repeated-arm
+execution roots; see [consumer evidence](research/card-s-f-or/verification.md). Internal
+`rowset.ts` translates chunk/list/forest batch algorithms; Mem owns its destructor
+and VM RowSetTest implements first-batch test bypass and final-batch insert bypass.
+Logical charges are 64-byte owner and 1016-byte/42-entry retained chunks (including
+forest links/merged duplicates), not JS heap measurements. Async checkpoints bound
+primitive work. Native/internal RowSet checks and selected single-table/inner
+public checks pass within the demonstrated boundary; broader resource/cleanup
+proofs remain incomplete. Earlier plan-only handoffs and red lowering/work
+assertions are historical reproducer stages, not current failures. Current
+focused511/typecheck and separate browser/public evidence, reviewer test overlays
+and pending integration/goal acceptance are attributed in [[card:card-s-f-c]]
+status and [consumer evidence](research/card-s-f-or/verification.md).
 
 Detailed source comparisons, parser/scanner limitations and revision inventories
 are preserved in [prelowering evidence](research/card-s-f-b-prelowering-detail.md)
@@ -243,7 +335,11 @@ universally admitted. USING/NATURAL projection and metadata retain resolver
 semantic ownership. See the API and current h-b checkpoints for bounded evidence.
 
 Selected index routes include represented rowid/ordinary, covering, expression,
-partial and WITHOUT ROWID access. Eligibility/proof precedes consumption: collation,
+partial and WITHOUT ROWID access. Canonical NOTNULL is unary in the resolved
+carrier: its generated TS NULL operand has no second column-use identity. Schema
+and analyzed predicates compare that same opcode for exact partial residual
+omission; implication does not authorize omitting a different conjunct. See
+[canonical-null repair evidence](research/card-s-f-or/verification.md#canonical-null-consumer-repair). Eligibility/proof precedes consumption: collation,
 affinity, real IPK identity, predicate implication, dependency and complete ORDER
 terms/NULL flags cannot be inferred from a helper's successful example. Conservative
 typed sorting remains for unproved nondefault-NULL ordering; no native BIGNULL
@@ -252,6 +348,14 @@ primary index layout, not a rowid table root. Loop continuation returns to
 `scan.loopStart` including deferred positioning before projection; every new
 DeferredSeek target invalidates the base-row cache. Preserve accepted selected
 WHERE evidence, without general optimizer or plan-identity credit.
+
+Caller descriptors resolve scalar output provenance before destination lowering,
+including derived/view transient metadata. Aggregate-result WHERE retains
+NC_AllowAgg; missing AggInfo errors remain codegen-owned. Rowid arm operands
+retain bound identity and reverse traversal swaps start/end bounds. Joined end comparisons
+exhaust the owning level (IN restart, synthetic-null/RIGHT return, then outer
+continuation); they never bypass outer OR Gosub bodies through a SELECT-wide exit. See
+[scoped caller and native transition evidence](research/card-s-f-or/scoped-closure.md).
 
 ## ORDER, DISTINCT, compounds and VALUES
 

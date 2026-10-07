@@ -1,0 +1,575 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "id": "utf8",
+      "cases": [
+        {
+          "id": "reverse",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid>=4 ORDER BY x.id,y.id DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "correlated",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=x.id ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "in",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.a IN (1,2) AND y.rowid<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "left",
+          "sql": "SELECT x.id,y.id FROM o x LEFT JOIN o y ON y.rowid<=0 WHERE x.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "right",
+          "sql": "SELECT x.id,y.id FROM o x RIGHT JOIN o y ON x.rowid<=0 WHERE y.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=0 ORDER BY x.id,y.id",
+          "rows": []
+        }
+      ]
+    },
+    {
+      "id": "utf16le",
+      "cases": [
+        {
+          "id": "reverse",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid>=4 ORDER BY x.id,y.id DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "correlated",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=x.id ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "in",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.a IN (1,2) AND y.rowid<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "left",
+          "sql": "SELECT x.id,y.id FROM o x LEFT JOIN o y ON y.rowid<=0 WHERE x.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "right",
+          "sql": "SELECT x.id,y.id FROM o x RIGHT JOIN o y ON x.rowid<=0 WHERE y.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=0 ORDER BY x.id,y.id",
+          "rows": []
+        }
+      ]
+    },
+    {
+      "id": "utf16be",
+      "cases": [
+        {
+          "id": "reverse",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid>=4 ORDER BY x.id,y.id DESC",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "correlated",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=x.id ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "in",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.a IN (1,2) AND y.rowid<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "left",
+          "sql": "SELECT x.id,y.id FROM o x LEFT JOIN o y ON y.rowid<=0 WHERE x.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "right",
+          "sql": "SELECT x.id,y.id FROM o x RIGHT JOIN o y ON x.rowid<=0 WHERE y.id<=2 ORDER BY x.id,y.id",
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ]
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=0 ORDER BY x.id,y.id",
+          "rows": []
+        }
+      ]
+    }
+  ]
+}

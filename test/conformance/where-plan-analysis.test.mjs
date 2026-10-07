@@ -981,6 +981,62 @@ test('OR-IN retry chooses second cursor and publishes marked RHS in clause order
  assert.equal(child.prereqRight,sourceBit(0));
  assert.equal(child.expression.tokens.map(t=>t.text).join(' '),'u . a IN ( t . a , t . b )');
 });
+test('OR-IN three-arm retry preserves RHS order through commuted permutations',()=>{
+ // whereexpr.c exprAnalyzeOrTerm clears TERM_OK on retry, selects one
+ // cursor/column across all equalities, then emits marked RHS in stored order.
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);
+  s.t.columns=Object.freeze(s.t.columns.map(c=>c===s.b?Object.freeze({...c,affinity:'text'}):c));
+  const atoms=[['t.a=u.a','t . a'],['u.a=t.b','t . b'],['t.b=u.a','t . b']];
+  for(const order of [[0,1,2],[2,0,1],[1,2,0],[2,1,0]]){
+   const predicate=order.map(i=>atoms[i][0]).join(' OR ');
+   const clause=analyzeWhere(resolve(`SELECT t.id FROM t JOIN t AS u WHERE ${predicate}`,s)).clause;
+   const parent=clause.terms.find(term=>term.info?.kind==='or');assert.ok(parent);
+   const children=clause.terms.filter(term=>term.virtual&&term.operator==='in'&&term.parentId===parent.id);
+   assert.equal(children.length,1,predicate);const child=children[0];
+   assert.equal(child.left.sourceOrdinal,1);assert.equal(child.left.columnIndex,1);
+   assert.equal(child.prereqRight,sourceBit(0));
+   // Base terms precede appended commutations: the already-oriented u.a
+   // base comes first, followed by copied RHSs in original base-term order.
+   const storedOrder=[...order.filter(i=>i===1),...order.filter(i=>i!==1)];
+   assert.equal(child.expression.tokens.map(t=>t.text).join(' '),`u . a IN ( ${storedOrder.map(i=>atoms[i][1]).join(' , ')} )`,predicate);
+   assert.ok(parent.childIds.includes(child.id));
+   // Original arms and copied orientations survive production; the virtual
+   // IN cannot replace residual ownership or deduplicate the duplicate RHS.
+   const base=parent.info.clause.terms.filter(term=>!term.virtual);
+   assert.equal(base.length,3);assert.ok(base.every(term=>term.operator==='eq'));
+   assert.equal(parent.expression.tokens.filter(t=>t.text.toUpperCase()==='OR').length,2);
+  }
+ }
+});
+test('Case5 runtime factoring separates subquery/virtual scope from cost outer ownership',()=>{
+ const s=schema();
+ const r=resolve("SELECT t.id FROM t WHERE (a='x' OR (blob=X'01' AND b>0)) AND id>0 AND b=(SELECT max(u.b) FROM t AS u) AND a='y'",s);
+ const clause=analyzeWhere(r).clause;
+ const parent=clause.terms.find(term=>term.info?.kind==='or');assert.ok(parent);
+ const originals=clause.terms.filter(term=>!term.virtual);
+ const scalar=originals.find(term=>term.expression.tokens.some(token=>token.text.toUpperCase()==='SELECT'));assert.ok(scalar);
+ const admitted=originals.filter(term=>term!==parent&&term!==scalar&&term.operator!==null);
+ assert.equal(admitted.length,2);
+ const originalTerms=[...clause.terms],childTerms=[...parent.info.clause.terms];
+ for(const arm of childTerms.filter(term=>!term.virtual)){
+  const cost=wherePlanning.orArmClause(arm,0,clause);
+  const runtime=wherePlanning.orRuntimeArmClause(arm,0,clause);assert.ok(cost);assert.ok(runtime);
+  assert.deepEqual(runtime.outer.terms,admitted);
+  assert.equal(runtime.outer.outer,null);
+  assert.ok(!runtime.outer.terms.includes(scalar));
+  assert.ok(runtime.outer.terms.every(term=>!term.virtual));
+  const owned=arm.info?.kind==='and'?arm.info.clause.terms:[arm];
+  assert.deepEqual(runtime.terms,owned);
+  assert.ok(runtime.terms.every((term,i)=>term===owned[i]));
+  assert.equal(cost.outer,clause);
+  assert.notEqual(runtime.outer,cost.outer);
+ }
+ // Construction must not mutate clause-owned residuals or replace original
+ // seek/RHS identities when making the separate xN AND w runtime scope.
+ assert.deepEqual(clause.terms,originalTerms);
+ assert.deepEqual(parent.info.clause.terms,childTerms);
+});
 function expressionIndexSchema(){
  const s=schema(),expression=resolve('SELECT b+1 FROM t',s).result[0].expression;
  const index={...s.i,name:'i_expr',terms:Object.freeze([{column:null,expression,expressionSql:'b+1',descending:false,collation:null,nulls:null}]),physical:null};
@@ -2108,4 +2164,18 @@ test('empty rejected upper recursion preserves own OK at zero for sPk and real i
  assert.equal(set.a[0].prereq,onlyLower.a[0].prereq);
  assert.equal(set.a[0].nOut,onlyLower.a[0].nOut-1n,'rejected seek upper remains residual for output adjustment');
  }
+});
+
+test('canonical NOTNULL retains opcode identity across schema and analyzed predicates',()=>{
+ const predicate=sql=>parseSql(`SELECT a FROM t WHERE ${sql}`).statement.where;
+ const identity=wherePlanning.expressionStructuralIdentity;
+ const expected=identity(predicate('a IS NOT NULL'));
+ for(const sql of ['a NOTNULL','a NOT NULL','(a) IS NOT (NULL)','(a NOTNULL)']){
+  assert.equal(identity(predicate(sql)),expected,sql);
+  const r=resolve(`SELECT a FROM t WHERE ${sql}`,schema());
+  assert.equal(identity(analyzeWhere(r).clause.terms[0].expression),expected,`${sql}/analyzed`);
+ }
+ assert.notEqual(identity(predicate('a IS NULL')),expected);
+ assert.notEqual(identity(predicate('b NOTNULL')),expected);
+ assert.notEqual(identity(predicate('a IS NOT 1')),expected);
 });

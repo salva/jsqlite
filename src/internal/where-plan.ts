@@ -162,12 +162,26 @@ export function expressionStructuralIdentity(expression:ExprNode,skipTopCollate=
  const identity=(value:LemonValue<SqlToken>):string=>{
   if(value.kind==="terminal"){const token=value.value;if(!token||token.kind==="space"||token.kind==="comment")return "";if(token.kind==="integer"){const raw=token.text.replaceAll("_","");try{let n:bigint;if(/^0x/i.test(raw)){n=BigInt(raw);if(n>0x7fffffffffffffffn&&n<=0xffffffffffffffffn)n-=0x10000000000000000n;}else n=BigInt(raw);if(n>=-0x8000000000000000n&&n<=0x7fffffffffffffffn)return `integer(${n})`;}catch{/* retain token identity */}}const text=token.kind==="id"||token.kind==="keyword"?sqliteAsciiFold(token.text):token.text;return `t(${token.kind}:${JSON.stringify(text)})`;}
   if(value.signature==="expr ::= LP expr RP")return identity(exprChildren(value)[0]!);
+  // expr.c TK_IS/TK_ISNOT with literal NULL become TK_ISNULL/TK_NOTNULL.
+  // Schema predicates and analyzed WHERE nodes must compare the same opcode.
+  const nullOperand=notNullTarget(asExpr(value));
+  if(nullOperand?.reduction)return `notnull(${identity(nullOperand.reduction)})`;
   return `r(${value.signature}:${value.children.map(identity).filter(Boolean).join(",")})`;
  };const comparable=skipTopCollate&&root.signature.startsWith("expr ::= expr COLLATE")?exprChildren(root)[0]!:root;return identity(comparable);
 }
 function directExprReductions(value:LemonValue<SqlToken>):ExprReduction[] {if(value.kind!=="reduction")return[];const out:ExprReduction[]=[];for(const child of value.children){if(child.kind!=="reduction")continue;if(child.signature.startsWith("expr ::="))out.push(child);else if(!child.signature.startsWith("select ::="))out.push(...directExprReductions(child));}return out;}
 function isNullLiteral(expression:ExprNode):boolean {return expression.tokens.length===1&&sqliteAsciiFold(expression.tokens[0]!.text)==="null";}
-function notNullTarget(expression:ExprNode):ExprNode|null {const r=expression.reduction;if(!r||r.kind!=="reduction"||r.signature!=="expr ::= expr IS NOT expr")return null;const es=exprChildren(r);return es[1]&&isNullLiteral(asExpr(es[1]))?asExpr(es[0]!):null;}
+/** expr.c:sqlite3ExprImpliesExpr TK_NOTNULL consumes its unary pLeft.
+ * Both generated postfix forms and IS NOT NULL production denote that node. */
+function notNullTarget(expression:ExprNode):ExprNode|null {
+ const root=expression.reduction;if(!root||root.kind!=="reduction")return null;
+ const r=unwrap(root),es=exprChildren(r);
+ if(r.signature==="expr ::= expr ISNULL|NOTNULL"||r.signature==="expr ::= expr NOT NULL"){
+  return asExpr(r).tokens.at(-1)?.text.toUpperCase()==="ISNULL"?null:asExpr(es[0]!);
+ }
+ if(r.signature!=="expr ::= expr IS NOT expr")return null;
+ return es[1]&&isNullLiteral(asExpr(unwrap(es[1])))?asExpr(es[0]!):null;
+}
 /** expr.c:exprImpliesNotNull represented branches. When uncertain this returns
  * false, preserving whereUsablePartialIndex's correctness-first admission. */
 function simpleColumnName(expression:ExprNode):string|null {const r=expression.reduction;if(!r||r.kind!=="reduction")return null;const u=unwrap(r);if(!(u.signature==="expr ::= ID|INDEXED|JOIN_KW"||u.signature.startsWith("expr ::= nm DOT nm")))return null;const ids=asExpr(u).tokens.filter(t=>t.kind==="id"||t.kind==="keyword");return ids.length?sqliteAsciiFold(ids.at(-1)!.text):null;}
@@ -353,8 +367,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    const info=parent.info;
    if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n||parent.origin.kind==="join-on"&&parent.origin.join==="left")continue;
    const sum:WhereOrSet={a:[]};let first=true;
-   for(const arm of info.clause.terms){
-    const armClause=orArmClause(arm,sourceOrdinal,clause);
+   for(const arm of info.clause.terms.filter(term=>!term.virtual)){
+    const armClause=orArmClause(arm,sourceOrdinal,clause,info.clause);
     if(!armClause)continue;
     const current:WhereOrSet={a:[]},armCompletion={done:false};
     btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,completion:armCompletion,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
@@ -369,12 +383,37 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  }
  if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
-/** where.c:whereLoopAddOr arm dispatch. AND info owns its clause; a direct
- * term must match iCur and tempWC owns one stored orientation only. The OR
- * clause itself is not an outer constraint scope. Internal lowering handoff. */
-export function orArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause):WhereClause|null {
+/** where.c:whereLoopAddOr arm dispatch. Native tempWC carries one matching
+ * stored orientation. This bounded immutable representation groups an original
+ * direct term with its immediate commuted children: only the orientation for
+ * the target drives access, while original identity survives child consumption.
+ * AND info owns its clause; the OR clause is not an outer constraint scope.
+ * Grouping is not a claim of general proposal-count or cost parity. */
+export function orArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause,owned?:WhereClause):WhereClause|null {
  if(arm.info?.kind==="and")return arm.info.clause;
- return arm.left?.sourceOrdinal===sourceOrdinal?whereClause([arm],outer):null;
+ const terms=[arm,...(owned?.terms.filter(term=>term.parentId===arm.id)??[])];
+ return terms.some(term=>term.left?.sourceOrdinal===sourceOrdinal)?whereClause(terms,outer):null;
+}
+/** wherecode.c Case 5 constructs xN AND w, distinct from whereLoopAddOr's
+ * cost exploration. Only original indexable enclosing terms enter w. The
+ * original parent predicate remains owned by the common body. Represented
+ * terms have no TERM_CODED/TERM_SLICE state (row vectors are not admitted).
+ * Do not borrow pOuter unfiltered: EP_Subquery must never be an arm key. */
+export function orRuntimeArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause,owned?:WhereClause):WhereClause|null {
+ const hasSubquery=(value:LemonValue<SqlToken>):boolean=>value.kind==='reduction'&&
+  (value.signature.startsWith('select ::=')||value.children.some(hasSubquery));
+ const factored:WhereTerm[]=[];
+ if(!arm.outerOn){
+  for(const term of outer.terms){
+   if(term.virtual||term.outerOn||term.operator===null)continue;
+   if(term.expression.reduction&&hasSubquery(term.expression.reduction))continue;
+   factored.push(term);
+  }
+ }
+ const scope=whereClause(factored);
+ if(arm.info?.kind==='and')return whereClause(arm.info.clause.terms,scope);
+ const terms=[arm,...(owned?.terms.filter(term=>term.parentId===arm.id)??[])];
+ return terms.some(term=>term.left?.sourceOrdinal===sourceOrdinal)?whereClause(terms,scope):null;
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */
@@ -488,9 +527,12 @@ export function logEstAdd(a:LogicalEstimate,b:LogicalEstimate):LogicalEstimate {
 /** where.c:computeMxChoice default, without the unrepresented star heuristic. */
 export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCount<=1?1:sourceCount===2?5:12;}
 /** where.c:5835ff. Ordered traversal, unsorted accumulators and bounded slots. */
-export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null):WherePath {
+// Case5's recursive SrcList excludes already-positioned enclosing sources.
+// Original source ordinals remain stable here: initialReady represents those
+// outer sources, never remaining/unpositioned sources. Normal planning uses0.
+export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null,initialReady=0n):WherePath {
  if(!Number.isSafeInteger(maxChoices)||maxChoices<1)throw new RangeError("invalid WHERE choice width");
- let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:0n,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:orderTerms&&sourceCount?null:0})];
+ let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:initialReady,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:orderTerms&&sourceCount?null:0})];
  // where.c:5812: indexed production loops always carry their immutable width.
  const indexedWidth=(loop:WhereLoop):bigint=>{if(loop.indexRowSize===undefined)throw new Error("indexed WHERE loop missing row width");return loop.indexRowSize;};
  const noBetter=(candidate:WhereLoop,baseline:WhereLoop):boolean=>candidate.kind!=="index"||baseline.kind!=="index"||indexedWidth(candidate)>=indexedWidth(baseline);
@@ -912,8 +954,11 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
   // whereexpr.c:exprAnalyze creates a virtual commuted child when both
   // operands are indexable columns. It retains original expression collation
-  // but owns independent left binding and RHS prerequisites.
-  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:false}});}
+  // but owns independent left binding and RHS prerequisites. Exact ordinary
+  // driveable children may consume their parent; virtual means no independent
+  // residual test, not a prohibition on disableTerm propagation. LEFT ON stays
+  // conservative, and the carrier separately gates full prerequisite readiness.
+  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:!isLeft&&childMayDrive}});}
  }
  // whereexpr.c splits all base terms before exprAnalyze appends virtual
  // children. Preserve that boundary (RightJoinLoop stops there), remapping
@@ -1076,7 +1121,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
        return {...n,signature:"expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP",children:[n.children[0]!,n.children[1]!,{kind:"reduction",rule:0,signature:"distinct ::=",children:[]},{kind:"reduction",rule:0,signature:"exprlist ::=",children:[]},n.children[3]!]};
       };
       x=emptyFunction(x);y=emptyFunction(y);
-      // parse.y likeop constructs Function(pattern,lhs[,escape]), then NOT.
+      // parse.y likeop constructs a function node with pattern,lhs[,escape], then NOT.
       const infixFunction=(n:ExprReduction):ExprReduction=>{
        if(!n.signature.startsWith("expr ::= expr likeop expr"))return n;
        const op=n.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("likeop ::="));
@@ -1250,7 +1295,7 @@ export function rightJoinResidual(resolved:ResolvedSelect,ordinal:number):readon
  return Object.freeze(out);
 }
 
-export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>}
+export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>;readonly planBudget?:WherePlanBudget}
 export interface WherePlanSelection {readonly analysis:WhereAnalysis;readonly path:WherePath|null;readonly plannerCandidates:number;readonly plannerPaths:number}
 /** Publish the lowering handoff without asking a caller to reconstruct either
  * term eligibility or INDEXED BY/NOT INDEXED gates. */
@@ -1260,7 +1305,7 @@ export function planWhere(resolved:ResolvedSelect,request:WherePlanRequest):Wher
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.
  const analysis=analyzeWhere(resolved);
- const planBudget:WherePlanBudget={remaining:20000};
+ const planBudget:WherePlanBudget=request.planBudget??{remaining:20000};
  const ordinaryLoops:WhereLoop[]=[];
  let joinBarrier=0n;const groups=resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);const added=btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget,ordinaryLoops});ordinaryLoops.push(...added);return added;});
  const unsorted=wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length));
@@ -1287,4 +1332,28 @@ export function resolvedWhereOrder(resolved:ResolvedSelect):readonly OrderRequir
   requirements.push(freeze({sourceOrdinal:resolved.sources.indexOf(source),column,descending:term.descending,collation,nulls:term.nulls}));
  }
  return Object.freeze(requirements);
+}
+
+// wherecode.c disableTerm: invocation-local CODED and virtual-child accounting.
+// Only exact admitted scalar constraints reach this carrier; remaining truth
+// stays with the branch consumer. No mutation of published WHERE terms.
+export function branchConsumedTerms(loop:WhereLoop,clause:WhereClause,ready:SourceMask):ReadonlySet<WhereTerm>{
+ const coded=new Set<WhereTerm>(),remaining=new Map<WhereTerm,number>();
+ const cap=loop.capability;if(!cap)return coded;
+ const terms=clause.terms;
+ const disable=(term:WhereTerm):void=>{
+  if(coded.has(term)||(term.prereqAll&~ready)!==0n||!term.outerJoinSafe.mayOmitResidual)return;
+  coded.add(term);
+  if(term.parentId===null)return;
+  const parent=terms.find(t=>t.id===term.parentId);if(!parent)return;
+  const count=(remaining.get(parent)??parent.childIds.length)-1;
+  remaining.set(parent,count);if(count===0)disable(parent);
+ };
+ for(const admission of [...cap.equalityPrefix,cap.lower,cap.upper,cap.rowidEquality,cap.rowidLower,cap.rowidUpper]){
+  if(!admission)continue;
+  // Planner admission owns affinity/collation equivalence; no represented
+  // row-value slice or lossy expression constraints are admitted here.
+  disable(admission.term);
+ }
+ return coded;
 }

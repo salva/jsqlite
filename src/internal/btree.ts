@@ -219,17 +219,24 @@ export class BtreeDatabase {
         const at = (cellIndex: number): IndexPosition =>
           ({ entry: cells[cellIndex]!, pageNumber: pgno, cellIndex, ancestors });
         let lo = 0, hi = cells.length;
-        while (lo < hi) { const mid = (lo + hi) >>> 1; if (compareCurrentToTarget(this.payload(cells[mid]!)) < 0) lo = mid + 1; else hi = mid; }
-        if (lo < cells.length && compareCurrentToTarget(this.payload(cells[lo]!)) === 0) return { position: at(lo), exact: true };
+        // Seek opcodes compare an unpacked prefix, not necessarily a unique
+        // full key. An equal interior separator is a real index entry but is
+        // not the boundary: equal prefixes may also live in its child. Match
+        // vdbe.c SeekGE/SeekLE default_rc bias through IndexMoveto descent.
+        while (lo < hi) {
+          const mid = (lo + hi) >>> 1, comparison = compareCurrentToTarget(this.payload(cells[mid]!));
+          if (comparison < 0 || (comparison === 0 && bias === "le")) lo = mid + 1; else hi = mid;
+        }
+        const result = (cellIndex: number) => ({ position: at(cellIndex), exact: compareCurrentToTarget(this.payload(cells[cellIndex]!)) === 0 });
         if (page.type === 0x0a) {
           const index = bias === "ge" ? lo : lo - 1;
-          return { position: index >= 0 && index < cells.length ? at(index) : null, exact: false };
+          return index >= 0 && index < cells.length ? result(index) : { position: null, exact: false };
         }
         const child = lo < cells.length ? be32(page.bytes, page.cells[lo]!) : page.rightChild!;
         const nested = descend(child, depth + 1, path, [...ancestors, { pageNumber: pgno, childIndex: lo }]);
         if (nested.position !== null) return nested;
-        if (bias === "ge" && lo < cells.length) return { position: at(lo), exact: false };
-        if (bias === "le" && lo > 0) return { position: at(lo - 1), exact: false };
+        if (bias === "ge" && lo < cells.length) return result(lo);
+        if (bias === "le" && lo > 0) return result(lo - 1);
         return { position: null, exact: false };
       } finally { path.delete(pgno); }
     };

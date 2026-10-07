@@ -829,3 +829,12 @@ parity. Exact-export evidence and inherited prerequisite attribution are in
 `docs/research/card-k-h-b-runtime/closure.json`.
 
 R4 right-residual corpus: independently captured pinned native FIRST30 (10 IDs ×3 encodings), ordered typed rows and five metadata fields, repeated reset comparison. Additional3 early-positioning and3 injected first-error/reset/reuse contracts observe TS control, not native work/error injection parity. See focused h-b R4 research; prior integration counts remain historical until rerun.
+
+### Selected rowid OR bounded runtime evidence
+Native captures and public selected-plan comparisons are inventoried in
+[OR evidence](research/card-s-f-or/verification.md). Captures are not TS passes or
+C-cost parity. The separate multi-page browser lane compares 1629 typed rows and
+reset in all three encodings; physical trace/page-count tests run internally in
+Node. Whole-product compatibility and untested nullable/WR union optimizations
+are not implied. Candidate identities and fresh delivery gates are retained in
+[[card:card-s-f-c]] status.

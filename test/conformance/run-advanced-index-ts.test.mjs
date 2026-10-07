@@ -1507,8 +1507,7 @@ test('expression identity folds function-name case but not function shape',async
 });
 
 test('partial NOT NULL implication preserves arithmetic seenNot fallthrough',async()=>{
- // c&1 remains outside this checkpoint with separately attributed bitwise lowering.
- const cases=[['c*0',[]],['c/1',[[1n]]],['1/c',[[1n]]],['c%2',[[1n]]]],failures=[];
+ const cases=[['c*0',[]],['c/1',[[1n]]],['1/c',[[1n]]],['c%2',[[1n]]],['c&1',[[1n]]]],failures=[];
  for(const variant of capture.variants)await withBytes(fs.readFileSync(path.resolve(variant.fixture.path)),async db=>{
   for(const [predicate,expected] of cases)try{assert.deepEqual(await execute(db,`SELECT id FROM p INDEXED BY p_live WHERE a=1 AND ${predicate} ORDER BY id`),expected,`${variant.id}/${predicate}`)}catch(error){failures.push(error)}
  });

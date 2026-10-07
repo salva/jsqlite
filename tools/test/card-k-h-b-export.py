@@ -12,7 +12,9 @@ with tarfile.open(fileobj=io.BytesIO(subprocess.check_output(['git','archive',he
 paths=[]
 for directory in ['src','test/conformance']:
  paths.extend(p for p in (root/directory).rglob('*') if p.is_file() and "__pycache__" not in p.parts)
-paths.extend(root/p for p in ['package.json','package-lock.json','tsconfig.json','reference/sqlite/manifest.json'])
+# rowset.test.mjs compiles the pinned C implementation; retain that source as
+# an inventoried test dependency, not as native production runtime machinery.
+paths.extend(root/p for p in ['package.json','package-lock.json','tsconfig.json','reference/sqlite/manifest.json','reference/sqlite/sqlite-src-3530400/src/rowset.c'])
 rows=[]
 for source in sorted(paths):
  rel=source.relative_to(root).as_posix();target=out/rel;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)

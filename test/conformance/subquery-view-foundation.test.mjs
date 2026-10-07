@@ -429,3 +429,16 @@ test('retained ORDER/LIMIT uses coroutine and two distinct sorters',()=>{
     assert.ok(!codes.includes('OpenEphemeral'),'sole source is coroutine eligible, not materialized');
   }finally{storage.close();}
 });
+
+const callerNative=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-f-or/baseline-caller-native.json',import.meta.url)));
+for(const variant of callerNative.variants)for(const c of variant.cases)test(`public ${variant.encoding} caller native ${c.id} reset rebind clear`,async()=>{
+ const server=await serve(variant.encoding);let db,statement,primary;
+ try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));statement=db.prepare(c.sql).statement;
+  for(const run of c.runs){statement.reset();statement.clearBindings();
+   run.bindings?.forEach((binding,index)=>statement.bind(index+1,typeof binding==='number'?BigInt(binding):binding));
+   const collect=async()=>{const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>({type:statement.columnType(i),value:statement.column(i)})));return rows;};
+   if(run.stepCode!==101){await assert.rejects(collect(),error=>{primary=error;return error.code===run.stepCode});}
+   else assert.deepEqual(await collect(),run.rows.map(row=>row.map(cell=>({type:cell.type,value:cell.value===null?null:BigInt(cell.value)}))));
+  }
+ }finally{try{statement?.finalize()}catch(error){assert.equal(error,primary)}finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}}
+});

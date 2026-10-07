@@ -1,0 +1,560 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "encoding": "utf8",
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "runs": [
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a=t.a LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>t.a ORDER BY u.a ASC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>=t.a AND u.a<=t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf16le.db",
+      "sha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+      "runs": [
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a=t.a LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>t.a ORDER BY u.a ASC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>=t.a AND u.a<=t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf16be.db",
+      "sha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+      "runs": [
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a=t.a LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>t.a ORDER BY u.a ASC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a>=t.a AND u.a<=t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
