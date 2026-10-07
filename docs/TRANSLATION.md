@@ -208,13 +208,15 @@ Selected cost production is bounded to rowid persistent-index/equality/range/AND
 nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
 or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
 scans are not selected OR. Single-table Case5 lowering replans owned
-arms into shared-builder seeks and RowSetTest/Gosub/Return with complete arm
-and parent truth and the existing ORDER sorter. Nested selected arms recursively
+arms into shared-builder seeks and RowSetTest/Gosub/Return, testing remaining
+arm truth after exact selected-constraint consumption and retaining untested
+enclosing parent truth, with the existing ORDER sorter. Nested selected arms recursively
 consume their actual selected plan with independent RowSet/return registers and
 the shared construction frontier; no ordinary-only filtering remains. Represented
 inner callers now use per-level RowSet/Gosub continuations with initialization
-per outer row and full residual truth. Arm terms remaining after exact selected-constraint consumption are tested only
-when prereqAll is positioned; unready OR atoms are deferred intact.
+per outer row. Both actual callers test remaining arm residuals only when
+prereqAll is positioned, retaining independent enclosing conjuncts and full
+untested parent truth; unready OR atoms are deferred intact.
 Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
 no whole-arm indexed-operand replay. Ordinary driveable commuted children consume their original parent at zero remaining children; owned arm handoff retains both identities. Nullable LEFT ON remains conservative. [Commutation evidence](research/card-s-f-or/commuted-child.md). Admission owns affinity/collation equivalence;
 non-admitted/lossy/slice terms remain truth. [Branch-owner evidence](research/card-s-f-or/branch-consumption.md). The ordinary
