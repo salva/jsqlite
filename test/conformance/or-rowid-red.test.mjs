@@ -306,7 +306,7 @@ for(const v of capture.variants){
   assert.equal(new Set(opens.map(op=>op.p2)).size,1,'pCov/iCovCur: same selected physical index shares covering cursor');
   assert.ok(program.ops.some(op=>op.code==='Column'&&op.p3===opens[0].p2),'common covered columns must read the retained index');
   const body=program.ops.findIndex(op=>op.code==='Return');
-  assert.ok(program.ops.slice(0,body).some(op=>op.code==='IfNot'&&op.residual),'parent/arm truth remains tested');
+  assert.ok(!program.ops.slice(0,body).some(op=>op.code==='IfNot'&&op.residual),'exact selected equality/range constraints are consumed before common body');
   const mixed=compileTableSelect(parseSql("SELECT a,c FROM o WHERE a=1 OR b='beta' ORDER BY a,c").statement,schema,btreeFromConnection(db),Number.MAX_SAFE_INTEGER);
   const mixedCursor=mixed.ops.find(op=>op.code==='OpenIndex').p2;
   const lastBranch=Math.max(...mixed.ops.map((op,i)=>op.code==='OpenIndex'?i:-1));
@@ -380,7 +380,7 @@ for(const v of capture.variants){
   assert.ok(!program.ops.slice(0,body).some(op=>op.code==='Column'&&op.p3===1),'notReady later cursor cannot be read by an arm before downstream positioning');
   const end=program.ops.findIndex((op,i)=>i>=body&&op.code==='Return');
   assert.ok(program.ops.slice(body,end).some(op=>op.code==='Binary'&&op.op==='OR'),'full parent OR remains in downstream body');
-  assert.ok(program.ops.slice(0,body).filter(op=>op.code==='IfNot'&&op.residual).length>=2,'ready arm predicates remain tested before dedup');
+  assert.equal(program.ops.slice(0,body).filter(op=>op.code==='IfNot'&&op.residual).length,0,'ready exact access constraints consumed; full unready parent retained downstream');
   const st=db.prepare(captured.sql).statement;
   try{
    const rows=[];while(await st.step({maxWorkUnits:100000})==='row')rows.push([st.column(0),st.column(1)]);

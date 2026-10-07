@@ -23,7 +23,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
-import { analyzeWhere, btreeLoops, orRuntimeArmClause, wherePathSolver, type WhereLoop, type WhereClause, rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
+import {branchConsumedTerms, analyzeWhere, btreeLoops, orRuntimeArmClause, wherePathSolver, type WhereLoop, type WhereClause, rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
@@ -3615,6 +3615,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       if(!clause)throw new JSQLiteError('internal','joined OR lost owned arm');
       const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
       const branch=wherePathSolver([candidates],1,undefined,0,1,null,readyMask).loops[0]!;
+      const consumed=branchConsumedTerms(branch,clause,available);
       const consume=(tested=false):void=>{
         // wherecode.c OR_SUBCLAUSE: test only terms whose prereqAll is
         // positioned. An AND arm owns individual terms; an OR atom must not
@@ -3624,7 +3625,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const residuals:number[]=[];
         const terms=tested?[]:arm.info?.kind==='and'?arm.info.clause.terms:[arm];
         for(const term of terms){
-          if(term.virtual||(term.prereqAll&~ready)!==0n)continue;
+          if(term.virtual||consumed.has(term)||(term.prereqAll&~ready)!==0n)continue;
           const at=compilePredicate(term.expression);
           if(at!==undefined)residuals.push(at);
         }
@@ -5806,13 +5807,17 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         if(!clause)throw new JSQLiteError('internal','selected OR lost owned arm');
         const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
         const branch=wherePathSolver([candidates],1).loops[0]!;
+        const consumed=branchConsumedTerms(branch,clause,1n<<BigInt(branch.sourceOrdinal));
         const emitArm=(tested=false):void=>{
-          let residual:number|undefined;
-          if(!tested){const predicate=resolveExpression(arm.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
-          residual=ops.length;ops.push({code:'IfNot',p1:truth,p2:0,residual:true});}
+          const residuals:number[]=[];
+          if(!tested)for(const term of arm.info?.kind==='and'?arm.info.clause.terms:[arm]){
+            if(term.virtual||consumed.has(term))continue;
+            const predicate=resolveExpression(term.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
+            residuals.push(ops.length);ops.push({code:'IfNot',p1:truth,p2:0,residual:true});
+          }
           ops.push({code:'Rowid',p2:rowid});const test=ops.length;ops.push({code:'RowSetTest',p1:rowset,p2:0,p3:rowid,p4:ordinal===arms.length-1?-1:ordinal});
           calls.push(ops.length);ops.push({code:'Gosub',p1:returnRegister,p2:0});
-          const next=ops.length;if(residual!==undefined)(ops[residual] as {p2:number}).p2=next;(ops[test] as {p2:number}).p2=next;
+          const next=ops.length;for(const residual of residuals)(ops[residual] as {p2:number}).p2=next;(ops[test] as {p2:number}).p2=next;
         };
         if(branch.kind==='multi-or'){
           covering=null;

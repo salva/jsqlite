@@ -844,7 +844,7 @@ and `or-correlated-in-lifecycle-review`; [evidence and boundaries](research/card
 ### Case5 residual frontier ownership
 
 `wherecode.c` Case5 factored-scope construction and `untestedTerms`/`disableTerm`
-→ `where-plan.ts:orRuntimeArmClause` and `vdbe.ts:emitJoinedOr`, single-table
+→ `where-plan.ts:orRuntimeArmClause/branchConsumedTerms` and `vdbe.ts:emitJoinedOr`, single-table
 OR arm truth, `codedOrIdentities`/`codedWhere` via shared `termIsCoded` for outer constraints
 and ordinary final joined common-body residual routing.
 Eligible original indexable conjuncts exclude virtual, nullable-ON and subquery
@@ -859,3 +859,5 @@ comparison and bounds](research/card-s-f-or/residual-frontier-closure.md).
 Ordinary tested-parent regression: `or-tested-parent-owner.test.mjs` compares
 pinned volatile/error function arm sites and typed public reset/rebind/error
 runs. [Native-first source-owner evidence](research/card-s-f-or/tested-parent-owner.md).
+
+Branch constraint ownership: `wherecode.c:disableTerm` ready/virtual-child accounting → invocation-local `branchConsumedTerms`, consumed by both actual OR lowerers before residual/RowSetTest/Gosub. Exact admitted scalar equality/range/rowid/IN only; admission preserves original operand affinity/collation. [Native/public/source evidence](research/card-s-f-or/branch-consumption.md).

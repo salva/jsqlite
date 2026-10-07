@@ -1325,3 +1325,27 @@ export function resolvedWhereOrder(resolved:ResolvedSelect):readonly OrderRequir
  }
  return Object.freeze(requirements);
 }
+
+// wherecode.c disableTerm: invocation-local CODED and virtual-child accounting.
+// Only exact admitted scalar constraints reach this carrier; remaining truth
+// stays with the branch consumer. No mutation of published WHERE terms.
+export function branchConsumedTerms(loop:WhereLoop,clause:WhereClause,ready:SourceMask):ReadonlySet<WhereTerm>{
+ const coded=new Set<WhereTerm>(),remaining=new Map<WhereTerm,number>();
+ const cap=loop.capability;if(!cap)return coded;
+ const terms=clause.terms;
+ const disable=(term:WhereTerm):void=>{
+  if(coded.has(term)||(term.prereqAll&~ready)!==0n||!term.outerJoinSafe.mayOmitResidual)return;
+  coded.add(term);
+  if(term.parentId===null)return;
+  const parent=terms.find(t=>t.id===term.parentId);if(!parent)return;
+  const count=(remaining.get(parent)??parent.childIds.length)-1;
+  remaining.set(parent,count);if(count===0)disable(parent);
+ };
+ for(const admission of [...cap.equalityPrefix,cap.lower,cap.upper,cap.rowidEquality,cap.rowidLower,cap.rowidUpper]){
+  if(!admission)continue;
+  // Planner admission owns affinity/collation equivalence; no represented
+  // row-value slice or lossy expression constraints are admitted here.
+  disable(admission.term);
+ }
+ return coded;
+}

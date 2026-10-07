@@ -212,8 +212,11 @@ and parent truth and the existing ORDER sorter. Nested selected arms recursively
 consume their actual selected plan with independent RowSet/return registers and
 the shared construction frontier; no ordinary-only filtering remains. Represented
 inner callers now use per-level RowSet/Gosub continuations with initialization
-per outer row and full residual truth. Arm AND terms are tested individually only
-when prereqAll is positioned; unready OR atoms are deferred intact. The ordinary
+per outer row and full residual truth. Arm terms remaining after exact selected-constraint consumption are tested only
+when prereqAll is positioned; unready OR atoms are deferred intact.
+Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
+no whole-arm indexed-operand replay. Admission owns affinity/collation equivalence;
+non-admitted/lossy/slice terms remain truth. [Branch-owner evidence](research/card-s-f-or/branch-consumption.md). The ordinary
 caller retains untested parent truth until downstream sources are ready; fully
 tested parents are omitted after arm truth (Case5 disableTerm ownership). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
 Correlated arm replanning retains the

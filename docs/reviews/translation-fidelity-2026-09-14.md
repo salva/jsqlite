@@ -4947,3 +4947,13 @@ when any arm prerequisite is unavailable; independent enclosing conjuncts are
 not disabled by factoring. [Source/overlay evidence and remaining independent
 review boundary](../research/card-s-f-or/residual-frontier-closure.md). This
 contract correction does not certify exhaustive recursive cleanup or cost parity.
+
+### R1 branch constraint owner repair (isolated candidate)
+
+The branch-local gap is distinct from tested-parent publication: both OR callers now
+consume invocation-local exact admitted terms before remaining truth/dedup/Gosub.
+Pinned disableTerm readiness and virtual-child propagation are mapped in
+`branchConsumedTerms`; no original whole-arm replay for physical branches.
+Unready parent truth and independent enclosing conjuncts remain owned by callers.
+[Evidence and remaining boundaries](../research/card-s-f-or/branch-consumption.md);
+prior candidate passing inventories did not establish this relationship.
