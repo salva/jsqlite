@@ -957,3 +957,6 @@ and OR/join failure tests; vector/function/subquery probes and skipscan sample r
 refinement remain untranslated. Initial parameters use fallback, not sample costing
 or reprepare parity. [Revision-bound evidence](research/card-s-h/c-red/consumer-progress.md),
 [[card:card-s-h-c]]; loader/comparison ownership remains [[card:card-s-h-b]].
+
+### Sequential STAT4 payload acquisition
+`btree.c:accessPayload` → `BtreeDatabase.payload` consumes existing `payloadChunks` with checked current-page copies before successor progression and finally closes traversal. Strict final-link validation remains project admission, not corrupt-byte oracle parity. Owner-order/lifecycle tests: `docs/research/card-s-h/c-red/overflow-{owner-red,order-owner}.test.mjs`, `d-diagnosis/payload-cleanup.test.mjs`; [independent evidence](research/card-s-h/d-diagnosis/README.md).

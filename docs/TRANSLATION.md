@@ -1331,7 +1331,7 @@ restore active/valid prefixes and release all Mem slots on exit. Numeric token e
 preserves source spelling for TEXT affinity before numeric conversion; typed
 INTEGER/REAL results follow valueFromExpr rather than execution CAST alone.
 Count digits, outer btree payload copies and probe token work charge existing
-prepare checks. Host codecs/allocations remain synchronous (no event-loop
+prepare checks. Full payload reconstruction consumes `payloadChunks` sequentially: check before page fetch, then check/copy current bytes before successor inspection. Current-copy primary failures precede successor corruption; range/cycle/overflow-limit and strict terminal-link admission remain intact. Standalone discovery is not used by reconstruction. Strict unused-tail validation is a project malformed-file contract, not upstream corrupt-tail parity. See [independent cleanup evidence](research/card-s-h/d-diagnosis/README.md). Host codecs/allocations remain synchronous (no event-loop
 preemption). Internal source oracle tests cover padded malformed comparison and
 value extraction; public prepare failure/retry tests do not imply estimate parity.
 
