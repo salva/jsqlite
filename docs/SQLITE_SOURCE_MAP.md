@@ -817,11 +817,15 @@ synchronous prepare does not promise event-loop preemption. Packed sample compar
 and errCode/eqSeen channel (`comparison.ts:compareStat4RecordKey`, pinned
 `vdbeaux.c:sqlite3VdbeRecordCompareWithSkip`, skip=0). Numeric padded reads and
 matching text/blob bounds preserve branch-specific malformed handling; normal
-record/seek callers retain strict decoding. Builder-local probe extraction and
-consuming estimates remain pending.
+record/seek callers retain strict decoding. `stat4-probe.ts` translates builder-local literal/unary/CAST/COLLATE/NULL
+extraction from existing Lemon semantic productions and all-slot Mem cleanup.
+NOTFOUND is not SQL NULL; parameters mark sensitivity and explicitly fall back
+(no initial binding plan-parity claim). Unsupported expressions/functions remain
+unavailable, not a parallel evaluator. Prefix scopes restore nField/nRecValid;
+consuming KeyStats/selectivity estimates remain pending.
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
-`stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive` under `test/conformance`,
+`stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive`, `stat4-probe-primitive` under `test/conformance`,
 and `docs/research/card-s-h/first-owner.test.mjs`. Detailed current delivery
 and resource accounting: [[card:card-s-h-b]] status. Original admission provenance
 is unchanged: [admission evidence](research/card-e-h-stat4-admission.md),
