@@ -323,10 +323,18 @@ export class BtreeDatabase {
     const result = new Uint8Array(cell.payloadLength);
     for(let offset=0;offset<cell.local.length;offset+=4096){const end=Math.min(offset+4096,cell.local.length);check?.(end-offset);result.set(cell.local.subarray(offset,end),offset);}
     let at = cell.local.byteLength;
-    for (const pgno of this.overflowPages(cell)) {
-      const page = this.pageBytes(pgno); const amount = Math.min(this.usableSize - 4, result.byteLength - at);
-      for(let offset=0;offset<amount;offset+=4096){const end=Math.min(offset+4096,amount);check?.(end-offset);result.set(page.subarray(4+offset,4+end),at+offset);} at += amount;
-    }
+    const chunks = this.payloadChunks(cell);
+    chunks.next(); // local bytes already copied above
+    try {
+      while (at < result.byteLength) {
+        check?.(1);
+        const chunk = chunks.next();
+        if (chunk.done) corrupt("truncated overflow chain");
+        for(let offset=0;offset<chunk.value.length;offset+=4096){const end=Math.min(offset+4096,chunk.value.length);check?.(end-offset);result.set(chunk.value.subarray(offset,end),at+offset);}
+        at += chunk.value.length;
+      }
+      chunks.next(); // validate the final next pointer, including local-only cells
+    } finally { chunks.return(undefined); }
     return result;
   }
   /** Incremental payload reconstruction. Every yielded slice performs at most

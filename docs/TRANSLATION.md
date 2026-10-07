@@ -1321,7 +1321,14 @@ consuming KeyStats/selectivity estimates remain pending. Numeric token extractio
 preserves source spelling for TEXT affinity before numeric conversion; typed
 INTEGER/REAL results follow valueFromExpr rather than execution CAST alone.
 Count digits, outer btree payload copies and probe token work charge existing
-prepare checks. Host codecs/allocations remain synchronous (no event-loop
+prepare checks. Full payload reconstruction consumes the existing
+`payloadChunks` overflow iterator sequentially: check before page fetch, then
+check/copy the current page before inspecting its successor. Current-copy primary
+failures therefore precede successor corruption; cycle/range/overflow-limit and
+strict terminal-link checks remain intact. The strict terminal-link check is
+existing admission behavior, not a claim of upstream malformed-byte parity.
+Standalone `overflowPages` discovery is unchanged and is not used by payload
+reconstruction. Host codecs/allocations remain synchronous (no event-loop
 preemption). Internal source oracle tests cover padded malformed comparison and
 value extraction; public prepare failure/retry tests do not imply estimate parity.
 

@@ -906,3 +906,15 @@ maps to `stat4-probe.ts` and `stat4-value-oracle.c`/`stat4-probe-primitive.test.
 checks and prepare retry map to `stat4-prepare-controls.test.mjs` and lifecycle
 regressions. Detailed commands, identities and limits: [[card:card-s-h-b]] status.
 Consumers/selectivity estimates remain pending.
+
+### Sequential overflow payload ownership
+
+`btree.c:accessPayload` current-page fetch/copy before successor progression maps
+to `BtreeDatabase.payload` consuming `payloadChunks` (no eager discovery pass).
+Existing cycle/range/maxOverflowPages and strict terminal-link validation remain;
+the terminal check is project admission, not malformed-byte parity. Owning real
+loader/progress/primary-error and primitive controls:
+`docs/research/card-s-h/c-red/overflow-owner-red.test.mjs` and
+`overflow-order-owner.test.mjs`; storage coverage: `test/storage/btree-reader.test.mjs`.
+Adoption hashes/commands/results: [[card:card-s-h-b]] status; original consumer
+provenance: [request](research/card-s-h/c-red/overflow-adoption-request.md).
