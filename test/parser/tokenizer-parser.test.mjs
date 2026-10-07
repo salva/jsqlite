@@ -46,3 +46,30 @@ test('parse.y SrcList actions preserve ordered immutable source and RHS join own
 });
 
 test('generated CREATE TABLE reductions retain CHECK and foreign-key semantics',()=>{const parsed=parseSql('CREATE TABLE t(a CHECK(a>0), b, c REFERENCES q(id) DEFERRABLE INITIALLY DEFERRED, CONSTRAINT ck CHECK(a<>b), CONSTRAINT fk FOREIGN KEY(a,b) REFERENCES p(x,y) ON DELETE CASCADE ON UPDATE SET NULL DEFERRABLE INITIALLY DEFERRED)');assert.equal(parsed.statement?.kind,'create-table');if(parsed.statement?.kind!=='create-table')return;assert.deepEqual(parsed.statement.checks.map(check=>({name:check.name,column:check.columnName,expr:check.expr.tokens.map(t=>t.text).join('')})),[{name:null,column:'a',expr:'a>0'},{name:'ck',column:null,expr:'a<>b'}]);assert.deepEqual(parsed.statement.foreignKeys.map(foreign=>({name:foreign.name,columns:foreign.columns,table:foreign.referencedTable,to:foreign.referencedColumns,del:foreign.onDelete,update:foreign.onUpdate,deferrable:foreign.deferrable,deferred:foreign.initiallyDeferred})),[{name:null,columns:['c'],table:'q',to:['id'],del:'no-action',update:'no-action',deferrable:true,deferred:true},{name:'fk',columns:['a','b'],table:'p',to:['x','y'],del:'cascade',update:'set-null',deferrable:true,deferred:true}]);assert.ok(Object.isFrozen(parsed.statement.checks)&&Object.isFrozen(parsed.statement.foreignKeys));});
+
+// parse.y:1603-1609 appends ExprList; non-DDL reductions must not extract
+// descendant tokens for the stored-DDL adapter on every growing list prefix.
+test('productionAction scopes DDL token extraction to DDL productions', async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync(new URL('../../src/internal/parse.ts',import.meta.url),'utf8');
+ const start=source.indexOf('function productionAction(');
+ const body=source.slice(start,source.indexOf('\nfunction action(',start));
+ const tail=body.slice(body.indexOf('if(signature.startsWith("cmd ::= select"))'));
+ assert.ok(tail.indexOf('const tokens=leaves(root);')>tail.indexOf('if(signature.startsWith("cmd ::= create_table")'),
+  'guard DDL-only token extraction before traversing otherwise unhandled reductions including nexprlist');
+});
+test('long function lists retain generated reductions and ordered UTF-8 token spans',()=>{
+ for(const count of [999,1000]){
+  const sql=`SELECT length(printf('%s',${Array(count).fill('NULL').join(',')}))`;
+  const parsed=parseSql(sql);
+  assert.equal(parsed.lemon.accepted,true);
+  assert.equal(parsed.statement.kind,'select');
+  const tokens=parsed.statement.result[0].tokens;
+  assert.equal(tokens.filter(token=>token.text==='NULL').length,count);
+  const bytes=encodeSql(sql);
+  for(const token of tokens)assert.equal(new TextDecoder().decode(bytes.slice(token.startByte,token.endByte)),token.text);
+  assert.ok(parsed.lemon.value);
+ }
+ assert.throws(()=>parseSql('SELECT f(1,2,3)',{maxWorkUnits:1}),RangeError);
+ assert.equal(parseSql('SELECT f(1,2,3)').lemon.accepted,true,'fresh parse after limit failure');
+});
