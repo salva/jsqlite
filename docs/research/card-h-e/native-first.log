@@ -1,0 +1,14 @@
+{"ref":"test/e_expr.test:e_expr-2.1","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/e_expr.test:e_expr-2.2","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/e_expr.test:e_expr-2.3","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/e_expr.test:e_expr-2.4","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/select1.test:select1-1.4","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/select1.test:select1-1.6","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/select1.test:select1-1.8.1","lane":"native-oracle","outcome":"pass"}
+{"ref":"test/select1.test:select1-3.3","lane":"native-oracle","outcome":"pass"}
+{"upstreamSummary":{"nativePassed":8,"tsPassed":0,"tsUnimplemented":8}}
+{"id":"first-select-parameter-lifecycle","lane":"native-boundary-no-credit","outcome":"pass"}
+{"id":"first-select-all-encodings","lane":"native-boundary-no-credit","outcome":"pass","encodings":3}
+{"id":"first-select-values","lane":"native-boundary-no-credit","outcome":"pass"}
+{"id":"first-select-tail-empty-close","lane":"native-boundary-no-credit","outcome":"pass"}
+{"boundarySummary":{"executedNoCredit":4,"tsCredit":0}}
