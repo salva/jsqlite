@@ -138,6 +138,12 @@ Initial fresh broad **421/422** failed because pinned read-only where.c was not 
 
 New test isolated27fe41d runtime with exact test overlay:3/3, no skips, exit0(proc-93403e965ad0), [log](rebuild-checkpoints.log). Runtime unmodified; diff check0. SHA256b9d5cf3bd5543d99c00259283bae2460d0b6fd2dd6b40843715d3a6129c83691. This is meaningful fixture-bounded coverage, not resolution of complete native inventory or consuming docs closure; no owner defect established.
 
+## Selected physical owner assertions
+
+Added [selected-owner.test.mjs](selected-owner.test.mjs) to make the remaining selected-plan inventory more precise than prior generic `kind=index` controls: all3 hash-verified original encodings, native EQP-selected ab schema **and physical descriptor identity**, hot table scan/whole rebuild, alternating hot/cold/prefix/range/literal-IN/NULL plans on one owner, no temporary leak. Expected index names come from retained independent native evidence, not cost calibration. Read current consumer guide/audit and pinned where.c full rebuild/candidate selection context; assertions exercise actual planWhere, no parallel optimizer. This supplements existing public typed rows/cursor-work tests rather than claiming those counters run here.
+
+Isolated committed runtime (27fe41d, unchanged through7222259) plus exact new test3/3, no skips, exit0(proc-d9e1309b34e9); [log](selected-owner.log). SHA256fab608904d5675d6c2d32c0fa14af367cad983bee2ebd902494682d520fce621; diff check0. Scope is noncovering ab family in original fixture, not all planner choices/native costs. No production defect or artificial failure. Complete mapped source review/consuming acceptance still pending.
+
 ## Diagnosis
 
 Coverage gap against **full accepted brief**, not a reproduced product failure. Focused existing coverage is meaningful and green, but coherent attributable commit/adoption, independent exact-commit finite acceptance, oracle identity/raw evidence verification, full mapped branch review, affected skipscan/OR/alpha/build/package/browser gates and current contract reconciliation remain incomplete. Do not treat mixed docs snapshot or this archived combination as acceptance. Parameter reprepare and wider vector/function/subquery/skipscan-sample refinements remain explicit backlog.
