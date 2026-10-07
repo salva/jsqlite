@@ -37,6 +37,16 @@ arbitrary compositions, performance or other-browser certification. Residual
 read-only breadth remains product backlog under unchanged SPEC; the subsequent
 independent postcandidate review does not impose a circular wait here.
 
+Owner-authorized [future LOCAL alpha readiness at b131](research/card-v-new-alpha-b131-readiness.md)
+is separate from immutable alpha.4 acceptance: coherent accepted source lineage,
+independently verified w227/native3 and fresh isolated offline package closure72files/
+35JS plus focused23 pass. **No next version or acceptance yet**: original slow
+Chinook SQL/prior evidence is unavailable in retained scheduler context and requested
+from Planner/root; exact native typed10rows/metadata, performance/task response/reset,
+applicable installed browser and subsequent versioned package/demo recapture remain.
+Identified historical sorter fixture timeout is disposed by exact current tests;
+any distinct unnamed sorter-check requires its original identity, not silent waiver.
+
 Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
 LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
 SPEC is unchanged. This is not a registry/public repository release, external
