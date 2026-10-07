@@ -164,7 +164,12 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       // Load immutable schema before admission so persisted view SELECTs are
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
-      const schema = loadSchemaGraph(this);
+      let schemaWork=0;
+      const schema = loadSchemaGraph(this,{check:(_phase,units)=>{
+        if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
+        if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
+        schemaWork+=units;if(schemaWork>parserWork)failure("limit","schema construction work exceeded");
+      }});
       const recursiveOwner = recursiveCteOwner(parsed.statement);
       const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
       try{rejectBareBuiltinWindowFunctions(selected)}catch(error){if(error instanceof Error)failure("sqlite",error.message,{code:1});throw error;}
@@ -237,8 +242,8 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
   }
 }
 
-function validateFile(bytes: Uint8Array): ImmutableStorage {
-  try { return ImmutableStorage.open(bytes); }
+function validateFile(bytes: Uint8Array, maxFileBytes: number): ImmutableStorage {
+  try { return ImmutableStorage.open(bytes, maxFileBytes); }
   catch (error) {
     if (error instanceof StorageUnsupportedError) failure("unsupported", error.message, { unsupportedClassification: error.classification });
     if (error instanceof StorageCorruptError) failure("sqlite", error.message);
@@ -310,7 +315,7 @@ export async function open(source: string | URL | Request, options: OpenOptions 
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
     const internalOptions=options as OpenOptions&{readonly [dateTimeEnvironmentOption]?:DateTimeEnvironment};
-    return new OpenConnection(validateFile(bytes), parserLimits, finiteLimit(options.limits?.maxRows, "limits.maxRows", 1_000_000), { maxBtreeDepth: finiteLimit(options.limits?.maxBtreeDepth, "limits.maxBtreeDepth", 64), maxOverflowPages: finiteLimit(options.limits?.maxOverflowPages, "limits.maxOverflowPages", 1_000_000) },internalOptions[dateTimeEnvironmentOption]);
+    return new OpenConnection(validateFile(bytes, maxFileBytes), parserLimits, finiteLimit(options.limits?.maxRows, "limits.maxRows", 1_000_000), { maxBtreeDepth: finiteLimit(options.limits?.maxBtreeDepth, "limits.maxBtreeDepth", 64), maxOverflowPages: finiteLimit(options.limits?.maxOverflowPages, "limits.maxOverflowPages", 1_000_000) },internalOptions[dateTimeEnvironmentOption]);
   } catch (error) {
     try { await reader?.cancel(); } catch { /* preserve the primary failure */ }
     return mapAcquisitionError(error, timedOut, options.signal);

@@ -801,23 +801,29 @@ whereexpr.c997–1023 /1827–1863 -> where-plan.ts prereq: relevant resolved SE
 ### Outer-constraint owner
 `wherecode.c`2740–2833 match/hit/BeginSubrtn/code_outer_join_constraints and `where.c:sqlite3WhereEnd`7525–7712 → `compileInnerTableSelect` invocation-local WHERE coded state, ready/LTORJ checks, post-hit shared body and owning continuation. Immutable `analyzeWhere(...,true)` publishes base identities; ON/virtual terms are excluded. LEFT NullRow re-enters constraint body; unmatched Gosub shares it, while drain extraction remains independently owned. `outer-constraints.test.mjs` native FIRST24 typed/all5/reset plus physical-position/error/work contracts; [R6 evidence](research/card-k-h-b-runtime/r6.md). No general optimizer or native work parity claim. `run-index-planner-ts.mjs` checks the LEFT matched/NullRow term count (five: one ON plus two WHERE checks per body entry); `select-scalar-child.test.mjs` retains enclosing-builder ownership with the zero-width range guard. Repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
 
-## Optional STAT4 file admission
+## Optional STAT4 loading (estimates pending)
 
-`analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
-independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
-owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
-load supported stat1, and do not read optional sample payloads for estimates.
-Presence of samples alone is not an unsupported-file error. Ordinary schema,
-record and type validation remains in force on consumed paths. This provides
-file/query admission, not native STAT4 selectivity or cost/plan parity; sample
-optimization remains progressive work, not a permanent exclusion.
+`analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
+`schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
+and alias skip, original-order load and average initialization. Temporary stat1
+raw counts are discarded after loading; no-stat1 files can still load samples.
+Samples are not yet consumed for selectivity: no STAT4 cost/plan parity claim.
+`sqliteInt.h:IndexSample` ownership maps to privately copied bytes (inspection
+returns copies), frozen count arrays, and connection/storage cache lifetime.
+`storage.ts` owns an internal checked logical schema envelope derived from the
+configured acquisition allowance; it is not maxPrivateBytes or a new public
+budget. Prepare checks work/cancellation/deadline in passes and bounded copies;
+synchronous prepare does not promise event-loop preemption. Packed sample
+comparison/probe extraction and consuming estimates remain pending.
 
-Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
-`test/conformance/private-alpha-stat4-admission.test.mjs`,
-`stat4-enabled-boundary.test.mjs`, and `stat-record-boundary.test.mjs`.
-Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
-Revision-bound repair evidence: [[card:card-e-h]] status and
-[admission evidence](research/card-e-h-stat4-admission.md).
+Tests: `stat4-count-primitive`, `stat4-average-primitive`,
+`stat4-loader-primitive`, `stat4-schema-lifecycle` under `test/conformance`,
+and `docs/research/card-s-h/first-owner.test.mjs`. Detailed current delivery
+and resource accounting: [[card:card-s-h-b]] status. Original admission provenance
+is unchanged: [admission evidence](research/card-e-h-stat4-admission.md),
+`private-alpha-stat4-admission.test.mjs`, `stat4-enabled-boundary.test.mjs`,
+`stat-record-boundary.test.mjs` and paired non-STAT4 oracle capture
+`private-alpha-stat4-portability-native.py`.
 
 `wherecode.c`2500–2505/2618–2630 OR_SUBCLAUSE notReady/untested terms →
 `emitJoinedOr` per-term prereqAll readiness checks and ordinary level-aware

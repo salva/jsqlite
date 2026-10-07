@@ -23,9 +23,26 @@ export class ImmutableStorage {
   readonly usableSize: number;
   readonly encoding: 1 | 2 | 3;
   #generation = 0;
+  readonly schemaAllowance: number;
+  #schemaBytes = 0;
+  #schemaCleanup: (() => void) | null = null;
+  get schemaBytes(): number { return this.#schemaBytes; }
+  publishSchema(bytes: number, cleanup: () => void): void {
+    this.assertOpen();
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.schemaAllowance) throw new RangeError("statistics allocation envelope exceeded");
+    this.#schemaBytes = bytes; this.#schemaCleanup = cleanup;
+  }
 
-  private constructor(bytes: Uint8Array, pageSize: number, encoding: 1 | 2 | 3) {
+  private constructor(bytes: Uint8Array, pageSize: number, encoding: 1 | 2 | 3, maxFileBytes: number) {
     this.#bytes = bytes;
+    // INTERNAL logical schema envelope: 2^21 times acquisition allowance.
+    // For each file-backed stat row (at least one byte), conservatively allow
+    // 40 slot + 24*32767 counts + 8*32767 average + 8 padding bytes, plus
+    // grouped metadata/name and raw record ownership. Shared averages and
+    // grouped aliases are overcounted by this scale. Not measured JS heap or
+    // an additional public/execution-private budget.
+    const allowance = BigInt(maxFileBytes) * 2097152n;
+    this.schemaAllowance = Number(allowance > BigInt(Number.MAX_SAFE_INTEGER) ? BigInt(Number.MAX_SAFE_INTEGER) : allowance);
     this.pageSize = pageSize;
     this.pageCount = bytes.byteLength / pageSize;
     this.usableSize = pageSize; // Product baseline requires reserved=0.
@@ -48,10 +65,12 @@ export class ImmutableStorage {
   }
   close(): void {
     if (this.#bytes === null) throw new StorageClosedError();
+    this.#schemaCleanup?.(); this.#schemaCleanup = null; this.#schemaBytes = 0;
     this.#bytes = null; this.#generation++;
   }
 
-  static open(bytes: Uint8Array): ImmutableStorage {
+  static open(bytes: Uint8Array, maxFileBytes = 64 * 1024 * 1024): ImmutableStorage {
+    if (!Number.isSafeInteger(maxFileBytes) || maxFileBytes < bytes.byteLength) throw new RangeError("invalid acquisition allowance");
     if (bytes.byteLength < 100) corrupt("database header is truncated");
     const magic = [83,81,76,105,116,101,32,102,111,114,109,97,116,32,51,0];
     for (let i = 0; i < magic.length; i++) if (bytes[i] !== magic[i]) corrupt("not a format-3 SQLite database");
@@ -73,6 +92,6 @@ export class ImmutableStorage {
     const encoding = headerEncoding === 0 && actualPages === 1 ? 1 : headerEncoding;
     if (encoding !== 1 && encoding !== 2 && encoding !== 3) corrupt("unsupported database text encoding");
     // Copy at owner boundary so caller mutation cannot alter immutable residency.
-    return new ImmutableStorage(bytes.slice(), pageSize, encoding);
+    return new ImmutableStorage(bytes.slice(), pageSize, encoding, maxFileBytes);
   }
 }

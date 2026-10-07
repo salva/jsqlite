@@ -307,7 +307,7 @@ function exprInteger32(value:ExprReduction):bigint|null {
  * costing, before insertion; residual predicates do not reduce physical work.
  * Likelihood/truthProb producers are not yet represented. TERM_HEURTRUTH
  * only feeds the STAT4 HIGHTRUTH/second-pass branch (where.c3519/7086),
- * unreachable while schema.ts rejects nonempty STAT4. Do not invent shared
+ * not yet implemented by the sample selectivity consumer. Do not invent shared
  * mutable clause state for that unsupported path. SELFCULL only feeds the
  * unsupported Bloom-filter generation path (where.c6606), not this costing. */
 function outputAdjust(loop:WhereLoop,clause:WhereClause,progressCheck?:(()=>void)|undefined):bigint {

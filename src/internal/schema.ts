@@ -66,6 +66,7 @@ export interface TableNode {
 export interface IndexNode {
   readonly szIdxRow: number;
   readonly rowLogEst: readonly number[];
+  readonly stat4?: IndexStat4 | null;
   readonly hasStat1: boolean;
   readonly unordered: boolean;
   readonly noSkipScan: boolean;
@@ -299,7 +300,7 @@ export function loadStat4Samples<T extends object>(
   const index = find(group.name);
   if (!index || states.has(index)) continue;
   const { nSampleCol } = layout(index);
-  if (!Number.isSafeInteger(nSampleCol) || nSampleCol < 1) throw new SchemaStateError("statistics allocation column overflow");
+  if (!Number.isSafeInteger(nSampleCol) || nSampleCol < 1 || nSampleCol > 32767) throw new SchemaStateError("statistics allocation column overflow");
   charge(BigInt(group.count) * (40n + 24n * BigInt(nSampleCol)) + 8n * BigInt(nSampleCol));
   states.set(index, { mxSample: group.count, nSample: 0, nSampleCol, samples: [], nRowEst0: 0n, aAvgEq: Array<bigint>(nSampleCol).fill(0n) });
  }
@@ -319,7 +320,8 @@ export function loadStat4Samples<T extends object>(
   charge(BigInt(n) + 8n);
   const p = new Uint8Array(n + 8);
   for (let at = 0; at < n; at += 4096) { const end = Math.min(n, at + 4096); check("copy", end - at); p.set(row.bytes.subarray(at, end), at); }
-  const sample = { p, n, anEq, anLt, anDLt };
+  // Published consumers receive a copy, never a mutable alias to owned bytes.
+  const sample = { get p(): Uint8Array { return p.slice(); }, n, anEq, anLt, anDLt };
   state.samples.push(sample); state.nSample++;
  }
  check("finalize"); average(previous);
@@ -595,7 +597,11 @@ export function canonicalSchemaCatalog(connection: StorageOwnerCarrier): string 
   return graph.objects.map(object => `${object.kind}\t${object.name}\t${object.tableName}\t${object.sql ?? ""}\n`).join("");
 }
 
-export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
+export interface SchemaLoadContext {
+ readonly maxStat4Bytes?: number;
+ readonly check?: Stat4LoadOptions["check"];
+}
+export function loadSchemaGraph(connection: StorageOwnerCarrier, context: SchemaLoadContext = {}): SchemaGraph {
   const key = connection as object;
   const prior = graphs.get(key);
   if (prior) { prior.assertOpen(); return prior; }
@@ -752,16 +758,15 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
   // analyze.c:sqlite3AnalysisLoad/analysisLoader. sqlite_stat1 is an ordinary
   // rowid b-tree, not a schema declaration. Decode using the database encoding;
   // never expose unsupported stat tokens as plausible planner estimates.
-  // Match sqlite3AnalysisLoad without SQLITE_ENABLE_STAT4: retain sqlite_stat4
-  // as ordinary schema, but do not read optional optimizer samples. stat1 and
-  // default estimates remain usable; this does not claim STAT4 estimate parity.
   const callbackKey=(name:string):string=>{let key="";for(const byte of new TextEncoder().encode(name))key+=String.fromCharCode(byte);return sqliteAsciiFold(key);};
   const callbackTables=new Map([...tables.values()].map(table=>[callbackKey(table.name),table]));
   const callbackIndexes=new Map([...indexes.values()].map(index=>[callbackKey(index.name),index]));
+  const rawEstimates = new Map<IndexNode, bigint[]>();
   const statTable=tables.get("sqlite_stat1");
   if(statTable){
     const cursor=database.tableCursor(statTable.rootPage);
     if(cursor.first())do {
+      context.check?.("load",1);
       let values;
       try {values=decodeRecord(cursor.payload(),database.encoding).values;}
       catch(error){throw new SchemaFormatError("invalid sqlite_stat1 record",{cause:error});}
@@ -773,6 +778,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       const mt=table as Mutable<TableNode>;
       if(index){
         const decoded=decodeEstimates(stat,[...index.rowLogEst],index.szIdxRow),mi=index as Mutable<IndexNode>;
+        rawEstimates.set(index,decodeStat4Counts(stat,index.terms.length+1,rawEstimates.get(index)));
         mi.rowLogEst=decoded.rows;mi.szIdxRow=decoded.width;mi.unordered=decoded.unordered;mi.noSkipScan=decoded.noSkipScan;mi.hasStat1=true;
         if(!index.partialWhere){mt.nRowLogEst=decoded.rows[0]!;mt.hasStat1=true;}
       }else{
@@ -781,7 +787,48 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
       }
     }while(cursor.next());
   }
-  for(const index of indexes.values()){if(!index.hasStat1)defaultRowEst(index);Object.freeze(index.rowLogEst);Object.freeze(index);}
+  for(const index of indexes.values())if(!index.hasStat1)defaultRowEst(index);
+  const stat4Table=tables.get("sqlite_stat4");
+  let sampleStates=new Map<IndexNode,IndexStat4>();
+  if(stat4Table&&!stat4Table.withoutRowid){
+    const stat4Rows=function*():IterableIterator<Stat4InputRow>{
+      const cursor=database.tableCursor(stat4Table.rootPage);
+      if(cursor.first())do {
+        context.check?.("load",1);
+        const values=decodeRecord(cursor.payload(),database.encoding).values;
+        if(values.length!==6)malformed("sqlite_stat4 record must have six fields");
+        const name=callbackText(values[1]!,database.encoding);
+        const sample=values[5]!;
+        // sqlite3_column_blob includes native numeric/text conversion.
+        const mem=new Mem();
+        if(sample.storageClass==="blob")mem.setBlob(sample.bytes);
+        else if(sample.storageClass==="text")mem.setText(sample.bytes,database.encoding);
+        else if(sample.storageClass==="integer")mem.setInt64(sample.value);
+        else if(sample.storageClass==="real")mem.setDouble(sample.value);
+        try {
+          const bytes=sample.storageClass==="null"?new Uint8Array():sample.storageClass==="blob"||sample.storageClass==="text"?sample.bytes:mem.textBytes();
+          yield {name,neq:callbackText(values[2]!,database.encoding),nlt:callbackText(values[3]!,database.encoding),ndlt:callbackText(values[4]!,database.encoding),bytes};
+        }finally{mem.release();}
+      }while(cursor.next());
+    };
+    sampleStates=loadStat4Samples(stat4Rows,name=>{
+      const direct=callbackIndexes.get(sqliteAsciiFold(name));if(direct)return direct;
+      const table=callbackTables.get(sqliteAsciiFold(name));
+      return table?.withoutRowid?table.indexes.find(i=>i.origin==="primary-key")??null:null;
+    },index=>({nSampleCol:index.table.withoutRowid&&index.origin==="primary-key"?index.terms.length:index.layout.fields.length,nKeyCol:index.terms.length,aiRowEst:rawEstimates.get(index)??null}),{maxBytes:context.maxStat4Bytes??connection[storageOwner].schemaAllowance,...(context.check?{check:context.check}:{})});
+  }
+  rawEstimates.clear();
+  let schemaBytes=0;
+  for(const index of indexes.values()){
+    const state=sampleStates.get(index);
+    if(state){
+      schemaBytes+=state.mxSample*(40+24*state.nSampleCol)+8*state.nSampleCol;
+      for(const sample of state.samples){schemaBytes+=sample.n+8;Object.freeze(sample.anEq);Object.freeze(sample.anLt);Object.freeze(sample.anDLt);Object.freeze(sample);}
+      Object.freeze(state.samples);Object.freeze(state.aAvgEq);Object.freeze(state);
+    }
+    (index as Mutable<IndexNode>).stat4=state??null;
+    Object.freeze(index.rowLogEst);Object.freeze(index);
+  }
   // Restore physical sqlite_schema declaration order after cross-linking tables.
   const byName = new Map<string, SchemaObject>([...tables, ...indexes, ...views]);
   for (const item of rows) {
@@ -790,6 +837,8 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier): SchemaGraph {
   }
   for (const table of tables.values()) { Object.freeze(table.indexes); Object.freeze(table.referencedBy); Object.freeze(table); }
   const graph = new SchemaGraph(connection, database.encoding, objects, tables, indexes, views);
+  context.check?.("finalize",1);
+  connection[storageOwner].publishSchema(schemaBytes,()=>{graphs.delete(key);});
   graphs.set(key, graph);
   return graph;
 }
