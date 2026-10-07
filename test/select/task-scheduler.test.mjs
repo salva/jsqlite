@@ -19,5 +19,7 @@ test('absent or throwing channel uses a real timer; partial resources close',asy
  try{globalThis.MessageChannel=undefined;await new ExecutionTaskScheduler().yield();
  globalThis.MessageChannel=class {port1={onmessage:null,close(){closed++}};port2={postMessage(){throw Error('unavailable')},close(){closed++}}};
  await new ExecutionTaskScheduler().yield();assert.equal(closed,2);
+ globalThis.MessageChannel=class {constructor(){throw Error('constructor unavailable')}};
+ await new ExecutionTaskScheduler().yield();assert.equal(closed,2);
  }finally{globalThis.MessageChannel=original}
 });
