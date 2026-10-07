@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import test from 'node:test';
+import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
+import {parseSql} from '../../src/internal/parse.ts';
 import {openFixture} from './public-api-adapter.mjs';
 const root=path.resolve('test/fixtures');const current=JSON.parse(fs.readFileSync(path.join(root,'CURRENT.json'),'utf8'));
 const bytes=fs.readFileSync(path.join(root,'generations',current.generationId,'generated/subquery-utf8.db'));
@@ -382,6 +384,47 @@ const cases=[
  ['SELECT 3 IN (SELECT min(d.x) FROM (SELECT x FROM t2 ORDER BY x DESC LIMIT 2) d) AS member',['member'],[[['integer',1n]]]],
  ['SELECT EXISTS(SELECT min(d.x) FROM (SELECT x FROM t2 ORDER BY x DESC LIMIT 0) d) AS hit',['hit'],[[['integer',1n]]]],
 ];
+test('constant derived aggregate nested source resolves before scalar metadata emission',async()=>{
+ const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  const [sql,names,expected]=cases[0];const stmt=db.prepare(sql).statement;
+  try{
+   assert.deepEqual(Array.from({length:stmt.columnCount},(_,i)=>stmt.columnMetadata(i).name),names);
+   for(let execution=0;execution<2;execution++){
+    const rows=[];while(await stmt.step()==='row')rows.push(Array.from({length:stmt.columnCount},(_,i)=>[stmt.columnType(i),stmt.column(i)]));
+    assert.deepEqual(rows,expected);stmt.reset();
+   }
+  }finally{stmt.finalize()}
+ }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});
+test('view transient resolution clears circular state and preserves explicit width errors',()=>{
+ const view={name:'loop',select:parseSql('SELECT * FROM loop').statement,columns:[],sql:''};
+ const schema={tables:new Map(),views:new Map([['loop',view]])};
+ for(let attempt=0;attempt<2;attempt++)assert.throws(()=>expandAndResolveSelect(parseSql('SELECT * FROM loop').statement,schema),e=>e instanceof NameResolutionError&&e.message==='view loop is circularly defined');
+ schema.views.set('loop',{...view,select:parseSql('SELECT 1').statement,columns:['a','b']});
+ assert.throws(()=>expandAndResolveSelect(parseSql('SELECT * FROM loop').statement,schema),e=>e instanceof NameResolutionError&&e.message==="expected 2 columns for 'loop' but got 1");
+ schema.views.set('loop',{...view,select:parseSql('SELECT 1 AS x').statement});
+ assert.equal(expandAndResolveSelect(parseSql('SELECT * FROM loop').statement,schema).result[0].name,'x');
+});
+test('nested view metadata resolves stored exposed columns before scalar emission',async()=>{
+ const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const [sql,names,expected] of cases.filter(([sql])=>/\bFROM (v1|v_inferred)\b/i.test(sql))){
+   const stmt=db.prepare(sql).statement;
+   try{
+    assert.deepEqual(Array.from({length:stmt.columnCount},(_,i)=>stmt.columnMetadata(i).name),names);
+    for(let execution=0;execution<2;execution++){
+     const rows=[];while(await stmt.step()==='row')rows.push(Array.from({length:stmt.columnCount},(_,i)=>[stmt.columnType(i),stmt.column(i)]));
+     assert.deepEqual(rows,expected,sql);stmt.reset();
+    }
+   }finally{stmt.finalize()}
+  }
+ }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
+});
 test('public scalar, correlated aggregate, EXISTS and IN preserve pinned destination rows, types, names, reset',async()=>{
  const server=http.createServer((_req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;

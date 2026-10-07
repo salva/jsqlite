@@ -1,0 +1,21 @@
+
+> jsqlite2@0.0.0-local-translated test:package
+> node --experimental-vm-modules test/package-distributable.test.mjs
+
+{
+  "result": "PASS",
+  "runtimeModules": 35,
+  "files": 72,
+  "tarball": {
+    "filename": "jsqlite2-0.0.0-local-translated.tgz",
+    "sha256": "5408e60d000082fec1c40451ce357a67737f1f9b9f7e7375c2a4326ea8227f26",
+    "shasum": "b078025ccbaec1193eb81e3a594ff18087231b31",
+    "integrity": "sha512-S1Fid6I+PZP+36wWYdq8ztutTM2oqB1FT9t3+A9OQ0piL6759cyepH4gVDd87bR9jgomBNRtKrlf/DP2WfQV/w==",
+    "size": 409201,
+    "unpackedSize": 2051316
+  },
+  "evidence": "/work/jsqlite2/.saivage/work/cards/card-h-e/package-validation/evidence.json",
+  "browser": "isolated browser-global VM, no GUI browser"
+}
+(node:1009859) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

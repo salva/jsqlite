@@ -68,9 +68,34 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+Partial prelowering OR mapping (current contracts: [WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes)):
+
+| Pinned owner | TypeScript producer/consumer | Focused evidence |
+| --- | --- | --- |
+| `whereexpr.c:exprAnalyzeOrTerm/whereCombineDisjuncts`, `whereInt.h` OR/AND info | `where-plan.ts` clause-owned analysis, masks, commutations, necessary combines, virtual IN retaining residual | `where-plan-analysis.test.mjs`; comparison/affinity/parser flags remain bounded |
+| `where.c:whereScanInit/Next` | `scanWhereTerms`, local/outer lookup, stable RHS/seek provenance, 11-slot equivalence | analysis tests; ordinary transitive lowering and full outer-join proof outstanding |
+| `where.c:whereOrInsert/Move`, `whereInt.h:WhereOrSet` | `where-or-cost.ts` exact ordered three-slot insertion/move/products | `where-or-cost.test.mjs`, including smallest-run full-slot behavior |
+| `where.c:whereLoopInsert` pOrSet, `whereLoopAddBtreeIndex`3284/3580ff, `whereLoopAddOr`4837/4880/4912ff | `btreeLoops` lazy proposals, shared budget, frame-local ignored recursive rc, per-call completion and immutable parent publication | production budget/completion tests in `where-plan-analysis.test.mjs`; status134–149 |
+| `where.c:whereLoopAddAll`4966/5025ff | `planWhere` source continuation/budget | ordinary budget/index controls; no exhaustive cleanup claim |
+| `vdbe.c` SeekGE/SeekLE `default_rc`, `btree.c` IndexMoveto | `btree.ts:indexSeek` biased prefix boundary descent, including equal interior separators and leaf/parent fallback | `or-rowid-red.test.mjs` native three-encoding multi-page typed rows/reset/page-read bound; [repair evidence](research/card-s-f-or/verification.md#multi-page-prefix-seek-boundary-repair) |
+| `rowset.c`, `vdbemem.c:sqlite3VdbeMemSetRowSet`, `vdbe.c:RowSetTest` | `rowset.ts` chunks/list/merge-sort/tree/forest batches; `Mem` destructor ownership; VM first/final batch bypass | `rowset.test.mjs` pinned C driver comparisons; `rowset-opcodes.test.mjs` continuation/NULL/reset/limits/Mem ownership; [[card:card-s-f-c]] status (internal only) |
+| `expr.c:sqlite3CodeSubselect`, `select.c:selectInnerLoop`, Case5 | prepared scalar/simple rowid child routes through shared `compileInnerTableSelect`; owned-expression binding precedes RHS extraction | `or-rowid-red.test.mjs` scalar first/empty/sorted/correlated reset cases; [native capture/evidence](research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair) |
+| `wherecode.c` Case5 and `disableTerm`419–444, `sqlite3WhereEnd`, VM Gosub/Return | `where-plan.ts:orArmClause/orRuntimeArmClause` retain owned original/commuted-child identities (cost versus Case5 factored scopes); ordinary driveable commuted-child omission eligibility remains conservative for nullable LEFT ON. Invocation-local `branchConsumedTerms` maps exact selected admissions to ready CODED identities and zero-child parent propagation without mutating published terms. Both `vdbe.ts:emitJoinedOr` and single-table `emitOr` consume that carrier before residual tests/RowSetTest/Gosub, retaining unready/nonadmitted/independent truth and untested enclosing parent residuals; shared builder owns NULL RowSet/safe return, nested continuations, per-outer-row initialization and IN restart. WhereEnd common-index Column/Rowid rewrite invalidates nested/different/nonindex arms; broader coded/factored omission fidelity remains incomplete | `or-branch-consumption.test.mjs` direct/AND/nested/ready/unready operand and public reset/error controls; `or-commuted-child.test.mjs` actual selected child, readiness/parent propagation, LEFT conservatism and repeated public branch roots; `or-rowid-red.test.mjs` three-encoding handoffs/continuations; [branch ownership](research/card-s-f-or/branch-consumption.md), [commuted ownership](research/card-s-f-or/commuted-child.md), [consumer evidence](research/card-s-f-or/verification.md) |
+
+Immutable multi-or loops retain original OR info, prerequisites, capability:null,
+setup0/sort0 and run+1/output; physical choice belongs to lowering. WR/unsafe joins
+remain fallback. [Native proposal](research/card-s-f-or.md),
+[revision-bound source detail](research/card-s-f-b-prelowering-detail.md) and
+[[card:card-s-f-b]] status retain commands/failures/provenance. This map grants no
+runtime OR selection or exhaustive compatibility credit.
+
+`whereLoopAddBtreeIndex` list-IN nIn (where.c3361–3363) maps to
+`indexLoopEstimate` immediate exprlist cardinality; all-encoding nested-function
+list-cost controls in `where-plan-analysis.test.mjs` (evidence [[card:card-s-f-b]],
+status attempt130). SELECT-IN multiplicity remains outside this proof.
 `whereLoopAddBtreeIndex` exploration (where.c3284,3580ff) maps to suspended
 `capabilities` proposals and immediate `whereLoopInsert` in `btreeLoops`;
-exhaustion closes exploration, not just admissions. `whereLoopAddAll`4966/5025ff
+early stops close suspended exploration, not just admissions. `whereLoopAddAll`4966/5025ff
 maps to `planWhere` shared budget/per-source continuation. Private production
 budget tests observe stopped composite leaf construction and later-index access.
 
@@ -112,7 +137,12 @@ Current boundaries: represented repeated RIGHT/FULL execution (single-barrier
 milestone superseded; independent goal acceptance pending), with temporary
 WITHOUT ROWID RIGHT/FULL composite keys and ordered physical-derived boundaries;
 selected expression/partial/covering/
-WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
+WITHOUT ROWID paths, not optimizer completeness. parse.y1388–1444 canonical null-test
+production, expr.c5319 unary operand coding and6847 NOTNULL implication map to
+where-plan.ts `notNullTarget`/structural identity and vdbe.ts resolved operand
+binders. Exact schema/analyzed predicate identity preserves covered partial
+residual omission; analysis and advanced-index regressions cover this seam
+([repair evidence](research/card-s-f-or/verification.md#canonical-null-consumer-repair)). Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit
 `scan.loopStart` including DeferredSeek before projecting a new row. WR NOT INDEXED
@@ -526,9 +556,15 @@ export original240/240, closure2034/2034 and read-only pinned120 snapshot equali
 are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
 reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
-STAT4 sample estimates unimplemented, noSkipScan retained/unconsumed, advanced24/30 and analyzeC0/24,
-OR/skipscan/wider SELECT/metadata/resource fences remain unchanged.
+### Positional stat1 skip-scan
 
+where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. STAT4 sample estimates remain unimplemented.
+
+wherecode.c925–960/1997–2099 and where.c7664ff → `where-prefix.ts` two-phase first/restart positioning and ordinary/joined/recursive-OR consumers in `vdbe.ts`: copy physical prefix before RHS/IN evaluation, strict GT/LT restart, physical keys without affinity conversion, IN exhaustion before prefix/final exit, equality NULL final versus bound NULL next, LEFT extension only after full exhaustion. `btree.ts` owns page-local seek and comparison-error conversion; VDBE owns registers/cache/control and operand cleanup. Tests: `skipscan-prefix-code`, `skipscan-position-owner`, `skipscan-prefix-seek`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` and public default compiled companions.
+
+Current bounded admission, typed WR/REAL/reset/rebind, selected DESC recursive-OR, NULL/LEFT and resource/corruption witnesses are indexed in [COVERAGE](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review). Detailed native-FIRST chronology, historical admission-copy versus default-production results and remaining limits are in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). This mapping does not certify universal optimizer, work/error-order or native OOM parity. Transformed EXISTS producer, vectors/subquery-IN and general joined ORDER remain unimplemented or unproved.
+
+Historical checkpoint: disabled lowering/internal-opt-in, advanced24/30 and analyzeC0/24 accounts describe earlier revisions, not current production. The superseded map text is retained verbatim in [F4 repair evidence](research/card-s-g/review-docs-repair.json); original tests/captures and chronology remain in IMPLEMENTATION. Current coherence guard: `skipscan-docs.test.mjs` ([independent review](research/card-s-g/REVIEW.md)).
 
 ### Current bounded infix caller repair — card-p-b-c (2026-10-04)
 
@@ -782,3 +818,69 @@ Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
 Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
 Revision-bound repair evidence: [[card:card-e-h]] status and
 [admission evidence](research/card-e-h-stat4-admission.md).
+
+`wherecode.c`2500–2505/2618–2630 OR_SUBCLAUSE notReady/untested terms →
+`emitJoinedOr` per-term prereqAll readiness checks and ordinary level-aware
+`codeOuterConstraints` full untested parent residual. Fully tested OR parents
+are omitted invocation-locally; selected exact constraints and eligible commuted
+parents use `branchConsumedTerms` as mapped above, without mutating shared terms.
+Tests/evidence: [not-ready residual repair](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+
+Represented-inner Case5 common iCovCur/pCov → `emitJoinedOr` level continuation
+and WhereEnd covered Column/Rowid rewrite; Case4 end-bound producer precedes
+patched IndexRangeEnd branch PC. Mixed-index invalidation/full residual/three-encoding
+public trace tests: [inner covering evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+
+| `resolve.c:resolveSelectStep` NC_AllowAgg classification; `expr.c` TK_AGG_FUNCTION | `resolve.ts` WHERE admission retains result/GROUP aggregate state; existing codegen owns missing aggregate context error. Unchanged scalar no-FROM preparation regression; [evidence](research/card-s-f-or/verification.md#aggregate-where-error-phase-ownership). |
+
+Low-multiplier literal-IN: where.c3396 flag → positional admission/capability `inSeekScan` (default enabled; explicit-disabled control); wherecode.c2043 → shared `emitPrefixSeek` GE-only descriptor, `(rowLogEst[0]+9)/10` steps/range marker; joined1965 → `IndexNullRow`/clearPosition; vdbe.c5093–5200 → `IndexCursor.seekScan` and VDBE register/cache/destination/control/accounting wrapper. `skipscan-lowmul-producer`, `skipscan-prefix-code`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` tests and disposable compiled native-first lowmul proof cover represented branches. Default no-skip low-multiplier SQL production now enabled and native-tested; skipped-prefix gate remains fenced; normal IN earlyout/SeekHit/SeekEq broader owner fidelity still open (flagged source path suppresses them). Source5337 IN order handling retained. [Chronology and gaps](research/card-s-g/IMPLEMENTATION.md); no default/whole optimizer credit.
+
+where.c3588 secondary nColumn/primary nKeyCol recursion limit → capabilities physical fieldCount independent of skipScan; default lowmul producer and public proof assert ordinal3 rowid bound and GT4 (GE3 without range). [Evidence](research/card-s-g/IMPLEMENTATION.md). Full cost/order traversal closure remains separately open.
+
+where.c3284/3580–3613 insertion/recursive-return order → shared proposal feedback for default ordinary as well as skip/OR index frames; zero debit OK, next insertion DONE, child return ignored. where-plan-analysis source state tests distinguish construction/IteratorClose/frontier; ordinary scalar transitive whereScanNext now shares original term/RHS physical-target admission and ready/commuted/residual lowering; borrowed IN unadmitted. [Evidence](research/card-s-g/IMPLEMENTATION.md).
+
+whereScanNext equivalence slots → default capabilities borrowed scalar admissions (original term/orientation/RHS affinity and physical field); existing joined bound extraction and ready masks/residual evaluation consume them. Native-first transitive-native.json/script and default public proof exercise equality, commuted join/LEFT and empty ISNULL. [Evidence](research/card-s-g/IMPLEMENTATION.md). No borrowed-IN/vector or whole equivalence machinery claim.
+
+wherecode979 EQ NULL addrBrk vs2000/2102 bound NULL addrNxt → existing equality/final vs prefix guards; null-in-native.json public private-seek tests assert distinct exits, nested IN and NOTNULL residuals. Default corruption/recovery/memory test modes validate existing source-based error/reset/cleanup owners without admission-copy edits; evidence in IMPLEMENTATION.md.
+
+Historical checkpoint: missing linked NOTNULL/VNULL producer/consumer predictions are superseded by the current linked NOTNULL owner mapping below; retain primitive captures and chronology in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+
+### Linked NOTNULL range owner
+whereexpr.c1331–1360 → where-plan.ts analyzeClause linked virtualNull GT child; where.c1921/2229/3292 → rangeRows and proposal admission; wherecode.c1997/2099 → ordinary/joined/OR VNULL guard exemption and normal end-NULL exit in vdbe.ts; aStartOp1852/2041 → where-prefix.ts zero-key Rewind/Last positioning. Column-only, excludes rowid/IPK/outer-ON; no additional expression/join admission. Producer regression and native-first NULL/caller public evidence: [implementation evidence](research/card-s-g/IMPLEMENTATION.md). Direction/end controls are covered by notnull-directions-native.json and skipscan-position-owner.test.mjs; complete matrix closure remains a review obligation.
+
+- wherecode.c2026 (nConstraint==nSkip) → `where-prefix.ts` positioned fall-through with carried keys/affinities; ordinary/joined/joined-OR consumers in `vdbe.ts` preserve restart/final/OR-return ownership. Source state tests: `skipscan-position-owner.test.mjs`; public/native mapping: [prefix continuation evidence](research/card-s-g/IMPLEMENTATION.md), `prefix-position-native.json`. Native OR companion exercises strict restart/cleanup but not reversed OR no-reseek selection.
+
+- wherecode.c2431 recursive OR `sqlite3WhereBegin(...,0,...)` → where-plan.ts OR-arm `orderBy:[]`; outer ASC/DESC does not reverse arm positioning. Tests: `or-order-position-native.json` through `skipscan-compiled-copy.test.mjs` strict GE/GT private bounds and typed/reset comparisons; [evidence](research/card-s-g/IMPLEMENTATION.md). where.c3618/5289 boundary Cartesian state tests: `skipscan-planner-producer.test.mjs`64 combinations (native threshold proof remains separate).
+
+- Physical DESC suffix endpoint comparison (wherecode.c range-start/end lowering) → `vdbe.ts` rangeReverse + shared prefix positioning; `desc-or-end-native.json` through public `skipscan-compiled-copy.test.mjs` verifies strict GT/2 versus inclusive GE/2 and strict GT/1 restarts. Other captured OR/IN/NOTNULL shapes are SCAN controls, not selected consumer credit; [evidence](research/card-s-g/IMPLEMENTATION.md).
+
+- where.c2749/5353–5364 XN_ROWID order and separate iSortIdx → `resolvedWhereOrder`/OrderRequirement null rowid carrier, ordinary scan and physical-tail consumers in `where-plan.ts`; producer rowid-sort-owner regression and desc-selected native/public evidence in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). Shared ordinary/joined resolver ORDER handoff preserves XN_ROWID; bounded controls close the former exhaustion/selection discrepancy.
+
+- wherecode.c2090ff RHS/NULL-before-end branch → joined `emitJoinedOr` records actual IndexRangeEnd opcode after bound emission, not pre-expression position. Final-op zero-reset assertion and native SCAN selection regression: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+
+- wherecode.c2431 recursive OR passes no ORDER BY → physical-forward shared restart. Native-selected DESC ordinary/joined OR18 shapes36 reset executions (GT/1 and suffix GT/2/GE/3): [coverage ledger](research/card-s-g/COVERAGE.md), desc-recursive-native/capture-desc-recursive.
+
+- where.c3060/3595 sqlite3ProgressCheck → WherePlanBudget.progressCheck, outputAdjust unused-term branch and capabilities deep equality recursion; SelectProgramBuilder/compileSelect shares prepare control with recursive OR. [Construction evidence](research/card-s-g/COVERAGE.md#construction-progress-repair); skipscan-construction-progress structural reproducer and producer/public behavioral tests.
+
+- where.c2662–2697/2740ff → properSubset/whereLoopAdjustCost/whereLoopInsert: skipscan-dominance-matrix2304+5184 bounded branch cases; build.c convertToWithoutRowid/isDupColumn → physical declared count/PK suffix: skipscan-wr-layout plus wr-layout-native18 selected shapes. [Remaining matrix evidence](research/card-s-g/IMPLEMENTATION.md#remaining-matrix-increment-after-focused172), [ownership handoff](research/card-s-g/HANDOFF.md).
+
+- where.c4835 LEFT-allowed OR admission /7694–7703 covering NullRow → where-plan btreeLoops and vdbe joined WhereEnd orCovering cursor: mixed-native30 shapes60 resets/private strict-prefix bounds, matched/exhausted/composite LEFT ON-OR. [Repair evidence](research/card-s-g/IMPLEMENTATION.md#left-on-or-accepted-red-repair).
+
+
+WHERE full-index admission/order: where.c4233–4295 → `where-plan.ts:indexProposals` before recursive `capabilities`; where.c4290/2838–2866 owning full-index DONE → explicit insertion-result carrier and three-encoding completion regression in `where-plan-analysis.test.mjs`. where.c3238–3650 empty recursive scan → no phantom proposal; three-encoding production empty-cost/debit control. Shared internal `whereLoopAddBtreeIndex`/`btreeIndexLoops` use the same runtime capability, cost and insertion owners; direct recursive parent/child DONE budget controls isolate already-admitted templates, not AddBtree full scans. [Open d9 preservation investigation](research/card-s-g/IMPLEMENTATION.md#d9-analysis-preservation-investigation-b-2026-10-08); unchanged joined-WR movement native companions/public probes and source budget controls. Partial-key GE default_rc: vdbe4943–4952 → `IndexCursor.seekKey`; advanced-index production probes assert biased nonzero comparisons with live KeyInfo/values and physical positions, not unbiased exact equality. [Integration repair evidence](research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07). No new cursor substitution or general optimizer acceptance.
+
+| Upstream owner | Current translation and tests |
+| --- | --- |
+| `select.c:8531,8884 sqlite3WhereBegin/End` joined aggregate input | `vdbe.ts:compileAggregateSelect` → existing `compileInnerTableSelect.consumeRow` / `planWhere`; group sorter capture and implicit update use positioned physical cursors. `aggregate-where-chinook.test.mjs`, outer/phase/derived aggregate suites. [Bounded evidence](research/card-l-c/aggregate-where-consumer.md). |
+
+### Execution host-task adaptation
+
+`vdbe.c:sqlite3VdbeExec`, `check_for_interrupt`, progress `nProgressLimit`;
+`vdbeapi.c:sqlite3_step/reset/finalize`, `vdbeaux.c:sqlite3VdbeHalt/Reset` →
+Vdbe checkpoint/control/error/lifecycle owners in `src/internal/vdbe.ts`; shared
+browser wait policy in `src/internal/task-scheduler.ts`. Host-task delivery is a
+bounded browser adaptation, not native VM-step/timing parity. Source rationale
+and evidence: [card-h-e](research/card-h-e/green.md). Tests:
+`test/select/task-scheduler.test.mjs`, `test/browser/scheduler-controls.mjs`,
+`test/browser/scheduler-latency-green.mjs` (unchanged red-program comparison),
+`test/select/first-select.test.mjs` (overflow/lifecycle).

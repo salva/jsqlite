@@ -1,0 +1,22 @@
+{
+  "docs/research/card-s-h/capture-first.py": "28bc20d8df02891546fcfe8b289b0b966385d4537df67134945872deb1d1e856",
+  "docs/research/card-s-h/UTF-8.db": "36fc2f1ca53b323ce3553f79a120c3c9401fcbd5073a9788c8fbdf7f1d1a457e",
+  "docs/research/card-s-h/UTF-16le.db": "c6100b2866ef2f568925007572a1d40e0ad3d4bbf703fc858b8e2116d6533638",
+  "docs/research/card-s-h/UTF-16be.db": "7a656ead5016f2b5f103bb232bb42a9986d431df003f52a641cd1ddbc5f386c1",
+  "docs/research/card-s-h/first-native.json": "163e98b8b0652669369071d6722f4217832a9af6d1920943070797c141d5b086",
+  "docs/research/card-s-h/first-owner.test.mjs": "163955a278d7debc47a8edab87c886c9d93dca02cfb583592fd4449defa19b91",
+  "docs/research/card-s-h/OWNERSHIP.md": "3ec8b30828a04d54badd263b55a797eb5fbbdf9263c547d99fe40e25720cae8a",
+  "reference/sqlite/manifest.json": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+  "reference/sqlite/sqlite-src-3530400/src/analyze.c": "d015f3d70cbf0701500c4f972bd845aa621b23e7be3a205878f5925cb1694f3a",
+  "reference/sqlite/sqlite-src-3530400/src/where.c": "e96a8fea366c785acbdc19ef4bd31f1d4cbe5a2aa7661a1286a1f4e491ae547c",
+  "reference/sqlite/sqlite-src-3530400/src/vdbemem.c": "df7532dfef62b136506d471c15e474fc2ed0303ef8886dfb7aca13f5e21ed568",
+  "reference/sqlite/sqlite-src-3530400/src/vdbeaux.c": "1d88b620f0d52107c9569285bbecf9c4b17e1b7cce139814db29a1acec9a004e",
+  "reference/sqlite/sqlite-src-3530400/src/sqliteInt.h": "3846e622b0a45aa4d13398556d549637a0c84d58599906a3a7c205b6d5e84cc3",
+  "reference/sqlite/sqlite-src-3530400/test/analyze9.test": "04ec547f8fde4a76a45bab1510a3a03e82319bb4bb3831d233757251524e88fc",
+  "src/internal/schema.ts": "fed24da4d75c1579489c035f7d94a298b05ccb82071dc1e96af1643f1afd3445",
+  "src/internal/comparison.ts": "3f9a96a7ea0726aeaa66db62979603a63db630c0278f7a7131151ec14f82d625",
+  "src/internal/mem.ts": "017b422b91b9d0f3983e5d13627fe71edb9e4df859674c8565634da3f4b8dbf1",
+  "src/internal/where-plan.ts": "59f74ca71c319c41fe22e9c8022a21bd9ae30504f3286b4c6e47d9dec212b861",
+  "tools/oracle/build.sh": "6d671eb9fdc7d445829ef3d8737a4c61853ff110fd349cd04dac24817fe51ba9",
+  "test/conformance/capture-index-planner.py": "ed2ee5ae2fb5ede739a998afa1726c5b041b522d0272cd6904b90d0c9f3a6ab8"
+}

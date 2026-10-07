@@ -5,19 +5,21 @@
 SPEC remains the broad read-only product scope. A private alpha describes current
 implemented admission and temporary debt, not a smaller product. No registry,
 public repository or external distribution; no operator configuration changes.
-The independently tested runtime source is `2f1545c`, with fresh core238 and
-additional352 passing. Later committed test-only coverage establishes malicious
-input/reuse, realistic indexed throughput, real Chromium credential/CORS and
-8.5MB overflow delivery. [Independent alpha.4 acceptance](card-v-alpha-four-acceptance.md)
-now establishes finite private-local readiness for release source `1984a9a`,
-runtime `2f1545c` and tarball SHA256 `d5949e25ab96c6ea73caaad210f02ecf9bd29d345e90880ddc4f3eb78359cb0e`.
-Package13, installed Chromium current38/separate historical-gap2, demo and affected42
-pass; native and core238/additional352 reuse is bound to unchanged runtime and
-fixture inputs. [Final package reconciliation](card-v-a-final-alpha.md) retains
-owner provenance. This is neither public release nor numerical/full compatibility.
-These later evidence-document edits are not a new tested artifact source.
-No dirty/staged peer repairs are included. Settled JSON r v24/f1eb053 remains retained; optional JSON
-breadth is not a prerequisite. Historical failed candidates stay historical.
+Current private-local candidate is alpha.5: accepted engine `b13190eb` plus
+committed evidence and release documentation, identified in
+[alpha.5 package evidence](card-v-a-alpha-five.md). Finite source readiness and
+independently hash-validated w227/native3 are not new artifact acceptance. Installed
+original-query native10 typed/all metadata and three reset executions/task progress
+are retained at [b131 readiness](card-v-new-alpha-b131-readiness.md); no historical
+causal speed ratio, hard realtime or synchronous prepare-preemption claim.
+New artifact-specific c demo/browser and d independent release acceptance remain
+required. No dirty/staged peers enter the committed export.
+
+Immutable [alpha.4 acceptance](card-v-alpha-four-acceptance.md) remains bound to
+source1984a9a/runtime2f1545c/artifactd5949e25, including its238/additional352 and
+browser evidence. Those historical results below are not blanket transfer to the
+changed engine. SPEC backlog remains temporary; no compatibility denominator or
+optional JSON breadth prerequisite is introduced.
 
 Advertised core consists of the existing public open/prepare/step/reset/
 finalize/bind/clear/column/close contract in [api](../api.md), for semantic graphs
@@ -39,6 +41,10 @@ approximated or reclassified. A semantic acceptance predicate must be supplied
 by code/owner evidence, not a SQL-text allowlist invented by integration.
 
 ## Supported evidence and temporary gaps
+
+The following historical alpha.4 intersections retain their original identities.
+For alpha.5, current source readiness and artifact checks are separately linked
+above; final installed browser/demo review decides transfer for changed inputs.
 
 | Supported finite intersection | Evidence and remaining boundary |
 |---|---|

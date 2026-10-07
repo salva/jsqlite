@@ -194,13 +194,77 @@ function defaultRowEst(index:IndexNode):void {
  if(index.unique)rows[index.terms.length]=0;
  (index as Mutable<IndexNode>).rowLogEst=rows;
 }
-/** analyze.c decodeIntArray: one-space prefix advance, uint64 accumulation. */
-function decodeEstimates(z:string,rows:number[],width:number):{rows:number[];width:number;unordered:boolean;noSkipScan:boolean} {
- let at=0;
- for(let i=0;i<rows.length&&at<z.length;i++){
-  let v=0n;while(at<z.length&&z[at]!>="0"&&z[at]!<="9"){v=BigInt.asUintN(64,v*10n+BigInt(z.charCodeAt(at++)-48));}
-  rows[i]=sqliteLogEst(v);if(z[at]===" ")at++;
+/** Count-bearing sample prefix shared by schema loading and its consumers. */
+export interface Stat4SampleCounts {
+ readonly anEq: readonly bigint[];
+ readonly anLt: readonly bigint[];
+ readonly anDLt: readonly bigint[];
+}
+export interface Stat4AverageState {
+ readonly samples: readonly Stat4SampleCounts[];
+ readonly nSample: number;
+ readonly nSampleCol: number;
+ nRowEst0: bigint;
+ readonly aAvgEq: bigint[];
+}
+/** analyze.c:initAvgEq. tRowcnt is u64, not signed i64: usual C arithmetic
+ * conversions make products/division unsigned where a row count participates.
+ * Only assignment to nDist100 reinterprets the resulting bits as signed. */
+export function initStat4AvgEq(state: Stat4AverageState, nKeyCol: number, aiRowEst: readonly bigint[] | null): void {
+ const final = state.samples[state.nSample - 1];
+ if (!final) throw new SchemaStateError("statistics average requires an accepted sample");
+ const u64 = (v: bigint) => BigInt.asUintN(64, v);
+ const i64 = (v: bigint) => BigInt.asIntN(64, v);
+ let nCol = 1;
+ if (state.nSampleCol > 1) { nCol = state.nSampleCol - 1; state.aAvgEq[nCol] = 1n; }
+ for (let col = 0; col < nCol; col++) {
+  let nSample = state.nSample, nRow: bigint, nDist100: bigint;
+  if (!aiRowEst || col >= nKeyCol || aiRowEst[col + 1] === 0n) {
+   nRow = final.anLt[col]!;
+   nDist100 = i64(u64(100n * final.anDLt[col]!));
+   nSample--;
+  } else {
+   nRow = aiRowEst[0]!;
+   nDist100 = i64(u64(100n * nRow) / aiRowEst[col + 1]!);
+  }
+  state.nRowEst0 = nRow;
+  let sumEq = 0n, nSum100 = 0n;
+  for (let i = 0; i < nSample; i++) {
+   if (i === state.nSample - 1 || state.samples[i]!.anDLt[col] !== state.samples[i + 1]!.anDLt[col]) {
+    sumEq = u64(sumEq + state.samples[i]!.anEq[col]!);
+    nSum100 = i64(nSum100 + 100n);
+   }
+  }
+  let avgEq = 0n;
+  if (nDist100 > nSum100 && sumEq < nRow) {
+   avgEq = u64(100n * u64(nRow - sumEq)) / u64(i64(nDist100 - nSum100));
+  }
+  state.aAvgEq[col] = avgEq === 0n ? 1n : avgEq;
  }
+}
+
+/** analyze.c decodeIntArray: zero allocated counts, uint64 accumulation.
+ * Reused aiRowEst destinations preserve untouched trailing slots. */
+export function decodeStat4Counts(z: string | null, nOut: number, out: bigint[] = Array<bigint>(nOut).fill(0n)): bigint[] {
+ if (!Number.isSafeInteger(nOut) || nOut < 0 || out.length !== nOut) throw new SchemaStateError("invalid statistics count array capacity");
+ decodeCountPrefix(z ?? "", nOut, (i, value) => { out[i] = value; });
+ return out;
+}
+/** Shared numeric producer, not a second STAT4 text parser. */
+function decodeCountPrefix(z: string, nOut: number, put: (i: number, value: bigint) => void): number {
+ let at = 0;
+ for (let i = 0; i < nOut && at < z.length && z[at] !== "\0"; i++) {
+  let value = 0n;
+  while (at < z.length && z[at]! >= "0" && z[at]! <= "9") {
+   value = BigInt.asUintN(64, value * 10n + BigInt(z.charCodeAt(at++) - 48));
+  }
+  put(i, value);
+  if (z[at] === " ") at++;
+ }
+ return at;
+}
+function decodeEstimates(z:string,rows:number[],width:number):{rows:number[];width:number;unordered:boolean;noSkipScan:boolean} {
+ let at=decodeCountPrefix(z,rows.length,(i,v)=>{rows[i]=sqliteLogEst(v);});
  let unordered=false,noSkipScan=false;
  while(at<z.length){const tail=z.slice(at);
   if(tail.startsWith("unordered"))unordered=true;

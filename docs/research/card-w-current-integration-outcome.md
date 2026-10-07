@@ -1,6 +1,101 @@
 # Current bounded integration outcome — [[card:card-w]]
 
-## Snapshot and result
+## Postalpha fixture repair (base c8f2f666, harness-only overlay)
+
+This checkpoint supersedes any inference that the older225-green snapshot below
+still describes current HEAD. Accepted diagnosis replay:219 completed,2 failing,
+4 watchdog timeouts,0 not-run, exit1. All225 were executed on committed source;
+no changed runtime overlay. Detailed identity/log provenance is in the card record.
+
+Five fixtures incorrectly treated the first zero-delay timer as the first host
+suspension. The current execution scheduler uses seven channel tasks before its
+timer turn. Suspension tests now gate the execution-owned `yield()` after **real**
+task delivery/port cleanup and before the caller resumes. The seek instrumentation
+counts that same real yield while seek is active. No checkpoints, budgets, SQL,
+row expectations or cancellation/reset/admission/cleanup assertions were removed.
+The shared test helper has channel and absent-channel regression cases and restores
+the prototype/release on cleanup. It is not runtime code or a microtask substitute.
+SQLite `vdbe.c:check_for_interrupt` owns error/progress checks; the TS scheduler is
+only a host-delivery adaptation. This fixture repair makes no universal timing or
+engine interruption guarantee.
+
+The aggregate structural test now requires the single-source local scan restriction
+**and** the joined `sharedJoinInput` WHERE producer feeding `insertGroupedRow`,
+with local Next excluded for shared input. Upstream `select.c` GROUP BY calls
+`sqlite3WhereBegin` before emitting SorterInsert; current TS `compileInnerTableSelect`
+owns joined ON/match/WHERE/null/drain production. This checks current semantic
+ownership rather than retaining the superseded textual branch signature.
+
+Six formerly red/timeout files independently pass under unchanged30s watchdogs:
+7+23+18+91+1+21 assertions in the initial scoped overlay. That overlay inadvertently
+excluded an existing committed aggregate suffix along with peer additions; it is
+not whole-file baseline credit. The final staged aggregate file restores every
+committed suffix case: fresh complete aggregate10/10 exit0 under30s. No test deletion
+is delivered. Combined corrected12-file selection passes0, with input/log drift[];
+its aggregate evidence is the scoped7 cases plus the separate complete10 rerun.
+Isolated export contains committed runtime and only
+explicit test overlays, plus local fixture prerequisites. Peer aggregate-test
+additions remain in main but are excluded from this evidence. This is not committed
+full225-green evidence. Combined verification and earlier failures are recorded in
+`record:///status.md?card=card-w`; exact input hashes/logs/manifests are under
+`work:///cards/card-w/repair-task-source/`. The earlier erroneous combined scheduler
+filename failed1 and is retained; correcting the file inventory is not a skip.
+No native runtime, product scope change, dependency or unrelated peer edit.
+
+## Live-timer fixture follow-up
+
+The verification replay after the initial fixture repair terminated226 completed /
+1 fail (227 selected), with no timeout/not-run and three native prerequisites0.
+Its separate DISTINCT membership live-abort test still raced an unrelated timer
+against a short channel-based probe: `step()` resolved before the timer fired.
+Three exact-name retries passed, so that failure was retained as instability,
+not dismissed. This is not evidence of a wrong typed row or engine interrupt defect.
+
+The test now starts the same `SELECT DISTINCT a FROM t2` and300-checkpoint Found
+probe, observes actual execution-owned host suspension, and holds the caller's
+resume until a real zero-delay timer delivers `during-found` cancellation. It
+asserts no abort before suspension, the saved cancellation on reset, and successful
+statement reuse afterward. No work/checkpoint/time limit inflation or scheduler
+runtime change. This deliberately tests live timer-delivered cancellation **during
+an observed suspension**, not a guarantee that every short operation outlasts an
+unrelated timer. Independent scheduler cadence/fallback and installed-browser timer
+fairness evidence remain separate. Commands/manifests and all earlier reds are in
+the current card record and `work:///cards/card-w/repair-task-source/`.
+Fresh follow-up: six complete relational18-case runs (three channel, three timer)
+exit0, then original225 plus helper/scheduler227-file replay exit0, all completed,
+no timeout/not-run, three native prerequisites0, input/log drift[]. This is
+committed runtime with explicit staged harness overlays, not committed-source
+or dirty-main green. Manifest SHA8192ba5f17868063786ea6bd1ecc849d28b8ec0578c15cc3d1de46afe6f5d0a6.
+Prior failed replay and historical broad failures remain retained and unwaived.
+
+## Exact sorter-check disposition and ready-candidate boundary
+
+Owner's unqualified “sorter-check timeout” has no distinct case identifier in the
+retained record. The reconstructable postalpha sorter-associated timeout is
+`aggregate-group-lifecycle.test.mjs`, case “group sorter suspension observes
+cancellation, preserves first error, resets and finalizes”: committed c8f2f666
+original225 replay manifest (SHA6a304db7150ada4b7bf8c29f69d6708cc28c76887b9398a213b16fdb6f0efd23)
+classifies timeout after30.066s, log SHAe62529109b9057c006e0faa79774247911b31d295056548edaf8ebc11a69fc43.
+Four preceding cases pass; fifth awaits intercepted first timer. The related
+relational timeout instead stopped before the Found suspension case (not proof its
+later sorter case was reached). Both exact names and current sorter deadline/work,
+cleanup and reset cases are replayed under unchanged30s/file watchdog. The repaired
+full227 run completes aggregate10/10 and relational18/18, with actual component
+exits0. This disposes **these** identified fixture-ordering timeouts, not a separate
+unidentified sorter timeout or the killed historical42-file monolith. No current
+engine sorter timeout established; an additional owner case needs its exact
+SQL/fixture/run identity before disposition. Historical evidence remains retained.
+
+Scoped candidate comprises accepted eight test/helper overlays and two owning guide/
+evidence documents only, on c8f2f666 (skipscanbb5cf804, aggregate7f534d95, scheduler
+c8f2f666). Peer staged entries/bytes excluded and preserved. Independent committed
+candidate replay identity and results belong in the current card record. No alpha
+version, artifact, immutable alpha4, deployment or publication change. Future normal
+priority local alpha remains a separate build/package/browser gate; known broader
+translation, cross-browser/fairness, clean-offline-cache and unidentified historical
+harness gaps are not converted to green by this bounded integration delivery.
+
+## Historical snapshot and result
 
 Base HEAD: `18435d0830f9daeec7aa93156e5f1cce9187b5a7` (approved compound repair).
 Reviewed integration index tree: `82cec07694d5e16cbf7bde78785b471a4d73259a`.

@@ -37,6 +37,19 @@ arbitrary compositions, performance or other-browser certification. Residual
 read-only breadth remains product backlog under unchanged SPEC; the subsequent
 independent postcandidate review does not impose a circular wait here.
 
+Owner-authorized [future LOCAL alpha readiness at b131](research/card-v-new-alpha-b131-readiness.md)
+is separate from immutable alpha.4 acceptance: coherent accepted source lineage,
+independently verified w227/native3, fresh isolated offline package closure72files/
+35JS and focused23 pass. Original query now supplied: independent pinned native
+10typed rows/all metadata match installed-tarball Chromium Fetch across three
+reset/reexecutions with actual task responsiveness measurements and fresh browser
+controls/security. **Alpha.5 candidate packaging** proceeds through the original a/c workflow:
+[current package evidence](research/card-v-a-alpha-five.md) identifies the explicit
+release source/artifact. Installed demo/browser and independent finite acceptance
+follow; source readiness is not artifact acceptance. Historical timing settings unavailable, no causal speedup ratio.
+Named historical sorter fixture red→current pass retained; unspecified concern
+unverified, not claimed fixed or a new blocker.
+
 Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
 LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
 SPEC is unchanged. This is not a registry/public repository release, external

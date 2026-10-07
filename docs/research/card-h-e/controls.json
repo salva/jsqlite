@@ -1,0 +1,80 @@
+{
+  "browser": "148.0.7778.96",
+  "results": [
+    {
+      "encoding": "utf8",
+      "family": "main",
+      "type": "integer"
+    },
+    {
+      "encoding": "utf8",
+      "family": "private",
+      "type": "text"
+    },
+    {
+      "encoding": "utf8",
+      "family": "scalar",
+      "type": "text"
+    },
+    {
+      "encoding": "utf8",
+      "family": "function",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16le",
+      "family": "main",
+      "type": "integer"
+    },
+    {
+      "encoding": "utf16le",
+      "family": "private",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16le",
+      "family": "scalar",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16le",
+      "family": "function",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16be",
+      "family": "main",
+      "type": "integer"
+    },
+    {
+      "encoding": "utf16be",
+      "family": "private",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16be",
+      "family": "scalar",
+      "type": "text"
+    },
+    {
+      "encoding": "utf16be",
+      "family": "function",
+      "type": "text"
+    },
+    {
+      "family": "resource",
+      "ticks": 20,
+      "live": 0,
+      "maxLive": 2
+    },
+    {
+      "family": "fallback",
+      "ticks": 966,
+      "live": 0,
+      "maxLive": 2
+    },
+    {
+      "family": "overflow"
+    }
+  ]
+}

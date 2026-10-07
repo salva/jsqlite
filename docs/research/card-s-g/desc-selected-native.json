@@ -1,0 +1,6321 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "chronology": "before constraint-equals-nSkip no-reseek repair",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-8.db",
+      "sha256": "aa9abeba4a68b22d9445c0131bad68d2eaee55ff1c5e1898193234da0e3823f9",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>997 OR b=1 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Gt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<2 OR b=999 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Lt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>=999 OR b=0 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ge",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<=0 OR b=998 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Le",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b IN (1,998,NULL) AND c IN (1,12,NULL) ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 68,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 58,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 3,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 3,
+              "p2": 9,
+              "p3": 1
+            },
+            {
+              "opcode": "Last",
+              "p1": 3,
+              "p2": 57,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 56,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 2,
+              "p3": 2
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 43,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 4,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Integer",
+              "p1": 12,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 4,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 6,
+              "p2": 31,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 9
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 9,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 9,
+              "p2": 54,
+              "p3": 0
+            },
+            {
+              "opcode": "NotFound",
+              "p1": 4,
+              "p2": 54,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 10,
+              "p2": 4,
+              "p3": 15
+            },
+            {
+              "opcode": "SorterInsert",
+              "p1": 1,
+              "p2": 15,
+              "p3": 10
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 28,
+              "p3": 0
+            },
+            {
+              "opcode": "IfNoHope",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Prev",
+              "p1": 3,
+              "p2": 23,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenPseudo",
+              "p1": 5,
+              "p2": 16,
+              "p3": 6
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterData",
+              "p1": 1,
+              "p2": 16,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 3,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 11,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterNext",
+              "p1": 1,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 1,
+            "vmSteps": 256
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND (t.b>997 OR t.b=1) ORDER BY t.rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 18,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekRowid",
+              "p1": 0,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 1,
+              "p2": 17,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Gt",
+              "p1": 3,
+              "p2": 11,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Ne",
+              "p1": 4,
+              "p2": 16,
+              "p3": 2
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 5,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20056
+          },
+          "nSkip": 0
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-16le.db",
+      "sha256": "751951755a9736337d0aadae7b74e6e82ce4ae224a9558445f35599d49328fb8",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>997 OR b=1 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Gt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<2 OR b=999 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Lt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>=999 OR b=0 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ge",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<=0 OR b=998 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Le",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b IN (1,998,NULL) AND c IN (1,12,NULL) ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 68,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 58,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 3,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 3,
+              "p2": 9,
+              "p3": 1
+            },
+            {
+              "opcode": "Last",
+              "p1": 3,
+              "p2": 57,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 56,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 2,
+              "p3": 2
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 43,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 4,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Integer",
+              "p1": 12,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 4,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 6,
+              "p2": 31,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 9
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 9,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 9,
+              "p2": 54,
+              "p3": 0
+            },
+            {
+              "opcode": "NotFound",
+              "p1": 4,
+              "p2": 54,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 10,
+              "p2": 4,
+              "p3": 15
+            },
+            {
+              "opcode": "SorterInsert",
+              "p1": 1,
+              "p2": 15,
+              "p3": 10
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 28,
+              "p3": 0
+            },
+            {
+              "opcode": "IfNoHope",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Prev",
+              "p1": 3,
+              "p2": 23,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenPseudo",
+              "p1": 5,
+              "p2": 16,
+              "p3": 6
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterData",
+              "p1": 1,
+              "p2": 16,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 3,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 11,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterNext",
+              "p1": 1,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 1,
+            "vmSteps": 256
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND (t.b>997 OR t.b=1) ORDER BY t.rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 18,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekRowid",
+              "p1": 0,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 1,
+              "p2": 17,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Gt",
+              "p1": 3,
+              "p2": 11,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Ne",
+              "p1": 4,
+              "p2": 16,
+              "p3": 2
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 5,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20056
+          },
+          "nSkip": 0
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-16be.db",
+      "sha256": "99148696dd174954ca1d8cf54e0639c83eb3da702248225c1c2e36700e1e2582",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>997 OR b=1 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Gt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<2 OR b=999 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Lt",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 2,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20053
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b>=999 OR b=0 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ge",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 999,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b<=0 OR b=998 ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1001"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2001"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3001"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "eqp": [
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 15,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 0,
+              "p2": 14,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Le",
+              "p1": 2,
+              "p2": 8,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Ne",
+              "p1": 3,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 0,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 1,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 0,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 4,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20041
+          },
+          "nSkip": 0
+        },
+        {
+          "sql": "SELECT rowid,a,b,c FROM t WHERE b IN (1,998,NULL) AND c IN (1,12,NULL) ORDER BY rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 68,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterOpen",
+              "p1": 1,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 58,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGT",
+              "p1": 2,
+              "p2": 58,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 21,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 3,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Integer",
+              "p1": 998,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 4,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 3,
+              "p2": 5,
+              "p3": 4
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 3,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 3,
+              "p2": 9,
+              "p3": 1
+            },
+            {
+              "opcode": "Last",
+              "p1": 3,
+              "p2": 57,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 0,
+              "p3": 2
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 2,
+              "p2": 56,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 0,
+              "p3": 1
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 2,
+              "p2": 55,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekHit",
+              "p1": 2,
+              "p2": 2,
+              "p3": 2
+            },
+            {
+              "opcode": "BeginSubrtn",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "Once",
+              "p1": 0,
+              "p2": 43,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenEphemeral",
+              "p1": 4,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Integer",
+              "p1": 12,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "Null",
+              "p1": 0,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 7,
+              "p2": 1,
+              "p3": 8
+            },
+            {
+              "opcode": "IdxInsert",
+              "p1": 4,
+              "p2": 8,
+              "p3": 7
+            },
+            {
+              "opcode": "NullRow",
+              "p1": 4,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Return",
+              "p1": 6,
+              "p2": 31,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 9
+            },
+            {
+              "opcode": "Affinity",
+              "p1": 9,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "IsNull",
+              "p1": 9,
+              "p2": 54,
+              "p3": 0
+            },
+            {
+              "opcode": "NotFound",
+              "p1": 4,
+              "p2": 54,
+              "p3": 9
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "IdxRowid",
+              "p1": 2,
+              "p2": 10,
+              "p3": 0
+            },
+            {
+              "opcode": "MakeRecord",
+              "p1": 10,
+              "p2": 4,
+              "p3": 15
+            },
+            {
+              "opcode": "SorterInsert",
+              "p1": 1,
+              "p2": 15,
+              "p3": 10
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 28,
+              "p3": 0
+            },
+            {
+              "opcode": "IfNoHope",
+              "p1": 2,
+              "p2": 57,
+              "p3": 1
+            },
+            {
+              "opcode": "Prev",
+              "p1": 3,
+              "p2": 23,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenPseudo",
+              "p1": 5,
+              "p2": 16,
+              "p3": 6
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 1,
+              "p2": 67,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterData",
+              "p1": 1,
+              "p2": 16,
+              "p3": 5
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 3,
+              "p3": 14
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 13
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 12
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 0,
+              "p3": 11
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 11,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterNext",
+              "p1": 1,
+              "p2": 60,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 0,
+            "sortOperations": 1,
+            "vmSteps": 256
+          },
+          "nSkip": 1
+        },
+        {
+          "sql": "SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND (t.b>997 OR t.b=1) ORDER BY t.rowid",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1000"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "13"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1002"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1999"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2000"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2002"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "12"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2999"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3000"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3002"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "9"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3999"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "998"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4000"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "999"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ]
+          ],
+          "eqp": [
+            "SEARCH x USING INTEGER PRIMARY KEY (rowid=?)",
+            "SCAN t"
+          ],
+          "opcodes": [
+            {
+              "opcode": "Init",
+              "p1": 0,
+              "p2": 18,
+              "p3": 0
+            },
+            {
+              "opcode": "Noop",
+              "p1": 2,
+              "p2": 6,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 0,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 1,
+              "p2": 2,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 1,
+              "p3": 0
+            },
+            {
+              "opcode": "SeekRowid",
+              "p1": 0,
+              "p2": 17,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 1,
+              "p2": 17,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Gt",
+              "p1": 3,
+              "p2": 11,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Ne",
+              "p1": 4,
+              "p2": 16,
+              "p3": 2
+            },
+            {
+              "opcode": "Rowid",
+              "p1": 1,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 0,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 1,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 1,
+              "p2": 2,
+              "p3": 8
+            },
+            {
+              "opcode": "ResultRow",
+              "p1": 5,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 1,
+              "p2": 7,
+              "p3": 0
+            },
+            {
+              "opcode": "Halt",
+              "p1": 0,
+              "p2": 0,
+              "p3": 0
+            },
+            {
+              "opcode": "Transaction",
+              "p1": 0,
+              "p2": 0,
+              "p3": 3
+            },
+            {
+              "opcode": "Integer",
+              "p1": 997,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Integer",
+              "p1": 1,
+              "p2": 4,
+              "p3": 0
+            },
+            {
+              "opcode": "Goto",
+              "p1": 0,
+              "p2": 1,
+              "p3": 0
+            }
+          ],
+          "counters": {
+            "fullscanSteps": 3999,
+            "sortOperations": 0,
+            "vmSteps": 20056
+          },
+          "nSkip": 0
+        }
+      ]
+    }
+  ]
+}

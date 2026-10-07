@@ -1,3 +1,4 @@
+import {suspendExecutionTask} from './suspend-execution-task.mjs';
 import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -1370,10 +1371,10 @@ test('aggregate RANGE cache reset and rebind rebuilds partition state without re
 });
 
 test('aggregate window cache suspension cancellation preserves PC and closes exactly once', async () => {
-  const {EphemeralIndexCursor}=await import('../../src/internal/private-state.ts');const insert=EphemeralIndexCursor.prototype.insert,close=EphemeralIndexCursor.prototype.close,timer=globalThis.setTimeout;let release,reached,closes=0,inject=true;const suspended=new Promise(resolve=>reached=resolve);
-  EphemeralIndexCursor.prototype.insert=async function(...args){if(inject)for(let i=0;i<300;i++)await args.at(-1).checkpoint(1);return insert.apply(this,args)};EphemeralIndexCursor.prototype.close=function(){closes++;return close.call(this)};globalThis.setTimeout=(callback,ms,...args)=>{if(ms===0&&!release){release=()=>timer(callback,0,...args);reached();return 0}return timer(callback,ms,...args)};
+  const {EphemeralIndexCursor}=await import('../../src/internal/private-state.ts');const insert=EphemeralIndexCursor.prototype.insert,close=EphemeralIndexCursor.prototype.close;let closes=0,inject=true;const gate=suspendExecutionTask(),{suspended,release}=gate;
+  EphemeralIndexCursor.prototype.insert=async function(...args){if(inject)for(let i=0;i<300;i++)await args.at(-1).checkpoint(1);return insert.apply(this,args)};EphemeralIndexCursor.prototype.close=function(){closes++;return close.call(this)};
   const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t1').statement;const controller=new AbortController(),pending=statement.step({signal:controller.signal});await suspended;controller.abort('window-stop');release();let first;try{await pending}catch(error){first=error}assert.equal(first?.kind,'cancelled');assert.equal(first?.cause,'window-stop');assert.throws(()=>statement.reset(),error=>error===first);assert.equal(closes,4);inject=false;const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));assert.deepEqual(rows,[16n,16n,16n,16n]);statement.finalize();statement=undefined;assert.equal(closes,8);
-  }finally{globalThis.setTimeout=timer;EphemeralIndexCursor.prototype.insert=insert;EphemeralIndexCursor.prototype.close=close;try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
+  }finally{gate.restore();EphemeralIndexCursor.prototype.insert=insert;EphemeralIndexCursor.prototype.close=close;try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });
 
 test('aggregate window suspended cache deadline preserves first error and restarts without replay', async () => {

@@ -1,0 +1,264 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtureSha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15",
+  "sql": "SELECT a.Title AS album,COUNT(*) AS tracks,ROUND(SUM(t.Milliseconds)/60000.0,1) AS total_minutes,ROUND(AVG(t.UnitPrice),2) AS average_price,SUM(CASE WHEN t.Milliseconds>300000 THEN 1 ELSE 0 END) AS tracks_over_5_minutes FROM Album a JOIN Track t ON t.AlbumId=a.AlbumId WHERE a.AlbumId BETWEEN 1 AND 20 GROUP BY a.AlbumId,a.Title HAVING COUNT(*)>=5 ORDER BY total_minutes DESC,album LIMIT 10;",
+  "metadata": [
+    {
+      "name": "album",
+      "declaredType": "NVARCHAR(160)",
+      "database": "main",
+      "table": "Album",
+      "origin": "Title"
+    },
+    {
+      "name": "tracks",
+      "declaredType": null,
+      "database": null,
+      "table": null,
+      "origin": null
+    },
+    {
+      "name": "total_minutes",
+      "declaredType": null,
+      "database": null,
+      "table": null,
+      "origin": null
+    },
+    {
+      "name": "average_price",
+      "declaredType": null,
+      "database": null,
+      "table": null,
+      "origin": null
+    },
+    {
+      "name": "tracks_over_5_minutes",
+      "declaredType": null,
+      "database": null,
+      "table": null,
+      "origin": null
+    }
+  ],
+  "rows": [
+    [
+      {
+        "type": "text",
+        "utf8Hex": "426967204f6e6573"
+      },
+      {
+        "type": "integer",
+        "value": "15"
+      },
+      {
+        "type": "real",
+        "ieee754be": "4052600000000000"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "8"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "416c636f686f6c204675656c6564204272657774616c697479204c69766521205b4469736320315d"
+      },
+      {
+        "type": "integer",
+        "value": "13"
+      },
+      {
+        "type": "real",
+        "ieee754be": "4050eccccccccccd"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "417564696f736c617665"
+      },
+      {
+        "type": "integer",
+        "value": "14"
+      },
+      {
+        "type": "real",
+        "ieee754be": "4050600000000000"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "4368656d6963616c2057656464696e67"
+      },
+      {
+        "type": "integer",
+        "value": "11"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404ecccccccccccd"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "4a6167676564204c6974746c652050696c6c"
+      },
+      {
+        "type": "integer",
+        "value": "13"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404cc00000000000"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "466163656c696674"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404b19999999999a"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "4f7574204f66204578696c65"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404ad9999999999a"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "426f647920436f756e74"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404a99999999999a"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "5761726e657220323520416e6f73"
+      },
+      {
+        "type": "integer",
+        "value": "14"
+      },
+      {
+        "type": "real",
+        "ieee754be": "4048333333333333"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      }
+    ],
+    [
+      {
+        "type": "text",
+        "utf8Hex": "5468652042657374204f662042696c6c7920436f6268616d"
+      },
+      {
+        "type": "integer",
+        "value": "8"
+      },
+      {
+        "type": "real",
+        "ieee754be": "404659999999999a"
+      },
+      {
+        "type": "real",
+        "ieee754be": "3fefae147ae147ae"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      }
+    ]
+  ]
+}

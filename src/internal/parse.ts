@@ -309,8 +309,10 @@ function productionAction(signature:string,children:readonly LemonValue<SqlToken
   return deepFreeze(selectAction(semanticOf<SelectSemantic>(children[selectIndex],"select"),leaves(root),sqlBytes,Object.freeze({recursive,ctes})));
  }
  if(signature.startsWith("cmd ::= select"))return semanticOf<SelectNode>(children[0],"cmd select");
- const tokens=leaves(root);
  if(signature.startsWith("cmd ::= create_table")||signature.startsWith("cmd ::= createkw uniqueflag INDEX")||signature.startsWith("cmd ::= createkw temp VIEW")||signature.startsWith("cmd ::= createkw trigger_decl")){
+  // Stored-DDL adaptation alone consumes descendant tokens. In particular,
+  // parse.y nexprlist appends ExprList; do not flatten every growing prefix.
+  const tokens=leaves(root);
   const ddl=ddlAction(root,tokens,sqlBytes);if(ddl)return deepFreeze(ddl);
  }
 }

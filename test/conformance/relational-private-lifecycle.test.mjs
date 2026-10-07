@@ -1,3 +1,4 @@
+import {suspendExecutionTask} from './suspend-execution-task.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -196,11 +197,11 @@ test('relational failure cleanup preserves first error and reset reuses the stat
 });
 
 test('connection admission remains exclusive while relational Found is suspended',async()=>{
- const originalFound=EphemeralIndexCursor.prototype.found,originalSetTimeout=globalThis.setTimeout;
+ const originalFound=EphemeralIndexCursor.prototype.found;
  EphemeralIndexCursor.prototype.found=async function(_key,control){for(let i=0;i<300;i++)await control.checkpoint(1);return false};
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement,release,reached;
- const suspended=new Promise(resolve=>{reached=resolve});
- globalThis.setTimeout=(callback,delay,...args)=>{if(delay===0&&!release){release=()=>originalSetTimeout(callback,0,...args);reached();return 0}return originalSetTimeout(callback,delay,...args)};
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
+ const gate=suspendExecutionTask(),{suspended,release}=gate;
+
  try{
   db=await openRelational(bridge);statement=db.prepare('SELECT DISTINCT a FROM t2').statement;
   const pending=statement.step();await suspended;
@@ -208,19 +209,19 @@ test('connection admission remains exclusive while relational Found is suspended
   await assert.rejects(statement.step(),error=>error instanceof JSQLiteError&&error.kind==='misuse');
   release();assert.equal(await pending,'row');
  } finally {
-  globalThis.setTimeout=originalSetTimeout;EphemeralIndexCursor.prototype.found=originalFound;
+  gate.restore();EphemeralIndexCursor.prototype.found=originalFound;
   try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
  }
 });
 
 test('public multi-key sorter cancellation preserves admission, cleanup, reset, and finalize',async()=>{
- const originalSort=SorterCursor.prototype.sort,originalClose=SorterCursor.prototype.close,originalSetTimeout=globalThis.setTimeout;
- let inject=true,closes=0,release,reached;
- const suspended=new Promise(resolve=>{reached=resolve});
+ const originalSort=SorterCursor.prototype.sort,originalClose=SorterCursor.prototype.close;
+ let inject=true,closes=0;
+ const gate=suspendExecutionTask(),{suspended,release}=gate;
  SorterCursor.prototype.sort=async function(control){if(inject)for(let i=0;i<300;i++)await control.checkpoint(1);return originalSort.call(this,control)};
  SorterCursor.prototype.close=function(){closes++;return originalClose.call(this)};
- globalThis.setTimeout=(callback,delay,...args)=>{if(delay===0&&!release){release=()=>originalSetTimeout(callback,0,...args);reached();return 0}return originalSetTimeout(callback,delay,...args)};
+
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db,statement;
  try{
   db=await openRelational(bridge);statement=db.prepare('SELECT x,y FROM t1 ORDER BY y,x').statement;
@@ -236,7 +237,7 @@ test('public multi-key sorter cancellation preserves admission, cleanup, reset, 
   statement.finalize();assert.equal(closes,2,'finalize does not re-close completed sorter');statement=undefined;
   const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
  } finally {
-  globalThis.setTimeout=originalSetTimeout;SorterCursor.prototype.sort=originalSort;SorterCursor.prototype.close=originalClose;
+  gate.restore();SorterCursor.prototype.sort=originalSort;SorterCursor.prototype.close=originalClose;
   try{release?.()}catch{}try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()));
  }
@@ -272,16 +273,26 @@ test('DISTINCT membership work yields so a live abort can be observed',async()=>
  };
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));
  let db,statement,timer;
+ const gate=suspendExecutionTask();
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
   statement=db.prepare('SELECT DISTINCT a FROM t2').statement;
   const controller=new AbortController();
-  timer=setTimeout(()=>controller.abort('during-found'),0);
-  await assert.rejects(
+  const rejected=assert.rejects(
    statement.step({signal:controller.signal}),
    error=>error?.kind==='cancelled'&&error.cause==='during-found',
   );
+  await gate.suspended;
+  assert.equal(controller.signal.aborted,false,'abort is delivered after actual execution host suspension');
+  // A short channel-based probe may finish before an unrelated timer. Hold
+  // its resume, not its work budget, until a real timer delivers cancellation.
+  await new Promise(resolve=>{timer=setTimeout(()=>{controller.abort('during-found');resolve()},0)});
+  gate.release();
+  await rejected;
+  assert.throws(()=>statement.reset(),error=>error?.kind==='cancelled'&&error.cause==='during-found');
+  assert.equal(await statement.step(),'row','reset can reuse the statement after reporting the saved cancellation');
  } finally {
+  gate.restore();
   if(timer!==undefined)clearTimeout(timer);
   try{statement?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}

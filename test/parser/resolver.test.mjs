@@ -98,7 +98,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT median(x), percentile(x,x), percentile_cont(x,x), percentile_disc(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT median(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function median()');
  assert.throws(()=>resolve('SELECT percentile(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function percentile()');
- assert.throws(()=>resolve('SELECT median(x) FROM a WHERE median(x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
+ // Aggregate SELECT retains NC_AllowAgg in WHERE; missing AggInfo is a codegen error.
+ assert.doesNotThrow(()=>resolve('SELECT median(x) FROM a WHERE median(x)>0'));
+ assert.throws(()=>resolve('SELECT x FROM a WHERE median(x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function median()');
  assert.doesNotThrow(()=>resolve('SELECT ceil(x), ceiling(x), floor(x), trunc(x), ln(x), log(x), log(x,x), log10(x), log2(x), exp(x), pow(x,x), power(x,x), mod(x,x), acos(x), asin(x), atan(x), atan2(x,x), cos(x), sin(x), tan(x), cosh(x), sinh(x), tanh(x), acosh(x), asinh(x), atanh(x), sqrt(x), radians(x), degrees(x), pi() FROM a'));
  assert.throws(()=>resolve('SELECT pi(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function pi()');
  assert.throws(()=>resolve('SELECT pow(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function pow()');
@@ -108,7 +110,8 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.doesNotThrow(()=>resolve('SELECT json_group_array(x), jsonb_group_array(x), json_group_object(x,x), jsonb_group_object(x,x) FROM a'));
  assert.throws(()=>resolve('SELECT json_group_array(x,x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_group_array()');
  assert.throws(()=>resolve('SELECT json_group_object(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function json_group_object()');
- assert.throws(()=>resolve('SELECT json_group_array(x) FROM a WHERE json_group_array(x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function json_group_array()');
+ assert.doesNotThrow(()=>resolve('SELECT json_group_array(x) FROM a WHERE json_group_array(x)>0'));
+ assert.throws(()=>resolve('SELECT x FROM a WHERE json_group_array(x)>0'),e=>e instanceof NameResolutionError&&e.message==='misuse of aggregate function json_group_array()');
  assert.doesNotThrow(()=>resolve('SELECT json_array_insert(x), json_array_insert(x,x,x), jsonb_array_insert(x,x,x), json_parse(x) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT json_extract(x), json_extract(x,x), jsonb_extract(x,x), json_insert(x), json_insert(x,x,x), jsonb_insert(x,x,x), json_object(), json_object(x,x), jsonb_object(x,x), json_remove(x), json_remove(x,x), jsonb_remove(x,x), json_replace(x), json_replace(x,x,x), jsonb_replace(x,x,x), json_set(x), json_set(x,x,x), jsonb_set(x,x,x) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT json(x), jsonb(x), json_array(), json_array(x,x), jsonb_array(x), json_array_length(x), json_array_length(x,x), json_error_position(x), json_patch(x,x), jsonb_patch(x,x), json_pretty(x), json_pretty(x,x), json_quote(x), json_type(x), json_type(x,x), json_valid(x), json_valid(x,x) FROM a'));

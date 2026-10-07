@@ -1,0 +1,3447 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "chronology": "same-native-statement typed reset/rebind before any corresponding runtime repair",
+  "variants": [
+    {
+      "encoding": "utf-8",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-8.db",
+      "sha256": "aa9abeba4a68b22d9445c0131bad68d2eaee55ff1c5e1898193234da0e3823f9",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b>=?1 AND b<=?2 ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b>? AND b<?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                "998",
+                999
+              ],
+              "bindingTypes": [
+                "text",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null,
+                999
+              ],
+              "bindingTypes": [
+                "null",
+                "integer"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b IS ?1 AND c IN (1,12) ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                "998"
+              ],
+              "bindingTypes": [
+                "text"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "bindingTypes": [
+                "null"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf-16le",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-16le.db",
+      "sha256": "751951755a9736337d0aadae7b74e6e82ce4ae224a9558445f35599d49328fb8",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b>=?1 AND b<=?2 ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b>? AND b<?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                "998",
+                999
+              ],
+              "bindingTypes": [
+                "text",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null,
+                999
+              ],
+              "bindingTypes": [
+                "null",
+                "integer"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b IS ?1 AND c IN (1,12) ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                "998"
+              ],
+              "bindingTypes": [
+                "text"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "bindingTypes": [
+                "null"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf-16be",
+      "control": "tail",
+      "tail": "18",
+      "fixture": "desc-selected/utf-16be.db",
+      "sha256": "99148696dd174954ca1d8cf54e0639c83eb3da702248225c1c2e36700e1e2582",
+      "cases": [
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b>=?1 AND b<=?2 ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b>? AND b<?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f340000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                "998",
+                999
+              ],
+              "bindingTypes": [
+                "text",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null,
+                999
+              ],
+              "bindingTypes": [
+                "null",
+                "integer"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0,
+                999
+              ],
+              "bindingTypes": [
+                "real",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f380000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998,
+                999
+              ],
+              "bindingTypes": [
+                "integer",
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "13"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "7"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "4000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "sql": "SELECT rowid,a,b,c,?1 FROM t WHERE b IS ?1 AND c IN (1,12) ORDER BY rowid",
+          "eqp": [
+            "SEARCH t USING COVERING INDEX ad (ANY(a) AND b=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "nSkip": 1,
+          "runs": [
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "408f300000000000"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                998.5
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                "998"
+              ],
+              "bindingTypes": [
+                "text"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "393938"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [
+                null
+              ],
+              "bindingTypes": [
+                "null"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                999.0
+              ],
+              "bindingTypes": [
+                "real"
+              ],
+              "rows": []
+            },
+            {
+              "bindings": [
+                998
+              ],
+              "bindingTypes": [
+                "integer"
+              ],
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "999"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "12"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "998"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

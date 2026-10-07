@@ -1,0 +1,416 @@
+[
+  {
+    "encoding": "utf8",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf8",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf8",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND (y.a=1 OR y.b='beta') AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16le",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND (y.a=1 OR y.b='beta') AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE (x.a=1 OR x.b='beta') AND x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  },
+  {
+    "encoding": "utf16be",
+    "sql": "SELECT x.id,y.id FROM o x CROSS JOIN o y WHERE x.id<=2 AND (y.a=1 OR y.b='beta') AND y.rowid<=2 ORDER BY x.id,y.id",
+    "rows": [
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "1"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": 1,
+          "value": "2"
+        },
+        {
+          "type": 1,
+          "value": "2"
+        }
+      ]
+    ]
+  }
+]

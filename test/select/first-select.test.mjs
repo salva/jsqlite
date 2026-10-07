@@ -91,8 +91,15 @@ test("long table scan yields and observes cancellation after execution begins", 
   const db=await openBytes("storage-p4096");
   const s=db.prepare("SELECT k FROM storage_values WHERE i=999999").statement;
   const controller=new AbortController();
-  setTimeout(()=>controller.abort("mid-scan"),0);
-  await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="mid-scan");
+  const realTimer=globalThis.setTimeout;let timerTurns=0;
+  globalThis.setTimeout=(handler,delay,...args)=>{
+    timerTurns++;realTimer(()=>controller.abort('mid-scan'),0);
+    return realTimer(handler,delay,...args);
+  };
+  try {
+    await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="mid-scan");
+    assert.ok(timerTurns>0,'long scan reaches an explicit scheduler timer turn');
+  } finally {globalThis.setTimeout=realTimer;}
   assert.throws(()=>s.finalize(),isError("cancelled"));
   db.close();
 });
@@ -112,8 +119,23 @@ test("overflow storage work is charged and permits live cancellation and timeout
   const db=await openBytes("storage-p4096");
   const s=db.prepare("SELECT t FROM storage_values WHERE i=0").statement;
   const controller=new AbortController();
-  setTimeout(()=>controller.abort("overflow-page"),0);
-  await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="overflow-page");
+  // A short record may use fewer than eight task turns. Cross-source ordering
+  // does not promise a timer before ROW; deliver abort at an actual channel
+  // checkpoint instead of depending on Node's timer/MessagePort ordering.
+  const NativeChannel=globalThis.MessageChannel;
+  let delivered=0;
+  globalThis.MessageChannel=class extends NativeChannel {
+    constructor(){super();const port=this.port1;
+      Object.defineProperty(port,'onmessage',{set(handler){
+        if(handler===null)return;
+        port.addEventListener('message',event=>{delivered++;controller.abort('overflow-page');handler(event)},{once:true});port.start();
+      }});
+    }
+  };
+  try {
+    await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="overflow-page");
+    assert.ok(delivered>0,'abort delivered during an awaited overflow task');
+  } finally {globalThis.MessageChannel=NativeChannel;}
   assert.throws(()=>s.reset(),isError("cancelled"));
   assert.equal(await s.step(),"row");
   assert.ok(s.columnText(0).length > 4096);

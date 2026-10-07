@@ -3,7 +3,7 @@
 // these are costs only, never physical branch choices or published loops.
 export interface WhereOrCost {prereq:bigint;rRun:bigint;nOut:bigint}
 export interface WhereOrSet {a:WhereOrCost[]}
-export interface OrConstructionBudget {remaining:number}
+export interface OrConstructionBudget {remaining:bigint}
 
 export function whereOrMove(dest:WhereOrSet,src:WhereOrSet):void {
  dest.a=src.a.map(cost=>({...cost}));
@@ -34,7 +34,7 @@ export function whereOrInsert(set:WhereOrSet,prereq:bigint,rRun:bigint,nOut:bigi
  * nLTerm counts actual constrained terms, not the loop's residual expression list.
  */
 export function whereOrCollect(set:WhereOrSet,budget:OrConstructionBudget,nLTerm:number,cost:WhereOrCost):boolean {
- if(budget.remaining===0){set.a.length=0;return false;}
+ if(budget.remaining===0n){set.a.length=0;return false;}
  budget.remaining--;
  if(nLTerm>0)whereOrInsert(set,cost.prereq,cost.rRun,cost.nOut);
  return true;

@@ -1,3 +1,4 @@
+import {suspendExecutionTask} from './suspend-execution-task.mjs';
 import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';import path from 'node:path';import test from 'node:test';import {startFixtureServer} from './fixture-server.mjs';import {openFixture} from './public-api-adapter.mjs';
 import {open,JSQLiteError} from '../../src/index.ts';
@@ -36,10 +37,10 @@ test('compound private state enforces row and byte bounds and restores admission
 });
 
 test('compound active suspension preserves PC, exclusive admission, cancellation, cleanup, reset and finalize',async()=>{
- const timer=globalThis.setTimeout;let release,reached;const suspended=new Promise(r=>{reached=r});globalThis.setTimeout=(cb,ms,...args)=>{if(ms===0&&!release){release=()=>timer(cb,0,...args);reached();return 0}return timer(cb,ms,...args)};
+ const gate=suspendExecutionTask(),{suspended,release}=gate;
  const bridge=await startFixtureServer(root);let db,s;
- try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));const sql=Array.from({length:10},()=> 'SELECT x FROM t1').join(' UNION ALL ');s=db.prepare(sql).statement;const abort=new AbortController(),pending=(async()=>{while(await s.step({signal:abort.signal})==='row'){} })();await suspended;assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse');await assert.rejects(s.step(),e=>e.kind==='misuse');abort.abort('compound-stop');release();await assert.rejects(pending,e=>e.kind==='cancelled'&&e.cause==='compound-stop');assert.throws(()=>s.reset(),e=>e.kind==='cancelled');globalThis.setTimeout=timer;let count=0;while(await s.step()==='row')count++;assert.equal(count,320,'reset executes each arm once without restart or duplicates');s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
- finally{globalThis.setTimeout=timer;try{release?.()}catch{}try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
+ try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));const sql=Array.from({length:10},()=> 'SELECT x FROM t1').join(' UNION ALL ');s=db.prepare(sql).statement;const abort=new AbortController(),pending=(async()=>{while(await s.step({signal:abort.signal})==='row'){} })();await suspended;assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse');await assert.rejects(s.step(),e=>e.kind==='misuse');abort.abort('compound-stop');release();await assert.rejects(pending,e=>e.kind==='cancelled'&&e.cause==='compound-stop');assert.throws(()=>s.reset(),e=>e.kind==='cancelled');gate.restore();let count=0;while(await s.step()==='row')count++;assert.equal(count,320,'reset executes each arm once without restart or duplicates');s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
+ finally{gate.restore();try{release?.()}catch{}try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('compound deadline and exact work bound keep first error and cleanup',async()=>{

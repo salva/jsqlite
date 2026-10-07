@@ -1,0 +1,24 @@
+✔ compiled scalar program preserves ordered columns, parameters, values and tails (69.60091ms)
+✔ table scan uses shared record Mem and publishes fresh exact metadata (233.273211ms)
+✔ step control failures are saved, cleaned by reset/finalize, and connection bounds cannot be relaxed (7.486381ms)
+✔ long table scan yields and observes cancellation after execution begins (8.334085ms)
+✔ overflow storage work is charged and permits live cancellation and timeout at page checkpoints (105.774042ms)
+✔ lazy storage failures cross one public mapping boundary and retain lifecycle semantics (26.475707ms)
+✔ lazy execution mapper preserves public and arbitrary non-storage errors (1.805725ms)
+✔ connection admission rejects every overlap while a VM is held at a real host yield (76.567682ms)
+✔ scalar admission is acquired synchronously and binding requires reset after execution (3.950367ms)
+✔ public parameter binding uses each database encoding and copies blobs (14.859916ms)
+✔ live statement close is BUSY, deferred close keeps VM alive, and breadth is explicit (25.27668ms)
+✔ task scheduling is bounded, ports close before resume, timer turns remain periodic (46.470286ms)
+✔ absent or throwing channel uses a real timer; partial resources close (10.408804ms)
+✔ production SeekScan wrapper UTF-8 (45.707758ms)
+✔ production SeekScan wrapper UTF-16le (27.935025ms)
+✔ production SeekScan wrapper UTF-16be (17.452325ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1041.790557

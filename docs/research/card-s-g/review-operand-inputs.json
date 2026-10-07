@@ -1,0 +1,23 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "captureSha256": "a31288465d1b59c0f9021022bb62e4bbb1d87a154043a12110b1bd5cbfcb42b5",
+  "fixtures": [
+    {
+      "encoding": "UTF-8",
+      "sha256": "5440c9b322ce13249ee99726edb9aeb464e64f8a97438413bc669d2a40649c95",
+      "cases": 39
+    },
+    {
+      "encoding": "UTF-16le",
+      "sha256": "7cb88e47353d9cdcf2d4c01325a9545156fc12681584dde41438f8f7c6d988f6",
+      "cases": 39
+    },
+    {
+      "encoding": "UTF-16be",
+      "sha256": "7b5d83f9ef4365808f7208f62f7d4fdcc65c9618a6b66b7893ba5bb07f8075e2",
+      "cases": 39
+    }
+  ],
+  "scriptSha256": "8709a22be636f9c9d58671e884f4d0847feb02a53cd4ba591a4bddd59080b8c7",
+  "oracleSha256": "12120ce87f786f6b0bec71e0eb7caff10a456e2e983ba683b25e0f3d55bb288d"
+}

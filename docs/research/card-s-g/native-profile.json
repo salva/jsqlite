@@ -1,0 +1,1 @@
+{"version":"3.53.4","versionNumber":3530400,"sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc","compileOptions":["ENABLE_COLUMN_METADATA","ENABLE_MATH_FUNCTIONS"],"probes":{"json":true,"math":true,"prepare16":true,"utf8":true,"utf16le":true,"utf16be":true,"floatingPoint":true,"columnMetadata":true,"autoreset":true}}
