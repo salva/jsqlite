@@ -1339,3 +1339,11 @@ Skip-scan evidence and still-open original implementation obligations are consol
 Remaining skip-scan delivery ledger now links source subset/insertion Cartesian controls, redundant WR declared/PK layout and typed REAL reset/rebinding companions plus selected payload-size corruption evidence in [coverage](research/card-s-g/COVERAGE.md). These are bounded production/source checks, not original-b closure; [mixed ownership handoff](research/card-s-g/HANDOFF.md) has delivered scoped owner dispositions; committed integration evidence remains separately gated. Reserved serial11 native progress interruption is not corrupt11-equivalence evidence.
 
 LEFT ON-OR now uses the same source-owned multi-OR/skip-prefix pipeline as represented inner callers (where.c4835 excludes RIGHT/FULL, not LEFT). Final LEFT exhaustion nulls the Case5 covering cursor as well as the table before shared body re-entry, preserving rewritten Column/Rowid NULLs (where.c7694). Bounded matching/empty/composite and mixed-IN controls are mapped in [coverage](research/card-s-g/COVERAGE.md#left-on-or-owner-repair); this is not broader join/optimizer completion.
+
+### Joined aggregate WHERE producer
+Joined GROUP BY and implicit aggregate production consume the existing shared
+WHERE loop through its physical-row callback, before sorter capture or aggregate
+update (`select.c:sqlite3WhereBegin/End`). ON/WHERE, outer continuation and selected
+access remain WHERE-owned; finalization/HAVING/destinations remain aggregate-owned.
+Single-source and retained coroutine contracts are unchanged. See
+[bounded consumer evidence](research/card-l-c/aggregate-where-consumer.md).
