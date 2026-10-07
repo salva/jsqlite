@@ -1,0 +1,21 @@
+✔ UTF-8: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (1927.258841ms)
+✔ UTF-16le: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (1132.888376ms)
+✔ UTF-16be: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (934.597078ms)
+✔ UTF-8: STAT4 parameter reset/rebind keeps typed rows and metadata (984.295052ms)
+✔ UTF-16le: STAT4 parameter reset/rebind keeps typed rows and metadata (782.856682ms)
+✔ UTF-16be: STAT4 parameter reset/rebind keeps typed rows and metadata (681.258734ms)
+✔ second copy-chunk failure closes traversal before malformed successor and allows retry (21.609779ms)
+✔ partial final overflow page charges only requested bytes and closes exactly once (1.644511ms)
+✔ pre-fetch failure closes traversal without reading overflow, then same owner succeeds (0.832601ms)
+✔ schema envelope derives acquisition allowance 106496 and conserves ownership at exact boundary (7.430626ms)
+✔ schema envelope derives acquisition allowance 212992 and conserves ownership at exact boundary (0.96349ms)
+✔ schema envelope derives acquisition allowance 9007199254740991 and conserves ownership at exact boundary (0.5308ms)
+✔ public prepare schema work/cancellation/deadline failures permit same-open retry (333.111389ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5191.942726

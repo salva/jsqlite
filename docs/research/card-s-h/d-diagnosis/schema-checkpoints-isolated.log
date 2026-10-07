@@ -1,0 +1,18 @@
+✔ UTF-8: every observed schema construction checkpoint preserves primary and same-owner retry (8659.79709ms)
+✔ UTF-16le: every observed schema construction checkpoint preserves primary and same-owner retry (8236.250869ms)
+✔ UTF-16be: every observed schema construction checkpoint preserves primary and same-owner retry (8684.687254ms)
+✔ public prepare schema work/cancellation/deadline failures permit same-open retry (182.472975ms)
+✔ low internal schema envelope failure leaves no cache, same-handle retry and close release (73.996461ms)
+✔ pass failures preserve primary error, unpublished bytes and retry on same owner (120.813988ms)
+✔ no stat1 still loads samples, WITHOUT ROWID aliases do not merge capacities (15.146225ms)
+✔ close during construction prevents publication and keeps primary failure (5.570516ms)
+✔ schema sample bytes are privately owned, published count arrays are frozen (9.36917ms)
+✔ outer stat4 btree payload copy is checked before unpublished schema construction (14.655859ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26003.315479
