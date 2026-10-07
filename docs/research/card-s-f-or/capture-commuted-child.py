@@ -8,7 +8,7 @@ for v in json.load(open('docs/research/card-s-f-or/native.json'))['variants']:
   eqp=n.explain(d,db,'EXPLAIN QUERY PLAN ',case['sql'],[]);assert 'MULTI-INDEX OR' in eqp if case['id']!='unready' else True
   program,_=n.query(d,db,'EXPLAIN '+case['sql'],[]);st=C.c_void_p();assert d.sqlite3_prepare_v2(db,case['sql'].encode(),-1,C.byref(st),None)==0;runs=[]
   for value in [1,-9223372036854775808,2,None]:
-   
+
    if '?' in case['sql']:n.bind(d,st,[value])
    rows=[]
    while True:
