@@ -367,8 +367,8 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    const info=parent.info;
    if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n||parent.origin.kind==="join-on"&&parent.origin.join==="left")continue;
    const sum:WhereOrSet={a:[]};let first=true;
-   for(const arm of info.clause.terms){
-    const armClause=orArmClause(arm,sourceOrdinal,clause);
+   for(const arm of info.clause.terms.filter(term=>!term.virtual)){
+    const armClause=orArmClause(arm,sourceOrdinal,clause,info.clause);
     if(!armClause)continue;
     const current:WhereOrSet={a:[]},armCompletion={done:false};
     btreeLoops(source,sourceOrdinal,armClause,{...options,orderBy:[],planBudget:budget,orSet:current,completion:armCompletion,ordinaryLoops:options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops});
@@ -386,16 +386,17 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
 /** where.c:whereLoopAddOr arm dispatch. AND info owns its clause; a direct
  * term must match iCur and tempWC owns one stored orientation only. The OR
  * clause itself is not an outer constraint scope. Internal lowering handoff. */
-export function orArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause):WhereClause|null {
+export function orArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause,owned?:WhereClause):WhereClause|null {
  if(arm.info?.kind==="and")return arm.info.clause;
- return arm.left?.sourceOrdinal===sourceOrdinal?whereClause([arm],outer):null;
+ const terms=[arm,...(owned?.terms.filter(term=>term.parentId===arm.id)??[])];
+ return terms.some(term=>term.left?.sourceOrdinal===sourceOrdinal)?whereClause(terms,outer):null;
 }
 /** wherecode.c Case 5 constructs xN AND w, distinct from whereLoopAddOr's
  * cost exploration. Only original indexable enclosing terms enter w. The
  * original parent predicate remains owned by the common body. Represented
  * terms have no TERM_CODED/TERM_SLICE state (row vectors are not admitted).
  * Do not borrow pOuter unfiltered: EP_Subquery must never be an arm key. */
-export function orRuntimeArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause):WhereClause|null {
+export function orRuntimeArmClause(arm:WhereTerm,sourceOrdinal:number,outer:WhereClause,owned?:WhereClause):WhereClause|null {
  const hasSubquery=(value:LemonValue<SqlToken>):boolean=>value.kind==='reduction'&&
   (value.signature.startsWith('select ::=')||value.children.some(hasSubquery));
  const factored:WhereTerm[]=[];
@@ -408,7 +409,8 @@ export function orRuntimeArmClause(arm:WhereTerm,sourceOrdinal:number,outer:Wher
  }
  const scope=whereClause(factored);
  if(arm.info?.kind==='and')return whereClause(arm.info.clause.terms,scope);
- return arm.left?.sourceOrdinal===sourceOrdinal?whereClause([arm],scope):null;
+ const terms=[arm,...(owned?.terms.filter(term=>term.parentId===arm.id)??[])];
+ return terms.some(term=>term.left?.sourceOrdinal===sourceOrdinal)?whereClause(terms,scope):null;
 }
 /** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
  * after slot zero are absolute prefix cardinalities, not decrements. */
@@ -949,8 +951,11 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
   // whereexpr.c:exprAnalyze creates a virtual commuted child when both
   // operands are indexable columns. It retains original expression collation
-  // but owns independent left binding and RHS prerequisites.
-  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:false}});}
+  // but owns independent left binding and RHS prerequisites. Exact ordinary
+  // driveable children may consume their parent; virtual means no independent
+  // residual test, not a prohibition on disableTerm propagation. LEFT ON stays
+  // conservative, and the carrier separately gates full prerequisite readiness.
+  if(originalLeft&&originalRight&&op&&op!=="in"){const childId=drafts.length,childOp=reverseOperator(op),childLeft=orientation==="left"?originalRight:originalLeft,childRightNode=orientation==="left"?originalLeftNode:originalRightNode,childRightUse=prereq(resolved,childRightNode),childLeftUse=prereq(resolved,orientation==="left"?originalRightNode:originalLeftNode),childMayDrive=(childRightUse&childLeftUse)===0n&&(childRightUse&sourceBit(childLeft.sourceOrdinal))===0n&&!(isLeft&&childLeft.sourceOrdinal<origin.rightSource);parent.childIds.push(childId);drafts.push({node,origin:{kind:"derived",parentTerm:parentId,reason:"commuted"},operator:childOp,left:childLeft,rightNode:childRightNode,orientation:orientation==="left"?"right":"left",prereqAll:all,prereqRight:childRightUse,collation:coll,parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:childMayDrive,mayOmitResidual:!isLeft&&childMayDrive}});}
  }
  // whereexpr.c splits all base terms before exprAnalyze appends virtual
  // children. Preserve that boundary (RightJoinLoop stops there), remapping

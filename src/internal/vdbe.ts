@@ -3611,7 +3611,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const commonIndexCursor=builder.cursor();let covering:PhysicalIndex|null=null;
     const needed=new Set(parent.source.table.columns);needed.add(ROWID_NEEDED as never);
     for(const [batch,arm] of arms.entries()){
-      const clause=orRuntimeArmClause(arm,parent.sourceOrdinal,outer);
+      const clause=orRuntimeArmClause(arm,parent.sourceOrdinal,outer,parent.orInfo!.clause);
       if(!clause)throw new JSQLiteError('internal','joined OR lost owned arm');
       const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
       const branch=wherePathSolver([candidates],1,undefined,0,1,null,readyMask).loops[0]!;
@@ -5803,7 +5803,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       const calls:number[]=[],arms=parent.orInfo!.clause.terms.filter(term=>!term.virtual);
       let covering:PhysicalIndex|null=null;
       for(const [ordinal,arm] of arms.entries()){
-        const clause=orRuntimeArmClause(arm,0,outer);
+        const clause=orRuntimeArmClause(arm,0,outer,parent.orInfo!.clause);
         if(!clause)throw new JSQLiteError('internal','selected OR lost owned arm');
         const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:builder.wherePlanBudget});
         const branch=wherePathSolver([candidates],1).loops[0]!;

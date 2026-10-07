@@ -4954,6 +4954,6 @@ The branch-local gap is distinct from tested-parent publication: both OR callers
 consume invocation-local exact admitted terms before remaining truth/dedup/Gosub.
 Pinned disableTerm readiness and virtual-child propagation are mapped in
 `branchConsumedTerms`; no original whole-arm replay for physical branches.
-Unready parent truth and independent enclosing conjuncts remain owned by callers.
+Unready parent truth and independent enclosing conjuncts remain owned by callers. e48 identified the commuted-child producer flag and lost owned-arm handoff; corrected ordinary eligible propagation, retaining readiness/nullable guards. [Follow-up evidence](../research/card-s-f-or/commuted-child.md).
 [Evidence and remaining boundaries](../research/card-s-f-or/branch-consumption.md);
 prior candidate passing inventories did not establish this relationship.

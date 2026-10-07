@@ -215,7 +215,7 @@ inner callers now use per-level RowSet/Gosub continuations with initialization
 per outer row and full residual truth. Arm terms remaining after exact selected-constraint consumption are tested only
 when prereqAll is positioned; unready OR atoms are deferred intact.
 Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
-no whole-arm indexed-operand replay. Admission owns affinity/collation equivalence;
+no whole-arm indexed-operand replay. Ordinary driveable commuted children consume their original parent at zero remaining children; owned arm handoff retains both identities. Nullable LEFT ON remains conservative. [Commutation evidence](research/card-s-f-or/commuted-child.md). Admission owns affinity/collation equivalence;
 non-admitted/lossy/slice terms remain truth. [Branch-owner evidence](research/card-s-f-or/branch-consumption.md). The ordinary
 caller retains untested parent truth until downstream sources are ready; fully
 tested parents are omitted after arm truth (Case5 disableTerm ownership). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
