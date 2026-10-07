@@ -38,3 +38,10 @@ test('schema sample bytes are privately owned, published count arrays are frozen
  assert.equal(sample.p[0],old);assert.ok(Object.isFrozen(sample.anEq));}
  finally{owner.close()}
 });
+test('outer stat4 btree payload copy is checked before unpublished schema construction',()=>{
+ const owner=ImmutableStorage.open(fs.readFileSync(fixture)),carrier={[storageOwner]:owner};const primary=new Error('outer payload');let copy=false;
+ try{assert.throws(()=>loadSchemaGraph(carrier,{check:(phase,units)=>{if(phase==='copy'&&units>1){copy=true;throw primary}}}),e=>e===primary);
+ assert.equal(copy,true);assert.equal(owner.schemaBytes,0);
+ assert.ok(loadSchemaGraph(carrier).indexes.get('ab').stat4.nSample>0);
+ }finally{owner.close()}
+});

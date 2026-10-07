@@ -39,3 +39,8 @@ test('interleaved accepted index transitions recompute averages and finalize las
  assert.equal(result.get(a).nRowEst0,100n);assert.equal(result.get(b).nRowEst0,4n);
  assert.deepEqual(result.get(a).aAvgEq,[5n,1n]);assert.deepEqual(result.get(b).aAvgEq,[2n,1n]);
 });
+test('count digit production is checked during a single long count before record copy',()=>{
+ const primary=new Error('digits cancelled');let checked=false;
+ assert.throws(()=>load([{...row('wr'),neq:'9'.repeat(16384)}],{check:(phase,units)=>{if(phase==='load'&&units>=4096){checked=true;throw primary}}}),e=>e===primary);
+ assert.equal(checked,true);
+});

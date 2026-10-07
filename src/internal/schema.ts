@@ -313,9 +313,9 @@ export function loadStat4Samples<T extends object>(
   if (!index || !state || state.nSample >= state.mxSample) continue;
   if (index !== previous) { average(previous); previous = index; }
   // Count decoding precedes the record allocation/copy in the source.
-  const anEq = decodeStat4Counts(row.neq, state.nSampleCol);
-  const anLt = decodeStat4Counts(row.nlt, state.nSampleCol);
-  const anDLt = decodeStat4Counts(row.ndlt, state.nSampleCol);
+  const anEq = decodeStat4Counts(row.neq, state.nSampleCol, undefined, units=>options.check?.("load",units));
+  const anLt = decodeStat4Counts(row.nlt, state.nSampleCol, undefined, units=>options.check?.("load",units));
+  const anDLt = decodeStat4Counts(row.ndlt, state.nSampleCol, undefined, units=>options.check?.("load",units));
   const n = row.bytes.byteLength;
   charge(BigInt(n) + 8n);
   const p = new Uint8Array(n + 8);
@@ -330,19 +330,22 @@ export function loadStat4Samples<T extends object>(
 
 /** analyze.c decodeIntArray: zero allocated counts, uint64 accumulation.
  * Reused aiRowEst destinations preserve untouched trailing slots. */
-export function decodeStat4Counts(z: string | null, nOut: number, out: bigint[] = Array<bigint>(nOut).fill(0n)): bigint[] {
+export function decodeStat4Counts(z: string | null, nOut: number, out: bigint[] = Array<bigint>(nOut).fill(0n), check?: (units:number)=>void): bigint[] {
  if (!Number.isSafeInteger(nOut) || nOut < 0 || out.length !== nOut) throw new SchemaStateError("invalid statistics count array capacity");
- decodeCountPrefix(z ?? "", nOut, (i, value) => { out[i] = value; });
+ decodeCountPrefix(z ?? "", nOut, (i, value) => { out[i] = value; }, check);
  return out;
 }
 /** Shared numeric producer, not a second STAT4 text parser. */
-function decodeCountPrefix(z: string, nOut: number, put: (i: number, value: bigint) => void): number {
- let at = 0;
+function decodeCountPrefix(z: string, nOut: number, put: (i: number, value: bigint) => void, check?: (units:number)=>void): number {
+ let at = 0, pending = 0;
+ check?.(1);
  for (let i = 0; i < nOut && at < z.length && z[at] !== "\0"; i++) {
   let value = 0n;
   while (at < z.length && z[at]! >= "0" && z[at]! <= "9") {
    value = BigInt.asUintN(64, value * 10n + BigInt(z.charCodeAt(at++) - 48));
+   if(++pending===4096){check?.(pending);pending=0;}
   }
+  check?.(pending+1);pending=0;
   put(i, value);
   if (z[at] === " ") at++;
  }
@@ -795,7 +798,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       const cursor=database.tableCursor(stat4Table.rootPage);
       if(cursor.first())do {
         context.check?.("load",1);
-        const values=decodeRecord(cursor.payload(),database.encoding).values;
+        const values=decodeRecord(cursor.payload(units=>context.check?.("copy",units)),database.encoding).values;
         if(values.length!==6)malformed("sqlite_stat4 record must have six fields");
         const name=callbackText(values[1]!,database.encoding);
         const sample=values[5]!;

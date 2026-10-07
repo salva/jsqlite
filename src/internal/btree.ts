@@ -318,12 +318,14 @@ export class BtreeDatabase {
     if (pgno !== null) corrupt("overflow chain continues beyond payload");
     return pages;
   }
-  payload(cell: PayloadCell): Uint8Array {
-    const result = new Uint8Array(cell.payloadLength); result.set(cell.local);
+  payload(cell: PayloadCell, check?: (units:number)=>void): Uint8Array {
+    check?.(1);
+    const result = new Uint8Array(cell.payloadLength);
+    for(let offset=0;offset<cell.local.length;offset+=4096){const end=Math.min(offset+4096,cell.local.length);check?.(end-offset);result.set(cell.local.subarray(offset,end),offset);}
     let at = cell.local.byteLength;
     for (const pgno of this.overflowPages(cell)) {
       const page = this.pageBytes(pgno); const amount = Math.min(this.usableSize - 4, result.byteLength - at);
-      result.set(page.subarray(4, 4 + amount), at); at += amount;
+      for(let offset=0;offset<amount;offset+=4096){const end=Math.min(offset+4096,amount);check?.(end-offset);result.set(page.subarray(4+offset,4+end),at+offset);} at += amount;
     }
     return result;
   }
@@ -373,7 +375,7 @@ class CursorBase<T extends PayloadCell> {
   previous(): boolean { this.ensureEntries(); return this.move(this.valid && this.position > 0 ? this.position - 1 : -1); }
   protected move(position: number): boolean { this.position = position; this.generation++; return this.valid; }
   protected entry(): T { if (!this.valid) throw new BtreeCursorStateError("cursor is not positioned"); return this.entries[this.position]!; }
-  payload(): Uint8Array { return this.database.payload(this.entry()); }
+  payload(check?: (units:number)=>void): Uint8Array { return this.database.payload(this.entry(),check); }
   overflowPages(): number[] { return this.database.overflowPages(this.entry()); }
   borrowPayload(): { bytes(): Uint8Array } {
     const born = this.generation; const value = this.payload();
