@@ -1,0 +1,28 @@
+✔ finite STAT4 runtime, source-based tests and acquired native inputs match explicit closure hashes (65.630517ms)
+✔ closure guard rejects altered native sample bytes rather than laundering mixed input evidence (15.13482ms)
+✔ initAvgEq: final unique field, duplicate prefixes, stat1 denominator and fallback (2.643663ms)
+✔ initAvgEq: unsigned products wrap before signed assignment, uint64 sum wraps (0.5249ms)
+✔ decodeIntArray C NUL termination, nondigit and duplicate-row destination reuse (2.453295ms)
+✔ utf8: native STAT4-enabled ANALYZE samples with stat1-only admission (134.794786ms)
+✔ utf16le: native STAT4-enabled ANALYZE samples with stat1-only admission (44.292071ms)
+✔ utf16be: native STAT4-enabled ANALYZE samples with stat1-only admission (34.569989ms)
+✔ two-pass NOCASE groups, physical WR duplicate alias capacity, original-order skip (3.813196ms)
+✔ internal envelope checks before allocation and pass/copy primary failures allow retry (1.668088ms)
+✔ count array missing values stay zero; raw empty/malformed samples are not decoded (0.350056ms)
+✔ checks occur after partial capacity/load/copy work and preserve primary errors (3.127257ms)
+✔ interleaved accepted index transitions recompute averages and finalize last owner (0.522808ms)
+✔ count digit production is checked during a single long count before record copy (13.152363ms)
+✔ low internal schema envelope failure leaves no cache, same-handle retry and close release (59.878511ms)
+✔ pass failures preserve primary error, unpublished bytes and retry on same owner (54.561062ms)
+✔ no stat1 still loads samples, WITHOUT ROWID aliases do not merge capacities (7.267758ms)
+✔ close during construction prevents publication and keeps primary failure (3.271823ms)
+✔ schema sample bytes are privately owned, published count arrays are frozen (5.545554ms)
+✔ outer stat4 btree payload copy is checked before unpublished schema construction (7.776401ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 780.825706
