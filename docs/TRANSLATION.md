@@ -75,6 +75,11 @@ smoke coverage, not an additional evaluator or full compatibility claim.
 - `Vdbe`, `Mem` → immutable published operations and mutable statement VM state.
   INTEGER is signed int64 BigInt; REAL remains double even when integral. NULL,
   TEXT, BLOB, subtype, cached conversions and ownership are distinct state.
+  Logical declared-REAL column extraction emits Column then RealAffinity;
+  joined direct/coalesced results share that owner before Copy/NotNull. Rowid
+  remains separate, and raw record/index decoding is unchanged. See [native
+  caller evidence](research/card-s-f-or/real-projection-native.json) and
+  [[card:card-s-f-c]] integration diagnosis/status (mixed root is not candidate acceptance).
   Borrowed record/page values must not outlive their owner; copied public BLOBs
   must not expose mutable internal buffers.
 - `KeyInfo`, `UnpackedRecord` → typed full-key descriptors and record values.

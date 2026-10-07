@@ -684,6 +684,16 @@ the former limitation. Neither denominator is a general SQLite compatibility cla
 
 ### 2026-09-19 revision — direct REAL column extraction
 
+Current affected joined direct/coalesced outputs also apply logical Column then
+RealAffinity before Copy/NotNull, with a separate Rowid branch. The mixed-root
+omission of the reviewed caller hunk is repaired; raw storage/index/Mem remain
+unchanged. Three-encoding native controls and fresh repair/integration evidence
+are retained in [[card:card-s-f-c]] status and
+[REAL caller capture](../research/card-s-f-or/real-projection-native.json).
+This does not extend independent be1e5b3 readiness to a mixed root or establish
+whole-product compatibility. The following earlier revision evidence retains
+its original scope.
+
 Fresh source-ID-checked pinned 3.53.4 execution showed declared REAL columns
 returning REAL 20.0/10.0 even when record storage uses an integer serial type;
 public TypeScript returned INTEGER/bigint before this correction. The mismatch was
