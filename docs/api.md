@@ -466,5 +466,7 @@ equality/IS/NULL, contiguous known prefixes, literal-list IN and scalar ranges.
 Parameters retain fallback (no reprepare/parameter plan-parity guarantee); vectors,
 function/subquery probes and skipscan sample range refinement remain unimplemented.
 This changes no public planner/timing/work-count or covering/affinity guarantee.
-Consumer resource/caller verification is still in progress; see
-[translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).
+Consumer loading, bounded sample costing and failure cleanup are delivered; finite
+independent committed verification and remaining limits are recorded in the
+[consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
+See the [translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).

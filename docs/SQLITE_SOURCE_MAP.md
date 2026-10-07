@@ -950,13 +950,18 @@ Consumers/selectivity estimates remain pending.
   it to ordinary and selected OR-arm builders. Reservation/second-pass/work-error
   controls are in `stat4-keystats.test.mjs`.
 
-Current bounded consumer gaps: fuller budget/frontier controls (complete AddAll
-limit initialization and nested truth/frontier restoration are now implemented;
-see [lifecycle evidence](research/card-s-h/c-red/lifecycle-progress.md)),
-and OR/join failure tests; vector/function/subquery probes and skipscan sample range
-refinement remain untranslated. Initial parameters use fallback, not sample costing
-or reprepare parity. [Revision-bound evidence](research/card-s-h/c-red/consumer-progress.md),
-[[card:card-s-h-c]]; loader/comparison ownership remains [[card:card-s-h-b]].
+Current bounded consumer limits: vector/function/subquery probes and skipscan
+sample range refinement remain untranslated; parameter sensitivity retains fallback,
+not sample costing or reprepare parity. AddAll limit initialization, nested carrier/
+frontier restoration and finite OR/join failure controls are delivered, not open
+primitive omissions. Exact selected schema/physical owner and whole-rebuild cleanup
+map to `research/card-s-h/d-diagnosis/selected-owner.test.mjs` and
+`rebuild-checkpoints.test.mjs`; schema failure/accounting and input identity map to
+`schema-checkpoints.test.mjs`, `schema-envelope.test.mjs`, `input-closure.test.mjs`.
+[Consuming source review and evidence](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+supersedes provisional integration status; historical
+[c consumer evidence](research/card-s-h/c-red/consumer-progress.md) retains provenance.
+Consumer owner [[card:card-s-h-c]]; loader/comparison owner [[card:card-s-h-b]].
 
 ### Sequential STAT4 payload acquisition
 `btree.c:accessPayload` → `BtreeDatabase.payload` consumes existing `payloadChunks` with checked current-page copies before successor progression and finally closes traversal. Strict final-link validation remains project admission, not corrupt-byte oracle parity. Owner-order/lifecycle tests: `docs/research/card-s-h/c-red/overflow-{owner-red,order-owner}.test.mjs`, `d-diagnosis/payload-cleanup.test.mjs`; [independent evidence](research/card-s-h/d-diagnosis/README.md).

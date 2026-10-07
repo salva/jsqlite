@@ -839,9 +839,15 @@ Node. Whole-product compatibility and untested nullable/WR union optimizations
 are not implied. Candidate identities and fresh delivery gates are retained in
 [[card:card-s-f-c]] status.
 
-### Bounded STAT4 consumer verification (in progress)
+### Bounded STAT4 consumer verification
 
-`stat4-keystats.test.mjs` compares virtual-prefix/gap/count/error behavior against
+Loading and bounded equality/prefix/literal-IN/scalar-range/HIGHTRUTH consumers
+are delivered. The [mapped consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+connects producers, caller restoration, cleanup and finite independent committed
+evidence. Exact selected Index/PhysicalIndex controls complement public typed
+rows/metadata/reset/error and qualitative cursor-work assertions; observed schema
+and rebuild checkpoints are swept for primary-error cleanup and same-owner retry.
+These establish bounded coverage, not exhaustive native cost/resource compatibility.`stat4-keystats.test.mjs` compares virtual-prefix/gap/count/error behavior against
 `stat4-keystats-oracle.c`, independently compiled with the pinned amalgamation.
 The retained captures allow ordinary runs without a native backend; optional
 `STAT4_KEY_ORACLE` reruns internal comparisons. Research `public-first.test.mjs`

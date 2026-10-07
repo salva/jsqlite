@@ -4911,8 +4911,11 @@ analysis and whole-loop reconstruction. Connection-owned probe reservations now
 cover all-field metadata/Mem and conservative extraction/value high-water capacity,
 with all-slot release. Finite AddAll stop controls now independently compare
 native success/no-path error outcomes; empty frontiers retain SQLITE_ERROR rather
-than unsupported classification. Fuller resource/frontier/plan coverage remains
-unfinished; [frontier evidence](../research/card-s-h/c-red/frontier-progress.md).
+than unsupported classification. Bounded loading/comparison and literal
+consumers are delivered; finite cleanup and exact selected-owner evidence map to
+[consuming review](../research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
+Exhaustive resource/frontier/cost parity remains unclaimed; historical
+[frontier evidence](../research/card-s-h/c-red/frontier-progress.md) retains provenance.
 See [[card:card-s-h-c]] and
 [repair evidence](../research/card-s-h/c-red/reservation-progress.md).
 Presence of samples alone is not an unsupported-file error. Ordinary schema,

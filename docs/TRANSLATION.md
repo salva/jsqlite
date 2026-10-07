@@ -1298,7 +1298,11 @@ The shared WHERE prerequisite owner now follows only SELECT-bearing expression i
 
 ## Optional STAT4 loading and selectivity consumers
 
-`analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
+Loading and the bounded consumers below are delivered. The
+[consuming source review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md) maps state,
+control/error ownership and finite independent committed evidence; its linked
+inventory retains superseded provisional integration results. No broader planner,
+parameter reprepare, native cost or exhaustive malformed/resource parity is implied.`analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
 `schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
 and alias skip, original-order load and average initialization. Temporary stat1
 raw counts are discarded after loading; no-stat1 files can still load samples.

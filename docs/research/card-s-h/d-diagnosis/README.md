@@ -144,6 +144,12 @@ Added [selected-owner.test.mjs](selected-owner.test.mjs) to make the remaining s
 
 Isolated committed runtime (27fe41d, unchanged through7222259) plus exact new test3/3, no skips, exit0(proc-d9e1309b34e9); [log](selected-owner.log). SHA256fab608904d5675d6c2d32c0fa14af367cad983bee2ebd902494682d520fce621; diff check0. Scope is noncovering ab family in original fixture, not all planner choices/native costs. No production defect or artificial failure. Complete mapped source review/consuming acceptance still pending.
 
+## Exact selected owner affected acceptance
+
+Scoped branch **5c5b4c4ebbf95dd64e830edc3b2a826b0aff6e1f** commits selected-owner assertions and previously omitted c `caller-first.test.mjs` (SHA2569c1efd605a7d210f8bd00f29ba47a5c0b3a1efc82595f163dff75a7ddc2bc14d), using temporary index, actual index9894f22... unchanged. Fresh committed archive selected-owner/public-first/caller-first/KeyStats **137/137**, no skips, exit0(proc-87e57ad89f55), [log](selected-final.log). Earlier isolated affected invocation116/116 passed but **ignored absent caller-first**, hence it is not caller acceptance; [log](selected-owner-affected.log). No SQL expectations weakened or runtime changed. New assertions are stable and meaningful exact physical owner evidence complementing executed typed rows/reset/error metadata/qualitative work assertions.
+
+Remaining acceptance deficit is **source/native branch inventory and consuming document closure**, not an identified missing test assertion or production failure. Do not infer more arbitrary add-coverage work from this deficit. Native-first159 profiles are not all independently rerun here; no universal parity or parameter reprepare claim. Prior runtime package/typecheck and finite intersection evidence may be reused only for unchanged input hashes.
+
 ## Diagnosis
 
 Coverage gap against **full accepted brief**, not a reproduced product failure. Focused existing coverage is meaningful and green, but coherent attributable commit/adoption, independent exact-commit finite acceptance, oracle identity/raw evidence verification, full mapped branch review, affected skipscan/OR/alpha/build/package/browser gates and current contract reconciliation remain incomplete. Do not treat mixed docs snapshot or this archived combination as acceptance. Parameter reprepare and wider vector/function/subquery/skipscan-sample refinements remain explicit backlog.
