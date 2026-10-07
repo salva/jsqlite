@@ -16,6 +16,13 @@ for(const v of capture.variants)test(`${v.id}: branch constraint operand/overflo
   const st=db.prepare(c.sql).statement;
   try{for(const run of c.runs){if(c.id!=='volatile')st.bind(1,run.binding===null?null:BigInt(run.binding));const rows=[];let error;
    try{while(await st.step()==='row')rows.push(Array.from({length:(['joined','unready'].includes(c.id)?2:1)},(_,i)=>st.column(i)).map(value=>value===null?{type:'null'}:{type:'integer',value:String(value)}));}catch(e){error=e;}
+   const accounting=privateAccounting(st);
+   if(!run.code&&['direct','volatile','and','nested'].includes(c.id)){
+    const roots=program.ops.filter(op=>op.code==='OpenIndex'&&op.orBranch).map(op=>op.p1);
+    assert.deepEqual(accounting.orBranchRoots,roots,'complete executed arm root order before reset');
+    assert.ok(accounting.indexSeeks>0,'actual physical positioning executed');
+    if(['direct','volatile'].includes(c.id))assert.equal(accounting.residualTests,0,'no per-row replay of consumed operand');
+   }
    assert.deepEqual(rows,run.rows);if(run.code){assert.equal(error?.code,run.code);assert.match(error.message,/integer overflow/);assert.throws(()=>st.reset(),/integer overflow/);}else{assert.equal(error,undefined);st.reset();}
    assert.equal(privateAccounting(st).orBranchStarts,0,'reset clears invocation accounting');
   }}finally{st.finalize();}
