@@ -1,0 +1,9 @@
+{
+  "test/conformance/skipscan-docs.test.mjs": "3001e27b500ecefef2ea53d3f53a084b69b59c3de18bfe1f1c15b6f0b06f62ca",
+  "docs/SQLITE_SOURCE_MAP.md": "9c1ab25b386687e3fe76c8603e53041282e4b4d6e3ac5b627247f76f1d740c87",
+  "docs/api.md": "7fd548c66eb90919af797584240743a459a06f0d2fe1b94eeb517eaeae796498",
+  "docs/TRANSLATION.md": "badfbc8d5fc4f7adcb837cebffa18826f12755e316971c415a9215a6b1542a79",
+  "docs/reviews/translation-fidelity-2026-09-14.md": "fcc074135ce53b37d68dda8db0a478a41899d36448d0f032d18f7aa7d9729b3e",
+  "reference/sqlite/manifest.json": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+  "reference/sqlite/sqlite-src-3530400/src/wherecode.c": "496fd3fb662ef1f516c9e25abef36926d1442b2d2dcbe039f21c74d83cb6cfa2"
+}

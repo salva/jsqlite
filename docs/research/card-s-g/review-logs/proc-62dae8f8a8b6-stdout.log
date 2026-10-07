@@ -1,0 +1,43 @@
+✔ pinned deep equality ProgressCheck has a production construction owner (3.076319ms)
+✔ skipscan map separates historical disabled callers from current production (1.300188ms)
+✔ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.592327ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (0.293825ms)
+✔ shared positioning owns zero-constraint forward/reverse transitions (10.883103ms)
+✔ source skipped-prefix-only start preserves positioned cursor without re-seek (0.393763ms)
+✔ no-reseek entry preserves first/restart columns and final exhaustion labels (2.285495ms)
+✔ prefix builder source control reverse=false nSkip=0 (1.900357ms)
+✔ prefix builder source control reverse=false nSkip=1 (0.768727ms)
+✔ prefix builder source control reverse=false nSkip=2 (0.235419ms)
+✔ prefix builder source control reverse=true nSkip=0 (0.133667ms)
+✔ prefix builder source control reverse=true nSkip=1 (0.225426ms)
+✔ prefix builder source control reverse=true nSkip=2 (0.201763ms)
+✔ first/restart page path UTF-8/18/false (11.58505ms)
+✔ first/restart page path UTF-8/18/true (5.330829ms)
+✔ first/restart page path UTF-8/empty/false (0.341533ms)
+✔ first/restart page path UTF-8/empty/true (0.400617ms)
+✔ first/restart page path UTF-16le/18/false (4.54336ms)
+✔ first/restart page path UTF-16le/18/true (5.537074ms)
+✔ first/restart page path UTF-16le/empty/false (0.276084ms)
+✔ first/restart page path UTF-16le/empty/true (0.22861ms)
+✔ first/restart page path UTF-16be/18/false (6.099574ms)
+✔ first/restart page path UTF-16be/18/true (4.146271ms)
+✔ first/restart page path UTF-16be/empty/false (0.222481ms)
+✔ first/restart page path UTF-16be/empty/true (0.116432ms)
+✔ source SeekScan lowering GE-only reverse=false strict=false (0.239473ms)
+✔ source SeekScan lowering GE-only reverse=false strict=true (0.055752ms)
+✔ source SeekScan lowering GE-only reverse=true strict=false (0.065111ms)
+✔ source SeekScan lowering GE-only reverse=true strict=true (0.052312ms)
+✔ source SeekScan state UTF-8 (5.82027ms)
+✔ source SeekScan state UTF-16le (1.083276ms)
+✔ source SeekScan state UTF-16be (0.750975ms)
+✔ production SeekScan wrapper UTF-8 (34.796953ms)
+✔ production SeekScan wrapper UTF-16le (18.956291ms)
+✔ production SeekScan wrapper UTF-16be (12.305072ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 541.59047

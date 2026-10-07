@@ -1,0 +1,50 @@
+✖ skipscan map separates historical disabled callers from current production (1.977079ms)
+✖ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.513691ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (0.359515ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80.999503
+
+✖ failing tests:
+
+test at test/conformance/skipscan-docs.test.mjs:12:1
+✖ skipscan map separates historical disabled callers from current production (1.977079ms)
+  AssertionError [ERR_ASSERTION]: F4: label the entire historical disabled-caller paragraph at entry; do not mix it into a current default mapping
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///work/jsqlite2/test/conformance/skipscan-docs.test.mjs:16:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/skipscan-docs.test.mjs:20:1
+✖ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.513691ms)
+  AssertionError [ERR_ASSERTION]: F4: remove/revision-label superseded full-range prediction, or document a precise remaining branch separately
+      at TestContext.<anonymous> (file:///work/jsqlite2/test/conformance/skipscan-docs.test.mjs:30:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1330,7 +1330,7 @@ Existing scalar-child/subquery-view regressions and all-three-encoding bound
 reset/rebind/clear native controls map these branches. Detailed evidence and
 attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair).
 
-Implicit rowid ORDER ownership does not require a declared INTEGER PRIMARY KEY column: the internal order carrier uses null for XN_ROWID, distinct from nullable skip slots. Scan and physical rowid-tail consumers preserve sort identity (where.c2749/5353); evidence and remaining joined exhaustion gap: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+Implicit rowid ORDER ownership does not require a declared INTEGER PRIMARY KEY column: the internal order carrier uses null for XN_ROWID, distinct from nullable skip slots. Scan and physical rowid-tail consumers preserve sort identity (where.c2749/5353); bounded rowid-order and joined-exhaustion controls: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). Represented LEFT ON-OR exhaustion is mapped below; unrepresented join/order combinations remain bounded by [current coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review), not a blanket exhaustion defect.
 
 Joined and ordinary lowering share `resolvedWhereOrder`, including implicit XN_ROWID, aliases and collation ownership; joined lowering must not reconstruct ORDER from column-name text. Joined OR range-end fixups own the emitted range opcode after RHS/NULL guards (wherecode.c2090ff). Favorable DESC companions validate selected nested IN and native SCAN controls, not selected physical-DESC OR; bounded evidence is in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
 
