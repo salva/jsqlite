@@ -411,7 +411,7 @@ Checkpoint44 expr.c2899–2927/util.c1303 EP_IntValue positive signed32
 leaf plus unary recursion/transparent parentheses;source19/19 including
 used virtual parent and negative singleton residual output.
 
-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
 where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.

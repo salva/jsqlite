@@ -4364,7 +4364,7 @@ repairs IS NULL/range/clamp and full-scan covered-prefix costs; fresh affected
 169/170 still fails preserved reverse sorter expectation. Independent native
 sort0 (NOT INDEXED control1) contradicts that assertion; parent disposition is
 still required before revision. Supplemental cost/order6/6 and resource50/50
-pass; no complete resource or optimizer claim. STAT4 sample estimates unimplemented; truthProb,
+pass; no complete resource or optimizer claim. Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](../TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): STAT4 sample estimates unimplemented; truthProb,
 invalid bytes, wider metadata and WR/transient census remain gaps. Fourth
 checkpoint native-first quoted declared-type hex/overflow/doubled-quote fixtures
 exposed missing build.c1584 Dequote in the type producer; parse now translates
@@ -4495,16 +4495,16 @@ zero skips/cancels,standalone typecheck0; review draft not acceptance.
 Checkpoint41 exact reverse-order native forced SORT0/scan SORT1×3,
 TS rows/reset/sorter parity6/6; original sorter>=3 unchanged pending review.
 Checkpoint43 residual output heuristic before insertion now translated;
-truthProb/HIGHTRUTH/LIKE/self-cull producers still absent. Initial matrix
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](../TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): truthProb/HIGHTRUTH/LIKE/self-cull producers still absent. Initial matrix
 1942:1464/478 included3 stale internal cost expectations; corrected owned
 source expectation3/3,native unchanged; no final whole rerun yet.
 
 
 Checkpoint44 residual literal production corrected to expr.c2899 EP_IntValue
 not runtime INTEGER;source19/19,fresh width1951:1476/475 and resource/affected
-178:177/1,zero skips/cancels. Full truthProb/HIGHTRUTH/LIKE/self-cull gap persists.
+178:177/1,zero skips/cancels. Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](../TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): Full truthProb/HIGHTRUTH/LIKE/self-cull gap persists.
 
-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](../TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
 where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.
