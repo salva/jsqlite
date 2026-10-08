@@ -164,7 +164,10 @@ for(const enc of Object.keys(corpus.fixtures))test(`multi-barrier actual yielded
  const c=corpus.cases.find(c=>c.encoding===enc&&c.id==='right-right');
  for(const mode of ['work','deadline','cancel']){
   const s=db.prepare(c.sql).statement;
-  const timer=globalThis.setTimeout;let yields=0;
+  const timer=globalThis.setTimeout,NativeChannel=globalThis.MessageChannel;let yields=0;
+  // Count both task sources. Deadline and cancellation use a real timer at
+  // a channel checkpoint; work exhaustion need not reach the eighth turn.
+  globalThis.MessageChannel=class extends NativeChannel{constructor(){super();const port=this.port1;Object.defineProperty(port,'onmessage',{set(handler){if(handler===null)return;port.addEventListener('message',event=>{yields++;if(mode==='deadline')timer(()=>handler(event),150);else{if(mode==='cancel')controller.abort();handler(event)}},{once:true});port.start()}})}};
   globalThis.setTimeout=function(callback,delay,...args){if(delay===0){yields++;if(mode==='deadline')delay=150;}return timer(callback,delay,...args)};
   const controller=new AbortController();let pending;
   try{
@@ -175,7 +178,7 @@ for(const enc of Object.keys(corpus.fixtures))test(`multi-barrier actual yielded
    await assert.rejects(s.step(options),e=>{first=e;return e.kind===kind});
    assert.ok(yields>0,`${mode} must reach an actual VDBE task yield`);
    await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.finalize(),e=>e===first);
-  }finally{globalThis.setTimeout=timer;if(pending)clearTimeout(pending);try{s.finalize()}catch{}}
+  }finally{globalThis.setTimeout=timer;globalThis.MessageChannel=NativeChannel;if(pending)clearTimeout(pending);try{s.finalize()}catch{}}
   const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row')}finally{reuse.finalize()}
  }
 }));
