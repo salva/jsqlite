@@ -1,3 +1,16 @@
+## Supported explicit five-companion closure
+
+`python3 tools/test/skipscan-closure.py --library <pinned-lib>` explicitly activates
+all five companion files under unchanged30s file watchdogs. It generates fixtures
+with committed pinned capture tools before tests; missing identity/files or bad
+hashes are errors, never skips. Default fixture root is
+`$SAIVAGE_CARD_WORK_ROOT/skipscan-native`; `--fixture-root <scoped-root>` selects
+an explicit root. Base contract is `native.json` plus `fixtures/*.db`; primitive,
+order and corruption producers share that root without byte-copy workarounds.
+Native library must come from `tools/oracle/build.sh` and the development pin;
+it is not a runtime dependency. Legacy capture invocations keep their layouts.
+Run unit closure checks with `python3 test/skipscan-closure.test.py`.
+
 # Current bounded integration outcome — [[card:card-w]]
 
 ## Postalpha fixture repair (base c8f2f666, harness-only overlay)

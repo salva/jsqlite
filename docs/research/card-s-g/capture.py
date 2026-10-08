@@ -4,8 +4,11 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib, sys
 sys.dont_write_bytecode=True
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 s=importlib.util.spec_from_file_location('native',ROOT/'test/conformance/capture-index-planner.py'); n=importlib.util.module_from_spec(s); s.loader.exec_module(n)
-a=argparse.ArgumentParser(); a.add_argument('--library',required=True); a.add_argument('--output-dir',required=True); args=a.parse_args()
+a=argparse.ArgumentParser(); a.add_argument('--library',required=True); a.add_argument('--output-dir',required=True); a.add_argument('--fixture-dir', help='fixture files relative to output root (default: legacy root)'); args=a.parse_args()
 out=pathlib.Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
+fixtures=out if args.fixture_dir is None else out/args.fixture_dir
+if args.fixture_dir is not None and (pathlib.Path(args.fixture_dir).is_absolute() or '..' in pathlib.Path(args.fixture_dir).parts): raise ValueError('fixture-dir must stay beneath output root')
+fixtures.mkdir(parents=True,exist_ok=True)
 d=n.load(args.library); manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text()); assert d.sqlite3_sourceid().decode()==manifest['sqliteSourceId']; assert d.sqlite3_libversion().decode()==manifest['version']
 d.sqlite3_column_name.argtypes=[C.c_void_p,C.c_int]; d.sqlite3_column_name.restype=C.c_char_p
 d.sqlite3_errmsg.argtypes=[C.c_void_p]; d.sqlite3_errmsg.restype=C.c_char_p
@@ -59,7 +62,7 @@ cases=[
 variants=[]
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  for control in ['stat1','noStats','noskipscan','lowDuplicates']:
-  path=out/(enc.lower().replace('-','')+'-'+control+'.db'); path.unlink(missing_ok=True); db=open_db(path)
+  path=fixtures/(enc.lower().replace('-','')+'-'+control+'.db'); path.unlink(missing_ok=True); db=open_db(path)
   n.execsql(d,db,"PRAGMA encoding='%s'"%enc)
   for sql in setup: n.execsql(d,db,sql)
   if control=='noStats': n.execsql(d,db,'DELETE FROM sqlite_stat1')
@@ -79,7 +82,7 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   assert d.sqlite3_close(db)==0
   if control=='stat1':
    # Corrupt the selected persistent index root page, not the main file.
-   bad=out/(path.stem+'-malformed.db'); damaged=bytearray(raw)
+   bad=fixtures/(path.stem+'-malformed.db'); damaged=bytearray(raw)
    root=int(next(r[1]['value'] for r in variant['schema'] if n.text(r[0])=='sa'))
    page=int.from_bytes(raw[16:18],'big') or 65536; damaged[(root-1)*page]=0; bad.write_bytes(damaged)
    corruptdb=open_db(bad,True)

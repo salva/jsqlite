@@ -6,11 +6,11 @@ import argparse,ctypes as C,importlib.util,json,pathlib,hashlib,sys
 sys.dont_write_bytecode=True
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 s=importlib.util.spec_from_file_location('native',ROOT/'test/conformance/capture-index-planner.py');n=importlib.util.module_from_spec(s);s.loader.exec_module(n)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output-dir',required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output-dir',required=True);p.add_argument('--primitive-root');a=p.parse_args()
 d=n.load(a.library);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text());assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
 d.sqlite3_errmsg.argtypes=[C.c_void_p];d.sqlite3_errmsg.restype=C.c_char_p
 out=pathlib.Path(a.output_dir);out.mkdir(parents=True,exist_ok=True);variants=[]
-base=ROOT/'docs/research/card-s-g/primitive-companions';captured=json.loads((base/'native.json').read_text())
+base=pathlib.Path(a.primitive_root) if a.primitive_root else ROOT/'docs/research/card-s-g/primitive-companions';captured=json.loads((base/'native.json').read_text())
 for v in captured['variants']:
  if v['tail']!='18':continue
  original=base/v['fixture'];raw=original.read_bytes();assert hashlib.sha256(raw).hexdigest()==v['sha256']

@@ -4,12 +4,12 @@ import argparse,ctypes as C,importlib.util,json,pathlib,hashlib,sys
 sys.dont_write_bytecode=True
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 s=importlib.util.spec_from_file_location('native',ROOT/'test/conformance/capture-index-planner.py');n=importlib.util.module_from_spec(s);s.loader.exec_module(n)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--primitive-root');a=p.parse_args()
 d=n.load(a.library);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text());assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
-base=ROOT/'docs/research/card-s-g';variants=[]
-for v in json.loads((base/'primitive-companions/native.json').read_text())['variants']:
+base=ROOT/'docs/research/card-s-g';primitive=pathlib.Path(a.primitive_root) if a.primitive_root else base/'primitive-companions';variants=[]
+for v in json.loads((primitive/'native.json').read_text())['variants']:
  if v['tail'] not in ['18','18 unordered']:continue
- f=base/'primitive-companions'/v['fixture'];assert hashlib.sha256(f.read_bytes()).hexdigest()==v['sha256']
+ f=primitive/v['fixture'];assert hashlib.sha256(f.read_bytes()).hexdigest()==v['sha256']
  db=C.c_void_p();assert d.sqlite3_open_v2(str(f).encode(),C.byref(db),1,None)==0
  cases=[]
  for sql in ['SELECT a,b FROM t INDEXED BY ab WHERE b=7 ORDER BY a','SELECT a,b FROM t INDEXED BY ab WHERE b=7 ORDER BY a DESC','SELECT a,b FROM t INDEXED BY ad WHERE b=7 ORDER BY a ASC','SELECT a,b FROM t INDEXED BY ab WHERE b=7 ORDER BY a COLLATE NOCASE']:
