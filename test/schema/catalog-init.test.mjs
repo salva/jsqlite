@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { chinookFixture } from "../chinook-fixture.mjs";
 
 import { open } from "../../src/index.ts";
 import { loadSchemaGraph, SchemaStateError, SchemaUnsupportedError } from "../../src/internal/schema.ts";
@@ -208,8 +209,7 @@ test("public Chinook capture loads retained foreign keys and representative rows
   // Floating acquisition URL is provenance only. Acceptance is bound to the
   // exact size and SHA-256 below, not to the mutable branch name:
   // https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite
-  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
-  if(!path)return;
+  const path=await chinookFixture();
   const image=new Uint8Array(await readFile(path));
   assert.equal(image.byteLength,1007616);
   const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
@@ -223,8 +223,7 @@ test("public Chinook capture loads retained foreign keys and representative rows
 test("exact derived window lead treats rk as an outer source column", async () => {
   // Extend the one digest-bound public capture rather than introducing a
   // second acquisition contract for the same floating upstream artifact.
-  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
-  if(!path)return;
+  const path=await chinookFixture();
   const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
   const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
   await withImage(image,"Chinook-window-derived.sqlite",async connection=>{
@@ -238,8 +237,7 @@ test("exact derived window lead treats rk as an outer source column", async () =
 });
 
 test("derived window filtering retains parent ORDER BY and LIMIT ownership", async () => {
-  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
-  if(!path)return;
+  const path=await chinookFixture();
   const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
   const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
   await withImage(image,"Chinook-window-derived-order.sqlite",async connection=>{
@@ -261,8 +259,7 @@ test("derived window output scope is encoding-independent", async () => {
 });
 
 test("window outer LIMIT/OFFSET executes in the VDBE output handoff", async () => {
-  const path=process.env.SAIVAGE_CARD_WORK_ROOT && join(process.env.SAIVAGE_CARD_WORK_ROOT,"chinook-fixture","Chinook_Sqlite.sqlite");
-  if(!path)return;
+  const path=await chinookFixture();
   const image=new Uint8Array(await readFile(path));assert.equal(image.byteLength,1007616);
   const digest=await crypto.subtle.digest("SHA-256",image);assert.equal(Buffer.from(digest).toString("hex"),"7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15");
   await withImage(image,"Chinook-window-limit.sqlite",async connection=>{
