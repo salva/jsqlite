@@ -1,0 +1,27 @@
+✔ UTF-8: every observed schema construction checkpoint preserves primary and same-owner retry (8328.170284ms)
+✔ UTF-16le: every observed schema construction checkpoint preserves primary and same-owner retry (10314.82424ms)
+✔ UTF-16be: every observed schema construction checkpoint preserves primary and same-owner retry (9552.579426ms)
+✔ initAvgEq: final unique field, duplicate prefixes, stat1 denominator and fallback (7.117343ms)
+✔ initAvgEq: unsigned products wrap before signed assignment, uint64 sum wraps (4.204366ms)
+✔ decodeIntArray C NUL termination, nondigit and duplicate-row destination reuse (3.241007ms)
+✔ two-pass NOCASE groups, physical WR duplicate alias capacity, original-order skip (6.069509ms)
+✔ internal envelope checks before allocation and pass/copy primary failures allow retry (2.781817ms)
+✔ count array missing values stay zero; raw empty/malformed samples are not decoded (0.707522ms)
+✔ checks occur after partial capacity/load/copy work and preserve primary errors (5.320079ms)
+✔ interleaved accepted index transitions recompute averages and finalize last owner (0.880768ms)
+✔ count digit production is checked during a single long count before record copy (7.517478ms)
+✔ public prepare schema work/cancellation/deadline failures permit same-open retry (216.118073ms)
+✔ low internal schema envelope failure leaves no cache, same-handle retry and close release (85.244737ms)
+✔ pass failures preserve primary error, unpublished bytes and retry on same owner (172.570265ms)
+✔ no stat1 still loads samples, WITHOUT ROWID aliases do not merge capacities (26.054354ms)
+✔ close during construction prevents publication and keeps primary failure (12.540787ms)
+✔ schema sample bytes are privately owned, published count arrays are frozen (16.206333ms)
+✔ outer stat4 btree payload copy is checked before unpublished schema construction (26.140322ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28813.632113

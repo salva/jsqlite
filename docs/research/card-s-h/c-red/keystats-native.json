@@ -1,0 +1,1316 @@
+[
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "0",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "1",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "0",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "1",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "0",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "1",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "0",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "1",
+      "1",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "0",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "ab",
+      "2",
+      "1",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "0",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "1",
+      "null"
+    ],
+    "result": {
+      "sample": 0,
+      "less": "0",
+      "equal": "10",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "0",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "1",
+      "0"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "10",
+      "equal": "900",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "0",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "1",
+      "1"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "0",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "1",
+      "1",
+      "99"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "190",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "8"
+    ],
+    "result": {
+      "sample": 2,
+      "less": "100",
+      "equal": "90",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "10"
+    ],
+    "result": {
+      "sample": 1,
+      "less": "10",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "910",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "1",
+      "5"
+    ],
+    "result": {
+      "sample": 11,
+      "less": "911",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "0",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "995",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "ab",
+      "2",
+      "1",
+      "99",
+      "4"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "997",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "0",
+      "overflow"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "18446744073709551610",
+      "equal": "18446744073709551615",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "0",
+      "overflow"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "18446744073709551610",
+      "equal": "18446744073709551615",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7",
+      "overflow"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "18446744073709551610",
+      "equal": "18446744073709551615",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7",
+      "overflow"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "18446744073709551610",
+      "equal": "18446744073709551615",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0",
+      "overflow"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "18446744073709551609",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0",
+      "overflow"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "18446744073709551609",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "0",
+      "zero"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "0",
+      "equal": "0",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "0",
+      "zero"
+    ],
+    "result": {
+      "sample": 6,
+      "less": "0",
+      "equal": "0",
+      "field": 1,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7",
+      "zero"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "0",
+      "equal": "0",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7",
+      "zero"
+    ],
+    "result": {
+      "sample": 3,
+      "less": "0",
+      "equal": "0",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0",
+      "zero"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "333",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0",
+      "zero"
+    ],
+    "result": {
+      "sample": 24,
+      "less": "666",
+      "equal": "1",
+      "field": 2,
+      "error": 0
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "0",
+      "0",
+      "malformed"
+    ],
+    "result": {
+      "sample": 12,
+      "less": "918",
+      "equal": "1",
+      "field": 1,
+      "error": 11
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "1",
+      "1",
+      "0",
+      "malformed"
+    ],
+    "result": {
+      "sample": 12,
+      "less": "918",
+      "equal": "1",
+      "field": 1,
+      "error": 11
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "0",
+      "7",
+      "malformed"
+    ],
+    "result": {
+      "sample": 22,
+      "less": "989",
+      "equal": "1",
+      "field": 2,
+      "error": 11
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "0",
+      "7",
+      "malformed"
+    ],
+    "result": {
+      "sample": 22,
+      "less": "989",
+      "equal": "1",
+      "field": 2,
+      "error": 11
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "0",
+      "98",
+      "0",
+      "malformed"
+    ],
+    "result": {
+      "sample": 22,
+      "less": "989",
+      "equal": "1",
+      "field": 2,
+      "error": 11
+    }
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "ab",
+      "2",
+      "1",
+      "98",
+      "0",
+      "malformed"
+    ],
+    "result": {
+      "sample": 22,
+      "less": "989",
+      "equal": "1",
+      "field": 2,
+      "error": 11
+    }
+  }
+]

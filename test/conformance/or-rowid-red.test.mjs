@@ -53,9 +53,14 @@ for(const v of capture.variants){
   const initial=builder.wherePlanBudget.remaining;
   compileTableSelect(parsed,schema,database,Number.MAX_SAFE_INTEGER,undefined,undefined,undefined,{builder,parameters,destination:{kind:'output'}});
   assert.notEqual(builder.wherePlanBudget.remaining,initial,'planning and selected arm lowering consume the enclosing construction frontier');
-  const after=builder.wherePlanBudget.remaining;
+  // Pinned where.c whereLoopAddAll initializes iPlanLimit for each WHERE
+  // invocation, including a STAT4 second pass. Preserve the shared carrier,
+  // not an additive quota across separate invocations of the same SELECT.
+  const budget=builder.wherePlanBudget;
+  const after=budget.remaining;
   compileTableSelect(parsed,schema,database,Number.MAX_SAFE_INTEGER,undefined,undefined,undefined,{builder,parameters,destination:{kind:'output'}});
-  assert.equal(builder.wherePlanBudget.remaining-initial,2n*(after-initial),'shared caller never replaces the construction budget');
+  assert.equal(builder.wherePlanBudget,budget,'shared caller retains its construction budget carrier');
+  assert.equal(budget.remaining,after,'fresh invocation repeats the source-initialized planning frontier');
 
  }));
  for(const c of v.cases){

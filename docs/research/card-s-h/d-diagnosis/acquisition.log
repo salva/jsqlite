@@ -1,0 +1,19 @@
+captured 12 fixtures 87 cases; TS credit 0
+UTF-8 stat1 ANY cases 15 of 17
+UTF-8 noStats ANY cases 0 of 4
+UTF-8 noskipscan ANY cases 0 of 4
+UTF-8 lowDuplicates ANY cases 0 of 4
+UTF-16le stat1 ANY cases 15 of 17
+UTF-16le noStats ANY cases 0 of 4
+UTF-16le noskipscan ANY cases 0 of 4
+UTF-16le lowDuplicates ANY cases 0 of 4
+UTF-16be stat1 ANY cases 15 of 17
+UTF-16be noStats ANY cases 0 of 4
+UTF-16be noskipscan ANY cases 0 of 4
+UTF-16be lowDuplicates ANY cases 0 of 4
+PASS:42 read-only native stat1 admission captures
+[('missing', [0, 0]), ('double-space', [0, 0]), ('junk', [0, 0]), ('overflow', [1, 1]), ('zero', [0, 0]), ('tail-noskip', [0, 0]), ('tail-unordered', [1, 1])]
+PASS18 native selected WR layout companions
+Pinned native capture: 117 queries, 234 independent executions
+PASS:18 native-first companions; threshold18/17, noskipscan, unordered, noStats, empty; 90 captures
+PASS:15 read-only native corruption/offpath captures

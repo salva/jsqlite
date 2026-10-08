@@ -1,0 +1,254 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 20000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 20000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 20000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 20000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4)",
+    "limit": 20000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -2000,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -1000,
+    "result": "1|no query solution"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -999,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": -998,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 0,
+    "result": "0|not an error"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0",
+    "limit": 20000,
+    "result": "0|not an error"
+  }
+]

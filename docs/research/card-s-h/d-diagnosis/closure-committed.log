@@ -1,0 +1,19 @@
+✔ UTF-8: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (868.87118ms)
+✔ UTF-16le: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (611.205452ms)
+✔ UTF-16be: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (538.816777ms)
+✔ finite STAT4 runtime, source-based tests and acquired native inputs match explicit closure hashes (55.913546ms)
+✔ closure guard rejects altered native sample bytes rather than laundering mixed input evidence (9.777165ms)
+✔ UTF-8: STAT4 parameter reset/rebind keeps typed rows and metadata (489.764472ms)
+✔ UTF-16le: STAT4 parameter reset/rebind keeps typed rows and metadata (344.408653ms)
+✔ UTF-16be: STAT4 parameter reset/rebind keeps typed rows and metadata (323.193564ms)
+✔ schema envelope derives acquisition allowance 106496 and conserves ownership at exact boundary (1.649724ms)
+✔ schema envelope derives acquisition allowance 212992 and conserves ownership at exact boundary (0.275784ms)
+✔ schema envelope derives acquisition allowance 9007199254740991 and conserves ownership at exact boundary (0.232487ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2441.010161

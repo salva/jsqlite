@@ -1,0 +1,71 @@
+✔ UTF-8/join-hot: independent public caller rows metadata reset and actual plan work (227.156018ms)
+✔ UTF-8/join-cold: independent public caller rows metadata reset and actual plan work (63.486495ms)
+✔ UTF-8/join-in: independent public caller rows metadata reset and actual plan work (44.601862ms)
+✔ UTF-8/or-cold: independent public caller rows metadata reset and actual plan work (175.906638ms)
+✔ UTF-8/or-hot: independent public caller rows metadata reset and actual plan work (245.494058ms)
+✔ UTF-8/competing-hot: independent public caller rows metadata reset and actual plan work (64.082659ms)
+✔ UTF-8/competing-cold: independent public caller rows metadata reset and actual plan work (16.453637ms)
+✔ UTF-16le/join-hot: independent public caller rows metadata reset and actual plan work (24.089016ms)
+✔ UTF-16le/join-cold: independent public caller rows metadata reset and actual plan work (22.138588ms)
+✔ UTF-16le/join-in: independent public caller rows metadata reset and actual plan work (26.470877ms)
+✔ UTF-16le/or-cold: independent public caller rows metadata reset and actual plan work (98.613253ms)
+✔ UTF-16le/or-hot: independent public caller rows metadata reset and actual plan work (181.820702ms)
+✔ UTF-16le/competing-hot: independent public caller rows metadata reset and actual plan work (92.569435ms)
+✔ UTF-16le/competing-cold: independent public caller rows metadata reset and actual plan work (23.377745ms)
+✔ UTF-16be/join-hot: independent public caller rows metadata reset and actual plan work (32.144798ms)
+✔ UTF-16be/join-cold: independent public caller rows metadata reset and actual plan work (27.443092ms)
+✔ UTF-16be/join-in: independent public caller rows metadata reset and actual plan work (22.718718ms)
+✔ UTF-16be/or-cold: independent public caller rows metadata reset and actual plan work (127.075376ms)
+✔ UTF-16be/or-hot: independent public caller rows metadata reset and actual plan work (191.60303ms)
+✔ UTF-16be/competing-hot: independent public caller rows metadata reset and actual plan work (101.874562ms)
+✔ UTF-16be/competing-cold: independent public caller rows metadata reset and actual plan work (21.952308ms)
+✔ UTF-8: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (1927.590474ms)
+✔ UTF-16le: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (1028.58586ms)
+✔ UTF-16be: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (904.603904ms)
+✔ UTF-8: STAT4 parameter reset/rebind keeps typed rows and metadata (1148.640867ms)
+✔ UTF-16le: STAT4 parameter reset/rebind keeps typed rows and metadata (847.44944ms)
+✔ UTF-16be: STAT4 parameter reset/rebind keeps typed rows and metadata (581.448778ms)
+✔ second copy-chunk failure closes traversal before malformed successor and allows retry (9.574791ms)
+✔ partial final overflow page charges only requested bytes and closes exactly once (0.882131ms)
+✔ pre-fetch failure closes traversal without reading overflow, then same owner succeeds (0.418401ms)
+✔ UTF-8 KeyStats direct native virtual-prefix/gap controls (60.011722ms)
+✔ UTF-16le KeyStats direct native virtual-prefix/gap controls (31.404234ms)
+✔ UTF-16be KeyStats direct native virtual-prefix/gap controls (26.073731ms)
+✔ KeyStats throwing work callback restores active extent and valid prefix (15.979378ms)
+✔ production hot equality rebuilds every group with shared truth; cold prefix and range retain searches (43.910837ms)
+✔ KeyStats native overflow count/error controls (16.175556ms)
+✔ KeyStats native zero count/error controls (16.141701ms)
+✔ KeyStats native malformed count/error controls (14.370394ms)
+✔ production unavailable IN member preserves prefix fallback and sibling builder retry (30.615997ms)
+✔ recursive proposal frame closes child and parent sample scopes on stop/error (10.141137ms)
+✔ connection-owned probe reservations reject over-envelope and restore on all-slot free (13.735241ms)
+✔ production probe reservation releases on second pass and work failure, same owner retry (18.933061ms)
+✔ nested planning restores enclosing truth carrier and invocation construction limit (12.300908ms)
+✔ nested failed invocation restores truth, insertion frontier and outstanding probes (8.639639ms)
+✔ bounded source AddAll construction resets per invocation, retaining stop/error outcome (12.413091ms)
+✔ complete multi-group rebuild publishes immutable clause-owned truth independently of builder reuse (10.129304ms)
+✔ fallback selection publishes empty truth rather than a previous clause carrier (8.920318ms)
+✔ native finite AddAll frontier preserves SQLITE_ERROR rather than unsupported classification (15.95033ms)
+✔ every consuming work frontier unwinds second-pass and membership probes before same-owner retry (2716.000832ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 49 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 161 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 241 work frontiers
+ℹ SELECT id FROM t WHERE a IN (99,?1) AND b=4: 24 work frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 143 work frontiers
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0: 257 work frontiers
+✔ every consuming reservation frontier preserves primary memory failure and releases prior index builders (142.444092ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 20 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 14 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 14 reservation frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 32 reservation frontiers
+✔ failed outer invocation does not publish partial clause truth over prior completed analysis (7.992022ms)
+✔ forced-index exhausted AddAll frontier retains native no-query-solution error channel (10.533046ms)
+✔ native OR and joined finite frontiers retain outcome and failed owner cleanup (389.174389ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 53
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4574.282581

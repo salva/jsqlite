@@ -411,7 +411,7 @@ Checkpoint44 expr.c2899–2927/util.c1303 EP_IntValue positive signed32
 leaf plus unary recursion/transparent parentheses;source19/19 including
 used virtual parent and negative singleton residual output.
 
-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
 where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.
@@ -558,7 +558,7 @@ reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
 ### Positional stat1 skip-scan
 
-where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. STAT4 sample estimates remain unimplemented.
+where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](#stat4-selectivity-callers); original admission evidence retained): STAT4 sample estimates were unimplemented at this positional-producer stage.
 
 wherecode.c925–960/1997–2099 and where.c7664ff → `where-prefix.ts` two-phase first/restart positioning and ordinary/joined/recursive-OR consumers in `vdbe.ts`: copy physical prefix before RHS/IN evaluation, strict GT/LT restart, physical keys without affinity conversion, IN exhaustion before prefix/final exit, equality NULL final versus bound NULL next, LEFT extension only after full exhaustion. `btree.ts` owns page-local seek and comparison-error conversion; VDBE owns registers/cache/control and operand cleanup. Tests: `skipscan-prefix-code`, `skipscan-position-owner`, `skipscan-prefix-seek`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` and public default compiled companions.
 
@@ -801,13 +801,14 @@ whereexpr.c997–1023 /1827–1863 -> where-plan.ts prereq: relevant resolved SE
 ### Outer-constraint owner
 `wherecode.c`2740–2833 match/hit/BeginSubrtn/code_outer_join_constraints and `where.c:sqlite3WhereEnd`7525–7712 → `compileInnerTableSelect` invocation-local WHERE coded state, ready/LTORJ checks, post-hit shared body and owning continuation. Immutable `analyzeWhere(...,true)` publishes base identities; ON/virtual terms are excluded. LEFT NullRow re-enters constraint body; unmatched Gosub shares it, while drain extraction remains independently owned. `outer-constraints.test.mjs` native FIRST24 typed/all5/reset plus physical-position/error/work contracts; [R6 evidence](research/card-k-h-b-runtime/r6.md). No general optimizer or native work parity claim. `run-index-planner-ts.mjs` checks the LEFT matched/NullRow term count (five: one ON plus two WHERE checks per body entry); `select-scalar-child.test.mjs` retains enclosing-builder ownership with the zero-width range guard. Repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
 
-## Optional STAT4 loading (estimates pending)
+## Optional STAT4 loading and selectivity consumers
 
 `analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
 `schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
 and alias skip, original-order load and average initialization. Temporary stat1
 raw counts are discarded after loading; no-stat1 files can still load samples.
-Samples are not yet consumed for selectivity: no STAT4 cost/plan parity claim.
+Samples now feed the bounded literal equality/IN/scalar-range consumers;
+not a general STAT4 cost/plan parity claim.
 `sqliteInt.h:IndexSample` ownership maps to privately copied bytes (inspection
 returns copies), frozen count arrays, and connection/storage cache lifetime.
 `storage.ts` owns an internal checked logical schema envelope derived from the
@@ -822,7 +823,7 @@ extraction from existing Lemon semantic productions and all-slot Mem cleanup.
 NOTFOUND is not SQL NULL; parameters mark sensitivity and explicitly fall back
 (no initial binding plan-parity claim). Unsupported expressions/functions remain
 unavailable, not a parallel evaluator. Prefix scopes restore nField/nRecValid;
-consuming KeyStats/selectivity estimates remain pending.
+KeyStats/selectivity consumers map below.
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
 `stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive`, `stat4-probe-primitive` under `test/conformance`,
@@ -905,16 +906,62 @@ maps to `stat4-probe.ts` and `stat4-value-oracle.c`/`stat4-probe-primitive.test.
 `stat4-padded-record-oracle.c`/`stat4-padded-oracle.test.mjs`. Schema copy/count
 checks and prepare retry map to `stat4-prepare-controls.test.mjs` and lifecycle
 regressions. Detailed commands, identities and limits: [[card:card-s-h-b]] status.
-Consumers/selectivity estimates remain pending.
+Historical primitive-only checkpoint: consumers/selectivity estimates were pending at this verification stage; superseded by [current bounded callers](#stat4-selectivity-callers). Original primitive captures and failures remain in the cited owner evidence.
 
-### Sequential overflow payload ownership
+### STAT4 selectivity callers
 
-`btree.c:accessPayload` current-page fetch/copy before successor progression maps
-to `BtreeDatabase.payload` consuming `payloadChunks` (no eager discovery pass).
-Existing cycle/range/maxOverflowPages and strict terminal-link validation remain;
-the terminal check is project admission, not malformed-byte parity. Owning real
-loader/progress/primary-error and primitive controls:
-`docs/research/card-s-h/c-red/overflow-owner-red.test.mjs` and
-`overflow-order-owner.test.mjs`; storage coverage: `test/storage/btree-reader.test.mjs`.
-Adoption hashes/commands/results: [[card:card-s-h-b]] status; original consumer
-provenance: [request](research/card-s-h/c-red/overflow-adoption-request.md).
+- `where.c:whereLoopAddBtreeIndex` sPk exploration and `wherePathSatisfiesOrderBy`
+  complete obSat → ordinary rowid streaming proposals (shared with OR costing)
+  and full outer ORDER retention in `where-plan.ts`; independent public caller
+  typed rows/metadata/reset/qualitative work: `research/card-s-h/caller-first.test.mjs`,
+  [evidence](research/card-s-h/c-red/callers-progress.md). Partial joined ordering
+  remains conservative; not exact selected-index or VM-count parity.
+- `where.c:whereKeyStats` 1718ff → `stat4-estimate.ts`: virtual-prefix binary
+  search, comparison metadata extent, exact counts, unsigned gap interpolation.
+  `stat4-keystats-oracle.c` independently invokes the pinned internal routine;
+  `stat4-keystats.test.mjs` checks three encodings, DESC multicolumn virtual gaps,
+  overflow/zero counts, malformed comparator error channel and extent restoration.
+- `whereEqualScanEst/whereInScanEst/whereRangeScanEst`, AddBtreeIndex 3490ff →
+  `where-plan.ts:sampleFrames/sampleEquality/sampleRange/indexLoopEstimate`:
+  recursive proposal-owned extraction/restoration through insertion and children,
+  represented literals/IS/NULL/list IN, known contiguous prefixes, ordinary scalar ranges.
+  Frame-close/error and unavailable-member sibling controls are in
+  `stat4-keystats.test.mjs`.
+- `whereLoopOutputAdjust` 3088ff, second pass 7090ff and
+  `whereInterstageHeuristic` → builder truth sets, complete construction rebuild,
+  ordered solver search-preservation. Completed selections copy mutable flags
+  into frozen clause-owned arrays, including empty fallback publication;
+  `whereBegin`6865 initialization precedes fallback as well as AddAll: fresh
+  mutable carrier and matching empty publication ([fallback evidence](research/card-s-h/c-red/fallback-progress.md));
+  [publication evidence](research/card-s-h/c-red/publication-progress.md).
+  `public-first.test.mjs` tests actual public
+  rows/metadata/reset/errors and private selected cursor work; second-pass controls
+  are in `stat4-keystats.test.mjs`. `wherePathSolver`6168 empty-frontier
+  cleanup/error → `SqlParseError` (`SQLITE_ERROR`1 / `no query solution`), not
+  unsupported-construct fallback. Finite AddAll native controls:
+  [frontier evidence](research/card-s-h/c-red/frontier-progress.md).
+  `whereBeginError/whereInfoFree`7482 → `planWhere` failed invocation restores
+  prior owner carrier/frontier; [work/reservation unwind evidence](research/card-s-h/c-red/unwind-progress.md).
+
+- `vdbemem.c:valueNew/sqlite3Stat4ProbeFree` → `stat4-probe.ts` all-field
+  metadata/Mem reservation, per-slot lexical/value high-water reservation and
+  all-slot release; `storage.ts:reserveSchemaTemporary` checks the shared logical
+  schema envelope. `btree.ts` forwards connection ownership and `vdbe.ts` supplies
+  it to ordinary and selected OR-arm builders. Reservation/second-pass/work-error
+  controls are in `stat4-keystats.test.mjs`.
+
+Current bounded consumer limits: vector/function/subquery probes and skipscan
+sample range refinement remain untranslated; parameter sensitivity retains fallback,
+not sample costing or reprepare parity. AddAll limit initialization, nested carrier/
+frontier restoration and finite OR/join failure controls are delivered, not open
+primitive omissions. Exact selected schema/physical owner and whole-rebuild cleanup
+map to `research/card-s-h/d-diagnosis/selected-owner.test.mjs` and
+`rebuild-checkpoints.test.mjs`; schema failure/accounting and input identity map to
+`schema-checkpoints.test.mjs`, `schema-envelope.test.mjs`, `input-closure.test.mjs`.
+[Consuming source review and evidence](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+supersedes provisional integration status; historical
+[c consumer evidence](research/card-s-h/c-red/consumer-progress.md) retains provenance.
+Consumer owner [[card:card-s-h-c]]; loader/comparison owner [[card:card-s-h-b]].
+
+### Sequential STAT4 payload acquisition
+`btree.c:accessPayload` → `BtreeDatabase.payload` consumes existing `payloadChunks` with checked current-page copies before successor progression and finally closes traversal. Strict final-link validation remains project admission, not corrupt-byte oracle parity. Owner-order/lifecycle tests: `docs/research/card-s-h/c-red/overflow-{owner-red,order-owner}.test.mjs`, `d-diagnosis/payload-cleanup.test.mjs`; [independent evidence](research/card-s-h/d-diagnosis/README.md).

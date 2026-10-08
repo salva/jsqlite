@@ -734,7 +734,7 @@ Checkpoint43 where.c3037 residual output adjustment now runs after physical
 costing/before insertion for actual loops,skips used/virtual/unavailable terms,
 heuristic equality clamp. Source tests8/8,native cost branches3/3 after
 correcting owned stale internal output expectations,native rows unchanged.
-truthProb/HIGHTRUTH/LIKE/self-cull flags remain unrepresented,not full port.
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): truthProb/HIGHTRUTH/LIKE/self-cull flags remain unrepresented,not full port.
 Sixth checkpoint
 translates build.c2417/isDupColumn WR primary-key compaction before physical
 layout/default/stat1 publication: same column+collation retains first direction;
@@ -751,7 +751,7 @@ Ordinary lowering now maps table cursor columns through the physical primary
 index while covering columns remain mapped through chosen secondary; includes
 residual expressions and direct projection. Joined lowering remains uncertified.
 Unknown stat1 tails are ignored, noskipscan
-consumed by default stat1-supported skipped-prefix admission: hasStat1, !noSkipScan and duplicate LogEst>=42, with leading nullable positional slots. NULL slots represent skipped key ordinals, not SQL NULL terms. Unordered stat1 indexes may supply equality proposals but never physical ORDER BY credit (where.c5289). Default public companions now validate compiled skipped-prefix ordinary/joined/recursive-OR and WR paths against pinned native rows, columns, bindings/reset and strict cursor restarts, bounded evidence, not whole optimizer compatibility ([evidence](research/card-s-g/IMPLEMENTATION.md)); optional STAT4 samples are not consumed. Source low-multiplier unfavorable stat1 literal-IN proposals now carry IN_SEEKSCAN by default, with shared GE-only lowering and joined invocation invalidation tested against native-first ordinary/joined companions through public execution. Explicit-disabled control retains IN as residual on valid prefixes; default skipped-prefix lowering uses the shared strict physical-prefix restart owner. Normal IN earlyout/SeekHit/SeekEq fidelity remains open. Default ordinary index frames now share source insertion/recursive-return feedback with skip/OR; ordinary scalar transitive whereScanNext now feeds the same admission/lowering owners, preserving original RHS orientation/ready masks and residuals, with native-first public join/LEFT/NULL evidence; borrowed IN remains unadmitted (same evidence). Represented column NOTNULL now produces a linked virtual GT-NULL range (excluding rowid/IPK and outer-ON), with VNULL selectivity and source start/end NULL-guard exemption in ordinary/joined/OR consumers. Shared zero-constraint positioning emits Rewind/Last rather than an invalid empty seek; when constraints equal nSkip, initial/restart Column already positions the cursor and no suffix re-seek is emitted (wherecode2026). Joined/OR consumers retain positional prefix metadata independently of the positioning opcode; recursive OR arms receive no ORDER BY (wherecode2431), so outer DESC sorts results without reversing arm cursors; normal NULL end bounds exit before comparison; native-first NULL/caller companions cover the current bounded path. Unrepresented EXISTS transformation, borrowed IN, and full cost/order/resource matrix closure remain implementation gaps, not algorithm exceptions (same evidence). WHERE uses
+consumed by default stat1-supported skipped-prefix admission: hasStat1, !noSkipScan and duplicate LogEst>=42, with leading nullable positional slots. NULL slots represent skipped key ordinals, not SQL NULL terms. Unordered stat1 indexes may supply equality proposals but never physical ORDER BY credit (where.c5289). Default public companions now validate compiled skipped-prefix ordinary/joined/recursive-OR and WR paths against pinned native rows, columns, bindings/reset and strict cursor restarts, bounded evidence, not whole optimizer compatibility ([evidence](research/card-s-g/IMPLEMENTATION.md)); Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): optional STAT4 samples are not consumed. Source low-multiplier unfavorable stat1 literal-IN proposals now carry IN_SEEKSCAN by default, with shared GE-only lowering and joined invocation invalidation tested against native-first ordinary/joined companions through public execution. Explicit-disabled control retains IN as residual on valid prefixes; default skipped-prefix lowering uses the shared strict physical-prefix restart owner. Normal IN earlyout/SeekHit/SeekEq fidelity remains open. Default ordinary index frames now share source insertion/recursive-return feedback with skip/OR; ordinary scalar transitive whereScanNext now feeds the same admission/lowering owners, preserving original RHS orientation/ready masks and residuals, with native-first public join/LEFT/NULL evidence; borrowed IN remains unadmitted (same evidence). Represented column NOTNULL now produces a linked virtual GT-NULL range (excluding rowid/IPK and outer-ON), with VNULL selectivity and source start/end NULL-guard exemption in ordinary/joined/OR consumers. Shared zero-constraint positioning emits Rewind/Last rather than an invalid empty seek; when constraints equal nSkip, initial/restart Column already positions the cursor and no suffix re-seek is emitted (wherecode2026). Joined/OR consumers retain positional prefix metadata independently of the positioning opcode; recursive OR arms receive no ORDER BY (wherecode2431), so outer DESC sorts results without reversing arm cursors; normal NULL end bounds exit before comparison; native-first NULL/caller companions cover the current bounded path. Unrepresented EXISTS transformation, borrowed IN, and full cost/order/resource matrix closure remain implementation gaps, not algorithm exceptions (same evidence). WHERE uses
 explicit BigInt conversions and consumes immutable width/cost capabilities;
 synthetic IPK width3 is not a persistent index. DDL type token spans preserve
 immediate BLOB dimensions rather than inserting spaces. Fourth checkpoint
@@ -788,7 +788,7 @@ residual literal check; parentheses/unary signs recurse,only positive signed32
 INTEGER leaves qualify (not runtime hex64/folding). Source19/19. Fresh
 width1951:1476/475 and affected/resources178:177/1,zero skips/cancels.
 
-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers); other limitations and original results retained): Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
 where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
 No missing admitted shared-state consumer; no mutable clause workaround.
 SELFCULL consumer6606 Bloom generation unsupported,not width cost.
@@ -1296,13 +1296,27 @@ The shared WHERE prerequisite owner now follows only SELECT-bearing expression i
 ### Outer-join WHERE continuation ownership
 `wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending. The index-planner LEFT WHERE safety fixture counts ON once and two base terms on each matched/synthetic-null body entry (five residual checks); these private counts are not native allocator or VM-step parity. Fixture/source-assertion repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
 
-## Optional STAT4 loading (estimates pending)
+## Optional STAT4 loading and selectivity consumers
+
+Loading and the bounded consumers below are delivered. The
+[consuming source review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md) maps state,
+control/error ownership and finite independent committed evidence; its linked
+inventory retains superseded provisional integration results. No broader planner,
+parameter reprepare, native cost or exhaustive malformed/resource parity is implied.
 
 `analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
 `schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
 and alias skip, original-order load and average initialization. Temporary stat1
 raw counts are discarded after loading; no-stat1 files can still load samples.
-Samples are not yet consumed for selectivity: no STAT4 cost/plan parity claim.
+The current consumer uses samples for literal equality/IS/ISNULL, contiguous
+known multicolumn prefixes, represented literal-list IN, and ordinary scalar
+ranges. This bounded extent is not general STAT4 cost/plan parity. Ordinary
+rowid proposals now share the source sPk equivalence/range exploration used by
+OR cost proposals; equality does not suppress competing rowid ranges. A fully
+matched outer-loop ORDER list stays matched through inner loops; partial joined
+proofs remain conservative. Independent caller rows/metadata/reset and qualitative
+actual-work evidence (not exact VM counts) is in
+[caller progress](research/card-s-h/c-red/callers-progress.md).
 `sqliteInt.h:IndexSample` ownership maps to privately copied bytes (inspection
 returns copies), frozen count arrays, and connection/storage cache lifetime.
 `storage.ts` owns an internal checked logical schema envelope derived from the
@@ -1317,20 +1331,59 @@ extraction from existing Lemon semantic productions and all-slot Mem cleanup.
 NOTFOUND is not SQL NULL; parameters mark sensitivity and explicitly fall back
 (no initial binding plan-parity claim). Unsupported expressions/functions remain
 unavailable, not a parallel evaluator. Prefix scopes restore nField/nRecValid;
-consuming KeyStats/selectivity estimates remain pending. Numeric token extraction
+KeyStats uses the source virtual-prefix binary search, exact counts and
+anAvgEq gap interpolation; it does not sort a histogram. Builder-local probes
+restore active/valid prefixes and release all Mem slots on exit. Numeric token extraction
 preserves source spelling for TEXT affinity before numeric conversion; typed
 INTEGER/REAL results follow valueFromExpr rather than execution CAST alone.
 Count digits, outer btree payload copies and probe token work charge existing
-prepare checks. Full payload reconstruction consumes the existing
-`payloadChunks` overflow iterator sequentially: check before page fetch, then
-check/copy the current page before inspecting its successor. Current-copy primary
-failures therefore precede successor corruption; cycle/range/overflow-limit and
-strict terminal-link checks remain intact. The strict terminal-link check is
-existing admission behavior, not a claim of upstream malformed-byte parity.
-Standalone `overflowPages` discovery is unchanged and is not used by payload
-reconstruction. Host codecs/allocations remain synchronous (no event-loop
+prepare checks. Full payload reconstruction consumes `payloadChunks` sequentially: check before page fetch, then check/copy current bytes before successor inspection. Current-copy primary failures precede successor corruption; range/cycle/overflow-limit and strict terminal-link admission remain intact. Standalone discovery is not used by reconstruction. Strict unused-tail validation is a project malformed-file contract, not upstream corrupt-tail parity. See [independent cleanup evidence](research/card-s-h/d-diagnosis/README.md). Host codecs/allocations remain synchronous (no event-loop
 preemption). Internal source oracle tests cover padded malformed comparison and
 value extraction; public prepare failure/retry tests do not imply estimate parity.
+
+`where-plan.ts` translates sample caller gating before run costing, DESC
+bound swapping/inclusive prefix clamps/same-sample tuning, HIGHTRUTH/HEURTRUTH
+shared builder state, and a whole-loop second construction pass before solving.
+Each complete AddAll invocation initializes the source construction limit (20000,
+plus 1000 per source); second-pass rebuilding starts from that same limit, not
+from previously consumed lowering state. Empty construction frontiers report
+source `SQLITE_ERROR` / `no query solution`, not unsupported SQL; finite native
+controls are retained in [frontier evidence](research/card-s-h/c-red/frontier-progress.md).
+Nested use of a shared carrier restores
+the enclosing truth and insertion frontier on success/error. Failed outer
+invocations likewise discard their clause-local carrier and restore prior
+completed state; only successful outer invocations publish builder state.
+[Unwind evidence](research/card-s-h/c-red/unwind-progress.md) covers every checked
+work/reservation frontier in bounded hot/membership/range builders. The completed
+internal selection publishes frozen flag arrays owned by that clause, copied
+from the mutable builder sets; builder reuse cannot mutate earlier publication.
+RIGHT/FULL fallback initializes the same fresh reusable carrier before publishing
+empty flags, not stale prior-clause state. [Fallback lifecycle evidence](research/card-s-h/c-red/fallback-progress.md).
+Tests and
+source branch comparison: [publication evidence](research/card-s-h/c-red/publication-progress.md).
+Truth remains local
+to its clause invocation rather than leaking into a later selected-arm analysis.
+Equality proposal frames now own sample extraction through insertion and child
+recursion; frame-finally restores valid/active prefixes on sibling advance,
+generator close and work failure. Literal-list IN restores its inherited prefix
+per member; unavailable members discard the partial sample estimate.
+The ordered solver applies the source interstage heuristic only after the first
+solver selected leading equality/NULL/IN searches. Full-table scan penalty uses
+the source sample-present adjustment. Unknown/skip prefixes retain stat1 range
+fallback. Initial parameters remain unavailable for sample costing (no reprepare
+lifecycle); vector/function/subquery probes and skipscan sample refinement remain
+unimplemented. Production probes reserve all-field Mem/record metadata and
+conservative per-slot extraction/value high-water capacity in the existing
+connection schema envelope before allocation/extraction, releasing on all-slot
+ProbeFree. This logical allowance is not measured JS heap or maxPrivateBytes;
+capacity is held until builder exit, including unavailable expressions. Ordinary
+and selected OR-arm replanning use the same owner. Exhaustive construction-frontier,
+OR/join and failure-restoration coverage remain verification/implementation work;
+see [[card:card-s-h-c]] and [current repair evidence](research/card-s-h/c-red/reservation-progress.md).
+
+Tests: `stat4-keystats.test.mjs` (direct pinned internal oracle controls and
+production second pass), existing research `public-first.test.mjs` (public typed
+rows/metadata/errors and private actual cursor work).
 
 Tests: `stat4-count-primitive`, `stat4-average-primitive`,
 `stat4-loader-primitive`, `stat4-schema-lifecycle`, `stat4-comparison-primitive`, `stat4-probe-primitive` under `test/conformance`,

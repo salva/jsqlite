@@ -1,0 +1,122 @@
+[
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-1000"
+    ],
+    "result": "1|no query solution"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-999"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-998"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "0"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-8.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "20000"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-1000"
+    ],
+    "result": "1|no query solution"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-999"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-998"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "0"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16le.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "20000"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-1000"
+    ],
+    "result": "1|no query solution"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-999"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "-998"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "0"
+    ],
+    "result": "0|not an error"
+  },
+  {
+    "args": [
+      "docs/research/card-s-h/UTF-16be.db",
+      "SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=99",
+      "20000"
+    ],
+    "result": "0|not an error"
+  }
+]

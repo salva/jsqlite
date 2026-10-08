@@ -1,0 +1,28 @@
+✔ finite STAT4 runtime, source-based tests and acquired native inputs match explicit closure hashes (99.597778ms)
+✔ closure guard rejects altered native sample bytes rather than laundering mixed input evidence (21.333542ms)
+✔ second copy-chunk failure closes traversal before malformed successor and allows retry (6.083396ms)
+✔ partial final overflow page charges only requested bytes and closes exactly once (1.619848ms)
+✔ pre-fetch failure closes traversal without reading overflow, then same owner succeeds (0.846226ms)
+✔ UTF-8: every hot reconstruction progress boundary releases probe ownership and retries (319.603261ms)
+✔ UTF-16le: every hot reconstruction progress boundary releases probe ownership and retries (139.632862ms)
+✔ UTF-16be: every hot reconstruction progress boundary releases probe ownership and retries (90.629159ms)
+✔ UTF-8: every observed schema construction checkpoint preserves primary and same-owner retry (9844.361983ms)
+✔ UTF-16le: every observed schema construction checkpoint preserves primary and same-owner retry (9810.724173ms)
+✔ UTF-16be: every observed schema construction checkpoint preserves primary and same-owner retry (13928.224143ms)
+✔ UTF-8: native-selected ab owner survives hot/cold/prefix/range/IN alternation (245.871195ms)
+✔ UTF-16le: native-selected ab owner survives hot/cold/prefix/range/IN alternation (93.940698ms)
+✔ UTF-16be: native-selected ab owner survives hot/cold/prefix/range/IN alternation (55.940923ms)
+✔ UTF-8 real loader column_bytes before blob source bytes/counts and retry (71.586258ms)
+✔ UTF-8 public prepare typed rows despite malformed numeric sample records (153.425218ms)
+✔ UTF-16le real loader column_bytes before blob source bytes/counts and retry (25.006992ms)
+✔ UTF-16le public prepare typed rows despite malformed numeric sample records (31.429604ms)
+✔ UTF-16be real loader column_bytes before blob source bytes/counts and retry (21.02767ms)
+✔ UTF-16be public prepare typed rows despite malformed numeric sample records (21.176492ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34202.151357

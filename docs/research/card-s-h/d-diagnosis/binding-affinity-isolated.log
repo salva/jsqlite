@@ -1,0 +1,11 @@
+✔ UTF-8: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (1254.634267ms)
+✔ UTF-16le: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (809.860126ms)
+✔ UTF-16be: one STAT4 statement preserves binding affinity and BLOB/NULL distinctions (713.498511ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3284.304135

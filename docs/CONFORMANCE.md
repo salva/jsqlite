@@ -738,7 +738,7 @@ pass typed rows, forced alternatives and selected access/sorter accounting;
 `run-advanced-index-ts.test.mjs` pass 98/98 together. The latter's joined
 single-field IN expectation was corrected against independent pinned 3.53.4
 read-only EXPLAIN (join equality index seek; IN residual); it is not a
-multiple-probe credit. Unsupported stat4 and additional stat1 formats are not
+multiple-probe credit. Unrepresented STAT4 refinements and additional stat1 formats are not
 covered by the six fixture choices; no general planner parity is claimed.
 
 [[card:card-s-c-d-f]] regression checkpoint: the six stat-choice public cases
@@ -838,3 +838,29 @@ reset in all three encodings; physical trace/page-count tests run internally in
 Node. Whole-product compatibility and untested nullable/WR union optimizations
 are not implied. Candidate identities and fresh delivery gates are retained in
 [[card:card-s-f-c]] status.
+
+### Bounded STAT4 consumer verification
+
+Loading and bounded equality/prefix/literal-IN/scalar-range/HIGHTRUTH consumers
+are delivered. The [mapped consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+connects producers, caller restoration, cleanup and finite independent committed
+evidence. Exact selected Index/PhysicalIndex controls complement public typed
+rows/metadata/reset/error and qualitative cursor-work assertions; observed schema
+and rebuild checkpoints are swept for primary-error cleanup and same-owner retry.
+These establish bounded coverage, not exhaustive native cost/resource compatibility.
+
+`stat4-keystats.test.mjs` compares virtual-prefix/gap/count/error behavior against
+`stat4-keystats-oracle.c`, independently compiled with the pinned amalgamation.
+The retained captures allow ordinary runs without a native backend; optional
+`STAT4_KEY_ORACLE` reruns internal comparisons. Research `public-first.test.mjs`
+checks selected private actual cursor work and public typed rows/metadata/reset/
+errors across three encodings. These checks do not establish parameter plan parity
+or exhaustive caller/resource acceptance. Current extent and residuals:
+[guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers);
+[revision-bound commands/results](research/card-s-h/c-red/consumer-progress.md).
+Finite ordinary and OR/join consuming work/reservation unwind controls and native
+success/error frontier controls are retained in
+[OR lifecycle evidence](research/card-s-h/c-red/or-unwind-progress.md). Exact
+committed candidate integration checks are documented separately in
+[isolation evidence](research/card-s-h/c-red/isolation-progress.md); passing these
+bounded checks is not overflow discovery metering or independent review acceptance.

@@ -1,0 +1,29 @@
+✔ UTF-8/join-hot: independent public caller rows metadata reset and actual plan work (319.024726ms)
+✔ UTF-8/join-cold: independent public caller rows metadata reset and actual plan work (121.891462ms)
+✔ UTF-8/join-in: independent public caller rows metadata reset and actual plan work (55.212321ms)
+✔ UTF-8/or-cold: independent public caller rows metadata reset and actual plan work (216.179277ms)
+✔ UTF-8/or-hot: independent public caller rows metadata reset and actual plan work (315.761978ms)
+✔ UTF-8/competing-hot: independent public caller rows metadata reset and actual plan work (123.837905ms)
+✔ UTF-8/competing-cold: independent public caller rows metadata reset and actual plan work (24.112995ms)
+✔ UTF-16le/join-hot: independent public caller rows metadata reset and actual plan work (43.231477ms)
+✔ UTF-16le/join-cold: independent public caller rows metadata reset and actual plan work (57.124746ms)
+✔ UTF-16le/join-in: independent public caller rows metadata reset and actual plan work (35.592562ms)
+✔ UTF-16le/or-cold: independent public caller rows metadata reset and actual plan work (128.117642ms)
+✔ UTF-16le/or-hot: independent public caller rows metadata reset and actual plan work (228.236464ms)
+✔ UTF-16le/competing-hot: independent public caller rows metadata reset and actual plan work (94.81549ms)
+✔ UTF-16le/competing-cold: independent public caller rows metadata reset and actual plan work (25.829385ms)
+✔ UTF-16be/join-hot: independent public caller rows metadata reset and actual plan work (27.651064ms)
+✔ UTF-16be/join-cold: independent public caller rows metadata reset and actual plan work (24.851448ms)
+✔ UTF-16be/join-in: independent public caller rows metadata reset and actual plan work (38.575162ms)
+✔ UTF-16be/or-cold: independent public caller rows metadata reset and actual plan work (122.955862ms)
+✔ UTF-16be/or-hot: independent public caller rows metadata reset and actual plan work (198.198742ms)
+✔ UTF-16be/competing-hot: independent public caller rows metadata reset and actual plan work (84.176756ms)
+✔ UTF-16be/competing-cold: independent public caller rows metadata reset and actual plan work (18.946255ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3479.49244

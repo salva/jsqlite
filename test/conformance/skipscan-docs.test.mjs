@@ -37,6 +37,7 @@ test('public skipscan contract retains bounded callers and exclusions without di
   assert.match(contracts[0], /ordinary, joined and recursive-OR callers/);
   assert.match(contracts[0], /represented LEFT ON-OR/);
   assert.match(contracts[0], /RIGHT\/FULL/);
-  assert.match(contracts[0], /STAT4, transformed EXISTS producer admission, vectors\/subquery-IN/);
+  assert.match(contracts[0], /general STAT4 sample-parity/);
+  assert.match(contracts[0], /transformed EXISTS producer admission, vectors\/subquery-IN/);
   assert.match(contracts[0], /no public planner, ordering, timing or work-count guarantee/);
 });

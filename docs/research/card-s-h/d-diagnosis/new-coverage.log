@@ -1,0 +1,18 @@
+✔ copy failure on first overflow preserves primary before accessing malformed successor (2.996756ms)
+✔ sequential reader preserves exact payload and single read per overflow page (0.410244ms)
+✔ cycle/trailing/range/limit failures retain owning error provenance (0.764899ms)
+✔ every payload callback frontier preserves exact primary and same-reader retry (0.935393ms)
+✔ STAT4 loader checks progress between overflow discovery page visits (24.029228ms)
+✔ overflow consumer progress failure preserves primary, no publication, same-owner retry (16.767573ms)
+✔ real overflow successor corruption does not outrank current copy cancellation (10.590866ms)
+✔ second copy-chunk failure closes traversal before malformed successor and allows retry (3.290463ms)
+✔ partial final overflow page charges only requested bytes and closes exactly once (0.861281ms)
+✔ pre-fetch failure closes traversal without reading overflow, then same owner succeeds (0.466429ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 259.862411
