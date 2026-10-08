@@ -809,7 +809,12 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
         else if(sample.storageClass==="integer")mem.setInt64(sample.value);
         else if(sample.storageClass==="real")mem.setDouble(sample.value);
         try {
-          const bytes=sample.storageClass==="null"?new Uint8Array():sample.storageClass==="blob"||sample.storageClass==="text"?sample.bytes:mem.textBytes();
+          // analyze.c calls column_bytes (UTF8) before column_blob. ValueBytes
+          // preserves BLOB/NULL, but converts TEXT and stringifies numeric Mem
+          // in UTF8; the subsequent blob accessor returns those same bytes.
+          // Keep the conversion in this row's Mem owner through both passes.
+          if(sample.storageClass!=="blob"&&sample.storageClass!=="null")mem.stringify("utf-8");
+          const bytes=sample.storageClass==="null"?new Uint8Array():sample.storageClass==="blob"?sample.bytes:mem.textBytes();
           yield {name,neq:callbackText(values[2]!,database.encoding),nlt:callbackText(values[3]!,database.encoding),ndlt:callbackText(values[4]!,database.encoding),bytes};
         }finally{mem.release();}
       }while(cursor.next());
