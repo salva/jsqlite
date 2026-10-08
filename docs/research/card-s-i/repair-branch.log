@@ -1,0 +1,172 @@
+✔ UTF-8: native WR Case5 first/middle/final key union provenance (4.371292ms)
+✔ UTF-8/overlap: native typed public rows and reset (248.519362ms)
+✔ UTF-8/middle: native typed public rows and reset (91.455258ms)
+✔ UTF-8/nested: native typed public rows and reset (91.222475ms)
+✔ UTF-8/same-arm: native typed public rows and reset (58.896528ms)
+✔ UTF-8/null: native typed public rows and reset (69.467455ms)
+✔ UTF-8/inner: native typed public rows and reset (257.195898ms)
+✔ UTF-8/scalar: native typed public rows and reset (65.73081ms)
+✔ UTF-8/forced: native typed public rows and reset (161.570885ms)
+✔ UTF-8/not-indexed: native typed public rows and reset (53.32479ms)
+✔ UTF-8/no-rowid: native typed public rows and reset (12.879862ms)
+✔ UTF-8/whereI-3.0: native typed public rows and reset (20.490059ms)
+✖ UTF-8: WR selected owner immutable handoff (11.489645ms)
+✖ UTF-8: WR key-union opcode contract (19.265379ms)
+✔ UTF-16le: native WR Case5 first/middle/final key union provenance (1.176513ms)
+✔ UTF-16le/overlap: native typed public rows and reset (71.81045ms)
+✔ UTF-16le/middle: native typed public rows and reset (76.129549ms)
+✔ UTF-16le/nested: native typed public rows and reset (61.965022ms)
+✔ UTF-16le/same-arm: native typed public rows and reset (47.083171ms)
+✔ UTF-16le/null: native typed public rows and reset (45.26154ms)
+✔ UTF-16le/inner: native typed public rows and reset (217.700868ms)
+✔ UTF-16le/scalar: native typed public rows and reset (55.181246ms)
+✔ UTF-16le/forced: native typed public rows and reset (145.625038ms)
+✔ UTF-16le/not-indexed: native typed public rows and reset (42.779281ms)
+✔ UTF-16le/no-rowid: native typed public rows and reset (10.21106ms)
+✔ UTF-16le/whereI-3.0: native typed public rows and reset (13.623295ms)
+✖ UTF-16le: WR selected owner immutable handoff (14.712467ms)
+✖ UTF-16le: WR key-union opcode contract (13.216734ms)
+✔ UTF-16be: native WR Case5 first/middle/final key union provenance (1.648198ms)
+✔ UTF-16be/overlap: native typed public rows and reset (47.60782ms)
+✔ UTF-16be/middle: native typed public rows and reset (53.629119ms)
+✔ UTF-16be/nested: native typed public rows and reset (51.657243ms)
+✔ UTF-16be/same-arm: native typed public rows and reset (42.09371ms)
+✔ UTF-16be/null: native typed public rows and reset (48.274764ms)
+✔ UTF-16be/inner: native typed public rows and reset (252.244058ms)
+✔ UTF-16be/scalar: native typed public rows and reset (52.632349ms)
+✔ UTF-16be/forced: native typed public rows and reset (147.539812ms)
+✔ UTF-16be/not-indexed: native typed public rows and reset (45.937185ms)
+✔ UTF-16be/no-rowid: native typed public rows and reset (10.129481ms)
+✔ UTF-16be/whereI-3.0: native typed public rows and reset (9.158389ms)
+✖ UTF-16be: WR selected owner immutable handoff (10.794909ms)
+✖ UTF-16be: WR key-union opcode contract (11.017147ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 36
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3386.52211
+
+✖ failing tests:
+
+test at test/conformance/or-wr-boundary.test.mjs:70:2
+✖ UTF-8: WR selected owner immutable handoff (11.489645ms)
+  AssertionError [ERR_ASSERTION]: WR source must publish a primary-key union candidate
+  + actual - expected
+  
+  + 'index'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:74:44
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'index',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-wr-boundary.test.mjs:78:2
+✖ UTF-8: WR key-union opcode contract (19.265379ms)
+  AssertionError [ERR_ASSERTION]: first branch must not test prior keys
+  
+  0 !== 2
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:82:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-wr-boundary.test.mjs:70:2
+✖ UTF-16le: WR selected owner immutable handoff (14.712467ms)
+  AssertionError [ERR_ASSERTION]: WR source must publish a primary-key union candidate
+  + actual - expected
+  
+  + 'index'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:74:44
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'index',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-wr-boundary.test.mjs:78:2
+✖ UTF-16le: WR key-union opcode contract (13.216734ms)
+  AssertionError [ERR_ASSERTION]: first branch must not test prior keys
+  
+  0 !== 2
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:82:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-wr-boundary.test.mjs:70:2
+✖ UTF-16be: WR selected owner immutable handoff (10.794909ms)
+  AssertionError [ERR_ASSERTION]: WR source must publish a primary-key union candidate
+  + actual - expected
+  
+  + 'index'
+  - 'multi-or'
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:74:44
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'index',
+    expected: 'multi-or',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/conformance/or-wr-boundary.test.mjs:78:2
+✖ UTF-16be: WR key-union opcode contract (11.017147ms)
+  AssertionError [ERR_ASSERTION]: first branch must not test prior keys
+  
+  0 !== 2
+  
+      at file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:82:10
+      at withDb (file:///work/jsqlite2/test/conformance/or-wr-boundary.test.mjs:18:94)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

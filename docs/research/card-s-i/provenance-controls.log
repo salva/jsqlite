@@ -1,0 +1,44 @@
+✔ UTF-8: native WR Case5 first/middle/final key union provenance (4.04035ms)
+✔ UTF-8/overlap: native typed public rows and reset (167.995092ms)
+✔ UTF-8/middle: native typed public rows and reset (68.386621ms)
+✔ UTF-8/nested: native typed public rows and reset (89.400327ms)
+✔ UTF-8/same-arm: native typed public rows and reset (52.715078ms)
+✔ UTF-8/null: native typed public rows and reset (50.419345ms)
+✔ UTF-8/inner: native typed public rows and reset (190.334292ms)
+✔ UTF-8/scalar: native typed public rows and reset (47.803073ms)
+✔ UTF-8/forced: native typed public rows and reset (113.485109ms)
+✔ UTF-8/not-indexed: native typed public rows and reset (40.921043ms)
+✔ UTF-8/no-rowid: native typed public rows and reset (9.082166ms)
+✔ UTF-8/whereI-3.0: native typed public rows and reset (13.855509ms)
+✔ UTF-16le: native WR Case5 first/middle/final key union provenance (0.351445ms)
+✔ UTF-16le/overlap: native typed public rows and reset (56.220929ms)
+✔ UTF-16le/middle: native typed public rows and reset (65.202319ms)
+✔ UTF-16le/nested: native typed public rows and reset (73.931774ms)
+✔ UTF-16le/same-arm: native typed public rows and reset (39.076223ms)
+✔ UTF-16le/null: native typed public rows and reset (38.81435ms)
+✔ UTF-16le/inner: native typed public rows and reset (149.717267ms)
+✔ UTF-16le/scalar: native typed public rows and reset (24.912845ms)
+✔ UTF-16le/forced: native typed public rows and reset (105.557575ms)
+✔ UTF-16le/not-indexed: native typed public rows and reset (34.785552ms)
+✔ UTF-16le/no-rowid: native typed public rows and reset (7.019019ms)
+✔ UTF-16le/whereI-3.0: native typed public rows and reset (9.004942ms)
+✔ UTF-16be: native WR Case5 first/middle/final key union provenance (0.439381ms)
+✔ UTF-16be/overlap: native typed public rows and reset (38.641204ms)
+✔ UTF-16be/middle: native typed public rows and reset (46.056615ms)
+✔ UTF-16be/nested: native typed public rows and reset (41.805324ms)
+✔ UTF-16be/same-arm: native typed public rows and reset (32.755436ms)
+✔ UTF-16be/null: native typed public rows and reset (32.355135ms)
+✔ UTF-16be/inner: native typed public rows and reset (160.287934ms)
+✔ UTF-16be/scalar: native typed public rows and reset (39.844374ms)
+✔ UTF-16be/forced: native typed public rows and reset (107.23538ms)
+✔ UTF-16be/not-indexed: native typed public rows and reset (32.518044ms)
+✔ UTF-16be/no-rowid: native typed public rows and reset (6.551258ms)
+✔ UTF-16be/whereI-3.0: native typed public rows and reset (7.040066ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2453.286729
