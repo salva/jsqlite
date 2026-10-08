@@ -63,6 +63,19 @@ JSQLITE_PLAYWRIGHT=/path/to/playwright/index.mjs \
 JSQLITE_CHROMIUM=/path/to/chromium/chrome node test/demo/browser.test.mjs
 ```
 
+The worktree tests require emission before browser startup. After `npm ci`,
+`npm run build` supplies that prerequisite. For a fresh committed export without
+`dist`, set `SAIVAGE_CARD_WORK_ROOT` and `JSQLITE_TSC` to the existing pinned
+TypeScript 5.9.3 `bin/tsc` (or install the lock-pinned dev dependencies). Both
+`node --test test/demo/entry.test.mjs test/demo/browser.test.mjs` and the same
+files through `tools/test/integration.py` use the shared development-only
+`test/demo/prerequisite.mjs`. Integration emits sequentially before launching
+units; concurrent direct units sharing a work root serialize emission. Missing
+compiler/emission and browser page errors fail explicitly; no native/network
+fixture acquisition or timeout extension is used. Existing emitted source is
+reused; rebuild explicitly after source edits. `JSQLITE_DEMO_ROOT` selects an
+independently installed demo and is never rebuilt by this prerequisite.
+
 This starts a loopback static-file server and aborts non-origin browser requests.
 The test checks actual app controls, ordered typed rows, metadata positions,
 failed open, prepare/step failure and cleanup. One injected-handle test checks
