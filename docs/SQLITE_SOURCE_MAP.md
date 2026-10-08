@@ -558,7 +558,7 @@ reset/admission on reviewed source; sole causation is not proved and cancelled
 baselines supply no causal credit. Native-FIRST chronology is unchanged.
 ### Positional stat1 skip-scan
 
-where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. STAT4 sample estimates remain unimplemented.
+where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. Historical checkpoint (bounded STAT4 loading/HIGHTRUTH superseded by [current owners](#stat4-selectivity-callers); original admission evidence retained): STAT4 sample estimates were unimplemented at this positional-producer stage.
 
 wherecode.c925–960/1997–2099 and where.c7664ff → `where-prefix.ts` two-phase first/restart positioning and ordinary/joined/recursive-OR consumers in `vdbe.ts`: copy physical prefix before RHS/IN evaluation, strict GT/LT restart, physical keys without affinity conversion, IN exhaustion before prefix/final exit, equality NULL final versus bound NULL next, LEFT extension only after full exhaustion. `btree.ts` owns page-local seek and comparison-error conversion; VDBE owns registers/cache/control and operand cleanup. Tests: `skipscan-prefix-code`, `skipscan-position-owner`, `skipscan-prefix-seek`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` and public default compiled companions.
 
@@ -906,7 +906,7 @@ maps to `stat4-probe.ts` and `stat4-value-oracle.c`/`stat4-probe-primitive.test.
 `stat4-padded-record-oracle.c`/`stat4-padded-oracle.test.mjs`. Schema copy/count
 checks and prepare retry map to `stat4-prepare-controls.test.mjs` and lifecycle
 regressions. Detailed commands, identities and limits: [[card:card-s-h-b]] status.
-Consumers/selectivity estimates remain pending.
+Historical primitive-only checkpoint: consumers/selectivity estimates were pending at this verification stage; superseded by [current bounded callers](#stat4-selectivity-callers). Original primitive captures and failures remain in the cited owner evidence.
 
 ### STAT4 selectivity callers
 
