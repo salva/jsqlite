@@ -1,0 +1,28 @@
+✖ legacy closure current results count original test units separately from helper and companions (1.254786ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63.573326
+
+✖ failing tests:
+
+test at test/conformance/skipscan-legacy-evidence.test.mjs:11:1
+✖ legacy closure current results count original test units separately from helper and companions (1.254786ms)
+  AssertionError [ERR_ASSERTION]: report test units, not an unmeasured assertion count
+      at TestContext.<anonymous> (file:///work/jsqlite2/test/conformance/skipscan-legacy-evidence.test.mjs:18:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+FOCUSED_EXIT=1

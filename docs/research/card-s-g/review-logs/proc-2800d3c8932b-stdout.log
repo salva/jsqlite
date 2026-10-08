@@ -1,0 +1,21 @@
+fixtures 5.586 tests - no skips -
+/work/jsqlite2/.saivage/work/cards/card-s-g-c/legacy-independent/run/skipscan-native/primitive-companions 8.347 tests - no skips -
+/work/jsqlite2/.saivage/work/cards/card-s-g-c/legacy-independent/run/skipscan-native/primitive-companions 0.215 tests - no skips -
+/work/jsqlite2/.saivage/work/cards/card-s-g-c/legacy-independent/run/skipscan-native/primitive-companions 0.215 tests - no skips -
+/work/jsqlite2/.saivage/work/cards/card-s-g-c/legacy-independent/run/skipscan-native/primitive-companions 2.173 tests - no skips -
+/work/jsqlite2/.saivage/work/cards/card-s-g-c/legacy-independent/run/skipscan-native 1.823 tests - no skips -
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-compiled-copy.test.mjs'] 1.166 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-concurrent-copy.test.mjs'] 4.399 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-corruption-copy.test.mjs'] 0.716 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-memory-copy.test.mjs'] 4.359 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-recovery-copy.test.mjs'] 0.666 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-in-tail-producer.test.mjs'] 0.315 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-lowmul-producer.test.mjs'] 0.515 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-stat1-producer.test.mjs'] 0.416 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-tail-producer.test.mjs'] 0.315 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-wr-layout.test.mjs'] 0.315 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/conformance/skipscan-wr-tail-producer.test.mjs'] 0.315 tests 1 no skips True
+['--experimental-strip-types', '--test', 'test/storage/skipscan-prefix-seek.test.mjs'] 0.566 tests 14 no skips True
+['--experimental-strip-types', '--test', 'test/storage/skipscan-seekscan-vdbe.test.mjs'] 0.465 tests 3 no skips True
+original total 23 manifestsha 3a007bebe1a4677af71629594a7727c01c0e65e0ab158ce2b19e8b0a4fe1a91c captures 78
+noncandidate committed comparison 2115 drift []

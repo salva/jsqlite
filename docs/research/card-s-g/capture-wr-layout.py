@@ -4,7 +4,7 @@ import argparse,ctypes as C,importlib.util,json,pathlib,hashlib,sys
 sys.dont_write_bytecode=True
 ROOT=pathlib.Path(__file__).resolve().parents[3]
 s=importlib.util.spec_from_file_location('native',ROOT/'test/conformance/capture-index-planner.py');n=importlib.util.module_from_spec(s);s.loader.exec_module(n)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);a=p.parse_args();d=n.load(a.library);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text());assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId'];base=ROOT/'docs/research/card-s-g';variants=[]
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output-dir');a=p.parse_args();d=n.load(a.library);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text());assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId'];base=pathlib.Path(a.output_dir) if a.output_dir else ROOT/'docs/research/card-s-g';base.mkdir(parents=True,exist_ok=True);variants=[]
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  f=base/'wr-layout'/f'{enc.lower()}.db';f.parent.mkdir(exist_ok=True);assert not f.exists()
  db=C.c_void_p();assert d.sqlite3_open(str(f).encode(),C.byref(db))==0

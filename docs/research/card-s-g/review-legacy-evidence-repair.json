@@ -1,0 +1,8 @@
+{
+  "path": "docs/research/card-s-g-legacy-root-repair.md",
+  "superseded_prose": "Original eight files24 assertions pass (six scalar producer/layout tests, prefix seek14 including corruption, SeekScan3 encodings)",
+  "before_sha256": "e74bbfd30fe2654429bf1781338a366475d05b35c416cc9bbac26e4429b04e3b",
+  "after_sha256": "eb1e4d5c63986cd575ce0d8963b36cbec29c9a0d3f22836c10dcb31fe112fbd9",
+  "replacement": "Original eight files23 test units pass",
+  "scope": "single evidence count/terminology correction; executable delivery inputs unchanged; b/d must regenerate delivery hash"
+}

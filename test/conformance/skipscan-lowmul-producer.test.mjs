@@ -1,3 +1,4 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {createHash} from 'node:crypto';
 import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
 import {loadSchemaGraph} from '../../src/internal/schema.ts';
@@ -6,7 +7,7 @@ import {analyzeWhere,btreeLoops} from '../../src/internal/where-plan.ts';
 const root=new URL('../../docs/research/card-s-g/',import.meta.url),capture=JSON.parse(fs.readFileSync(new URL('lowmul-native.json',root),'utf8'));
 test('source low-multiplier SeekScan production and explicit-disabled residual alternatives',()=>{
  for(const v of capture.variants){
-  const bytes=fs.readFileSync(new URL(v.fixture,root));assert.equal(createHash('sha256').update(bytes).digest('hex'),v.sha256);
+  const bytes=fs.readFileSync(new URL(v.fixture,skipscanRoot(root)));assert.equal(createHash('sha256').update(bytes).digest('hex'),v.sha256);
   const owner=ImmutableStorage.open(new Uint8Array(bytes)),schema=loadSchemaGraph({[storageOwner]:owner});
   try{for(const c of v.cases){assert.ok(c.rows.length>0);if(c===v.cases[0])assert.ok(c.opcodes.some(op=>op.opcode==='SeekScan'));
    const resolved=expandAndResolveSelect(parseSql(c.sql).statement,schema),analysis=analyzeWhere(resolved),source=resolved.sources[0],index=schema.indexes.get('sa');

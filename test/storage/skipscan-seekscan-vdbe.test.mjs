@@ -1,8 +1,9 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {btreeFromStorage} from '../../src/internal/btree.ts';import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';import {loadSchemaGraph} from '../../src/internal/schema.ts';import {VdbeStatement} from '../../src/internal/vdbe.ts';
 const root=new URL('../../docs/research/card-s-g/',import.meta.url),capture=JSON.parse(fs.readFileSync(new URL('lowmul-native.json',root),'utf8'));
 for(const v of capture.variants)test(`production SeekScan wrapper ${v.encoding}`,async()=>{
- const storage=ImmutableStorage.open(new Uint8Array(fs.readFileSync(new URL(v.fixture,root)))),schema=loadSchemaGraph({[storageOwner]:storage}),database=btreeFromStorage(storage),physical=schema.indexes.get('sa').physical;
+ const storage=ImmutableStorage.open(new Uint8Array(fs.readFileSync(new URL(v.fixture,skipscanRoot(root))))),schema=loadSchemaGraph({[storageOwner]:storage}),database=btreeFromStorage(storage),physical=schema.indexes.get('sa').physical;
  // Known physical a/b equality prefix: native fixture nonempty, forward inclusive.
  const base=[{code:'OpenIndex',p1:schema.indexes.get('sa').rootPage,p2:1,physical},{code:'String',p1:'Alpha',p2:0},{code:'Integer',p1:1n,p2:1}];
  // Schema root owner naming is asserted rather than silently testing another tree.

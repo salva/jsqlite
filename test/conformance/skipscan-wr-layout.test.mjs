@@ -1,8 +1,9 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {createHash} from 'node:crypto';
 import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';import {loadSchemaGraph} from '../../src/internal/schema.ts';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';import {analyzeWhere,btreeLoops} from '../../src/internal/where-plan.ts';
 test('build.c WR duplicate PK compaction versus different-collation append owns skip ordinals',()=>{
- const root=new URL('../../docs/research/card-s-g/',import.meta.url),capture=JSON.parse(fs.readFileSync(new URL('wr-layout-native.json',root),'utf8'));
+ const root=skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url)),capture=JSON.parse(fs.readFileSync(new URL('wr-layout-native.json',root),'utf8'));
  for(const v of capture.variants){const bytes=fs.readFileSync(new URL(v.fixture,root));assert.equal(createHash('sha256').update(bytes).digest('hex'),v.sha256);const owner=ImmutableStorage.open(new Uint8Array(bytes));try{
   const schema=loadSchemaGraph({[storageOwner]:owner});
   assert.equal(schema.indexes.get('sqlite_autoindex_w_1').physical.declaredFieldCount,2,'duplicate primary key compacted');

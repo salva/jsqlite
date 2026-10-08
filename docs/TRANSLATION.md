@@ -1466,3 +1466,7 @@ checks and errors, not browser task scheduling. Decision, source comparison,
 exact program/work/type equivalence and repeated browser evidence: [scheduler
 evidence](research/card-h-e/green.md), [decision](research/card-h-e/decision.md).
 No SQL-plan or work-cap change, native-step parity or expanded SQL scope follows.
+
+`skipscan-closure.py --legacy` shared ROOT lane (stat1/WR included); missing input
+or nonzero component remains failure, not skip. [Bounded provenance and delivery
+status](research/card-s-g-legacy-root-repair.md); no engine/SQL scope expansion.

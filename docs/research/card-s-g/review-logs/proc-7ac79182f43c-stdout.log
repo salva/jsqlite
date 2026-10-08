@@ -1,0 +1,28 @@
+Actual final results: default proc-c89a7e5e9dca and explicit proc-7f355e11380b each exit0, six native generators0 plus13 files0, zero skips. Original eight files24 assertions pass (six scalar producer/layout tests, prefix seek14 including corruption, SeekScan3 encodings); five companions additionally pass. Default manifest SHA3893298cc02ece8854b1282cea4580c976b7da77fa493b9b5113f0b55d20e85a; explicit SHAc65d403ba9d6c399f9548b2a3e79a88309d84871da9ade612d1fb1aa7f01d35e. Unit caller3/3 and ROOT helper1/1 pass. proc-190386fbe4b4 independently checks every component log hash/exit and zero skip; `verification.json`. Index binary patch before/after identical. Scoped `delivery.patch` includes only own guide addition, not full dirty guide overlay; `delivery-inputs.json` lists work hashes. d must retain staged-deleted stat1/WR generators only through authorized explicit-path safe index; unknown deletions untouched.
+✖ legacy closure current results count original test units separately from helper and companions (1.319001ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63.334552
+
+✖ failing tests:
+
+test at test/conformance/skipscan-legacy-evidence.test.mjs:11:1
+✖ legacy closure current results count original test units separately from helper and companions (1.319001ms)
+  AssertionError [ERR_ASSERTION]: report test units, not an unmeasured assertion count
+      at TestContext.<anonymous> (file:///work/jsqlite2/test/conformance/skipscan-legacy-evidence.test.mjs:18:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

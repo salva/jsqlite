@@ -1,0 +1,13 @@
+Repaired note and unchanged guard hash verified; all14 executable overlays unchanged from independent native run.
+✔ skipscan map separates historical disabled callers from current production (1.249585ms)
+✔ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.524391ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (0.314508ms)
+✔ legacy closure current results count original test units separately from helper and companions (1.089663ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.903828

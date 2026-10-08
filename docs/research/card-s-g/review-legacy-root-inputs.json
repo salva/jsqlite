@@ -1,0 +1,32 @@
+{
+  "base": "91d39a74ccb537493e86ccde4dc71eab7c1dfc5d",
+  "patch_sha256": "61bdd27f870e0100f16c029d315da3e763efe36830cdb0fd9d3197c58af5b2c9",
+  "accepted_overlays": {
+    "test/skipscan-root.mjs": "b07d32371042cd7cf4085955484649d4f515e6b180880a24003a10b80abaad07",
+    "tools/test/skipscan-closure.py": "6284436a2cf2eb53002f100c76c53377b5679ea63c88547ba43cdbe7381e45e8",
+    "docs/research/card-s-g/capture-stat1-companions.py": "d7d36d64eb6fa81ebfc9ba607a3e19d56fcc3fb95516ed1d355d6af1cf580b2a",
+    "docs/research/card-s-g/capture-wr-layout.py": "837596544e02d464e50659ab1c6e8594fea528b1261c21091c0724f87ba8b324",
+    "test/conformance/skipscan-in-tail-producer.test.mjs": "b66f730a8f72f38c5958f77eeb8da15624d60b8f338c1fccfec548a06c2e7e0a",
+    "test/conformance/skipscan-lowmul-producer.test.mjs": "9391d71c0f201b54c75e388e00e6d2aca51de14067ad164b4320c668935da67a",
+    "test/conformance/skipscan-stat1-producer.test.mjs": "8565db52981af9a99e59354bad1b5e02273d472761307827a5c5d4dcf5c2fb88",
+    "test/conformance/skipscan-tail-producer.test.mjs": "4a9557641ec638a2093fe60f6355984ccdb5691fe6f50dc828b9460400932a84",
+    "test/conformance/skipscan-wr-layout.test.mjs": "c2c6eb288137f91117c5ba0f26529a60e3d0af62e44a09f72fcdef5823f77be8",
+    "test/conformance/skipscan-wr-tail-producer.test.mjs": "b53850ab3c39e5027cc68f0dd077cfd1686f0c9cebab34c08a5d9cd7010faf2a",
+    "test/storage/skipscan-prefix-seek.test.mjs": "09b3196a013fb671904c60c00424c9d489abb0021ec00176c886c48579a3fb57",
+    "test/storage/skipscan-seekscan-vdbe.test.mjs": "50622fe0b4c6d3ac7a0ee7278a3d798cfff93c7a7f6680a889a1e9177bae0599",
+    "test/skipscan-root.test.mjs": "3d5035e2c220c1c38333d26f8c079c8e9478a8c441b73cbd907c24be1769b958",
+    "test/skipscan-closure.test.py": "c8ec2b896dd938d70728d7d060c45b59392e6b4ca89e223d1d07cb1ccecd4c6e"
+  },
+  "manifest_sha256": "3a007bebe1a4677af71629594a7727c01c0e65e0ab158ce2b19e8b0a4fe1a91c",
+  "manifest_url": "work:///cards/card-s-g-c/legacy-independent/run/skipscan-closure/manifest.json",
+  "noncandidate_paths_checked": 2115,
+  "noncandidate_drift": [],
+  "original_tests": 23,
+  "companion_tests": 5,
+  "components": "6 native +13 files all completed0;78 capture hashes verified",
+  "bounds": {
+    "native": 180,
+    "file": 30,
+    "grace": 3
+  }
+}

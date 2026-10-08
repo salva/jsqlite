@@ -1,0 +1,12 @@
+✔ skipscan map separates historical disabled callers from current production (1.292078ms)
+✔ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.630897ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (0.289065ms)
+✔ legacy closure current results count original test units separately from helper and companions (1.041518ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.943575

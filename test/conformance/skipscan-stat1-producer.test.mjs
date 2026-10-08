@@ -1,9 +1,10 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {createHash} from 'node:crypto';
 import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
 import {loadSchemaGraph,sqliteLogEst} from '../../src/internal/schema.ts';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {analyzeWhere,btreeLoops} from '../../src/internal/where-plan.ts';
-const root=new URL('../../docs/research/card-s-g/stat1-companions/',import.meta.url),capture=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
+const root=new URL('stat1-companions/',skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url))),capture=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
 test('malformed stat1 is decoded before actual nullable-slot producer admission',()=>{
  for(const v of capture.variants){
   const bytes=fs.readFileSync(new URL(v.fixture.split('/').at(-1),root));assert.equal(createHash('sha256').update(bytes).digest('hex'),v.sha256);

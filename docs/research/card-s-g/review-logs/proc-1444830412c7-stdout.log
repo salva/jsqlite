@@ -1,0 +1,26 @@
+patching file test/skipscan-root.mjs
+patching file tools/test/skipscan-closure.py
+patching file docs/research/card-s-g/capture-stat1-companions.py
+patching file docs/research/card-s-g/capture-wr-layout.py
+patching file test/conformance/skipscan-in-tail-producer.test.mjs
+patching file test/conformance/skipscan-lowmul-producer.test.mjs
+patching file test/conformance/skipscan-stat1-producer.test.mjs
+patching file test/conformance/skipscan-tail-producer.test.mjs
+patching file test/conformance/skipscan-wr-layout.test.mjs
+patching file test/conformance/skipscan-wr-tail-producer.test.mjs
+patching file test/storage/skipscan-prefix-seek.test.mjs
+patching file test/storage/skipscan-seekscan-vdbe.test.mjs
+patching file test/skipscan-root.test.mjs
+patching file test/skipscan-closure.test.py
+patching file docs/TRANSLATION.md
+patching file docs/research/card-s-g-legacy-root-repair.md
+All14 tested overlays equal b export hashes; own patch applied to archived91d39a74.
+✔ explicit ROOT owns fixtures; absence is a failure, not legacy fallback (1.37833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.521894

@@ -1,3 +1,4 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -6,7 +7,7 @@ import {decodeRecord} from '../../src/internal/record.ts';
 import {KeyInfo,compareMem} from '../../src/internal/comparison.ts';
 import {Mem,memFromRawRecord} from '../../src/internal/mem.ts';
 
-const root=new URL('../../docs/research/card-s-g/primitive-companions/',import.meta.url);
+const root=new URL('primitive-companions/',skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url)));
 const native=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
 const pin=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url),'utf8'));
 assert.equal(native.sourceId,pin.sqliteSourceId);
@@ -61,9 +62,9 @@ test('strict seek releases unpacked cells when page descent fails and can be ret
 });
 
 test('strict seek owns malformed packed-key corruption and releases copied cells',()=>{
- const captured=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-g/corruption-companions/native.json',import.meta.url),'utf8'));
+ const captured=JSON.parse(fs.readFileSync(new URL('corruption-companions/native.json',skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url))),'utf8'));
  for(const variant of captured.variants.filter(v=>v.kind==='interior-record')){
-  const bytes=fs.readFileSync(new URL(`../../docs/research/card-s-g/corruption-companions/${variant.fixture}`,import.meta.url));
+  const bytes=fs.readFileSync(new URL(`corruption-companions/${variant.fixture}`,skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url))));
   const db=openBtreeDatabase(new Uint8Array(bytes)),cursor=db.indexCursor(variant.mutation.root);
   const info=new KeyInfo({encoding:db.encoding,totalFieldCount:3,keyFieldCount:2,terms:[{},{},{}]});
   for(let i=0;i<2;i++){

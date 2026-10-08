@@ -5,6 +5,10 @@ class Closure(unittest.TestCase):
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'closure-unit';work.mkdir(parents=True,exist_ok=True)
   self.assertEqual(closure.fixture_root(None,work),work/'skipscan-native')
   self.assertEqual(closure.fixture_root(str(work/'explicit'),work),work/'explicit')
+ def test_original_file_inventory(self):
+  self.assertEqual(len(closure.LEGACY_FILES),8)
+  self.assertEqual(len(set(closure.LEGACY_FILES)),8)
+  self.assertIn('test/storage/skipscan-seekscan-vdbe.test.mjs',closure.LEGACY_FILES)
  def test_missing_identity_and_hash_are_errors(self):
   root=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'closure-unit';root.mkdir(parents=True,exist_ok=True)
   pin={'sqliteSourceId':'pinned'}
