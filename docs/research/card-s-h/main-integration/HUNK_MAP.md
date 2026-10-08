@@ -425,3 +425,8 @@ diff --git a/test/conformance/stat4-keystats.test.mjs b/test/conformance/stat4-k
 diff --git a/test/conformance/where-plan-analysis.test.mjs b/test/conformance/where-plan-analysis.test.mjs
 
 @@ -1346,7 +1346,7 @@ test('cost rowid scanner follows column equivalence retaining original RHS prere
+
+
+Precise test dependency correction: original probe-first proposed planner facade not implemented (181/183 two missing seam failures); source primitives already in stat4-probe/stat4-estimate. Adapt harness to actual KeyInfo/Stat4Probe.withPrefix/values and KeyStats.sample/less/equal. Preserve exact-match/after-last/error/extent/all-slot/count expectations;3/3. No new runtime seam/export or algorithm. Pinned whereKeyStats1718 and vdbemem ProbeFree2194 reviewed alongside existing primitive source tests. Final runtime tree equals bafa7744 runtime exactly. Historical proposed-seam research remains provenance, not current failure.
+
+Diff-check full closure exit2 from8 trailing whitespace lines in retained verify-intersections.log; preserve raw log bytes rather than rewrite evidence. Production/test/current-doc diff-check0. Initial browser missing module then missing binary; installed purpose work-root Chromium. Initial OR/skipscan missing evidence failed;40 authenticated r1-external copies then3 missing companion assertions; exact acquired companion hashes retained, final271/271.

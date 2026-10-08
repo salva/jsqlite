@@ -1,0 +1,477 @@
+✔ utf8: branch constraint operand/overflow/reset ownership (450.487234ms)
+✔ utf16le: branch constraint operand/overflow/reset ownership (197.222464ms)
+✔ utf16be: branch constraint operand/overflow/reset ownership (151.140134ms)
+✔ R1 actual branch consumers receive invocation-local consumed terms (4.802286ms)
+✔ utf8: commuted-child selected consumption (324.179849ms)
+✔ utf16le: commuted-child selected consumption (143.830761ms)
+✔ utf16be: commuted-child selected consumption (170.746915ms)
+✔ utf8: correlated IN selected caller cancellation and complete replay (324.665025ms)
+✔ utf16le: correlated IN selected caller cancellation and complete replay (119.37806ms)
+✔ utf16be: correlated IN selected caller cancellation and complete replay (84.807166ms)
+✔ nested RowSet subroutines preserve enclosing continuation and invocation reset (14.685786ms)
+✔ cancelled nested RowSets release both owners, retain primary and permit reset replay (7.676558ms)
+✔ current Case5 guide has one tested/untested residual contract (6.06184ms)
+✔ utf8: production multi-or immutable planning handoff (218.297572ms)
+✔ utf8: shared-builder multi-or opcodes (100.095709ms)
+✔ utf8/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (64.465309ms)
+✔ utf8/where7-1.3: typed public rows, metadata, reset/rebind/clear (50.442728ms)
+✔ utf8/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (38.716568ms)
+✔ utf8/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (41.850899ms)
+✔ utf8/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (34.019476ms)
+✔ utf8/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (33.841002ms)
+✔ utf8/select1-8.1: typed public rows, metadata, reset/rebind/clear (32.279805ms)
+✔ utf8/unready-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (52.746278ms)
+✔ utf8/inner-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (37.704921ms)
+✔ utf8/common-rowid: typed public rows, metadata, reset/rebind/clear and selected work (red) (31.873621ms)
+✔ utf8/common-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (28.012551ms)
+✔ utf8/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (38.757772ms)
+✔ utf8/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (22.751035ms)
+✔ utf8/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (33.911458ms)
+✔ utf8/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (35.173917ms)
+✔ utf8/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (25.997513ms)
+✔ utf8/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (26.306683ms)
+✔ utf8/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (21.227314ms)
+✔ utf8/or-in-control: typed public rows, metadata, reset/rebind/clear (18.264097ms)
+✔ utf8/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (44.801457ms)
+✔ utf8/nested-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (40.784312ms)
+✔ utf8/inner-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (38.806628ms)
+✔ utf8/inner-in: typed public rows, metadata, reset/rebind/clear and selected work (red) (42.586449ms)
+✔ utf8/inner-in-empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (45.858072ms)
+✔ utf8/inner-in-composite: typed public rows, metadata, reset/rebind/clear and selected work (red) (48.453694ms)
+✔ utf8/correlated-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (51.218256ms)
+✔ utf8/inner-or-reset: typed public rows, metadata, reset/rebind/clear and selected work (red) (45.017548ms)
+✔ utf8/wr-control: typed public rows, metadata, reset/rebind/clear (44.94584ms)
+✔ utf8/left-on: typed public rows, metadata, reset/rebind/clear (41.63582ms)
+✔ utf8/right-on: typed public rows, metadata, reset/rebind/clear (29.431834ms)
+✔ utf8/full-on: typed public rows, metadata, reset/rebind/clear (35.251903ms)
+✔ utf8/error: typed public rows, metadata, reset/rebind/clear (13.82209ms)
+✔ utf8/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (33.629262ms)
+✔ utf8/rowid-affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (29.917809ms)
+✔ utf16le: production multi-or immutable planning handoff (13.456441ms)
+✔ utf16le: shared-builder multi-or opcodes (17.132181ms)
+✔ utf16le/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.209409ms)
+✔ utf16le/where7-1.3: typed public rows, metadata, reset/rebind/clear (13.666422ms)
+✔ utf16le/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (31.897361ms)
+✔ utf16le/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (30.510101ms)
+✔ utf16le/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (30.81707ms)
+✔ utf16le/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (22.547762ms)
+✔ utf16le/select1-8.1: typed public rows, metadata, reset/rebind/clear (14.163818ms)
+✔ utf16le/unready-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (58.918346ms)
+✔ utf16le/inner-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (58.11787ms)
+✔ utf16le/common-rowid: typed public rows, metadata, reset/rebind/clear and selected work (red) (33.158808ms)
+✔ utf16le/common-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (41.762716ms)
+✔ utf16le/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.420312ms)
+✔ utf16le/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.111163ms)
+✔ utf16le/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (21.200271ms)
+✔ utf16le/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (15.135973ms)
+✔ utf16le/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (44.991259ms)
+✔ utf16le/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (25.86478ms)
+✔ utf16le/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (25.663152ms)
+✔ utf16le/or-in-control: typed public rows, metadata, reset/rebind/clear (33.06715ms)
+✔ utf16le/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (31.406986ms)
+✔ utf16le/nested-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (63.820759ms)
+✔ utf16le/inner-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (48.718506ms)
+✔ utf16le/inner-in: typed public rows, metadata, reset/rebind/clear and selected work (red) (55.623274ms)
+✔ utf16le/inner-in-empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (42.65255ms)
+✔ utf16le/inner-in-composite: typed public rows, metadata, reset/rebind/clear and selected work (red) (45.659598ms)
+✔ utf16le/correlated-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (43.657433ms)
+✔ utf16le/inner-or-reset: typed public rows, metadata, reset/rebind/clear and selected work (red) (43.464864ms)
+✔ utf16le/wr-control: typed public rows, metadata, reset/rebind/clear (31.151215ms)
+✔ utf16le/left-on: typed public rows, metadata, reset/rebind/clear (22.78308ms)
+✔ utf16le/right-on: typed public rows, metadata, reset/rebind/clear (21.060226ms)
+✔ utf16le/full-on: typed public rows, metadata, reset/rebind/clear (39.368338ms)
+✔ utf16le/error: typed public rows, metadata, reset/rebind/clear (13.398556ms)
+✔ utf16le/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (18.118147ms)
+✔ utf16le/rowid-affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (22.627059ms)
+✔ utf16be: production multi-or immutable planning handoff (16.335925ms)
+✔ utf16be: shared-builder multi-or opcodes (37.899578ms)
+✔ utf16be/where7-1.2: typed public rows, metadata, reset/rebind/clear and selected work (red) (16.726169ms)
+✔ utf16be/where7-1.3: typed public rows, metadata, reset/rebind/clear (12.230199ms)
+✔ utf16be/where7-1.5: typed public rows, metadata, reset/rebind/clear and selected work (red) (12.839901ms)
+✔ utf16be/where7-1.6: typed public rows, metadata, reset/rebind/clear and selected work (red) (13.394798ms)
+✔ utf16be/where7-1.7: typed public rows, metadata, reset/rebind/clear and selected work (red) (15.383494ms)
+✔ utf16be/where9-1.2.1: typed public rows, metadata, reset/rebind/clear and selected work (red) (23.436764ms)
+✔ utf16be/select1-8.1: typed public rows, metadata, reset/rebind/clear (22.690293ms)
+✔ utf16be/unready-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (29.659887ms)
+✔ utf16be/inner-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (18.405454ms)
+✔ utf16be/common-rowid: typed public rows, metadata, reset/rebind/clear and selected work (red) (69.176901ms)
+✔ utf16be/common-cover: typed public rows, metadata, reset/rebind/clear and selected work (red) (28.323326ms)
+✔ utf16be/overlap: typed public rows, metadata, reset/rebind/clear and selected work (red) (16.04221ms)
+✔ utf16be/empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.126362ms)
+✔ utf16be/repeated-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.734894ms)
+✔ utf16be/and-residual: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.753361ms)
+✔ utf16be/range-desc: typed public rows, metadata, reset/rebind/clear and selected work (red) (17.160289ms)
+✔ utf16be/null-is: typed public rows, metadata, reset/rebind/clear and selected work (red) (14.223837ms)
+✔ utf16be/affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (18.545459ms)
+✔ utf16be/or-in-control: typed public rows, metadata, reset/rebind/clear (16.596685ms)
+✔ utf16be/recursive: typed public rows, metadata, reset/rebind/clear and selected work (red) (20.185427ms)
+✔ utf16be/nested-arm: typed public rows, metadata, reset/rebind/clear and selected work (red) (23.903212ms)
+✔ utf16be/inner-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (15.744707ms)
+✔ utf16be/inner-in: typed public rows, metadata, reset/rebind/clear and selected work (red) (16.30282ms)
+✔ utf16be/inner-in-empty: typed public rows, metadata, reset/rebind/clear and selected work (red) (18.018555ms)
+✔ utf16be/inner-in-composite: typed public rows, metadata, reset/rebind/clear and selected work (red) (26.598052ms)
+✔ utf16be/correlated-or: typed public rows, metadata, reset/rebind/clear and selected work (red) (16.776538ms)
+✔ utf16be/inner-or-reset: typed public rows, metadata, reset/rebind/clear and selected work (red) (11.830455ms)
+✔ utf16be/wr-control: typed public rows, metadata, reset/rebind/clear (7.941062ms)
+✔ utf16be/left-on: typed public rows, metadata, reset/rebind/clear (11.316775ms)
+✔ utf16be/right-on: typed public rows, metadata, reset/rebind/clear (9.937065ms)
+✔ utf16be/full-on: typed public rows, metadata, reset/rebind/clear (9.172235ms)
+✔ utf16be/error: typed public rows, metadata, reset/rebind/clear (6.366468ms)
+✔ utf16be/rebind: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.448468ms)
+✔ utf16be/rowid-affinity: typed public rows, metadata, reset/rebind/clear and selected work (red) (8.066042ms)
+✔ utf8: nested selected OR arm consumes recursive physical continuation (15.526079ms)
+✔ utf16le: nested selected OR arm consumes recursive physical continuation (12.251706ms)
+✔ utf16be: nested selected OR arm consumes recursive physical continuation (11.914028ms)
+✔ utf8: represented inner caller consumes selected OR plan (9.107467ms)
+✔ utf16le: represented inner caller consumes selected OR plan (8.610677ms)
+✔ utf16be: represented inner caller consumes selected OR plan (12.367844ms)
+✔ utf8: correlated selected OR arm retains ready outer prerequisite (14.69414ms)
+✔ utf16le: correlated selected OR arm retains ready outer prerequisite (9.895411ms)
+✔ utf16be: correlated selected OR arm retains ready outer prerequisite (9.673001ms)
+✔ utf8: represented inner selected OR executes IN arm restarts (14.774406ms)
+✔ utf16le: represented inner selected OR executes IN arm restarts (20.668662ms)
+✔ utf16be: represented inner selected OR executes IN arm restarts (14.366822ms)
+✔ utf8: streaming composite IN OR reset interrupts live arm continuation (16.027133ms)
+✔ utf16le: streaming composite IN OR reset interrupts live arm continuation (18.110696ms)
+✔ utf16be: streaming composite IN OR reset interrupts live arm continuation (19.310963ms)
+✔ utf8: composite IN OR early reset rebuilds inside-out arm iterators (18.73985ms)
+✔ utf16le: composite IN OR early reset rebuilds inside-out arm iterators (17.449214ms)
+✔ utf16be: composite IN OR early reset rebuilds inside-out arm iterators (20.524341ms)
+✔ utf8: correlated OR early reset reconstructs enclosing and shared-body continuations (12.264473ms)
+✔ utf16le: correlated OR early reset reconstructs enclosing and shared-body continuations (13.084443ms)
+✔ utf16be: correlated OR early reset reconstructs enclosing and shared-body continuations (16.170698ms)
+✔ utf8: OR runtime arm replanning excludes subquery residual from factored access (13.597454ms)
+✔ utf16le: OR runtime arm replanning excludes subquery residual from factored access (12.561067ms)
+✔ utf16be: OR runtime arm replanning excludes subquery residual from factored access (9.55527ms)
+✔ utf8: selected same-index OR retains common covering cursor (11.623858ms)
+✔ utf16le: selected same-index OR retains common covering cursor (10.969517ms)
+✔ utf16be: selected same-index OR retains common covering cursor (12.869281ms)
+✔ utf8: selected same-index OR common rowid uses index tail (11.913995ms)
+✔ utf16le: selected same-index OR common rowid uses index tail (14.971824ms)
+✔ utf16be: selected same-index OR common rowid uses index tail (11.704747ms)
+✔ utf8: represented inner common covering consumes retained cursor (15.402321ms)
+✔ utf16le: represented inner common covering consumes retained cursor (11.396759ms)
+✔ utf16be: represented inner common covering consumes retained cursor (10.61228ms)
+✔ utf8: selected OR unready residual ownership (17.513806ms)
+✔ utf16le: selected OR unready residual ownership (15.242679ms)
+✔ utf16be: selected OR unready residual ownership (18.814921ms)
+✔ utf8: selected OR lifecycle control and primary cleanup (18.147769ms)
+✔ utf8: selected OR private byte limit cleanup (7.821768ms)
+✔ utf16le: selected OR lifecycle control and primary cleanup (11.897485ms)
+✔ utf16le: selected OR private byte limit cleanup (7.690451ms)
+✔ utf16be: selected OR lifecycle control and primary cleanup (11.790923ms)
+✔ utf16be: selected OR private byte limit cleanup (7.545158ms)
+✔ utf8: selected OR REAL re-expansion and owned blob liveness (7.19316ms)
+✔ utf8: selected OR rowid affinity with owned original binding (7.978362ms)
+✔ utf16le: selected OR REAL re-expansion and owned blob liveness (10.122991ms)
+✔ utf16le: selected OR rowid affinity with owned original binding (8.463014ms)
+✔ utf16be: selected OR REAL re-expansion and owned blob liveness (7.190375ms)
+✔ utf16be: selected OR rowid affinity with owned original binding (8.127554ms)
+✔ utf8: selected OR timer cancellation during suspended execution (153.381453ms)
+✔ utf16le: selected OR timer cancellation during suspended execution (180.185381ms)
+✔ utf16be: selected OR timer cancellation during suspended execution (179.84258ms)
+✔ utf8: selected versus offpath index page corruption (26.181701ms)
+✔ utf16le: selected versus offpath index page corruption (19.156311ms)
+✔ utf16be: selected versus offpath index page corruption (19.404969ms)
+✔ utf8: selected OR multi-page movement is page local (948.1874ms)
+✔ utf16le: selected OR multi-page movement is page local (993.009802ms)
+✔ utf16be: selected OR multi-page movement is page local (990.862255ms)
+✔ utf8/selected OR tested-parent omission preserves volatile call ownership (13.167656ms)
+✔ utf16le/selected OR tested-parent omission preserves volatile call ownership (8.509145ms)
+✔ utf16be/selected OR tested-parent omission preserves volatile call ownership (10.706039ms)
+✔ utf8: prepared scalar selected OR owns seeks and first-row destination (25.924796ms)
+✔ utf16le: prepared scalar selected OR owns seeks and first-row destination (18.865521ms)
+✔ utf16be: prepared scalar selected OR owns seeks and first-row destination (17.502291ms)
+✔ utf8: joined rowid end owns level continuation 0 (10.116154ms)
+✔ utf16le: joined rowid end owns level continuation 0 (27.046466ms)
+✔ utf16be: joined rowid end owns level continuation 0 (10.709581ms)
+✔ utf8: joined rowid end owns level continuation 1 (8.589356ms)
+✔ utf16le: joined rowid end owns level continuation 1 (10.334752ms)
+✔ utf16be: joined rowid end owns level continuation 1 (8.749233ms)
+✔ utf8: joined rowid end owns level continuation 2 (9.787362ms)
+✔ utf16le: joined rowid end owns level continuation 2 (9.330696ms)
+✔ utf16be: joined rowid end owns level continuation 2 (9.381436ms)
+✔ utf8: joined end native reverse (8.458904ms)
+✔ utf8: joined end native correlated (9.028095ms)
+✔ utf8: joined end native in (9.022183ms)
+✔ utf8: joined end native left (8.136244ms)
+✔ utf8: joined end native right (8.824914ms)
+✔ utf8: joined end native empty (8.846748ms)
+✔ utf16le: joined end native reverse (13.237465ms)
+✔ utf16le: joined end native correlated (9.863395ms)
+✔ utf16le: joined end native in (8.715236ms)
+✔ utf16le: joined end native left (7.239748ms)
+✔ utf16le: joined end native right (8.061527ms)
+✔ utf16le: joined end native empty (9.169116ms)
+✔ utf16be: joined end native reverse (7.871761ms)
+✔ utf16be: joined end native correlated (9.399256ms)
+✔ utf16be: joined end native in (8.456299ms)
+✔ utf16be: joined end native left (7.231817ms)
+✔ utf16be: joined end native right (8.013788ms)
+✔ utf16be: joined end native empty (8.814099ms)
+✔ ordinary joined residual consumes tested OR identity (5.119926ms)
+✔ utf8: tested ordinary parent volatile/error ownership (297.78687ms)
+✔ utf16le: tested ordinary parent volatile/error ownership (157.877062ms)
+✔ utf16be: tested ordinary parent volatile/error ownership (145.533538ms)
+✔ utf8: unready AND arm truth survives selected parent and enclosing continuation (272.56839ms)
+✔ utf16le: unready AND arm truth survives selected parent and enclosing continuation (122.907373ms)
+✔ utf16be: unready AND arm truth survives selected parent and enclosing continuation (102.716642ms)
+compiled-prefix UTF-8 SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-8 SELECT a,b,c,d FROM t1 WHERE c=6 ORDER BY a,b {"ge/3":6,"gt/2":6}
+compiled-prefix UTF-8 SELECT id,a,b,c,z FROM s INDEXED BY sa WHERE b=? ORDER BY a DESC,c,id {"ge/2":12,"gt/1":12}
+compiled-prefix UTF-8 SELECT a,b,c FROM s INDEXED BY sa WHERE c=3 ORDER BY a DESC,b,c {"ge/3":12,"gt/2":12}
+compiled-prefix UTF-8 SELECT id,a,b,c,p FROM s INDEXED BY sa WHERE b>=2 AND b<3 ORDER BY a DESC,b,c,id {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (3,NULL,1,3) AND c>=5 ORDER BY a DESC,b,c,id {"ge/3":6,"gt/1":3}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-8 SELECT a,b,c FROM s INDEXED BY sa WHERE b=2 ORDER BY a ASC,c DESC {"le/2":3,"lt/1":3}
+compiled-prefix UTF-8 SELECT t1.d,s.id,s.a FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=? AND s.b=t1.c%4 ORDER BY t1.d,s.id {"ge/2":84,"gt/1":84}
+compiled-prefix UTF-8 SELECT t1.d,s.id FROM t1 LEFT JOIN s INDEXED BY sa ON s.b=99 WHERE t1.d=5 {"ge/2":21,"gt/1":21}
+compiled-prefix UTF-8 SELECT id,a,b,c,p FROM s WHERE (b=2 AND c>=5) OR c=6 ORDER BY id {"ge/3":15,"gt/1":3,"gt/2":12}
+compiled-prefix UTF-8 SELECT a,b FROM w WHERE b=17 {"ge/2":2,"gt/1":2}
+compiled-prefix UTF-8 SELECT a,b,c,p FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-8 SELECT a,b,c FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-8 SELECT id FROM s INDEXED BY sa WHERE b=99 {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16le SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16le SELECT a,b,c,d FROM t1 WHERE c=6 ORDER BY a,b {"ge/3":6,"gt/2":6}
+compiled-prefix UTF-16le SELECT id,a,b,c,z FROM s INDEXED BY sa WHERE b=? ORDER BY a DESC,c,id {"ge/2":12,"gt/1":12}
+compiled-prefix UTF-16le SELECT a,b,c FROM s INDEXED BY sa WHERE c=3 ORDER BY a DESC,b,c {"ge/3":12,"gt/2":12}
+compiled-prefix UTF-16le SELECT id,a,b,c,p FROM s INDEXED BY sa WHERE b>=2 AND b<3 ORDER BY a DESC,b,c,id {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (3,NULL,1,3) AND c>=5 ORDER BY a DESC,b,c,id {"ge/3":6,"gt/1":3}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16le SELECT a,b,c FROM s INDEXED BY sa WHERE b=2 ORDER BY a ASC,c DESC {"le/2":3,"lt/1":3}
+compiled-prefix UTF-16le SELECT t1.d,s.id,s.a FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=? AND s.b=t1.c%4 ORDER BY t1.d,s.id {"ge/2":84,"gt/1":84}
+compiled-prefix UTF-16le SELECT t1.d,s.id FROM t1 LEFT JOIN s INDEXED BY sa ON s.b=99 WHERE t1.d=5 {"ge/2":21,"gt/1":21}
+compiled-prefix UTF-16le SELECT id,a,b,c,p FROM s WHERE (b=2 AND c>=5) OR c=6 ORDER BY id {"ge/3":15,"gt/1":3,"gt/2":12}
+compiled-prefix UTF-16le SELECT a,b FROM w WHERE b=17 {"ge/2":2,"gt/1":2}
+compiled-prefix UTF-16le SELECT a,b,c,p FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-16le SELECT a,b,c FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-16le SELECT id FROM s INDEXED BY sa WHERE b=99 {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16be SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16be SELECT a,b,c,d FROM t1 WHERE c=6 ORDER BY a,b {"ge/3":6,"gt/2":6}
+compiled-prefix UTF-16be SELECT id,a,b,c,z FROM s INDEXED BY sa WHERE b=? ORDER BY a DESC,c,id {"ge/2":12,"gt/1":12}
+compiled-prefix UTF-16be SELECT a,b,c FROM s INDEXED BY sa WHERE c=3 ORDER BY a DESC,b,c {"ge/3":12,"gt/2":12}
+compiled-prefix UTF-16be SELECT id,a,b,c,p FROM s INDEXED BY sa WHERE b>=2 AND b<3 ORDER BY a DESC,b,c,id {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IN (3,NULL,1,3) AND c>=5 ORDER BY a DESC,b,c,id {"ge/3":6,"gt/1":3}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL {"ge/2":3,"gt/1":3}
+compiled-prefix UTF-16be SELECT a,b,c FROM s INDEXED BY sa WHERE b=2 ORDER BY a ASC,c DESC {"le/2":3,"lt/1":3}
+compiled-prefix UTF-16be SELECT t1.d,s.id,s.a FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=? AND s.b=t1.c%4 ORDER BY t1.d,s.id {"ge/2":84,"gt/1":84}
+compiled-prefix UTF-16be SELECT t1.d,s.id FROM t1 LEFT JOIN s INDEXED BY sa ON s.b=99 WHERE t1.d=5 {"ge/2":21,"gt/1":21}
+compiled-prefix UTF-16be SELECT id,a,b,c,p FROM s WHERE (b=2 AND c>=5) OR c=6 ORDER BY id {"ge/3":15,"gt/1":3,"gt/2":12}
+compiled-prefix UTF-16be SELECT a,b FROM w WHERE b=17 {"ge/2":2,"gt/1":2}
+compiled-prefix UTF-16be SELECT a,b,c,p FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-16be SELECT a,b,c FROM w INDEXED BY wc WHERE a COLLATE BINARY='Alpha' AND b<9 ORDER BY c DESC,b {"ge/2":7,"gt/1":7}
+compiled-prefix UTF-16be SELECT id FROM s INDEXED BY sa WHERE b=99 {"ge/2":3,"gt/1":3}
+✔ compiled skipped cursors against native-first companions (2506.592527ms)
+✖ selected skip scan concurrent connections isolate sorter ownership and saved errors (8.550725ms)
+✔ pinned deep equality ProgressCheck has a production construction owner (7.000771ms)
+✖ selected page-local skipscan corruption and untouched offpath index (2.021715ms)
+✔ skipscan map separates historical disabled callers from current production (2.265154ms)
+✔ linked NOTNULL mapping does not retain the superseded blanket full-range gap (1.001135ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (2.091456ms)
+✔ source proper-subset cost adjustment Cartesian branches through insertion (52.506728ms)
+✔ source insertion dominance and sort identity Cartesian branches for skip plans (75.423533ms)
+✔ production frontier preserves pinned list order, pruning and cost ties (274.229488ms)
+✖ source recursion consumes nested IN plus physical rowid suffix after skipped declared keys (1.812081ms)
+✖ source low-multiplier SeekScan production and explicit-disabled residual alternatives (4.762223ms)
+✖ selected skip scan sorter memory failure/reset and connection recovery (16.3785ms)
+✔ source skip recursion admission: stat1 duplicate60 (27.687439ms)
+✔ source skip recursion admission: producer flag disabled (2.807917ms)
+✔ source skip recursion admission: threshold42 (2.534672ms)
+✔ source skip recursion admission: threshold41 (2.600865ms)
+✔ source skip recursion admission: no stat1 (2.848997ms)
+✔ source skip recursion admission: noskipscan (3.459946ms)
+✔ skipped ordinal cannot credit suffix-only global order (6.128258ms)
+✔ multiple leading slots retain ordinal, unmultiplied output and surcharge (4.017115ms)
+✔ cost-only recursion sees suffix and restores enclosing insertion return (4.088514ms)
+✔ cost-only exhausted skip child clears set and consumes no phantom budget (4.468569ms)
+✔ without skip resize, insertion DONE remains owned by enclosing frame (7.488399ms)
+✔ each discarded cost proposal consumes budget; null slots do not create a physical choice (2.993899ms)
+✔ source IN unfavorable estimate rejects skipped proposal before insertion (10.511829ms)
+✔ source IN favorable estimate retains skipped positional suffix (2.276401ms)
+✔ canonical positional carrier has no independently dense plan state (1.193402ms)
+✔ ordinary recursive insertion observes source term order and resumes before skip (2.67264ms)
+✔ ordinary equality frame emits before deeper equality and consumes discarded proposal (2.09186ms)
+✔ unordered stat1 admits skip equality but never credits physical ordering (1.378395ms)
+✔ unordered skip cannot satisfy ORDER BY skipped leading column (2.485323ms)
+✔ source shared planner budget exact zero returns DONE without decrement or OR residue; nullable resize restores enclosing OK (1.301237ms)
+✔ ordinary and OR recursive producers debit the same exact BigInt budget (4.155216ms)
+✔ source NOTNULL analysis produces linked virtual lower bound (1.632436ms)
+✔ source stat1 admission and unordered order ownership Cartesian boundary (33.785059ms)
+✔ rowid ordering remains a separate scan owner without a declared IPK alias (10.471895ms)
+✔ where.c3595 deep equality construction checks control before recursion and propagates error, not DONE (31.293156ms)
+✔ shared OR construction control error preserves identity instead of normal insertion exhaustion (5.607436ms)
+✔ source skip recursion admission: stat1 duplicate60 (29.562992ms)
+✔ source skip recursion admission: threshold42 (3.064527ms)
+✔ source skip recursion admission: threshold41 (2.406207ms)
+✔ source skip recursion admission: no stat1 (2.771766ms)
+✔ source skip recursion admission: noskipscan (2.090188ms)
+✔ shared positioning owns zero-constraint forward/reverse transitions (2.936635ms)
+✔ source skipped-prefix-only start preserves positioned cursor without re-seek (0.374014ms)
+✔ no-reseek entry preserves first/restart columns and final exhaustion labels (0.859847ms)
+✔ selected skip scan native corruption and operation recovery (470.721194ms)
+Native/public comparison: 117 prepared cases; 0 failed executions/errors
+[]
+production seek directions { ge: 36 }
+✔ ordinary operands and same-source RHS agree with pinned native through public execution (3511.177289ms)
+node:fs:441
+    return binding.readFileUtf8(path, stringToFlags(options.flag));
+                   ^
+
+Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/stat1-companions/native.json'
+    at Object.readFileSync (node:fs:441:20)
+    at file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-stat1-producer.test.mjs:6:108
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/stat1-companions/native.json'
+}
+
+Node.js v24.18.0
+✖ test/conformance/skipscan-stat1-producer.test.mjs (529.553243ms)
+✖ source recursion consumes physical rowid suffix after skipped declared keys (1.648212ms)
+✖ build.c WR duplicate PK compaction versus different-collation append owns skip ordinals (3.107877ms)
+✖ source recursion consumes physical WR PK suffix after skipped declared keys (1.974453ms)
+ℹ tests 271
+ℹ suites 0
+ℹ pass 262
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8878.493386
+
+✖ failing tests:
+
+test at test/conformance/skipscan-concurrent-copy.test.mjs:13:1
+✖ selected skip scan concurrent connections isolate sorter ownership and saved errors (8.550725ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/primitive-companions/utf-8-18.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-concurrent-copy.test.mjs:22:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/primitive-companions/utf-8-18.db'
+  }
+
+test at test/conformance/skipscan-corruption-copy.test.mjs:10:1
+✖ selected page-local skipscan corruption and untouched offpath index (2.021715ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/corruption-companions/native.json'
+      at Object.readFileSync (node:fs:441:20)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-corruption-copy.test.mjs:11:148)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/corruption-companions/native.json'
+  }
+
+test at test/conformance/skipscan-in-tail-producer.test.mjs:7:1
+✖ source recursion consumes nested IN plus physical rowid suffix after skipped declared keys (1.812081ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-in-tail-producer.test.mjs:9:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+  }
+
+test at test/conformance/skipscan-lowmul-producer.test.mjs:7:1
+✖ source low-multiplier SeekScan production and explicit-disabled residual alternatives (4.762223ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-lowmul-producer.test.mjs:9:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+  }
+
+test at test/conformance/skipscan-memory-copy.test.mjs:11:1
+✖ selected skip scan sorter memory failure/reset and connection recovery (16.3785ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/primitive-companions/utf-8-18.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-memory-copy.test.mjs:18:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/r1-final/docs/research/card-s-g/primitive-companions/utf-8-18.db'
+  }
+
+test at test/conformance/skipscan-stat1-producer.test.mjs:1:1
+✖ test/conformance/skipscan-stat1-producer.test.mjs (529.553243ms)
+  'test failed'
+
+test at test/conformance/skipscan-tail-producer.test.mjs:7:1
+✖ source recursion consumes physical rowid suffix after skipped declared keys (1.648212ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-tail-producer.test.mjs:9:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+  }
+
+test at test/conformance/skipscan-wr-layout.test.mjs:4:1
+✖ build.c WR duplicate PK compaction versus different-collation append owns skip ordinals (3.107877ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/wr-layout/utf-8.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-wr-layout.test.mjs:6:50)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/wr-layout/utf-8.db'
+  }
+
+test at test/conformance/skipscan-wr-tail-producer.test.mjs:7:1
+✖ source recursion consumes physical WR PK suffix after skipped declared keys (1.974453ms)
+  Error: ENOENT: no such file or directory, open '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+      at Object.openSync (node:fs:561:18)
+      at Object.readFileSync (node:fs:445:35)
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/test/conformance/skipscan-wr-tail-producer.test.mjs:9:18)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/work/jsqlite2/.saivage/work/cards/card-s-h-d/main-committed/docs/research/card-s-g/fixtures/utf8-stat1.db'
+  }

@@ -1,0 +1,116 @@
+✔ UTF-8/join-hot: independent public caller rows metadata reset and actual plan work (218.457429ms)
+✔ UTF-8/join-cold: independent public caller rows metadata reset and actual plan work (60.408538ms)
+✔ UTF-8/join-in: independent public caller rows metadata reset and actual plan work (67.520963ms)
+✔ UTF-8/or-cold: independent public caller rows metadata reset and actual plan work (172.248655ms)
+✔ UTF-8/or-hot: independent public caller rows metadata reset and actual plan work (257.668718ms)
+✔ UTF-8/competing-hot: independent public caller rows metadata reset and actual plan work (84.594231ms)
+✔ UTF-8/competing-cold: independent public caller rows metadata reset and actual plan work (23.647451ms)
+✔ UTF-16le/join-hot: independent public caller rows metadata reset and actual plan work (31.680953ms)
+✔ UTF-16le/join-cold: independent public caller rows metadata reset and actual plan work (23.676999ms)
+✔ UTF-16le/join-in: independent public caller rows metadata reset and actual plan work (23.566137ms)
+✔ UTF-16le/or-cold: independent public caller rows metadata reset and actual plan work (119.422435ms)
+✔ UTF-16le/or-hot: independent public caller rows metadata reset and actual plan work (189.927472ms)
+✔ UTF-16le/competing-hot: independent public caller rows metadata reset and actual plan work (126.651864ms)
+✔ UTF-16le/competing-cold: independent public caller rows metadata reset and actual plan work (17.354372ms)
+✔ UTF-16be/join-hot: independent public caller rows metadata reset and actual plan work (23.02119ms)
+✔ UTF-16be/join-cold: independent public caller rows metadata reset and actual plan work (30.932197ms)
+✔ UTF-16be/join-in: independent public caller rows metadata reset and actual plan work (23.181419ms)
+✔ UTF-16be/or-cold: independent public caller rows metadata reset and actual plan work (90.263889ms)
+✔ UTF-16be/or-hot: independent public caller rows metadata reset and actual plan work (147.071373ms)
+✔ UTF-16be/competing-hot: independent public caller rows metadata reset and actual plan work (59.387256ms)
+✔ UTF-16be/competing-cold: independent public caller rows metadata reset and actual plan work (9.486926ms)
+✔ UTF-8 real loader column_bytes before blob source bytes/counts and retry (56.049794ms)
+✔ UTF-8 public prepare typed rows despite malformed numeric sample records (131.092386ms)
+✔ UTF-16le real loader column_bytes before blob source bytes/counts and retry (22.521408ms)
+✔ UTF-16le public prepare typed rows despite malformed numeric sample records (25.645287ms)
+✔ UTF-16be real loader column_bytes before blob source bytes/counts and retry (15.245818ms)
+✔ UTF-16be public prepare typed rows despite malformed numeric sample records (34.431756ms)
+✔ immutable 1MB Chinook indexed range join: exact native rows, reset and bounded repeated delivery (640.382696ms)
+ℹ pass=0 rows=211 elapsedMs=167.68
+ℹ pass=1 rows=211 elapsedMs=104.79
+ℹ pass=2 rows=211 elapsedMs=126.46
+✔ 8MB overflow-heavy indexed payload scan: exact native rows, reset and bounded repeated delivery (1098.077387ms)
+ℹ pass=0 rows=256 elapsedMs=289.82
+ℹ pass=1 rows=256 elapsedMs=274.87
+ℹ pass=2 rows=256 elapsedMs=260.70
+✔ private alpha: query a common STAT4 database utf8 (255.410869ms)
+✔ private alpha: query a common STAT4 database utf16le (110.820921ms)
+✔ private alpha: query a common STAT4 database utf16be (75.818492ms)
+✔ utf8: untrusted SQL/file failures leave native indexed query reusable (714.169611ms)
+✔ utf16le: untrusted SQL/file failures leave native indexed query reusable (383.639347ms)
+✔ utf16be: untrusted SQL/file failures leave native indexed query reusable (389.774536ms)
+✔ initAvgEq: final unique field, duplicate prefixes, stat1 denominator and fallback (17.415523ms)
+✔ initAvgEq: unsigned products wrap before signed assignment, uint64 sum wraps (0.456161ms)
+✔ active prefix shares Mem/KeyInfo; gap is CORRUPT channel, prefix equal seen (3.971244ms)
+✔ malformed numeric uses padding, text/blob overflow errors only in matching branch (0.64236ms)
+✔ header overflow returns error without eqSeen; check primary exception preserved (0.684805ms)
+✔ NOCASE prefix, blob distinction, descending and BIGNULL source flags (0.873253ms)
+✔ reserved types and zero header follow branch decisions, not blanket corruption (0.262197ms)
+✔ strict ordinary comparison does not adopt permissive sample decoding (0.597199ms)
+✔ decodeIntArray C NUL termination, nondigit and duplicate-row destination reuse (2.636864ms)
+✔ STAT4 primitive checkpoint locally supersedes pending consumers with delivered caller ownership (1.906531ms)
+✔ directly affected absent-sample and HIGHTRUTH checkpoints retain local supersession (2.846315ms)
+✔ utf8: native STAT4-enabled ANALYZE samples with stat1-only admission (288.576707ms)
+✔ utf16le: native STAT4-enabled ANALYZE samples with stat1-only admission (110.513417ms)
+✔ utf16be: native STAT4-enabled ANALYZE samples with stat1-only admission (73.129276ms)
+✔ UTF-8 KeyStats direct native virtual-prefix/gap controls (58.704438ms)
+✔ UTF-16le KeyStats direct native virtual-prefix/gap controls (29.364214ms)
+✔ UTF-16be KeyStats direct native virtual-prefix/gap controls (45.943926ms)
+✔ KeyStats throwing work callback restores active extent and valid prefix (17.256034ms)
+✔ production hot equality rebuilds every group with shared truth; cold prefix and range retain searches (51.452766ms)
+✔ KeyStats native overflow count/error controls (17.285034ms)
+✔ KeyStats native zero count/error controls (15.021949ms)
+✔ KeyStats native malformed count/error controls (11.038299ms)
+✔ production unavailable IN member preserves prefix fallback and sibling builder retry (20.793197ms)
+✔ recursive proposal frame closes child and parent sample scopes on stop/error (10.455154ms)
+✔ connection-owned probe reservations reject over-envelope and restore on all-slot free (7.787072ms)
+✔ production probe reservation releases on second pass and work failure, same owner retry (20.893123ms)
+✔ nested planning restores enclosing truth carrier and invocation construction limit (18.098686ms)
+✔ nested failed invocation restores truth, insertion frontier and outstanding probes (11.770691ms)
+✔ bounded source AddAll construction resets per invocation, retaining stop/error outcome (20.065157ms)
+✔ complete multi-group rebuild publishes immutable clause-owned truth independently of builder reuse (15.663185ms)
+✔ fallback selection publishes empty truth rather than a previous clause carrier (13.926796ms)
+✔ native finite AddAll frontier preserves SQLITE_ERROR rather than unsupported classification (19.796716ms)
+✔ every consuming work frontier unwinds second-pass and membership probes before same-owner retry (1532.237111ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 49 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 161 work frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 241 work frontiers
+ℹ SELECT id FROM t WHERE a IN (99,?1) AND b=4: 24 work frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 143 work frontiers
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE (x.a=0 OR x.a=99) AND y.a=0: 257 work frontiers
+✔ every consuming reservation frontier preserves primary memory failure and releases prior index builders (92.646042ms)
+ℹ SELECT x.id,y.id FROM t AS x CROSS JOIN t AS y WHERE x.a=0 AND y.a=0: 20 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b IN (7,8,10): 14 reservation frontiers
+ℹ SELECT id FROM t WHERE a=0 AND b>=7 AND b<=10: 14 reservation frontiers
+ℹ SELECT id FROM t WHERE (a=0 AND b=7) OR (a=99 AND b=4): 32 reservation frontiers
+✔ failed outer invocation does not publish partial clause truth over prior completed analysis (5.258056ms)
+✔ forced-index exhausted AddAll frontier retains native no-query-solution error channel (6.733036ms)
+✔ native OR and joined finite frontiers retain outcome and failed owner cleanup (210.281603ms)
+✔ two-pass NOCASE groups, physical WR duplicate alias capacity, original-order skip (3.732538ms)
+✔ internal envelope checks before allocation and pass/copy primary failures allow retry (1.944714ms)
+✔ count array missing values stay zero; raw empty/malformed samples are not decoded (0.500227ms)
+✔ checks occur after partial capacity/load/copy work and preserve primary errors (3.416169ms)
+✔ interleaved accepted index transitions recompute averages and finalize last owner (0.564591ms)
+✔ count digit production is checked during a single long count before record copy (6.820627ms)
+✔ pinned C padded malformed sample numeric comparison branch/error distinctions (4.43493ms)
+✔ public prepare schema work/cancellation/deadline failures permit same-open retry (177.868835ms)
+✔ source extraction literal/unary/cast/collate/NULL and honest NOTFOUND (19.564923ms)
+✔ builder-local prefixes restore on throwing scopes, all allocated slots release (2.453482ms)
+✔ source numerify negatives and hex integer width retain typed distinctions (5.22556ms)
+✔ failure preserves previous slot and nested scopes restore valid/prefix without claiming binding parity (2.615791ms)
+✔ pinned valueFromExpr token text affinity preserves out-of-range spelling, typed numeric affinity (13.672729ms)
+✔ large literal extraction charges checked token work before Mem allocation (14.584384ms)
+✔ low internal schema envelope failure leaves no cache, same-handle retry and close release (62.297844ms)
+✔ pass failures preserve primary error, unpublished bytes and retry on same owner (93.578765ms)
+✔ no stat1 still loads samples, WITHOUT ROWID aliases do not merge capacities (15.744898ms)
+✔ close during construction prevents publication and keeps primary failure (7.753929ms)
+✔ schema sample bytes are privately owned, published count arrays are frozen (8.506164ms)
+✔ outer stat4 btree payload copy is checked before unpublished schema construction (13.590881ms)
+ℹ tests 92
+ℹ suites 0
+ℹ pass 92
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3803.171644
