@@ -1,5 +1,5 @@
 {
-  "runtimeCommit": "ff4eabdfa526eee3489c9e781adddc7356ee0819",
+  "runtimeCommit": "393febafce7ce639bf280665a7c428ab360528f5",
   "boundary": "STAT4 affected suite; acquired research database/capture inputs, not all skipscan or all product tests",
   "sha256": {
     "src/generated/keyword-table.ts": "9342b13323eac570b2ebc31d1b87d6758b446474ca48d75649b908242fb73a19",
@@ -23,7 +23,7 @@
     "src/internal/record.ts": "f4946ce6e8288fdbc7acf77492fcacc533c0bd36c3dc537e0e2d30adb48653d9",
     "src/internal/resolve.ts": "0f080b133094ecd0fb3735367dc1092c5b9bfbb4ad45ac929cf6497dcae6bfe6",
     "src/internal/rowset.ts": "39bb03e21de5980fbd7a064b526ad9954690be8e3dec86f791e145957532e90a",
-    "src/internal/schema.ts": "137f75e54f34d45a8e49298328cf9b736b205801f63c7ada0812b10cb224fa68",
+    "src/internal/schema.ts": "67f5bc80b3f0e33404f3d5c3cb3881d0b88ccd53bf7fd53179b8db70c27053f2",
     "src/internal/select-compiler.ts": "28ec27c05ac53f145569c373c58cbb668f5f7e12161e57688471bb88f85492a0",
     "src/internal/select-program.ts": "d15e72d5e26c09b33f5716555ab6a3342ba221e1df489d1babd955adf2b87b55",
     "src/internal/sqlite-case.ts": "430b2b586b1461a062113bcd73ba26565d7a1ceef15d5330fda2f9488cb342f7",
@@ -100,6 +100,11 @@
     "docs/research/card-s-h/d-diagnosis/parameter-reset.test.mjs": "ede5d9ea70e483c3ff556b666893ac35649a6cd295b0a00023d657f175b20035",
     "docs/research/card-s-h/d-diagnosis/payload-cleanup.test.mjs": "1477e06a02df217bfe48be69f6060673d1c9c5634144e5dabbb1825081c2ad04",
     "docs/research/card-s-h/d-diagnosis/schema-checkpoints.test.mjs": "585735b3df5604737da9045ec24c2525c35ed6176ed6c47b5cd0ef6957600ffa",
-    "docs/research/card-s-h/d-diagnosis/schema-envelope.test.mjs": "f0af4f4610148c97351a6d49afe83cb15a2891881b2ceadcecbc65be8b65fa3e"
+    "docs/research/card-s-h/d-diagnosis/schema-envelope.test.mjs": "f0af4f4610148c97351a6d49afe83cb15a2891881b2ceadcecbc65be8b65fa3e",
+    "docs/research/card-s-h/r1-numeric/UTF-8.db": "97016a8a87e92a9875214fd7594d1966c777f787a13227d0dc88426c3e0be323",
+    "docs/research/card-s-h/r1-numeric/UTF-16le.db": "228600780f25b2e1f012edf6c6e341db9f0abc835a4e8909304e99103a6d2762",
+    "docs/research/card-s-h/r1-numeric/UTF-16be.db": "82cddf38a1270fa423e105a807d83f00b354dd4712c82574ecdd17c5f26e9280",
+    "docs/research/card-s-h/r1-numeric/loader.test.mjs": "94a4354de78f4822b1ab2a07f80d0e14bae8af2699821742b13a3137c7e7c0b4",
+    "docs/research/card-s-h/r1-numeric/oracle.c": "09003643c54e740bb73c5066b5bf13a9a3003aa770ac27ac2af7a6cc01735542"
   }
 }
