@@ -1302,7 +1302,8 @@ Loading and the bounded consumers below are delivered. The
 [consuming source review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md) maps state,
 control/error ownership and finite independent committed evidence; its linked
 inventory retains superseded provisional integration results. No broader planner,
-parameter reprepare, native cost or exhaustive malformed/resource parity is implied.
+native cost or exhaustive malformed/resource parity is implied. Bounded parameter
+reprepare is described below.
 
 `analyze.c:sqlite3AnalysisLoad/loadStatTbl/initAvgEq/decodeIntArray` →
 `schema.ts` physical Index-owned raw padded samples, NOCASE grouped capacity
@@ -1370,9 +1371,23 @@ per member; unavailable members discard the partial sample estimate.
 The ordered solver applies the source interstage heuristic only after the first
 solver selected leading equality/NULL/IN searches. Full-table scan penalty uses
 the source sample-present adjustment. Unknown/skip prefixes retain stat1 range
-fallback. Initial parameters remain unavailable for sample costing (no reprepare
-lifecycle); vector/function/subquery probes and skipscan sample refinement remain
-unimplemented. Production probes reserve all-field Mem/record metadata and
+fallback. Initial parameters remain unavailable for sample costing, while
+sample extraction records consulted variable slots in a uint32 expiration mask.
+Binding a masked slot (bit31 groups slots32+) or clearing any masked statement
+expires its program. The next step, under exclusive admission, reparses saved SQL
+and compiles with copied retained binding Mem exposed to the existing STAT4
+probe; affinity applies to the copy. Only successful compilation replaces the
+program/registers on the same public handle. Compiler failures retain old bindings
+and a saved error for reset/finalize. Connection-owned statistics-envelope
+exhaustion has explicit StorageLimitError provenance and maps to public limit
+with cause at initial prepare and lazy reprepare; arbitrary RangeError is not
+classified by the execution mapper. Unmasked binds and zero-mask programs do not
+recompile. This read-only preparation environment has no mutable schema retries
+or configurable native prep flags; one parameter expiration replacement is
+sufficient because compilation does not change the schema. Vector/function/
+subquery probes and skipscan sample refinement remain unimplemented. Native-first
+and current test evidence, including remaining verification gaps, is linked in
+[reprepare evidence](research/card-h-b-reprepare/README.md). Production probes reserve all-field Mem/record metadata and
 conservative per-slot extraction/value high-water capacity in the existing
 connection schema envelope before allocation/extraction, releasing on all-slot
 ProbeFree. This logical allowance is not measured JS heap or maxPrivateBytes;

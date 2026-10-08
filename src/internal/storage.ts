@@ -1,3 +1,7 @@
+export class StorageLimitError extends RangeError {
+  constructor(message: string) { super(message); this.name = "StorageLimitError"; }
+}
+
 export class StorageCorruptError extends Error {
   constructor(message: string) { super(message); this.name = "StorageCorruptError"; }
 }
@@ -30,7 +34,7 @@ export class ImmutableStorage {
   /** Checked connection-owned logical allocation, not measured host heap. */
   reserveSchemaTemporary(bytes: number): () => void {
     this.assertOpen();
-    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.schemaAllowance - this.#schemaBytes - this.#schemaTemporaryBytes) throw new RangeError("statistics allocation envelope exceeded");
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.schemaAllowance - this.#schemaBytes - this.#schemaTemporaryBytes) throw new StorageLimitError("statistics allocation envelope exceeded");
     this.#schemaTemporaryBytes += bytes;
     let live = true;
     return () => { if (live) { live = false; this.#schemaTemporaryBytes -= bytes; } };
@@ -39,7 +43,7 @@ export class ImmutableStorage {
   get schemaBytes(): number { return this.#schemaBytes; }
   publishSchema(bytes: number, cleanup: () => void): void {
     this.assertOpen();
-    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.schemaAllowance - this.#schemaTemporaryBytes) throw new RangeError("statistics allocation envelope exceeded");
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.schemaAllowance - this.#schemaTemporaryBytes) throw new StorageLimitError("statistics allocation envelope exceeded");
     this.#schemaBytes = bytes; this.#schemaCleanup = cleanup;
   }
 

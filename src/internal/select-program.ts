@@ -1,3 +1,4 @@
+import type {ReprepareContext} from './reprepare.ts';
 import type { BuiltinCollation } from "./comparison.ts";
 // select.c:sqlite3SelectDestInit and selectInnerLoop SRT_Output/SRT_Mem/
 // SRT_Exists. Program construction keeps addresses and register ranges within
@@ -18,8 +19,8 @@ export function reachesOwningReturn(ops:readonly {readonly code:string;readonly 
 export class SelectProgramBuilder<Op extends {readonly code:string}> {
   readonly ops:Op[]=[];
   /** where.c shared construction frontier, including selected arm replanning. */
-  readonly wherePlanBudget:{remaining:bigint;readonly progressCheck?:(()=>void)|undefined};
-  constructor(progressCheck?:(()=>void)|undefined){this.wherePlanBudget={remaining:20000n,progressCheck};}
+  readonly wherePlanBudget:{reprepare?:ReprepareContext;remaining:bigint;readonly progressCheck?:(()=>void)|undefined};
+  constructor(progressCheck?:(()=>void)|undefined,reprepare?:ReprepareContext){this.wherePlanBudget={remaining:20000n,progressCheck,...(reprepare?{reprepare}:{})};}
   registers=0;
   cursors=0;
   private labels=new Map<number,number>();

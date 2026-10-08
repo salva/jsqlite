@@ -1,3 +1,4 @@
+import {StorageLimitError} from './storage.ts';
 import { ExecutionTaskScheduler } from "./task-scheduler.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
@@ -216,6 +217,7 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
 }
 export interface ParameterDescriptor { readonly name: string | null }
 export interface Program {
+  readonly expmask?:number;
   readonly ops: readonly Op[];
   readonly registers: number;
   readonly columns: readonly ColumnMetadata[];
@@ -7186,8 +7188,8 @@ function misuse(message: string): never { throw new JSQLiteError("misuse", messa
 function range(): never { throw new JSQLiteError("sqlite", "column or parameter index out of range", { code: 25 }); }
 
 export class VdbeStatement implements Statement {
-  readonly #program: Program;
-  readonly #registers: Mem[];
+  #program: Program;
+  #registers: Mem[];
   readonly #onFinalize: () => void;
   readonly #admit: () => () => void;
   readonly #assertConnectionIdle: () => void;
@@ -7217,7 +7219,7 @@ export class VdbeStatement implements Statement {
   #inSets = new Map<number,{values:Mem[];bytes:number}>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
-  readonly #inverseAggregates: ReadonlySet<number>;
+  #inverseAggregates: ReadonlySet<number>;
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -7226,8 +7228,10 @@ export class VdbeStatement implements Statement {
   #currentTime: bigint|null = null;
   #privateAccounting:VdbePrivateAccounting=zeroPrivateAccounting();
   #executionStarted=false;
-  constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void) {
-    this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
+  #expired=false;
+  readonly recompile:((bindings:readonly Mem[],check:()=>void)=>Program)|undefined;
+  constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void, recompile?: (bindings:readonly Mem[],check:()=>void)=>Program) {
+    this.recompile=recompile;this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
@@ -7240,8 +7244,8 @@ export class VdbeStatement implements Statement {
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
-  bind(indexOrName: number | string, value: SqliteValue): void { this.#assertIdle(); if (this.#state !== "prepared") misuse("statement must be reset before binding"); const index = typeof indexOrName === "string" ? this.parameterIndex(indexOrName) : indexOrName; if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); let bound: Mem; try { bound = memFromPublic(value, this.#program.encoding); } catch (error) { throw new JSQLiteError("misuse", (error as Error).message, { cause: error }); } this.#bindings[index - 1]!.moveFrom(bound); }
-  clearBindings(): void { this.#assertIdle(); this.#bindings.forEach(value => value.setNull()); }
+  bind(indexOrName: number | string, value: SqliteValue): void { this.#assertIdle(); if (this.#state !== "prepared") misuse("statement must be reset before binding"); const index = typeof indexOrName === "string" ? this.parameterIndex(indexOrName) : indexOrName; if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); let bound: Mem; try { bound = memFromPublic(value, this.#program.encoding); } catch (error) { throw new JSQLiteError("misuse", (error as Error).message, { cause: error }); } this.#bindings[index - 1]!.moveFrom(bound); if(((this.#program.expmask??0)&(index>=32?0x80000000:1<<(index-1)))!==0)this.#expired=true; }
+  clearBindings(): void { this.#assertIdle(); this.#bindings.forEach(value => value.setNull()); if(this.#program.expmask)this.#expired=true; }
   async step(options: OperationOptions = {}): Promise<StepResult> {
     this.#assertIdle();
     if(!this.#executionStarted){const plan=this.#program.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};this.#executionStarted=true;}
@@ -7259,6 +7263,16 @@ export class VdbeStatement implements Statement {
     // ownership, and retain that ownership until the returned chain settles.
     return await Promise.resolve().then(async () => {
     try {
+      if(this.#expired){
+        if(!this.recompile)throw new JSQLiteError("internal","missing saved preparation context");
+        const replacement=this.recompile(this.#bindings,()=>{this.#checkControl(options,limit,started);this.#work++;});
+        if(replacement.parameters.length!==this.#bindings.length)throw new JSQLiteError("internal","reprepare parameter count changed");
+        const registers=Array.from({length:replacement.registers+1},()=>new Mem());
+        this.#halt();for(const value of this.#registers)value.release();
+        this.#program=replacement;this.#registers=registers;this.#pc=0;this.#expired=false;
+        this.#inverseAggregates=new Set(replacement.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
+        const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
+      }
       while (this.#pc < this.#program.ops.length) {
         this.#checkControl(options, limit, started);
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.yield(); this.#state = "running"; this.#checkControl(options, limit, started); }
@@ -7596,7 +7610,7 @@ export class VdbeStatement implements Statement {
     if (error instanceof LocalTimeUnavailableError) return new JSQLiteError("sqlite",error.message,{code:1,extendedCode:1,cause:error});
     if (error instanceof BtreeFormatError || error instanceof RecordFormatError)
       return new JSQLiteError("sqlite", error.message, { code: 11, extendedCode: 11, cause: error });
-    if (error instanceof BtreeLimitError || error instanceof PrivateStateLimitError)
+    if (error instanceof BtreeLimitError || error instanceof PrivateStateLimitError || error instanceof StorageLimitError)
       return new JSQLiteError("limit", error.message, { cause: error });
     return error;
   }

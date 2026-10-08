@@ -4982,3 +4982,14 @@ Current bounded LEFT ON-OR repair: planner follows where.c4835 RIGHT/FULL-only e
 ### Integration preservation recheck (b workspace, 2026-10-07)
 
 The d original225 red remains revision-bound evidence, not waived or deleted. Focused b repair restores eligible full-index insertion before dependent recursion; corrects source-biased GE private instrumentation and typed BigInt budget assertion; binds a minimal-realm construction clock. Fresh unchanged preservation312/312, source32/32, default skipscan92/92 and package isolated-VM pass; [diagnosis/commands/failed attempts](../research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07). No committed-MAIN225 or GUI-browser acceptance claimed; parent independent re-review/integration remains required. Subsequent d9 unchanged225224/1 and b source-owner control reconciliation analysis259/259 plus producer26/26/allvariant92/92 passes in workspace: full-index versus recursive DONE/debit controls are [reconciled in focused workspace evidence](../research/card-s-g/IMPLEMENTATION.md#d9-source-owner-controls-reconciled-2026-10-08); independent review and committed integration remain open. The earlier focused pass counts above are revision-bound, not current green.
+
+### Current bounded parameter reprepare correction
+
+The earlier unavailable-parameter costing boundary is superseded only for
+represented STAT4 sample probes. Existing planner sample owners now receive
+copied retained binding Mem on parameter expiration; zero-mask programs keep
+initial compilation. Saved-SQL reconstruction and same-handle replacement precede
+execution under exclusive admission, with failure preserving bindings/error
+ownership. Source paths and finite native/current evidence, including the failed
+full regression run, are in [reprepare evidence](../research/card-h-b-reprepare/README.md).
+This is not general schema reprepare or whole optimizer/plan equivalence approval.

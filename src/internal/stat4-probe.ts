@@ -1,6 +1,8 @@
+import type {ReprepareContext} from './reprepare.ts';
 // vdbemem.c:valueFromExpr/sqlite3Stat4ProbeSetValue/ProbeFree.
 // Extract only represented literal productions. NOTFOUND is distinct from NULL;
-// constant functions and initial parameter bindings are deliberately unavailable.
+// Constant functions and initial parameter bindings are unavailable. Reprepare
+// supplies copied bound Mem through the existing sample extraction owner.
 import type {LemonValue} from './lemon-runtime.ts';
 import type {SqlToken} from './tokenize.ts';
 import {Mem,memFromPublic,type MemAffinity} from './mem.ts';
@@ -9,21 +11,21 @@ import {columnTypeEstimate} from './schema.ts';
 import type {DatabaseEncoding} from './record.ts';
 function leaves(n:LemonValue<SqlToken>):SqlToken[]{return n.kind==='terminal'?[n.value]:n.children.flatMap(leaves)}
 function operand(n:Extract<LemonValue<SqlToken>,{kind:'reduction'}>):LemonValue<SqlToken>|undefined{return n.children.find(c=>c.kind==='reduction'&&(c.signature.startsWith('expr ::=')||c.signature.startsWith('term ::=')))}
-export function stat4ValueFromExpr(n:LemonValue<SqlToken>|undefined,affinity:MemAffinity,encoding:DatabaseEncoding,parameterSensitive:()=>void=()=>{},check:(units:number)=>void=()=>{}):Mem|null{
+export function stat4ValueFromExpr(n:LemonValue<SqlToken>|undefined,affinity:MemAffinity,encoding:DatabaseEncoding,parameterSensitive:()=>void=()=>{},check:(units:number)=>void=()=>{},reprepare?:ReprepareContext):Mem|null{
  check(1);if(!n||n.kind!=='reduction')return null;
  const sig=n.signature,t=leaves(n),child=operand(n);
  // Charge token processing/encoding before synchronous host allocations. This
  // is checked work accounting, not event-loop preemption of built-in codecs.
  if(t.length===1)for(let at=0;at<t[0]!.text.length;at+=4096)check(Math.min(4096,t[0]!.text.length-at));
- if(sig==='expr ::= VARIABLE'){parameterSensitive();return null;}
- if(sig==='expr ::= LP expr RP'||sig==='expr ::= expr COLLATE ID|STRING')return stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check);
+ if(sig==='expr ::= VARIABLE'){parameterSensitive();return reprepare?.value(t[0]!,affinity,encoding)??null;}
+ if(sig==='expr ::= LP expr RP'||sig==='expr ::= expr COLLATE ID|STRING')return stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check,reprepare);
  if(sig.startsWith('expr ::= CAST')){
   const at=t.findIndex(x=>x.text.toUpperCase()==='AS'),cast=columnTypeEstimate(t.slice(at+1,-1).map(x=>x.text).join(' ')).affinity;
-  const m=stat4ValueFromExpr(child,cast,encoding,parameterSensitive,check);if(!m)return null;
+  const m=stat4ValueFromExpr(child,cast,encoding,parameterSensitive,check,reprepare);if(!m)return null;
   try{m.cast(cast,encoding);m.applyAffinity(affinity,encoding);return m}catch(e){m.release();throw e}
  }
  if(sig==='expr ::= PLUS|MINUS expr'){
-  if(t[0]!.text==='+')return stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check);
+  if(t[0]!.text==='+')return stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check,reprepare);
   // Negative decimal numeric tokens are combined before parsing to preserve
   // -2^63. Hex and compound negatives use the source recursive branch.
   const inner=child&&leaves(child);
@@ -33,7 +35,7 @@ export function stat4ValueFromExpr(n:LemonValue<SqlToken>|undefined,affinity:Mem
    else m=memFromPublic(affinity==='text'?z:Number(z),encoding);
    try{m.applyAffinity(affinity,encoding);return m}catch(e){m.release();throw e}
   }
-  const m=stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check);if(!m)return null;
+  const m=stat4ValueFromExpr(child,affinity,encoding,parameterSensitive,check,reprepare);if(!m)return null;
   try{m.cast('numeric',encoding);
    if(m.initialStorageClass==='real')m.setDouble(-m.realValue());
    else if(m.initialStorageClass==='integer'){const i=m.integerValue();if(i===-(1n<<63n))m.setDouble(-Number(i));else m.setInt64(-i)}
@@ -53,6 +55,7 @@ export class Stat4Probe extends UnpackedRecordKey {
  nRecValid=0;
  parameterSensitive=false;
  readonly check:(units:number)=>void;
+ readonly reprepare:ReprepareContext|undefined;
  readonly reserve:((bytes:number)=>()=>void)|undefined;
  private reservations:(()=>void)[]=[];
  private slotCapacity:number[]=[];
@@ -67,10 +70,10 @@ export class Stat4Probe extends UnpackedRecordKey {
   if(this.releasedReservation)return;
   try{super.release();}finally{for(const release of this.reservations)release();this.reservations=[];this.releasedReservation=true;}
  }
- constructor(info:KeyInfo,check:(units:number)=>void=()=>{},reserve?:((bytes:number)=>()=>void)){
+ constructor(info:KeyInfo,check:(units:number)=>void=()=>{},reserve?:((bytes:number)=>()=>void),reprepare?:ReprepareContext){
   // Reserve before allocating the all-field Mem array, source valueNew.
   const release=reserve?.(64+64*info.totalFieldCount);
-  try{super(Array.from({length:info.totalFieldCount},()=>new Mem()),0,'stat4',info);}catch(error){release?.();throw error;}this.nField=0;this.check=check;this.reserve=reserve;if(release)this.reservations.push(release);
+  try{super(Array.from({length:info.totalFieldCount},()=>new Mem()),0,'stat4',info);}catch(error){release?.();throw error;}this.nField=0;this.reprepare=reprepare;this.check=check;this.reserve=reserve;if(release)this.reservations.push(release);
  }
  setLiteral(slot:number,value:null|bigint|number|string|Uint8Array):void{
   this.assertLive();if(!Number.isInteger(slot)||slot<0||slot>=this.values.length)throw new RangeError('probe slot out of range');
@@ -79,11 +82,11 @@ export class Stat4Probe extends UnpackedRecordKey {
  setExpression(slot:number,n:LemonValue<SqlToken>|undefined,affinity:MemAffinity):boolean{
   this.assertLive();if(!Number.isInteger(slot)||slot<0||slot>=this.values.length)throw new RangeError('probe slot out of range');
   // Conservative lexical bound includes codecs, token traversal and CAST
-  // scratch. Reserve before extraction; parameters remain unavailable.
+  // scratch. Bound values additionally reserve copied Mem/affinity capacity.
   let bytes=32;
-  const size=(node:LemonValue<SqlToken>):void=>{this.check(1);if(node.kind==='terminal')bytes+=node.value.text.length*8+32;else for(const child of node.children)size(child);};
+  const size=(node:LemonValue<SqlToken>):void=>{this.check(1);if(node.kind==='terminal')bytes+=node.value.text.length*8+32+(node.value.kind==='variable'?(this.reprepare?.bindingBytes(node.value)??0)*8:0);else for(const child of node.children)size(child);};
   if(n)size(n);this.reserveSlot(slot,bytes);
-  const m=stat4ValueFromExpr(n,affinity,this.keyInfo.encoding,()=>{this.parameterSensitive=true},this.check);
+  const m=stat4ValueFromExpr(n,affinity,this.keyInfo.encoding,()=>{this.parameterSensitive=true},this.check,this.reprepare);
   if(!m)return false;try{this.values[slot]!.moveFrom(m);return true}finally{m.release()}
  }
  withPrefix<T>(n:number,body:()=>T):T{

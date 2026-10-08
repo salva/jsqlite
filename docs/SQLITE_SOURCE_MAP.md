@@ -965,3 +965,20 @@ Consumer owner [[card:card-s-h-c]]; loader/comparison owner [[card:card-s-h-b]].
 
 ### Sequential STAT4 payload acquisition
 `btree.c:accessPayload` → `BtreeDatabase.payload` consumes existing `payloadChunks` with checked current-page copies before successor progression and finally closes traversal. Strict final-link validation remains project admission, not corrupt-byte oracle parity. Owner-order/lifecycle tests: `docs/research/card-s-h/c-red/overflow-{owner-red,order-owner}.test.mjs`, `d-diagnosis/payload-cleanup.test.mjs`; [independent evidence](research/card-s-h/d-diagnosis/README.md).
+### Parameter-sensitive STAT4 reprepare
+
+`vdbemem.c:sqlite3Stat4ProbeSetValue` TK_VARIABLE and
+`vdbeaux.c:sqlite3VdbeSetVarmask` → `reprepare.ts:ReprepareContext`,
+`stat4-probe.ts` and `where-plan.ts` existing equality/IN/range sample extraction.
+The enclosing `select-compiler.ts`/`SelectProgramBuilder` owns the context and
+publishes the mask. Initial preparation records slots with unavailable values;
+reprepare copies retained bound Mem and applies affinity in sample extraction.
+`vdbeapi.c:unbind/clear_bindings` → `VdbeStatement.bind/clearBindings` expiration;
+`prepare.c:sqlite3Reprepare`, `vdbeapi.c:sqlite3_step` retry/error ownership and
+`vdbeaux.c:sqlite3VdbeSwap/ResetStepResult`, binding transfer → saved preparation
+closure in `index.ts`, replacement before VM execution in `vdbe.ts`. Off-handle
+compile precedes replacement; public handle/binding owner survives. Immutable
+read-only schema means one expiration replacement, with no schema-change retry
+loop or configurable native prep flags. No new public handles are registered.
+Tests: `test/conformance/stat4-parameter-reprepare.test.mjs`; native/baseline/current
+and verification limits: [evidence](research/card-h-b-reprepare/README.md).

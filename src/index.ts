@@ -1,4 +1,4 @@
-import { ImmutableStorage, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
+import { ImmutableStorage, StorageLimitError, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
 import { aggregateShapeSupported, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
 import { compileSelect } from "./internal/select-compiler.ts";
@@ -213,6 +213,17 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
           const source = this.#source;
           if (source !== null) this.#finishClose(source);
         }
+      }, (bindings,check) => {
+        // prepare.c:sqlite3Reprepare: saved SQL is parsed again, with the old
+        // typed bindings visible only to sample-value extraction. No public
+        // handle is registered until the original prepare, or during retry.
+        check();
+        const reparsed=parseSql(sql,{maxWorkUnits:Math.max(1024,this.#limits.maxWorkUnits)});
+        if(reparsed.statement?.kind!=="select")failure("internal","saved SQL no longer produces SELECT");
+        const reselected=recursiveOwner===null?(lowerOrdinaryCtes(reparsed.statement)??reparsed.statement):reparsed.statement;
+        const replacement=compileSelect(reselected,schema,btreeFromConnection(this,this.#btreeLimits),recursiveEncoding,
+          this.#maxRows,this.#limits.maxWorkUnits,this.#limits.maxResultBytes,this.#limits.privateStateLimits,recursiveOwner!==null,check,bindings);
+        return this.#dateTimeEnvironment?{...replacement,dateTimeEnvironment:this.#dateTimeEnvironment}:replacement;
       });
       this.#statements.add(statement);
       return { statement, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
@@ -220,6 +231,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (error instanceof SqlUnsupportedError) return failure("unsupported", error.message, { unsupportedClassification: "temporary" });
       if (error instanceof SchemaFormatError) return failure("sqlite", error.message, { code: 11, cause: error });
       if (error instanceof SqlParseError) return failure("sqlite", error.message, { code: 1 });
+      if (error instanceof StorageLimitError) return failure("limit", error.message, {cause:error});
       if (error instanceof RangeError) return failure("limit", error.message);
       throw error;
     }

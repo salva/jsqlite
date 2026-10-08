@@ -463,8 +463,15 @@ Represented stat1 positional skip-scan is an internal access path for ordinary, 
 
 Optional STAT4 samples are an internal selectivity input for represented literal
 equality/IS/NULL, contiguous known prefixes, literal-list IN and scalar ranges.
-Parameters retain fallback (no reprepare/parameter plan-parity guarantee); vectors,
-function/subquery probes and skipscan sample range refinement remain unimplemented.
+Parameters initially use fallback. A binding consulted by represented STAT4
+sample costing expires the program; the next step recompiles saved SQL with
+retained typed bindings, preserving statement identity, metadata and tail.
+Clear bindings also expires a masked statement. Unrelated low-slot binds and
+zero-mask programs do not recompile; slots32+ share the native conservative mask
+bit. Compilation failure is saved for reset/finalize without losing bindings.
+This is bounded parameter-sensitive reprepare, not arbitrary native plan parity;
+vectors, function/subquery probes and skipscan sample range refinement remain
+unimplemented. See [source/evidence boundary](research/card-h-b-reprepare/README.md).
 This changes no public planner/timing/work-count or covering/affinity guarantee.
 Consumer loading, bounded sample costing and failure cleanup are delivered; finite
 independent committed verification and remaining limits are recorded in the
