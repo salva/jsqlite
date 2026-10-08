@@ -5,8 +5,10 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import { ensureDemoEngine } from './prerequisite.mjs';
 const { chromium } = await import(pathToFileURL(process.env.JSQLITE_PLAYWRIGHT ?? '/opt/saivage-jsqlite2/node_modules/playwright/index.mjs').href);
 const root = path.resolve(process.env.JSQLITE_DEMO_ROOT ?? process.cwd());
+await ensureDemoEngine(root);
 const expected = JSON.parse(fs.readFileSync(path.join(root, 'examples/browser/expected.json')));
 assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root, 'examples/browser/chinook.sqlite'))).digest('hex'), expected.fixture.sha256);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
@@ -25,7 +27,10 @@ try {
   page.on('pageerror', error => errors.push(String(error)));
   await page.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   await page.goto(origin + '/examples/browser/index.html');
-  await page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Ready'));
+  await Promise.race([
+    page.waitForFunction(() => document.querySelector('#status').textContent.startsWith('Ready')),
+    new Promise((_, reject) => page.once('pageerror', error => reject(Error(`demo startup: ${error}`)))),
+  ]);
   for (const c of expected.cases) {
     await page.selectOption('#example', c.id);
     await page.click('#run');

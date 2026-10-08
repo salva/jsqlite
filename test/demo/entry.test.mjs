@@ -1,6 +1,8 @@
 // Preserved acceptance reproducer from the red stage; now expected to pass.
 import fs from 'node:fs';
 import path from 'node:path';
+import { ensureDemoEngine } from './prerequisite.mjs';
+await ensureDemoEngine();
 const walk = p => fs.readdirSync(p,{withFileTypes:true}).flatMap(e => e.isDirectory() ? walk(path.join(p,e.name)) : [path.join(p,e.name)]);
 const files = walk('examples');
 const html = files.filter(p=>p.endsWith('.html'));

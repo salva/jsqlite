@@ -28,7 +28,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('files', nargs='*')
     p.add_argument('--jobs', type=int, default=1, help='positive file concurrency (default: serial; avoids resource contention)')
+    p.add_argument('--watchdog-seconds', type=int, default=30, help='positive per-file watchdog; recorded in manifest (default: 30)')
     args = p.parse_args()
+    if args.watchdog_seconds < 1:
+        p.error('--watchdog-seconds must be positive')
     if args.jobs < 1:
         p.error('--jobs must be positive')
     work = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']) / 'integration-run'
@@ -53,7 +56,7 @@ def main():
                   status=git('status', '--porcelain').decode(),
                   index_sha256=hashlib.sha256(git('ls-files', '--stage', '-z')).hexdigest(),
                   inputs=hashes, files=files, node=subprocess.check_output(['node','--version'],text=True).strip(),
-                  watchdog_seconds=30, concurrency=args.jobs, prerequisites=[], results=[])
+                  watchdog_seconds=args.watchdog_seconds, concurrency=args.jobs, prerequisites=[], results=[])
     def save():
         (work/'manifest.json').write_text(json.dumps(report, indent=2)+'\n')
     save()
@@ -70,9 +73,16 @@ def main():
             report['prerequisites'].append(result); save()
             if result['classification'] != 'completed':
                 report['not_run'] = files; save(); return 1
+    # Emit once sequentially before concurrent demo units launch a browser.
+    # Direct units use the same owner; installed-demo roots are never rebuilt.
+    if any(f in ('test/demo/entry.test.mjs', 'test/demo/browser.test.mjs') for f in files):
+        result = component(['node', 'test/demo/prerequisite.mjs'], work/'demo-prerequisite.log', args.watchdog_seconds, env)
+        report['prerequisites'].append(result); save()
+        if result['classification'] != 'completed':
+            report['not_run'] = files; save(); return 1
     def run(pair):
         i, file = pair
-        result = component(['node','--experimental-strip-types','--test',file], work/f'{i:03d}.log',30,env)
+        result = component(['node','--experimental-strip-types','--test',file], work/f'{i:03d}.log',args.watchdog_seconds,env)
         result['file'] = file
         return result
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
